@@ -568,34 +568,10 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return clipped;
     }
 
-    public static Color ParseColor(string? hexColor)
-    {
-        if (string.IsNullOrEmpty(hexColor) || hexColor == "auto")
-        {
-            return Color.Black;
-        }
-
-        if (hexColor.Length == 6 &&
-            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
-        {
-            return Color.FromPixel(new Rgb24(
-                (byte) ((rgb >> 16) & 0xFF),
-                (byte) ((rgb >> 8) & 0xFF),
-                (byte) (rgb & 0xFF)));
-        }
-
-        if (hexColor.Length == 8 &&
-            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var argb))
-        {
-            return Color.FromPixel(new Rgba32(
-                (byte) ((argb >> 16) & 0xFF),
-                (byte) ((argb >> 8) & 0xFF),
-                (byte) (argb & 0xFF),
-                (byte) ((argb >> 24) & 0xFF)));
-        }
-
-        return Color.Black;
-    }
+    public static Color ParseColor(string? hexColor) =>
+        hexColor.TryParseArgb(out var a, out var r, out var g, out var b)
+            ? Color.FromPixel(new Rgba32(r, g, b, a))
+            : Color.Black;
 
     public void Dispose()
     {

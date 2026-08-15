@@ -6,11 +6,6 @@ using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 static class OpenXmlExtensions
 {
     /// <summary>
-    /// Conversion constant: EMUs per point.
-    /// </summary>
-    public const double EmusPerPoint = 914400.0 / 72.0;
-
-    /// <summary>
     /// Materialises the builder's content with leading and trailing whitespace removed,
     /// trimming in place so only the final string is allocated (unlike
     /// <c>builder.ToString().Trim()</c>, which also allocates the untrimmed intermediate).
@@ -30,31 +25,6 @@ static class OpenXmlExtensions
 
         return builder.ToString(start, builder.Length - start);
     }
-
-    /// <summary>
-    /// Converts EMUs to points.
-    /// </summary>
-    public static double EmuToPoints(this long emus) => emus / EmusPerPoint;
-
-    /// <summary>
-    /// Converts EMUs (as double) to points. Used when EMU values have been scaled.
-    /// </summary>
-    public static double EmuToPoints(this double emus) => emus / EmusPerPoint;
-
-    /// <summary>
-    /// Converts half-points (used by w:sz, w:kern, w:position) to points.
-    /// </summary>
-    public static double HalfPointsToPoints(this double halfPoints) => halfPoints / 2.0;
-
-    /// <summary>
-    /// Converts half-points (used by w:sz, w:kern, w:position) to points.
-    /// </summary>
-    public static double HalfPointsToPoints(this int halfPoints) => halfPoints / 2.0;
-
-    /// <summary>
-    /// Converts half-points (used by w:sz, w:kern, w:position) to points.
-    /// </summary>
-    public static double HalfPointsToPoints(this uint halfPoints) => halfPoints / 2.0;
 
     /// <summary>
     /// Returns true when an OnOff-style element is present and not explicitly set to false.

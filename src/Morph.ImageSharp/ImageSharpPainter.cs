@@ -14,8 +14,6 @@
 /// </summary>
 static class ImageSharpPainter
 {
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching ImageSharpShapeDrawing.
-    const float emusPerPoint = 12700f;
 
     public static void Paint(LaidOutDocument document, ImageSharpRenderContext context, Action<Action<Stream>> pageCallback)
     {
@@ -314,7 +312,7 @@ static class ImageSharpPainter
                     (startX, endX) = (endX, startX);
                 }
 
-                var strokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale;
+                var strokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / OoxmlUnits.EmusPerPointF : 0.75) * context.Scale;
                 var linePen = new SolidPen(new PenOptions(ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth)
                 {
                     StrokeOptions = new()
@@ -355,7 +353,7 @@ static class ImageSharpPainter
 
             if (shape.LineWidthEmu > 0)
             {
-                var strokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale;
+                var strokeWidth = (float) (shape.LineWidthEmu / OoxmlUnits.EmusPerPointF) * context.Scale;
                 canvas.Draw(context.GetPen(ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth), path);
             }
         }

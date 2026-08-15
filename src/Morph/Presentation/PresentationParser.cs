@@ -21,7 +21,6 @@ using P = DocumentFormat.OpenXml.Presentation;
 /// </summary>
 sealed class PresentationParser(string defaultFont)
 {
-    const double emusPerPoint = 914400.0 / 72.0;
 
     /// <summary>Default 4:3 slide, used when a package declares no <c>p:sldSz</c>.</summary>
     const long defaultSlideWidthEmu = 9144000;
@@ -69,8 +68,8 @@ sealed class PresentationParser(string defaultFont)
         var size = presentation.SlideSize;
         var pageSettings = new PageSettings
         {
-            WidthPoints = (size?.Cx?.Value ?? defaultSlideWidthEmu) / emusPerPoint,
-            HeightPoints = (size?.Cy?.Value ?? defaultSlideHeightEmu) / emusPerPoint,
+            WidthPoints = (size?.Cx?.Value ?? defaultSlideWidthEmu) / OoxmlUnits.EmusPerPoint,
+            HeightPoints = (size?.Cy?.Value ?? defaultSlideHeightEmu) / OoxmlUnits.EmusPerPoint,
             MarginTop = 0,
             MarginBottom = 0,
             MarginLeft = 0,

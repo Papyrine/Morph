@@ -417,37 +417,10 @@ sealed class SkiaRenderContext(
         return bitmap;
     }
 
-    public static SKColor ParseColor(string? hexColor)
-    {
-        if (string.IsNullOrEmpty(hexColor) ||
-            hexColor == "auto")
-        {
-            return SKColors.Black;
-        }
-
-        if (hexColor.Length == 6 &&
-            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var rgb))
-        {
-            return new(
-                (byte) ((rgb >> 16) & 0xFF),
-                (byte) ((rgb >> 8) & 0xFF),
-                (byte) (rgb & 0xFF)
-            );
-        }
-
-        if (hexColor.Length == 8 &&
-            uint.TryParse(hexColor, NumberStyles.HexNumber, null, out var argb))
-        {
-            return new(
-                (byte) ((argb >> 16) & 0xFF),
-                (byte) ((argb >> 8) & 0xFF),
-                (byte) (argb & 0xFF),
-                (byte) ((argb >> 24) & 0xFF)
-            );
-        }
-
-        return SKColors.Black;
-    }
+    public static SKColor ParseColor(string? hexColor) =>
+        hexColor.TryParseArgb(out var a, out var r, out var g, out var b)
+            ? new(r, g, b, a)
+            : SKColors.Black;
 
     public void Dispose()
     {

@@ -22,7 +22,6 @@ using XDR = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 /// </summary>
 sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser textParser, Func<OpenXmlPart, byte[]> partBytes)
 {
-    const double emusPerPoint = 914400.0 / 72.0;
 
     /// <summary>
     /// The sheet's drawings as absolutely positioned floats, in document order (which is z-order).
@@ -170,7 +169,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                 VerticalAnchor = VerticalAnchor.Paragraph,
                 BackgroundColorHex = fill,
                 LineColorHex = lineColor,
-                LineWidthPoints = outline?.Width?.Value is { } width ? width / emusPerPoint : 0,
+                LineWidthPoints = outline?.Width?.Value is { } width ? width / OoxmlUnits.EmusPerPoint : 0,
                 RelativeHeight = ordinal
             };
         }
@@ -192,7 +191,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
             FillAlpha = solid != null ? ShapeParser.ExtractSolidFillAlpha(solid) : 1,
             Gradient = gradient,
             LineColorHex = lineColor,
-            LineWidthPoints = outline?.Width?.Value is { } lineWidth ? lineWidth / emusPerPoint : null,
+            LineWidthPoints = outline?.Width?.Value is { } lineWidth ? lineWidth / OoxmlUnits.EmusPerPoint : null,
             Preset = properties?.GetFirstChild<A.PresetGeometry>()?.Preset?.Value == A.ShapeTypeValues.Ellipse
                 ? PresetShape.Ellipse
                 : PresetShape.Rect,
@@ -219,7 +218,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         var extentY = shapeTransform.Extents?.Cy?.Value ?? 0;
 
         var (x, y, width, height) = transform.Apply(offsetX, offsetY, extentX, extentY);
-        return new(x / emusPerPoint, y / emusPerPoint, width / emusPerPoint, height / emusPerPoint);
+        return new(x / OoxmlUnits.EmusPerPoint, y / OoxmlUnits.EmusPerPoint, width / OoxmlUnits.EmusPerPoint, height / OoxmlUnits.EmusPerPoint);
     }
 
     /// <summary>Maps a group's child coordinate space onto the anchor rectangle it occupies.</summary>
@@ -231,12 +230,12 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         var childOffsetX = xfrm?.ChildOffset?.X?.Value ?? 0;
         var childOffsetY = xfrm?.ChildOffset?.Y?.Value ?? 0;
 
-        var scaleX = childExtentX > 0 ? box.Width * emusPerPoint / childExtentX : 1;
-        var scaleY = childExtentY > 0 ? box.Height * emusPerPoint / childExtentY : 1;
+        var scaleX = childExtentX > 0 ? box.Width * OoxmlUnits.EmusPerPoint / childExtentX : 1;
+        var scaleY = childExtentY > 0 ? box.Height * OoxmlUnits.EmusPerPoint / childExtentY : 1;
 
         return new(
-            box.X * emusPerPoint - childOffsetX * scaleX,
-            box.Y * emusPerPoint - childOffsetY * scaleY,
+            box.X * OoxmlUnits.EmusPerPoint - childOffsetX * scaleX,
+            box.Y * OoxmlUnits.EmusPerPoint - childOffsetY * scaleY,
             scaleX,
             scaleY);
     }
@@ -257,10 +256,10 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
             }
 
             return new(
-                (absolute.Position?.X?.Value ?? 0) / emusPerPoint * scale,
-                (absolute.Position?.Y?.Value ?? 0) / emusPerPoint * scale,
-                (absolute.Extent?.Cx?.Value ?? 0) / emusPerPoint * scale,
-                (absolute.Extent?.Cy?.Value ?? 0) / emusPerPoint * scale);
+                (absolute.Position?.X?.Value ?? 0) / OoxmlUnits.EmusPerPoint * scale,
+                (absolute.Position?.Y?.Value ?? 0) / OoxmlUnits.EmusPerPoint * scale,
+                (absolute.Extent?.Cx?.Value ?? 0) / OoxmlUnits.EmusPerPoint * scale,
+                (absolute.Extent?.Cy?.Value ?? 0) / OoxmlUnits.EmusPerPoint * scale);
         }
 
         var (x, y) = Marker(from, geometry, scale);
@@ -275,8 +274,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         return new(
             x,
             y,
-            (extent?.Cx?.Value ?? 0) / emusPerPoint * scale,
-            (extent?.Cy?.Value ?? 0) / emusPerPoint * scale);
+            (extent?.Cx?.Value ?? 0) / OoxmlUnits.EmusPerPoint * scale,
+            (extent?.Cy?.Value ?? 0) / OoxmlUnits.EmusPerPoint * scale);
     }
 
     /// <summary>
@@ -291,8 +290,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         var rowOffset = long.TryParse(marker.GetFirstChild<XDR.RowOffset>()?.Text, out var ro) ? ro : 0;
 
         return (
-            geometry.ColumnLeft(column + 1) + columnOffset / emusPerPoint * scale,
-            geometry.RowTop(row + 1) + rowOffset / emusPerPoint * scale);
+            geometry.ColumnLeft(column + 1) + columnOffset / OoxmlUnits.EmusPerPoint * scale,
+            geometry.RowTop(row + 1) + rowOffset / OoxmlUnits.EmusPerPoint * scale);
     }
 }
 

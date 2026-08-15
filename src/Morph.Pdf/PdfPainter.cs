@@ -20,8 +20,6 @@ static class PdfPainter
     // deleted production PdfPageRenderer embedded at.
     const int wordArtRasterDpi = 300;
 
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch).
-    const double emusPerPoint = 12700;
 
     // Positions text by its baseline at the drawn point, matching how the tree records PlacedLine.Baseline.
     static readonly XStringFormat baselineFormat = new()
@@ -438,7 +436,7 @@ static class PdfPainter
                     (startX, endX) = (endX, startX);
                 }
 
-                var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75;
+                var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / OoxmlUnits.EmusPerPoint : 0.75;
                 graphics.DrawLine(PdfShapeDrawing.StrokePen(shape, strokeWidth), startX, startY, endX, endY);
                 continue;
             }
@@ -490,7 +488,7 @@ static class PdfPainter
 
             if (shape.LineWidthEmu > 0)
             {
-                var pen = PdfShapeDrawing.StrokePen(shape, shape.LineWidthEmu / emusPerPoint);
+                var pen = PdfShapeDrawing.StrokePen(shape, shape.LineWidthEmu / OoxmlUnits.EmusPerPoint);
                 if (geometryPath != null)
                 {
                     graphics.DrawPath(pen, geometryPath);

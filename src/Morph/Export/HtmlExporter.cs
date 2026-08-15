@@ -267,8 +267,6 @@ static class HtmlExporter
     static string Length(double points) => $"{Number(points)}pt";
 
     // EMU = English Metric Units. 1 point = 12700 EMU. Inline shape groups keep their geometry in
-    // the group's EMU child coordinate space, which becomes the emitted <svg>'s viewBox.
-    const double emusPerPoint = 12700;
 
     // Shortest CSS box shorthand for top/right/bottom/left: one value when all four match,
     // "vertical horizontal" when opposite edges match, "top horizontal bottom" when only the
@@ -1861,7 +1859,7 @@ static class HtmlExporter
                     .Append("\" stroke-linecap=\"square\"");
                 // Default to 0.75pt when the shape carries no explicit a:ln/@w, as the raster
                 // backends do. Widths stay in EMU — the same space as the viewBox.
-                AppendStroke(shape, shape.LineWidthEmu > 0 ? shape.LineWidthEmu : 0.75 * emusPerPoint);
+                AppendStroke(shape, shape.LineWidthEmu > 0 ? shape.LineWidthEmu : 0.75 * OoxmlUnits.EmusPerPoint);
                 builder.Append(" />");
                 return;
             }
@@ -2019,7 +2017,7 @@ static class HtmlExporter
             }
 
             builder.Append(" stroke=\"").Append(DocumentExportHelpers.NormalizeColor(shape.ColorHex) ?? "#000000").Append('"')
-                .Append(" stroke-width=\"").Append(Number(lineWidthEmu / emusPerPoint * 96.0 / 72.0)).Append('"')
+                .Append(" stroke-width=\"").Append(Number(lineWidthEmu / OoxmlUnits.EmusPerPoint * 96.0 / 72.0)).Append('"')
                 .Append(" vector-effect=\"non-scaling-stroke\"");
             if (shape.LineAlpha < 0.999)
             {

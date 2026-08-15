@@ -11,7 +11,6 @@ using A = DocumentFormat.OpenXml.Drawing;
 /// </summary>
 sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textParser)
 {
-    const double emusPerPoint = 914400.0 / 72.0;
 
     /// <summary>PowerPoint's default cell insets (ECMA-376 §21.1.3.17): 0.1" sides, 0.05" ends.</summary>
     const double defaultSideMarginEmu = 91440;
@@ -29,7 +28,7 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
         var properties = table.TableProperties;
 
         var columnWidths = table.TableGrid?.Elements<A.GridColumn>()
-            .Select(_ => (_.Width?.Value ?? 0) / emusPerPoint)
+            .Select(_ => (_.Width?.Value ?? 0) / OoxmlUnits.EmusPerPoint)
             .ToArray() ?? [];
 
         var parsedRows = new List<TableRow>(rows.Length);
@@ -75,7 +74,7 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
             Cells = parsed,
             // a:tr/@h is a MINIMUM in PowerPoint — a row grows to fit its text — so it is never
             // pinned exact, which would clip.
-            HeightPoints = (row.Height?.Value ?? 0) / emusPerPoint,
+            HeightPoints = (row.Height?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
             IsExactHeight = false
         };
     }
@@ -104,10 +103,10 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
                 WidthPoints = widthPoints,
                 BackgroundColorHex = background,
                 Padding = new(
-                    (properties?.TopMargin?.Value ?? defaultEndMarginEmu) / emusPerPoint,
-                    (properties?.RightMargin?.Value ?? defaultSideMarginEmu) / emusPerPoint,
-                    (properties?.BottomMargin?.Value ?? defaultEndMarginEmu) / emusPerPoint,
-                    (properties?.LeftMargin?.Value ?? defaultSideMarginEmu) / emusPerPoint),
+                    (properties?.TopMargin?.Value ?? defaultEndMarginEmu) / OoxmlUnits.EmusPerPoint,
+                    (properties?.RightMargin?.Value ?? defaultSideMarginEmu) / OoxmlUnits.EmusPerPoint,
+                    (properties?.BottomMargin?.Value ?? defaultEndMarginEmu) / OoxmlUnits.EmusPerPoint,
+                    (properties?.LeftMargin?.Value ?? defaultSideMarginEmu) / OoxmlUnits.EmusPerPoint),
                 Borders = ResolveBorders(properties, styled),
                 GridSpan = cell.GridSpan?.Value ?? 1,
                 VerticalMerge = cell.VerticalMerge?.Value == true

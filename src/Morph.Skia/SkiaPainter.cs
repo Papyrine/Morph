@@ -259,8 +259,6 @@ static class SkiaPainter
     }
 
     // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is
-    // absolute EMU and converts to points independent of the child-coordinate scale.
-    const float emusPerPoint = 12700f;
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
     // child coordinate space into the inline box, painted back to front. A verbatim port of
@@ -308,7 +306,7 @@ static class SkiaPainter
                 {
                     Color = SkiaShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
-                    StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / emusPerPoint : 0.75) * context.Scale,
+                    StrokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / OoxmlUnits.EmusPerPointF : 0.75) * context.Scale,
                     StrokeCap = SKStrokeCap.Square,
                     IsAntialias = true
                 };
@@ -369,7 +367,7 @@ static class SkiaPainter
                 {
                     Color = SkiaShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
-                    StrokeWidth = (float) (shape.LineWidthEmu / emusPerPoint) * context.Scale,
+                    StrokeWidth = (float) (shape.LineWidthEmu / OoxmlUnits.EmusPerPointF) * context.Scale,
                     IsAntialias = true
                 };
                 if (geometryPath != null)

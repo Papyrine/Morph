@@ -28,7 +28,6 @@ sealed class SlideShapeParser(
     double slideHeightPoints,
     TableStylesPart? tableStylesPart)
 {
-    const double emusPerPoint = 914400.0 / 72.0;
 
     readonly DrawingTextParser textParser = new(themeColors, themeFonts, defaultFont);
     readonly SlideTableParser tableParser = new(themeColors, new(themeColors, themeFonts, defaultFont));
@@ -667,10 +666,10 @@ sealed class SlideShapeParser(
         var (x, y, width, height) = transform.Apply(offsetX, offsetY, extentX, extentY);
 
         return new(
-            x / emusPerPoint,
-            y / emusPerPoint,
-            width / emusPerPoint,
-            height / emusPerPoint,
+            x / OoxmlUnits.EmusPerPoint,
+            y / OoxmlUnits.EmusPerPoint,
+            width / OoxmlUnits.EmusPerPoint,
+            height / OoxmlUnits.EmusPerPoint,
             // rot is 60000ths of a degree, clockwise.
             (long.TryParse(Attribute(attributes, "rot"), out var rotation) ? rotation : 0) / 60000.0,
             Attribute(attributes, "flipH") is "1" or "true",
@@ -737,7 +736,7 @@ sealed class SlideShapeParser(
             return (null, null);
         }
 
-        var width = outline?.Width?.Value is { } emu ? emu / emusPerPoint : (double?) null;
+        var width = outline?.Width?.Value is { } emu ? emu / OoxmlUnits.EmusPerPoint : (double?) null;
 
         if (outline?.GetFirstChild<A.SolidFill>() is { } solid)
         {
