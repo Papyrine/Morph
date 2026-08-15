@@ -19,6 +19,23 @@ static class BrowserScreenshot
     static IPlaywright? playwright;
     static IBrowser? browser;
 
+    /// <summary>
+    /// Timeout for every browser operation that acts on the rendered page — navigation and
+    /// screenshot alike.
+    ///
+    /// Playwright's default is 30s. That was raised for the SCREENSHOT alone (660556c1f) after a
+    /// run of timeouts on the PowerPoint decks: a deck's Markdown export embeds every slide's
+    /// artwork inline as base64, so the page is a single strip tens of megabytes tall, and which
+    /// scenarios crossed 30s shifted between runs with scheduling. Loading that page is the same
+    /// weight as capturing it, so leaving <see cref="IPage.GotoAsync"/> on the default left half
+    /// the failure mode in place — it is applied to both here rather than to one of them.
+    ///
+    /// Generous on purpose. It is a safety net for a machine slower or busier than this one, and
+    /// an unused timeout costs nothing. The wait is on the browser; Morph has already produced its
+    /// output by this point.
+    /// </summary>
+    const int pageTimeout = 180_000;
+
     static readonly string fontsDirectory =
         Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
@@ -63,30 +80,18 @@ static class BrowserScreenshot
                 new Uri(tempFile).AbsoluteUri,
                 new()
                 {
-                    WaitUntil = WaitUntilState.Load
+                    WaitUntil = WaitUntilState.Load,
+                    Timeout = pageTimeout
                 });
             // Block until every @font-face the page references has finished loading, so no glyph is
-            // captured mid-swap from a fallback face.
+            // captured mid-swap from a fallback face. EvaluateAsync takes no timeout and is not
+            // bound by the default one, so this await is not a candidate for the same failure.
             await page.EvaluateAsync("async () => { await document.fonts.ready; }");
             return await page.ScreenshotAsync(new()
             {
                 FullPage = true,
                 Type = ScreenshotType.Png,
-                // Playwright's 30s default is too low for a slide deck's text export. Every slide's
-                // artwork is embedded inline as base64, so the page is a single strip tens of
-                // megabytes tall.
-                //
-                // The 30-60s screenshots this was raised for were oversubscription rather than page
-                // size, which is why which scenarios exceeded the limit shifted between runs with
-                // scheduling: the suite ran 48 tests in flight on 12 cores, and these decks, its
-                // biggest memory consumers, thrashed hardest. Capping concurrency at the core count
-                // (src/Tests/CoreCountLimit.cs) took the whole MarkdownOutput test for those decks
-                // to 5.1s average and 9.8s worst, screenshot included.
-                //
-                // Left generous anyway. It is a safety net on a machine slower or busier than this
-                // one, and an unused timeout costs nothing. The wait is on the browser; Morph has
-                // already produced its output by this point.
-                Timeout = 180_000
+                Timeout = pageTimeout
             });
         }
         finally
