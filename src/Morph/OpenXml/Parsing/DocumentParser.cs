@@ -1117,25 +1117,48 @@ sealed class DocumentParser(string defaultFont)
 
     // Resolves a w:color element to a 6-hex string: a theme colour (w:themeColor with optional
     // w:themeShade/w:themeTint) via the document's colour scheme, else the direct w:val. Returns
+    /// <summary>
+    /// Reads a <c>w:themeShade</c>-style hex byte, or null when absent or malformed.
+    /// </summary>
+    static byte? ThemeByte(StringValue? value) =>
+        value?.HasValue == true &&
+        byte.TryParse(value.Value, NumberStyles.HexNumber, null, out var parsed)
+            ? parsed
+            : null;
+
+    /// <summary>
+    /// Resolves a <c>w:shd</c>'s <c>w:themeFill</c> against the document theme, honouring the
+    /// <c>w:themeFillShade</c> / <c>w:themeFillTint</c> bytes that go with it.
+    /// </summary>
+    /// <remarks>
+    /// The four call sites (run shading, paragraph shading, and the two inline-background paths)
+    /// each used to resolve the bare theme name and drop the shade/tint, so every tint of an accent
+    /// painted as the flat accent — Word-probed at <c>_probe_themeshade</c>, where all twelve
+    /// shaded bands rendered as their undarkened base. <c>w:color</c>'s <c>w:themeColor</c> has read
+    /// its equivalent bytes all along; this is the same reading for the fill.
+    /// </remarks>
+    string? ResolveThemeFill(Shading shadingElement)
+    {
+        var themeFill = shadingElement.ThemeFill?.Value;
+        if (themeFill == null || currentThemeColors == null)
+        {
+            return null;
+        }
+
+        return currentThemeColors.ResolveColor(
+            ((IEnumValue) themeFill).Value,
+            ThemeByte(shadingElement.ThemeFillShade),
+            ThemeByte(shadingElement.ThemeFillTint));
+    }
+
     // null for "auto" or an unresolved/absent value.
     string? ResolveRunColor(Color colorElement)
     {
         var themeColor = colorElement.ThemeColor?.Value;
         if (themeColor != null && currentThemeColors != null)
         {
-            byte? shade = null;
-            byte? tint = null;
-            if (colorElement.ThemeShade?.HasValue == true &&
-                byte.TryParse(colorElement.ThemeShade.Value, NumberStyles.HexNumber, null, out var shadeValue))
-            {
-                shade = shadeValue;
-            }
-
-            if (colorElement.ThemeTint?.HasValue == true &&
-                byte.TryParse(colorElement.ThemeTint.Value, NumberStyles.HexNumber, null, out var tintValue))
-            {
-                tint = tintValue;
-            }
+            var shade = ThemeByte(colorElement.ThemeShade);
+            var tint = ThemeByte(colorElement.ThemeTint);
 
             var resolved = currentThemeColors.ResolveColor(((IEnumValue) themeColor).Value, shade, tint);
             if (resolved != null)
@@ -1408,13 +1431,7 @@ sealed class DocumentParser(string defaultFont)
                 var shadingElement = runProps.GetFirstChild<Shading>();
                 if (shadingElement != null)
                 {
-                    // Check for theme fill color first, then direct fill value
-                    var themeFill = shadingElement.ThemeFill?.Value;
-                    if (themeFill != null && currentThemeColors != null)
-                    {
-                        var themeFillValue = ((IEnumValue) themeFill).Value;
-                        backgroundColor = currentThemeColors.ResolveColor(themeFillValue);
-                    }
+                    backgroundColor = ResolveThemeFill(shadingElement);
 
                     // Fall back to direct fill value
                     if (backgroundColor == null && shadingElement.Fill?.HasValue == true &&
@@ -1849,13 +1866,7 @@ sealed class DocumentParser(string defaultFont)
                 var shadingElement = paraProps.GetFirstChild<Shading>();
                 if (shadingElement != null)
                 {
-                    // Check for theme fill color first, then direct fill value
-                    var themeFill = shadingElement.ThemeFill?.Value;
-                    if (themeFill != null && currentThemeColors != null)
-                    {
-                        var themeFillValue = ((IEnumValue) themeFill).Value;
-                        backgroundColor = currentThemeColors.ResolveColor(themeFillValue);
-                    }
+                    backgroundColor = ResolveThemeFill(shadingElement);
 
                     // Fall back to direct fill value
                     if (backgroundColor == null && shadingElement.Fill?.HasValue == true &&
@@ -7942,7 +7953,7 @@ sealed class DocumentParser(string defaultFont)
                 var rgbColor = solidFill.GetFirstChild<A.RgbColorModelHex>();
                 if (rgbColor?.Val?.HasValue == true)
                 {
-                    bgColor = rgbColor.Val.Value;
+                    bgColor = ShapeParser.ApplyLiteralColorTransforms(rgbColor.Val.Value!, rgbColor);
                 }
             }
         }
@@ -8404,7 +8415,7 @@ sealed class DocumentParser(string defaultFont)
             var srgbClr = solidFill.GetFirstChild<A.RgbColorModelHex>();
             if (srgbClr?.Val?.HasValue == true)
             {
-                fillColorHex = srgbClr.Val.Value;
+                fillColorHex = ShapeParser.ApplyLiteralColorTransforms(srgbClr.Val.Value!, srgbClr);
             }
             else
             {
@@ -8412,23 +8423,13 @@ sealed class DocumentParser(string defaultFont)
                 var schemeClr = solidFill.GetFirstChild<A.SchemeColor>();
                 if (schemeClr?.Val?.HasValue == true)
                 {
-                    // Check if the scheme color has any color transforms (lumMod, lumOff, etc.)
-                    var hasLumMod = schemeClr.GetFirstChild<A.LuminanceModulation>() != null;
-                    var hasLumOff = schemeClr.GetFirstChild<A.LuminanceOffset>() != null;
-                    var hasTint = schemeClr.GetFirstChild<A.Tint>() != null;
-                    var hasShade = schemeClr.GetFirstChild<A.Shade>() != null;
-
-                    if ((hasLumMod || hasLumOff || hasTint || hasShade) && currentThemeColors != null)
+                    // This used to re-read the transform children by hand, keeping only the first of
+                    // each and quantising the value through a 0-255 byte. ExtractColorTransforms is
+                    // the same job done once, in document order and at full precision.
+                    var transforms = ShapeParser.ExtractColorTransforms(schemeClr);
+                    if (transforms.HasTransforms && currentThemeColors != null)
                     {
-                        // Use ThemeColors.ResolveColor which properly handles color transforms
                         var schemeValue = ((IEnumValue) schemeClr.Val.Value).Value;
-                        var transforms = new ColorTransforms
-                        {
-                            LumMod = hasLumMod ? schemeClr.GetFirstChild<A.LuminanceModulation>()!.Val!.Value / 1000.0 : null,
-                            LumOff = hasLumOff ? schemeClr.GetFirstChild<A.LuminanceOffset>()!.Val!.Value / 1000.0 : null,
-                            Tint = hasTint ? (byte) (schemeClr.GetFirstChild<A.Tint>()!.Val!.Value / 392.157) : null,
-                            Shade = hasShade ? (byte) (schemeClr.GetFirstChild<A.Shade>()!.Val!.Value / 392.157) : null
-                        };
                         fillColorHex = currentThemeColors.ResolveColor(schemeValue, transforms);
                     }
 
@@ -9298,7 +9299,7 @@ sealed class DocumentParser(string defaultFont)
                         var rgbColor = solidFill.GetFirstChild<A.RgbColorModelHex>();
                         if (rgbColor?.Val?.HasValue == true)
                         {
-                            outlineColor = rgbColor.Val.Value;
+                            outlineColor = ShapeParser.ApplyLiteralColorTransforms(rgbColor.Val.Value!, rgbColor);
                         }
 
                         var schemeColor = solidFill.GetFirstChild<A.SchemeColor>();
@@ -9326,7 +9327,7 @@ sealed class DocumentParser(string defaultFont)
                     var rgbColor = shapeSolidFill.GetFirstChild<A.RgbColorModelHex>();
                     if (rgbColor?.Val?.HasValue == true)
                     {
-                        fillColor = rgbColor.Val.Value;
+                        fillColor = ShapeParser.ApplyLiteralColorTransforms(rgbColor.Val.Value!, rgbColor);
                     }
                 }
             }
@@ -10354,13 +10355,7 @@ sealed class DocumentParser(string defaultFont)
         if (shadingElement != null)
         {
             string? inlineBgColor = null;
-            // Check for theme fill color first, then direct fill value
-            var themeFill = shadingElement.ThemeFill?.Value;
-            if (themeFill != null && currentThemeColors != null)
-            {
-                var themeFillValue = ((IEnumValue) themeFill).Value;
-                inlineBgColor = currentThemeColors.ResolveColor(themeFillValue);
-            }
+            inlineBgColor = ResolveThemeFill(shadingElement);
 
             // Fall back to direct fill value
             if (inlineBgColor == null && shadingElement.Fill?.HasValue == true &&
@@ -11186,13 +11181,7 @@ sealed class DocumentParser(string defaultFont)
         if (shadingElement != null)
         {
             string? inlineBgColor = null;
-            // Check for theme fill color first, then direct fill value
-            var themeFill = shadingElement.ThemeFill?.Value;
-            if (themeFill != null && currentThemeColors != null)
-            {
-                var themeFillValue = ((IEnumValue) themeFill).Value;
-                inlineBgColor = currentThemeColors.ResolveColor(themeFillValue);
-            }
+            inlineBgColor = ResolveThemeFill(shadingElement);
 
             // Fall back to direct fill value
             if (inlineBgColor == null && shadingElement.Fill?.HasValue == true &&

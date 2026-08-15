@@ -267,7 +267,7 @@ Foreground color of text, either direct RGB or resolved from theme color with tr
 - **Model**: `RunProperties.ColorHex`
 - **Test**: `colored_text/`
 
-> **Contributors**: Theme colors resolved in `DocumentParser` using `ShapeParser.ResolveColorHex()` with shade/tint/luminance/saturation transforms. See `ThemeColors` and `ColorTransforms` records.
+> **Contributors**: Theme colors resolved in `DocumentParser.ResolveRunColor`, which reads the `w:themeShade` / `w:themeTint` bytes alongside the `w:themeColor` name and hands both to `ThemeColors.ResolveColor`. The transform model itself lives in `ColorTransforms.ApplyTo` — see §8.1.
 >
 > **The colour cascade** (base → top): docDefaults `w:rPrDefault/w:color` (including a white default — dark-board templates like `menus/07` set `FFFFFF background1` and Word paints fall-through runs white) → style chain (`basedOn` inheritance) → direct `w:rPr`. `w:color w:val="auto"` at any level RESETS the cascade to the automatic colour rather than inheriting (card templates pair a white docDefaults with an auto `Normal`, keeping body text black); inside the style chain that reset travels as `DocumentParser.automaticColorSentinel`, converted at run resolution so it never escapes into the model. The automatic colour is contrast-aware: `ComputeAutomaticRunColor` yields white when the page `w:background` is dark (BT.601 brightness < 128, `brochures/03`'s navy), otherwise null (renderers default to black).
 
@@ -2253,24 +2253,49 @@ Dropdown form fields with a list of options and selected index.
 
 Resolving theme color references (Dark1, Light1, Accent1-6, etc.) to RGB values with color transforms.
 
-- **OOXML**: `w:themeColor` attribute, theme part `a:themeElements` > `a:clrScheme`
+- **OOXML**: `w:themeColor` / `w:themeFill` attributes, theme part `a:themeElements` > `a:clrScheme`
 - **Spec**: [Theme Colors](http://officeopenxml.com/WPtheme.php)
-- **Model**: `ThemeColors` with 12 named colors, `ColorTransforms` record
-- **Parse**: `ThemeParser.cs`
-- **Test**: Spec test: `ColorTransformTests`
+- **Model**: `ThemeColors` with 12 named colors, `ColorTransforms` + `ColorTransform` records
+- **Parse**: `ThemeParser.cs`; transforms read by `ShapeParser.ExtractColorTransforms`
+- **Render**: `ColorTransforms.ApplyTo` — the single implementation for every colour path
+- **Test**: `color_transform_shade_tint/`, `color_transform_hsl/`, `color_transform_order/`, `color_transform_theme_fill/` — one scenario per row of the model table below, each with its measured values in `notes.md`. Spec tests `CT_SchemeColorTests`, `HslColorConversionTests`
 
-Supported color transforms:
+##### The colour transform model
 
-| Transform | Description |
-|-----------|-------------|
-| Shade | Darkens color (0-255 scale) |
-| Tint | Lightens color (0-255 scale) |
-| LumMod | Luminance modulation (percentage) |
-| LumOff | Luminance offset (percentage points) |
-| SatMod | Saturation modulation (percentage) |
-| SatOff | Saturation offset (percentage points) |
+OOXML carries **two unrelated families** of colour transform. They are not two encodings of one
+operation, and applying either model to the other's input is wrong by up to half the channel range.
+Measured against Word over 104 rendered swatches, kept as corpus fixtures so a regression fails a
+test rather than going unnoticed — each carries its measured values in its own `notes.md`:
 
-> **Contributors**: Color resolution uses RGB-to-HSL conversion for luminance/saturation transforms. `ShapeParser.ResolveColorHex()` applies transforms in order. Spec tests cover all transform combinations.
+| Transform | Encoding | Model | Evidence | Fixture |
+|-----------|----------|-------|----------|---------|
+| `a:shade` / `a:tint` (DrawingML) | 0-100000, full precision | **Linear light**: `lin' = lin·f`, and `lin·f + (1−f)` for tint | exact on 24/24; an sRGB blend is out by up to 127 per channel, HSL luminance by up to 69 | `color_transform_shade_tint` |
+| `a:lumMod` / `a:lumOff` / `a:satMod` / `a:satOff` | 0-100000+ | **HSL**; luminance clamped, **saturation NOT clamped** | unclamped exact on 24/24; clamping is out by up to 51 | `color_transform_hsl` |
+| `w:themeShade` / `w:themeTint` (WordprocessingML) | 0-255 byte | **HSL luminance**: `L·(S/255)`, and `L·(T/255) + (255−T)/255` for tint | exact to 1 LSB on 12/12; linear light is out by up to 62 | `color_transform_theme_fill` |
+| composition | — | **document order** | `lumMod`-then-`shade` gives 142748 where the reverse gives 182948; any fixed order mispredicts one by up to 94 | `color_transform_order` |
+
+Three consequences worth keeping:
+
+- **Saturation must not be clamped.** Word lets `a:satMod` drive HSL saturation past 1 and clips at
+  the RGB byte, so 4472C4 at `satMod 400%` renders 003CFF, not the 0961FF a clamp parks it at. Over
+  97% of the corpus's `a:satMod` values exceed 100%, so this is the common case, not an edge.
+- **Identity transforms are skipped, not applied.** Word writes plenty of them — the corpus carries
+  250 `a:shade val="100000"` and 36 `a:satMod val="100000"`. Both spaces quantise back to a byte per
+  channel, so applying a nominal no-op still shifts a channel by one; it moved 176 corpus pages
+  before `ColorTransform.IsIdentity` guarded it.
+- **Consecutive HSL operations accumulate in HSL** rather than round-tripping through 8-bit RGB
+  between each. `lumMod` immediately followed by `lumOff` is the commonest sequence in the corpus by
+  a wide margin (1442 occurrences), and quantising between the pair costs an LSB.
+
+The residual against Word is a single LSB on some byte-form theme shades, consistent with a rounding
+difference in the HSL round trip; neither `Math.Round` nor truncation clears it on every sample.
+
+> **Contributors**: every colour path — literal `a:srgbClr`/`a:sysClr`, `a:schemeClr`, `w:themeFill`
+> shading and `w:themeColor` runs — resolves through `ColorTransforms.ApplyTo`. Adding a second
+> implementation is how this subsystem went wrong before: a literal colour once took an sRGB blend
+> while the identical transform on a scheme colour took HSL luminance, six shape-fill call sites
+> dropped the transform children entirely, and `w:themeFillShade`/`w:themeFillTint` were parsed
+> nowhere, so every tint of an accent painted as the flat accent.
 
 
 ### 8.2 Theme Fonts

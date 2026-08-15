@@ -318,7 +318,7 @@ static class ShapeParser
         }
 
         var rgb = fillRef.GetFirstChild<A.RgbColorModelHex>();
-        return rgb?.Val?.HasValue == true ? rgb.Val.Value : null;
+        return rgb?.Val?.HasValue == true ? ApplyLiteralColorTransforms(rgb.Val.Value!, rgb) : null;
     }
 
     /// <summary>
@@ -451,7 +451,7 @@ static class ShapeParser
             var refRgb = lnRef.GetFirstChild<A.RgbColorModelHex>();
             if (refRgb?.Val?.HasValue == true)
             {
-                refColor = refRgb.Val.Value;
+                refColor = ApplyLiteralColorTransforms(refRgb.Val.Value!, refRgb);
             }
         }
 
@@ -957,13 +957,7 @@ static class ShapeParser
         var rgbColor = solidFill.GetFirstChild<A.RgbColorModelHex>();
         if (rgbColor?.Val?.HasValue == true)
         {
-            // Check for color transforms on RGB color too
-            var transforms = ExtractColorTransforms(rgbColor);
-            if (transforms.HasTransforms)
-            {
-                return ApplyTransformsToRgb(rgbColor.Val.Value!, transforms);
-            }
-            return rgbColor.Val.Value;
+            return ApplyLiteralColorTransforms(rgbColor.Val.Value!, rgbColor);
         }
 
         // Try scheme color (theme-based)
@@ -1104,244 +1098,67 @@ static class ShapeParser
     /// <summary>
     /// Applies any <c>lumMod</c>/<c>lumOff</c>/<c>satMod</c>/<c>satOff</c>/<c>tint</c>/<c>shade</c>
     /// child of a literal colour element (<c>a:srgbClr</c>, <c>a:sysClr</c>) to its RGB value. A
-    /// theme colour resolves its transforms through <see cref="ThemeColors"/> instead.
+    /// theme colour runs the same transforms over a palette entry via <see cref="ThemeColors"/>;
+    /// both go through the one model in <see cref="ColorTransforms.ApplyTo"/>, because the
+    /// transform means the same thing whichever kind of colour declared it.
     /// </summary>
-    public static string ApplyLiteralColorTransforms(string hexColor, OpenXmlElement colorElement)
-    {
-        var transforms = ExtractColorTransforms(colorElement);
-        return transforms.HasTransforms ? ApplyTransformsToRgb(hexColor, transforms) : hexColor;
-    }
+    public static string ApplyLiteralColorTransforms(string hexColor, OpenXmlElement colorElement) =>
+        ExtractColorTransforms(colorElement).ApplyTo(hexColor);
 
     /// <summary>
-    /// Extracts color transform parameters from a color element.
+    /// Reads the transform children of a colour element IN DOCUMENT ORDER, which is the order Word
+    /// applies them in — a <c>lumMod</c> before a <c>shade</c> gives a different colour from the
+    /// same pair reversed. Repeats are kept rather than collapsed: the corpus carries colours with
+    /// nine <c>lumMod</c>/<c>satMod</c>/<c>tint</c> triples in a row, and reading only the first of
+    /// each (as this did while it returned a flat property bag) dropped the rest.
     /// </summary>
     public static ColorTransforms ExtractColorTransforms(OpenXmlElement colorElement)
     {
-        byte? shade = null;
-        byte? tint = null;
-        double? lumMod = null;
-        double? lumOff = null;
-        double? satMod = null;
-        double? satOff = null;
-
-        // Shade (0-100000 -> 0-255)
-        var shadeEl = colorElement.GetFirstChild<A.Shade>();
-        if (shadeEl?.Val?.HasValue == true)
+        List<ColorTransform>? operations = null;
+        foreach (var child in colorElement.ChildElements)
         {
-            shade = (byte)Math.Clamp((int)(shadeEl.Val.Value / 100000.0 * 255), 0, 255);
+            ColorTransformKind kind;
+            switch (child)
+            {
+                case A.Shade:
+                    kind = ColorTransformKind.Shade;
+                    break;
+                case A.Tint:
+                    kind = ColorTransformKind.Tint;
+                    break;
+                case A.LuminanceModulation:
+                    kind = ColorTransformKind.LumMod;
+                    break;
+                case A.LuminanceOffset:
+                    kind = ColorTransformKind.LumOff;
+                    break;
+                case A.SaturationModulation:
+                    kind = ColorTransformKind.SatMod;
+                    break;
+                case A.SaturationOffset:
+                    kind = ColorTransformKind.SatOff;
+                    break;
+                // a:alpha is opacity, not a colour transform - ExtractAlpha reads it separately.
+                default:
+                    continue;
+            }
+
+            if (child.GetAttributes().AttributeValue("val") is not { } raw ||
+                !int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+            {
+                continue;
+            }
+
+            operations ??= [];
+            operations.Add(ColorTransform.FromOoxml(kind, value));
         }
 
-        // Tint (0-100000 -> 0-255)
-        var tintEl = colorElement.GetFirstChild<A.Tint>();
-        if (tintEl?.Val?.HasValue == true)
-        {
-            tint = (byte)Math.Clamp((int)(tintEl.Val.Value / 100000.0 * 255), 0, 255);
-        }
-
-        // Luminance modulation (0-100000+ -> percentage, e.g., 75000 -> 75%)
-        var lumModEl = colorElement.GetFirstChild<A.LuminanceModulation>();
-        if (lumModEl?.Val?.HasValue == true)
-        {
-            lumMod = lumModEl.Val.Value / 1000.0;
-        }
-
-        // Luminance offset (0-100000 -> percentage points)
-        var lumOffEl = colorElement.GetFirstChild<A.LuminanceOffset>();
-        if (lumOffEl?.Val?.HasValue == true)
-        {
-            lumOff = lumOffEl.Val.Value / 1000.0;
-        }
-
-        // Saturation modulation (0-100000+ -> percentage)
-        var satModEl = colorElement.GetFirstChild<A.SaturationModulation>();
-        if (satModEl?.Val?.HasValue == true)
-        {
-            satMod = satModEl.Val.Value / 1000.0;
-        }
-
-        // Saturation offset (0-100000 -> percentage points)
-        var satOffEl = colorElement.GetFirstChild<A.SaturationOffset>();
-        if (satOffEl?.Val?.HasValue == true)
-        {
-            satOff = satOffEl.Val.Value / 1000.0;
-        }
-
-        return new()
-        {
-            Shade = shade,
-            Tint = tint,
-            LumMod = lumMod,
-            LumOff = lumOff,
-            SatMod = satMod,
-            SatOff = satOff
-        };
+        return operations == null
+            ? new()
+            : new()
+            {
+                Operations = operations
+            };
     }
 
-    /// <summary>
-    /// Applies color transforms directly to an RGB hex color.
-    /// </summary>
-    static string ApplyTransformsToRgb(string hexColor, ColorTransforms transforms)
-    {
-        // For direct RGB colors with transforms, we need to apply the transforms ourselves
-        // This is a simplified version - for full support, use ThemeColors
-        if (!TryParseHexColor(hexColor, out var r, out var g, out var b))
-        {
-            return hexColor;
-        }
-
-        // Apply HSL transforms if present
-        if (transforms.LumMod.HasValue || transforms.SatMod.HasValue ||
-            transforms.LumOff.HasValue || transforms.SatOff.HasValue)
-        {
-            RgbToHsl(r, g, b, out var h, out var s, out var l);
-
-            if (transforms.SatMod.HasValue)
-            {
-                s *= transforms.SatMod.Value / 100.0;
-            }
-
-            if (transforms.SatOff.HasValue)
-            {
-                s += transforms.SatOff.Value / 100.0;
-            }
-
-            if (transforms.LumMod.HasValue)
-            {
-                l *= transforms.LumMod.Value / 100.0;
-            }
-
-            if (transforms.LumOff.HasValue)
-            {
-                l += transforms.LumOff.Value / 100.0;
-            }
-
-            s = Math.Clamp(s, 0.0, 1.0);
-            l = Math.Clamp(l, 0.0, 1.0);
-
-            HslToRgb(h, s, l, out r, out g, out b);
-        }
-
-        // Apply shade/tint transforms
-        // Per ECMA-376: shade darkens the color, tint lightens it
-        // Values are in 0-255 scale
-        if (transforms.Shade is > 0)
-        {
-            var shade = transforms.Shade.Value;
-            r = (byte)(r * shade / 255);
-            g = (byte)(g * shade / 255);
-            b = (byte)(b * shade / 255);
-        }
-
-        if (transforms.Tint is > 0)
-        {
-            var tint = transforms.Tint.Value;
-            r = (byte)(r + (255 - r) * tint / 255);
-            g = (byte)(g + (255 - g) * tint / 255);
-            b = (byte)(b + (255 - b) * tint / 255);
-        }
-
-        return $"{r:X2}{g:X2}{b:X2}";
-    }
-
-    static bool TryParseHexColor(string hex, out byte r, out byte g, out byte b)
-    {
-        r = g = b = 0;
-        if (hex.Length != 6)
-        {
-            return false;
-        }
-
-        return byte.TryParse(hex.AsSpan(0, 2), NumberStyles.HexNumber, null, out r) &&
-               byte.TryParse(hex.AsSpan(2, 2), NumberStyles.HexNumber, null, out g) &&
-               byte.TryParse(hex.AsSpan(4, 2), NumberStyles.HexNumber, null, out b);
-    }
-
-    static void RgbToHsl(byte r, byte g, byte b, out double h, out double s, out double l)
-    {
-        var rd = r / 255.0;
-        var gd = g / 255.0;
-        var bd = b / 255.0;
-
-        var max = Math.Max(rd, Math.Max(gd, bd));
-        var min = Math.Min(rd, Math.Min(gd, bd));
-        var delta = max - min;
-
-        l = (max + min) / 2.0;
-
-        if (delta == 0)
-        {
-            h = 0;
-            s = 0;
-        }
-        else
-        {
-            s = l > 0.5 ? delta / (2.0 - max - min) : delta / (max + min);
-
-            if (max == rd)
-            {
-                h = ((gd - bd) / delta + (gd < bd ? 6 : 0)) / 6.0;
-            }
-            else if (max == gd)
-            {
-                h = ((bd - rd) / delta + 2) / 6.0;
-            }
-            else
-            {
-                h = ((rd - gd) / delta + 4) / 6.0;
-            }
-        }
-    }
-
-    static void HslToRgb(double h, double s, double l, out byte r, out byte g, out byte b)
-    {
-        double rd, gd, bd;
-
-        if (s == 0)
-        {
-            rd = gd = bd = l;
-        }
-        else
-        {
-            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-            var p = 2 * l - q;
-
-            rd = HueToRgb(p, q, h + 1.0 / 3.0);
-            gd = HueToRgb(p, q, h);
-            bd = HueToRgb(p, q, h - 1.0 / 3.0);
-        }
-
-        r = (byte)Math.Round(rd * 255);
-        g = (byte)Math.Round(gd * 255);
-        b = (byte)Math.Round(bd * 255);
-    }
-
-    static double HueToRgb(double p, double q, double t)
-    {
-        if (t < 0)
-        {
-            t += 1;
-        }
-
-        if (t > 1)
-        {
-            t -= 1;
-        }
-
-        if (t < 1.0 / 6.0)
-        {
-            return p + (q - p) * 6 * t;
-        }
-
-        if (t < 1.0 / 2.0)
-        {
-            return q;
-        }
-
-        if (t < 2.0 / 3.0)
-        {
-            return p + (q - p) * (2.0 / 3.0 - t) * 6;
-        }
-
-        return p;
-    }
 }
