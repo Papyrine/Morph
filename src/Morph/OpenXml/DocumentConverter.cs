@@ -21,24 +21,10 @@ public abstract class DocumentConverter
     {
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
-        Directory.CreateDirectory(outputDirectory);
-
         var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
-        var imagePaths = new List<string>();
-
-        var pageIndex = 0;
-        var pageCount = RenderPages(
-            document,
-            options,
-            writePng =>
-            {
-                var filePath = Path.Combine(outputDirectory, $"page_{++pageIndex:D4}.png");
-                imagePaths.Add(filePath);
-                using var fs = File.Create(filePath);
-                writePng(fs);
-            });
-
-        return new(imagePaths, pageCount);
+        return PageSink.ToDirectory(
+            outputDirectory,
+            sink => RenderPages(document, options, sink));
     }
 
     /// <summary>Converts a DOCX file to PNG image data in memory.</summary>
@@ -55,19 +41,7 @@ public abstract class DocumentConverter
         DefaultFontSettings.MarkRenderOccurred();
 
         var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
-        var imageData = new List<byte[]>();
-
-        RenderPages(
-            document,
-            options,
-            writePng =>
-            {
-                using var ms = new MemoryStream();
-                writePng(ms);
-                imageData.Add(ms.ToArray());
-            });
-
-        return imageData;
+        return PageSink.ToMemory(sink => RenderPages(document, options, sink));
     }
 
     /// <summary>Reports the page each bookmark in a DOCX file falls on.</summary>

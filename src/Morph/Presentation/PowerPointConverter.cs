@@ -23,24 +23,10 @@ public abstract class PowerPointConverter
     {
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
-        Directory.CreateDirectory(outputDirectory);
-
         var document = Parse(pptxStream, options.DefaultFont);
-        var imagePaths = new List<string>();
-
-        var pageIndex = 0;
-        var pageCount = RenderPages(
-            document,
-            options,
-            writePng =>
-            {
-                var filePath = Path.Combine(outputDirectory, $"page_{++pageIndex:D4}.png");
-                imagePaths.Add(filePath);
-                using var fs = File.Create(filePath);
-                writePng(fs);
-            });
-
-        return new(imagePaths, pageCount);
+        return PageSink.ToDirectory(
+            outputDirectory,
+            sink => RenderPages(document, options, sink));
     }
 
     /// <summary>Converts a PPTX file to PNG image data in memory, one entry per slide.</summary>
@@ -57,19 +43,7 @@ public abstract class PowerPointConverter
         DefaultFontSettings.MarkRenderOccurred();
 
         var document = Parse(pptxStream, options.DefaultFont);
-        var imageData = new List<byte[]>();
-
-        RenderPages(
-            document,
-            options,
-            writePng =>
-            {
-                using var ms = new MemoryStream();
-                writePng(ms);
-                imageData.Add(ms.ToArray());
-            });
-
-        return imageData;
+        return PageSink.ToMemory(sink => RenderPages(document, options, sink));
     }
 
     /// <summary>Converts a PPTX file to a normalized semantic HTML fragment.</summary>

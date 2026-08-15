@@ -21,10 +21,7 @@ using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 sealed class DocumentParser(string defaultFont)
 {
     // Conversion constants
-    const double twipsPerPoint = 20.0;
 
-    // EMUs per point
-    const double emusPerPoint = 914400.0 / 72.0;
 
     // Word's built-in Normal style (normal.dotm), supplied when a document declares no
     // styles.xml or no docDefaults at all. Modern Word (Aptos era, 2023+) uses
@@ -1412,7 +1409,7 @@ sealed class DocumentParser(string defaultFont)
                 var spacingElement = runProps.GetFirstChild<Spacing>();
                 if (spacingElement?.Val?.HasValue == true)
                 {
-                    characterSpacing = spacingElement.Val.Value / twipsPerPoint;
+                    characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
                 }
 
                 // Colour — mirror the run-level rule: an explicit w:color on the style overrides
@@ -1478,15 +1475,9 @@ sealed class DocumentParser(string defaultFont)
         var spacing = pPr.GetFirstChild<SpacingBetweenLines>();
         if (spacing != null)
         {
-            if (spacing.Before?.HasValue == true)
-            {
-                before = double.Parse(spacing.Before.Value!) / twipsPerPoint;
-            }
+            before = spacing.Before.TwipsToPoints() ?? before;
 
-            if (spacing.After?.HasValue == true)
-            {
-                after = double.Parse(spacing.After.Value!) / twipsPerPoint;
-            }
+            after = spacing.After.TwipsToPoints() ?? after;
 
             if (spacing.Line?.HasValue == true)
             {
@@ -1498,12 +1489,12 @@ sealed class DocumentParser(string defaultFont)
                 }
                 else if (ruleValue == LineSpacingRuleValues.Exact)
                 {
-                    points = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                    points = double.Parse(spacing.Line.Value!) / OoxmlUnits.TwipsPerPoint;
                     rule = LineSpacingRule.Exactly;
                 }
                 else if (ruleValue == LineSpacingRuleValues.AtLeast)
                 {
-                    points = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                    points = double.Parse(spacing.Line.Value!) / OoxmlUnits.TwipsPerPoint;
                     rule = LineSpacingRule.AtLeast;
                 }
             }
@@ -1513,15 +1504,9 @@ sealed class DocumentParser(string defaultFont)
         var indentation = pPr.GetFirstChild<Indentation>();
         if (indentation != null)
         {
-            if (indentation.Left?.HasValue == true)
-            {
-                left = double.Parse(indentation.Left.Value!) / twipsPerPoint;
-            }
+            left = indentation.Left.TwipsToPoints() ?? left;
 
-            if (indentation.Right?.HasValue == true)
-            {
-                right = double.Parse(indentation.Right.Value!) / twipsPerPoint;
-            }
+            right = indentation.Right.TwipsToPoints() ?? right;
         }
 
         return new()
@@ -1759,15 +1744,9 @@ sealed class DocumentParser(string defaultFont)
                 var spacing = paraProps.GetFirstChild<SpacingBetweenLines>();
                 if (spacing != null)
                 {
-                    if (spacing.Before?.HasValue == true)
-                    {
-                        spacingBefore = double.Parse(spacing.Before.Value!) / twipsPerPoint;
-                    }
+                    spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
 
-                    if (spacing.After?.HasValue == true)
-                    {
-                        spacingAfter = double.Parse(spacing.After.Value!) / twipsPerPoint;
-                    }
+                    spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
 
                     if (spacing.Line?.HasValue == true)
                     {
@@ -1782,13 +1761,13 @@ sealed class DocumentParser(string defaultFont)
                         else if (ruleValue == LineSpacingRuleValues.Exact)
                         {
                             // Line spacing in twips (1/20 of a point)
-                            lineSpacingPoints = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                            lineSpacingPoints = double.Parse(spacing.Line.Value!) / OoxmlUnits.TwipsPerPoint;
                             lineSpacingRule = LineSpacingRule.Exactly;
                         }
                         else if (ruleValue == LineSpacingRuleValues.AtLeast)
                         {
                             // Line spacing in twips (1/20 of a point)
-                            lineSpacingPoints = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                            lineSpacingPoints = double.Parse(spacing.Line.Value!) / OoxmlUnits.TwipsPerPoint;
                             lineSpacingRule = LineSpacingRule.AtLeast;
                         }
                     }
@@ -1804,25 +1783,13 @@ sealed class DocumentParser(string defaultFont)
                 var indentation = paraProps.GetFirstChild<Indentation>();
                 if (indentation != null && !hasOrphanedNumPr)
                 {
-                    if (indentation.FirstLine?.HasValue == true)
-                    {
-                        firstLineIndent = double.Parse(indentation.FirstLine.Value!) / twipsPerPoint;
-                    }
+                    firstLineIndent = indentation.FirstLine.TwipsToPoints() ?? firstLineIndent;
 
-                    if (indentation.Left?.HasValue == true)
-                    {
-                        leftIndent = double.Parse(indentation.Left.Value!) / twipsPerPoint;
-                    }
+                    leftIndent = indentation.Left.TwipsToPoints() ?? leftIndent;
 
-                    if (indentation.Right?.HasValue == true)
-                    {
-                        rightIndent = double.Parse(indentation.Right.Value!) / twipsPerPoint;
-                    }
+                    rightIndent = indentation.Right.TwipsToPoints() ?? rightIndent;
 
-                    if (indentation.Hanging?.HasValue == true)
-                    {
-                        hangingIndent = double.Parse(indentation.Hanging.Value!) / twipsPerPoint;
-                    }
+                    hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
                 }
 
                 // Parse contextual spacing
@@ -2024,15 +1991,9 @@ sealed class DocumentParser(string defaultFont)
                 var indentation = pPr?.GetFirstChild<Indentation>() ?? level.GetFirstChild<Indentation>();
                 if (indentation != null)
                 {
-                    if (indentation.Left?.HasValue == true)
-                    {
-                        leftIndent = double.Parse(indentation.Left.Value!) / twipsPerPoint;
-                    }
+                    leftIndent = indentation.Left.TwipsToPoints() ?? leftIndent;
 
-                    if (indentation.Hanging?.HasValue == true)
-                    {
-                        hangingIndent = double.Parse(indentation.Hanging.Value!) / twipsPerPoint;
-                    }
+                    hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
                 }
 
                 // Get start number
@@ -3118,7 +3079,7 @@ sealed class DocumentParser(string defaultFont)
         var hyphenZone = settings.GetFirstChild<HyphenationZone>();
         if (hyphenZone?.Val?.HasValue == true)
         {
-            hyphenationZonePoints = double.Parse(hyphenZone.Val.Value!) / twipsPerPoint;
+            hyphenationZonePoints = double.Parse(hyphenZone.Val.Value!) / OoxmlUnits.TwipsPerPoint;
         }
 
         // Parse consecutiveHyphenLimit
@@ -3150,7 +3111,7 @@ sealed class DocumentParser(string defaultFont)
         var defaultTabStop = settings?.GetFirstChild<DefaultTabStop>();
         if (defaultTabStop?.Val?.HasValue == true)
         {
-            defaultTabStopPoints = defaultTabStop.Val.Value / twipsPerPoint;
+            defaultTabStopPoints = defaultTabStop.Val.Value / OoxmlUnits.TwipsPerPoint;
         }
     }
 
@@ -3256,15 +3217,9 @@ sealed class DocumentParser(string defaultFont)
 
         if (pageSize != null)
         {
-            if (pageSize.Width?.HasValue == true)
-            {
-                width = pageSize.Width.Value / twipsPerPoint;
-            }
+            width = pageSize.Width.TwipsToPoints() ?? width;
 
-            if (pageSize.Height?.HasValue == true)
-            {
-                height = pageSize.Height.Value / twipsPerPoint;
-            }
+            height = pageSize.Height.TwipsToPoints() ?? height;
 
             (width, height) = SnapToPaperCode(pageSize.Code?.Value, width, height);
         }
@@ -3282,39 +3237,24 @@ sealed class DocumentParser(string defaultFont)
                 // ECMA-376 §17.6.11: a negative w:top means |val| is the distance from the top of
                 // the page to the top of the body, regardless of header height. A positive one is
                 // a minimum the header can push past, which TopMarginIsAbsolute distinguishes.
-                marginTop = Math.Abs(pageMargin.Top.Value) / twipsPerPoint;
+                marginTop = Math.Abs(pageMargin.Top.Value) / OoxmlUnits.TwipsPerPoint;
                 topMarginIsAbsolute = pageMargin.Top.Value < 0;
             }
 
             if (pageMargin.Bottom?.HasValue == true)
             {
-                marginBottom = Math.Abs(pageMargin.Bottom.Value) / twipsPerPoint;
+                marginBottom = Math.Abs(pageMargin.Bottom.Value) / OoxmlUnits.TwipsPerPoint;
             }
 
-            if (pageMargin.Left?.HasValue == true)
-            {
-                marginLeft = pageMargin.Left.Value / twipsPerPoint;
-            }
+            marginLeft = pageMargin.Left.TwipsToPoints() ?? marginLeft;
 
-            if (pageMargin.Right?.HasValue == true)
-            {
-                marginRight = pageMargin.Right.Value / twipsPerPoint;
-            }
+            marginRight = pageMargin.Right.TwipsToPoints() ?? marginRight;
 
-            if (pageMargin.Header?.HasValue == true)
-            {
-                headerDistance = pageMargin.Header.Value / twipsPerPoint;
-            }
+            headerDistance = pageMargin.Header.TwipsToPoints() ?? headerDistance;
 
-            if (pageMargin.Footer?.HasValue == true)
-            {
-                footerDistance = pageMargin.Footer.Value / twipsPerPoint;
-            }
+            footerDistance = pageMargin.Footer.TwipsToPoints() ?? footerDistance;
 
-            if (pageMargin.Gutter?.HasValue == true)
-            {
-                gutterPoints = pageMargin.Gutter.Value / twipsPerPoint;
-            }
+            gutterPoints = pageMargin.Gutter.TwipsToPoints() ?? gutterPoints;
         }
 
         // Gutter is added to the appropriate margin at parse time so the rest of the pipeline
@@ -3341,10 +3281,7 @@ sealed class DocumentParser(string defaultFont)
                 columnCount = columns.ColumnCount.Value;
             }
 
-            if (columns.Space?.HasValue == true)
-            {
-                columnSpacing = double.Parse(columns.Space.Value!) / twipsPerPoint;
-            }
+            columnSpacing = columns.Space.TwipsToPoints() ?? columnSpacing;
         }
 
         // Parse different first page setting (w:titlePg)
@@ -3364,7 +3301,7 @@ sealed class DocumentParser(string defaultFont)
             docGrid.Type?.Value is { } gridType &&
             gridType != DocGridValues.Default)
         {
-            documentGridLinePitchPoints = docGrid.LinePitch.Value / twipsPerPoint;
+            documentGridLinePitchPoints = docGrid.LinePitch.Value / OoxmlUnits.TwipsPerPoint;
         }
 
         // Parse page borders (w:pgBorders)
@@ -3537,10 +3474,7 @@ sealed class DocumentParser(string defaultFont)
             countBy = lnNumType.CountBy.Value;
         }
 
-        if (lnNumType.Distance?.HasValue == true)
-        {
-            distancePoints = double.Parse(lnNumType.Distance.Value!) / twipsPerPoint;
-        }
+        distancePoints = lnNumType.Distance.TwipsToPoints() ?? distancePoints;
 
         if (lnNumType.Restart?.HasValue == true)
         {
@@ -3766,15 +3700,9 @@ sealed class DocumentParser(string defaultFont)
         var spacing = pPr.SpacingBetweenLines;
         if (spacing != null)
         {
-            if (spacing.After?.HasValue == true)
-            {
-                defaultSpacingAfterPoints = double.Parse(spacing.After.Value!) / twipsPerPoint;
-            }
+            defaultSpacingAfterPoints = spacing.After.TwipsToPoints() ?? defaultSpacingAfterPoints;
 
-            if (spacing.Before?.HasValue == true)
-            {
-                defaultSpacingBeforePoints = double.Parse(spacing.Before.Value!) / twipsPerPoint;
-            }
+            defaultSpacingBeforePoints = spacing.Before.TwipsToPoints() ?? defaultSpacingBeforePoints;
 
             // w:line is a multiplier only under lineRule="auto" (absent defaults to auto); under
             // "exact"/"atLeast" it is a twip measurement and belongs to the per-paragraph path.
@@ -3789,15 +3717,9 @@ sealed class DocumentParser(string defaultFont)
         var indentation = pPr.Indentation;
         if (indentation != null)
         {
-            if (indentation.Left?.HasValue == true)
-            {
-                defaultLeftIndentPoints = double.Parse(indentation.Left.Value!) / twipsPerPoint;
-            }
+            defaultLeftIndentPoints = indentation.Left.TwipsToPoints() ?? defaultLeftIndentPoints;
 
-            if (indentation.Right?.HasValue == true)
-            {
-                defaultRightIndentPoints = double.Parse(indentation.Right.Value!) / twipsPerPoint;
-            }
+            defaultRightIndentPoints = indentation.Right.TwipsToPoints() ?? defaultRightIndentPoints;
         }
 
         // Alignment default (w:jc) — the base of the alignment cascade.
@@ -4155,7 +4077,7 @@ sealed class DocumentParser(string defaultFont)
                 if (gridCol.Width?.HasValue == true &&
                     double.TryParse(gridCol.Width.Value, out var widthTwips))
                 {
-                    gridColumnWidths.Add(widthTwips / twipsPerPoint);
+                    gridColumnWidths.Add(widthTwips / OoxmlUnits.TwipsPerPoint);
                 }
             }
 
@@ -4177,7 +4099,7 @@ sealed class DocumentParser(string defaultFont)
             double.TryParse(tblWidthEl.Width.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tblWTwips) &&
             tblWTwips > 0)
         {
-            preferredWidthPoints = tblWTwips / twipsPerPoint;
+            preferredWidthPoints = tblWTwips / OoxmlUnits.TwipsPerPoint;
         }
         else if (tblWidthEl?.Type?.Value == TableWidthUnitValues.Pct &&
                  tblWidthEl.Width?.HasValue == true &&
@@ -4215,11 +4137,11 @@ sealed class DocumentParser(string defaultFont)
             isFloating = tblpPr != null;
             if (tblpPr?.TablePositionY?.HasValue == true)
             {
-                floatingYOffsetPoints = tblpPr.TablePositionY.Value / twipsPerPoint;
+                floatingYOffsetPoints = tblpPr.TablePositionY.Value / OoxmlUnits.TwipsPerPoint;
             }
             if (tblpPr?.TablePositionX?.HasValue == true)
             {
-                floatingXOffsetPoints = tblpPr.TablePositionX.Value / twipsPerPoint;
+                floatingXOffsetPoints = tblpPr.TablePositionX.Value / OoxmlUnits.TwipsPerPoint;
             }
             if (tblpPr?.VerticalAnchor?.Value is { } vAnch)
             {
@@ -4369,7 +4291,7 @@ sealed class DocumentParser(string defaultFont)
                     var cellWidth = cellProps.GetFirstChild<TableCellWidth>();
                     if (cellWidth?.Width?.HasValue == true && cellWidth.Type?.Value == TableWidthUnitValues.Dxa)
                     {
-                        width = double.Parse(cellWidth.Width.Value!) / twipsPerPoint;
+                        width = double.Parse(cellWidth.Width.Value!) / OoxmlUnits.TwipsPerPoint;
                     }
                     else if (cellWidth?.Width?.HasValue == true &&
                              cellWidth.Type?.Value == TableWidthUnitValues.Pct &&
@@ -4652,7 +4574,7 @@ sealed class DocumentParser(string defaultFont)
                 var trHeight = rowProps.GetFirstChild<TableRowHeight>();
                 if (trHeight?.Val?.HasValue == true)
                 {
-                    rowHeight = trHeight.Val.Value / twipsPerPoint;
+                    rowHeight = trHeight.Val.Value / OoxmlUnits.TwipsPerPoint;
                     // hRule="exact" means exact height, otherwise it's minimum height
                     isExactHeight = trHeight.HeightType?.Value == HeightRuleValues.Exact;
                 }
@@ -4783,7 +4705,7 @@ sealed class DocumentParser(string defaultFont)
             var tblInd = tableProps.GetFirstChild<TableIndentation>();
             if (tblInd?.Width?.HasValue == true)
             {
-                indentPoints = tblInd.Width.Value / twipsPerPoint;
+                indentPoints = tblInd.Width.Value / OoxmlUnits.TwipsPerPoint;
             }
         }
 
@@ -4886,7 +4808,7 @@ sealed class DocumentParser(string defaultFont)
             return 0;
         }
 
-        return twips / twipsPerPoint;
+        return twips / OoxmlUnits.TwipsPerPoint;
     }
 
     /// <summary>
@@ -4910,7 +4832,7 @@ sealed class DocumentParser(string defaultFont)
         }
         else if (margin.TableCellRightMargin?.Width?.HasValue == true)
         {
-            right = margin.TableCellRightMargin.Width.Value / twipsPerPoint;
+            right = margin.TableCellRightMargin.Width.Value / OoxmlUnits.TwipsPerPoint;
         }
 
         var bottomMargin = margin.BottomMargin;
@@ -4925,7 +4847,7 @@ sealed class DocumentParser(string defaultFont)
         }
         else if (margin.TableCellLeftMargin?.Width?.HasValue == true)
         {
-            left = margin.TableCellLeftMargin.Width.Value / twipsPerPoint;
+            left = margin.TableCellLeftMargin.Width.Value / OoxmlUnits.TwipsPerPoint;
         }
 
         return (top, right, bottom, left);
@@ -4985,7 +4907,7 @@ sealed class DocumentParser(string defaultFont)
 
         if (double.TryParse(span, NumberStyles.Float, CultureInfo.InvariantCulture, out var twips))
         {
-            return twips / twipsPerPoint;
+            return twips / OoxmlUnits.TwipsPerPoint;
         }
 
         return 0;
@@ -6577,8 +6499,8 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        var widthPoints = picWidth / emusPerPoint;
-        var heightPoints = picHeight / emusPerPoint;
+        var widthPoints = picWidth / OoxmlUnits.EmusPerPoint;
+        var heightPoints = picHeight / OoxmlUnits.EmusPerPoint;
 
         // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
         var rotationDegrees = ReadRotationDegrees(xfrm);
@@ -6718,8 +6640,8 @@ sealed class DocumentParser(string defaultFont)
 
         var outerCx = extent.Cx.Value + effectL + effectR;
         var outerCy = extent.Cy.Value + effectT + effectB;
-        var widthPoints = outerCx / emusPerPoint;
-        var heightPoints = outerCy / emusPerPoint;
+        var widthPoints = outerCx / OoxmlUnits.EmusPerPoint;
+        var heightPoints = outerCy / OoxmlUnits.EmusPerPoint;
         if (widthPoints <= 0 || heightPoints <= 0)
         {
             return null;
@@ -7083,8 +7005,8 @@ sealed class DocumentParser(string defaultFont)
         var childExtentX = (double) (shapeXfrm.Extents.Cx ?? extent.Cx.Value);
         var childExtentY = Math.Max(1.0, (double) (shapeXfrm.Extents.Cy ?? extent.Cy.Value));
 
-        var widthPoints = extent.Cx.Value / emusPerPoint;
-        var heightPoints = Math.Max(lineWidth / emusPerPoint, extent.Cy.Value / emusPerPoint);
+        var widthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint;
+        var heightPoints = Math.Max(lineWidth / OoxmlUnits.EmusPerPoint, extent.Cy.Value / OoxmlUnits.EmusPerPoint);
         if (widthPoints <= 0)
         {
             return null;
@@ -7160,8 +7082,8 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        var widthPoints = extent.Cx.Value / emusPerPoint;
-        var heightPoints = extent.Cy.Value / emusPerPoint;
+        var widthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint;
+        var heightPoints = extent.Cy.Value / OoxmlUnits.EmusPerPoint;
         var childExtentX = (double) (shapeXfrm.Extents.Cx ?? extent.Cx.Value);
         var childExtentY = (double) (shapeXfrm.Extents.Cy ?? extent.Cy.Value);
         if (widthPoints <= 0 || heightPoints <= 0 || childExtentX <= 0 || childExtentY <= 0)
@@ -7561,10 +7483,10 @@ sealed class DocumentParser(string defaultFont)
             var (finalX, finalY, finalWidth, finalHeight, groupRotationDegrees, groupFlipVertical) = accumTransform.MapRectangle(picOffsetX, picOffsetY, picWidth, picHeight);
 
             // Convert to points
-            var widthPoints = finalWidth / emusPerPoint;
-            var heightPoints = finalHeight / emusPerPoint;
-            var offsetXPoints = finalX / emusPerPoint;
-            var offsetYPoints = finalY / emusPerPoint;
+            var widthPoints = finalWidth / OoxmlUnits.EmusPerPoint;
+            var heightPoints = finalHeight / OoxmlUnits.EmusPerPoint;
+            var offsetXPoints = finalX / OoxmlUnits.EmusPerPoint;
+            var offsetYPoints = finalY / OoxmlUnits.EmusPerPoint;
 
             // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise) composed with any
             // rotation the ancestor groups apply. A mirroring ancestor reverses the sense of
@@ -7747,25 +7669,24 @@ sealed class DocumentParser(string defaultFont)
     /// </summary>
     static (WrapType Type, WrapTextSide Side, double DistLeft, double DistTop, double DistRight, double DistBottom) ParseWrap(DW.Anchor anchor)
     {
-        const double emusPerPoint = 12700.0;
 
         if (anchor.GetFirstChild<DW.WrapSquare>() is { } square)
         {
             return (WrapType.Square,
                 ParseWrapTextSide(square.WrapText),
-                (square.DistanceFromLeft?.Value ?? 0) / emusPerPoint,
-                (square.DistanceFromTop?.Value ?? 0) / emusPerPoint,
-                (square.DistanceFromRight?.Value ?? 0) / emusPerPoint,
-                (square.DistanceFromBottom?.Value ?? 0) / emusPerPoint);
+                (square.DistanceFromLeft?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                (square.DistanceFromTop?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                (square.DistanceFromRight?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                (square.DistanceFromBottom?.Value ?? 0) / OoxmlUnits.EmusPerPoint);
         }
 
         if (anchor.GetFirstChild<DW.WrapTight>() is { } tight)
         {
             return (WrapType.Tight,
                 ParseWrapTextSide(tight.WrapText),
-                (tight.DistanceFromLeft?.Value ?? 0) / emusPerPoint,
+                (tight.DistanceFromLeft?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
                 0,
-                (tight.DistanceFromRight?.Value ?? 0) / emusPerPoint,
+                (tight.DistanceFromRight?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
                 0);
         }
 
@@ -7773,9 +7694,9 @@ sealed class DocumentParser(string defaultFont)
         {
             return (WrapType.Through,
                 ParseWrapTextSide(through.WrapText),
-                (through.DistanceFromLeft?.Value ?? 0) / emusPerPoint,
+                (through.DistanceFromLeft?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
                 0,
-                (through.DistanceFromRight?.Value ?? 0) / emusPerPoint,
+                (through.DistanceFromRight?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
                 0);
         }
 
@@ -7784,9 +7705,9 @@ sealed class DocumentParser(string defaultFont)
             return (WrapType.TopAndBottom,
                 WrapTextSide.BothSides,
                 0,
-                (topBottom.DistanceFromTop?.Value ?? 0) / emusPerPoint,
+                (topBottom.DistanceFromTop?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
                 0,
-                (topBottom.DistanceFromBottom?.Value ?? 0) / emusPerPoint);
+                (topBottom.DistanceFromBottom?.Value ?? 0) / OoxmlUnits.EmusPerPoint);
         }
 
         return (WrapType.None, WrapTextSide.BothSides, 0, 0, 0, 0);
@@ -7853,8 +7774,8 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        var widthPoints = widthEmu / emusPerPoint;
-        var heightPoints = heightEmu / emusPerPoint;
+        var widthPoints = widthEmu / OoxmlUnits.EmusPerPoint;
+        var heightPoints = heightEmu / OoxmlUnits.EmusPerPoint;
 
         // Find WordprocessingShape element
         var wsp = drawing.Descendants<WPS.WordprocessingShape>().FirstOrDefault();
@@ -8053,8 +7974,8 @@ sealed class DocumentParser(string defaultFont)
                 extent?.Cx != null && extent.Cy != null && extent.Cx.Value > 0 && extent.Cy.Value > 0
                     ? (positioning.HorizontalPositionPoints,
                         positioning.VerticalPositionPoints,
-                        extent.Cx.Value / emusPerPoint,
-                        extent.Cy.Value / emusPerPoint)
+                        extent.Cx.Value / OoxmlUnits.EmusPerPoint,
+                        extent.Cy.Value / OoxmlUnits.EmusPerPoint)
                     : null;
 
             // Process all shapes in the group (including nested grpSp groups)
@@ -8097,8 +8018,8 @@ sealed class DocumentParser(string defaultFont)
             if (wsp != null)
             {
                 var extent = anchor.Extent;
-                var widthPoints = (extent?.Cx ?? 0) / emusPerPoint;
-                var heightPoints = (extent?.Cy ?? 0) / emusPerPoint;
+                var widthPoints = (extent?.Cx ?? 0) / OoxmlUnits.EmusPerPoint;
+                var heightPoints = (extent?.Cy ?? 0) / OoxmlUnits.EmusPerPoint;
 
                 var textBox = ParseTextBoxFromShape(wsp, positioning, 0, 0, 1, 1, behindText, mainPart, widthPoints, heightPoints);
                 if (textBox != null)
@@ -9106,8 +9027,8 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Convert EMUs to points
-        var widthPoints = widthEmu / emusPerPoint;
-        var heightPoints = heightEmu / emusPerPoint;
+        var widthPoints = widthEmu / OoxmlUnits.EmusPerPoint;
+        var heightPoints = heightEmu / OoxmlUnits.EmusPerPoint;
 
         // Find WordprocessingShape element (wps:wsp)
         var wsp = drawing.Descendants<WPS.WordprocessingShape>().FirstOrDefault();
@@ -9312,7 +9233,7 @@ sealed class DocumentParser(string defaultFont)
 
                     if (outline.Width?.HasValue == true)
                     {
-                        outlineWidth = outline.Width.Value / emusPerPoint;
+                        outlineWidth = outline.Width.Value / OoxmlUnits.EmusPerPoint;
                     }
                 }
             }
@@ -9964,7 +9885,7 @@ sealed class DocumentParser(string defaultFont)
                 continue;
             }
 
-            var positionPoints = tabStop.Position.Value / twipsPerPoint;
+            var positionPoints = tabStop.Position.Value / OoxmlUnits.TwipsPerPoint;
             var alignment = MapTabAlignment(tabStop.Val?.InnerText);
             if (alignment == TabAlignment.Clear)
             {
@@ -10245,15 +10166,9 @@ sealed class DocumentParser(string defaultFont)
 
         if (spacing != null)
         {
-            if (spacing.Before?.HasValue == true)
-            {
-                spacingBefore = double.Parse(spacing.Before.Value!) / twipsPerPoint;
-            }
+            spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
 
-            if (spacing.After?.HasValue == true)
-            {
-                spacingAfter = double.Parse(spacing.After.Value!) / twipsPerPoint;
-            }
+            spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
 
             if (spacing.Line?.HasValue == true)
             {
@@ -10268,13 +10183,13 @@ sealed class DocumentParser(string defaultFont)
                 else if (ruleValue == LineSpacingRuleValues.Exact)
                 {
                     // Line spacing in twips (1/20 of a point)
-                    lineSpacingPoints = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                    lineSpacingPoints = double.Parse(spacing.Line.Value!) / OoxmlUnits.TwipsPerPoint;
                     lineSpacingRule = LineSpacingRule.Exactly;
                 }
                 else if (ruleValue == LineSpacingRuleValues.AtLeast)
                 {
                     // Line spacing in twips (1/20 of a point)
-                    lineSpacingPoints = double.Parse(spacing.Line.Value!) / twipsPerPoint;
+                    lineSpacingPoints = double.Parse(spacing.Line.Value!) / OoxmlUnits.TwipsPerPoint;
                     lineSpacingRule = LineSpacingRule.AtLeast;
                 }
             }
@@ -10282,25 +10197,13 @@ sealed class DocumentParser(string defaultFont)
 
         if (indentation != null)
         {
-            if (indentation.FirstLine?.HasValue == true)
-            {
-                firstLineIndent = double.Parse(indentation.FirstLine.Value!) / twipsPerPoint;
-            }
+            firstLineIndent = indentation.FirstLine.TwipsToPoints() ?? firstLineIndent;
 
-            if (indentation.Left?.HasValue == true)
-            {
-                leftIndent = double.Parse(indentation.Left.Value!) / twipsPerPoint;
-            }
+            leftIndent = indentation.Left.TwipsToPoints() ?? leftIndent;
 
-            if (indentation.Right?.HasValue == true)
-            {
-                rightIndent = double.Parse(indentation.Right.Value!) / twipsPerPoint;
-            }
+            rightIndent = indentation.Right.TwipsToPoints() ?? rightIndent;
 
-            if (indentation.Hanging?.HasValue == true)
-            {
-                hangingIndent = double.Parse(indentation.Hanging.Value!) / twipsPerPoint;
-            }
+            hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
         }
 
         // Check if line numbers are suppressed for this paragraph
@@ -10586,10 +10489,10 @@ sealed class DocumentParser(string defaultFont)
                 "inline" => FrameVerticalAlignment.Inline,
                 _ => baseFrame?.VerticalAlignment ?? FrameVerticalAlignment.None
             },
-            XPoints = int.TryParse(xRaw, out var xTwips) ? xTwips / twipsPerPoint : baseFrame?.XPoints ?? 0,
-            YPoints = int.TryParse(yRaw, out var yTwips) ? yTwips / twipsPerPoint : baseFrame?.YPoints ?? 0,
-            WidthPoints = int.TryParse(widthRaw, out var widthTwips) && widthTwips > 0 ? widthTwips / twipsPerPoint : baseFrame?.WidthPoints,
-            HeightPoints = int.TryParse(heightRaw, out var heightTwips) && heightTwips > 0 ? heightTwips / twipsPerPoint : baseFrame?.HeightPoints
+            XPoints = int.TryParse(xRaw, out var xTwips) ? xTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.XPoints ?? 0,
+            YPoints = int.TryParse(yRaw, out var yTwips) ? yTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.YPoints ?? 0,
+            WidthPoints = int.TryParse(widthRaw, out var widthTwips) && widthTwips > 0 ? widthTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.WidthPoints,
+            HeightPoints = int.TryParse(heightRaw, out var heightTwips) && heightTwips > 0 ? heightTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.HeightPoints
         };
     }
 
@@ -11122,7 +11025,7 @@ sealed class DocumentParser(string defaultFont)
         // Character spacing (w:spacing in rPr — extra space between characters, in twips)
         if (spacingElement?.Val?.HasValue == true)
         {
-            characterSpacing = spacingElement.Val.Value / twipsPerPoint;
+            characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
         }
 
         // Kerning threshold (w:kern in rPr — half-points; 0 means kerning is off)
@@ -11532,8 +11435,8 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // LineWidth is in EMU; default to a thin stroke when absent.
-        var widthEmu = element.LineWidth?.Value ?? (long) (0.75 * emusPerPoint);
-        var widthPoints = widthEmu / emusPerPoint;
+        var widthEmu = element.LineWidth?.Value ?? (long) (0.75 * OoxmlUnits.EmusPerPoint);
+        var widthPoints = widthEmu / OoxmlUnits.EmusPerPoint;
 
         var color = ReadW14SolidFillColor(element) ?? fillColor ?? "000000";
         return new()
@@ -11551,8 +11454,8 @@ sealed class DocumentParser(string defaultFont)
         }
 
         // Word's defaults when attributes absent: 4pt distance, 45deg, 4pt blur, semi-transparent black.
-        var blurPoints = (element.BlurRadius?.Value ?? (long) (4 * emusPerPoint)) / emusPerPoint;
-        var distancePoints = (element.DistanceFromText?.Value ?? (long) (4 * emusPerPoint)) / emusPerPoint;
+        var blurPoints = (element.BlurRadius?.Value ?? (long) (4 * OoxmlUnits.EmusPerPoint)) / OoxmlUnits.EmusPerPoint;
+        var distancePoints = (element.DistanceFromText?.Value ?? (long) (4 * OoxmlUnits.EmusPerPoint)) / OoxmlUnits.EmusPerPoint;
         // DirectionAngle is in 60000ths of a degree; OOXML 0deg = right, 90deg = down.
         var directionDegrees = (element.DirectionAngle?.Value ?? 2700000) / 60000.0;
 
@@ -11574,7 +11477,7 @@ sealed class DocumentParser(string defaultFont)
             return null;
         }
 
-        var radiusPoints = (element.GlowRadius?.Value ?? (long) (4 * emusPerPoint)) / emusPerPoint;
+        var radiusPoints = (element.GlowRadius?.Value ?? (long) (4 * OoxmlUnits.EmusPerPoint)) / OoxmlUnits.EmusPerPoint;
         var (color, alpha) = ReadW14ColorWithAlpha(element.RgbColorModelHex, element.SchemeColor);
         return new()
         {

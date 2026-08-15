@@ -406,11 +406,18 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
                     continue;
                 }
 
+                PointF Warp(PointF sample)
+                {
+                    var (warpedX, warpedY) = WordArtEnvelope.WarpPoint(
+                        (sample.X, sample.Y), totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
+                    return new(warpedX, warpedY);
+                }
+
                 pathBuilder.StartFigure();
-                pathBuilder.MoveTo(WarpPoint(points[0], totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform));
+                pathBuilder.MoveTo(Warp(points[0]));
                 for (var i = 1; i < points.Length; i++)
                 {
-                    pathBuilder.LineTo(WarpPoint(points[i], totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform));
+                    pathBuilder.LineTo(Warp(points[i]));
                 }
                 if (simplePath.IsClosed)
                 {
@@ -422,56 +429,6 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         var fillColor = fillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(fillColorHex);
         canvas.Fill(context.GetBrush(fillColor), pathBuilder.Build());
         return true;
-    }
-
-    static PointF WarpPoint(PointF point, float totalWidth, float glyphsTop, float glyphsHeight,
-        float x, float y, float width, float height, WordArtTransform transform)
-    {
-        var t = Math.Clamp(point.X / totalWidth, 0f, 1f);
-        var newX = x + t * width;
-        var (top, bottom) = EnvelopeAt(t, transform, y, height);
-        var normY = (point.Y - glyphsTop) / glyphsHeight;
-        var newY = top + normY * (bottom - top);
-        return new(newX, newY);
-    }
-
-    /// <summary>
-    /// Returns the (top Y, bottom Y) envelope curve at normalised text position t ∈ [0, 1]
-    /// for the given warp. Edge text height is <c>minRatio</c> of the bbox so glyphs at the
-    /// ends of the word stay readable instead of collapsing to a line.
-    /// </summary>
-    static (float top, float bottom) EnvelopeAt(float t, WordArtTransform transform, float bboxTop, float bboxHeight)
-    {
-        var sinT = (float) Math.Sin(Math.PI * t);
-        var bboxBottom = bboxTop + bboxHeight;
-        var bboxCentre = bboxTop + bboxHeight / 2f;
-        const float minRatio = 0.55f;
-
-        switch (transform)
-        {
-            case WordArtTransform.Inflate:
-            {
-                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
-                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
-            }
-            case WordArtTransform.Deflate:
-            {
-                var h = bboxHeight * (1f - (1 - minRatio) * sinT);
-                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
-            }
-            case WordArtTransform.CanUp:
-            {
-                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
-                return (bboxBottom - h, bboxBottom);
-            }
-            case WordArtTransform.CanDown:
-            {
-                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
-                return (bboxTop, bboxTop + h);
-            }
-            default:
-                return (bboxTop, bboxBottom);
-        }
     }
 
     /// <summary>
@@ -489,33 +446,13 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         float x, float y, float width, float height,
         Font font)
     {
-        // scaleY(t) returns the per-glyph vertical scale factor for normalised position
-        // t ∈ [0, 1] along the text. anchor selects which line stays fixed under the scale:
-        // baseline for Fade/Triangle/CanUp, centre for Inflate/Deflate, top for CanDown.
-        // Inflate/CanUp/CanDown peak ~1.4× in the middle (sin curve, amplitude 0.4).
-        // Deflate floors at 0.7 in the middle so glyphs stay readable.
-        Func<float, float>? scaleY = transform switch
-        {
-            WordArtTransform.FadeRight => t => 1f - 0.65f * t,
-            WordArtTransform.FadeLeft => t => 0.35f + 0.65f * t,
-            WordArtTransform.Triangle => t => 0.35f + 0.65f * (1f - Math.Abs(2f * t - 1f)),
-            WordArtTransform.Inflate => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
-            WordArtTransform.Deflate => t => 1f - 0.45f * (float) Math.Sin(Math.PI * t),
-            WordArtTransform.CanUp => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
-            WordArtTransform.CanDown => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
-            _ => null
-        };
+        var scaleY = WordArtEnvelope.ScaleY(transform);
         if (scaleY == null)
         {
             return false;
         }
 
-        var anchor = transform switch
-        {
-            WordArtTransform.Inflate or WordArtTransform.Deflate => EnvelopeAnchor.Centre,
-            WordArtTransform.CanDown => EnvelopeAnchor.Top,
-            _ => EnvelopeAnchor.Baseline
-        };
+        var anchor = WordArtEnvelope.AnchorFor(transform);
 
         var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
         var totalWidth = TextMeasurer.MeasureAdvance(text, measureOptions).Width;
@@ -619,7 +556,6 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         return true;
     }
 
-    enum EnvelopeAnchor { Baseline, Centre, Top }
 
     /// <summary>
     /// Builds a text-length-fitting arc on the chord-sagitta circle (chord = bbox width,

@@ -29,6 +29,51 @@ static class HexColor
     public static string ToHex(byte r, byte g, byte b) => $"{r:X2}{g:X2}{b:X2}";
 
     /// <summary>
+    /// Parses a colour as the rendering backends receive it: six-digit <c>RRGGBB</c>, which is
+    /// opaque, or eight-digit <c>AARRGGBB</c>. Returns <c>false</c> for null, empty, <c>auto</c> and
+    /// anything unrecognised, leaving the caller to supply its own default — every backend's is
+    /// black, but the fallback colour is the backend's own type, so it stays on that side.
+    /// </summary>
+    /// <remarks>
+    /// The three <c>ParseColor</c> implementations this replaces were the same "auto" check, the
+    /// same 6-vs-8 branch and the same shift-and-mask, differing only in the colour type they
+    /// constructed at the end. The number provider is irrelevant to
+    /// <see cref="NumberStyles.HexNumber"/> — it admits no culture-sensitive element — so the two
+    /// backends that passed null and the one that passed the invariant culture always agreed.
+    /// </remarks>
+    public static bool TryParseArgb(this string? hex, out byte a, out byte r, out byte g, out byte b)
+    {
+        a = r = g = b = 0;
+        if (string.IsNullOrEmpty(hex) ||
+            hex == "auto")
+        {
+            return false;
+        }
+
+        if (hex.Length == 6 &&
+            uint.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgb))
+        {
+            a = 0xFF;
+            r = (byte) ((rgb >> 16) & 0xFF);
+            g = (byte) ((rgb >> 8) & 0xFF);
+            b = (byte) (rgb & 0xFF);
+            return true;
+        }
+
+        if (hex.Length == 8 &&
+            uint.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb))
+        {
+            a = (byte) ((argb >> 24) & 0xFF);
+            r = (byte) ((argb >> 16) & 0xFF);
+            g = (byte) ((argb >> 8) & 0xFF);
+            b = (byte) (argb & 0xFF);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Converts RGB to HSL. Hue is turns (0..1), not degrees.
     /// </summary>
     public static void RgbToHsl(byte r, byte g, byte b, out double h, out double s, out double l)

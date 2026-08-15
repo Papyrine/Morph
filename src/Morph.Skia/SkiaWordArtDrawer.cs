@@ -456,8 +456,12 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         SKPathVerb verb;
         while ((verb = iterator.Next(points)) != SKPathVerb.Done)
         {
-            SKPoint Warp(SKPoint sample) =>
-                WarpPoint(sample, totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
+            SKPoint Warp(SKPoint sample)
+            {
+                var (warpedX, warpedY) = WordArtEnvelope.WarpPoint(
+                    (sample.X, sample.Y), totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
+                return new(warpedX, warpedY);
+            }
 
             switch (verb)
             {
@@ -513,56 +517,6 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         return new(a * p0.X + b * p1.X + c * p2.X + d * p3.X, a * p0.Y + b * p1.Y + c * p2.Y + d * p3.Y);
     }
 
-    static SKPoint WarpPoint(SKPoint point, float totalWidth, float glyphsTop, float glyphsHeight,
-        float x, float y, float width, float height, WordArtTransform transform)
-    {
-        var t = Math.Clamp(point.X / totalWidth, 0f, 1f);
-        var newX = x + t * width;
-        var (top, bottom) = EnvelopeAt(t, transform, y, height);
-        var normY = (point.Y - glyphsTop) / glyphsHeight;
-        var newY = top + normY * (bottom - top);
-        return new(newX, newY);
-    }
-
-    /// <summary>
-    /// Returns the (top Y, bottom Y) envelope curve at normalised text position t ∈ [0, 1]
-    /// for the given warp. Edge text height is <c>minRatio</c> of the bbox so glyphs at the
-    /// ends of the word stay readable instead of collapsing to a line.
-    /// </summary>
-    static (float top, float bottom) EnvelopeAt(float t, WordArtTransform transform, float bboxTop, float bboxHeight)
-    {
-        var sinT = (float) Math.Sin(Math.PI * t);
-        var bboxBottom = bboxTop + bboxHeight;
-        var bboxCentre = bboxTop + bboxHeight / 2f;
-        const float minRatio = 0.55f;
-
-        switch (transform)
-        {
-            case WordArtTransform.Inflate:
-            {
-                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
-                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
-            }
-            case WordArtTransform.Deflate:
-            {
-                var h = bboxHeight * (1f - (1 - minRatio) * sinT);
-                return (bboxCentre - h / 2f, bboxCentre + h / 2f);
-            }
-            case WordArtTransform.CanUp:
-            {
-                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
-                return (bboxBottom - h, bboxBottom);
-            }
-            case WordArtTransform.CanDown:
-            {
-                var h = bboxHeight * (minRatio + (1 - minRatio) * sinT);
-                return (bboxTop, bboxTop + h);
-            }
-            default:
-                return (bboxTop, bboxBottom);
-        }
-    }
-
     /// <summary>
     /// Per-glyph rendering for envelope warps that aren't text-on-path (Fade, Triangle).
     /// Each glyph is drawn separately with a vertical scale anchored at the baseline so
@@ -576,28 +530,13 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         float x, float y, float width, float height,
         SKTypeface typeface, float fontSize)
     {
-        Func<float, float>? scaleY = transform switch
-        {
-            WordArtTransform.FadeRight => t => 1f - 0.65f * t,
-            WordArtTransform.FadeLeft => t => 0.35f + 0.65f * t,
-            WordArtTransform.Triangle => t => 0.35f + 0.65f * (1f - Math.Abs(2f * t - 1f)),
-            WordArtTransform.Inflate => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
-            WordArtTransform.Deflate => t => 1f - 0.45f * (float) Math.Sin(Math.PI * t),
-            WordArtTransform.CanUp => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
-            WordArtTransform.CanDown => t => 1f + 0.5f * (float) Math.Sin(Math.PI * t),
-            _ => null
-        };
+        var scaleY = WordArtEnvelope.ScaleY(transform);
         if (scaleY == null)
         {
             return false;
         }
 
-        var anchor = transform switch
-        {
-            WordArtTransform.Inflate or WordArtTransform.Deflate => EnvelopeAnchor.Centre,
-            WordArtTransform.CanDown => EnvelopeAnchor.Top,
-            _ => EnvelopeAnchor.Baseline
-        };
+        var anchor = WordArtEnvelope.AnchorFor(transform);
 
         using var font = new SKFont(typeface, fontSize);
         using var paint = new SKPaint
@@ -688,7 +627,6 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         return true;
     }
 
-    enum EnvelopeAnchor { Baseline, Centre, Top }
 
     /// <summary>
     /// Straight diagonal path through the bbox centre with slope ±H/W. Path length matches

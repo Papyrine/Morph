@@ -169,23 +169,8 @@ sealed class PdfRenderContext : RenderContextBase
         imageCache.Clear();
     }
 
-    public static XColor ParseColor(string? hex)
-    {
-        if (string.IsNullOrEmpty(hex) || hex == "auto")
-        {
-            return XColors.Black;
-        }
-
-        if (hex.Length == 6 && uint.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgb))
-        {
-            return XColor.FromArgb((byte) ((rgb >> 16) & 0xFF), (byte) ((rgb >> 8) & 0xFF), (byte) (rgb & 0xFF));
-        }
-
-        if (hex.Length == 8 && uint.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb))
-        {
-            return XColor.FromArgb((byte) ((argb >> 24) & 0xFF), (byte) ((argb >> 16) & 0xFF), (byte) ((argb >> 8) & 0xFF), (byte) (argb & 0xFF));
-        }
-
-        return XColors.Black;
-    }
+    public static XColor ParseColor(string? hex) =>
+        hex.TryParseArgb(out var a, out var r, out var g, out var b)
+            ? XColor.FromArgb(a, r, g, b)
+            : XColors.Black;
 }
