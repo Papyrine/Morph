@@ -8,7 +8,7 @@ public class HslColorConversionTests
     public async Task PureRed_RoundTrip_PreservesColor()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms { LumMod = 100, SatMod = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 1.0), new(ColorTransformKind.SatMod, 1.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("FF0000");
     }
@@ -17,7 +17,7 @@ public class HslColorConversionTests
     public async Task PureGreen_RoundTrip_PreservesColor()
     {
         var themeColors = new ThemeColors { Accent1 = "00FF00" };
-        var transforms = new ColorTransforms { LumMod = 100, SatMod = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 1.0), new(ColorTransformKind.SatMod, 1.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("00FF00");
     }
@@ -26,7 +26,7 @@ public class HslColorConversionTests
     public async Task PureBlue_RoundTrip_PreservesColor()
     {
         var themeColors = new ThemeColors { Accent1 = "0000FF" };
-        var transforms = new ColorTransforms { LumMod = 100, SatMod = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 1.0), new(ColorTransformKind.SatMod, 1.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("0000FF");
     }
@@ -35,7 +35,7 @@ public class HslColorConversionTests
     public async Task White_HasMaxLuminance()
     {
         var themeColors = new ThemeColors { Light1 = "FFFFFF" };
-        var transforms = new ColorTransforms { LumMod = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.5)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -44,7 +44,7 @@ public class HslColorConversionTests
     public async Task Black_HasZeroLuminance()
     {
         var themeColors = new ThemeColors { Dark1 = "000000" };
-        var transforms = new ColorTransforms { LumMod = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.5)] };
         var result = themeColors.ResolveColor("dark1", transforms);
         await Assert.That(result).IsEqualTo("000000");
     }
@@ -53,7 +53,7 @@ public class HslColorConversionTests
     public async Task MediumGray_RoundTrip_PreservesColor()
     {
         var themeColors = new ThemeColors { Accent1 = "808080" };
-        var transforms = new ColorTransforms { LumMod = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 1.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -62,7 +62,7 @@ public class HslColorConversionTests
     public async Task Gray_SatModIncrease_StaysGray()
     {
         var themeColors = new ThemeColors { Accent1 = "808080" };
-        var transforms = new ColorTransforms { SatMod = 200 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 2.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -71,7 +71,7 @@ public class HslColorConversionTests
     public async Task LumOff_PushesAbove100_ClampedToMax()
     {
         var themeColors = new ThemeColors { Light1 = "C0C0C0" };
-        var transforms = new ColorTransforms { LumOff = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, 0.5)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("FFFFFF");
     }
@@ -80,7 +80,7 @@ public class HslColorConversionTests
     public async Task LumOff_PushesBelow0_ClampedToMin()
     {
         var themeColors = new ThemeColors { Dark1 = "404040" };
-        var transforms = new ColorTransforms { LumOff = -50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, -0.5)] };
         var result = themeColors.ResolveColor("dark1", transforms);
         await Assert.That(result).IsEqualTo("000000");
     }
@@ -89,7 +89,7 @@ public class HslColorConversionTests
     public async Task SatMod_ZeroPercent_RemovesSaturation()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms { SatMod = 0 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 0.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -98,7 +98,7 @@ public class HslColorConversionTests
     public async Task LumMod_PreservesHue_RedStaysReddish()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms { LumMod = 75 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.75)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsNotNull();
         var r = Convert.ToByte(result![0..2], 16);
@@ -112,7 +112,7 @@ public class HslColorConversionTests
     public async Task SatMod_PreservesHue_BlueStaysBluish()
     {
         var themeColors = new ThemeColors { Accent1 = "0000FF" };
-        var transforms = new ColorTransforms { SatMod = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 0.5)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsNotNull();
         var r = Convert.ToByte(result![0..2], 16);

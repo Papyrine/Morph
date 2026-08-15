@@ -1,4 +1,4 @@
-# All HTML export scenarios (326)
+# All HTML export scenarios (330)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -80,6 +80,10 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [cards/18](#cards18)
 - [cards/19](#cards19)
 - [colored_text](#colored_text)
+- [color_transform_hsl](#color_transform_hsl)
+- [color_transform_order](#color_transform_order)
+- [color_transform_shade_tint](#color_transform_shade_tint)
+- [color_transform_theme_fill](#color_transform_theme_fill)
 - [column_breaks](#column_breaks)
 - [comments/01](#comments01)
 - [compatibility_mode_14](#compatibility_mode_14)
@@ -783,6 +787,30 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="colored_text/expected_0001.png" width="500"> | <img src="colored_text/html_result.verified.png" width="500"> |
+
+## color_transform_hsl
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="color_transform_hsl/expected_0001.png" width="500"> | <img src="color_transform_hsl/html_result.verified.png" width="500"> |
+
+## color_transform_order
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="color_transform_order/expected_0001.png" width="500"> | <img src="color_transform_order/html_result.verified.png" width="500"> |
+
+## color_transform_shade_tint
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="color_transform_shade_tint/expected_0001.png" width="500"> | <img src="color_transform_shade_tint/html_result.verified.png" width="500"> |
+
+## color_transform_theme_fill
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="color_transform_theme_fill/expected_0001.png" width="500"> | <img src="color_transform_theme_fill/html_result.verified.png" width="500"> |
 
 ## column_breaks
 

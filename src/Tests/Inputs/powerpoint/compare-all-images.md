@@ -124,7 +124,7 @@
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2700 · SSIM: 0.9347** | **Page 1. ErrorMetric: 0.4545 · SSIM: 0.9348** |
 | <img src="funky-shapes/expected_0001.png" width="500"> | <img src="funky-shapes/skia_result%23page_0001.verified.png" width="500"> | <img src="funky-shapes/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0662 · SSIM: 0.9310** | **Page 2. ErrorMetric: 0.1479 · SSIM: 0.9333** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0662 · SSIM: 0.9311** | **Page 2. ErrorMetric: 0.1479 · SSIM: 0.9335** |
 | <img src="funky-shapes/expected_0002.png" width="500"> | <img src="funky-shapes/skia_result%23page_0002.verified.png" width="500"> | <img src="funky-shapes/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## funky-shapes-dark
@@ -194,7 +194,7 @@
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0227 · SSIM: 0.9291** | **Page 1. ErrorMetric: 0.0227 · SSIM: 0.9303** |
 | <img src="minimalist-light-sales-pitch/expected_0001.png" width="500"> | <img src="minimalist-light-sales-pitch/skia_result%23page_0001.verified.png" width="500"> | <img src="minimalist-light-sales-pitch/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0493 · SSIM: 0.8595** | **Page 2. ErrorMetric: 0.0490 · SSIM: 0.8593** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0493 · SSIM: 0.8595** | **Page 2. ErrorMetric: 0.0490 · SSIM: 0.8594** |
 | <img src="minimalist-light-sales-pitch/expected_0002.png" width="500"> | <img src="minimalist-light-sales-pitch/skia_result%23page_0002.verified.png" width="500"> | <img src="minimalist-light-sales-pitch/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## offset

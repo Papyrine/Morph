@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "PageCount": 1,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "accent1 themeFill\naccent1 themeFillShade 40\naccent1 themeFillShade 80\naccent1 themeFillShade BF\naccent1 themeFillTint 40\naccent1 themeFillTint 80\naccent1 themeFillTint BF\naccent2 themeFill\naccent2 themeFillShade 40\naccent2 themeFillShade 80\naccent2 themeFillShade BF\naccent2 themeFillTint 40\naccent2 themeFillTint 80\naccent2 themeFillTint BF"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1247,
+      "Ssim": 0.9482,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

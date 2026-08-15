@@ -273,7 +273,7 @@ public class CT_SchemeColorTests
     public async Task LumMod_75Percent_ReducesLuminance()
     {
         var themeColors = new ThemeColors { Accent1 = "4472C4" };
-        var transforms = new ColorTransforms { LumMod = 75 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.75)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsNotNull();
     }
@@ -282,7 +282,7 @@ public class CT_SchemeColorTests
     public async Task LumMod_100Percent_NoChange()
     {
         var themeColors = new ThemeColors { Accent1 = "4472C4" };
-        var transforms = new ColorTransforms { LumMod = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 1.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("4472C4");
     }
@@ -291,7 +291,7 @@ public class CT_SchemeColorTests
     public async Task LumMod_50Percent_HalvesLuminance()
     {
         var themeColors = new ThemeColors { Light1 = "FFFFFF" };
-        var transforms = new ColorTransforms { LumMod = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.5)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -300,7 +300,7 @@ public class CT_SchemeColorTests
     public async Task LumMod_ZeroPercent_BecomesBlack()
     {
         var themeColors = new ThemeColors { Light1 = "FFFFFF" };
-        var transforms = new ColorTransforms { LumMod = 0 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.0)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("000000");
     }
@@ -309,7 +309,7 @@ public class CT_SchemeColorTests
     public async Task LumMod_OnBlack_StaysBlack()
     {
         var themeColors = new ThemeColors { Dark1 = "000000" };
-        var transforms = new ColorTransforms { LumMod = 75 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.75)] };
         var result = themeColors.ResolveColor("dark1", transforms);
         await Assert.That(result).IsEqualTo("000000");
     }
@@ -322,7 +322,7 @@ public class CT_SchemeColorTests
     public async Task LumOff_PositiveValue_IncreasesLuminance()
     {
         var themeColors = new ThemeColors { Dark1 = "000000" };
-        var transforms = new ColorTransforms { LumOff = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, 0.5)] };
         var result = themeColors.ResolveColor("dark1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -331,7 +331,7 @@ public class CT_SchemeColorTests
     public async Task LumOff_ZeroValue_NoChange()
     {
         var themeColors = new ThemeColors { Accent1 = "4472C4" };
-        var transforms = new ColorTransforms { LumOff = 0 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, 0.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("4472C4");
     }
@@ -340,7 +340,7 @@ public class CT_SchemeColorTests
     public async Task LumOff_NegativeValue_DecreasesLuminance()
     {
         var themeColors = new ThemeColors { Light1 = "FFFFFF" };
-        var transforms = new ColorTransforms { LumOff = -50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, -0.5)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -349,7 +349,7 @@ public class CT_SchemeColorTests
     public async Task LumOff_Clamped_AtMaximum()
     {
         var themeColors = new ThemeColors { Light1 = "808080" };
-        var transforms = new ColorTransforms { LumOff = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, 1.0)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("FFFFFF");
     }
@@ -358,7 +358,7 @@ public class CT_SchemeColorTests
     public async Task LumOff_Clamped_AtMinimum()
     {
         var themeColors = new ThemeColors { Light1 = "808080" };
-        var transforms = new ColorTransforms { LumOff = -100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumOff, -1.0)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("000000");
     }
@@ -371,7 +371,7 @@ public class CT_SchemeColorTests
     public async Task SatMod_50Percent_HalvesSaturation()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms { SatMod = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 0.5)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsNotNull();
     }
@@ -380,7 +380,7 @@ public class CT_SchemeColorTests
     public async Task SatMod_100Percent_NoChange()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms { SatMod = 100 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 1.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("FF0000");
     }
@@ -389,7 +389,7 @@ public class CT_SchemeColorTests
     public async Task SatMod_ZeroPercent_BecomesGray()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms { SatMod = 0 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 0.0)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -398,7 +398,7 @@ public class CT_SchemeColorTests
     public async Task SatMod_OnGray_StaysGray()
     {
         var themeColors = new ThemeColors { Light1 = "808080" };
-        var transforms = new ColorTransforms { SatMod = 50 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.SatMod, 0.5)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsEqualTo("808080");
     }
@@ -411,11 +411,7 @@ public class CT_SchemeColorTests
     public async Task CombinedTransforms_LumModThenShade_AppliesInOrder()
     {
         var themeColors = new ThemeColors { Light1 = "FFFFFF" };
-        var transforms = new ColorTransforms
-        {
-            LumMod = 50,
-            Shade = 128
-        };
+        var transforms = new ColorTransforms { ThemeShade = 128, Operations = [new(ColorTransformKind.LumMod, 0.5)] };
         var result = themeColors.ResolveColor("light1", transforms);
         await Assert.That(result).IsNotNull();
         var r = Convert.ToByte(result![0..2], 16);
@@ -426,11 +422,7 @@ public class CT_SchemeColorTests
     public async Task CombinedTransforms_LumModAndSatMod_BothApply()
     {
         var themeColors = new ThemeColors { Accent1 = "FF0000" };
-        var transforms = new ColorTransforms
-        {
-            LumMod = 75,
-            SatMod = 50
-        };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.75), new(ColorTransformKind.SatMod, 0.5)] };
         var result = themeColors.ResolveColor("accent1", transforms);
         await Assert.That(result).IsNotNull();
     }
@@ -442,13 +434,7 @@ public class CT_SchemeColorTests
         // Base color: 73B3B8 (teal), LumMod=20%, LumOff=80%
         // Expected: L = L * 0.2 + 0.8 = very light (90%+ luminance)
         var themeColors = new ThemeColors { Accent3 = "73B3B8" };
-        var transforms = new ColorTransforms
-        {
-            // 20% of original luminance
-            LumMod = 20,
-            // Add 80% to luminance
-            LumOff = 80
-        };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.2), new(ColorTransformKind.LumOff, 0.8)] };
         var result = themeColors.ResolveColor("accent3", transforms);
         await Assert.That(result).IsNotNull();
 
@@ -509,21 +495,21 @@ public class CT_SchemeColorTests
     [Test]
     public async Task ColorTransforms_HasTransforms_TrueWhenShadeSet()
     {
-        var transforms = new ColorTransforms { Shade = 100 };
+        var transforms = new ColorTransforms { ThemeShade = 100 };
         await Assert.That(transforms.HasTransforms).IsTrue();
     }
 
     [Test]
     public async Task ColorTransforms_HasTransforms_TrueWhenTintSet()
     {
-        var transforms = new ColorTransforms { Tint = 100 };
+        var transforms = new ColorTransforms { ThemeTint = 100 };
         await Assert.That(transforms.HasTransforms).IsTrue();
     }
 
     [Test]
     public async Task ColorTransforms_HasTransforms_TrueWhenLumModSet()
     {
-        var transforms = new ColorTransforms { LumMod = 75 };
+        var transforms = new ColorTransforms { Operations = [new(ColorTransformKind.LumMod, 0.75)] };
         await Assert.That(transforms.HasTransforms).IsTrue();
     }
 

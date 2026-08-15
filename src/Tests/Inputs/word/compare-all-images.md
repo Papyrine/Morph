@@ -1,4 +1,4 @@
-# All scenarios (326)
+# All scenarios (330)
 
 <details>
 <summary>Contents</summary>
@@ -78,6 +78,10 @@
 - [cards/18](#cards18)
 - [cards/19](#cards19)
 - [colored_text](#colored_text)
+- [color_transform_hsl](#color_transform_hsl)
+- [color_transform_order](#color_transform_order)
+- [color_transform_shade_tint](#color_transform_shade_tint)
+- [color_transform_theme_fill](#color_transform_theme_fill)
 - [column_breaks](#column_breaks)
 - [comments/01](#comments01)
 - [compatibility_mode_14](#compatibility_mode_14)
@@ -359,7 +363,7 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0428 · SSIM: 0.9161** | **Page 1. ErrorMetric: 0.0481 · SSIM: 0.9010** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0400 · SSIM: 0.9161** | **Page 1. ErrorMetric: 0.0453 · SSIM: 0.9010** |
 | <img src="agendas-minutes/04/expected_0001.png" width="500"> | <img src="agendas-minutes/04/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/04/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/05
@@ -1163,6 +1167,167 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0046 · SSIM: 0.9914** | **Page 1. ErrorMetric: 0.0048 · SSIM: 0.9909** |
 | <img src="colored_text/expected_0001.png" width="500"> | <img src="colored_text/skia_result%23page_0001.verified.png" width="500"> | <img src="colored_text/imagesharp_result%23page_0001.verified.png" width="500"> |
 
+## color_transform_hsl
+
+Pins the HSL transform family — `a:satMod`, `a:lumMod`, `a:lumOff` — and in particular the rule
+that **saturation is not clamped**.
+
+A 6x7 grid of page-anchored 0.8in squares, first swatch at 0.35in / 0.8in, 1.1in pitch.
+
+Rows 1-4 sweep `a:satMod` at 50/100/150/200/300/400% over bases of rising saturation:
+4472C4 (s≈0.50), ED7D31 (s≈0.83), A5A5A5 (s=0, a control that must not move at any value) and
+FF0000 (s=1, already at the gamut edge).
+
+Rows 5-7 are the luminance cases over 4472C4, ED7D31 and C8C8C8: `lumMod 150`, `lumMod 200`,
+`lumOff 50`, `lumOff 80`, `lumMod 75 + lumOff 50`, `lumMod 200 + lumOff 50`.
+
+**Saturation is unclamped.** Word lets `a:satMod` drive HSL saturation past 1 and clips at the
+RGB byte instead. 4472C4 therefore keeps moving after saturation nominally maxes out:
+
+| base | 50% | 100% | 150% | 200% | 300% | 400% |
+| --- | --- | --- | --- | --- | --- | --- |
+| 4472C4 | 647BA4 | 4472C4 | 2469E4 | 0460FF | 004EFF | 003CFF |
+| ED7D31 | BE8660 | ED7D31 | FF7402 | FF6B00 | FF5900 | FF4700 |
+| A5A5A5 | A5A5A5 | A5A5A5 | A5A5A5 | A5A5A5 | A5A5A5 | A5A5A5 |
+| FF0000 | BF4040 | FF0000 | FF0000 | FF0000 | FF0000 | FF0000 |
+
+Clamping saturation to 1 parks 4472C4 at 0961FF from 200% onward and is out by up to 51 per
+channel by 400%. The unclamped model is exact on all 24. This is not an edge case: over 97% of
+the `a:satMod` values in the corpus exceed 100%.
+
+**Luminance, by contrast, may be clamped** — an out-of-range luminance saturates to black or
+white either way, and rows 5-7 measured identical under both. The implementation clamps it, and
+this fixture records that the choice is free rather than load-bearing.
+
+The `A5A5A5` row is the one to read first if this scenario ever fails: a neutral grey has no
+saturation to modulate, so any movement there means the HSL round trip itself has broken rather
+than the transform.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0063 · SSIM: 0.9882** | **Page 1. ErrorMetric: 0.0090 · SSIM: 0.9864** |
+| <img src="color_transform_hsl/expected_0001.png" width="500"> | <img src="color_transform_hsl/skia_result%23page_0001.verified.png" width="500"> | <img src="color_transform_hsl/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## color_transform_order
+
+Pins the composition rule: Word applies a colour's transform children **in document order**, so
+the same two transforms in opposite order give different colours.
+
+A 10x2 grid of page-anchored 0.7in squares, first swatch at 0.3in / 1.0in, 0.78in pitch. Rows are
+`a:schemeClr val="accent1"` (4472C4) and `accent2` (ED7D31). Columns:
+
+| # | children, in document order |
+| --- | --- |
+| 1 | none |
+| 2 | `lumMod 50` |
+| 3 | `shade 50` |
+| 4 | `lumMod 50`, `shade 50` |
+| 5 | `shade 50`, `lumMod 50` |
+| 6 | `lumMod 75`, `tint 50` |
+| 7 | `tint 50`, `lumMod 75` |
+| 8 | `satMod 200`, `shade 50` |
+| 9 | `shade 50`, `satMod 200` |
+| 10 | `lumMod 60`, `lumOff 20`, `shade 75` |
+
+**Columns 4/5, 6/7 and 8/9 are the same pair reversed and must NOT render alike.** On accent1,
+column 4 is 142748 and column 5 is 182948; on accent2, column 6 is E5C4BC against column 7's
+E9805E — a 94-per-channel gap. Any implementation that sorts transforms into a fixed order, or
+that folds them into a single pass, fits one column of each pair and misses the other. Columns 2
+and 3 are the single-transform controls that both orderings must agree with.
+
+This rule is why the transform list is an ordered `IReadOnlyList<ColorTransform>` rather than the
+flat property bag it replaced: the bag could not represent column 4 and column 5 as different
+inputs at all. Repeats matter for the same reason and are kept rather than collapsed — the corpus
+carries colours with nine `lumMod`/`satMod`/`tint` triples in a row, and reading only the first of
+each kind silently dropped the rest.
+
+Column 10 is the three-child case that mixes both spaces in one chain, and column 8/9 the case
+where the interleaved transform pushes saturation past the gamut edge; those two are where an
+implementation that batches HSL operations has to be careful to break the batch at a `shade`.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0440 · SSIM: 0.9955** | **Page 1. ErrorMetric: 0.0440 · SSIM: 0.9955** |
+| <img src="color_transform_order/expected_0001.png" width="500"> | <img src="color_transform_order/skia_result%23page_0001.verified.png" width="500"> | <img src="color_transform_order/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## color_transform_shade_tint
+
+Pins the model for DrawingML `a:shade` / `a:tint`: **linear light**, at the full `0-100000`
+precision, independent of whether the base colour is a literal or a theme entry.
+
+A 7x4 grid of page-anchored 0.8in squares. Columns are the transform — plain, `a:shade` at
+25/50/75%, `a:tint` at 25/50/75%. Rows are the base — `a:srgbClr val="748DF3"`,
+`a:srgbClr val="ED7D31"`, `a:schemeClr val="accent1"` (4472C4), `a:schemeClr val="accent2"`
+(ED7D31). Geometry: first swatch at 0.35in / 0.8in from the page origin, 1.1in pitch, so at
+150 DPI a swatch centre sits at `150 * (0.75 + 1.1*column)` by `150 * (1.2 + 1.1*row)`.
+
+Rows 2 and 4 are the same base colour reached two different ways, and must render identically.
+That pairing is the point of the fixture: the transform means the same thing whichever kind of
+colour declared it, and the codebase previously disagreed with itself about that.
+
+**Word's values** (150 DPI, measured at the swatch centres):
+
+| base | plain | shade 25% | shade 50% | shade 75% | tint 25% | tint 50% | tint 75% |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 748DF3 | 748DF3 | 3B4982 | 5366B3 | 657BD6 | E6E9FC | C9D0F9 | A6B3F6 |
+| ED7D31 | ED7D31 | 7F4015 | AE5A21 | D16D2A | FBE7E2 | F6CCBE | F2AA8F |
+| accent1 | 4472C4 | 203A68 | 2F528F | 3B64AC | E3E6F2 | C0C9E4 | 93A5D5 |
+| accent2 | ED7D31 | 7F4015 | AE5A21 | D16D2A | FBE7E2 | F6CCBE | F2AA8F |
+
+**Why the fixture exists.** Two wrong models shipped against these values, and both looked
+plausible at a realistic magnitude. An sRGB-space blend — multiply the encoded byte for shade,
+blend toward 255 for tint — is out by up to 127 per channel; HSL luminance scaling, which IS
+correct for the WordprocessingML byte form in `color_transform_theme_fill`, is out by up to 69.
+Linear light reproduces all 24 transformed swatches exactly. The three models are 30 to 60 apart
+per channel here precisely because the magnitudes are amplified; at a realistic `shade 90%` they
+agree to within a few counts and the measurement settles nothing.
+
+Six shape-fill call sites also dropped the transform children entirely, rendering every swatch at
+its base colour. Nothing in the corpus caught that, which is what this scenario is for.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0022 · SSIM: 0.9962** | **Page 1. ErrorMetric: 0.0051 · SSIM: 0.9953** |
+| <img src="color_transform_shade_tint/expected_0001.png" width="500"> | <img src="color_transform_shade_tint/skia_result%23page_0001.verified.png" width="500"> | <img src="color_transform_shade_tint/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## color_transform_theme_fill
+
+Pins the WordprocessingML byte form — `w:themeFillShade` / `w:themeFillTint` on a `w:shd` — which
+is **HSL luminance scaling**, a genuinely different transform from the DrawingML `a:shade` in
+`color_transform_shade_tint` rather than a different encoding of it.
+
+Fourteen full-width shaded paragraphs at an exact 12pt line, so each renders as a flat horizontal
+band that can be sampled by scanning a column down the page. Two groups of seven, `w:themeFill`
+of `accent1` (4472C4) then `accent2` (ED7D31): plain, then `w:themeFillShade` at `40`/`80`/`BF`,
+then `w:themeFillTint` at `40`/`80`/`BF`.
+
+The model is `L' = L·(S/255)` for shade and `L' = L·(T/255) + (255−T)/255` for tint, applied to
+HSL luminance with hue and saturation preserved. **Word's values:**
+
+| fill | plain | Shade 40 | Shade 80 | Shade BF | Tint 40 | Tint 80 | Tint BF |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| accent1 | 4472C4 | 0F1C32 | 1F3864 | 2F5496 | CFDBF0 | A0B7E1 | 7295D2 |
+| accent2 | ED7D31 | 411E05 | 833C0B | C45911 | FADECB | F6BD97 | F19D64 |
+
+Applying the linear-light model that IS correct for `a:shade` is out by up to 62 per channel here;
+an sRGB blend by up to 103. Luminance scaling is exact to within one channel step on all twelve.
+That last step does not clear under either `Math.Round` or truncation and is treated as a rounding
+difference in the HSL round trip rather than a model error.
+
+**Why the fixture exists.** These two attributes were parsed nowhere. Every band rendered as its
+flat undarkened base — all twelve of them — and no corpus scenario noticed, because the shade of an
+accent looks entirely reasonable until it is set beside the value Word produces. `w:color`'s
+equivalent `w:themeShade`/`w:themeTint` had been read correctly all along, so a reading of the
+parser that started from the run colour found nothing wrong.
+
+The text in each band is incidental, present only to give the paragraph a line box; the sampling
+column avoids the glyphs.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1241 · SSIM: 0.9486** | **Page 1. ErrorMetric: 0.1240 · SSIM: 0.9512** |
+| <img src="color_transform_theme_fill/expected_0001.png" width="500"> | <img src="color_transform_theme_fill/skia_result%23page_0001.verified.png" width="500"> | <img src="color_transform_theme_fill/imagesharp_result%23page_0001.verified.png" width="500"> |
+
 ## column_breaks
 
 | Expected (Word) | Skia | ImageSharp |
@@ -1292,7 +1457,7 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1808 · SSIM: 0.8371** | **Page 1. ErrorMetric: 0.1898 · SSIM: 0.8013** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1807 · SSIM: 0.8372** | **Page 1. ErrorMetric: 0.1898 · SSIM: 0.8014** |
 | <img src="cover-letters/09/expected_0001.png" width="500"> | <img src="cover-letters/09/skia_result%23page_0001.verified.png" width="500"> | <img src="cover-letters/09/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/10
@@ -2705,7 +2870,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1841 · SSIM: 0.8301** | **Page 1. ErrorMetric: 0.1946 · SSIM: 0.7934** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1841 · SSIM: 0.8301** | **Page 1. ErrorMetric: 0.1946 · SSIM: 0.7935** |
 | <img src="resumes/04/expected_0001.png" width="500"> | <img src="resumes/04/skia_result%23page_0001.verified.png" width="500"> | <img src="resumes/04/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## resumes/05
