@@ -2923,8 +2923,12 @@ sealed class DocumentParser(string defaultFont)
                 '' => "▪",
                 // Wingdings 0xA7 - black small square (Word's default bullet at ilvl 2)
                 '' => "▪",
-                // Wingdings 0xA8 - white square
-                '' => "▢",
+                // Wingdings 0xA8 - white square, which is how a Word template draws an empty
+                // checkbox. U+2610 rather than U+25A2 white square: Bullets.ttf carries the
+                // ballot box and not the square, so the closer codepoint rendered as nothing.
+                '' => "☐",
+                // Wingdings 0xFE - ballot box with X, the checked half of that pair
+                '' => "☒",
                 // Wingdings 0xFC - check mark
                 '' => "✓",
                 // Wingdings 0xFB - ballot X

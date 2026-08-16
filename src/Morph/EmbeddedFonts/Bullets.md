@@ -36,8 +36,8 @@ looks up `U+2022` etc. and gets a glyph whose visual weight matches Word.
 | U+2713 | `✓` | Checkmark (Wingdings) | Wingdings | 0xF0FC |
 | U+25B8 | `▸` | Small right triangle (drawn) | synthesized | — |
 | U+25BA | `►` | Right pointer (drawn) | synthesized | — |
-| U+2610 | `☐` | Legacy FORMCHECKBOX unchecked (drawn; box ≈1.15em dipping below baseline, matching Word's field rendering) | synthesized | — |
-| U+2612 | `☒` | Legacy FORMCHECKBOX checked (drawn) | synthesized | — |
+| U+2610 | `☐` | Legacy FORMCHECKBOX unchecked, and the Wingdings 0xA8 bullet a questionnaire template draws an empty checkbox with (drawn; box ≈1.15em dipping below baseline, matching Word's field rendering) | synthesized | — |
+| U+2612 | `☒` | Legacy FORMCHECKBOX checked, and the Wingdings 0xFE bullet that pairs with it (drawn) | synthesized | — |
 
 ## Licensing
 
