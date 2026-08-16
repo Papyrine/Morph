@@ -651,9 +651,9 @@ static class TableLayout
 
             // Natural single-line width: pass an effectively unbounded width so nothing wraps.
             var natural = measurer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
-            // Minimum width: pass 1pt so the layout breaks at every word boundary; the widest
-            // remaining line is the longest unbreakable token (e.g. "john@company.com").
-            var minimum = measurer.MeasureParagraphNaturalWidth(para, 1f);
+            // Minimum width: the longest unbreakable token (e.g. "john@company.com"), which is the
+            // paragraph laid out at a 1pt measure — every word on its own line, widest one wins.
+            var minimum = measurer.MeasureLongestTokenWidth(para);
 
             if (natural > pref)
             {

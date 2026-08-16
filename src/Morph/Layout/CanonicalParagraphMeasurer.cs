@@ -124,10 +124,30 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return result;
     }
 
-    public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth)
+    public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth) =>
+        WidestLine(Wrap(paragraph, maxWidth));
+
+    // The autofit MINIMUM probe (TableLayout.MeasureCellContentWidth) asks for this at a 1pt measure, where
+    // every word lands on its own line — so the wrap it runs builds line contents once per WORD, for every
+    // cell paragraph of every autofit table, and discards all of them to keep one number. It runs
+    // widths-only for that reason, and caches the number rather than the lines: routing it through the
+    // wrap memo would retain one WrapLine per word for the whole conversion. The wrap itself is the same
+    // one MeasureParagraphNaturalWidth would run at 1pt, so the answer is unchanged.
+    readonly ConcurrentDictionary<ParagraphElement, float> longestTokenCache = [];
+
+    public float MeasureLongestTokenWidth(ParagraphElement paragraph) =>
+        longestTokenCache.GetOrAdd(
+            paragraph,
+            static (key, measurer) => WidestLine(measurer.BuildWrap(key, minimumMeasure, buildItems: false)),
+            this);
+
+    // 1pt: narrow enough that no word fits beside another, so every word breaks onto its own line.
+    const float minimumMeasure = 1f;
+
+    static float WidestLine(IReadOnlyList<WrapLine> lines)
     {
         var widest = 0f;
-        foreach (var line in Wrap(paragraph, maxWidth))
+        foreach (var line in lines)
         {
             if (line.Width > widest)
             {
@@ -187,7 +207,39 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
     readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images);
 
-    IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth)
+    // Wrapping is the whole cost of a measurement — Flatten resolves a font per run and measures every
+    // piece, then BuildLineItems positions them — and the same (paragraph, width) pair is asked for over
+    // and over: a table cell's row height and then its placement ask at the identical content width, and a
+    // header or footer paragraph is asked once per page (a footer's twice, once for the height loop that
+    // anchors the band and once for the band layout). Counted over the 330-scenario corpus, the memo
+    // answers 44% of all wrap requests — 29,573 requests, 16,448 builds.
+    //
+    // The result is a pure function of the paragraph and the width: ParagraphElement is init-only, and a
+    // paragraph whose text varies per page (a PAGE field) is CLONED by the fragmenter rather than mutated
+    // (Fragmenter.SubstitutePageFields), so reference identity is a sound key. Width has to stay in it —
+    // a wrapping float narrows the measure mid-document, so one paragraph legitimately wraps at two
+    // widths in one flow. Lifetime is the measurer instance: production builds one per conversion, the
+    // same lifetime the deleted raster backends gave their pagedLayoutCache/boundedLayoutCache.
+    //
+    // Concurrent because an instance CAN be shared — the layout spec tests hold a static measurer
+    // (LayoutTestFonts.Measurer) that TUnit drives from parallel tests, which corrupted a plain
+    // Dictionary here. Racing callers may both build the same entry; the function is pure, so the loser's
+    // copy is simply discarded.
+    //
+    // Every result is shared, never copied, so nothing downstream may mutate a WrapLine's segment or image
+    // list. Nothing does: the fragmenter's LaidOutLine → PlacedLine build allocates its own arrays.
+    readonly ConcurrentDictionary<(ParagraphElement Paragraph, float MaxWidth), IReadOnlyList<WrapLine>> wrapCache = [];
+
+    IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth) =>
+        wrapCache.GetOrAdd(
+            (paragraph, maxWidth),
+            static (key, measurer) => measurer.BuildWrap(key.Paragraph, key.MaxWidth, buildItems: true),
+            this);
+
+    // buildItems false skips BuildLineItems and leaves every line's segments and images empty. A line's
+    // WIDTH is the accumulated pen pixels, quantized in CommitLine below — BuildLineItems only positions
+    // what the line already contains — so the widths a caller reads are identical either way.
+    IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems)
     {
         var pieces = Flatten(paragraph);
         var wrapWidth = maxWidth - (float) paragraph.Properties.LeftIndentPoints - (float) paragraph.Properties.RightIndentPoints;
@@ -217,6 +269,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         // spacing). Justify distributes the leftover width evenly across the inter-word gaps.
         void CommitLine(bool justify)
         {
+            if (!buildItems)
+            {
+                lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, [], []));
+                return;
+            }
+
             var extraGapPixels = 0.0;
             if (justify && paragraph.Properties.Alignment == TextAlignment.Justify)
             {

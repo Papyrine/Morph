@@ -21,4 +21,14 @@ interface IParagraphMeasurer
     /// Returns the total laid-out height of the paragraph (including spacing) at the given wrap width.
     /// </summary>
     float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth);
+
+    /// <summary>
+    /// Returns the width of the paragraph's longest unbreakable token (e.g. "john@company.com") — the
+    /// narrowest measure it can occupy without a word overflowing, which a table's autofit takes as a
+    /// column's minimum width. Defined as the widest line left when the paragraph is laid out at a 1pt
+    /// measure, which is what this default does; an implementation may answer the same question by a
+    /// cheaper route.
+    /// </summary>
+    float MeasureLongestTokenWidth(ParagraphElement paragraph) =>
+        MeasureParagraphNaturalWidth(paragraph, 1f);
 }

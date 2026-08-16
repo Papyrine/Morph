@@ -81,7 +81,7 @@ Font configuration is split between the shared [`ExportOptions`](../src/Morph/Ex
 
 The HTML and Markdown exporters emit font *names* rather than measuring glyphs, so they take only the two `ExportOptions` entries. The process-wide equivalents of `DefaultFont`, `FontWidthScale` and `DeterministicRendering` live on the internal `DefaultFontSettings` and must be set before the first render.
 
-`FontWidthScale` reaches PDF text through `PdfTextEngine`: it widens the measured glyph advances that drive line wrapping and right/decimal tab-stop resolution, and the draw pen advances by those same widths — the same measure-equals-draw model the raster backends use. At the default 1.0 it is an exact no-op, so it never moves PDF output unless set.
+`FontWidthScale` reaches PDF text through the shared layout engine, the same way it reaches the raster backends: `CanonicalTextMeasurer` widens the measured glyph advances that drive line wrapping and right/decimal tab-stop resolution, and `PdfPainter`'s render context carries the same scale into the draw, so the pen advances by those same widths — one measure-equals-draw model for every backend. At the default 1.0 it is an exact no-op, so it never moves PDF output unless set.
 
 ## Recipes
 
