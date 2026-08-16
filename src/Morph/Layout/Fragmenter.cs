@@ -61,9 +61,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // to the new page size, margins and column layout (ApplyGeometry). The initial values are the
         // document's first section, from the constructor's page.
         PageSettings current = page;
-        float contentTop = HeaderReservedTop(measurer, page, SelectVariant(1, firstPageHeader, evenPageHeader, header, page));
+        // Set in Run from the first page's reserved top, which cannot be a field initializer: HeaderReservedTop
+        // measures the header band, so it reads the caches this class owns. Three initializers used to compute
+        // that one value three times over.
+        float contentTop;
         float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
-        float contentHeight = (float) (page.HeightPoints - page.MarginBottom) - HeaderReservedTop(measurer, page, SelectVariant(1, firstPageHeader, evenPageHeader, header, page));
+        float contentHeight;
         float fullContentLeft = (float) page.MarginLeft;
         float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
         int columnCount = Math.Max(1, page.ColumnCount);
@@ -93,8 +96,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Y where the current page's columns begin. Normally the content top, but a continuous section break
         // that switches column count starts the new columns at the break point (below a full-width masthead),
         // so each column on that page tops out there rather than at the page top. Reset to the content top on
-        // every new page.
-        float columnTop = HeaderReservedTop(measurer, page, SelectVariant(1, firstPageHeader, evenPageHeader, header, page));
+        // every new page. Set in Run alongside contentTop.
+        float columnTop;
         // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
         // line/row is never pushed off it (nothing better to do), the same rule at a column or page top.
         bool atRegionTop = true;
@@ -147,7 +150,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         void ApplyGeometry(PageSettings settings)
         {
             current = settings;
-            contentTop = HeaderReservedTop(measurer, settings, header);
+            contentTop = HeaderReservedTop(settings, header);
             contentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
             contentHeight = contentBottom - contentTop;
             fullContentLeft = (float) settings.MarginLeft;
@@ -168,7 +171,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // the same way, and FooterBand has always measured both. Skipping tables here left the body reserving
         // only the header's text: a banner header whose masthead is a shaded one-column table (a protective
         // marking over a colour bar) reserved two lines and let the first body heading land inside the bar.
-        static float HeaderReservedTop(IParagraphMeasurer measurer, PageSettings settings, HeaderFooterContent? header)
+        float HeaderReservedTop(PageSettings settings, HeaderFooterContent? header)
         {
             var marginTop = (float) settings.MarginTop;
             if (settings.TopMarginIsAbsolute || header == null)
@@ -186,7 +189,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
                 else if (element is TableElement table)
                 {
-                    headerHeight += NestedTableHeight(table, bandWidth, measurer);
+                    headerHeight += NestedTableHeight(table, bandWidth);
                 }
             }
 
@@ -327,6 +330,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         public LaidOutDocument Run(IReadOnlyList<DocumentElement> elements)
         {
+            // The body starts below whatever the FIRST page's header variant reserves — a different question
+            // from ApplyGeometry's, which adopts a later section's plain header. Read off `current` rather
+            // than the primary-constructor `page` (the same settings at this point): taking the parameter
+            // captures it into the type while a field initializer also uses it, which is CS9124.
+            contentTop = HeaderReservedTop(current, SelectVariant(1, firstPageHeader, evenPageHeader, header, current));
+            contentHeight = contentBottom - contentTop;
+            columnTop = contentTop;
             y = contentTop;
 
             foreach (var element in elements)
@@ -1592,9 +1602,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
-            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, columnWidth, measurer);
-            var hasVerticalMerge = TableLayout.HasVerticalMerge(table);
-            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, hasVerticalMerge, addInteriorBorders: true);
+            var (colWidths, rowHeights) = TableGeometry(table, colCount, columnWidth);
 
             var tableWidth = 0f;
             foreach (var width in colWidths)
@@ -2193,8 +2201,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return ([], 0f);
             }
 
-            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
-            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table), addInteriorBorders: true);
+            var (colWidths, rowHeights) = TableGeometry(table, colCount, width);
 
             var tableWidth = 0f;
             foreach (var colWidth in colWidths)
@@ -2213,11 +2220,33 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return (rows, rowY - top);
         }
 
+        // A table's column widths and row heights at one measure. Both derive only from the table, that
+        // width and the measurer, and every caller treats them as read-only, so they are computed once per
+        // (table, width) and shared. The repeat this removes is per PAGE: a header or footer table has its
+        // height measured to reserve the band (HeaderReservedTop / FooterBand) and is then laid out again by
+        // LayoutNestedTable, and both halves ran the full autofit and row-height math on every page of the
+        // document. A floating table pays a similar pair — the column widths that size it, then the layout.
+        readonly Dictionary<(TableElement Table, float Width), (float[] ColWidths, float[] RowHeights)> tableGeometryCache = [];
+
+        (float[] ColWidths, float[] RowHeights) TableGeometry(TableElement table, int colCount, float width)
+        {
+            if (tableGeometryCache.TryGetValue((table, width), out var cached))
+            {
+                return cached;
+            }
+
+            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
+            var rowHeights = TableHeightCalculator.CalculateRowHeights(
+                table, colWidths, measurer, TableLayout.HasVerticalMerge(table), addInteriorBorders: true);
+            var geometry = (colWidths, rowHeights);
+            tableGeometryCache[(table, width)] = geometry;
+            return geometry;
+        }
+
         // The total height a table would occupy at the given width — the sum of its row heights. Used to
         // anchor a footer band (whose bottom sits a fixed distance above the page edge) before laying it out,
-        // and to reserve a header table's height above the body (HeaderReservedTop, which is static — hence
-        // the explicit measurer).
-        static float NestedTableHeight(TableElement table, float width, IParagraphMeasurer measurer)
+        // and to reserve a header table's height above the body (HeaderReservedTop).
+        float NestedTableHeight(TableElement table, float width)
         {
             var colCount = TableLayout.GetColumnCount(table);
             if (colCount == 0 || table.Rows.Count == 0)
@@ -2225,8 +2254,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return 0f;
             }
 
-            var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
-            var rowHeights = TableHeightCalculator.CalculateRowHeights(table, colWidths, measurer, TableLayout.HasVerticalMerge(table), addInteriorBorders: true);
+            var (_, rowHeights) = TableGeometry(table, colCount, width);
             var total = 0f;
             foreach (var rowHeight in rowHeights)
             {
@@ -2649,7 +2677,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
                 else if (element is TableElement table)
                 {
-                    height += NestedTableHeight(table, bandWidth, measurer);
+                    height += NestedTableHeight(table, bandWidth);
                 }
             }
 

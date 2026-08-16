@@ -146,8 +146,10 @@ embedding). The public entry-point converters live here too (DOCX→PNG and HTML
 - **SkiaSharp** (`src/Morph.Skia/`): SkiaSharp + Svg.Skia. Entry points `SkiaDocumentConverter` (DOCX→PNG) and `SkiaHtmlConverter` (HTML→PNG).
 - **ImageSharp** (`src/Morph.ImageSharp/`): SixLabors.ImageSharp / ImageSharp.Drawing / Fonts. Entry points `ImageSharpDocumentConverter` and `ImageSharpHtmlConverter`.
 
-**PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp. Still
-paginates through `PdfTextEngine` by default; `PdfPainter` is the engine-path painter beside it.
+**PDF** (`src/Morph.Pdf/`): `PdfRenderer` plus the DOCX→PDF and HTML→PDF converters, via PdfSharp.
+`PdfRenderer` paginates with the shared `Fragmenter` and draws with `PdfPainter`, exactly like the raster
+backends; the byte-reproducibility post-processing (`MakeDeterministic` / `TrimPages` / `Normalize`) lives
+there too.
 
 **Blazor** (`src/Morph.Blazor/`): the reusable browser front end, packaged for NuGet as `Morph.Blazor`.
 `MorphConverter` is the whole widget (upload → page preview → format picker → download);
@@ -165,8 +167,8 @@ extracted into `Morph.Blazor` this project is only the shell — header, theme t
 `<MorphConverter />`. See `src/Morph.Web/README.md`.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render
-locations that name the deleted production raster code describe history; for DOCX→PNG the engine painters
-are the only path, while `PdfTextEngine` remains PDF's default until the flip.
+locations that name the deleted production raster code describe history; the engine painters are the only
+path for every output format, PDF included.
 
 ## Code Style
 
