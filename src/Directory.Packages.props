@@ -19,7 +19,7 @@
     <PackageVersion Include="Verify.Bunit" Version="14.0.0" />
     <PackageVersion Include="Verify.Playwright" Version="3.1.1" />
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" Pinned="true" />
     <PackageVersion Include="Microsoft.Office.Interop.PowerPoint" Version="15.0.4420.1018" Pinned="true" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1001" Pinned="true" />
@@ -43,7 +43,7 @@
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="3.1.0" />
     <PackageVersion Include="Svg.Skia" Version="5.2.1" />
     <PackageVersion Include="Verify.PDFium" Version="1.4.0" />
-    <PackageVersion Include="TUnit" Version="1.64.13" />
+    <PackageVersion Include="TUnit" Version="1.65.0" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.1" />
     <PackageVersion Include="Verify.TUnit" Version="31.28.0" />
   </ItemGroup>
