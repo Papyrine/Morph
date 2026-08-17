@@ -22,12 +22,17 @@ sealed class SharedStrings
         index >= 0 && index < entries.Length ? entries[index] : string.Empty;
 
     /// <summary>
-    /// An entry is either one text node or a sequence of formatted runs. The runs' own formatting is
-    /// dropped: the model applies one style per cell, and a cell is the unit a spreadsheet formats.
+    /// The text of a rich string: either one text node or a sequence of formatted runs. The runs'
+    /// own formatting is dropped, because the model applies one style per cell and a cell is the
+    /// unit a spreadsheet formats.
+    ///
+    /// Typed as <see cref="OpenXmlElement"/> because the same content model — <c>CT_Rst</c> — backs
+    /// both a shared string entry and a cell's own <c>is</c>, and an inline rich string is otherwise
+    /// easy to read as its absent single <c>t</c> and so render blank.
     /// </summary>
-    static string Flatten(S.SharedStringItem item)
+    public static string Flatten(OpenXmlElement item)
     {
-        if (item.Text?.Text is { } single)
+        if (item.GetFirstChild<S.Text>()?.Text is { } single)
         {
             return single;
         }
