@@ -7,5 +7,13 @@
       <option value="300">300 DPI — print</option>
     </select>
   </div>
+  <div class="format-selector">
+    <label for="crop-select">Page area</label>
+    <select id="crop-select" class="format-select" value="FullPage" blazor:onchange="2">
+      <option value="FullPage" selected="">Whole page — default</option>
+      <option value="ContentBox">Content only — margins cropped</option>
+      <option value="ContentBoxWithHeaderFooter">Content with header and footer</option>
+    </select>
+  </div>
   <p class="option-note">Applies to the downloaded image. The preview above is a fixed-size thumbnail.</p>
 </div>

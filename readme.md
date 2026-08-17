@@ -212,7 +212,11 @@ var converter = new SkiaDocumentConverter();
 var options = new ImageExportOptions
 {
     Dpi = 300,
-    FontWidthScale = 1.08
+    FontWidthScale = 1.08,
+
+    // Emit the content box instead of the whole sheet. The page is laid out and painted
+    // exactly as it would have been; only the rectangle written out is smaller.
+    Crop = PageCrop.ContentBox
 };
 
 var result = converter.ConvertToImages(
@@ -220,7 +224,7 @@ var result = converter.ConvertToImages(
     "output-folder",
     options);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L73-L88' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L73-L92' title='Snippet source file'>snippet source</a> | <a href='#snippet-CustomOptions' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -239,7 +243,7 @@ The HTML output renders background shapes, gradients and accent panels from the 
 var html = DocumentConverter.ConvertToHtml("document.docx");
 File.WriteAllText("document.html", html);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L93-L98' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToHtml' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L97-L102' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToHtml' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -251,7 +255,7 @@ File.WriteAllText("document.html", html);
 var markdown = DocumentConverter.ConvertToMarkdown("document.docx");
 File.WriteAllText("document.md", markdown);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L103-L108' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToMarkdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L107-L112' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToMarkdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -263,7 +267,7 @@ File.WriteAllText("document.md", markdown);
 var outputPath = "document.pdf";
 PdfDocumentConverter.ConvertToPdf("document.docx", outputPath);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L113-L118' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToPdf' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L117-L122' title='Snippet source file'>snippet source</a> | <a href='#snippet-ConvertToPdf' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -283,7 +287,7 @@ File.WriteAllText("document.md",   document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("document.pdf");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L123-L134' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L127-L138' title='Snippet source file'>snippet source</a> | <a href='#snippet-ParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -314,7 +318,7 @@ var html = DocumentConverter.ConvertToHtml(
         }
     });
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L139-L161' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L143-L165' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlExportWithImageHandler' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -340,7 +344,7 @@ foreach (var warning in warnings)
     Console.WriteLine($"[{warning.Kind}] {warning.Message}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L166-L183' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L170-L187' title='Snippet source file'>snippet source</a> | <a href='#snippet-WarningCallback' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -361,7 +365,7 @@ var firstThreePages = PdfDocumentConverter.ConvertToPdf(
 
 File.WriteAllBytes("document-preview.pdf", firstThreePages);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L188-L200' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L192-L204' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -387,7 +391,7 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L205-L219' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L209-L223' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -405,7 +409,7 @@ foreach (var pngBytes in imageData)
     // Use the PNG byte array as needed
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L224-L235' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L228-L239' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -422,7 +426,7 @@ The same exporters are available for an HTML source: `HtmlConverter.ConvertToHtm
 var markdown = await HtmlConverter.ConvertToMarkdown("<h1>Hello</h1><p>World</p>");
 await File.WriteAllTextAsync("page.md", markdown);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L240-L245' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L244-L249' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -434,7 +438,7 @@ await File.WriteAllTextAsync("page.md", markdown);
 var pdf = await PdfHtmlConverter.ConvertToPdf("<h1>Hello</h1><p>World</p>");
 await File.WriteAllBytesAsync("page.pdf", pdf);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L250-L255' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L254-L259' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -454,7 +458,7 @@ await File.WriteAllTextAsync("page.md",   document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("page.pdf");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L260-L271' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L264-L275' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -476,7 +480,7 @@ foreach (var (bookmark, page) in pages)
     Console.WriteLine($"{bookmark} is on page {page}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L357-L368' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L361-L372' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 It costs a layout pass and nothing more — the answer is read off the layout engine's placed items, so no page is drawn and no rendering backend is involved. Bookmarks that cannot be placed, such as one sitting between paragraphs at body level (`ParagraphIndex == null`), are absent from the result rather than reported at a guessed page.
@@ -544,7 +548,7 @@ var removed = DocumentCleaner.Remove("document.docx");
 
 Console.WriteLine($"Removed: {removed}");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L276-L285' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L280-L289' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `DocumentParts` is a `[Flags]` enum, so a subset can be selected, and `Find` reports what a package holds without touching it:
@@ -567,7 +571,7 @@ using var source = File.OpenRead("document.docx");
 using var target = File.Create("document-clean.docx");
 DocumentCleaner.Remove(source, target, DocumentParts.Thumbnail | DocumentParts.Glossary);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L290-L307' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L294-L311' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 One caveat on `CustomXml`: a content control can carry a `w:dataBinding` into a data island. The bound value is also cached inline in `word/document.xml` — which is what Morph, and Word until it refreshes, actually reads — but if the island and the cache have drifted apart, removing the island changes what Word eventually shows.
@@ -591,7 +595,7 @@ var result = ImageCompressor.Compress("document.docx");
 
 Console.WriteLine($"Saved {result.Saved} bytes across {result.Images.Count} images");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L312-L321' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L316-L325' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Formats that cannot survive a raster round trip are copied across untouched: SVG, EMF and WMF metafiles, JPEG XR (`.wdp`), GIF, TIFF and BMP. Nothing keys off the file extension either — image parts are found through `[Content_Types].xml` and sized through DrawingML, so `.xlsx` and `.pptx` are handled by the same walk.
@@ -623,7 +627,7 @@ using var source = File.OpenRead("document.docx");
 using var target = File.Create("document-small.docx");
 ImageCompressor.Compress(source, target);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L326-L352' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L330-L356' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The encoding is done by an `ImageCodec`, because the core `Morph` package has no imaging dependency. Referencing `Morph.ImageSharp` or `Morph.Skia` is enough for one to be found — ImageSharp is preferred, since SkiaSharp's PNG encoder exposes no compression level. Set `ImageCompressionOptions.Codec` to supply a different one.
@@ -636,6 +640,14 @@ The encoding is done by an `ImageCodec`, because the core `Morph` package has no
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `Dpi` | int | 150 | Image resolution in dots per inch |
+| `Pages` | PageRange? | null | Emit only this 1-based inclusive page range |
+| `Crop` | PageCrop | `FullPage` | How much of the paper page each image covers |
+
+`Crop` takes `FullPage` (the whole sheet), `ContentBox` (the margins dropped, and the header and
+footer with them) or `ContentBoxWithHeaderFooter` (the side margins dropped, the bands kept). It
+crops rather than re-lays-out, so pagination and line breaking never move and `Dpi` still governs
+the scale — what falls outside the rectangle is not emitted, including any page-anchored art that
+bleeds past the content box.
 
 Font-related options (`FontDirectory`, `FontFallback`, `DefaultFont`, `FontWidthScale`, `DeterministicRendering`) are documented in [docs/fonts.md](docs/fonts.md).
 

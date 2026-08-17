@@ -84,5 +84,51 @@ abstract class RenderContextBase
     public (int Width, int Height) PagePixels(PageSettings settings) =>
         (ToPagePixels(settings.WidthPoints, Dpi), ToPagePixels(settings.HeightPoints, Dpi));
 
+    /// <summary>
+    /// The rectangle of a page a <paramref name="crop"/> emits, in device pixels. Same per-page
+    /// settings rule as <see cref="PagePixels"/>: a section break can change the margins as well as
+    /// the paper, so the rectangle is resolved per page rather than once per document.
+    /// </summary>
+    public (int X, int Y, int Width, int Height) PageRect(PageSettings settings, PageCrop crop)
+    {
+        var (width, height) = PagePixels(settings);
+        if (crop == PageCrop.FullPage)
+        {
+            return (0, 0, width, height);
+        }
+
+        // The gutter is folded into MarginLeft (or MarginTop under w:gutterAtTop) at parse time by
+        // DocumentParser.ExtractPageSettings, so adding it here would charge for it twice.
+        var left = settings.MarginLeft;
+        var right = settings.MarginRight;
+        var top = settings.MarginTop;
+        var bottom = settings.MarginBottom;
+
+        if (crop == PageCrop.ContentBoxWithHeaderFooter)
+        {
+            // The bands sit at HeaderDistance from the top edge and FooterDistance from the bottom
+            // (Fragmenter.HeaderBand/FooterBand), normally inside the margin. Min rather than the
+            // distance outright, so the unusual document whose header sits below its top margin
+            // does not have the crop pushed back out past it.
+            top = Math.Min(top, settings.HeaderDistance);
+            bottom = Math.Min(bottom, settings.FooterDistance);
+        }
+
+        // Both edges go through ToPagePixels rather than scaling a width, so the crop lands on the
+        // same integer grid as the full page and a FullPage rect is exactly PagePixels. An integer
+        // origin is also what keeps the result a pure crop: a fractional one would have to resample.
+        var x = Clamp(ToPagePixels(left, Dpi), 0, width - 1);
+        var y = Clamp(ToPagePixels(top, Dpi), 0, height - 1);
+        return (
+            x,
+            y,
+            Clamp(ToPagePixels(settings.WidthPoints - right, Dpi) - x, 1, width - x),
+            Clamp(ToPagePixels(settings.HeightPoints - bottom, Dpi) - y, 1, height - y));
+    }
+
+    // Margins are not validated against the paper anywhere upstream, so a document declaring more
+    // margin than it has page must still produce a drawable rectangle rather than a negative one.
+    static int Clamp(int value, int min, int max) => Math.Min(Math.Max(value, min), Math.Max(min, max));
+
     public float PointsToPixels(float points) => points * Scale;
 }

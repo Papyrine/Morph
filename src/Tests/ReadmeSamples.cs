@@ -77,7 +77,11 @@ public class Samples
         var options = new ImageExportOptions
         {
             Dpi = 300,
-            FontWidthScale = 1.08
+            FontWidthScale = 1.08,
+
+            // Emit the content box instead of the whole sheet. The page is laid out and painted
+            // exactly as it would have been; only the rectangle written out is smaller.
+            Crop = PageCrop.ContentBox
         };
 
         var result = converter.ConvertToImages(
