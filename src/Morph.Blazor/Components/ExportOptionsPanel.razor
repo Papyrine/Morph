@@ -1,6 +1,7 @@
-@* Loads the option control for the selected output format. PNG exposes a render resolution; the
-   other formats (TXT, Markdown, HTML, PDF) have no knobs and show a short note instead. The host passes
-   the shared image-settings object, which the resolution editor mutates in place. *@
+@* Loads the option control for the selected output format. PNG exposes a render resolution and how
+   much of the page to emit; the other formats (TXT, Markdown, HTML, PDF) have no knobs and show a
+   short note instead. The host passes the shared image-settings object, which the editors mutate in
+   place. *@
 
 @switch (Target)
 {
@@ -10,6 +11,15 @@
                 <label for="dpi-select">Resolution</label>
                 <select id="dpi-select" class="format-select" @bind="Image.Dpi">
                     @foreach (var option in ExportOptionChoices.Dpis)
+                    {
+                        <option value="@option.Value">@option.Label</option>
+                    }
+                </select>
+            </div>
+            <div class="format-selector">
+                <label for="crop-select">Page area</label>
+                <select id="crop-select" class="format-select" @bind="Image.Crop">
+                    @foreach (var option in ExportOptionChoices.Crops)
                     {
                         <option value="@option.Value">@option.Label</option>
                     }

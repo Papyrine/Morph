@@ -1,3 +1,5 @@
+using Morph;
+
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
 /// <c>SkiaPainter</c> (docs/layout-engine.md, step 6). A pure draw pass over the tree the
@@ -15,7 +17,7 @@
 static class ImageSharpPainter
 {
 
-    public static void Paint(LaidOutDocument document, ImageSharpRenderContext context, Action<Action<Stream>> pageCallback)
+    public static void Paint(LaidOutDocument document, ImageSharpRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
     {
         foreach (var laidOutPage in document.Pages)
         {
@@ -31,6 +33,15 @@ static class ImageSharpPainter
                 {
                     PaintItem(context, canvas, item);
                 }
+            }
+
+            // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
+            // for why both painters do it this way. It has to follow the canvas's disposal above,
+            // since that is what flushes the deferred draw ops into the image.
+            var rect = context.PageRect(laidOutPage.Settings, crop);
+            if (rect is not { X: 0, Y: 0 } || rect.Width != pageWidth || rect.Height != pageHeight)
+            {
+                image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));
             }
 
             pageCallback(image.SaveAsPng);

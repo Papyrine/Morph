@@ -1,3 +1,5 @@
+using Morph;
+
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the raster analogue of
 /// <c>PdfPainter</c> (docs/layout-engine.md, step 6). A pure draw pass: every page size, line and
@@ -14,7 +16,7 @@
 /// </summary>
 static class SkiaPainter
 {
-    public static void Paint(LaidOutDocument document, SkiaRenderContext context, Action<Action<Stream>> pageCallback)
+    public static void Paint(LaidOutDocument document, SkiaRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
     {
         foreach (var laidOutPage in document.Pages)
         {
@@ -30,10 +32,36 @@ static class SkiaPainter
                 PaintItem(context, canvas, item);
             }
 
-            using var pixmap = bitmap.PeekPixels();
-            using var data = pixmap.Encode(SKEncodedImageFormat.Png, 100)!;
-            pageCallback(data.SaveTo);
+            Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
         }
+    }
+
+    // The page is always painted whole and a rectangle of it emitted, rather than the canvas being
+    // translated onto a smaller surface. That keeps the crop provably pure — the surviving pixels
+    // are the ones a full-page render produced, untouched — and it is the only option on the
+    // ImageSharp side, whose nested Save(DrawingOptions) calls replace a page-level transform
+    // rather than composing with it. Both painters therefore work the same way.
+    static void Encode(SKBitmap bitmap, (int X, int Y, int Width, int Height) rect, Action<Action<Stream>> pageCallback)
+    {
+        if (rect is { X: 0, Y: 0 } && rect.Width == bitmap.Width && rect.Height == bitmap.Height)
+        {
+            Write(bitmap, pageCallback);
+            return;
+        }
+
+        // ExtractSubset points the destination at a window onto the source's own pixels rather than
+        // copying, so it stays valid only while the page bitmap does — hence encoding here, inside
+        // the loop, rather than handing the subset back to the caller.
+        using var cropped = new SKBitmap();
+        bitmap.ExtractSubset(cropped, new(rect.X, rect.Y, rect.X + rect.Width, rect.Y + rect.Height));
+        Write(cropped, pageCallback);
+    }
+
+    static void Write(SKBitmap bitmap, Action<Action<Stream>> pageCallback)
+    {
+        using var pixmap = bitmap.PeekPixels();
+        using var data = pixmap.Encode(SKEncodedImageFormat.Png, 100)!;
+        pageCallback(data.SaveTo);
     }
 
     // Points (the tree's unit) to device pixels (Skia's unit).

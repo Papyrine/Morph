@@ -29,7 +29,7 @@ public sealed class SkiaDocumentConverter : DocumentConverter
             .Restrict(options.Pages);
 
         using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
-        SkiaPainter.Paint(laidOut, context, pageCallback);
+        SkiaPainter.Paint(laidOut, context, options.Crop, pageCallback);
         return laidOut.Pages.Count;
     }
 }

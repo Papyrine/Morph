@@ -75,6 +75,7 @@ public static class ConversionService
         ImageExportOptions options = new()
         {
             Dpi = settings.Dpi,
+            Crop = settings.Crop,
             FontDirectory = fontDirectory,
             FontFallback = _ => fallbackFont,
         };

@@ -29,7 +29,7 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
             .Restrict(options.Pages);
 
         using var context = new ImageSharpRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
-        ImageSharpPainter.Paint(laidOut, context, pageCallback);
+        ImageSharpPainter.Paint(laidOut, context, options.Crop, pageCallback);
         return laidOut.Pages.Count;
     }
 }

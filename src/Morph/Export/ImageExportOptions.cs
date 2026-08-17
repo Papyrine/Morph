@@ -33,4 +33,17 @@ public sealed record ImageExportOptions : ExportOptions
     /// renders every page.
     /// </summary>
     public PageRange? Pages { get; init; }
+
+    /// <summary>
+    /// How much of the paper page each image covers. The default emits the whole sheet; the other
+    /// values crop away the margins, which is what a thumbnail or an embedded preview usually
+    /// wants and otherwise obliges the caller to re-derive the document's margins for itself.
+    ///
+    /// <para>This is a crop, not a re-layout: the page is painted exactly as it would have been
+    /// and a rectangle of it is emitted, so pagination and line breaking never move and
+    /// <see cref="Dpi"/> still governs the scale. What lands outside the rectangle is lost —
+    /// headers and footers under <see cref="PageCrop.ContentBox"/>, and under either cropping
+    /// value any page-anchored art that bleeds past the content box.</para>
+    /// </summary>
+    public PageCrop Crop { get; init; } = PageCrop.FullPage;
 }
