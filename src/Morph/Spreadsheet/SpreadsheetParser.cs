@@ -14,7 +14,7 @@
 /// are wide and do NOT ask to be fitted are scaled too, which is the one place this diverges from
 /// Excel — it under-sizes them instead of paginating sideways.
 /// </summary>
-sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
+sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null, bool? useLetterPageSize = null)
 {
     const double pointsPerInch = 72.0;
 
@@ -91,7 +91,7 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
             }
 
             var name = sheet.Name?.Value ?? string.Empty;
-            var settings = PageSettingsFor(worksheet);
+            var settings = PageSettingsFor(worksheet, useLetterPageSize);
 
             var range = ResolveRange(worksheet, definedNames.PrintArea(name));
             if (range is not { } bounds || bounds.IsEmpty)
@@ -354,12 +354,12 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null)
         return Math.Max(0, (columnWidth - tableWidth) / 2);
     }
 
-    static PageSettings PageSettingsFor(S.Worksheet worksheet)
+    static PageSettings PageSettingsFor(S.Worksheet worksheet, bool? useLetterPageSize)
     {
         var setup = worksheet.GetFirstChild<S.PageSetup>();
         var margins = worksheet.GetFirstChild<S.PageMargins>();
 
-        var (width, height) = PaperSize.Resolve(setup?.PaperSize?.Value);
+        var (width, height) = PaperSize.Resolve(setup?.PaperSize?.Value, useLetterPageSize);
         var landscape = setup?.Orientation?.Value == S.OrientationValues.Landscape;
 
         return new()

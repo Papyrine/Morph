@@ -60,6 +60,15 @@ static class DefaultPageSize
     /// <summary>Default page height in points.</summary>
     public static double HeightPoints => UseLetterSize ? letterHeightPoints : a4HeightPoints;
 
+    /// <summary>
+    /// Dimensions for a caller that states which paper it wants, falling back to
+    /// <see cref="UseLetterSize"/> — and so to the machine's region — when it does not.
+    /// </summary>
+    public static (double Width, double Height) Resolve(bool? useLetter) =>
+        useLetter ?? UseLetterSize
+            ? (letterWidthPoints, letterHeightPoints)
+            : (a4WidthPoints, a4HeightPoints);
+
     static bool IsLetterRegion()
     {
         var region = RegionInfo.CurrentRegion;
