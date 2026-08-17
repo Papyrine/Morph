@@ -21,7 +21,7 @@ public abstract class DocumentConverter
     {
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont, options.UseLetterPageSize).Parse(docxStream);
         return PageSink.ToDirectory(
             outputDirectory,
             sink => RenderPages(document, options, sink));
@@ -40,7 +40,7 @@ public abstract class DocumentConverter
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
 
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont, options.UseLetterPageSize).Parse(docxStream);
         return PageSink.ToMemory(sink => RenderPages(document, options, sink));
     }
 
@@ -72,7 +72,7 @@ public abstract class DocumentConverter
         options ??= new();
         var pages = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont, options.UseLetterPageSize).Parse(docxStream);
         if (document.Bookmarks.Count == 0)
         {
             return pages;
@@ -190,7 +190,7 @@ public abstract class DocumentConverter
 
     /// <summary>Converts a DOCX stream to a semantic HTML fragment.</summary>
     public static string ConvertToHtml(Stream docxStream, HtmlExportOptions? options = null) =>
-        HtmlExporter.Export(Parse(docxStream, options?.DefaultFont), options);
+        HtmlExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize), options);
 
     /// <summary>Converts a DOCX file to Markdown.</summary>
     public static string ConvertToMarkdown(string docxPath, MarkdownExportOptions? options = null)
@@ -201,10 +201,10 @@ public abstract class DocumentConverter
 
     /// <summary>Converts a DOCX stream to Markdown.</summary>
     public static string ConvertToMarkdown(Stream docxStream, MarkdownExportOptions? options = null) =>
-        MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont), options);
+        MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize), options);
 
-    internal static ParsedDocument Parse(Stream docxStream, string? defaultFont) =>
-        new DocumentParser(defaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
+    internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null) =>
+        new DocumentParser(defaultFont ?? DefaultFontSettings.DefaultFont, useLetterPageSize).Parse(docxStream);
 
     /// <summary>
     /// Renders a parsed document, invoking <paramref name="pageCallback"/> for each page (the

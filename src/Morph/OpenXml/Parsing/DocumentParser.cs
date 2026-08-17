@@ -18,7 +18,7 @@ using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 [SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
-sealed class DocumentParser(string defaultFont)
+sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
 {
     // Conversion constants
 
@@ -3207,8 +3207,7 @@ sealed class DocumentParser(string defaultFont)
             }
         }
 
-        var width = DefaultPageSize.WidthPoints;
-        var height = DefaultPageSize.HeightPoints;
+        var (width, height) = DefaultPageSize.Resolve(useLetterPageSize);
         double marginTop = 72;
         var topMarginIsAbsolute = false;
         double marginBottom = 72;

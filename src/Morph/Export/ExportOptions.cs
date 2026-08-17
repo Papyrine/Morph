@@ -22,6 +22,18 @@ public abstract record ExportOptions
     public string? DefaultFont { get; init; }
 
     /// <summary>
+    /// The paper to fall back on when the source document states none — a worksheet with no
+    /// <c>pageSetup/@paperSize</c>, or a docx with no <c>w:pgSz</c>. <c>true</c> is US Letter,
+    /// <c>false</c> is A4.
+    ///
+    /// When <c>null</c> the machine's region decides, which is what Word and Excel do (Letter in
+    /// North America, A4 elsewhere) but makes the rendered page size depend on where the render
+    /// runs. Pin it for output that has to be reproducible across machines — snapshot tests most
+    /// of all, since a workbook stating no paper size is the common case rather than the rare one.
+    /// </summary>
+    public bool? UseLetterPageSize { get; init; }
+
+    /// <summary>
     /// Invoked for every feature the source document contained that couldn't be fully represented
     /// in the chosen output format — unsupported elements, missing fonts, inline images that
     /// failed to decode, etc. Null disables warning emission entirely.

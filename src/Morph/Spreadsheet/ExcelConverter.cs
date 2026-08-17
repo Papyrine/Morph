@@ -74,10 +74,10 @@ public abstract class ExcelConverter
     /// and through it the fit-to-page scale and the page count — depends on which face resolves.
     /// </summary>
     internal static ParsedDocument Parse(Stream xlsxStream, ExportOptions? options) =>
-        Parse(xlsxStream, options?.DefaultFont, options?.FontDirectory);
+        Parse(xlsxStream, options?.DefaultFont, options?.FontDirectory, options?.UseLetterPageSize);
 
-    internal static ParsedDocument Parse(Stream xlsxStream, string? defaultFont, string? fontDirectory) =>
-        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory)
+    internal static ParsedDocument Parse(Stream xlsxStream, string? defaultFont, string? fontDirectory, bool? useLetterPageSize = null) =>
+        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, useLetterPageSize)
             .Parse(xlsxStream);
 
     /// <summary>

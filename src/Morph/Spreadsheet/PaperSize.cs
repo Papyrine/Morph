@@ -11,8 +11,11 @@ static class PaperSize
     const double pointsPerInch = 72.0;
     const double pointsPerMillimetre = 72.0 / 25.4;
 
-    /// <summary>Portrait dimensions in points for a paper code, defaulting to the region's paper.</summary>
-    public static (double Width, double Height) Resolve(uint? code) =>
+    /// <summary>
+    /// Portrait dimensions in points for a paper code. A sheet naming none takes
+    /// <paramref name="useLetter"/>, and the region's paper when that is null too.
+    /// </summary>
+    public static (double Width, double Height) Resolve(uint? code, bool? useLetter = null) =>
         code switch
         {
             1 or 2 => (8.5 * pointsPerInch, 11 * pointsPerInch),      // Letter
@@ -23,6 +26,6 @@ static class PaperSize
             9 or 10 => (210 * pointsPerMillimetre, 297 * pointsPerMillimetre), // A4
             11 => (148 * pointsPerMillimetre, 210 * pointsPerMillimetre), // A5
             13 => (182 * pointsPerMillimetre, 257 * pointsPerMillimetre), // B5
-            _ => (DefaultPageSize.WidthPoints, DefaultPageSize.HeightPoints)
+            _ => DefaultPageSize.Resolve(useLetter)
         };
 }
