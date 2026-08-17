@@ -94,6 +94,8 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null,
                 continue;
             }
 
+            AssignImpliedReferences(worksheet);
+
             var name = sheet.Name?.Value ?? string.Empty;
             var settings = PageSettingsFor(worksheet, useLetterPageSize);
 
@@ -256,6 +258,46 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null,
                       _.CellValue?.Text is { Length: > 0 }) ?? false;
 
     /// <summary>The extent of the cells present, for a sheet whose <c>dimension</c> is missing.</summary>
+    /// <summary>
+    /// Fills in the positions ECMA-376 lets a producer leave out. <c>r</c> is optional on both
+    /// <c>row</c> (§18.3.1.73) and <c>c</c> (§18.3.1.4): a row without one is the row after the
+    /// previous, and a cell without one the column after the previous cell in its row, both counting
+    /// from 1.
+    ///
+    /// Everything downstream — the used range, the row heights, the grid builder — addresses cells
+    /// by those attributes, so a sheet written without them resolved to an empty range and was
+    /// skipped whole. It rendered as a blank page at the default paper size, immune even to an
+    /// explicit page-size choice, because no sheet ever reached the layout. Excel itself always
+    /// writes them, so this only shows on packages built by hand or by an SDK.
+    ///
+    /// Normalising once here rather than teaching each reader to infer keeps the rule in one place,
+    /// and costs a pass over cells that already carry a reference. The DOM is in memory and never
+    /// saved, so the source package is unchanged.
+    /// </summary>
+    static void AssignImpliedReferences(S.Worksheet worksheet)
+    {
+        var sheetData = worksheet.GetFirstChild<S.SheetData>();
+        if (sheetData == null)
+        {
+            return;
+        }
+
+        var row = 0;
+        foreach (var element in sheetData.Elements<S.Row>())
+        {
+            row = element.RowIndex?.Value is { } stated ? (int) stated : row + 1;
+            element.RowIndex = (uint) row;
+
+            var column = 0;
+            foreach (var cell in element.Elements<S.Cell>())
+            {
+                var statedColumn = CellReference.ColumnOf(cell.CellReference?.Value);
+                column = statedColumn == 0 ? column + 1 : statedColumn;
+                cell.CellReference = CellReference.Format(column, row);
+            }
+        }
+    }
+
     static SheetRange? UsedRange(S.Worksheet worksheet)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();

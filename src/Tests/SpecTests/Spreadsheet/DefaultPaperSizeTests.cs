@@ -98,28 +98,26 @@ public class DefaultPaperSizeTests
 
         // Landscape, so the width is the long edge: Letter is 11in and A4 297mm, which truncate to
         // 1056px and 1122px at 96dpi.
-        //
-        // The cell carries an explicit CellReference, which is load-bearing. A sheet whose cells
-        // declare no r attribute renders portrait A4 whatever this option or the region says — see
-        // NoCellReference_IgnoresThePin below.
         await Assert.That(PngWidth(pages[0])).IsEqualTo(expectedWidth);
     }
 
     /// <summary>
-    /// DEFECT, pinned as it behaves rather than as it should: a sheet whose cells declare no
-    /// <c>r</c> attribute renders portrait A4 whatever the option — and whatever the region — says.
-    /// The whole of <c>PageSettingsFor</c> is skipped rather than falling back to the default, so
-    /// such a sheet cannot be moved onto Letter at all, and misses the landscape default too.
+    /// A sheet whose cells omit <c>r</c> takes the pin like any other, and the layout with it.
+    ///
+    /// It used to render portrait A4 whatever the option — and whatever the region — said, because
+    /// the implied positions were never filled in: the used range came out empty and the sheet was
+    /// skipped whole, so nothing ever reached <c>PageSettingsFor</c>. The page was blank, which is
+    /// the more serious half of the same defect.
     ///
     /// Found from the other side, in Verify.OpenXml: fixtures built with the OOXML SDK and no
     /// explicit CellReference rendered A4 on a US-region CI agent where sibling fixtures rendered
-    /// Letter, and the pin appeared to be ignored. Adding <c>r="A1"</c> to the one cell was enough
-    /// to make both the option and the region take effect.
-    ///
-    /// Change this test when the defect is fixed; it exists so the fix cannot land silently.
+    /// Letter. Adding <c>r="A1"</c> to the one cell was enough to make both the option and the
+    /// region take effect on an otherwise identical package.
     /// </summary>
     [Test]
-    public async Task NoCellReference_IgnoresThePin()
+    [Arguments(true, 1056)]
+    [Arguments(false, 1122)]
+    public async Task NoCellReference_TakesThePin(bool useLetter, int expectedWidth)
     {
         using var stream = SheetWithoutPageSetup(cellReference: null);
 
@@ -128,12 +126,34 @@ public class DefaultPaperSizeTests
             new()
             {
                 Dpi = 96,
-                UseLetterPageSize = true
+                UseLetterPageSize = useLetter
             });
 
-        // 793 is portrait A4. Landscape Letter — what the pin plus the orientation default should
-        // have produced — would be 1056.
-        await Assert.That(PngWidth(pages[0])).IsEqualTo(793);
+        await Assert.That(PngWidth(pages[0])).IsEqualTo(expectedWidth);
+    }
+
+    /// <summary>
+    /// The blank-page half, stated directly: the sheet's content must actually reach the page. A
+    /// width assertion alone would pass on an empty sheet of the right size.
+    /// </summary>
+    [Test]
+    public async Task NoCellReference_RendersItsContent()
+    {
+        using var withReference = SheetWithoutPageSetup();
+        using var without = SheetWithoutPageSetup(cellReference: null);
+
+        var options = new ImageExportOptions
+        {
+            Dpi = 96,
+            UseLetterPageSize = false,
+            DeterministicRendering = true
+        };
+
+        var expected = new SkiaExcelConverter().ConvertToImageData(withReference, options)[0];
+        var actual = new SkiaExcelConverter().ConvertToImageData(without, options)[0];
+
+        // Byte-identical: an implied A1 is the same cell in the same place as a stated one.
+        await Assert.That(actual).IsEquivalentTo(expected);
     }
 
     // IHDR is the first chunk: an 8-byte signature, then length/type, then width as big-endian.

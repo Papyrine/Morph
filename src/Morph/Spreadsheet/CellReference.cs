@@ -29,6 +29,22 @@ static class CellReference
         return column;
     }
 
+    /// <summary>
+    /// The reference for a 1-based column and row — the inverse of <see cref="ColumnOf"/> and
+    /// <see cref="RowOf"/>. Bijective base-26 again, so each letter is taken from the column biased
+    /// down by one, most significant last.
+    /// </summary>
+    public static string Format(int column, int row)
+    {
+        var letters = new StringBuilder();
+        for (var remaining = column; remaining > 0; remaining = (remaining - 1) / 26)
+        {
+            letters.Insert(0, (char) ('A' + (remaining - 1) % 26));
+        }
+
+        return letters.Append(row).ToString();
+    }
+
     /// <summary>The 1-based row of a reference such as <c>BC7</c>, or 0 when it cannot be read.</summary>
     public static int RowOf(string? reference)
     {
