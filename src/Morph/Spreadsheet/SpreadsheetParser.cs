@@ -11,8 +11,12 @@
 /// Width is handled by SCALING rather than by splitting into left/right page strips. That is not a
 /// shortcut around horizontal pagination so much as what the corpus asks for: 71 of its 77 sheets
 /// set <c>fitToPage</c>, so Excel itself shrinks them to the page rather than splitting. Sheets that
-/// are wide and do NOT ask to be fitted are scaled too, which is the one place this diverges from
-/// Excel — it under-sizes them instead of paginating sideways.
+/// are wide and do NOT ask to be fitted are scaled too, which under-sizes them instead of paginating
+/// sideways.
+///
+/// That is one of the two deliberate divergences from Excel. The other is orientation: a sheet
+/// stating none is laid out landscape rather than deferring to a printer's portrait — see
+/// <see cref="PageSettingsFor"/>.
 /// </summary>
 sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null, bool? useLetterPageSize = null)
 {
@@ -360,12 +364,20 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null,
         var margins = worksheet.GetFirstChild<S.PageMargins>();
 
         var (width, height) = PaperSize.Resolve(setup?.PaperSize?.Value, useLetterPageSize);
-        var landscape = setup?.Orientation?.Value == S.OrientationValues.Landscape;
+
+        // Portrait only when the sheet SAYS portrait. A sheet naming no orientation — or naming
+        // "default", which per ECMA-376 §18.18.55 defers to the printer — is laid out landscape.
+        // This is a deliberate divergence from Excel, which would take the printer's own default and
+        // so portrait on essentially every driver: a grid is wide, and the fit-to-page scale 71 of
+        // the corpus's 77 sheets ask for shrinks it much harder against a portrait page than a
+        // landscape one. Every corpus sheet states an orientation, so this reaches only the sheets
+        // that leave it open.
+        var portrait = setup?.Orientation?.Value == S.OrientationValues.Portrait;
 
         return new()
         {
-            WidthPoints = landscape ? height : width,
-            HeightPoints = landscape ? width : height,
+            WidthPoints = portrait ? width : height,
+            HeightPoints = portrait ? height : width,
             // Excel's margins are inches.
             MarginLeft = (margins?.Left?.Value ?? 0.7) * pointsPerInch,
             MarginRight = (margins?.Right?.Value ?? 0.7) * pointsPerInch,
