@@ -74,17 +74,82 @@ public class DefaultPaperSizeTests
         await Assert.That(document.PageSettings.WidthPoints).IsEqualTo(a4WidthPoints).Within(0.01);
     }
 
-    static MemoryStream SheetWithoutPageSetup(uint? paperSize = null)
+    // The parse tests above go through ExcelConverter.Parse, which is the seam the option was
+    // threaded into. Rendering is what callers actually use, and it reaches Parse by its own route —
+    // so it needs its own guard, or the option can be plumbed correctly and still not reach a page.
+    [Test]
+    [Arguments(true, 816)]
+    [Arguments(false, 793)]
+    public async Task RenderedPageHonoursThePin(bool useLetter, int expectedWidth)
     {
+        using var stream = SheetWithoutPageSetup();
+
+        var pages = new SkiaExcelConverter().ConvertToImageData(
+            stream,
+            new()
+            {
+                Dpi = 96,
+                UseLetterPageSize = useLetter
+            });
+
+        // Letter is 8.5in and A4 210mm: 816px and 793px wide at 96dpi.
+        //
+        // The cell carries an explicit CellReference, which is load-bearing. A sheet whose cells
+        // declare no r attribute renders A4 whatever this option or the region says — see
+        // NoCellReference_IgnoresThePin below.
+        await Assert.That(PngWidth(pages[0])).IsEqualTo(expectedWidth);
+    }
+
+    /// <summary>
+    /// DEFECT, pinned as it behaves rather than as it should: a sheet whose cells declare no
+    /// <c>r</c> attribute renders A4 whatever the option — and whatever the region — says. The paper
+    /// resolution is skipped entirely rather than falling back to the default, so such a sheet
+    /// cannot be moved onto Letter at all.
+    ///
+    /// Found from the other side, in Verify.OpenXml: fixtures built with the OOXML SDK and no
+    /// explicit CellReference rendered A4 on a US-region CI agent where sibling fixtures rendered
+    /// Letter, and the pin appeared to be ignored. Adding <c>r="A1"</c> to the one cell was enough
+    /// to make both the option and the region take effect.
+    ///
+    /// Change this test when the defect is fixed; it exists so the fix cannot land silently.
+    /// </summary>
+    [Test]
+    public async Task NoCellReference_IgnoresThePin()
+    {
+        using var stream = SheetWithoutPageSetup(cellReference: null);
+
+        var pages = new SkiaExcelConverter().ConvertToImageData(
+            stream,
+            new()
+            {
+                Dpi = 96,
+                UseLetterPageSize = true
+            });
+
+        // 793 is A4. Letter would be 816.
+        await Assert.That(PngWidth(pages[0])).IsEqualTo(793);
+    }
+
+    // IHDR is the first chunk: an 8-byte signature, then length/type, then width as big-endian.
+    static int PngWidth(byte[] png) =>
+        (png[16] << 24) | (png[17] << 16) | (png[18] << 8) | png[19];
+
+    static MemoryStream SheetWithoutPageSetup(uint? paperSize = null, string? cellReference = "A1")
+    {
+        var cell = new S.Cell
+        {
+            DataType = S.CellValues.String,
+            CellValue = new("x")
+        };
+
+        if (cellReference != null)
+        {
+            cell.CellReference = cellReference;
+        }
+
         var worksheet = new S.Worksheet(
             new S.SheetData(
-                new S.Row(
-                    new S.Cell
-                    {
-                        CellReference = "A1",
-                        DataType = S.CellValues.String,
-                        CellValue = new("x")
-                    })));
+                new S.Row(cell)));
 
         if (paperSize is { } code)
         {
