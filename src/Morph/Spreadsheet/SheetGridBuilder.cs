@@ -430,7 +430,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
 
         if (type == S.CellValues.InlineString)
         {
-            return (cell.GetFirstChild<S.InlineString>()?.Text?.Text ?? string.Empty, null);
+            var inline = cell.GetFirstChild<S.InlineString>();
+            return (inline == null ? string.Empty : SharedStrings.Flatten(inline), null);
         }
 
         if (type == S.CellValues.Boolean)
