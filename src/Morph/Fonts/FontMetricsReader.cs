@@ -35,8 +35,60 @@ static class FontMetricsReader
     /// <summary>Reads face <paramref name="faceIndex"/> (0 for a single-face file) of the font at <paramref name="path"/>.</summary>
     public static FontMetrics? Read(string path, int faceIndex = 0)
     {
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return Read(stream, faceIndex);
+        FontMetrics? metrics;
+        using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            metrics = Read(stream, faceIndex);
+        }
+
+        if (metrics == null)
+        {
+            return null;
+        }
+
+        var wordAdvances = ReadWordAdvances(Path.ChangeExtension(path, ".wordadvances"));
+        return wordAdvances == null ? metrics : metrics with { WordAdvances = wordAdvances };
+    }
+
+    /// <summary>
+    /// Reads a <c>.wordadvances</c> sidecar (see <see cref="FontMetrics.WordAdvances"/>) into its
+    /// size → codepoint → pixel-advance map. Returns null when the sidecar does not exist; a
+    /// malformed line fails loudly rather than silently mis-measuring every document set in the face.
+    /// </summary>
+    static IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? ReadWordAdvances(string sidecarPath)
+    {
+        if (!File.Exists(sidecarPath))
+        {
+            return null;
+        }
+
+        var result = new Dictionary<int, IReadOnlyDictionary<int, float>>();
+        Dictionary<int, float>? current = null;
+        foreach (var line in File.ReadLines(sidecarPath))
+        {
+            if (line.Length == 0 || line[0] == '#')
+            {
+                continue;
+            }
+
+            if (line.StartsWith("sz ", StringComparison.Ordinal))
+            {
+                current = [];
+                result[int.Parse(line.AsSpan(3), CultureInfo.InvariantCulture)] = current;
+                continue;
+            }
+
+            if (current == null)
+            {
+                throw new InvalidOperationException($"Advance line before any 'sz' header in {sidecarPath}");
+            }
+
+            var space = line.IndexOf(' ');
+            var codepoint = int.Parse(line.AsSpan(0, space), CultureInfo.InvariantCulture);
+            current[codepoint] = float.Parse(line.AsSpan(space + 1), CultureInfo.InvariantCulture);
+        }
+
+        return result;
     }
 
     /// <summary>

@@ -75,17 +75,26 @@ sealed class CanonicalTextMeasurer
     const double referenceDpi = 120.0;
 
     /// <summary>
-    /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded.
+    /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded
+    /// on the linear (no-sidecar) track.
     ///
     /// <para>This used to round to a whole pixel, which bucketed 10.5pt and 11pt onto the same 18px em
     /// and wrapped them identically. Measuring Word directly settled it (the probe is recorded in
     /// <c>src/page_counts.md</c>, "Ppem grain root-caused"): a run of one repeated glyph shows Word's
     /// advances landing on whole device pixels while their *mean* tracks the plain fractional advance,
-    /// so Word rounds the pen position and never the em. Rounding the em — onto a fixed 120-dpi grid
-    /// unrelated to the output resolution, at that — made the width error jump ~4% between adjacent
+    /// so on this track the unrounded em is the model that fits. Rounding the em — onto a fixed 120-dpi
+    /// grid unrelated to the output resolution, at that — made the width error jump ~4% between adjacent
     /// point sizes, and that discontinuity, not its magnitude, is what wrapped 10 / 10.5pt documents
     /// early while 11pt behaved. The quantization that remains, and that Word does share, is
     /// <see cref="PixelsToPoints"/> rounding the accumulated pen position once per line.</para>
+    ///
+    /// <para>Word itself DOES round the em — its XPS output declares 7.8pt (13px) for 8pt Calibri —
+    /// and takes per-glyph GDI natural widths on that grid, so per-glyph truth deviates from ANY
+    /// single linear track, this one included. The unrounded em is kept here as the model that
+    /// measured best corpus-wide for fonts without measured data (the discontinuity above was a real
+    /// regression; the per-size deviations are not linearly correctable). Where the deviation is
+    /// modelled, it is carried per glyph by <see cref="FontMetrics.WordAdvances"/> sidecars, which
+    /// bypass this em entirely.</para>
     /// </summary>
     public static double EmPixels(double sizePoints) =>
         sizePoints * referenceDpi / 72.0;
@@ -108,9 +117,43 @@ sealed class CanonicalTextMeasurer
     /// linear track, exactly as a single-font line stays on it. <paramref name="fontWidthScale"/> is the
     /// per-conversion widening (<c>PdfExportOptions</c>/<c>ImageExportOptions.FontWidthScale</c>), applied
     /// linearly before quantization — the same knob production's <c>RenderContextBase</c> multiplies advances by.
+    ///
+    /// <para>A font carrying a <see cref="FontMetrics.WordAdvances"/> sidecar advances by Word's own
+    /// measured per-glyph values instead of the linear <c>hmtx</c> track — see that property for the
+    /// model and its evidence. The reference grid here is 120 dpi, the same grid Word's measured
+    /// pixels are on, so sidecar values add into this accumulator directly.</para>
     /// </summary>
-    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0) =>
-        (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0)
+    {
+        if (metrics.WordAdvances is { } wordAdvances)
+        {
+            return WordPixels(metrics, wordAdvances, text, sizePoints) * fontWidthScale;
+        }
+
+        return (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
+    }
+
+    // Word's measured advance track: per-glyph sidecar pixels where measured, else linear at the
+    // em rounded to whole reference pixels plus Word's half-twip bias (FontMetrics.WordAdvances).
+    static double WordPixels(FontMetrics metrics, IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> wordAdvances, string text, double sizePoints)
+    {
+        var halfPoints = (int) Math.Round(sizePoints * 2, MidpointRounding.AwayFromZero);
+        wordAdvances.TryGetValue(halfPoints, out var table);
+        var roundedEmPixels = Math.Round(EmPixels(sizePoints), MidpointRounding.AwayFromZero) + 1.0 / 24;
+        double pixels = 0;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            if (table != null && table.TryGetValue(rune.Value, out var measured))
+            {
+                pixels += measured;
+                continue;
+            }
+
+            pixels += (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * roundedEmPixels;
+        }
+
+        return pixels;
+    }
 
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
     public static double PixelsToPoints(double pixels) =>
@@ -120,10 +163,6 @@ sealed class CanonicalTextMeasurer
     /// <see cref="PixelsToPoints"/>, for placing an unbreakable box (an inline image) on the pixel track.</summary>
     public static double PixelsFromPoints(double points) =>
         points * referenceDpi / 72.0;
-
-    // Converts a run of design units to points under pen-position rounding.
-    static double PointsFromUnits(FontMetrics metrics, long units, double emPixels) =>
-        PixelsToPoints((double) units / metrics.UnitsPerEm * emPixels);
 
     /// <summary>
     /// The unrounded advance width of <paramref name="text"/> in points: <c>Σ advanceUnits * size /
@@ -158,32 +197,31 @@ sealed class CanonicalTextMeasurer
     public static List<string> WrapLines(FontMetrics metrics, string text, double sizePoints, double maxWidthPoints)
     {
         var lines = new List<string>();
-        var emPixels = EmPixels(sizePoints);
-        var spaceUnits = metrics.AdvanceUnits(' ');
+        var spacePixels = LinearPixels(metrics, " ", sizePoints);
         foreach (var segment in text.Split('\n'))
         {
             var current = new StringBuilder();
-            long lineUnits = 0;
+            double linePixels = 0;
             foreach (var word in segment.Split(' '))
             {
-                var wordUnits = AdvanceUnits(metrics, word);
+                var wordPixels = LinearPixels(metrics, word, sizePoints);
                 if (current.Length == 0)
                 {
                     current.Append(word);
-                    lineUnits = wordUnits;
+                    linePixels = wordPixels;
                 }
-                // Measure the whole candidate line (its cumulative units, rounded once) so the pen
+                // Measure the whole candidate line (its cumulative pixels, rounded once) so the pen
                 // position tracks the linear ideal instead of accumulating a per-word rounding error.
-                else if (PointsFromUnits(metrics, lineUnits + spaceUnits + wordUnits, emPixels) <= maxWidthPoints)
+                else if (PixelsToPoints(linePixels + spacePixels + wordPixels) <= maxWidthPoints)
                 {
                     current.Append(' ').Append(word);
-                    lineUnits += spaceUnits + wordUnits;
+                    linePixels += spacePixels + wordPixels;
                 }
                 else
                 {
                     lines.Add(current.ToString());
                     current.Clear().Append(word);
-                    lineUnits = wordUnits;
+                    linePixels = wordPixels;
                 }
             }
 
