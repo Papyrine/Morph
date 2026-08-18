@@ -1736,10 +1736,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // Splitting one lets its sparse content collapse into the space left and the reservation
                 // vanishes: table_layout_tall_row is two exact rows (80pt and 530pt) that Word carries onto a
                 // second page, and splitting the tall one folded the document back to a single page.
-                // Fit is judged with the SAME 2% slack every other break decision uses (HasSpaceFor) — a
-                // boundary row that squeezes under the shared rounding slack stays whole; testing the
-                // remainder strictly here split rows the move path would have kept, pushing their tails
-                // onto the next region and costing business-plans/15 a page.
+                // Fit against the remainder is EXACT, not HasSpaceFor's 2% slack: a row fits or it
+                // moves, which is Word's rule (LibreOffice's split deadline is likewise the remaining
+                // area verbatim, widorp.cxx:134/157). Measured on a 1216-row summary table spanning 52
+                // landscape pages (2026-08-19): the slack there is 9.6pt against a 17.7pt row, so a
+                // boundary row 1.5pt past the margin stayed put where Word moves it — one extra row kept
+                // on roughly every fourth page, compounding to a whole page lost by the table's end and
+                // every PAGEREF below the table resolving one page low. Strict fit reproduces Word's
+                // row-by-row page boundaries on that table exactly, and the corpus stays at 330/330
+                // page-count matches. Zeroing HasSpaceFor globally instead costs three scenarios
+                // (business-plans/15, newsletters/09, resumes/06), whose keeps ride the whole-table and
+                // merge-head slack — both untouched here.
+                // An earlier strict-fit attempt cost business-plans/15 a page by splitting rows the move
+                // path would have kept; the piece it lacked was PlaceSplitRow's split-acceptance test,
+                // which now turns those pathological splits back into whole-row moves.
                 // The height is the row's FULL height, an atLeast w:trHeight floor included. A content-only
                 // fit was briefly landed off a letters/04 in-situ reading ("Word keeps a floored row whose
                 // content fits the remainder") and is REFUTED: all four controlled fixtures
@@ -1748,31 +1758,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // height drift: Word's letter runs ~50pt more compact, so the floor simply FITS in Word's
                 // layout — and the engine keeps its one-page count through the whole-table move's slack.
                 //
-                // The slack itself is CONTENT'S: Word keeps business-plans/15's content-sized 79.6pt
-                // boundary table 13pt past the margin (drawn and clipped, the same tolerance the last-line
-                // rule gives auto-spaced text), yet moves business-plans/13's 21.6pt-FLOORED row when its
-                // floor crosses the bottom by 1.2pt (row box to 519.4, floor to 541.2, margin 540 — the
-                // measured break on every one of its landscape pages). A floor is a reservation, and a
-                // reservation must fit exactly — the same law that makes exact/atLeast line boxes strict
-                // where auto lines may overhang. So a floor-driven row is tested against the hard bottom,
-                // and a content-driven one keeps HasSpaceFor's shared rounding slack.
-                //
                 // A row carrying a vertical merge is exempt from the strict test: a merge span is one
                 // drawn unit and Word clips its overflow at the paper edge rather than moving it
                 // (resumes/06's bar span — the tie rule below stacks the continuations for the same
-                // reason), so its HEAD keeps the shared slack too. Without the exemption, resumes/06's
-                // span head at 1.1pt over the margin moved to a fresh page and re-split the document
-                // 3 pages into 6.
-                var floorDriven = row is
-                                  {
-                                      IsExactHeight: false,
-                                      HeightPoints: { } declaredFloor
-                                  } &&
-                                  rowHeight <= (float) declaredFloor + 0.5f &&
-                                  !HasMergedCell(row);
-                var overflows = floorDriven
-                    ? y + rowHeight > contentBottom
-                    : !HasSpaceFor(rowHeight);
+                // reason), so its HEAD keeps HasSpaceFor's shared slack. Without the exemption,
+                // resumes/06's span head at 1.1pt over the margin moved to a fresh page and re-split the
+                // document 3 pages into 6.
+                var overflows = HasMergedCell(row)
+                    ? !HasSpaceFor(rowHeight)
+                    : y + rowHeight > contentBottom;
                 var doesNotFitHere = !atRegionTop && overflows && !TableHeightCalculator.IsPinnedExact(row);
                 var oversize = rowHeight > contentHeight;
 
