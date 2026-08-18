@@ -147,7 +147,7 @@ Text size in half-points (OOXML) converted to points for rendering.
 - **Model**: `RunProperties.FontSizePoints`
 - **Test**: `font_sizes/`
 
-> **Consumers**: Default size is 11pt (Aptos). Half-point values from OOXML are automatically converted.
+> **Consumers**: Word's built-in default for a document with no docDefaults is Calibri 12pt (Word-probed; see `DocumentParser.builtInDefaultFontFamily`); a document that declares docDefaults but omits `w:sz` gets the spec default 10pt. Half-point values from OOXML are automatically converted. Word lays text out on per-glyph pixel advances at the em rounded onto its 120-dpi grid, memoized per half-point size in the `src/Fonts/*.wordadvances.pending` sidecars (`FontMetrics.WordAdvances`) — parked until kerning is modelled, see `src/todo.md` #43.
 
 
 ### 1.2 Character Formatting

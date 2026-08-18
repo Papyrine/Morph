@@ -18,19 +18,32 @@ using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 [SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
-sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
+sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize = null)
 {
     // Conversion constants
 
 
-    // Word's built-in Normal style (normal.dotm), supplied when a document declares no
-    // styles.xml or no docDefaults at all. Modern Word (Aptos era, 2023+) uses
-    // w:sz w:val="24" (12pt) with w:spacing w:line="278" w:lineRule="auto" w:after="160";
-    // the Calibri-era values these replaced were 11pt / w:line="259" (1.08) / w:after="160".
-    // Verified against long_paragraph (document.xml only, no styles.xml): Word's glyph
-    // advances solve to 12pt Aptos, and its line pitch is 35.35px at 150 DPI, matching
-    // 12pt * 1.2207em (the Aptos hhea line box) * 278/240.
-    // The default font family is configurable — see constructor.
+    // Word's built-in defaults, supplied when a document declares no styles.xml or no
+    // docDefaults at all: CALIBRI 12pt with w:spacing w:line="278" w:lineRule="auto"
+    // w:after="160". The family is Word-probed (bare three-part package, one paragraph, no
+    // w:rFonts anywhere): Word draws the sample 632x21px at 150 DPI, matching its own explicit
+    // Calibri 12 exactly on both axes (Aptos 12 is 665x20, Times 12 is 629x23). An earlier
+    // comment here read the long_paragraph advances as "12pt Aptos" — the 12pt was right, the
+    // family wrong: linear Aptos matched that document's wrap points only because its +4% width
+    // error coincided with the -2.4% error of measuring Word's Calibri on the linear hmtx track
+    // (Word's real advance model is measured and tooled - see FontMetrics.WordAdvances).
+    // The line pitch is unchanged by the family: Calibri's GDI cell and Aptos's hhea box are
+    // both 1.2207em, so 12pt * 1.2207 * 278/240 = 35.35px at 150 DPI either way.
+    // A caller-supplied default font (ExportOptions.DefaultFont or a customized
+    // DefaultFontSettings.DefaultFont) still overrides the family - see the constructor.
+    // Word's built-in family for this case is CALIBRI (probed - see the comment block above), and
+    // this constant should become "Calibri" one day - but not before kerning is modelled: with the
+    // Word-measured Calibri advances active (src/Fonts/*.wordadvances.pending) the corpus measured
+    // WORSE overall because Word also kerns, and the linear track's -2.4% narrowness had been
+    // cancelling the missing kerning. Flipping the family without kerning re-exposes that gap, and
+    // the style-less autofit fixtures also sit on zero-slack column knife-edges under the narrower
+    // family. The full ledger is src/todo.md #43.
+    const string builtInDefaultFontFamily = "Aptos";
     const double builtInDefaultFontSizePoints = 12.0;
     const double builtInLineSpacingMultiplier = 278 / 240.0;
     const double builtInSpacingAfterPoints = 8;
@@ -46,11 +59,12 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
     // 4 pages to 5. See docs/fidelity-audit.md.
     const double specDefaultFontSizePoints = 10.0;
 
-    // Fallback font family to use when the document does not specify one in docDefaults.
-    // Passed in from the export options' DefaultFont or DefaultFontSettings.DefaultFont.
+    // Caller-customized default family for documents that do not specify one in docDefaults:
+    // the export options' DefaultFont, or a customized DefaultFontSettings.DefaultFont. Null
+    // means uncustomized, and the Word-probed built-in above applies.
 
     public DocumentParser()
-        : this(DefaultFontSettings.DefaultFont)
+        : this(DefaultFontSettings.CustomizedDefaultFont)
     {
     }
 
@@ -292,7 +306,7 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
         // Resolve the document's default font from docDefaults (w:rPrDefault/w:rFonts). Every run
         // that doesn't carry an explicit font inherits this. Falls back to the constructor's
         // defaultFont when the document doesn't specify one.
-        effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont;
+        effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont ?? builtInDefaultFontFamily;
         effectiveDefaultFontSizePoints = ResolveDocDefaultFontSizePoints(mainPart) ?? builtInDefaultFontSizePoints;
 
         // Extract document-level background color (w:background element)
@@ -1204,7 +1218,7 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
 
         // Extract docDefaults run properties as the base defaults. The size is already resolved
         // from docDefaults (see effectiveDefaultFontSizePoints), so it needs no re-parse below.
-        var defaultFontFamily = defaultFont;
+        var defaultFontFamily = defaultFont ?? builtInDefaultFontFamily;
         var defaultFontSize = effectiveDefaultFontSizePoints;
 
         var docDefaults = stylesPart.Styles.DocDefaults;

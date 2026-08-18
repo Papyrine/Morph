@@ -17,7 +17,9 @@ public abstract record ExportOptions
 
     /// <summary>
     /// Overrides the fallback font family used when the source document does not declare a default
-    /// run font. When <c>null</c>, <see cref="DefaultFontSettings.DefaultFont"/> is used.
+    /// run font. When <c>null</c>, a customized <see cref="DefaultFontSettings.DefaultFont"/> is
+    /// used, and with that left at its factory default such documents get the parser's built-in
+    /// (see <c>DocumentParser.builtInDefaultFontFamily</c>).
     /// </summary>
     public string? DefaultFont { get; init; }
 

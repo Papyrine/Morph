@@ -115,6 +115,29 @@ sealed record FontMetrics
     public IReadOnlyDictionary<int, ushort> GlyphForCodepoint { get; init; } = new Dictionary<int, ushort>();
 
     /// <summary>
+    /// Word-measured advance overrides from a <c>.wordadvances</c> sidecar next to the font file,
+    /// or null for a font without one. Word does not lay text out on the font's linear <c>hmtx</c>
+    /// advances: it rounds the em to whole pixels on its 120-dpi layout grid per size and takes
+    /// per-glyph GDI natural widths, most of which snap to whole pixels at text sizes — and the
+    /// snap depends on the authored point size, not just the resulting pixel em (10.5pt and 11pt
+    /// both render on an 18px em with different <c>n</c> advances). No public API reproduces the
+    /// values (DirectWrite's GDI-compatible mode rounds cells Word keeps fractional), so the
+    /// sidecar memoizes Word itself, measured from its XPS output: keyed by half-point size, then
+    /// codepoint, value in pixels on the 120-dpi reference grid — the same grid
+    /// <see cref="CanonicalTextMeasurer"/> accumulates in. Codepoints absent at a covered
+    /// size, and sizes absent entirely, fall back to linear at the rounded em plus the measured
+    /// half-twip bias: <c>design/upm * (round(pt*5/3) + 1/24)</c>.
+    ///
+    /// <para>The generated Calibri sidecars currently ship PARKED as
+    /// <c>src/Fonts/*.wordadvances.pending</c>: activating them without kerning measured worse
+    /// against Word than the linear track, whose −2.4% narrowness had been cancelling the missing
+    /// kerning (Word kerns Calibri; a title-line check put the sidecar model +0.35% of Word where
+    /// the linear track sat −2.26%, and the residual is the kern pairs). Rename to
+    /// <c>.wordadvances</c> to activate once kerning lands — <c>src/todo.md</c> #43.</para>
+    /// </summary>
+    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvances { get; init; }
+
+    /// <summary>
     /// The horizontal advance of <paramref name="codepoint"/> in design units. Falls back to the last
     /// <c>hmtx</c> entry for glyphs past the metric count, and to glyph 0 for unmapped codepoints.
     /// Returns 0 when the font carries no advance data.

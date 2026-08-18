@@ -16,7 +16,7 @@ public sealed class PdfDocumentConverter
     /// <summary>Converts a DOCX stream to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(Stream docxStream, PdfExportOptions? options = null)
     {
-        var document = new DocumentParser(options?.DefaultFont ?? DefaultFontSettings.DefaultFont).Parse(docxStream);
+        var document = new DocumentParser(options?.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont).Parse(docxStream);
         return PdfRenderer.Render(document, options);
     }
 
