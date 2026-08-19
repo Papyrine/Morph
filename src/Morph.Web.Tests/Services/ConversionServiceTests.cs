@@ -117,17 +117,17 @@ public class ConversionServiceTests
     [Test]
     [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
     public Task ToMarkdown_Snapshot(InputFormat source) =>
-        Verify(ConversionService.ToMarkdown(Sample.BytesFor(source), source), extension: "txt");
+        Verify(ConversionService.ToMarkdown(Sample.BytesFor(source), source, Sample.FontDirectory), extension: "txt");
 
     [Test]
     [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
     public Task ToText_Snapshot(InputFormat source) =>
-        Verify(ConversionService.ToText(Sample.BytesFor(source), source), extension: "txt");
+        Verify(ConversionService.ToText(Sample.BytesFor(source), source, Sample.FontDirectory), extension: "txt");
 
     [Test]
     [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
     public Task ToHtml_Snapshot(InputFormat source) =>
-        Verify(ConversionService.ToHtml(Sample.BytesFor(source), source), extension: "html");
+        Verify(ConversionService.ToHtml(Sample.BytesFor(source), source, Sample.FontDirectory), extension: "html");
 
     [Test]
     [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
