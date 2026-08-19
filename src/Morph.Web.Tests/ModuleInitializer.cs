@@ -9,6 +9,10 @@ static class ModuleInitializer
         VerifierSettings.UseSsimForPng(.7);
         VerifierSettings.InitializePlugins();
 
+        // The sample workbook states no paper size, so the paper — and through it a fitted sheet's
+        // column widths — otherwise falls to the machine's region: A4 here, Letter on a US runner.
+        DefaultPageSize.UseLetterSize = false;
+
         // bUnit stamps a fresh element-reference GUID on InputFile each render; pin it so component
         // snapshots stay stable. Only matches the bUnit attribute, so Playwright/text snapshots are untouched.
         VerifierSettings.ScrubLinesWithReplace(_ =>

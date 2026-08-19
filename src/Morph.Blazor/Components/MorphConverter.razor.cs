@@ -390,8 +390,9 @@ public partial class MorphConverter : IDisposable
             }
             else
             {
-                // The rendered formats (PNG, PDF) resolve fonts against the bundled Aptos faces,
-                // materialised into the in-memory filesystem here; the text formats ignore the directory.
+                // Every format resolves fonts against the bundled Aptos faces, materialised into the
+                // in-memory filesystem here — the text ones because a workbook's column widths are a
+                // multiple of its body font's widest digit.
                 var fontDirectory = await FontStore.EnsureAsync(Http);
                 payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory));
             }
