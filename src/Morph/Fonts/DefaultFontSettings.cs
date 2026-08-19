@@ -6,34 +6,19 @@
 static class DefaultFontSettings
 {
     /// <summary>
-    /// Default fallback font family used when a DOCX document does not specify one in
-    /// <c>docDefaults</c>. Morph ships the four standard Aptos faces as embedded resources so this
-    /// resolves on every host, including Linux/macOS machines that don't have it installed. The
-    /// bundled bytes are decoded once per <c>TFont</c> backend and seeded into the
-    /// <see cref="FontResolver{TFont}"/> cache.
+    /// Factory default for <see cref="DefaultFont"/>: the resolver-safe last resort. Morph ships
+    /// the four standard Aptos faces as embedded resources, so this resolves on every host,
+    /// including Linux/macOS machines with no fonts installed - which is why it stays Aptos even
+    /// though Word's own built-in default for a style-less document is Calibri 12pt.
     ///
-    /// <para><b>Word actually uses CALIBRI 12pt here, not Aptos.</b> Probed 2026-08-13 with a bare
-    /// three-part package carrying one paragraph and no <c>w:rFonts</c> anywhere: Word rendered the
-    /// sample string 632px wide and 21px tall at 150 DPI, matching its own explicit Calibri 12
-    /// exactly on BOTH axes (Aptos 12 is 665x20, Times 12 is 629x23). One variant per page, because
-    /// a first probe with all variants on one page produced a line-to-variant mapping that did not
-    /// survive a 12/11 scaling check. Aptos is Word's default for NEW documents, which always
-    /// declare it in <c>docDefaults</c> — so that default never reaches this constant.
-    ///
-    /// It stays Aptos anyway, and the reason is NOT that Calibri breaks pagination — an earlier note
-    /// here claimed four scenarios lost Word's page count under Calibri and that was WRONG, an
-    /// artifact of counting Verify's `.received.` files, which exist only for pages that DIFFER.
-    /// Re-measured from `ResultingPageCount` in the result JSON: zero scenarios change page count.
-    ///
-    /// The real reason is fidelity, and it is narrow: switching moves mean AE from 0.04142 to
-    /// 0.04158 over the 150 scenarios it touches. Tables and short text improve sharply
-    /// (complex_document -0.048, table_default_style -0.037, table_borders -0.009) while flowing
-    /// text regresses (complex_spacing +0.102, multiple_pages +0.031). That split is the whole
-    /// story: Word grid-fits Calibri's advances away from the font file's — per glyph, by up to
-    /// +4.6% at 12pt (see <c>src/todo.md</c> #43) — so Morph cannot track Word's Calibri, while its
-    /// Aptos, Times and Calibri-at-other-sizes all sit within ~1%. Aptos is therefore the font
-    /// Morph renders most faithfully to Word even though Calibri is what Word would have used.
-    /// Revisit if hinted advances are ever modelled.</para>
+    /// <para>The parser's built-in family for a style-less document lives in
+    /// <c>DocumentParser.builtInDefaultFontFamily</c> and only applies when neither
+    /// <see cref="ExportOptions.DefaultFont"/> nor this setting has been customized. Word's own
+    /// built-in there is Calibri 12pt, and Word's per-glyph Calibri advance model is measured and
+    /// tooled (<see cref="FontMetrics.WordAdvances"/>, <c>scripts/generate-word-advances.py</c>) -
+    /// but both the advance sidecars and the family flip are parked: with pair kerning landed,
+    /// activating them still measured worse against Word via the table/autofit interplay under
+    /// changed advances. See <c>src/todo.md</c> #43.</para>
     /// </summary>
     const string builtInDefaultFont = "Aptos";
 
@@ -60,9 +45,11 @@ static class DefaultFontSettings
     }
 
     /// <summary>
-    /// Gets or sets the process-wide default fallback font family, used when a DOCX
-    /// document does not declare a default run font. Defaults to <c>Aptos</c> (Word's
-    /// default since 2023); the four standard faces ship inside Morph.dll as embedded
+    /// Gets or sets the process-wide default fallback font family: the last resort the font
+    /// resolvers fall back to for an unresolvable face, and - when customized - the default run
+    /// font for a DOCX document that does not declare one (left uncustomized, such documents get
+    /// Word's own built-in, Calibri 12pt, with this family as the resolver fallback behind it).
+    /// Defaults to <c>Aptos</c>; the four standard faces ship inside Morph.dll as embedded
     /// resources so the default resolves on every host. Must be set before the first
     /// render; attempts to change it after any conversion has started will throw
     /// <see cref="InvalidOperationException"/>.
@@ -80,6 +67,16 @@ static class DefaultFontSettings
             defaultFont = value;
         }
     }
+
+    /// <summary>
+    /// <see cref="DefaultFont"/> when a caller has customized it, else null - so
+    /// <c>DocumentParser</c> can tell "the user chose a family" (honor it for style-less
+    /// documents) from "factory default" (apply the parser's built-in). A caller
+    /// explicitly setting the factory value is indistinguishable from not setting it, which is
+    /// benign: they asked for the resolver default that already backs the built-in.
+    /// </summary>
+    internal static string? CustomizedDefaultFont =>
+        defaultFont == builtInDefaultFont ? null : defaultFont;
 
     /// <summary>
     /// When <c>true</c>, backends disable font hinting and sub-pixel positioning

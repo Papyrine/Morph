@@ -26,6 +26,8 @@ static class FontMetricsReader
     const uint cmapTag = 0x636D6170;
     // 'OS/2'
     const uint os2Tag = 0x4F532F32;
+    // 'GPOS'
+    const uint gposTag = 0x47504F53;
 
     // Safety bound on the eagerly-expanded codepoint→glyph map, so a malformed cmap claiming a
     // group spanning the whole Unicode range can't allocate unbounded memory. Far above any real
@@ -35,8 +37,60 @@ static class FontMetricsReader
     /// <summary>Reads face <paramref name="faceIndex"/> (0 for a single-face file) of the font at <paramref name="path"/>.</summary>
     public static FontMetrics? Read(string path, int faceIndex = 0)
     {
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return Read(stream, faceIndex);
+        FontMetrics? metrics;
+        using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            metrics = Read(stream, faceIndex);
+        }
+
+        if (metrics == null)
+        {
+            return null;
+        }
+
+        var wordAdvances = ReadWordAdvances(Path.ChangeExtension(path, ".wordadvances"));
+        return wordAdvances == null ? metrics : metrics with { WordAdvances = wordAdvances };
+    }
+
+    /// <summary>
+    /// Reads a <c>.wordadvances</c> sidecar (see <see cref="FontMetrics.WordAdvances"/>) into its
+    /// size → codepoint → pixel-advance map. Returns null when the sidecar does not exist; a
+    /// malformed line fails loudly rather than silently mis-measuring every document set in the face.
+    /// </summary>
+    static IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? ReadWordAdvances(string sidecarPath)
+    {
+        if (!File.Exists(sidecarPath))
+        {
+            return null;
+        }
+
+        var result = new Dictionary<int, IReadOnlyDictionary<int, float>>();
+        Dictionary<int, float>? current = null;
+        foreach (var line in File.ReadLines(sidecarPath))
+        {
+            if (line.Length == 0 || line[0] == '#')
+            {
+                continue;
+            }
+
+            if (line.StartsWith("sz ", StringComparison.Ordinal))
+            {
+                current = [];
+                result[int.Parse(line.AsSpan(3), CultureInfo.InvariantCulture)] = current;
+                continue;
+            }
+
+            if (current == null)
+            {
+                throw new InvalidOperationException($"Advance line before any 'sz' header in {sidecarPath}");
+            }
+
+            var space = line.IndexOf(' ');
+            var codepoint = int.Parse(line.AsSpan(0, space), CultureInfo.InvariantCulture);
+            current[codepoint] = float.Parse(line.AsSpan(space + 1), CultureInfo.InvariantCulture);
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -154,8 +208,42 @@ static class FontMetricsReader
             UseTypoMetrics = os2.UseTypoMetrics,
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
-            GlyphForCodepoint = ReadCmap(stream, tables)
+            GlyphForCodepoint = ReadCmap(stream, tables),
+            KernPairs = ReadKernPairs(stream, tables)
         };
+    }
+
+    /// <summary>
+    /// Reads the GPOS <c>kern</c>-feature pair kerning (<see cref="GposKernTable"/>). Null when the
+    /// font has no GPOS table or no usable pair data — kerning is then simply unavailable, which is
+    /// also the correct rendering for a font Word cannot kern.
+    /// </summary>
+    static GposKernTable? ReadKernPairs(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    {
+        if (!tables.TryGetValue(gposTag, out var gpos) || gpos.Length < 10)
+        {
+            return null;
+        }
+
+        var bytes = new byte[gpos.Length];
+        if (!TryReadExactAt(stream, gpos.Offset, bytes))
+        {
+            return null;
+        }
+
+        try
+        {
+            return GposKernTable.Read(bytes);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // a malformed GPOS loses kerning, not the font
+            return null;
+        }
+        catch (IndexOutOfRangeException)
+        {
+            return null;
+        }
     }
 
     /// <summary>

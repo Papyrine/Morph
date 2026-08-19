@@ -21,7 +21,7 @@ public abstract class DocumentConverter
     {
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
         return PageSink.ToDirectory(
             outputDirectory,
             sink => RenderPages(document, options, sink));
@@ -40,7 +40,7 @@ public abstract class DocumentConverter
         options ??= new();
         DefaultFontSettings.MarkRenderOccurred();
 
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
         return PageSink.ToMemory(sink => RenderPages(document, options, sink));
     }
 
@@ -72,7 +72,7 @@ public abstract class DocumentConverter
         options ??= new();
         var pages = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.DefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
         if (document.Bookmarks.Count == 0)
         {
             return pages;
@@ -244,7 +244,7 @@ public abstract class DocumentConverter
         MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize), options);
 
     internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null) =>
-        new DocumentParser(defaultFont ?? DefaultFontSettings.DefaultFont, useLetterPageSize).Parse(docxStream);
+        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize).Parse(docxStream);
 
     /// <summary>
     /// Renders a parsed document, invoking <paramref name="pageCallback"/> for each page (the
