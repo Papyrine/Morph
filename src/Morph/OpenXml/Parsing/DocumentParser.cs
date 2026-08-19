@@ -9034,6 +9034,56 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
     /// Parses a Drawing element to extract a WordArt shape.
     /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
     /// </summary>
+    /// <summary>
+    /// True when the run's resolved colour comes from an EXPLICIT <c>w:color</c> — on the run
+    /// itself, its character style chain, or its paragraph style chain — rather than the document
+    /// default. Distinguishes "the author asked for black" from "nothing said otherwise", which is
+    /// the boundary the <c>a:fontRef</c> fallback in <see cref="ParseWordArt"/> sits on.
+    /// </summary>
+    static bool DeclaresRunColor(OoxmlRunProperties? runProperties, MainDocumentPart mainPart, string? paragraphStyleId)
+    {
+        // w:color w:val="auto" is not a declared colour — "automatic" is precisely the value that
+        // defers to context, which for a DrawingML text box is the a:fontRef (wedding/08's
+        // Ampersand style carries an auto colour and Word still paints the fontRef's white).
+        static bool IsExplicit(Color? color) =>
+            color?.Val?.HasValue == true &&
+            !string.Equals(color.Val.Value, "auto", StringComparison.OrdinalIgnoreCase);
+
+        if (IsExplicit(runProperties?.GetFirstChild<Color>()))
+        {
+            return true;
+        }
+
+        var styles = mainPart.StyleDefinitionsPart?.Styles;
+        if (styles == null)
+        {
+            return false;
+        }
+
+        bool ChainDeclares(string? styleId)
+        {
+            for (var depth = 0; styleId != null && depth < 12; depth++)
+            {
+                var style = styles.Elements<Style>().FirstOrDefault(_ => _.StyleId?.Value == styleId);
+                if (style == null)
+                {
+                    return false;
+                }
+
+                if (IsExplicit(style.StyleRunProperties?.Color))
+                {
+                    return true;
+                }
+
+                styleId = style.BasedOn?.Val?.Value;
+            }
+
+            return false;
+        }
+
+        return ChainDeclares(runProperties?.RunStyle?.Val?.Value) || ChainDeclares(paragraphStyleId);
+    }
+
     DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left)
     {
         // Get dimensions from Inline or Anchor
@@ -9246,6 +9296,16 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
                 var firstRunProperties = txbxContent.Descendants<OoxmlRun>().FirstOrDefault()?.RunProperties;
                 var resolvedRun = ParseRunProperties(firstRunProperties, mainPart, firstParagraphStyleId);
                 fillColor = resolvedRun.ColorHex;
+
+                // wps:style/a:fontRef is DrawingML's glyph-colour fallback and sits BELOW the
+                // w:rPr/style chain: it colours the glyphs only when neither the run nor any style
+                // in its chain declares w:color, in which case the cascade above resolved to the
+                // document default rather than anything the author asked for.
+                if (!DeclaresRunColor(firstRunProperties, mainPart, firstParagraphStyleId) &&
+                    ShapeParser.ExtractFontReferenceColor(wsp, currentThemeColors) is { } fontRefColor)
+                {
+                    fillColor = fontRefColor;
+                }
                 fontSize = resolvedRun.FontSizePoints;
                 bold = resolvedRun.Bold;
                 italic = resolvedRun.Italic;
