@@ -20,7 +20,7 @@ One run per backend, then diff them:
 ```
 
 `full` is roughly 25 minutes per backend; `quick` drops to one full-suite sample and skips
-`MORPH_DIRECT`, about 12. `./scripts/vmm-bench/run-micro.sh <label>` re-runs just the
+`MORPH_DIRECT`, about 12. `./scripts/vmm-bench/run-micro.sh <label>` re-runs only the
 micro-benchmarks, which take about a minute and carry most of the signal per second spent.
 
 Results land in `results/<label>.tsv`, with the console output of every command in
