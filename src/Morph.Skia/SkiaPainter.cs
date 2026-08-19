@@ -129,8 +129,17 @@ static class SkiaPainter
             var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
             if (properties.Underline)
             {
+                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
+                var underlineColor = properties.UnderlineColorHex == null
+                    ? color
+                    : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
                 var underlineY = P(context, line.Baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(P(context, run.X), underlineY, P(context, run.X + run.Width), underlineY, context.GetReusableRulePaint(color, strokeWidth));
+                canvas.DrawLine(P(context, run.X), underlineY, P(context, run.X + run.Width), underlineY, context.GetReusableRulePaint(underlineColor, strokeWidth));
+                if (properties.DoubleUnderline)
+                {
+                    var secondY = underlineY + strokeWidth * 2;
+                    canvas.DrawLine(P(context, run.X), secondY, P(context, run.X + run.Width), secondY, context.GetReusableRulePaint(underlineColor, strokeWidth));
+                }
             }
 
             if (properties.Strikethrough)

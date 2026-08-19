@@ -47,6 +47,10 @@ static class HtmlExporter
         li { margin: 0; }
         table { border-collapse: collapse; margin: 0 0 8pt; }
         td, th { padding: 4pt 7pt; vertical-align: top; }
+        /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+           the runs and cells. Without this, the browser's th defaults bolded and centred header
+           cells Word renders regular and left-aligned. */
+        th { font-weight: inherit; text-align: inherit; }
         hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
         header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
         footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -741,6 +745,14 @@ static class HtmlExporter
             double defaultAfterPoints = defaultSpacingAfterPoints,
             double? fontSizePoints = null)
         {
+            // w:bidi — the paragraph reads right-to-left. dir="rtl" flips the default alignment
+            // to the right and lets the browser run its own bidi reordering, matching the raster
+            // backends' right-aligned layout.
+            if (properties.IsRightToLeft)
+            {
+                builder.Append(" dir=\"rtl\"");
+            }
+
             var parts = new List<string>();
 
             // A heading's lifted uniform run size (see AppendHeading) rides on the same attribute.
@@ -871,6 +883,18 @@ static class HtmlExporter
                         builder.Append(" start=\"").Append(start.Value).Append('"');
                     }
                 }
+                else
+                {
+                    // The level's own glyph decides the marker. Browsers cycle disc/circle/square by
+                    // nesting depth and then stay on square, so a level-4 "•" renders as a square and
+                    // Word's deeper Wingdings markers (▪, ►) are lost without this. Glyphs with a CSS
+                    // keyword use it; the rest become a string marker of the glyph itself.
+                    var listStyle = BulletStyleType(nodes[index].Paragraph.Properties.Numbering?.Text);
+                    if (listStyle != null)
+                    {
+                        builder.Append(" style=\"list-style-type: ").Append(listStyle).Append('"');
+                    }
+                }
 
                 builder.Append(">\n");
                 while (index < nodes.Count && nodes[index].Ordered == ordered)
@@ -900,6 +924,19 @@ static class HtmlExporter
         // The CSS list-style-type for an ordered level's counter style, or null for Decimal (the
         // <ol> default, which needs no override). CSS names letter styles "alpha"; the ")" vs "."
         // marker suffix isn't expressible via list-style-type and is left as the CSS default ".".
+        // The CSS marker for an unordered level's bullet glyph. Word's Symbol-font "•" is the
+        // browser's disc and the Courier "o" its circle; everything else — the Wingdings small
+        // square, pointer, and any other glyph the parser surfaced — is emitted as a CSS string
+        // marker so the exact character shows. A trailing space keeps the string marker from
+        // hugging the item text. Null (no numbering info) leaves the browser default.
+        static string? BulletStyleType(string? glyph) => glyph switch
+        {
+            null or "" => null,
+            "•" or "●" => "disc",
+            "o" or "○" => "circle",
+            _ => $"'{glyph} '"
+        };
+
         static string? ListStyleType(ListNumberFormat format) => format switch
         {
             ListNumberFormat.UpperRoman => "upper-roman",
@@ -911,7 +948,43 @@ static class HtmlExporter
 
         void WriteTable(TableElement table, int depth)
         {
-            Indent(depth).Append("<table>\n");
+            Indent(depth).Append("<table");
+
+            // Table-level geometry the stylesheet can't know: w:jc rides on the margins (a
+            // centred/right table otherwise renders flush left), w:tblInd indents a left table,
+            // and a pct-width table (w:tblW type="pct") fills its container instead of hugging
+            // content. dxa widths stay off the table — their columns already carry cell widths.
+            var tableStyles = new List<string>();
+            var tableProperties = table.Properties;
+            switch (tableProperties.Alignment)
+            {
+                case TextAlignment.Center:
+                    tableStyles.Add("margin-left: auto; margin-right: auto");
+                    break;
+                case TextAlignment.Right:
+                    tableStyles.Add("margin-left: auto");
+                    break;
+                default:
+                    if (Math.Abs(tableProperties.IndentPoints) > 0.01)
+                    {
+                        tableStyles.Add($"margin-left: {Length(tableProperties.IndentPoints)}");
+                    }
+
+                    break;
+            }
+
+            if (tableProperties.FillContainer)
+            {
+                var fraction = tableProperties.PreferredWidthFraction ?? 1.0;
+                tableStyles.Add($"width: {Number(fraction * 100)}%");
+            }
+
+            if (tableStyles.Count > 0)
+            {
+                builder.Append(" style=\"").Append(string.Join("; ", tableStyles)).Append('"');
+            }
+
+            builder.Append(">\n");
 
             var rows = table.Rows;
             var totalColumns = 0;
@@ -1454,7 +1527,27 @@ static class HtmlExporter
 
             if (properties.Underline)
             {
-                builder.Append("<u>");
+                // w:u/@w:color and w:u/@w:val="double" ride on the <u> as text-decoration
+                // overrides; a plain underline stays a bare tag.
+                if (properties.UnderlineColorHex != null || properties.DoubleUnderline)
+                {
+                    var decorations = new List<string>();
+                    if (properties.DoubleUnderline)
+                    {
+                        decorations.Add("text-decoration-style: double");
+                    }
+
+                    if (properties.UnderlineColorHex != null)
+                    {
+                        decorations.Add($"text-decoration-color: {DocumentExportHelpers.NormalizeColor(properties.UnderlineColorHex)}");
+                    }
+
+                    builder.Append($"""<u style="{string.Join("; ", decorations)}">""");
+                }
+                else
+                {
+                    builder.Append("<u>");
+                }
             }
 
             if (properties.Strikethrough)

@@ -190,8 +190,12 @@ sealed class PdfFontResolver : IFontResolver
     {
         lock (gate)
         {
-            if (TryResolve(familyName, isBold, isItalic, out var face))
+            if (TryResolve(familyName, isBold, isItalic, out var face, out _))
             {
+                // Deliberately NOT PdfSharp's mustSimulateItalic for an italic request served
+                // by a non-italic face: its simulation skews by sin 20° (0.342, PDFium-measured),
+                // 2.5x Word's oblique. PdfPainter shears the text matrix itself instead, with the
+                // Word-measured FontHelpers.SyntheticItalicSkew (see ResolvesToItalicFace).
                 return new(face);
             }
         }
@@ -210,13 +214,34 @@ sealed class PdfFontResolver : IFontResolver
             // raster backends fall back to - rather than an arbitrary bundled file (the ordinally
             // first used to be Aharoni_700, a bold face, which made every unresolved family render
             // heavy and wide).
-            if (TryResolve(DefaultFontSettings.DefaultFont, isBold, isItalic, out var fallbackFace))
+            if (TryResolve(DefaultFontSettings.DefaultFont, isBold, isItalic, out var fallbackFace, out _))
             {
                 return new(fallbackFace);
             }
 
             return defaultFace == null ? null : new FontResolverInfo(defaultFace);
         }
+    }
+
+    /// <summary>
+    /// True when an italic request for <paramref name="familyName"/> resolves to a face that is
+    /// itself italic. False means the family bundles no italic sibling, so the painter shears the
+    /// glyphs by <see cref="FontHelpers.SyntheticItalicSkew"/> — the Word-measured oblique — rather
+    /// than rendering upright. A family the index cannot serve at all reports true: it renders via
+    /// the platform or the default-font fallback, whose slant this resolver cannot see, and an
+    /// unnecessary shear on a real italic is the worse failure.
+    /// </summary>
+    public bool ResolvesToItalicFace(string familyName, bool isBold)
+    {
+        lock (gate)
+        {
+            if (TryResolve(familyName, isBold, italic: true, out _, out var faceItalic))
+            {
+                return faceItalic;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -231,7 +256,7 @@ sealed class PdfFontResolver : IFontResolver
     {
         lock (gate)
         {
-            if (TryResolve(familyName, isBold, isItalic, out _))
+            if (TryResolve(familyName, isBold, isItalic, out _, out _))
             {
                 return true;
             }
@@ -245,7 +270,7 @@ sealed class PdfFontResolver : IFontResolver
         return HostFontIndex.Contains(familyName, isBold);
     }
 
-    bool TryResolve(string familyName, bool bold, bool italic, out string face)
+    bool TryResolve(string familyName, bool bold, bool italic, out string face, out bool faceItalic)
     {
         var candidates = FontHelpers.GetCandidateNames(familyName, bold);
         var targetWeight = FontHelpers.ResolveTargetWeight(familyName, bold);
@@ -263,6 +288,7 @@ sealed class PdfFontResolver : IFontResolver
             if (fallback != null && (direct == null || fallbackDelta < directDelta))
             {
                 face = fallback.Path;
+                faceItalic = fallback.Italic;
                 return true;
             }
         }
@@ -270,10 +296,12 @@ sealed class PdfFontResolver : IFontResolver
         if (direct != null)
         {
             face = direct.Path;
+            faceItalic = direct.Italic;
             return true;
         }
 
         face = "";
+        faceItalic = false;
         return false;
     }
 

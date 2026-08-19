@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 164 major, 335 medium, 255 minor = 754 findings across 253 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it, and 760 against an actual 753 on 2026-08-13 for the same reason. The 2026-08-13 recount also folds in the five `border_style_variants` findings added that day.
+**Open: 160 major, 320 medium, 245 minor = 725 findings across 243 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it, and 760 against an actual 753 on 2026-08-13 for the same reason. The 2026-08-13 recount also folds in the five `border_style_variants` findings added that day. Recounted 2026-08-19 after the built-in-default-spacing / synthetic-italic / underline-colour / HTML-export batch landed (29 findings deleted, 13 of them stale — verified already fixed against the current baselines — plus systemic #37/#38, both shipped with the 2026-08-14 spreadsheet landing).
 
 ### Re-validation status (2026-08-08)
 
@@ -93,16 +93,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
   drawing. Excel's `expected_0002.png` is a full landscape page (1573 unique colours, ink over rows
   72-761). The three page-2 baselines are on `BaselineHealthTests.knownDegenerate` until this lands.
   Fixing it means placing a drawing on the page its anchor rows fall on, rather than on the first.
-- **#37 Print centering is ignored.** `printOptions horizontalCentered` is set on **71 of the corpus's
-  77 sheets** (12 of those also `verticalCentered`) and nothing reads it, so every grid narrower than
-  the content box is drawn flush to the left margin where Excel centres it. Measured on
-  `basic-business-invoice`: Excel's ink spans x=101..716, the render's x=67..706 — the grid starts at
-  the margin instead of being centred. This is a whole-corpus horizontal offset and likely the single
-  largest remaining Excel error metric.
-- **#38 The fit-to-page scale is not quantised.** Excel's scale is a whole percent; the parser uses the
-  exact ratio. `check-register` computes 70.74% where Excel picks 70%, leaving the sheet 1.4% tall
-  (570px of ink against Excel's 562). Rounding DOWN to the whole percent would close it, but changes
-  every fitted sheet's geometry, so it wants its own measured pass.
 - **#39 No horizontal pagination.** A sheet wider than the page is scaled down rather than split into
   left/right page strips. `to-do-list` spans A:Q asking for no `fitToPage`, so Excel prints two strips
   and the render prints the left one and breaks vertically instead — landing on the right page count
@@ -215,7 +205,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | skia,imagesharp | p1 | Numbered-list continuation lines indented deeper than Word (continuation not aligned to the hanging-indent column, e.g. "typing. Don't include..." in item 1)
 - MINOR | all | p1 | Vertical spacing slightly tighter than Word; drift accumulates down the page so the action-items table rows sit ~15-20px higher by the last row
-- MINOR | html | - | Action-items table header labels ("Action items", "Owner(s)", "Deadline", "Status") are centered over their columns instead of left-aligned as in Word
 
 ### agendas-minutes/19
 
@@ -375,11 +364,9 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MAJOR | skia,imagesharp | p3,p4,p5 | Pagination distribution wrong despite matching page count: "List/Define all pertinent items" pulled from p4 up onto p3, and the CAMPAIGN SIGN-OFF heading plus its intro line pulled from p5 up onto p4, so p5 starts mid-table at the first signature row
 - MAJOR | pdf | p3,p4,p5 | Pagination distribution wrong despite matching page count: bullet "List all pertinent items." pulled onto p3, and the CAMPAIGN SIGN-OFF heading plus its intro line render on p4 (Word puts the whole sign-off section on p5), so p5 starts mid-table at the first signature row
-- MEDIUM | all | p2,p3 | Italic paragraphs render upright: "Use the Tactical Marketing Plan...", "In this section, you need to define...", "Use this section to brainstorm...", and the BUDGET paragraph "Compile a list of pertinent items..." all lose their italic (HTML export keeps it)
 - MEDIUM | all | p2,p3,p4 | Table grid incomplete: header row and first body row of each table (PLAN OVERVIEW, NECESSARY EVENT RESOURCES, APPROVAL) render with no outer box or vertical cell borders — only the horizontal rule under the header — while Word draws a full grid on every row
 - MEDIUM | all | p2,p3,p4 | Table-style bold lost: header-row text ("Practice:"/"Name", "Resource"/"Role"/"Estimated Work Hours", "Title"/"Name"/"Date 1"/"Date 2") and first-column labels ("Name of Campaign:", "Campaign Manager:", "Subject Matter Expert:") render regular weight instead of bold
 - MEDIUM | pdf | p1 | Cover subtitle "ADVANCING INTERNATIONAL STRATEGIES" sits almost touching the title — title block ~20px lower and the ~40px gap before the subtitle collapses to ~10px
-- MINOR | all | p2,p3,p4 | Footer page number positioned ~40px lower on the page than Word's
 - MAJOR | html | - | Cover date line "April 4, 20XX" missing — only "Version 3.0" renders above the title block
 - MEDIUM | html | - | Same table defects as raster backends: header row and first body row of each table lack box/vertical borders, and header/first-column bold is lost
 
@@ -419,7 +406,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | Cover title block indented ~0.9" further right than Word so "Business Plan" wraps onto two lines (3-line title vs Word's 2), pushing the divider rule and "Caneiro Group" down; the Email/Phone/Address block sits ~0.9" lower than Word.
 - MEDIUM | all | p2,p3 | Footer bar ("BUSINESS PLAN | APRIL 25, 20XX" + number) is drawn on the TOC pages where Word shows less. **Not the header/footer z-order rule** — landing that (`docs/floating-art-pipeline.md`) moved p2 by −0.0001 and left p3 untouched. And "suppresses entirely" overstates it: Word's own p2 footer strip carries 4129 dark pixels against Morph's 4483, so Word draws a footer there too; only p3 is lopsided (1866 against 4063). Re-read both pages before treating this as one finding.
 - MINOR | all | p1 | Title underline rule spans only margin-to-margin instead of extending to the page's left edge as in Word.
-- MINOR | all | p3-p19 | Footer line sits ~0.2" lower on the page than Word's footer position on every page.
 - MEDIUM | html | - | Table headers lose all-caps formatting ("Start-up expenses", "Month 1…", "Ind. %/Jan.…", "Starting month, year—…", "Assets/Liabilities" vs Word's "START-UP EXPENSES", "MONTH 1", "IND. %", "ASSETS/LIABILITIES").
 
 ### business/01
@@ -641,7 +627,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### cover-letters/08
 
-- MEDIUM | all | p1 | "Enclosure" renders upright instead of italic
 - MEDIUM | skia,imagesharp | p1 | Accumulated tighter line/paragraph spacing makes the signature block ("Angelica Astrom / December 13, 20XX / Enclosure") end ~1.5 lines higher than Word
 - MINOR | pdf | p1 | Signature block ends ~0.8 line higher than Word
 - MINOR | skia,imagesharp | p1 | closing paragraph's wrapped line starts with a leading space (" your review,")
@@ -669,7 +654,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### cover-letters/11
 
 - MEDIUM | all | p1 | Title renders "Astrom" in the same bold weight as "Angelica" (Word shows "Astrom" in a light weight)
-- MEDIUM | all | p1 | "Enclosure" renders upright instead of italic
 - MEDIUM | skia,imagesharp | p1 | Accumulated tighter section/line spacing — letter and sidebar content end ~3 lines higher than Word by "Enclosure"
 - MINOR | pdf | p1 | Content ends ~0.5 line higher than Word
 - MEDIUM | html | - | "Astrom" bold instead of light in the HTML title (italic "Enclosure" is correct in HTML)
@@ -701,12 +685,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### decimal_tabs/01
 
-- MEDIUM | all | p1 | line spacing far too tight — Word spaces the 4 rows at ~47px pitch, Morph ~30px, so "Dates 0.05" ends >1 line height higher (decimal-point alignment of the values is correct)
 - MEDIUM | html | - | decimal tab alignment lost — values render immediately after labels separated by a single space ("Apples 12.50") instead of an aligned column
-
-### deep_nested_list
-
-- MINOR | html | - | level-4 and level-5 bullets both render as browser-default squares instead of Word's smaller square and triangle
 
 ### document_capture/01
 
@@ -717,17 +696,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### dot_points
 
 - MINOR | all | p1 | line spacing slightly tighter than Word; cumulative upward drift reaches ~30px (≈0.7 line) at item F (per-level bullet fonts/glyphs •/o/▪ all render correctly)
-- MINOR | html | - | bullet glyphs at levels 4-6 all render as squares instead of repeating Word's •/o/▪ cycle
-
-### even_odd_headers/01
-
-- MINOR | html | - | ODD HEADER / EVEN HEADER text omitted from HTML export (only the two body lines present)
-- CLEAN: skia, imagesharp, pdf
-
-### even_odd_headers/02
-
-- MEDIUM | all | p1,p2,p3,p4 | footer text (ODD FOOTER / EVEN FOOTER) placed ~46px (≈0.3in, ~2 line heights) lower than Word on every page; header and body positions match
-- MINOR | html | - | header and footer text omitted from HTML export (only the four body-content lines present)
 
 ### feature_capture/01
 
@@ -745,35 +713,18 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | imagesharp | p1 | line spacing slightly tight — cumulative upward drift down the size list, "36pt text" baseline ends ~16px higher than Word
 - CLEAN: html
 
-### footer
-
-- MEDIUM | all | p1 | footer "Document Footer - Confidential" is rendered ~45px (0.3") lower than Word, nearly a line height closer to the page bottom edge
-- MAJOR | html | - | footer text "Document Footer - Confidential" is missing entirely from the HTML export
-
 ### hanging_indent
 
 - MEDIUM | skia,imagesharp | p1 | Hanging indent not applied to first line: paragraph renders with first line at the 0.5" continuation indent (x=227 vs Word x=152) and continuation line at 1.0" (x=302 vs 227) — entire paragraph sits 0.5" right of Word, first line never outdents back to the margin
 - CLEAN: html
 
-### header
-
-- MAJOR | html | - | Page-header content missing from HTML export: bold centered "Document Header" line absent; only the two body paragraphs are emitted
-- CLEAN: skia, imagesharp, pdf
-
-### header_banner_table
-
-- MAJOR | html | - | Entire header banner table (slate "SAMPLE // BANNER" bar + spacer rows) missing from HTML export; only body heading and paragraphs emitted
-
 ### header_footer
 
 - MEDIUM | all | p1,p2 | Paragraph spacing tighter than Word: page 1 fits paragraphs 1-28 vs Word's 1-24 (body also starts ~33px higher), so page 2 begins at paragraph 29 instead of 25 (page count still 2/2)
-- MEDIUM | all | p1,p2 | Footer line "© 2024 Company Name. All rights reserved." renders ~51px lower than Word (y=1582-1600 vs 1531-1550 on a 1650px page)
-- MAJOR | html | - | Header ("Company Name" / "Internal Document") and footer ("© 2024 Company Name. All rights reserved.") both missing from HTML export; body paragraphs 1-30 complete
 
 ### header_row_repeat/01
 
 - MEDIUM | all | p1,p2,p3 | Table rows slightly shorter than Word, accumulating one extra row per page: p1 ends at Person 25 (Word: 24), p2 spans 26-50 (Word: 25-48), p3 starts at 51 (Word: 49); header row correctly repeats on p2/p3 in all backends and all 60 rows present
-- MINOR | html | - | Repeated header cells "ID / Name / Notes" rendered centered in HTML while Word renders them left-aligned in their cells
 
 ### html_complex
 
@@ -996,7 +947,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | imagesharp | p1 | Links paragraph wraps differently: "downloadable" pulled up to the first line ("...or even downloadable / documents...") vs Word's break after "even"
 - MINOR | all | p1,p2 | cumulative vertical drift of blocks (~10-20px up on p1, down on p2, pie chart slightly offset) with structure intact
-- MEDIUM | html | - | Simple Tables data rows styled like headers — all body cells bold and centered (Word shows left-aligned regular text; the complex table below is correct)
 - MINOR | html | - | last line of the "Some images, such as charts or graphs..." paragraph rendered centered ("link on the image.") instead of left-aligned
 
 ### inline_group_rotation
@@ -1416,11 +1366,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MINOR | all | p1 | body text tracks ~8-9% narrower than Word, so each single-line paragraph ends ~0.4in short of Word's line end (no rewrap)
 - CLEAN: html
 
-### page_numbers
-
-- MEDIUM | all | p1,p2 | footer line positioned ~0.3in lower than Word, close to the page bottom edge
-- CLEAN: html
-
 ### paragraph_borders
 
 - MEDIUM | all | p1 | vertical spacing around bordered paragraphs compressed (the three w:between boxes are visibly shorter than Word's); cumulative drift leaves the last paragraph ending ~1in higher than Word
@@ -1555,11 +1500,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MEDIUM | pdf | p1,p2,p3 | 2nd and 3rd Experience entries drift progressively lower (~0.33in by the third entry) from oversized gaps between entries
 - MAJOR | html | - | colored content-panel backgrounds wrong: first panel grey instead of light blue, and the yellow (2nd) and grey (3rd) panels missing entirely
 
-### rtl_paragraph
-
-- MEDIUM | html | - | bidi heading and paragraph render left-aligned instead of right-aligned
-- CLEAN: skia, imagesharp
-
 ### section_break_continuous
 
 - MEDIUM | skia,imagesharp | p1,p2 | Section 2 (heading plus paragraphs 2-7) flows onto page 1 immediately below section 1 instead of starting at the top of page 2 as Word does (section 2's default next-page break rendered as continuous); page 2 therefore begins at paragraph 8 instead of the "Section 2 content" heading.
@@ -1568,10 +1508,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 ### tab_stops
 
 - MEDIUM | html | - | tab formatting collapses to single spaces — TOC dot leaders, tabbed column alignment (Name/Role/Team/Location), left/center/right tab positions, and the signature underline fill are all lost
-
-### table_alignment/01
-
-- MEDIUM | html | - | table alignment lost — the centered and right-aligned tables render left-aligned (all three tables at the left margin with identical widths)
 
 ### table_autofit_no_widths
 
@@ -1589,7 +1525,7 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### table_cell_spacing/01
 
-- MEDIUM | all | p1 | cell-spacing gaps collapsed vertically: outer table border sits only ~4px from the cell borders vs Word's ~11px and cell boxes are 38-40px tall vs 47-48, so the detached-border table is 146px tall vs Word's 188 and starts ~17px higher (width and horizontal gaps are close)
+- MEDIUM | all | p1 | cell-spacing gaps collapsed vertically: outer table border sits only ~4px from the cell borders vs Word's ~11px, so the detached-border table is 173px tall vs Word's 189 (width and horizontal gaps are close; re-measured 2026-08-19 after the built-in default-spacing fix took it from 146px — the residual is the cell-spacing geometry itself, not row heights)
 - MEDIUM | html | - | detached-border effect lost entirely: renders as an ordinary collapsed-border grid with single shared lines and no gaps (tblCellSpacing ignored)
 
 ### table_default_cell_margin
@@ -1614,7 +1550,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### table_diagonal_borders/01
 
-- MINOR | all | p1 | whole table sits ~17px too high: the ~8pt gap Word leaves between the intro paragraph and the table is dropped (table top border at y179 vs Word y196; label itself at identical y)
 - MINOR | all | p1 | diagonal borders and cell borders drawn ~2x thicker and fully saturated (2-3px solid black / bold red+blue X) versus Word's ~1px grey/light hairlines; directions and red-tl2br/blue-tr2bl colors are correct
 - MAJOR | html | - | diagonal cell borders completely missing in HTML export — all three cells render as plain bordered boxes with no tl2br/tr2bl/X lines (nothing emitted in the markup)
 
@@ -1628,10 +1563,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MEDIUM | all | p1 | rows with two text lines are ~16px (~26%) taller than Word (77-79px vs Word's uniform 62px, header 78 vs 62), making the table ~46px taller overall (bottom border y507 vs y461)
 - MINOR | all | p1 | whole table displaced ~12px right: Word draws the left border at x137 (offset left of the margin by the cell left padding) while all backends start it at the margin x149; right edge likewise 1126 vs Word 1138
 - CLEAN: html
-
-### table_indent
-
-- MEDIUM | html | - | table indentation and alignment lost in HTML export: the 480/720/1440-dxa indented tables and the centred table all render flush left, and the "100% width" baseline table collapses to content width (no width/margin emitted on four of five tables)
 
 ### table_layout_tall_row
 
@@ -1661,7 +1592,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### table_text_direction
 
-- MINOR | all | p1 | table rows slightly shorter than Word — header/Q1/Q2 row bottoms sit ~5-12px high and the table bottom border ends ~12px early
 - MEDIUM | html | - | rotated header-cell text "Quarter" rendered horizontal in HTML export (vertical bottom-to-top text direction lost)
 
 ### table_two_column_layout
@@ -1719,7 +1649,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MINOR | all | p1 | the circled "&" badge green ellipse + ampersand placement is sub-pixel off within the cell
 
 - MEDIUM | all | p1,p2 | card panels shorter than Word (p1 borders end ~2in early, p2 ~0.4in) with content blocks 0.4-0.8in higher (Thanks-and-Dedication and time/venue blocks)
-- MEDIUM | all | p1 | "dinner and dancing to follow" rendered upright instead of italic
 - MAJOR | html | - | green circled "&" badge missing
 
 ### wedding/09
@@ -1757,13 +1686,11 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MEDIUM | skia,imagesharp | p2,p3 | Path-warp WordArt drawn at nominal font size instead of stretched to the shape bbox — p3 items (Wavy WordArt, Chevron Up/Down, Fade Effect, Slanted Up/Down) span ~180px where Word fills ~430px page width (hard ~23%)
 - MINOR | skia,imagesharp | p2 | Arc/circle warps off position/size: ImageSharp places "Circle Text" ~85px left of Word's position; Skia draws Arc Text Down and Circle Text ~10-30% larger and shifted right
 - [known] MINOR | skia,imagesharp | p2 | residual vertical offset of warped glyphs vs Word (inline-drawing layout-cursor drift documented in notes.md)
-- MEDIUM | all | p9 | Colored underlines lost: Word's thick red underline under "UNDERLINED TEXT" and blue double underline under "DOUBLE UNDERLINE" both render as a single text-colored gray/black underline
 - MINOR | pdf | p10 | highlight bars render ~10% more ink than Word's (magenta 3049 sampled units against 2622): the box spans the font's full ascent-to-descent where Word's sits slightly tighter. All five colours are correct and present
 - MEDIUM | all | p14 | Emboss/shadow character effects flattened: black "EMBOSSED" and "SHADOWED" lose their offset drop shadows in every backend; "IMPRINTED" engrave two-tone lost in ImageSharp/PDF (Skia approximates it with a light offset)
 - MINOR | skia,imagesharp | p5,p6,p7,p8,p9,p12,p13,p14,p15 | line spacing slightly larger than Word so each section's content drifts progressively lower (~15-20px by the last line of a block)
 - MINOR | pdf | p5,p6,p7,p8,p9,p12,p13,p14,p15 | vertical drift accumulates to ~40px by the lower lines of each section
 - MAJOR | html | - | the 12 WordArt shape texts export as plain small unstyled black paragraphs at the top (no warp, color, or display size), while all other sections keep full styling
-- MEDIUM | html | - | red underline and blue double underline lost — both render as plain single dark underlines
 - MINOR | html | - | emboss/engrave/shadow effects render flat (no drop shadows on "EMBOSSED"/"SHADOWED", no engrave on "IMPRINTED")
 
 ### wordart-envelope
@@ -1777,4 +1704,4 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ## Clean scenarios (faithful on skia, imagesharp, pdf and html)
 
-`align_center`, `align_justified`, `align_left`, `align_mixed`, `align_right`, `all_caps`, `block_quote`, `bold_text`, `bullet_list`, `colored_text`, `complex_document`, `custom_margins`, `document_protection/01`, `embedded_font`, `explicit_break_blank_page`, `first_line_indent`, `font_families`, `form_checkboxes`, `form_dropdowns`, `form_text_fields`, `gutter_margins/01`, `headings`, `html_basic_formatting`, `html_font_tag`, `html_links`, `hyphenation_nonbreaking`, `hyphenation_soft`, `inline_group_crop`, `inline_image`, `italic_text`, `left_indent`, `line_breaks`, `line_spacing`, `long_paragraph`, `mixed_formatting`, `multiple_images`, `multiple_pages`, `multiple_paragraphs`, `nested_list`, `numbered_list`, `numbered_list_restart`, `page_a4`, `page_breaks`, `page_landscape`, `page_legal`, `pct_pos_offset`, `section_break_even_page`, `section_break_next_page`, `section_break_odd_page`, `simple_paragraph`, `simple_table`, `small_caps`, `strikethrough_text`, `subscript_superscript`, `table_borders`, `table_cell_padding`, `table_colors`, `table_default_cell_margin_start_end`, `table_default_style_first_row_run_color`, `table_default_style_first_row_shading`, `table_page_break`, `table_vmerge_basic`, `table_vmerge_explicit_heights`, `text_wrapping_break`, `three_columns`, `two_columns`, `underline_text`, `wedding/07`
+`align_center`, `align_justified`, `align_left`, `align_mixed`, `align_right`, `all_caps`, `block_quote`, `bold_text`, `bullet_list`, `colored_text`, `complex_document`, `custom_margins`, `deep_nested_list`, `document_protection/01`, `embedded_font`, `even_odd_headers/01`, `even_odd_headers/02`, `explicit_break_blank_page`, `first_line_indent`, `font_families`, `footer`, `form_checkboxes`, `form_dropdowns`, `form_text_fields`, `gutter_margins/01`, `header`, `header_banner_table`, `headings`, `html_basic_formatting`, `html_font_tag`, `html_links`, `hyphenation_nonbreaking`, `hyphenation_soft`, `inline_group_crop`, `inline_image`, `italic_text`, `left_indent`, `line_breaks`, `line_spacing`, `long_paragraph`, `mixed_formatting`, `multiple_images`, `multiple_pages`, `multiple_paragraphs`, `nested_list`, `numbered_list`, `numbered_list_restart`, `page_a4`, `page_breaks`, `page_landscape`, `page_legal`, `page_numbers`, `pct_pos_offset`, `rtl_paragraph`, `section_break_even_page`, `section_break_next_page`, `section_break_odd_page`, `simple_paragraph`, `simple_table`, `small_caps`, `strikethrough_text`, `subscript_superscript`, `table_alignment/01`, `table_cell_padding`, `table_colors`, `table_default_cell_margin_start_end`, `table_default_style_first_row_run_color`, `table_default_style_first_row_shading`, `table_indent`, `table_page_break`, `table_vmerge_basic`, `table_vmerge_explicit_heights`, `text_wrapping_break`, `three_columns`, `two_columns`, `underline_text`, `wedding/07`
