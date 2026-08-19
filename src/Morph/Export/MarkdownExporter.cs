@@ -419,7 +419,8 @@ static class MarkdownExporter
                         gridColumn,
                         rows.Count,
                         columnCount,
-                        rows[rowIndex]);
+                        rows[rowIndex],
+                        rows);
                     if (borders is
                         {
                             HasAnyBorder: true

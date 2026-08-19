@@ -62,13 +62,42 @@ sealed class CanonicalTextMeasurer
     /// compressed text sitting too low in its own box by <c>ascent × (1 − multiple)</c>: 9.2pt on
     /// business-plans/13's 0.8× title, and exactly the 19px its cover title measured low.
     ///
-    /// Only <c>auto</c> is covered. Word's split under <c>exactly</c> and <c>atLeast</c> is a separate
-    /// question this fixture does not ask, so those keep the natural ascent.
+    /// The <c>exactly</c> and <c>atLeast</c> splits are settled by the four-magnitude fixtures
+    /// themselves (12/18/24/36pt against Word's references, band starts within 1px at every step):
+    ///
+    /// <list type="bullet">
+    /// <item>EXACT hard-sets the baseline at 80% of the declared box, whatever the font's natural
+    /// ascent — the same rule LibreOffice implements for Word compatibility
+    /// (<c>itrform2.cxx</c>). Keeping the natural ascent left every taller-than-natural exact box
+    /// with its ink riding high: <c>line_spacing_exactly</c>'s band gaps ran 42/54/67px against
+    /// Word's 51/65/87, and the 0.8 rule predicts 51.7/64.2/86.7.</item>
+    /// <item>AT-LEAST, once the declared box governs, anchors the ink at the BOTTOM: the extra
+    /// space goes entirely above the text, so the ascent grows by the full box excess.
+    /// <c>line_spacing_at_least</c>'s gaps predict 54.1/66.7/91.7px against Word's 55/66/92,
+    /// where the natural-ascent model gave 47/55/66.</item>
+    /// </list>
     /// </summary>
-    public static double LineAscentPoints(double naturalAscentPoints, LineSpacingRule rule, double multiplier) =>
-        rule == LineSpacingRule.Auto && multiplier < 1
+    public static double LineAscentPoints(
+        double naturalAscentPoints,
+        LineSpacingRule rule,
+        double multiplier,
+        double explicitPoints = 0,
+        double naturalPitchPoints = 0)
+    {
+        if (rule == LineSpacingRule.Exactly && explicitPoints > 0)
+        {
+            return explicitPoints * 0.8;
+        }
+
+        if (rule == LineSpacingRule.AtLeast && explicitPoints > naturalPitchPoints && naturalPitchPoints > 0)
+        {
+            return naturalAscentPoints + (explicitPoints - naturalPitchPoints);
+        }
+
+        return rule == LineSpacingRule.Auto && multiplier < 1
             ? naturalAscentPoints * multiplier
             : naturalAscentPoints;
+    }
 
     // The reference rasterizer runs at 120 dpi — the 125%-scaled display the XPS baselines were
     // measured on. It is the grid the pen position rounds onto; the em itself is not rounded (EmPixels).

@@ -2142,7 +2142,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // through the break and boxing only the row's real ends. The edges are charged to the fragment's
         // content budget above, so the rules and the space they occupy stay in step.
         static CellBorders? FragmentBorders(TableCell cell, TableElement table, int rowIndex, int gridColIndex, int colCount, TableRow row) =>
-            TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+            TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
 
         // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
         // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the
@@ -2155,6 +2155,23 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var cells = new List<PlacedCell>();
             var cellX = tableX;
             var gridColIndex = 0;
+            var detached = table.Properties.CellSpacingPoints > 0;
+
+            // Detached-border model: the table FRAME is its own box at the row extent — left/right
+            // on every row, top/bottom closing the first/last — with each cell's box inset inside
+            // its slot (TableLayout.CellSpacingInsets carries the Word-probed gap law). A synthetic
+            // content-less cell carries the frame so the painters need no new item kind.
+            if (detached && table.Properties.DefaultBorders is {HasAnyBorder: true} frame)
+            {
+                var frameEdges = new CellBorders
+                {
+                    Top = rowIndex == 0 ? frame.Top : BorderEdge.None,
+                    Bottom = rowIndex == table.Rows.Count - 1 ? frame.Bottom : BorderEdge.None,
+                    Left = frame.Left,
+                    Right = frame.Right
+                };
+                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, [], false, 0, 0));
+            }
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
@@ -2178,9 +2195,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     ? TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights)
                     : rowHeight;
 
+                var boxX = cellX;
+                var boxY = rowY;
+                var boxWidth = cellWidth;
+                var boxHeight = cellHeight;
+                if (detached)
+                {
+                    var insets = TableLayout.CellSpacingInsets(table.Properties, gridColIndex, span, colCount, rowIndex, table.Rows.Count);
+                    boxX += (float) insets.Left;
+                    boxY += (float) insets.Top;
+                    boxWidth -= (float) insets.Horizontal;
+                    boxHeight -= (float) insets.Vertical;
+                }
+
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
-                var content = LayoutCellContent(cell, cellX + (float) padding.Left, rowY + (float) padding.Top, cellWidth - (float) padding.Horizontal, cellHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
-                var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+                var content = LayoutCellContent(cell, boxX + (float) padding.Left, boxY + (float) padding.Top, boxWidth - (float) padding.Horizontal, boxHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
+                var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
                 // before the cell's paragraphs, so prepend them to the content.
@@ -2190,7 +2220,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
 
                 cellX += cellWidth;
                 gridColIndex += span;

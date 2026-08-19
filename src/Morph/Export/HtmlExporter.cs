@@ -1341,7 +1341,7 @@ static class HtmlExporter
                 // Resolve the cell's effective borders through the shared cell→table→inside cascade,
                 // so a cell inherits the table's grid/outline borders when it sets none of its own.
                 var borders = TableLayout.ResolveCellBorders(
-                    properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex]);
+                    properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex], rows);
 
                 var cellStyle = CellStyle(properties, borders, table.Properties);
 
@@ -1656,6 +1656,26 @@ static class HtmlExporter
                             AppendHeading(paragraph, level.Value);
                             separatorPending = false;
                         }
+                        else if (paragraph.Properties.SpacingBeforePoints > 0.01 ||
+                                 paragraph.Properties.SpacingAfterPoints > 0.01)
+                        {
+                            // A cell paragraph that declares before/after spacing renders as a real
+                            // block so the spacing survives — the <br /> join below drops it, which
+                            // is how a letter template keeping its body in a cell and separating
+                            // blocks with w:spacing (rather than empty paragraphs) read as one
+                            // run-together mass (todo #35: cover-letters/05..12, letters/12,
+                            // newsletters/03). Margins are explicit because the stylesheet's p rule
+                            // would otherwise donate its own 8pt to every such paragraph.
+                            builder
+                                .Append("<p style=\"margin: ")
+                                .Append(Length(paragraph.Properties.SpacingBeforePoints))
+                                .Append(" 0 ")
+                                .Append(Length(paragraph.Properties.SpacingAfterPoints))
+                                .Append("\">");
+                            AppendInline(paragraph.Runs);
+                            builder.Append("</p>");
+                            separatorPending = false;
+                        }
                         else
                         {
                             if (separatorPending)
@@ -1825,9 +1845,39 @@ static class HtmlExporter
 
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
             // InlineStyle — so the source text stays intact rather than being eagerly uppercased.
-            AppendEncodedWithBreaks(text);
+            AppendEncodedWithBreaks(SoftenNoBreakSpaces(text));
 
             AppendCloseTags(tags);
+        }
+
+        // A single no-break space BETWEEN words renders as an ordinary space — that is exactly what
+        // Word draws, and what a browser draws in most faces. Kept as &#160; it is at the mercy of
+        // the resolved font's own U+00A0 advance, and the fallback serif the render environment
+        // substitutes for business-plans/05's Baskerville draws it visibly wider than a space
+        // ("designed to  improve"). A no-break space that sits beside another space, or at a text
+        // edge, keeps its entity — a plain space there could collapse or trim.
+        static string SoftenNoBreakSpaces(string text)
+        {
+            if (!text.Contains('\u00A0'))
+            {
+                return text;
+            }
+
+            var chars = text.ToCharArray();
+            for (var i = 1; i < chars.Length - 1; i++)
+            {
+                if (chars[i] != '\u00A0')
+                {
+                    continue;
+                }
+
+                if (chars[i - 1] is not (' ' or '\u00A0') && chars[i + 1] is not (' ' or '\u00A0'))
+                {
+                    chars[i] = ' ';
+                }
+            }
+
+            return new(chars);
         }
 
         void AppendEncodedWithBreaks(string text)
