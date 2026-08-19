@@ -10,6 +10,7 @@
           "Italic": true,
           "Underline": false,
           "DoubleUnderline": false,
+          "IsRevisionMark": false,
           "Strikethrough": false,
           "AllCaps": false,
           "SmallCaps": false,

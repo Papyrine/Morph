@@ -80,6 +80,14 @@ static class PdfPainter
             {
                 PaintItem(context, graphics, item, rasterizeWordArt, onWarning);
             }
+
+            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            {
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                PaintBorder(context, graphics, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges));
+            }
         }
 
         return context.Document;
@@ -171,6 +179,7 @@ static class PdfPainter
     static void PaintLine(PdfRenderContext context, XGraphics graphics, PlacedLine line)
     {
         var ascent = line.Baseline - line.Y;
+        var revisionBarDrawn = false;
         foreach (var run in line.Runs)
         {
             // A tab-leader filler fills its span with the leader (tiled glyph, or a baseline rule for
@@ -184,6 +193,14 @@ static class PdfPainter
             if (string.IsNullOrEmpty(run.Text))
             {
                 continue;
+            }
+
+            // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
+            if (run.Properties.IsRevisionMark && !revisionBarDrawn)
+            {
+                revisionBarDrawn = true;
+                var barX = context.PageSettings.MarginLeft / 2;
+                graphics.DrawLine(context.GetPen(XColors.Black, 0.75), barX, line.Y, barX, line.Y + line.Height);
             }
 
             var properties = run.Properties;

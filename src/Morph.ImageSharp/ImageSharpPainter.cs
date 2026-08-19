@@ -33,6 +33,14 @@ static class ImageSharpPainter
                 {
                     PaintItem(context, canvas, item);
                 }
+
+                // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+                // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+                if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+                {
+                    var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                    PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges);
+                }
             }
 
             // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
@@ -82,6 +90,22 @@ static class ImageSharpPainter
         canvas.Fill(context.GetBrush(ImageSharpRenderContext.ParseColor(colorHex)), new RectangleF(P(context, x), P(context, y), P(context, width), P(context, height)));
 
     static void PaintLine(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedLine line)
+    {
+        // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
+        foreach (var run in line.Runs)
+        {
+            if (run.Properties.IsRevisionMark)
+            {
+                var barX = P(context, context.PageSettings.MarginLeft / 2);
+                canvas.DrawLine(context.GetPen(Color.Black, P(context, 0.75)), new PointF(barX, P(context, line.Y)), new PointF(barX, P(context, line.Y + line.Height)));
+                break;
+            }
+        }
+
+        PaintLineContent(context, canvas, line);
+    }
+
+    static void PaintLineContent(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedLine line)
     {
         var ascent = line.Baseline - line.Y;
         foreach (var run in line.Runs)

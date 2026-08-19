@@ -17,6 +17,12 @@ sealed record RunProperties
 
     /// <summary>Whether <c>w:u/@w:val</c> is <c>double</c> — two thin rules instead of one.</summary>
     public bool DoubleUnderline { get; init; }
+
+    /// <summary>
+    /// Whether the run carries a tracked change (insertion or deletion). Word's markup view
+    /// draws a vertical change bar in the left margin beside any line containing one.
+    /// </summary>
+    public bool IsRevisionMark { get; init; }
     public bool Strikethrough { get; init; }
     public bool AllCaps { get; init; }
     public bool SmallCaps { get; init; }

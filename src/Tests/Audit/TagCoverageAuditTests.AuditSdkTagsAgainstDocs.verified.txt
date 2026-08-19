@@ -2,7 +2,7 @@
 
 SDK element types catalogued: 1727
 SDK attribute names catalogued: 394
-Tags mentioned in docs: 652
+Tags mentioned in docs: 654
 SDK namespaces seen: a, a14, a15, c, cdr, cx, dgm, m, o, pic, v, w, w10, w14, w15, w16cur, wp, wp14, wpc, wpg, wps
 
 ## SDK tags missing from both word-features.md and missingTags.md (1151)

@@ -1,23 +1,11 @@
 ﻿Inline Content Controls Test
 
-Checkbox (checked): 
+Checkbox (checked): ☒ Yes
 
-☒
+Checkbox (unchecked): ☐ No
 
-Yes
+Dropdown: Medium
 
-Checkbox (unchecked): 
-
-☐
-
-No
-
-Dropdown: 
-
-Medium
-
-Date: 
-
-2025-06-15
+Date: 2025-06-15
 
 Name: John Doe
