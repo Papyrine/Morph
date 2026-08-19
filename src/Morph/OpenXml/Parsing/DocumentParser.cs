@@ -3440,7 +3440,11 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             TopSpacePoints = ReadSpacePoints(element.GetFirstChild<TopBorder>()),
             RightSpacePoints = ReadSpacePoints(element.GetFirstChild<RightBorder>()),
             BottomSpacePoints = ReadSpacePoints(element.GetFirstChild<BottomBorder>()),
-            LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>())
+            LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>()),
+
+            // offsetFrom="text" is the OOXML default; only an explicit "page" measures the
+            // spaces from the page edge.
+            MeasureFromText = element.OffsetFrom == null || element.OffsetFrom.Value != PageBorderOffsetValues.Page
         };
 
         static double ReadSpacePoints(BorderType? edge)
@@ -6189,6 +6193,21 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
                 Runs = [],
                 Properties = props with {SpacingBeforePoints = 0},
                 IsAnchorOnlyMark = true
+            });
+        }
+        else if (result.Count > 0 && result[^1] is ColumnBreakElement)
+        {
+            // A paragraph that ENDS at a column break still has its mark, and Word places it at
+            // the top of the NEXT column as a line of its own — the following paragraph starts one
+            // line (plus this paragraph's after-spacing) further down. column_breaks and
+            // mixed_breaks both had post-break content a line high against Word's references.
+            // Deliberately NOT done for page breaks: page counts are Word-exact today and the
+            // page-break mark interacts with FinishPage's blank-page rules (see the sectPr note
+            // above) — that flip needs its own adjudication.
+            result.Add(new ParagraphElement
+            {
+                Runs = [],
+                Properties = props
             });
         }
 
@@ -9516,29 +9535,26 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             return false;
         }
 
-        // Check for Office 2010 checkbox (w14:checkbox)
-        if (props.Descendants().Any(_ => _.LocalName == "checkbox"))
+        // A picture control renders an image the cached runs cannot carry — always the control path.
+        if (props.GetFirstChild<SdtContentPicture>() != null)
         {
             return true;
         }
 
-        // Check for combo box, dropdown, date or picture controls. Each needs rendering the cached
-        // content cannot supply on its own — a glyph, the selected item, a formatted date, an image.
-        if (props.GetFirstChild<SdtContentComboBox>() != null ||
+        // Every other inline control — checkbox (w14:checkbox), combo box, dropdown, date, plain
+        // text — prints as its cached content, laid out inline with the rest of the paragraph:
+        // Word's print output for content_control_inline is plain "☒ Yes", "Medium", "2025-06-15"
+        // with no box chrome, on the label's own line. So once the control HOLDS runs, those runs
+        // are the value and flow inline. Only an EMPTY control takes the block-control path, which
+        // can render what the cached content genuinely cannot supply — the checkbox glyph from its
+        // checked state, a date formatted from w:fullDate, or the grayed placeholder. (For w:text
+        // this was already the rule: the control path split a footer's paragraph around the block
+        // element, stranding the page number on its own line.)
+        if (props.Descendants().Any(_ => _.LocalName == "checkbox") ||
+            props.GetFirstChild<SdtContentComboBox>() != null ||
             props.GetFirstChild<SdtContentDropDownList>() != null ||
             props.GetFirstChild<SdtContentDate>() != null ||
-            props.GetFirstChild<SdtContentPicture>() != null)
-        {
-            return true;
-        }
-
-        // A PLAIN-TEXT control (w:text) is different: once it holds runs, those runs ARE the value and
-        // Word lays them out inline with the rest of the paragraph. Routing it through the control path
-        // emitted a block element and split the paragraph around it — which in a footer stranded the
-        // page number on its own line and dropped the value outright, the header/footer band rendering
-        // only paragraphs and tables. An EMPTY one still takes the control path so its placeholder can
-        // render, which is the one thing the cached content genuinely cannot supply.
-        if (props.GetFirstChild<SdtContentText>() != null)
+            props.GetFirstChild<SdtContentText>() != null)
         {
             return sdtRun.SdtContentRun?.Descendants<OoxmlRun>().All(_ => _.InnerText.Length == 0) ?? true;
         }
@@ -10275,6 +10291,20 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
         // w:mirrorIndents — left/right indents swap on even pages (mirror printing).
         var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
 
+        // Word drops a mirror paragraph's left/right and hanging indents entirely and keeps only
+        // w:firstLine, at least in a document without mirror margins. Word-measured
+        // (_probe_mirror, margin at 1in): left=1440 without the flag indents the full 1in;
+        // left=1440, left=2880, w:start=1440 and left=2880+hanging=1440 under the flag all render
+        // flush at the margin, while left=1440+firstLine=720 renders its first line at
+        // margin+0.5in. complex_spacing is the corpus case — Word wraps its Combination 7 at the
+        // full column width where the declared 2880/2880/1440 indents wrapped it into 10 lines.
+        if (mirrorIndents)
+        {
+            leftIndent = 0;
+            rightIndent = 0;
+            hangingIndent = 0;
+        }
+
         // Parse paragraph shading/background color (w:shd element)
         if (shadingElement != null)
         {
@@ -10381,11 +10411,19 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
         {
             var attributes = framePr.GetAttributes();
             var dropCapAttribute = attributes.AttributeValue("dropCap");
-            if (string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
+
+            // Word only honours a drop cap whose framePr also anchors the frame — its own
+            // authoring always writes w:wrap/w:hAnchor/w:vAnchor beside w:dropCap. A bare
+            // dropCap+lines (feature_capture/01) renders as a plain normal-size line in Word's
+            // reference, where the cap used to draw a spurious 3-line letter.
+            var frameAnchored = attributes.AttributeValue("wrap") != null ||
+                                attributes.AttributeValue("hAnchor") != null ||
+                                attributes.AttributeValue("vAnchor") != null;
+            if (frameAnchored && string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Drop;
             }
-            else if (string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
+            else if (frameAnchored && string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Margin;
             }
@@ -10610,12 +10648,14 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             RevisionMark.Inserted => properties with
             {
                 ColorHex = revisionColorHex,
-                Underline = true
+                Underline = true,
+                IsRevisionMark = true
             },
             RevisionMark.Deleted => properties with
             {
                 ColorHex = revisionColorHex,
-                Strikethrough = true
+                Strikethrough = true,
+                IsRevisionMark = true
             },
             _ => properties
         };
