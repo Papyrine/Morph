@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Complex Document Example\nA demonstration of various formatting features\n1. Introduction\nThis document demonstrates various formatting capabilities including text styles,\nalignment, lists, and tables. The purpose is to test the rendering accuracy of our document\nconverter.\n2. Text Formatting\nThis section shows bold, italic, and colored text.\n3. Key Features\n• Multiple text formatting options\n• Table support with borders\n• Various page sizes\n• Paragraph alignment\n4. Sample Data\nItem QuantityPrice\nProduct\n1\n10 $9.99\nProduct\n2\n20 $19.98\nProduct\n3\n30 $29.97\n5. Conclusion\nThis document has demonstrated various formatting features. A good document converter\nshould be able to render all these elements accurately."
+        "Text": "Complex Document Example\nA demonstration of various formatting features\n1. Introduction\nThis document demonstrates various formatting capabilities including text styles,\nalignment, lists, and tables. The purpose is to test the rendering accuracy of our document\nconverter.\n2. Text Formatting\nThis section shows bold, italic, and colored text.\n3. Key Features\n• Multiple text formatting options\n• Table support with borders\n• Various page sizes\n• Paragraph alignment\n4. Sample Data\nItem QuantityPrice\nProduct 110 $9.99\nProduct 220 $19.98\nProduct 330 $29.97\n5. Conclusion\nThis document has demonstrated various formatting features.A good document converter\nshould be able to render all these elements accurately."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.069,
-      "Ssim": 0.8576,
+      "ErrorMetric": 0.0667,
+      "Ssim": 0.8672,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

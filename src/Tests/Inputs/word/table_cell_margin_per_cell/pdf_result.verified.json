@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Table with different margins per cell:\nTop margin emphasis\nLeft margin emphasis"
+        "Text": "Table with different margins per cell:\nTop margin\nemphasis\nLeft margin emphasis"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.012,
-      "Ssim": 0.9765,
+      "ErrorMetric": 0.0209,
+      "Ssim": 0.9741,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

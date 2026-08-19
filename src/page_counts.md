@@ -13,6 +13,10 @@ identical across backends; no scenario disagrees *between* backends anymore. `re
 archetype (raster short, PDF over, Word between) — left the list entirely: all three backends now
 render Word's 5 pages.
 
+Confirmed again by a mechanical re-read of every `*_result.verified.json` on 2026-08-08. Page counts
+are therefore not a defect anywhere: any surviving fidelity finding whose content is a page-count
+claim, or which cites a page Word's reference does not have, is stale by construction.
+
 
 `newsletters/06` left the list on 2026-08-06 and now matches Word at 4 pages. **Its recorded cause —
 an `atLeast`-table knife-edge whose residual was the raster line-height "dead-end lever" — was wrong

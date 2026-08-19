@@ -56,7 +56,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "S M A L L B U S I N E S S P L A N\nS A N D + P O L I S H C O N T R A CT O R S 1 0\nOPERATING PLAN\nAdditionally, it is necessary to outline how the company will continue to develop and\nmaintain a loyal customer base. This section includes management responsibilities.\nWhat are the envisioned phases for future growth and the capabilities that need to be\nin place to realize growth?\nThe operating plan describes how the business works. Depending on the type of\nbusiness, important elements of this plan should include how the company will bring\nservices to market and how it will support customers. It is the logistics, technology,\nand basic blocking and tackling of the business.\nDepending on the type of business, the following sections may or may not be\nnecessary. Only include what is needed and remove everything else. Remember: try\nto keep the business plan as short as possible. Excessive detail in this section could\neasily make the plan too long.\n• Order fulfillment: Describe the company’s procedures for delivering services to its\ncustomers. As a service company, determine how to keep track of the customer\nbase, form of communications, and how best to manage sales and data.\n• Payment: Describe the standard payment terms and the payment methods\naccepted. Describe the pricing plans (one-time service fees, hourly-based fees,\nmarkups, and any other fees) and any impact on cash flow.\n• Technology: If technology is critical to the business, whether it is part of the\nservice offering or is fundamental to delivering a service, describe the key\ntechnologies used that are proprietary. If the business data (company or\ncustomer) is at risk, describe the data security plan in place, as well as any backup\nor recovery in the case of a disaster or outage.\n• Key customers: Identify any customers that are important to the success of the\nbusiness due to a partnership, volume, or pathway to a new market. Also identify\nany customers who bring in more than 10% of the company’s revenues.\n• Key employees and organization: Describe unique skills or experiences that are\nrequired of the current team. If necessary, describe any proprietary recruiting or\ntraining processes in place. List key employees that are necessary for success.\nInclude an organization chart to support this section.\n• Facilities: As a home-based business, be educated on legalities and tax filings for\nsuch business types.\nMARKETING AND SALES PLAN"
+        "Text": "S M A L L B U S I N E S S P L A N\nS A N D + P O L I S H C O N T R A CT O R S 1 0\nOPERATING PLAN\nAdditionally, it is necessary to outline how the company will continue to develop and\nmaintain a loyal customer base. This section includes management responsibilities.\nWhat are the envisioned phases for future growth and the capabilities that need to be\nin place to realize growth?\nThe operating plan describes how the business works. Depending on the type of\nbusiness, important elements of this plan should include how the company will bring\nservices to market and how it will support customers. It is the logistics, technology,\nand basic blocking and tackling of the business.\nDepending on the type of business, the following sections may or may not be\nnecessary. Only include what is needed and remove everything else. Remember: try\nto keep the business plan as short as possible. Excessive detail in this section could\neasily make the plan too long.\n• Order fulfillment: Describe the company’s procedures for delivering services to its\ncustomers. As a service company, determine how to keep track of the customer\nbase, form of communications, and how best to manage sales and data.\n• Payment: Describe the standard payment terms and the payment methods\naccepted. Describe the pricing plans (one-time service fees, hourly-based fees,\nmarkups, and any other fees) and any impact on cash flow.\n• Technology: If technology is critical to the business, whether it is part of the service\noffering or is fundamental to delivering a service, describe the key technologies\nused that are proprietary. If the business data (company or customer) is at risk,\ndescribe the data security plan in place, as well as any backup or recovery in the\ncase of a disaster or outage.\n• Key customers: Identify any customers that are important to the success of the\nbusiness due to a partnership, volume, or pathway to a new market. Also identify\nany customers who bring in more than 10% of the company’s revenues.\n• Key employees and organization: Describe unique skills or experiences that are\nrequired of the current team. If necessary, describe any proprietary recruiting or\ntraining processes in place. List key employees that are necessary for success.\nInclude an organization chart to support this section.\n• Facilities: As a home-based business, be educated on legalities and tax filings for\nsuch business types.\nMARKETING AND SALES PLAN"
       },
       {
         "Width": 612.0,
@@ -143,7 +143,7 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0882,
-      "Ssim": 0.7676,
+      "Ssim": 0.7677,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -151,7 +151,7 @@
     {
       "Page": 5,
       "ErrorMetric": 0.1231,
-      "Ssim": 0.7126,
+      "Ssim": 0.7129,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
@@ -159,7 +159,7 @@
     {
       "Page": 6,
       "ErrorMetric": 0.1321,
-      "Ssim": 0.743,
+      "Ssim": 0.7429,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
@@ -174,8 +174,8 @@
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.1538,
-      "Ssim": 0.6636,
+      "ErrorMetric": 0.154,
+      "Ssim": 0.6627,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"
@@ -190,8 +190,8 @@
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.1387,
-      "Ssim": 0.7075,
+      "ErrorMetric": 0.138,
+      "Ssim": 0.7107,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "pdf_result#page_0010.verified.png",
       "ReceivedFile": "pdf_result#page_0010.received.png"
@@ -199,7 +199,7 @@
     {
       "Page": 11,
       "ErrorMetric": 0.0902,
-      "Ssim": 0.7744,
+      "Ssim": 0.7743,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"
@@ -207,7 +207,7 @@
     {
       "Page": 12,
       "ErrorMetric": 0.0799,
-      "Ssim": 0.8413,
+      "Ssim": 0.8415,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "pdf_result#page_0012.verified.png",
       "ReceivedFile": "pdf_result#page_0012.received.png"
@@ -230,8 +230,8 @@
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.1107,
-      "Ssim": 0.8328,
+      "ErrorMetric": 0.1108,
+      "Ssim": 0.8323,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"

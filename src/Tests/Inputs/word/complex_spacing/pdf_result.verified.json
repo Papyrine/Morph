@@ -21,7 +21,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Exactly 600 twips - Very generous fixed spacing of 600 twips.\n13. Line Spacing: Multiple\nMultiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing.\nThe value is specified as 240 * 2.5 = 600 twips.\nMultiple 3.0 - Triple line spacing (720 twips).\n14. Contextual Spacing (Same Style)\nFirst paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear\nbelow.\nSecond paragraph with same style, spacing after 240 - contextual spacing OFF. Space will\nappear below.\nThird paragraph with style, spacing after 240 - contextual spacing ON. No space between\nsame-style paragraphs.\nFourth paragraph with style, spacing after 240 - contextual spacing ON.\n15. Widow/Orphan Control\nWidow/Orphan control ON - This paragraph has widow and orphan control enabled, which\nprevents single lines from being left alone at the top or bottom of a page. This is a longer\nparagraph to demonstrate the effect when it wraps across pages.\nWidow/Orphan control OFF - This paragraph has widow and orphan control disabled.\nSingle lines may be left alone at page boundaries. This is a longer paragraph to\ndemonstrate the effect when it wraps across pages.\n16. Keep With Next\nKeep with next paragraph ENABLED - This paragraph will stay with the following paragraph\non the same page.\nThis paragraph is kept with the previous one.\nKeep with next paragraph DISABLED - Normal behavior.\n17. Keep Lines Together"
+        "Text": "Exactly 600 twips - Very generous fixed spacing of 600 twips.\n13. Line Spacing: Multiple\nMultiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing.\nThe value is specified as 240 * 2.5 = 600 twips.\nMultiple 3.0 - Triple line spacing (720 twips).\n14. Contextual Spacing (Same Style)\nFirst paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear\nbelow.\nSecond paragraph with same style, spacing after 240 - contextual spacing OFF. Space will\nappear below.\nThird paragraph with style, spacing after 240 - contextual spacing ON. No space between\nsame-style paragraphs.\nFourth paragraph with style, spacing after 240 - contextual spacing ON.\n15. Widow/Orphan Control\nWidow/Orphan control ON - This paragraph has widow and orphan control enabled, which\nprevents single lines from being left alone at the top or bottom of a page. This is a longer\nparagraph to demonstrate the effect when it wraps across pages.\nWidow/Orphan control OFF - This paragraph has widow and orphan control disabled.\nSingle lines may be left alone at page boundaries. This is a longer paragraph to demonstrate\nthe effect when it wraps across pages.\n16. Keep With Next\nKeep with next paragraph ENABLED - This paragraph will stay with the following paragraph\non the same page.\nThis paragraph is kept with the previous one.\nKeep with next paragraph DISABLED - Normal behavior.\n17. Keep Lines Together"
       },
       {
         "Width": 612.0,
@@ -31,7 +31,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Page break before ENABLED - This paragraph will always start on a new page.\nNormal paragraph after the forced page break.\n19. Suppress Line Numbers\nSuppress line numbers ENABLED - This paragraph will not show line numbers even if the\ndocument has line numbering enabled.\nSuppress line numbers DISABLED - This paragraph will show line numbers if document line\nnumbering is enabled.\n20. Hyphenation\nHyphenation allowed - This paragraph with extraordinarily long words like\n'characterization' and 'incomprehensibility' can be hyphenated at line breaks.\nHyphenation suppressed - This paragraph with extraordinarily long words like\n'characterization' and 'incomprehensibility' will not be hyphenated at line breaks.\n21. Complex Combinations\nCombination 1: Left indent 720, right indent 720, first line 360, before\n240, after 240, double spacing, keep with next, suppress line numbers.\nThis follows the previous paragraph with keep-with-next.\nCombination 2: Hanging indent 1440, spacing before 360, exactly 400 twips line spacing, keep lines\ntogether, widow/orphan control, don't hyphenate."
+        "Text": "Page break before ENABLED - This paragraph will always start on a new page.\nNormal paragraph after the forced page break.\n19. Suppress Line Numbers\nSuppress line numbers ENABLED - This paragraph will not show line numbers even if the\ndocument has line numbering enabled.\nSuppress line numbers DISABLED - This paragraph will show line numbers if document line\nnumbering is enabled.\n20. Hyphenation\nHyphenation allowed - This paragraph with extraordinarily long words like 'characterization'\nand 'incomprehensibility' can be hyphenated at line breaks.\nHyphenation suppressed - This paragraph with extraordinarily long words like\n'characterization' and 'incomprehensibility' will not be hyphenated at line breaks.\n21. Complex Combinations\nCombination 1: Left indent 720, right indent 720, first line 360, before\n240, after 240, double spacing, keep with next, suppress line numbers.\nThis follows the previous paragraph with keep-with-next.\nCombination 2: Hanging indent 1440, spacing before 360, exactly 400 twips line spacing, keep lines\ntogether, widow/orphan control, don't hyphenate."
       },
       {
         "Width": 612.0,
@@ -64,8 +64,8 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0972,
-      "Ssim": 0.7808,
+      "ErrorMetric": 0.0974,
+      "Ssim": 0.7805,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
@@ -80,8 +80,8 @@
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0619,
-      "Ssim": 0.8973,
+      "ErrorMetric": 0.0614,
+      "Ssim": 0.9003,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"

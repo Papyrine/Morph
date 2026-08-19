@@ -115,6 +115,40 @@ sealed record FontMetrics
     public IReadOnlyDictionary<int, ushort> GlyphForCodepoint { get; init; } = new Dictionary<int, ushort>();
 
     /// <summary>
+    /// Word-measured advance overrides from a <c>.wordadvances</c> sidecar next to the font file,
+    /// or null for a font without one. Word does not lay text out on the font's linear <c>hmtx</c>
+    /// advances: it rounds the em to whole pixels on its 120-dpi layout grid per size and takes
+    /// per-glyph GDI natural widths, most of which snap to whole pixels at text sizes — and the
+    /// snap depends on the authored point size, not just the resulting pixel em (10.5pt and 11pt
+    /// both render on an 18px em with different <c>n</c> advances). No public API reproduces the
+    /// values (DirectWrite's GDI-compatible mode rounds cells Word keeps fractional), so the
+    /// sidecar memoizes Word itself, measured from its XPS output: keyed by half-point size, then
+    /// codepoint, value in pixels on the 120-dpi reference grid — the same grid
+    /// <see cref="CanonicalTextMeasurer"/> accumulates in. Codepoints absent at a covered
+    /// size, and sizes absent entirely, fall back to linear at the rounded em plus the measured
+    /// half-twip bias: <c>design/upm * (round(pt*5/3) + 1/24)</c>.
+    ///
+    /// <para>The generated Calibri sidecars currently ship PARKED as
+    /// <c>src/Fonts/*.wordadvances.pending</c>: even with pair kerning landed
+    /// (<see cref="KernPairs"/>), activating them measured worse against Word — the residual is
+    /// the table/autofit interplay under changed advances, not the advances themselves (they match
+    /// Word's XPS glyph-for-glyph). Rename to <c>.wordadvances</c> to activate once the autofit
+    /// slack model is rooted — <c>src/todo.md</c> #43.</para>
+    /// </summary>
+    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvances { get; init; }
+
+    /// <summary>
+    /// GPOS <c>kern</c>-feature pair kerning, or null for a font without usable pair data. Word
+    /// applies these adjustments when kerning is enabled for a run (<c>w:kern</c>; the built-in
+    /// Normal of a document with no docDefaults kerns by default — <c>_probe_kern_*</c>), with the
+    /// pair quantization implemented in <see cref="CanonicalTextMeasurer"/>.
+    /// </summary>
+    public GposKernTable? KernPairs { get; init; }
+
+    /// <summary>The glyph id <paramref name="codepoint"/> maps to — glyph 0 (<c>.notdef</c>) when unmapped.</summary>
+    public ushort GlyphId(int codepoint) => GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0);
+
+    /// <summary>
     /// The horizontal advance of <paramref name="codepoint"/> in design units. Falls back to the last
     /// <c>hmtx</c> entry for glyphs past the metric count, and to glyph 0 for unmapped codepoints.
     /// Returns 0 when the font carries no advance data.
