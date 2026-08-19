@@ -53,6 +53,51 @@ public class BookmarkPageTests
         await Assert.That(pages["target"]).IsEqualTo(1);
     }
 
+    // The other half of that join, and the half that was wrong: a bookmark INSIDE a cell. A cell's
+    // lines hang off its placed row rather than off the page, so the paragraph-to-page map skipped
+    // every paragraph in a table and the bookmark came back absent — not at a wrong page, at no page
+    // at all, which a caller writing a PAGEREF renders as the field's placeholder text.
+    //
+    // The expected page is read from a bookmark on the paragraph directly after the table rather
+    // than written down, so the fixture cannot drift out of agreement with the height model: what is
+    // being asserted is that a cell resolves to the same page as the content beside it, and that it
+    // is a real page rather than the page-1 default a half-fix would return.
+    [Test]
+    public async Task ABookmarkInsideATableCellReportsItsPage()
+    {
+        using var docx = BuildDocument(
+            paragraphs: 120,
+            bookmarkAt: null,
+            extraBookmarkAt: 60,
+            tableBeforeParagraph: 60,
+            bookmarkInFirstCell: true);
+
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
+
+        await Assert.That(pages.ContainsKey("target")).IsTrue();
+        await Assert.That(pages["target"]).IsGreaterThan(1);
+        await Assert.That(pages["target"]).IsEqualTo(pages["second"]);
+    }
+
+    // A cell can hold a table of its own, so the walk over placed items has to recurse rather than
+    // step one level down. Without this the one-level form passes every other test here.
+    [Test]
+    public async Task ABookmarkInsideANestedTableCellReportsItsPage()
+    {
+        using var docx = BuildDocument(
+            paragraphs: 120,
+            bookmarkAt: null,
+            extraBookmarkAt: 60,
+            tableBeforeParagraph: 60,
+            bookmarkInFirstCell: true,
+            nestTable: true);
+
+        var pages = DocumentConverter.GetBookmarkPages(docx, Options);
+
+        await Assert.That(pages.ContainsKey("target")).IsTrue();
+        await Assert.That(pages["target"]).IsEqualTo(pages["second"]);
+    }
+
     [Test]
     public async Task ADocumentWithNoBookmarksReportsNothing()
     {
@@ -75,7 +120,13 @@ public class BookmarkPageTests
         await Assert.That(pages.ContainsKey("second")).IsTrue();
     }
 
-    static MemoryStream BuildDocument(int paragraphs, int? bookmarkAt, int? extraBookmarkAt = null, int? tableBeforeParagraph = null)
+    static MemoryStream BuildDocument(
+        int paragraphs,
+        int? bookmarkAt,
+        int? extraBookmarkAt = null,
+        int? tableBeforeParagraph = null,
+        bool bookmarkInFirstCell = false,
+        bool nestTable = false)
     {
         var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
@@ -86,7 +137,7 @@ public class BookmarkPageTests
             {
                 if (i == tableBeforeParagraph)
                 {
-                    body.Append(Table());
+                    body.Append(Table(bookmarkInFirstCell, nestTable));
                 }
 
                 var paragraph = new W.Paragraph();
@@ -112,8 +163,10 @@ public class BookmarkPageTests
         return stream;
     }
 
-    // Two rows of two cells: four more w:p elements that are not body-level paragraphs.
-    static W.Table Table() =>
+    // Two rows of two cells: four more w:p elements that are not body-level paragraphs. With
+    // bookmarkInFirstCell the "target" bookmark moves into the top-left cell, and with nest that
+    // cell holds a table of its own and the bookmark goes one level further down.
+    static W.Table Table(bool bookmarkInFirstCell = false, bool nest = false) =>
     [
         with(new W.TableProperties(
                 new W.TableWidth
@@ -121,9 +174,37 @@ public class BookmarkPageTests
                     Type = W.TableWidthUnitValues.Auto
                 }),
             new W.TableGrid(new W.GridColumn(), new W.GridColumn()),
-            Row("a", "b"),
+            FirstRow(bookmarkInFirstCell, nest),
             Row("c", "d"))
     ];
+
+    static W.TableRow FirstRow(bool bookmarkInFirstCell, bool nest)
+    {
+        if (!bookmarkInFirstCell)
+        {
+            return Row("a", "b");
+        }
+
+        var anchor = new W.Paragraph(new W.Run(new W.Text("a")));
+        Bookmark(anchor, "target", 1);
+
+        // A nested table's own cell is where the anchor goes, so the outer cell holds the table and
+        // the trailing paragraph w:tc requires after one.
+        var first = nest
+            ? new W.TableCell(
+                new W.Table(
+                    new W.TableProperties(
+                        new W.TableWidth
+                        {
+                            Type = W.TableWidthUnitValues.Auto
+                        }),
+                    new W.TableGrid(new W.GridColumn()),
+                    new W.TableRow(new W.TableCell(anchor))),
+                new W.Paragraph())
+            : new W.TableCell(anchor);
+
+        return [with(first, new W.TableCell(new W.Paragraph(new W.Run(new W.Text("b")))))];
+    }
 
     static W.TableRow Row(string left, string right) =>
     [
