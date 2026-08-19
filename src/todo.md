@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 164 major, 336 medium, 256 minor = 756 findings across 253 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it, and 760 against an actual 753 on 2026-08-13 for the same reason. The 2026-08-13 recount also folds in the five `border_style_variants` findings added that day.
+**Open: 164 major, 335 medium, 255 minor = 754 findings across 253 scenarios.** Established by a full page-by-page re-audit on 2026-07-20 and maintained by deletion since; the 2026-07-21..23 fix batches were pruned as they landed. The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted — it had read 807 against an actual 769 on 2026-08-08, having drifted as later batches were pruned without moving it, and 760 against an actual 753 on 2026-08-13 for the same reason. The 2026-08-13 recount also folds in the five `border_style_variants` findings added that day.
 
 ### Re-validation status (2026-08-08)
 
@@ -23,7 +23,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### All raster + PDF backends
 
-- **#1 Page-number fields on long documents.** PAGE/NUMPAGES/SECTIONPAGES evaluate per page and section restarts work (`docs/word-features.md`). Still open: `resumes/13`'s sequence differs from Word only through the page-count divergence (#2), and `business-plans/12`'s footer numbers need per-section headers/footers, which are unmodelled. (`business-plans/13` is now resolved — its page count matches Word, and its TOC + footer sequence is byte-for-byte Word's.) HTML/Markdown keep the cached values by design.
+- **#1 Page-number fields on long documents.** PAGE/NUMPAGES/SECTIONPAGES evaluate per page and section restarts work (`docs/word-features.md`). Still open: `business-plans/12`'s footer numbers need per-section headers/footers, which are unmodelled. HTML/Markdown keep the cached values by design.
 - **#25 Word's row-split trigger — LANDED 2026-08-07 (third attempt), floor-fit CORRECTED the same day; measured residues below.** The full bundle: table-level fit routing (a table that does not fit the space left flows row by row, mirroring the whole-table move's slack exactly), the split-acceptance test (a first fragment offered only a region remainder must genuinely split — something continues AND the placed content fits — else the row moves whole), the vMerge tie rule (a continuation row never breaks from its predecessor; it stacks, overflowing and clipping, pinned by `CanonicalFragmenterTests.A_merge_continuation_row_stacks_rather_than_breaking`), the strict floor fit (below), and style-inherited `w:pageBreakBefore` with the inline `w:val="0"` override (the old parser comment claiming Word only honours it inline was refuted by probe). Probe evidence, mechanics and the failed attempts' history: `docs/word-features.md` (Multi-page Tables / Page Break Before) and git history. Corpus: page counts 325/325/325; the trigger landing measured 7.799 → 7.631 over 41 changed pages, and the floor-fit correction a further 12 better / 0 worse on `business-plans/13` (4.744 → 4.586, its split points now band-for-band Word's).
 
   **The floor-fit law flipped once within the day, both directions Word-measured.** A letters/04 in-situ reading ("Word keeps a floored row whose content fits the remainder, floor overflowing the margin") briefly landed a content-only fit; four controlled fixtures (`_probe_floorfit_single`/`_last`/`_mid`/`_enddoc`) then showed Word MOVING such a row in every structure, and the letters/04 keep dissolved into upstream height drift — Word's letter runs ~50pt more compact, so the floor simply fits its layout (the engine keeps the page count through the whole-table move's slack instead). Final law, pinned by `A_floored_row_whose_content_fits_but_floor_does_not_moves_whole`: **an atLeast floor participates in row break decisions and reserves STRICTLY against the hard content bottom** (business-plans/13's landscape pages break exactly where the 21.6pt-floored row's floor crosses the margin — box to 519.4, floor to 541.2, bottom 540 — a fact hidden until the pages were read at their true 612pt height; the "8-11pt short header block" recorded here was this extra packed row plus the landscape-scale inflation, and is RESOLVED); **content-driven rows keep HasSpaceFor's shared slack** (Word keeps business-plans/15's content-sized 79.6pt boundary table 13pt past the margin, drawn and clipped); **a row carrying any vertical merge — span head included — is exempt from the strict test** (a merge span is one drawn unit Word clips rather than moves; without the exemption resumes/06's span head at 1.1pt over re-split 3 pages into 6); and **repeated `w:tblHeader` rows do not cost the row beneath them its floor** (fixed 2026-08-12, pinned by `A_row_carried_under_repeated_headers_keeps_its_declared_height` — `PlaceSplitRow` read `atRegionTop` *after* the header loop had cleared it, so a row carried whole to a fresh region under re-emitted headers was sized by content: business-plans/13's first data row came out 11pt against its declared 21.6pt on pages 14, 16 and 20, shifting the eight rows below it 23px up the page at 150 DPI, and the fix took those pages 0.122/0.248/0.140 → 0.034/0.067/0.030 AE identically on all three backends). Still open, each measured:
@@ -60,7 +60,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
   - **Neither metric is trustworthy alone on this subsystem.** Placement fixes scored negative while visibly correct; `weekly-lesson-planner` scored +0.12 on a change that made its geometry measurably worse. Read extents and crops, per `docs/fidelity-audit.md`.
 
 - **#26 `IsAnchorOnlyMark` is inert** (found 2026-08-06). The parser sets it for a paragraph whose only content was behind-text decorative art — "emit a marker with zero line height" — but nothing in the engine consumes it; the deleted production renderers did, so the agendas-minutes/11 behaviour it was written for was lost in the migration. Reviving it is NOT a free fix: honouring it in `CanonicalParagraphMeasurer` regressed 104 of 108 changed pages (aggregate mean |Word−render| 8.4 → 56.8; menus/08, brochures/01 and agendas-minutes/10 to ~190 grey levels), because those paragraphs anchor art whose placement depends on the line existing. Needs its own investigation into what the production renderer did with the reserved space.
-- **#2 Page-count divergence on long documents — the three-way divergence is OVER.** With the layout-engine PDF flip (2026-08-06) all three backends paginate through the one `Fragmenter`, so no scenario disagrees *between* backends anymore. The recount is **Skia 325, ImageSharp 325, PDF 325 of 325 — every corpus document now renders Word's page count on every backend** (2026-08-06: `image_wrap_square` closed by the continuous-section-break mark rule, `newsletters/06` by making an authored `w:tblGrid` authoritative under autofit, and `business-plans/15` by implementing table-row splitting). The details and the one known residue — the cell splitter has no widow/orphan control, so it breaks a line later than Word — are in `src/page_counts.md`. `resumes/13` — the old archetype (raster short / PDF over / Word between) — now renders Word's 5 pages on all three. Root-cause taxonomy, the experiment ledger and the `newsletters/06` breakdown are in `src/page_counts.md`; per-scenario "drifts up"/"compresses" findings below predate the regenerated baselines and are unverified.
 - **#5 Floating/anchored decorative art missing or misplaced.** Ten-plus fix passes landed; architecture, parse-path authority rules and the attempted-and-reverted decision log are in `docs/floating-art-pipeline.md`. Still open: freeform/vector shapes in `brochures/04`/`06` (chevrons, balloon art, quote box — improved, residuals remain), `business/04`/`05` (banners, watercolour blobs), `cover-letters/06` (location-pin and phone glyphs) (its red bars remain, but the pale-blue page background now renders), `resumes/10`, and the `cards/05`/`18` fold guides (partially surfaced by the dashed-line pass). `labels/03`'s tear lines render but sit denser than Word's fine dots — Word likely draws round dot caps at wider spacing. `labels/04`'s light-blue hexagon accent needs a `PresetShapeGeometry` hexagon builder before it can render (the gradient guard drops it; unguarded emission painted saturated bounding boxes), and Word's soft look probably also needs gradient-stop alpha, which `GradientFill` doesn't model.
 - **#6 Shape geometry defects.** Preset polygons, text-box chrome, picture flips, line alpha, connector assembly and outline-only/stroked-fill shapes are all resolved across both parse paths (`docs/word-features.md`, `docs/floating-art-pipeline.md`). Still open: `business-plans/02`'s arrow construction, and stray art that other subsystems may still place where Word hides it (the `labels/16` class — group-frame clipping fixed the `cards/04` class).
 - **#8 Picture effects ignored.** Duotone is modelled as a two-colour ramp for raster block and floating images (`docs/word-features.md`). Still open: the PDF backend applies NO picture effects at all (PdfSharp has no pixel pipeline) and the HTML export ships the original bytes; group-shape pictures carry no effects; soft-focus/blur (`business-plans/02`) and warm-tone (`newsletters/07`) are unmodelled.
@@ -81,7 +80,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - **#25 (HTML) Anchored/floating objects linearized in flow order — LARGELY CLOSED 2026-08-07.** Wrap-NONE floating IMAGES were emitted as in-flow block paragraphs (`WriteFloatingImage` sent everything that was not Square/Tight/Through to `WriteImageParagraph`), so decorative art consumed flow height and stacked down the document; they now place absolutely like shapes. Both kinds also positioned from the DOCUMENT ORIGIN, which is wrong for the corpus majority — 128 of ~207 wrap-none floats declare `wp:positionV relativeFrom="paragraph"` against 24 page-relative — and collapsed every page's background art onto page one, since the export has no pages. Both now resolve against an empty zero-height `position: relative` wrapper at the float's own place in the flow. Corpus: 79 rendered exports moved, 39 collapsing (brochures/03 4565px → 1026, cards/19 12303 → 4074, labels/05 4268 → 1043), 34 unchanged, 6 taller and inspected clean (page-2 art now sits at its own anchor). `w:wrapTopAndBottom` deliberately keeps its paragraph — it is the one non-wrapping type that genuinely displaces text in Word. **A second slice closed the last placement gap: cell-anchored art was being DROPPED entirely.** The DOCX parser detaches a float out of a cell's flow content into `TableCell.Floats` (so the cell measures without it) and the exporter read only `Content`, so every cell-anchored drawing vanished — labels/14's blob artwork, business/04-05's banners and watercolour blobs, brochures/04/06/07, letters/13, menus/06 (8 scenarios, 10 anchors). Cells holding art now carry `position: relative` and their floats place against the cell, which is Word's own rule (`wp:anchor@layoutInCell`, default true). A first attempt fixed the `AppendCellContent` switch instead and changed NOTHING — that case is unreachable for DOCX because the parser has already removed the floats; the dead code was reverted rather than left in.
 
   **Corpus-wide the linearization is CLOSED**: no scenario now exceeds 2x Word's page height (median 0.75), where brochures/03 alone was ~2.7x and cards/19 far worse. Still open, and inherent rather than a placement bug: a page-RELATIVE float approximates its page top by the anchor's flow position, so a fixed-layout multi-panel document still overlaps where Word separates by page — brochures/03 is the case, its whole design living in two anchored groups of 29 pictures positioned per page. Closing that needs the export to paginate, which it deliberately does not.
-- **#26 (HTML) White/light text invisible — CLOSED 2026-08-07, and the recorded cause was WRONG.** The entry blamed the export for painting neither dark page backgrounds nor dark shape fills. It painted both: `WriteShape` already emitted background shapes as absolutely-positioned `<svg>` at `z-index: -1`, and agendas-minutes/02's navy panel rendered correctly all along. The text was invisible because it had been PUSHED OFF the panel — the decorative wave banners above it were wrap-none floating images emitted in flow, so their height displaced the masthead and roster past the 792pt panel and onto white page. Fixing the float placement (#25 above) fixed the text: agendas-minutes/02's masthead, date block and all 8 roster entries, newsletters/10's title, brochures/03's white-on-navy body all read correctly now. LESSON: an "invisible text" symptom is not evidence that the background is missing — check where the text actually landed before blaming the paint.
 - **#35 Cell paragraph spacing lost in the HTML export.** Table cells render their paragraphs inline, joined by `<br />`, so a non-blank paragraph's before/after spacing (`w:spacing`) is dropped — only the single line break survives. Letter/résumé templates that keep the body in a cell and separate blocks with paragraph spacing (rather than empty paragraphs) therefore read tighter than Word: cover-letters/05/07/09/10/12, letters/12, newsletters/03, compatibility_mode_14's entry headings. EMPTY separator paragraphs now DO render as a one-line spacer in both the cell and body paths (`HtmlExporter.WriteParagraph` / `AppendCellContent`, `docs/word-features.md`), so blank-separated letters are faithful (cleared a dozen findings); the residual is purely non-zero before/after-spacing on non-blank cell paragraphs, which the inline `<br />` model can't carry. Body-level paragraphs are unaffected — their spacing rides on the `<p>` margin. Reworking cells from inline to block-with-margins would fix it but is the deliberately-avoided cell-model change noted in #31.
 - **#31 HTML/AltChunk input gaps.** Block-level CSS, named colours, image sizing, paragraph pitch and table styling all landed — the import model is documented in `docs/html-import.md`. Still open: cell-level inline formatting is flattened (`cell.TextContent` builds ONE run, so `<b>`/`<span style>` inside a cell lose their formatting); `margin-left` indents are ignored; shaded blocks render as full-width bands with no padding or border; `vertical-align` on cells is unmodelled; cell padding composes slightly tighter than Word.
 
@@ -145,10 +143,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### agendas-minutes/05
 
 - MINOR | all | p1 | content drifts up ~1.5 line heights by the action-items table
-
-### agendas-minutes/05
-
-- FIXED 2026-08-05 (structural anchor resolution, fourth attempt — the Word probe settled it): `_probe_anchor_ref` pinned Word's paragraph-anchor reference to the paragraph's PRE-SPACING top (an offset-0 anchored shape on a 60pt-before paragraph sits at the previous paragraph's bottom edge; the zero-before control coincides with its line top). The landing design: the parser wires every float parsed by a ParseParagraph call to that call's FIRST paragraph fragment (structural — the drawing's owner paragraph, no ordering heuristic); the Fragmenter records each paragraph's pre-spacing top and resolves BACKWARD-only (dictionary hit for flush-first orders like this document's background-shape branch; the forward case emits at the cursor, provably the same value, preserving old behaviour byte-for-byte). Adjudication: agendas-minutes/05 32.3 → 5.0 (production tie), menus/05 23.2 → 15.3 (beats production), wedding/07 / labels/07 / cards/03 (the heuristic attempt's casualties) all at exact production parity. Corpus: 4 backend-scenarios moved, ALL improved (+0.029 agendas ×2, +0.002 brochures/07 ×2), zero regressions, zero page-count changes.
 
 ### agendas-minutes/06
 
@@ -260,7 +254,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### brochures/03
 
-- FIXED 2026-08-05: the flip-gate p1 deficit (14.0 vs production's 1.5) was a measurement-side font-resolution hole, not a layout rule — the only flow paragraph before the full-page table carries mark font Biome (unbundled, no FontFallbacks alias); `FontResolver` throws in directory mode and `LayoutFonts.ToDelegate` turned that into null → a ZERO-height line, starting the table 16pt high. The delegate now retries `DefaultFontSettings.DefaultFont` (the same last resort `PdfFontResolver.ResolveTypeface` and the raster backends apply). p1 is now an exact production tie (landmarks −1..−2px vs Word on both paths); p2 improves too (16.51 vs production's 17.16 mean). Skia p1 SSIM 0.881→0.916, ImageSharp 0.738→0.782.
 - MEDIUM | all | p2 | right circle photo sits ~20pt higher than Word (its greyscale rendering landed 2026-07-19)
 - MEDIUM | all | p2 | page content sits too high: Relecloud block ~0.3-0.45in up, itinerary rows ~0.25in up, and "ConnectAbove"/"Launch Event" footer links 60px too high (tucked under the card instead of centered in the navy band)
 - MINOR | pdf | p1,p2 | photo interior crop wider than Word and the other backends (more scene, hands smaller)
@@ -311,9 +304,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MAJOR | html | - | "MAKE IT YOURS" body paragraphs invisible (white text without the orange panel background) and numbered list items show bare "1. 2. 3." with no item text
 - MAJOR | html | - | "Contoso Logo" framed box missing from the export
 - MEDIUM | html | - | photos greyscale (navy duotone lost) in the export
-
-### business-plans/01
-
 
 ### business-plans/02
 
@@ -369,10 +359,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MAJOR | html | - | title lines overlap — "proposal" glyphs collide with "Business" and the line is indented right
 - MAJOR | html | - | top accent line missing (only a stray dot remains near its start position)
 - MINOR | html | - | list numbers "3./4./5." rendered tiny beside large section headings (Word renders number and heading at the same size)
-
-### business-plans/08
-
-- FIXED 2026-08-05, both components (17.7 → 7.3px, exact production tie): (1) Word keeps spacing-before on section-break-started pages (the earlier carve-out); (2) the kept spacing is the EXCESS over the previous page's trailing after — Word's after-then-excess flow carries across the break (Heading1 before=30pt lands 22pt below the margin because the prior page's 8pt after already spent part of it; production implements this as max(0, before − lastAfter) with the carry never reset across pages). The pair also cleared business-plans/10 (p2 2.0, far better than production) and recovered business-plans/12 (+0.019).
 
 ### business-plans/09
 
@@ -468,10 +454,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MAJOR | html | - | same corner graphics missing in HTML
 - MINOR | html | - | footer address left-aligned instead of Word's centered-right placement
 
-### business/05
-
-- FIXED 2026-08-06 (the last named flip-gate residue). **The long-standing "header reservation" attribution was wrong** — instrumenting `HeaderReservedTop` showed the header is NULL on page 1: the section sets `w:titlePg` with only a default header, so Word shows no first-page header and `contentTop` is just the 18pt margin. The reservation code never runs. The real cause: the body's three-row letterhead table has every row `w:hRule="exact"` (22.3 + 25.9 + 66.2 = 114.4pt), and Word starts "Memorandum" at exactly margin + 114.4pt, but `TableHeightCalculator`'s border-collapse pass grew those rows by their collapsed horizontal edges (outer top + outer bottom + two interior, ~0.75pt each = 3.05pt). ECMA-376 §17.4.81 makes an exact height verbatim and Word honours it against borders exactly as against overflowing content — it draws the edge and clips. Exact rows are now exempt from that pass. Body lines went from +4..+6px below Word to −2..0px; full-resolution mean |Word−render| improved on all three backends (skia 6.55→4.75, PDF 7.08→5.10, ImageSharp 7.05→6.66). NOTE for future digs: the coarse band adjudicator reports this scenario as WORSE (16 vs 17 bands breaks its index pairing) — it is the documented segmentation artifact, and full-resolution pixel comparison is the only reliable verdict here.
-
 ### business/06
 
 - MEDIUM | all | p1 | footer address block ~55-60px higher than Word
@@ -509,7 +491,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### cards/05
 
 - MINOR | all | p1,p2,p3,p4,p5,p6,p7,p8 | whole card content block (picture+caption on odd pages, placeholder text on even pages) drawn ~10-15px (~0.1in) higher than Word; picture content/framing itself is faithful
-- FIXED 2026-08-05 (both root causes; the flip's worst breach −0.107 became +0.11..+0.12): (1) the canonical mark fallback ignored `ParagraphMarkFontSizePoints` when the mark had no rPr and no runs — cards/05's header holds an empty 2pt-mark paragraph, so the engine reserved a full 11pt header line and started every card table 11pt low; (2) the band-float resolver admitted only behind-text shapes, dropping the two front-text 0.5pt fold-guide rules. With both fixed the engine matches production (and Word) at delta 0 / mean 0.06 grey levels. The earlier "saturation" lead was a sampling artifact of comparing shifted renders — retracted. Same fixes lifted cover-letters/03 +0.09, resumes/09 +0.05, menus/06, resumes/19.
 
 ### cards/06
 
@@ -598,7 +579,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### compatibility_mode_14
 
 - MINOR | html | - | blank space above each education/work entry heading is collapsed, entries run together noticeably tighter than Word
-- (raster/PDF drift: byte-identical template to resumes/01 — same root cause, see that entry)
 
 ### complex_spacing
 
@@ -668,7 +648,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### cover-letters/09
 
-- FIXED 2026-08-05 (flip-gate unscored deficit, found by the trap-4 pixel sweep): the letter's Address block — five contextual paragraphs with 42pt after — rendered 42pt apart because `LayoutCellContent` never applied the w:contextualSpacing collapse (production collapses in bounded rendering too, `PdfTextEngine.TrackContextualSpacing`), and the block's trailing EMPTY paragraph's 42pt after was dropped entirely where production charges it. With both mirrored the letter column tracks Word at 2.5px mean band error vs production's 15.6 — the engine now decisively beats production here.
 - MAJOR | all | p1 | Sidebar content redistributed: "DIAN NUGRAHA" sits ~0.4in higher and the contact rows spread down the column so the email and website rows land on the yellow/pink waves (white-on-yellow, barely legible) instead of on the navy panel
 - MEDIUM | all | p1 | Decorative wave shapes mis-rendered: bottom waves start higher than Word
 - MEDIUM | all | p1 | Bullet "Knowledge of the latest technology in [industry or field]?" wraps with the "?" orphaned alone on the next line (Word breaks at "[industry or / field]?")
@@ -698,7 +677,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### cover-letters/12
 
 - MEDIUM | all | p1 | "In my current role…" paragraph wraps to 5 lines vs Word's 4 ("residents." pushed to its own line); final paragraph also rewraps mid-sentence ("Thank / you" with a stray leading space on " on family health")
-- PDF-flip-gate characterization (2026-08-04, engine vs production PDF): the gradient is NOT the gap — ramps agree within a few RGB levels at ten sample points and Word's own gradient is smooth like the engine's. The whole −0.090 lives in TEXT-region line positions (8×8 diff heat concentrates on the name/date/contact and body-paragraph blocks, up to 25 grey levels mean) — engine-vs-production PDF line placement, not art.
 - MINOR | all | p1 | Entire content block sits ~1 line lower on the gradient page than Word
 - MAJOR | html | - | Full-page four-color gradient background missing (plain white page)
 - MAJOR | html | - | The "+" list markers before "9/9/20XX", "Contact" and "Dear Jozi Kos," render as generic round bullets instead of "+" glyphs
@@ -1095,10 +1073,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | all | p1 | label columns pulled inward (~30px: col1 text sits 32px right, col3 34px left of Word, rules move with them) and the whole grid starts ~20px lower
 
-### labels/12
-
-- FIXED 2026-08-05: the 13.2px flip-gate deficit (engine 0.4 after, exact production tie) was LayoutCellContent omitting the LAST paragraph's spacing-after from the vertical-alignment content height — MeasureCellHeight sizes the row with it and production counted it, so every centre/bottom-aligned cell sat lower by exactly that spacing (these bottom-aligned label cells: 10pt).
-
 ### labels/13
 
 - MAJOR | html | - | same purple arrow rendered vertically flipped in the HTML export (the HTML exporter applies no transforms — rotation or flips — to pictures)
@@ -1371,7 +1345,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### newsletters/09
 
-- MEDIUM | skia,imagesharp | p5 → resolved with the page count above; the stray "Page" footer rule no longer has a page to land on
 - MAJOR | all | p1 | masthead "NEWS TODAY" wraps onto two lines (Word: single line), doubling the banner height and triggering the reflow
 - MEDIUM | all | p1,p2,p3,p4 | body text wraps 1-2 words earlier per line in every column (wider glyph advances); headlines "New program launches" and "The scoop of the day" also wrap to two lines
 - MAJOR | all | p1 | bottom teaser band (School budget / Police prevent crime / Athlete sets record) pushed to the page edge and clipped mid-content; bodies spill to p2 (PDF spills the entire band including headers)
@@ -1479,10 +1452,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 - MINOR | all | p3 | rightmost (tilted-boy) photo ~9px wider than Word
 - MAJOR | html | - | p2-style cards show the same uncropped boy photo (wide field of view with extra trees) instead of Word's tight crop
 
-### resumes/01
-
-- FIXED 2026-08-04: the former upward drift was the invented default line-spacing multiplier (see agendas-minutes/15); with absent `w:line` treated as single per the Word probe, the engine tracks Word within 0–4px over the whole page (was drifting to +27px). The spacer-row analysis stands in `TableHeightCalculator`'s pass-4 comment.
-
 ### resumes/02
 
 - MINOR | all | p1 | header text and both body columns sit ~8-13px higher than Word (uniform upward drift; artwork and divider positions otherwise match)
@@ -1550,7 +1519,6 @@ Added 2026-07-21. The corpus's only package whose main part is `word/document2.x
 
 ### resumes/13
 
-- MINOR | all | - | Footer page-number field now recomputes per page (was cached "3" everywhere); the remaining gap vs Word's 1-5 is the page-count divergence [systemic #2], not the field
 - MAJOR | skia,imagesharp | p2 | Overflowing content ("Publications" heading and intro paragraph, plus a section rule) is drawn through/below the footer row and clipped at the bottom page edge
 - MEDIUM | all | p3,p5 | Sidebar headings wrap mid-word — "Presentations and invited l/ectures", "Professional t/raining", "Professional a/ffiliations" (Word breaks between whole words; skia/imagesharp on their p3, pdf on its p5)
 - MEDIUM | all | p1 | "ELECTRICAL ENGINEER" subtitle loses its expanded letter-spacing and renders slightly larger (raster backends add an extra-wide word gap)
