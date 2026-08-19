@@ -2534,7 +2534,7 @@ Known mappings include:
 - Avenir Next LT Pro -> Century Gothic
 - Sagona -> Georgia
 
-> **Consumers**: Set `ImageExportOptions.FontFallback` / `PdfExportOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver. It cannot see per-conversion state, so the delegate is applied one level up in `PdfRenderContext` — after the indexed faces and `HostFontIndex` have both missed, and before the substituted family reaches PdfSharp.)
+> **Consumers**: Set `ExportOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver. It cannot see per-conversion state, so the delegate is applied one level up in `PdfRenderContext` — after the indexed faces and `HostFontIndex` have both missed, and before the substituted family reaches PdfSharp.)
 
 
 ### 10.3 Conversion Options
@@ -2562,9 +2562,9 @@ Multiplier applied to character width measurements for Word-compatible layout (d
 
 User-provided function to resolve missing font names.
 
-- **Model**: `ImageExportOptions.FontFallback`, `PdfExportOptions.FontFallback` — `Func<string, string?>`
+- **Model**: `ExportOptions.FontFallback` — `Func<string, string?>`
 
-> **Consumers**: Return a font name to use as a substitute, or null to continue with built-in fallback chain. Honoured by every backend: the PDF path applies it in `PdfRenderContext` before the family reaches PdfSharp, since its resolver is process-global and cannot see per-conversion state.
+> **Consumers**: Return a font name to use as a substitute, or null to continue with built-in fallback chain. Honoured by every backend: the PDF path applies it in `PdfRenderContext` before the family reaches PdfSharp, since its resolver is process-global and cannot see per-conversion state. It sits on the shared record rather than the two rendering ones because a workbook resolves fonts at PARSE time — Excel's column-width unit is a glyph of the body font — so it decides the grid geometry of the HTML and Markdown exports too.
 
 ---
 

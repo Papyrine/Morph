@@ -18,7 +18,11 @@
 /// stating none is laid out landscape rather than deferring to a printer's portrait — see
 /// <see cref="PageSettingsFor"/>.
 /// </summary>
-sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null, bool? useLetterPageSize = null)
+sealed class SpreadsheetParser(
+    string defaultFont,
+    string? fontDirectory = null,
+    Func<string, string?>? fontFallback = null,
+    bool? useLetterPageSize = null)
 {
     const double pointsPerInch = 72.0;
 
@@ -62,10 +66,13 @@ sealed class SpreadsheetParser(string defaultFont, string? fontDirectory = null,
         var styles = new CellStyles(workbookPart, themeColors);
 
         // The column-width unit is a glyph of the workbook's body font, so the grid cannot be sized
-        // without measuring it. The resolver is the layout engine's own, honouring FontDirectory, so
-        // the width the grid is built at comes from the same face the painter will draw with.
+        // without measuring it. The resolver is the layout engine's own, honouring FontDirectory AND
+        // FontFallback, so the width the grid is built at comes from the same face the painter will
+        // draw with. Dropping the fallback did not reach MaxDigitWidth's Calibri constant — ToDelegate
+        // retries DefaultFont first — so a substituting caller measured its grid off DefaultFont while
+        // the painter drew whatever the map named: 7.835 against Georgia's 9.002 at 11pt, 15% out.
         var (bodyFamily, bodySize) = styles.DefaultFont;
-        using var fontResolver = LayoutFonts.CreateResolver(fontDirectory, null);
+        using var fontResolver = LayoutFonts.CreateResolver(fontDirectory, fontFallback);
         var maxDigitWidth = SheetGridBuilder.MaxDigitWidth(
             LayoutFonts.ToDelegate(fontResolver),
             bodyFamily,
