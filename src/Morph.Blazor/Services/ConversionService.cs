@@ -62,7 +62,8 @@ public static class ConversionService
         Detect(fileName) is not null;
 
     // Any font the source names that the bundled Aptos faces don't cover is mapped to Aptos, so a file
-    // using Calibri, Times New Roman, "Aptos Light", etc. still renders (substituted, not failed).
+    // using Calibri, Times New Roman, "Aptos Light", etc. still renders (substituted, not failed). The
+    // text exports set it as well, so a workbook's grid is measured off the face the renderers draw.
     const string fallbackFont = "Aptos";
 
     /// <summary>
@@ -100,6 +101,7 @@ public static class ConversionService
         MarkdownExportOptions options = new()
         {
             FontDirectory = fontDirectory,
+            FontFallback = _ => fallbackFont,
         };
         return source switch
         {
@@ -128,6 +130,7 @@ public static class ConversionService
             new()
             {
                 FontDirectory = fontDirectory,
+                FontFallback = _ => fallbackFont,
             });
 
     /// <summary>
@@ -142,6 +145,7 @@ public static class ConversionService
             new()
             {
                 FontDirectory = fontDirectory,
+                FontFallback = _ => fallbackFont,
                 EmitDocument = false,
                 EmbedImagesAsBase64 = false,
             });

@@ -72,12 +72,19 @@ public abstract class ExcelConverter
     /// Parses a workbook. The font settings are needed at PARSE time, not only at render time:
     /// Excel's column-width unit is a glyph of the workbook's body font, so the grid's geometry —
     /// and through it the fit-to-page scale and the page count — depends on which face resolves.
+    /// That includes <see cref="ExportOptions.FontFallback"/>: it is what decides the face for a
+    /// family the directory does not hold, which is the common case for a substituting caller.
     /// </summary>
     internal static ParsedDocument Parse(Stream xlsxStream, ExportOptions? options) =>
-        Parse(xlsxStream, options?.DefaultFont, options?.FontDirectory, options?.UseLetterPageSize);
+        Parse(xlsxStream, options?.DefaultFont, options?.FontDirectory, options?.FontFallback, options?.UseLetterPageSize);
 
-    internal static ParsedDocument Parse(Stream xlsxStream, string? defaultFont, string? fontDirectory, bool? useLetterPageSize = null) =>
-        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, useLetterPageSize)
+    internal static ParsedDocument Parse(
+        Stream xlsxStream,
+        string? defaultFont,
+        string? fontDirectory,
+        Func<string, string?>? fontFallback = null,
+        bool? useLetterPageSize = null) =>
+        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, fontFallback, useLetterPageSize)
             .Parse(xlsxStream);
 
     /// <summary>

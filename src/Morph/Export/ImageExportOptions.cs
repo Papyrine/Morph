@@ -14,11 +14,6 @@ public sealed record ImageExportOptions : ExportOptions
     /// </summary>
     public double FontWidthScale { get; init; } = DefaultFontSettings.FontWidthScale;
 
-    /// <summary>
-    /// Optional delegate to resolve missing fonts. Called with the font family name that could not
-    /// be found; return an alternative family or null to fall back through the resolver chain.
-    /// </summary>
-    public Func<string, string?>? FontFallback { get; init; }
 
     /// <summary>
     /// Overrides <see cref="DefaultFontSettings.DeterministicRendering"/> for this conversion. When

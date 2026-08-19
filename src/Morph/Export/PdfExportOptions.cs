@@ -17,17 +17,6 @@ public sealed record PdfExportOptions : ExportOptions
     /// </summary>
     public double FontWidthScale { get; init; } = DefaultFontSettings.FontWidthScale;
 
-    /// <summary>
-    /// Optional delegate to resolve missing fonts. Called with the font family name that could not
-    /// be found; return an alternative family, or null to fall through to the curated alias map,
-    /// the platform resolver, and finally <see cref="ExportOptions.DefaultFont"/>.
-    /// <para>
-    /// Consulted only once the <see cref="ExportOptions.FontDirectory"/> / bundled faces and the
-    /// host's installed fonts have both missed, so a family the machine can already serve never
-    /// reaches it.
-    /// </para>
-    /// </summary>
-    public Func<string, string?>? FontFallback { get; init; }
 
     /// <summary>
     /// When set, only pages within this 1-based inclusive range are rendered. Null (default)
