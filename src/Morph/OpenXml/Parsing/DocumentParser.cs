@@ -37,14 +37,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // A caller-supplied default font (ExportOptions.DefaultFont or a customized
     // DefaultFontSettings.DefaultFont) still overrides the family - see the constructor.
     // Word's built-in family for this case is CALIBRI (probed - see the comment block above), and
-    // this constant should become "Calibri" one day - but not before kerning is modelled: with the
-    // Word-measured Calibri advances active (src/Fonts/*.wordadvances.pending) the corpus measured
-    // WORSE overall because Word also kerns, and the linear track's -2.4% narrowness had been
-    // cancelling the missing kerning. Flipping the family without kerning re-exposes that gap, and
-    // the style-less autofit fixtures also sit on zero-slack column knife-edges under the narrower
-    // family. The full ledger is src/todo.md #43.
+    // this constant should become "Calibri" one day - but not before the table/autofit interplay
+    // under changed advances is rooted: even with pair kerning landed, activating the Word-measured
+    // Calibri advances (src/Fonts/*.wordadvances.pending) measured worse via table-geometry
+    // scenarios, and the style-less autofit fixtures sit on zero-slack column knife-edges under the
+    // narrower family. The full ledger is src/todo.md #43.
     const string builtInDefaultFontFamily = "Aptos";
     const double builtInDefaultFontSizePoints = 12.0;
+    // Word's built-in Normal kerns (measured, threshold unprobed - kerning was observed at every
+    // size tried, 10pt and up, so 1pt errs toward kerning small text the way Word appears to).
+    const double builtInKerningMinPoints = 1.0;
     const double builtInLineSpacingMultiplier = 278 / 240.0;
     const double builtInSpacingAfterPoints = 8;
 
@@ -260,6 +262,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // through to the RunProperties record's own static default.
     double effectiveDefaultFontSizePoints = builtInDefaultFontSizePoints;
 
+    // Document-default kerning threshold in points; zero = kerning off (see
+    // ResolveDocDefaultKerningMinPoints). Runs without an inline w:kern inherit this.
+    double effectiveDefaultKerningMinPoints;
+
     public ParsedDocument Parse(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -308,6 +314,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // defaultFont when the document doesn't specify one.
         effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont ?? builtInDefaultFontFamily;
         effectiveDefaultFontSizePoints = ResolveDocDefaultFontSizePoints(mainPart) ?? builtInDefaultFontSizePoints;
+        effectiveDefaultKerningMinPoints = ResolveDocDefaultKerningMinPoints(mainPart);
 
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
@@ -804,6 +811,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         return double.Parse(size.Val.Value!).HalfPointsToPoints();
+    }
+
+    // The document-wide kerning threshold, Word-probed with the _probe_kern_* fixtures (todo #43):
+    // a document with NO docDefaults kerns by default (Word's built-in Normal - measured kerned at
+    // 10/12/24pt in a bare package), docDefaults WITHOUT w:kern disable it (the spec default 0),
+    // and a docDefaults w:kern enables it at its half-point threshold. An inline run w:kern
+    // overrides either way.
+    static double ResolveDocDefaultKerningMinPoints(MainDocumentPart mainPart)
+    {
+        var docDefaults = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults;
+        if (docDefaults == null)
+        {
+            return builtInKerningMinPoints;
+        }
+
+        var kern = docDefaults.RunPropertiesDefault?.RunPropertiesBaseStyle?.GetFirstChild<Kern>();
+        if (kern?.Val?.HasValue != true)
+        {
+            return 0;
+        }
+
+        return kern.Val.Value.HalfPointsToPoints();
     }
 
     static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
@@ -10812,6 +10841,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 FontFamily = effectiveDefaultFont,
                 FontSizePoints = effectiveDefaultFontSizePoints,
+                KerningMinFontSizePoints = effectiveDefaultKerningMinPoints,
                 ColorHex = defaultRunColorHex ?? automaticRunColorHex
             };
         }
@@ -11045,8 +11075,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
         }
 
-        // Kerning threshold (w:kern in rPr — half-points; 0 means kerning is off)
-        double kerningMinFontSize = 0;
+        // Kerning threshold (w:kern in rPr — half-points; 0 disables). Absent inline kern
+        // inherits the document-wide default (docDefaults w:kern, or the built-in-Normal
+        // default for a document with no docDefaults — ResolveDocDefaultKerningMinPoints).
+        var kerningMinFontSize = effectiveDefaultKerningMinPoints;
         if (kernElement?.Val?.HasValue == true)
         {
             kerningMinFontSize = kernElement.Val.Value.HalfPointsToPoints();

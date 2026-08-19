@@ -239,11 +239,12 @@ keeps the unrounded-em linear track for fonts without measured data (the repeate
 conclusion stands there: for those fonts the linear mean is the best single track, and rounding the em
 regressed) and carries Word's actual advances per (face, half-point size, codepoint) in
 `src/Fonts/*.wordadvances` sidecars, measured from Word's XPS by `scripts/generate-word-advances.py` and
-consumed by `CanonicalTextMeasurer.LinearPixels` via `FontMetrics.WordAdvances`. Sidecars for the five
-bundled Calibri faces are generated but ship PARKED (`.wordadvances.pending`): without kerning — which
-Word applies to Calibri, and which the linear track's −2.4% narrowness had been cancelling — activating
-them measured worse against Word (5 pages better / 29 worse, one page count lost). The advance model is
-solved and tooled; kerning is the remaining gate. Ledger: `src/todo.md` #43.*
+consumed by `CanonicalTextMeasurer.LinearPixels` via `FontMetrics.WordAdvances`. GPOS pair kerning
+followed on 2026-08-19 — Word's measured quantization (1/16 px kern snap, whole-pixel pair rounding) and
+probed gating, applied at measure time (`FontMetrics.KernPairs`, `GposKernTable`). Sidecars for the five
+bundled Calibri faces are generated but still ship PARKED (`.wordadvances.pending`): with kerning landed
+the remaining blocker is the table/autofit interplay under changed advances, not the advances themselves.
+Ledger: `src/todo.md` #43.*
 
 ## Migration checklist (sequence matters even unbounded)
 

@@ -321,14 +321,16 @@ Lowers text below the baseline, typically at a smaller font size.
 
 #### Kerning `DONE`
 
-Adjusts spacing between specific character pairs for visual balance.
+Adjusts spacing between specific character pairs for visual balance. Applied at LAYOUT
+(2026-08-19): the engine measures kerned advances, so wrap points, segment positions and
+pagination match Word's kerned text.
 
 - **OOXML**: `w:kern` (minimum font size threshold for kerning, in half-points)
-- **Model**: `RunProperties.KerningMinFontSizePoints`
-- **Parse**: `DocumentParser.BuildRunProperties` reads `w:kern` (half-points → points)
-- **Render**: ImageSharp's `RichTextOptions.KerningMode` is set to `None` per draw when the run's font size is below `KerningMinFontSizePoints`; both layout-time `MeasureText` and render-time `DrawText` use the same mode so widths and glyph positions stay consistent. Skia's `canvas.DrawText` doesn't apply kerning at all (no `SKShaper` in the draw path), so the threshold is implicitly honoured everywhere.
+- **Model**: `RunProperties.KerningMinFontSizePoints`; pair values from GPOS via `FontMetrics.KernPairs` (`GposKernTable` — `kern` feature, PairPos formats 1/2 + extension lookups, first glyph's xAdvance)
+- **Parse**: inline `w:kern` per run; an absent inline kern inherits the document default (`DocumentParser.ResolveDocDefaultKerningMinPoints`) — Word-probed with the `_probe_kern_*` fixtures: a document with NO docDefaults kerns by default (built-in Normal), docDefaults WITHOUT `w:kern` disable it, a docDefaults `w:kern` sets the threshold. Per-STYLE `w:kern` (e.g. a heading style enabling kerning) is not yet cascaded.
+- **Render**: `CanonicalTextMeasurer` applies Word's measured pair quantization — the kern value snaps to 1/16 px on the 120-dpi grid and the pair's first-glyph advance then rounds to a whole pixel (`KernPairDelta`; measured across six Calibri pairs at three sizes, e.g. 24pt `Ta` draws T at 17.000px from an unkerned 20.042). Painter ink is NOT yet kerned — backends draw runs with their own advances — so kerning moves wrap points and segment origins, not glyph spacing inside a drawn run; that gap closes when painters consume per-glyph positions (`PlacedGlyphRun`, deferred).
 
-> **AI**: Single helper `ResolveKerningMode(RunProperties)` in `Morph.ImageSharp/Rendering/TextRenderer.cs` covers both kerning and ligatures because SixLabors.Fonts couples them in the same shaping pass.
+> **AI**: The kern lookup is glyph-pair based and deliberately shaping-free — no GSUB, no contextual lookups. `KerningEnabled` in `CanonicalParagraphMeasurer` is the per-run gate.
 
 
 #### Ligatures `DONE`
