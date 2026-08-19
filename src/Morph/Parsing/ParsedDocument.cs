@@ -82,6 +82,13 @@ sealed class ParsedDocument
     public bool RequiresTotalPageCount { get; init; }
 
     /// <summary>
+    /// True when every page field's cached text is already correct for the instance that carries
+    /// it — a presentation caches each slide's own number in its <c>a:fld</c> — so the reflowing
+    /// text exporters keep the cached text instead of evaluating the document as a single page.
+    /// </summary>
+    public bool PageFieldsPreEvaluated { get; init; }
+
+    /// <summary>
     /// Footnotes from word/footnotes.xml. Renderer does not yet emit them at the page bottom.
     /// </summary>
     public IReadOnlyList<Footnote> Footnotes { get; init; } = [];

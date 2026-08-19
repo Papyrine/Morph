@@ -4,9 +4,10 @@
 sealed record LineNumberSettings
 {
     /// <summary>
-    /// Starting line number. Default is 1.
+    /// The value before the first counted line (w:start; Word's UI "start at 1" writes 0), so
+    /// the first displayed number is <c>Start + 1</c>. Default is 0.
     /// </summary>
-    public int Start { get; init; } = 1;
+    public int Start { get; init; }
 
     /// <summary>
     /// Line number increment (1 = every line, 5 = every 5th line, etc.). Default is 1.

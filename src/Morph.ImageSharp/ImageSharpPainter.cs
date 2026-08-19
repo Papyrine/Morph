@@ -254,7 +254,11 @@ static class ImageSharpPainter
             return;
         }
 
-        var spacing = glyphWidth * 2;
+        // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
+        // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
+        // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
+        // number, where the doubled stride tiled half as many dots and stopped ~14px short.
+        var spacing = glyphWidth;
         var runWidth = P(context, run.Width);
         var count = (int) Math.Floor((runWidth - glyphWidth) / spacing) + 1;
         if (count <= 0)

@@ -3466,7 +3466,10 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             return null;
         }
 
-        var start = 1;
+        // w:start default 0: the attribute holds the value BEFORE the first counted line
+        // (Word's UI "start at 1" writes w:start="0"), so an absent attribute numbers the
+        // first line 1. See the Fragmenter's line-number emission for the reference evidence.
+        var start = 0;
         var countBy = 1;
         // Default 0.25 inch
         double distancePoints = 18;
@@ -11371,12 +11374,16 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
     static void AppendMathText(List<Run> runs, OpenXmlElement mathElement)
     {
         // Math text inherits the surrounding run's font size when available so equations don't
-        // collapse to the 11pt default. Variables render italic by default — Word's Cambria-Math
-        // convention; numbers and operators stay upright (handled inside EmitMathRun).
+        // collapse to the 11pt default, but sets in Cambria — Word's math face is Cambria Math
+        // regardless of the body font, and plain Cambria gives the same serif letterforms at a
+        // normal line box (Cambria Math's own vertical metrics are sized for stretchy operators
+        // and inflated every math line ~55px when tried). Variables render italic by default —
+        // Word's convention; numbers and operators stay upright (handled inside EmitMathRun).
         var context = runs.Count > 0 ? runs[^1].Properties : new();
         WalkMath(mathElement, runs, context with
         {
-            Italic = true
+            Italic = true,
+            FontFamily = "Cambria"
         });
     }
 
@@ -11478,7 +11485,15 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             }
 
             // Math italic only applies to alphabetic variables; digits and operators stay upright.
+            // Word also spaces binary operators and relations — "a²+b²=c²" prints as
+            // "a² + b² = c²" — which OMML leaves implicit, so a bare operator token gains the
+            // padding here.
             var isVariable = text.All(char.IsLetter);
+            if (text.Length == 1 && "+−-=<>×÷±≤≥≠".Contains(text[0]))
+            {
+                text = $" {text} ";
+            }
+
             runs.Add(new()
             {
                 Text = text,
