@@ -245,6 +245,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
 
+    // Note reference-mark number formats (settings.xml w:footnotePr / w:endnotePr). Word defaults:
+    // decimal footnotes, lowercase-roman endnotes.
+    NumberFormatValues footnoteNumberFormat = NumberFormatValues.Decimal;
+    NumberFormatValues endnoteNumberFormat = NumberFormatValues.LowerRoman;
+
     // Document-level w:gutterAtTop flag; when true, w:pgMar/@w:gutter is added to the top margin instead of left.
     bool gutterAtTopSetting;
 
@@ -330,6 +335,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
         gutterAtTopSetting = mainPart.DocumentSettingsPart?.Settings?
             .GetFirstChild<GutterAtTop>().IsOn() ?? false;
+
+        // Note reference-mark number formats (w:footnotePr / w:endnotePr in settings.xml). Word's
+        // defaults differ: footnotes count decimal, endnotes lowercase roman — an endnote mark with
+        // no declared w:numFmt is "i", not "1" (document_capture/01's reference reads that way).
+        footnoteNumberFormat = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<FootnoteDocumentWideProperties>()?
+            .GetFirstChild<NumberingFormat>()?.Val?.Value ?? NumberFormatValues.Decimal;
+        endnoteNumberFormat = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<EndnoteDocumentWideProperties>()?
+            .GetFirstChild<NumberingFormat>()?.Val?.Value ?? NumberFormatValues.LowerRoman;
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
@@ -470,6 +485,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             RequiresTotalPageCount = requiresTotalPageCount,
             Footnotes = footnotes,
             Endnotes = endnotes,
+            EndnoteNumberFormat = MapNumberFormat(endnoteNumberFormat),
             EmbeddedObjects = embeddedObjects,
             Watermarks = watermarks,
             Features = features
@@ -10214,6 +10230,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ParagraphMarkRunProperties = paragraphMark,
                 BackgroundColorHex = backgroundColor,
                 StyleId = styleId,
+                Borders = styleDefaults?.Borders,
+                BorderTopSpacePoints = styleDefaults?.BorderTopSpacePoints ?? 0,
+                BorderBottomSpacePoints = styleDefaults?.BorderBottomSpacePoints ?? 0,
+                BorderLeftSpacePoints = styleDefaults?.BorderLeftSpacePoints ?? 0,
+                BorderRightSpacePoints = styleDefaults?.BorderRightSpacePoints ?? 0,
+                BorderBetween = styleDefaults?.BorderBetween ?? BorderEdge.None,
+                BorderBetweenSpacePoints = styleDefaults?.BorderBetweenSpacePoints ?? 0,
                 TabStops = styleDefaults?.TabStops ?? [],
                 DefaultTabStopPoints = defaultTabStopPoints
             };
@@ -10790,6 +10813,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Walk children in order so w:tab splits the run into separate model Runs (text, tab, text, ...)
         var textBuilder = new StringBuilder();
 
+        // ECMA-376 whitespace handling: a w:t (or w:delText) without xml:space="preserve" sheds its
+        // XML edge whitespace — space, tab, CR, LF, but NOT the no-break space, which is content.
+        // document_capture/01 authors "Footnote ref " unpreserved and Word sets the reference mark
+        // flush after "ref". Word's own writer stamps preserve wherever an edge space is real, so
+        // for Word-authored packages this is a no-op; only hand-authored XML hits it.
+        static string EffectiveText(string text, SpaceProcessingModeValues? space) =>
+            space == SpaceProcessingModeValues.Preserve ? text : text.Trim(' ', '\t', '\r', '\n');
+
         void FlushText()
         {
             if (textBuilder.Length == 0)
@@ -10812,12 +10843,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             switch (child)
             {
                 case Text textElement:
-                    textBuilder.Append(textElement.Text.ReplaceSeparatorsWithSpace());
+                    textBuilder.Append(EffectiveText(textElement.Text, textElement.Space?.Value).ReplaceSeparatorsWithSpace());
                     break;
                 // w:delText carries the text of a tracked deletion. It is a sibling type of w:t
                 // rather than a subclass, so without this a deleted run contributes nothing.
                 case DeletedText deletedText:
-                    textBuilder.Append(deletedText.Text.ReplaceSeparatorsWithSpace());
+                    textBuilder.Append(EffectiveText(deletedText.Text, deletedText.Space?.Value).ReplaceSeparatorsWithSpace());
                     break;
                 case SoftHyphen:
                     textBuilder.Append(softHyphenChar);
@@ -10871,10 +10902,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     result.Add(
                         new()
                         {
-                            // The visible reference mark: the citation ordinal, superscripted -
-                            // the raster/PDF backends draw the run as-is. The exporters branch on
-                            // FootnoteReferenceId before Text, so they keep their own markers.
-                            Text = footnoteNumber.ToString(),
+                            // The visible reference mark: the citation ordinal in the document's
+                            // footnote number format, superscripted - the raster/PDF backends draw
+                            // the run as-is. The exporters branch on FootnoteReferenceId before
+                            // Text, so they keep their own markers.
+                            Text = FormatNumber(footnoteNumber, footnoteNumberFormat),
                             Properties = GetProperties() with
                             {
                                 VerticalAlignment = VerticalRunAlignment.Superscript
@@ -10895,7 +10927,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     result.Add(
                         new()
                         {
-                            Text = endnoteNumber.ToString(),
+                            Text = FormatNumber(endnoteNumber, endnoteNumberFormat),
                             Properties = GetProperties() with
                             {
                                 VerticalAlignment = VerticalRunAlignment.Superscript
@@ -11332,14 +11364,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 fontSize = runStyleProps.FontSizePoints;
             }
 
-            if (boldElement == null && originalRPr?.GetFirstChild<Bold>() != null)
+            // w:b, w:i, w:strike, w:caps and w:smallCaps are TOGGLE properties (ECMA-376
+            // §17.7.3): declared ON in a character style they FLIP the paragraph-chain state
+            // rather than asserting it — resumes/18's "NotBold" style is a bare <w:b/> applied
+            // inside bold Heading2 rows, and Word renders those runs regular. An explicit
+            // w:val="0" is not a toggle; it forces the property off. The XOR only diverges from
+            // the old assignment when the paragraph chain already carries the property, so a
+            // char style toggling over a plain chain behaves exactly as before.
+            if (boldElement == null && originalRPr?.GetFirstChild<Bold>() is { } styleBold)
             {
-                bold = runStyleProps.Bold;
+                bold = styleBold.IsOn() ? !bold : false;
             }
 
-            if (italicElement == null && originalRPr?.GetFirstChild<Italic>() != null)
+            if (italicElement == null && originalRPr?.GetFirstChild<Italic>() is { } styleItalic)
             {
-                italic = runStyleProps.Italic;
+                italic = styleItalic.IsOn() ? !italic : false;
             }
 
             if (underlineElement == null && originalRPr?.GetFirstChild<Underline>() != null)
@@ -11347,19 +11386,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 underline = runStyleProps.Underline;
             }
 
-            if (strikeElement == null && originalRPr?.GetFirstChild<Strike>() != null)
+            if (strikeElement == null && originalRPr?.GetFirstChild<Strike>() is { } styleStrike)
             {
-                strikethrough = runStyleProps.Strikethrough;
+                strikethrough = styleStrike.IsOn() ? !strikethrough : false;
             }
 
-            if (capsElement == null && originalRPr?.GetFirstChild<Caps>() != null)
+            if (capsElement == null && originalRPr?.GetFirstChild<Caps>() is { } styleCaps)
             {
-                allCaps = runStyleProps.AllCaps;
+                allCaps = styleCaps.IsOn() ? !allCaps : false;
             }
 
-            if (smallCapsElement == null && originalRPr?.GetFirstChild<SmallCaps>() != null)
+            if (smallCapsElement == null && originalRPr?.GetFirstChild<SmallCaps>() is { } styleSmallCaps)
             {
-                smallCaps = runStyleProps.SmallCaps;
+                smallCaps = styleSmallCaps.IsOn() ? !smallCaps : false;
             }
 
             if (spacingElement == null && originalRPr?.GetFirstChild<Spacing>() != null)

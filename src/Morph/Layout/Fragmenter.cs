@@ -2376,6 +2376,49 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var limit = budget is { } allowed ? contentTop + allowed : float.MaxValue;
             CellSplitPoint? continuation = null;
 
+            // Paragraph-border run (w:pBdr) within the cell — the same group law the page flow applies
+            // through SharesBorderGroupWith: consecutive same-bordered paragraphs share ONE box, stroked
+            // when the run ends, with w:between ruling the internal boundaries. cover-letters/10's date
+            // cell is the shape that demanded it: three Heading2 paragraphs whose STYLE carries a top
+            // rule draw a single rule above the first, which the cell path silently dropped.
+            // TableHeightCalculator.MeasureCellHeight charges the same reserves so measure = placement.
+            ParagraphProperties? cellBorderRun = null;
+            var cellBorderRunTop = 0f;
+            var cellBorderRunBottom = 0f;
+            List<float>? cellBorderBetweens = null;
+
+            void FlushCellBorderRun()
+            {
+                if (cellBorderRun is not {Borders: { } runBorders} run)
+                {
+                    cellBorderRun = null;
+                    cellBorderBetweens = null;
+                    return;
+                }
+
+                var boxLeft = contentLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints;
+                var boxWidth = contentWidth - (float) run.LeftIndentPoints - (float) run.RightIndentPoints
+                               + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints;
+                var boxTop = cellBorderRunTop - (float) run.BorderTopSpacePoints;
+                var boxHeight = cellBorderRunBottom - cellBorderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
+                lines.Add(new PlacedBorder(boxLeft, boxTop, boxWidth, boxHeight, runBorders));
+                if (cellBorderBetweens != null)
+                {
+                    foreach (var betweenY in cellBorderBetweens)
+                    {
+                        lines.Add(new PlacedBorder(boxLeft, betweenY, boxWidth, 0, new()
+                        {
+                            Top = run.BorderBetween
+                        }));
+                    }
+
+                    cellBorderBetweens = null;
+                }
+
+                cellY += EdgeReserve(runBorders.Bottom, run.BorderBottomSpacePoints);
+                cellBorderRun = null;
+            }
+
             for (var elementIndex = start.ElementIndex; elementIndex < cell.Content.Count; elementIndex++)
             {
                 var element = cell.Content[elementIndex];
@@ -2396,6 +2439,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // stays top-aligned.
                 if (element is TableElement nestedTable)
                 {
+                    FlushCellBorderRun();
                     cellY += first ? 0 : lastCellAfter;
                     first = false;
                     hasNestedTable = true;
@@ -2412,6 +2456,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // box chrome and its centred text inside the cell, taking its declared height.
                 if (element is WordArtElement cellWordArt)
                 {
+                    FlushCellBorderRun();
                     cellY += first ? 0 : lastCellAfter;
                     first = false;
                     var wordArtWidth = Math.Min((float) cellWordArt.WidthPoints, contentWidth);
@@ -2445,12 +2490,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // Non-paragraph content separates the paragraphs either side of it, so the next one
                     // is not the contextual neighbour of the last (wedding/08's cell is Title, inline
                     // oval, Title — the drawing keeps the two contextual Titles apart).
+                    FlushCellBorderRun();
                     lastCellContextual = false;
                     lastCellStyleId = null;
                     continue;
                 }
 
                 var properties = paragraph.Properties;
+
+                // A paragraph that does not continue the open border run closes it here, before its own
+                // spacing is charged — mirroring PlaceParagraph's order in the page flow.
+                if (cellBorderRun is { } openCellRun && !openCellRun.SharesBorderGroupWith(properties))
+                {
+                    FlushCellBorderRun();
+                }
                 // Space-before, collapsed with the previous paragraph's after (max, not sum). Unlike page
                 // flow, a cell's FIRST paragraph keeps its space-before — TableHeightCalculator sizes the
                 // cell with it, so the content must be positioned with it too or it floats to the top and
@@ -2468,6 +2521,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         ? 0f
                         : Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
                 first = false;
+
+                // Opening a border run reserves its top rule and w:space, exactly as the page flow does
+                // after the collapsed spacing-before.
+                if (cellBorderRun == null && properties.Borders is {HasAnyBorder: true} openingBorders)
+                {
+                    cellY += EdgeReserve(openingBorders.Top, properties.BorderTopSpacePoints);
+                }
 
                 // A single-line cell wraps against an unbounded width — the line simply runs past the
                 // cell's edge. ALIGNMENT still uses the cell's real width, so a short line in such a
@@ -2532,6 +2592,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
+                var memberTop = cellY;
                 for (var lineIndex = resumeLine; lineIndex < resumeLine + take; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
@@ -2544,9 +2605,32 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 if (take < remaining)
                 {
-                    // The rest of this paragraph continues on the next page.
+                    // The rest of this paragraph continues on the next page. Any open run covering the
+                    // PREVIOUS paragraphs still strokes (the loop-exit flush); this split paragraph's own
+                    // box is dropped, as in the flow (per-fragment borders are a later slice).
                     continuation = new(elementIndex, resumeLine + take);
                     break;
+                }
+
+                // Fold this whole-placed paragraph into the open border run, or open one. A paragraph
+                // resumed mid-way (a continuation fragment) has no single box and ends the run instead.
+                if (resumeLine == 0 && properties.Borders is {HasAnyBorder: true})
+                {
+                    if (cellBorderRun == null)
+                    {
+                        cellBorderRun = properties;
+                        cellBorderRunTop = memberTop;
+                    }
+                    else if (properties.BorderBetween.IsVisible)
+                    {
+                        (cellBorderBetweens ??= []).Add(cellBorderRunBottom + (float) properties.BorderBetweenSpacePoints);
+                    }
+
+                    cellBorderRunBottom = cellY;
+                }
+                else
+                {
+                    FlushCellBorderRun();
                 }
 
                 // An empty paragraph's after-spacing still separates it from the NEXT paragraph —
@@ -2561,6 +2645,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 lastCellContextual = properties.ContextualSpacing;
                 lastCellStyleId = properties.StyleId;
             }
+
+            // A run still open at the end of the cell's content strokes here, before the trailing
+            // spacing, so the box closes at its last member's bottom.
+            FlushCellBorderRun();
 
             // The trailing after-spacing counts as content space in full — MeasureCellHeight sizes the
             // row with it and the production render counted it in its alignment content height, so
@@ -2605,6 +2693,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (item is PlacedLine line)
             {
                 return ShiftLine(line, 0, offset);
+            }
+
+            // A paragraph-border box rides with the lines it wraps.
+            if (item is PlacedBorder border)
+            {
+                return border with {Y = border.Y + offset};
             }
 
             return item;

@@ -39,12 +39,68 @@ static class NotesAppendix
         }
 
         var paragraphs = new List<ParagraphElement>();
-        AppendSection(paragraphs, "Footnotes", footnotes.Select(_ => _.Text).ToList());
-        AppendSection(paragraphs, "Endnotes", endnotes.Select(_ => _.Text).ToList());
+        AppendSection(paragraphs, "Footnotes", footnotes.Select(_ => _.Text).ToList(), ListNumberFormat.Decimal);
+        AppendSection(paragraphs, "Endnotes", endnotes.Select(_ => _.Text).ToList(), document.EndnoteNumberFormat);
         return paragraphs;
     }
 
-    static void AppendSection(List<ParagraphElement> paragraphs, string heading, List<string> entries)
+    /// <summary>
+    /// The display ordinal in the section's counter style — endnotes default to lowercase roman
+    /// (matching the reference marks the parser emits), footnotes to decimal.
+    /// </summary>
+    static string FormatOrdinal(int number, ListNumberFormat format)
+    {
+        switch (format)
+        {
+            case ListNumberFormat.UpperRoman:
+                return ToRoman(number);
+            case ListNumberFormat.LowerRoman:
+                return ToRoman(number).ToLowerInvariant();
+            case ListNumberFormat.UpperLetter:
+                return ToLetter(number);
+            case ListNumberFormat.LowerLetter:
+                return ToLetter(number).ToLowerInvariant();
+            default:
+                return number.ToString();
+        }
+    }
+
+    static string ToRoman(int number)
+    {
+        if (number is <= 0 or > 3999)
+        {
+            return number.ToString();
+        }
+
+        var values = (int[]) [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+        var symbols = (string[]) ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < values.Length; i++)
+        {
+            while (number >= values[i])
+            {
+                builder.Append(symbols[i]);
+                number -= values[i];
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    static string ToLetter(int number)
+    {
+        if (number <= 0)
+        {
+            return number.ToString();
+        }
+
+        // 1 => A, 26 => Z, 27 => AA (Word repeats the letter: 27 is AA, 53 is AAA at 26-cycle).
+        var cycle = (number - 1) / 26;
+        var letter = (char) ('A' + (number - 1) % 26);
+        return new(letter, cycle + 1);
+    }
+
+    static void AppendSection(List<ParagraphElement> paragraphs, string heading, List<string> entries, ListNumberFormat format)
     {
         if (entries.Count == 0)
         {
@@ -79,10 +135,11 @@ static class NotesAppendix
                 Runs =
                 [
                     // Sequential display number, matching the citation marks (footnotes.xml
-                    // ids start at 2; Word shows 1, 2, 3...).
+                    // ids start at 2; Word shows 1, 2, 3... for footnotes and i, ii, iii...
+                    // for default-format endnotes).
                     new()
                     {
-                        Text = $"{noteIndex + 1}. ",
+                        Text = $"{FormatOrdinal(noteIndex + 1, format)}. ",
                         Properties = new()
                         {
                             Bold = true,
