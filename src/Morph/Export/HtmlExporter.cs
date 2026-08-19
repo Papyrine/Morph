@@ -1387,6 +1387,13 @@ static class HtmlExporter
             {
                 parts.Add($"width: {properties.WidthPoints.Value.ToString("0.##", CultureInfo.InvariantCulture)}pt");
             }
+            else if (properties.WidthFraction is > 0)
+            {
+                // w:tcW type="pct" — a percentage column. Without it the browser sizes the column
+                // to content, which collapsed menus/04's wide pct meal cells to ~40px stubs beside
+                // their day labels.
+                parts.Add($"width: {Number(properties.WidthFraction.Value * 100)}%");
+            }
 
             var background = DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex);
             if (background != null)

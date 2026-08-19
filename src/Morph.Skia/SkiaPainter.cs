@@ -317,8 +317,31 @@ static class SkiaPainter
         // top, which Skia alone ignored — ImageSharp and PDF already routed Crop into their own draws,
         // and the uncropped stretch was 79% of that page's error against Word.
         //
-        // Rotation and flip are still deferred; inline images in the covered subset draw upright.
-        SkiaShapeDrawing.DrawCropped(canvas, bitmap, SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height)), image.Crop);
+        // a:xfrm rotation and flips transform about the box centre, exactly as PdfPainter.PaintImage
+        // does — this painter drew rotated inline images UPRIGHT until 2026-08-19 (image_rotation/01
+        // showed a plain rectangle against the other backends' diamonds).
+        var box = SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height));
+        if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
+        {
+            canvas.Save();
+            if (Math.Abs(image.RotationDegrees) > 0.01)
+            {
+                canvas.RotateDegrees((float) image.RotationDegrees, box.MidX, box.MidY);
+            }
+
+            if (image.FlipHorizontal || image.FlipVertical)
+            {
+                canvas.Translate(box.MidX, box.MidY);
+                canvas.Scale(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1);
+                canvas.Translate(-box.MidX, -box.MidY);
+            }
+
+            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop);
+            canvas.Restore();
+            return;
+        }
+
+        SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop);
     }
 
     // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is
