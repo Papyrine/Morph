@@ -69,12 +69,16 @@ public class BaselineHealthTests
         // 116-120, against the render's 13-15 colours and a band at 116-119. A near-empty page is
         // the CORRECT output here, so the collapse is not a defect to chase.
         //
-        // ImageSharp joined the list on 2026-08-14: it had read 21 colours (ImageSharp.Drawing 3.1
-        // anti-aliasing the one band over more levels), and the exact column-width landing shifted
-        // the band enough to read 14 — under the detector again. Same near-empty page throughout;
-        // the threshold is what keeps moving, not the render.
+        // ImageSharp joined the list on 2026-08-14 and left it again on 2026-08-19, having crossed
+        // the threshold in both directions without the page changing: it read 21 colours
+        // (ImageSharp.Drawing 3.1 anti-aliasing the one band over more levels), then 14 when a
+        // column-width change shifted where the band landed, then 21 again when the exact-row-fit
+        // change (page_counts.md exp 22) shifted it back. Measured at the third flip: Skia 14
+        // colours and ImageSharp 21, both inking the SAME 48 rows (72-119) against Excel's own 48
+        // (73-120), and ImageSharp's page-2 SSIM moved 0.9851 -> 0.9951 — nearer Excel, not further.
+        // It is not listed, for the reason to-do-list gives below: the threshold is what keeps
+        // moving, not the render, and re-listing it only sets up the next spurious failure.
         "basic-business-invoice/skia_result#page_0002.verified.png",
-        "basic-business-invoice/imagesharp_result#page_0002.verified.png",
         "basic-business-invoice/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
         // invoice-accessibility-guide's first sheet needs two landscape pages, and now gets them —

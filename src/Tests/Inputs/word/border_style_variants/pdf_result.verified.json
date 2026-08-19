@@ -26,12 +26,12 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "space=10\nspace=20\nspace=31\n7. w:between inside a border group\nGroup member 1 - identical borders, so Word draws one box with between rules inside.\nGroup member 2 - identical borders, so Word draws one box with between rules inside.\nGroup member 3 - identical borders, so Word draws one box with between rules inside.\n8. Colours\nred C00000\nblue 2E74B5\ngreen 548235\nauto\n9. Shadow and frame attributes\nw:shadow=\"true\"\nw:frame=\"true\"\nboth\n10. Table cell borders by style\nStyle Cell A Cell B\nsingle A B\nthick A B\ndouble A B\ndotted A B\ndashed A B"
+        "Text": "space=10\nspace=20\nspace=31\n7. w:between inside a border group\nGroup member 1 - identical borders, so Word draws one box with between rules inside.\nGroup member 2 - identical borders, so Word draws one box with between rules inside.\nGroup member 3 - identical borders, so Word draws one box with between rules inside.\n8. Colours\nred C00000\nblue 2E74B5\ngreen 548235\nauto\n9. Shadow and frame attributes\nw:shadow=\"true\"\nw:frame=\"true\"\nboth\n10. Table cell borders by style\nStyle Cell A Cell B\nsingle A B\nthick A B\ndouble A B\ndotted A B"
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "dotDash\nA\nB\ntriple\nA\nB\nwave\nA\nB\nthreeDEmboss\nA\nB\ninset\nA\nB"
+        "Text": "dashed\nA\nB\ndotDash\nA\nB\ntriple\nA\nB\nwave\nA\nB\nthreeDEmboss\nA\nB\ninset\nA\nB"
       }
     ]
   },
@@ -62,16 +62,16 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1139,
-      "Ssim": 0.6889,
+      "ErrorMetric": 0.1114,
+      "Ssim": 0.6963,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0481,
-      "Ssim": 0.9014,
+      "ErrorMetric": 0.0512,
+      "Ssim": 0.8962,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
