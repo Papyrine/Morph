@@ -150,9 +150,13 @@ public class CanonicalFragmenterTests
     /// to the font and leaves the bare single-spaced pitch — which is NOT the auto test's box either, since
     /// the default <see cref="ParagraphProperties.LineSpacingMultiplier"/> is Word's 1.08.
     /// </summary>
+    // The 16pt page height moved 197 → 198 when the atLeast baseline was bottom-anchored
+    // (LineAscentPoints, 2026-08-19): the straddling line's ASCENT grew by the box excess, so the
+    // guard below needs one more point of page for the baseline to stay inside the margin while
+    // the box still overhangs. The fragmenter rule under test is unchanged.
     [Test]
     [Arguments(10, 199, 11)]
-    [Arguments(16, 197, 9)]
+    [Arguments(16, 198, 9)]
     public async Task An_atLeast_spaced_line_needs_its_whole_box_inside_the_margin(double declaredPoints, double pageHeight, int expected)
     {
         var page = Page(pageHeight);

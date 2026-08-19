@@ -106,8 +106,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             // A compressed multiple takes its space off the ascent too, so the baseline rides up with the
-            // box rather than staying at the font's natural ascent — see LineAscentPoints for the probe.
-            textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(textAscent, props.LineSpacingRule, props.LineSpacingMultiplier);
+            // box rather than staying at the font's natural ascent; exact boxes hard-set the baseline at
+            // 80% of the declared height, and an at-least box that grows anchors its ink at the bottom —
+            // see LineAscentPoints for the probes.
+            var naturalPitch = segments.Count == 0 ? MarkPitch(paragraph) : wrapped[i].Pitch;
+            textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
+                textAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
 
             // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
             // grow the line: ascent and height take the max of the text metrics and the tallest image.
@@ -386,6 +390,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             CommitLine(justify: false);
         }
+        else if (pieces.Count > 0 && pieces[^1].IsBreak)
+        {
+            // A paragraph ENDING in an explicit line break still carries its paragraph mark on the
+            // line after it — Word draws that box. A cell of seven <w:br/> runs is EIGHT line boxes
+            // in Word's render, and dropping the last left nonstandard_main_part_name's "Notes:"
+            // cell exactly one 26px line short (213px against Word's 238).
+            lines.Add(new(0, MarkPitch(paragraph), [], []));
+        }
 
         if (lines.Count == 0)
         {
@@ -617,8 +629,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     pieces.Add(new(false, 0, pitch, "", run.Properties, null, true, false));
                 }
 
-                foreach (var (text, isSpace) in TokenizeText(parts[partIndex]))
+                foreach (var (token, isSpace) in TokenizeText(parts[partIndex]))
                 {
+                    // A no-break space glues its neighbours into one unbreakable token (TokenizeText
+                    // only splits on ' ', so it rides inside the word — Word never wraps at one),
+                    // but it MEASURES and PAINTS as an ordinary space: fonts that don't map U+00A0
+                    // resolved it to .notdef's wide advance, so "to improve" drew with a
+                    // double-width gap where Word shows a single space (business-plans/05).
+                    var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
                     var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale);
                     if (trackingPerChar != 0)
                     {

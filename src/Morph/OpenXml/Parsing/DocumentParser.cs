@@ -4634,16 +4634,20 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
                         Left = ParseBorderEdge(exBorders.GetFirstChild<LeftBorder>())
                     };
 
-                    var insideH = ParseBorderEdge(exBorders.GetFirstChild<InsideHorizontalBorder>());
-                    if (insideH.IsVisible)
+                    // An override stored only when VISIBLE loses the explicit suppression case:
+                    // w:insideH/w:insideV val="none" parses invisible, and skipping it let the
+                    // table style's inside borders resurface on rows that switched them off —
+                    // newsletters/04's layout tables nil every row's borders through w:tblPrEx and
+                    // still grew column dividers and byline rules Word never draws. Present = the
+                    // row spoke, whatever it said.
+                    if (exBorders.GetFirstChild<InsideHorizontalBorder>() != null)
                     {
-                        rowOverrideInsideH = insideH;
+                        rowOverrideInsideH = ParseBorderEdge(exBorders.GetFirstChild<InsideHorizontalBorder>());
                     }
 
-                    var insideV = ParseBorderEdge(exBorders.GetFirstChild<InsideVerticalBorder>());
-                    if (insideV.IsVisible)
+                    if (exBorders.GetFirstChild<InsideVerticalBorder>() != null)
                     {
-                        rowOverrideInsideV = insideV;
+                        rowOverrideInsideV = ParseBorderEdge(exBorders.GetFirstChild<InsideVerticalBorder>());
                     }
                 }
 

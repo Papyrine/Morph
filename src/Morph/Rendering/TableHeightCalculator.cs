@@ -56,16 +56,34 @@ static class TableHeightCalculator
                     cellWidth += colWidths[gridColIndex + i];
                 }
 
+                // Detached-border geometry loses the horizontal insets from the content measure —
+                // see TableLayout.CellSpacingInsets for the Word-probed gap law.
+                cellWidth -= (float) TableLayout.CellSpacingInsets(
+                    table.Properties, gridColIndex, span, colCount).Horizontal;
+
                 var cellHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row);
                 maxHeight = Math.Max(maxHeight, cellHeight);
 
                 gridColIndex += span;
             }
 
-            // w:tblCellSpacing expands the row slot by 2 × spacing — the cell box stays
-            // the same size, but its row gets extra room above and below so the gaps
-            // between rows show up the way Word renders them.
-            heights[rowIndex] = maxHeight + 2 * (float) table.Properties.CellSpacingPoints;
+            // w:tblCellSpacing expands the row slot by 2 × spacing — the cell box keeps its content
+            // size while the gaps land above and below it. The first and last rows carry one extra
+            // spacing each: the table FRAME sits a further 2 × spacing outside the outermost cell
+            // rules (_probe_cellspacing at 2/6/12pt: frame-to-cell reads 11/27/52px at 150 DPI,
+            // exactly 2 × spacing plus the rules' half-widths, while cell-to-cell is 2 × spacing
+            // from the two adjacent insets).
+            var slotSpacing = 2 * (float) table.Properties.CellSpacingPoints;
+            heights[rowIndex] = maxHeight + slotSpacing;
+            if (rowIndex == 0)
+            {
+                heights[rowIndex] += slotSpacing / 2;
+            }
+
+            if (rowIndex == table.Rows.Count - 1)
+            {
+                heights[rowIndex] += slotSpacing / 2;
+            }
         }
 
         // Second pass: Apply explicit row heights (w:trHeight). "exact" (w:hRule="exact") pins the row
@@ -223,7 +241,7 @@ static class TableHeightCalculator
         for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
         {
             var cell = row.Cells[cellIndex];
-            var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+            var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
             var edge = top ? borders?.Top : borders?.Bottom;
             if (edge is {IsVisible: true})
             {
