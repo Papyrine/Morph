@@ -26,6 +26,8 @@ static class FontMetricsReader
     const uint cmapTag = 0x636D6170;
     // 'OS/2'
     const uint os2Tag = 0x4F532F32;
+    // 'GPOS'
+    const uint gposTag = 0x47504F53;
 
     // Safety bound on the eagerly-expanded codepoint→glyph map, so a malformed cmap claiming a
     // group spanning the whole Unicode range can't allocate unbounded memory. Far above any real
@@ -206,8 +208,42 @@ static class FontMetricsReader
             UseTypoMetrics = os2.UseTypoMetrics,
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
-            GlyphForCodepoint = ReadCmap(stream, tables)
+            GlyphForCodepoint = ReadCmap(stream, tables),
+            KernPairs = ReadKernPairs(stream, tables)
         };
+    }
+
+    /// <summary>
+    /// Reads the GPOS <c>kern</c>-feature pair kerning (<see cref="GposKernTable"/>). Null when the
+    /// font has no GPOS table or no usable pair data — kerning is then simply unavailable, which is
+    /// also the correct rendering for a font Word cannot kern.
+    /// </summary>
+    static GposKernTable? ReadKernPairs(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    {
+        if (!tables.TryGetValue(gposTag, out var gpos) || gpos.Length < 10)
+        {
+            return null;
+        }
+
+        var bytes = new byte[gpos.Length];
+        if (!TryReadExactAt(stream, gpos.Offset, bytes))
+        {
+            return null;
+        }
+
+        try
+        {
+            return GposKernTable.Read(bytes);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // a malformed GPOS loses kerning, not the font
+            return null;
+        }
+        catch (IndexOutOfRangeException)
+        {
+            return null;
+        }
     }
 
     /// <summary>

@@ -129,13 +129,24 @@ sealed record FontMetrics
     /// half-twip bias: <c>design/upm * (round(pt*5/3) + 1/24)</c>.
     ///
     /// <para>The generated Calibri sidecars currently ship PARKED as
-    /// <c>src/Fonts/*.wordadvances.pending</c>: activating them without kerning measured worse
-    /// against Word than the linear track, whose −2.4% narrowness had been cancelling the missing
-    /// kerning (Word kerns Calibri; a title-line check put the sidecar model +0.35% of Word where
-    /// the linear track sat −2.26%, and the residual is the kern pairs). Rename to
-    /// <c>.wordadvances</c> to activate once kerning lands — <c>src/todo.md</c> #43.</para>
+    /// <c>src/Fonts/*.wordadvances.pending</c>: even with pair kerning landed
+    /// (<see cref="KernPairs"/>), activating them measured worse against Word — the residual is
+    /// the table/autofit interplay under changed advances, not the advances themselves (they match
+    /// Word's XPS glyph-for-glyph). Rename to <c>.wordadvances</c> to activate once the autofit
+    /// slack model is rooted — <c>src/todo.md</c> #43.</para>
     /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvances { get; init; }
+
+    /// <summary>
+    /// GPOS <c>kern</c>-feature pair kerning, or null for a font without usable pair data. Word
+    /// applies these adjustments when kerning is enabled for a run (<c>w:kern</c>; the built-in
+    /// Normal of a document with no docDefaults kerns by default — <c>_probe_kern_*</c>), with the
+    /// pair quantization implemented in <see cref="CanonicalTextMeasurer"/>.
+    /// </summary>
+    public GposKernTable? KernPairs { get; init; }
+
+    /// <summary>The glyph id <paramref name="codepoint"/> maps to — glyph 0 (<c>.notdef</c>) when unmapped.</summary>
+    public ushort GlyphId(int codepoint) => GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0);
 
     /// <summary>
     /// The horizontal advance of <paramref name="codepoint"/> in design units. Falls back to the last

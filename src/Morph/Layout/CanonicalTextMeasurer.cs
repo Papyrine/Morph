@@ -123,33 +123,107 @@ sealed class CanonicalTextMeasurer
     /// model and its evidence. The reference grid here is 120 dpi, the same grid Word's measured
     /// pixels are on, so sidecar values add into this accumulator directly.</para>
     /// </summary>
-    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0)
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false)
     {
         if (metrics.WordAdvances is { } wordAdvances)
         {
-            return WordPixels(metrics, wordAdvances, text, sizePoints) * fontWidthScale;
+            return WordPixels(metrics, wordAdvances, text, sizePoints, kerning) * fontWidthScale;
+        }
+
+        if (kerning && metrics.KernPairs != null)
+        {
+            return KernedLinearPixels(metrics, text, sizePoints) * fontWidthScale;
         }
 
         return (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
     }
 
+    // Word's kerned-pair quantization, measured on the _probe_kern_* fixtures across three sizes
+    // and six Calibri pairs (todo #43): the kern value snaps to 1/16 px at the layout em, and the
+    // pair's FIRST glyph advance then rounds to a whole layout pixel — even where its unkerned
+    // advance was fractional (24pt Ta renders T at 17.000px from an unkerned 20.042). Returns the
+    // signed pixel delta to add for the pair, replacing the first glyph's unkerned advance with
+    // Word's kerned one.
+    static double KernPairDelta(double firstAdvancePixels, short kernUnits, double emPixels, int unitsPerEm)
+    {
+        var kernSixteenths = Math.Round((double) kernUnits / unitsPerEm * emPixels * 16, MidpointRounding.AwayFromZero) / 16;
+        return Math.Round(firstAdvancePixels + kernSixteenths, MidpointRounding.AwayFromZero) - firstAdvancePixels;
+    }
+
+    // Kerning on the linear (no-sidecar) track: same pair rule, on the unrounded reference em.
+    static double KernedLinearPixels(FontMetrics metrics, string text, double sizePoints)
+    {
+        var kernTable = metrics.KernPairs!;
+        var emPixels = EmPixels(sizePoints);
+        double pixels = 0;
+        var previousGlyph = (ushort) 0;
+        double previousAdvance = 0;
+        var havePrevious = false;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            var glyph = metrics.GlyphId(rune.Value);
+            if (havePrevious)
+            {
+                var kern = kernTable.KernUnits(previousGlyph, glyph);
+                if (kern != 0)
+                {
+                    pixels += KernPairDelta(previousAdvance, kern, emPixels, metrics.UnitsPerEm);
+                }
+            }
+
+            var advance = (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * emPixels;
+            pixels += advance;
+            previousGlyph = glyph;
+            previousAdvance = advance;
+            havePrevious = true;
+        }
+
+        return pixels;
+    }
+
     // Word's measured advance track: per-glyph sidecar pixels where measured, else linear at the
     // em rounded to whole reference pixels plus Word's half-twip bias (FontMetrics.WordAdvances).
-    static double WordPixels(FontMetrics metrics, IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> wordAdvances, string text, double sizePoints)
+    // Kerning, when enabled, applies Word's pair rule (KernPairDelta) on the same em.
+    static double WordPixels(FontMetrics metrics, IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> wordAdvances, string text, double sizePoints, bool kerning)
     {
         var halfPoints = (int) Math.Round(sizePoints * 2, MidpointRounding.AwayFromZero);
         wordAdvances.TryGetValue(halfPoints, out var table);
         var roundedEmPixels = Math.Round(EmPixels(sizePoints), MidpointRounding.AwayFromZero) + 1.0 / 24;
+        var kernTable = kerning ? metrics.KernPairs : null;
         double pixels = 0;
+        var previousGlyph = (ushort) 0;
+        double previousAdvance = 0;
+        var havePrevious = false;
         foreach (var rune in text.EnumerateRunes())
         {
-            if (table != null && table.TryGetValue(rune.Value, out var measured))
+            if (kernTable != null)
             {
-                pixels += measured;
-                continue;
+                var glyph = metrics.GlyphId(rune.Value);
+                if (havePrevious)
+                {
+                    var kern = kernTable.KernUnits(previousGlyph, glyph);
+                    if (kern != 0)
+                    {
+                        pixels += KernPairDelta(previousAdvance, kern, roundedEmPixels, metrics.UnitsPerEm);
+                    }
+                }
+
+                previousGlyph = glyph;
+                havePrevious = true;
             }
 
-            pixels += (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * roundedEmPixels;
+            double advance;
+            if (table != null && table.TryGetValue(rune.Value, out var measured))
+            {
+                advance = measured;
+            }
+            else
+            {
+                advance = (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * roundedEmPixels;
+            }
+
+            pixels += advance;
+            previousAdvance = advance;
         }
 
         return pixels;
@@ -184,8 +258,8 @@ sealed class CanonicalTextMeasurer
     /// spaces only, a regression applied whole-advance (<c>src/page_counts.md</c>) — so it stays
     /// unmodelled by choice.
     /// </summary>
-    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0) =>
-        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale));
+    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false) =>
+        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within
