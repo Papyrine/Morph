@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -41,7 +45,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 69.1pt; top: 87.57pt; width: 22.67pt; height: 10.94pt; z-index: 1" viewBox="0 0 22.67 10.94" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="22.67" height="10.94" fill="#684abe" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 35.28pt; top: 57.48pt; width: 56.26pt; height: 41.03pt; z-index: 1" viewBox="0 0 56.26 41.03" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.63,0 L19,0 L19,26.5 L56.26,26.5 L56.26,41.03 L55.89,41.03 L55.89,28.17 L0.37,28.17 L0.37,41.03 L0,41.03 L0,26.5 L18.63,26.5 L18.63,0 Z" fill="#808080" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 80.66pt; top: 85.5pt; width: 0.35pt; height: 2.05pt; z-index: 1" viewBox="0 0 0.35 2.05" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="0.35" height="2.05" fill="#808080" /></svg></div>
-<table>
+<table style="margin-left: auto; margin-right: auto">
   <tbody>
     <tr style="height: 11.48pt">
       <td style="width: 30.14pt;background-color: #f2f2f2;vertical-align: middle"></td>
@@ -146,7 +150,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div>
   <p style="text-align: right; margin-bottom: 0pt; line-height: 1"><span style="font-family: Batang, sans-serif; color: #ffffff; font-size: 14pt;"><strong>&lt; Back to Contents</strong></span></p>
 </div>
-<table>
+<table style="margin-left: auto; margin-right: auto">
   <tbody>
     <tr style="height: 8.48pt">
       <td style="width: 22.28pt;background-color: #f2f2f2;vertical-align: middle"></td>
@@ -663,7 +667,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div>
   <p style="text-align: right; margin-bottom: 0pt; line-height: 1"><span style="font-family: Batang, sans-serif; color: #ffffff; font-size: 14pt;"><strong>&lt; Back to Contents </strong></span></p>
 </div>
-<table>
+<table style="margin-left: auto; margin-right: auto">
   <tbody>
     <tr style="height: 5.49pt">
       <td style="width: 20.97pt;background-color: #f2f2f2;vertical-align: middle"></td>

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -32,7 +36,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="text-align: center">&nbsp;</p>
 <p style="text-align: center">&nbsp;</p>
 <p style="text-align: center; margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="margin-left: auto; margin-right: auto; width: 95.84%">
   <tbody>
     <tr>
       <td colspan="3" style="border-right: 2.25pt solid #ffffff"><h1 id="event-intro" style="font-size: 10pt; text-align: center; margin-top: 0pt; line-height: 1"><span style="color: #ffffff;">EVENT INTRO</span></h1></td>

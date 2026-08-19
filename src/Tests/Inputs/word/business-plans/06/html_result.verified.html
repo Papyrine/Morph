@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -34,7 +38,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h2 id="april-4-20xx" style="font-size: 14pt; margin-top: 54pt; margin-left: 4.5pt; margin-right: 21.6pt; line-height: 0.95"><span style="font-weight: normal; font-family: 'Work Sans', sans-serif; color: #262626;">April 4, 20XX</span></h2>
 <h1 id="client-proposal" style="font-size: 78pt; margin-top: 24pt; margin-right: 21.6pt; line-height: 0.8"><span style="font-family: 'Work Sans', sans-serif; color: #262626; text-transform: uppercase;">Client proposal</span></h1>
 <p style="margin-top: 6pt; margin-bottom: 0pt; margin-right: 21.6pt; line-height: 0.95">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 14.4pt">
       <td style="width: 260.65pt;vertical-align: bottom"><span style="font-family: 'Work Sans', sans-serif; color: #262626; font-size: 14pt;"><strong>Prepared for:</strong></span></td>
@@ -46,7 +50,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
   </tbody>
 </table>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 57.6pt">
       <td rowspan="2" style="width: 148.3pt"><h1 id="01" style="font-size: 92pt; margin-top: 60pt; line-height: 0.7"><span style="font-family: 'Work Sans', sans-serif; color: #bfbfbf;">01</span></h1></td>

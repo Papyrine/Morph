@@ -73,6 +73,15 @@ static class FontHelpers
     /// <summary>OS/2 weight class at which a face counts as bold in its own right.</summary>
     internal const int BoldWeight = 700;
 
+    /// <summary>
+    /// Horizontal shear Word applies when it synthesizes an oblique for an italic run whose
+    /// family has no italic face (glyphs lean right about the baseline; advances unchanged).
+    /// Word-measured on <c>_probe_synitalic</c>: 96pt and 48pt Century Gothic italic stems
+    /// regressed to 0.1355 and 0.1371 on both edges, 0.0000 on the upright control —
+    /// size-independent, and well below the 0.25 many rasterizers use for fake italic.
+    /// </summary>
+    internal const double SyntheticItalicSkew = 0.136;
+
     static readonly Dictionary<string, int> weightFromSuffix = new(StringComparer.OrdinalIgnoreCase)
     {
         [" Hairline"] = 100,

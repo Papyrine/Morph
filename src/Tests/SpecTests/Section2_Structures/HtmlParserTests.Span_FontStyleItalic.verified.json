@@ -9,6 +9,7 @@
           "Bold": false,
           "Italic": true,
           "Underline": false,
+          "DoubleUnderline": false,
           "Strikethrough": false,
           "AllCaps": false,
           "SmallCaps": false,

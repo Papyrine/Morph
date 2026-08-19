@@ -207,17 +207,31 @@ Italic style applied to text runs.
 - **Model**: `RunProperties.Italic`
 - **Test**: `italic_text/`
 
+> **Synthetic oblique**: an italic run whose family has no italic face (bundled Century Gothic,
+> Tenorite, Baskerville Old Face) is sheared right about the baseline instead of rendering
+> upright, in every backend. The shear is Word-measured, not conventional: `_probe_synitalic`
+> (96pt and 48pt Century Gothic italic, stem edges regressed on both sides, upright control at
+> exactly 0.0000) put Word's synthesized slant at **0.1355–0.1371** — size-independent — where
+> Skia's stock fake italic is 0.25 and PdfSharp's `mustSimulateItalic` is sin 20° (0.342,
+> PDFium-measured), which is why the PDF backend shears its own text matrix
+> (`PdfPainter.DrawTracked`) rather than using PdfSharp's simulation. The constant lives in
+> `FontHelpers.SyntheticItalicSkew`. A real italic face is never sheared — Word's own Calibri
+> italic measures 0.2001 and Morph reproduces it exactly through the face itself.
+
 
 #### Underline `DONE`
 
-Underline decoration on text. Rendered 2px below the text baseline.
+Underline decoration on text. Rendered 2px below the text baseline. `w:u/@w:color` paints the
+rule in its own colour (absent or `auto` means the run's text colour), and `w:val="double"`
+draws a second rule one gap below the first — every backend, plus
+`text-decoration-color` / `text-decoration-style: double` in the HTML export.
 
-- **OOXML**: `w:u` with `w:val` (single, double, dotted, dash, etc.)
+- **OOXML**: `w:u` with `w:val` (single, double, dotted, dash, etc.) and `w:color`
 - **Spec**: [Underline](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.underline)
-- **Model**: `RunProperties.Underline`
-- **Test**: `underline_text/`
+- **Model**: `RunProperties.Underline`, `RunProperties.UnderlineColorHex`, `RunProperties.DoubleUnderline`
+- **Test**: `underline_text/`, `wordart/` (page 9: red single + blue double)
 
-> **Consumers**: All underline types (single, double, dotted, dash, wave, etc.) are detected but currently render as a single solid underline.
+> **Consumers**: Underline types beyond single/double (dotted, dash, wave, etc.) are detected but render as a single solid underline.
 
 
 #### Strikethrough `DONE`
@@ -561,7 +575,7 @@ Vertical space above and below a paragraph, in points.
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
 - **Test**: `paragraph_spacing/`
 
-> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in only when the document has no `docDefaults` element (or no `styles.xml`); when `docDefaults` is present but omits paragraph defaults, the default is 0 — Word reads the omission as an explicit zero. The same extraction reads `pPrDefault/w:jc` into the base of the alignment cascade (card/label/menu templates centre every paragraph there; a style or paragraph `w:jc` — including an explicit "left" — still overrides).
+> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in (with the 278/240 line multiplier) when nothing in the package has replaced the built-in Normal: no `styles.xml`, no `docDefaults`, or — refined 2026-08-19 — `docDefaults` present but with NO `w:pPrDefault` element at all and no default paragraph style defined (`even_odd_headers/02`'s footer line and `decimal_tabs/01`'s rows each sit exactly the built-in spacing below a zero-spacing render; the row pitch is 46.5px against the 25.5px bare line at 150 DPI). An EMPTY `<w:pPrDefault/>` is an explicit "no paragraph defaults" and reads as zero — `wordart` declares one and Word's reference is tight — as does a package that defines a default paragraph style (`resumes/13`, `cover-letters/03`, `letters/09`, `wedding/05`). The same extraction reads `pPrDefault/w:jc` into the base of the alignment cascade (card/label/menu templates centre every paragraph there; a style or paragraph `w:jc` — including an explicit "left" — still overrides).
 
 > **Contributors**: A paragraph whose only content is anchored drawing (the "background placeholder" pattern) still has a paragraph mark, and Word allocates a line for it. `ParseParagraph` therefore treats anchored art as producing no flow content and emits the empty paragraph anyway — testing `result.Count == 0` alone made that line appear or vanish depending on whether the shape parser happened to understand the drawing. The one exception is a placeholder carrying explicit spacing-after, where Word emits the trailing spacing but no line: that becomes an `IsAnchorOnlyMark` paragraph (see `agendas-minutes/11`) — inert in the engine today (todo #26), so it lays out as an ordinary empty paragraph.
 >
@@ -2337,7 +2351,7 @@ Default paragraph and run properties applied when no style or direct formatting 
 >
 > **Default run size** (`DocumentParser.ResolveDocDefaultFontSizePoints`) keys on `docDefaults` *presence*, mirroring the after-spacing rule above. No styles part or no `docDefaults` element → Word's normal.dotm built-in **12pt** (`builtInDefaultFontSizePoints`, evidence-backed against `long_paragraph`). `docDefaults` present but no `w:rPrDefault/w:sz` → the ECMA-376 §17.3.2.38 default of 20 half-points = **10pt** (`specDefaultFontSizePoints`), because Word reads the omission as an explicit 10pt rather than falling through to its built-in. A `w:sz` on the `Normal` style still outranks the document default. Verified by rendering doctored copies through Word: injecting `w:sz="20"` into `brochures/05` (which declares `docDefaults` and no `w:sz` anywhere) reproduces Word's render with zero differing text pixels, while `w:sz="24"` repaginates it from 4 pages to 5. 23 corpus scenarios declare `docDefaults` without a `w:sz`. Test: `DocDefaultFontSizeTests`.
 >
-> **Default line spacing** (`DocumentParser.docDefaultLineSpacingMultiplier`): `pPrDefault/w:spacing/@w:line` under the auto rule is a document-wide multiplier (`w:line ÷ 240`) that styles inherit when they declare none of their own. Word-probe-confirmed three ways — doubling `agendas-minutes/07`'s declared `w:line="264"` to 480 takes Word's own render from 2 pages to 3 and removing it leaves Word single-spaced; it *does* reach table-cell paragraphs, so the long-suspected "cells are exempt" rule is wrong (`brochures/05` is almost entirely cell text and doubling its docDefault takes Word from 4 pages to 7); and an explicit style `w:line="240"` means single and outranks it. Where a document declares no `pPrDefault` `w:line`, the invented fallbacks still apply (1.04 for a style with no base, 1.08 for the no-style path, and `builtInLineSpacingMultiplier` 278/240 only when there is no styles part or no `docDefaults`).
+> **Default line spacing** (`DocumentParser.docDefaultLineSpacingMultiplier`): `pPrDefault/w:spacing/@w:line` under the auto rule is a document-wide multiplier (`w:line ÷ 240`) that styles inherit when they declare none of their own. Word-probe-confirmed three ways — doubling `agendas-minutes/07`'s declared `w:line="264"` to 480 takes Word's own render from 2 pages to 3 and removing it leaves Word single-spaced; it *does* reach table-cell paragraphs, so the long-suspected "cells are exempt" rule is wrong (`brochures/05` is almost entirely cell text and doubling its docDefault takes Word from 4 pages to 7); and an explicit style `w:line="240"` means single and outranks it. Where a document declares no `pPrDefault` `w:line`, the invented fallbacks still apply (1.04 for a style with no base, 1.08 for the no-style path, and `builtInLineSpacingMultiplier` 278/240 when there is no styles part, no `docDefaults`, or no `w:pPrDefault` element alongside no default paragraph style — see the after-spacing rule under Spacing Before / After).
 >
 > Landing it took three attempts and two prerequisites — the table style `w:pPr` step above, and the rule that an Auto multiplier must not scale an inline image — because it is half of a compensating pair with the default run size: the same documents omit `w:sz`, so an inflated 12pt was cancelling an under-inflated pitch. Together: 75 scenarios move, 55 better / 20 worse, net **−1.8694 AE**, SSIM **+3.8378**, and zero page-count changes in either direction. Measurements per experiment are in `src/page_counts.md` (17–21).
 

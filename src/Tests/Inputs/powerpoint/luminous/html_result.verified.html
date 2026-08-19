@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -265,7 +269,7 @@ Align=N/A" /></div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #201449; font-size: 24pt;">Subtitle</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 18pt;">Add text, images, art, and videos. </span></li>
     <li><span style="color: #201449; font-size: 18pt;">Add transitions, animations, and motion. </span></li>
     <li><span style="color: #201449; font-size: 18pt;">Save to OneDrive, to get to your presentations from your computer, tablet, or phone. </span></li>
@@ -277,7 +281,7 @@ Align=N/A" /></div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #201449; font-size: 24pt;">Subtitle</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 18pt;">Open the Design Ideas pane for instant slide makeovers. </span></li>
     <li><span style="color: #201449; font-size: 18pt;">When we have design ideas, we’ll show them to you right there. </span></li>
     <li></li>
@@ -298,7 +302,7 @@ Align=N/A" /></div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #201449; font-size: 24pt;">Subtitle</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 14pt;">Add text, images, art, and videos. </span></li>
     <li><span style="color: #201449; font-size: 14pt;">Add transitions, animations, and motion. </span></li>
     <li><span style="color: #201449; font-size: 14pt;">Save to OneDrive, to get to your presentations from your computer, tablet, or phone. </span></li>
@@ -309,7 +313,7 @@ Align=N/A" /></div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #201449; font-size: 24pt;">Subtitle</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 14pt;">Open the Design Ideas pane for instant slide makeovers. </span></li>
     <li><span style="color: #201449; font-size: 14pt;">When we have design ideas, we’ll show them to you right there. </span></li>
     <li></li>
@@ -319,7 +323,7 @@ Align=N/A" /></div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #201449; font-size: 24pt;">Subtitle</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 14pt;">This PowerPoint theme uses its own unique set of colors, fonts, and effects to create the overall look and feel of these slides. </span></li>
     <li><span style="color: #201449; font-size: 14pt;">PowerPoint has tons of themes to give your presentation just the right personality. </span></li>
   </ul>
@@ -332,17 +336,17 @@ Align=N/A" /></div>
 </div>
 <div style="position: relative"><svg style="position: absolute; left: 0pt; top: 0pt; width: 960pt; height: 540pt; z-index: 1" viewBox="0 0 960 540" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="960" height="540" fill="#ffffff" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 9pt; letter-spacing: 1.5pt; text-transform: uppercase;">7/15/2026</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 9pt; letter-spacing: 1.5pt; text-transform: uppercase;">Sample footer text</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '§ '">
     <li><span style="color: #201449; font-size: 9pt; letter-spacing: 1.5pt; text-transform: uppercase;">‹#›</span></li>
   </ul>
 </div>

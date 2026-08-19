@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,7 +34,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: 'Century Gothic', sans-serif; max-width: 504pt; padding: 36pt 54pt; position: relative">
 <div style="position: relative"><svg style="position: absolute; left: -54pt; top: -36pt; width: 612pt; height: 792pt; z-index: -1" viewBox="0 0 612 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="792" fill="#f2f0ee" stroke="#442f23" stroke-width="1" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 72pt">
       <td colspan="2" style="width: 496.3pt;vertical-align: middle;border-bottom: 3pt solid #00663d"><h1 id="meeting-agenda" style="font-size: 30pt; margin-top: 0pt; line-height: 1.1"><span style="letter-spacing: 2pt; text-transform: uppercase;">MEETING AGENDA </span></h1></td>

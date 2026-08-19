@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,7 +34,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: Euphemia, sans-serif; max-width: 648pt; padding: 28.8pt 72pt 18pt; position: relative">
 <div style="position: relative"><svg style="position: absolute; left: 127.1pt; top: -28.85pt; width: 393.8pt; height: 219.6pt; z-index: -1" viewBox="0 0 393.8 219.6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.36,0 L392.44,0 L392.78,2.27 L392.94,3.93 L393.09,5.59 L393.23,7.26 L393.35,8.93 L393.45,10.61 L393.54,12.29 L393.62,13.97 L393.69,15.65 L393.74,17.34 L393.77,19.04 L393.79,20.73 L393.8,22.43 L392,49.19 L386.77,74.85 L378.33,99.18 L366.92,121.95 L352.77,142.92 L336.13,161.85 L317.22,178.52 L296.28,192.68 L273.54,204.11 L249.24,212.56 L223.62,217.8 L196.9,219.6 L171.82,218.02 L147.69,213.39 L124.7,205.92 L103.05,195.8 L82.92,183.22 L64.51,168.38 L48.01,151.46 L33.63,132.67 L21.54,112.19 L11.95,90.22 L5.04,66.96 L1.02,42.59 L0,22.43 L0,22.43 L1.02,2.27 Z" fill="#e9e9e4" /></svg></div>
 <p style="margin-bottom: 0pt">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 14.4pt">
       <td style="width: 198pt;vertical-align: middle">Tuesday</td>
@@ -76,7 +80,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p>&nbsp;</p>
 <div style="position: relative"><svg style="position: absolute; left: 215.4pt; top: -18pt; width: 216.72pt; height: 56.16pt; z-index: -1" viewBox="0 0 216.72 56.16" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L216.72,0 L210.81,7.9 L204.46,15.04 L197.63,21.71 L190.33,27.87 L182.59,33.51 L174.44,38.59 L165.92,43.08 L157.04,46.96 L147.84,50.2 L138.34,52.76 L128.58,54.63 L118.57,55.77 L108.36,56.16 L98.14,55.77 L88.14,54.63 L78.38,52.76 L68.88,50.2 L59.68,46.96 L50.8,43.08 L42.28,38.59 L34.13,33.51 L26.39,27.87 L19.09,21.71 L12.26,15.04 L5.91,7.9 Z" fill="#e9e9e4" /></svg></div>
 <p style="margin-bottom: 0pt">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 57.6pt">
       <td colspan="6" style="width: 648pt;border-bottom: 0.5pt solid #8a7760; text-align: center"><span style="font-family: Sylfaen, sans-serif;"><strong>Tuesday Sep 23, 20XX </strong></span></td>
@@ -127,7 +131,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p>&nbsp;</p>
 <div style="position: relative"><svg style="position: absolute; left: 215.65pt; top: -18pt; width: 216.72pt; height: 56.16pt; z-index: -1" viewBox="0 0 216.72 56.16" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L216.72,0 L210.81,7.9 L204.46,15.04 L197.63,21.71 L190.33,27.87 L182.59,33.51 L174.44,38.59 L165.92,43.08 L157.04,46.96 L147.84,50.2 L138.34,52.76 L128.58,54.63 L118.57,55.77 L108.36,56.16 L98.14,55.77 L88.14,54.63 L78.38,52.76 L68.88,50.2 L59.68,46.96 L50.8,43.08 L42.28,38.59 L34.13,33.51 L26.39,27.87 L19.09,21.71 L12.26,15.04 L5.91,7.9 Z" fill="#e9e9e4" /></svg></div>
 <p style="margin-bottom: 0pt">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 57.6pt">
       <td colspan="6" style="width: 648pt;border-bottom: 0.5pt solid #8a7760; text-align: center"><span style="font-family: Sylfaen, sans-serif;"><strong>Tuesday Sep 23, 20XX</strong></span></td>
@@ -179,7 +183,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 215.9pt; top: -18pt; width: 216.72pt; height: 56.16pt; z-index: -1" viewBox="0 0 216.72 56.16" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L216.72,0 L210.81,7.9 L204.46,15.04 L197.63,21.71 L190.33,27.87 L182.59,33.51 L174.44,38.59 L165.92,43.08 L157.04,46.96 L147.84,50.2 L138.34,52.76 L128.58,54.63 L118.57,55.77 L108.36,56.16 L98.14,55.77 L88.14,54.63 L78.38,52.76 L68.88,50.2 L59.68,46.96 L50.8,43.08 L42.28,38.59 L34.13,33.51 L26.39,27.87 L19.09,21.71 L12.26,15.04 L5.91,7.9 Z" fill="#e9e9e4" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 370.2pt; top: 769.2pt; width: 236.85pt; height: 236.85pt; z-index: -1" viewBox="0 0 236.85 236.85" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="118.43" cy="118.43" rx="118.43" ry="118.43" fill="#e5ded8" /></svg></div>
 <p style="margin-bottom: 0pt">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 57.6pt">
       <td colspan="4" style="width: 648pt;border-bottom: 0.5pt solid #8a7760; text-align: center"><span style="font-family: Sylfaen, sans-serif;"><strong>Tuesday Sep 23, 20XX</strong></span></td>

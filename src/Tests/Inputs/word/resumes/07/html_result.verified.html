@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -66,7 +70,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="role" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
   <li><span style="font-size: 10pt;">Remember to be concise</span></li>
 </ul>
@@ -79,7 +83,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="role-1" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
 </ul>
 <table>
@@ -91,7 +95,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="role-2" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
 </ul>
 <table>
@@ -103,7 +107,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="role-3" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
 </ul>
 <p style="line-height: 1.16">&nbsp;</p>
@@ -123,7 +127,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
   </tbody>
 </table>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did/built etc.</span></li>
 </ul>
 <table>
@@ -134,7 +138,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
   </tbody>
 </table>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did/built etc. </span></li>
   <li><span style="font-size: 10pt;">Accomplishments</span></li>
 </ul>
@@ -146,7 +150,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
   </tbody>
 </table>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Describe what you did/built etc.</span></li>
 </ul>
 <p style="line-height: 1.16">&nbsp;</p>

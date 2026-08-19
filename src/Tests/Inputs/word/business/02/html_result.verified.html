@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,14 +35,14 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="memo" style="font-size: 72pt; margin-top: 0pt; margin-left: -4.3pt; line-height: 1.5"><span style="font-weight: normal; font-family: Garamond, sans-serif; color: #595959; letter-spacing: -0.5pt; text-transform: uppercase;">memo </span></h1>
 <div style="position: relative"><svg style="position: absolute; left: -88.8pt; top: 159.85pt; width: 589.92pt; height: 600.48pt; z-index: -1" viewBox="0 0 589.92 600.48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L589.92,0 L589.92,600.48 L0,600.48 Z" fill="#f1f0cd" /></svg></div>
 <p style="margin-bottom: 6pt">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 56.7pt">
       <td style="width: 432pt"><span style="color: #404040; text-transform: uppercase;"><strong>Company name </strong></span></td>
     </tr>
   </tbody>
 </table>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 1.6pt">
       <td style="width: 116.15pt"><h1 id="to" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 10pt; line-height: 1"><span style="color: #404040;">To: </span></h1></td>

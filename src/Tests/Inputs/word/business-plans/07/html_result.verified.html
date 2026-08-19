@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -35,7 +39,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="business-proposal" style="font-size: 70pt; margin-top: 54pt; margin-left: -7.2pt; margin-right: 36pt; line-height: 0.75"><span style="font-weight: normal; font-family: 'Calibri Light', sans-serif; color: #2f4b41; text-transform: uppercase;">Business proposal</span></h1>
 <p style="margin-top: 12pt; margin-bottom: 0pt; margin-right: 57.6pt; line-height: 1"><span style="color: #262626; font-size: 12pt;">This proposal outlines a streamlined solution designed to address key business challenges and drive growth. Our approach leverages industry expertise, innovative strategies, and data-driven insights to create a tailored plan that delivers measurable results.</span></p>
 <p style="margin-top: 6pt; margin-bottom: 0pt; margin-right: 36pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 36pt">
       <td style="vertical-align: bottom"><h1 id="problem-statement" style="font-size: 15pt; margin-top: 24pt; margin-right: 36pt; line-height: 0.5"><span style="font-weight: normal; font-family: Calibri, sans-serif; color: #2e4a41; text-transform: uppercase;">problem statement</span></h1></td>

@@ -15,6 +15,7 @@
                       "Bold": false,
                       "Italic": false,
                       "Underline": false,
+                      "DoubleUnderline": false,
                       "Strikethrough": false,
                       "AllCaps": false,
                       "SmallCaps": false,

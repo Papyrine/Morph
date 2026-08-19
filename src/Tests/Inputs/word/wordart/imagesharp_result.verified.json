@@ -68,8 +68,8 @@
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0323,
-      "Ssim": 0.9385,
+      "ErrorMetric": 0.0318,
+      "Ssim": 0.9396,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "imagesharp_result#page_0009.verified.png",
       "ReceivedFile": "imagesharp_result#page_0009.received.png"

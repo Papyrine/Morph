@@ -195,9 +195,10 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
     TextAlignment defaultAlignment = TextAlignment.Left;
 
     // Document default line spacing, used when no style supplies one. Word's built-in Normal
-    // (line=278) applies only when the document declares no styles.xml or no docDefaults (see
-    // ExtractDefaultParagraphProperties); a document that DOES declare docDefaults without a
-    // w:line is single-spaced — Word-probed 2026-08-04 alongside the style-path fallback above
+    // (line=278) applies when the document declares no styles.xml, no docDefaults, or no
+    // default paragraph style (see ExtractDefaultParagraphProperties); a document that DOES
+    // declare docDefaults without a w:line AND defines a default paragraph style is
+    // single-spaced — Word-probed 2026-08-04 alongside the style-path fallback above
     // (an invented 1.08 lived here and was part of the same corpus-wide pitch drift).
     double defaultLineSpacingMultiplier = 1.0;
 
@@ -3686,11 +3687,28 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             return;
         }
 
-        // docDefaults IS present but carries no paragraph defaults: the document explicitly
-        // configured its document-wide defaults and omitted paragraph spacing, which Word
-        // reads as zero — not the 8pt built-in. Verified against resumes/13, cover-letters/03,
-        // letters/09, wedding/05 (all have <w:docDefaults> without a pPrDefault and render
-        // tight in Word). The field is already 0.
+        // docDefaults IS present but declares NO pPrDefault element at all, and the package
+        // defines no default paragraph style either: nothing has replaced Word's BUILT-IN
+        // Normal (8pt-after, line=278), so unstyled paragraphs still take its spacing.
+        // Measured against Word's references: even_odd_headers/02's footer line and
+        // decimal_tabs/01's rows each sit exactly the built-in spacing below a zero-spacing
+        // render (row pitch 46.5px vs the 25.5px bare line at 150 DPI). An EMPTY
+        // <w:pPrDefault/> is different — it is an explicit "no paragraph defaults" and Word
+        // reads it as zero: wordart declares one and its reference is tight (a built-in
+        // fallback there regressed pages 5-15 by +0.01..+0.045 AE). A defined default
+        // paragraph style also suppresses the built-in — resumes/13, cover-letters/03,
+        // letters/09 and wedding/05 all define Normal and render tight in Word.
+        var definesDefaultParagraphStyle = stylesPart.Styles.Elements<Style>()
+            .Any(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true);
+        if (docDefaults.ParagraphPropertiesDefault == null && !definesDefaultParagraphStyle)
+        {
+            defaultSpacingAfterPoints = builtInSpacingAfterPoints;
+            defaultLineSpacingMultiplier = builtInLineSpacingMultiplier;
+        }
+
+        // docDefaults IS present but carries no paragraph defaults beyond the cases above:
+        // the document explicitly configured its document-wide defaults and omitted
+        // paragraph spacing, which Word reads as zero — not the 8pt built-in.
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;
         if (pPrDefault?.ParagraphPropertiesBaseStyle == null)
         {
@@ -11005,9 +11023,21 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             italic = italicElement.IsOn();
         }
 
+        var underlineColorHex = (string?) null;
+        var doubleUnderline = false;
         if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
         {
             underline = true;
+            doubleUnderline = underlineElement.Val?.Value == UnderlineValues.Double;
+
+            // w:u/@w:color — the rule's own colour. "auto" (and absence) means the text colour,
+            // which a null carries.
+            var underlineColor = underlineElement.Color?.Value;
+            if (!string.IsNullOrEmpty(underlineColor) &&
+                !underlineColor.Equals("auto", StringComparison.OrdinalIgnoreCase))
+            {
+                underlineColorHex = underlineColor;
+            }
         }
 
         if (strikeElement != null)
@@ -11273,6 +11303,8 @@ sealed class DocumentParser(string defaultFont, bool? useLetterPageSize = null)
             Bold = bold,
             Italic = italic,
             Underline = underline,
+            UnderlineColorHex = underlineColorHex,
+            DoubleUnderline = doubleUnderline,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
             SmallCaps = smallCaps,

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -40,7 +44,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="font-family: 'Century Gothic', sans-serif; color: #323232; font-size: 40pt;">Agenda</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #323232; font-size: 20pt;">Introduction</span></li>
     <li><span style="color: #323232; font-size: 20pt;">Building confidence</span></li>
     <li><span style="color: #323232; font-size: 20pt;">Engaging the audience</span></li>
@@ -99,7 +103,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #323232; font-size: 18pt;">This is a powerful tool in public speaking. It involves varying pitch, tone, and volume to convey emotion, emphasize points, and maintain interest. </span></p>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #323232; font-size: 18pt;">Pitch variation</span></li>
     <li><span style="color: #323232; font-size: 18pt;">Tone inflection</span></li>
     <li><span style="color: #323232; font-size: 18pt;">Volume control</span></li>
@@ -107,7 +111,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #323232; font-size: 18pt;">Effective body language enhances your message, making it more impactful and memorable.</span></p>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #323232; font-size: 18pt;">Meaningful eye contact</span></li>
     <li><span style="color: #323232; font-size: 18pt;">Purposeful gestures</span></li>
     <li><span style="color: #323232; font-size: 18pt;">Maintain good posture</span></li>
@@ -128,7 +132,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #323232; font-size: 18pt;">Maintaining composure during the Q&amp;A session is essential for projecting confidence and authority. Consider the following tips for staying composed:</span></p>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #323232; font-size: 18pt;">Stay calm</span></li>
     <li><span style="color: #323232; font-size: 18pt;">Actively listen</span></li>
     <li><span style="color: #323232; font-size: 18pt;">Pause and reflect</span></li>

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -29,7 +33,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: 'Trebuchet MS', sans-serif; max-width: 504pt; padding: 54pt">
 <h1 id="meeting-name-meeting-minutes" style="font-size: 28pt; margin-top: 0pt; margin-bottom: 20pt; line-height: 1.1"><span style="font-weight: normal; color: #7a4100;">[Meeting name] meeting minutes</span></h1>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 85.6pt"><span style="color: #595959;">Location:</span></td>
@@ -58,7 +62,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <li><span style="color: #0d0d0d;">[Agenda item]</span></li>
   <li><span style="color: #0d0d0d;">[Agenda item]</span></li>
 </ol>
-<table>
+<table style="width: 100%">
   <thead>
     <tr>
       <th style="width: 153pt"><h1 id="action-items" style="font-size: 15pt; margin-top: 18pt; margin-bottom: 10pt; line-height: 1.1"><span style="font-weight: normal; color: #7a4100;">Action items</span></h1></th>

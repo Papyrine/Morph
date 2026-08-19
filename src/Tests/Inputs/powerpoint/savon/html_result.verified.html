@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -43,17 +47,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 63.47pt; top: 63.72pt; width: 468pt; height: 412.56pt; z-index: 1" viewBox="0 0 468 412.56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="468" height="412.56" fill="none" stroke="#ffffff" stroke-width="0.5" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 221.87pt; top: 50.46pt; width: 151.2pt; height: 57.6pt; z-index: 1" viewBox="0 0 151.2 57.6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="151.2" height="57.6" fill="#96a9a9" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 13pt;">20XX</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">Sample Footer Text</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">‹#›</span></li>
   </ul>
 </div>
@@ -72,17 +76,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 445.68pt; top: 0pt; width: 514.08pt; height: 540pt; z-index: 1" viewBox="0 0 514.08 540" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="514.08" height="540" fill="#404040" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 471.01pt; top: 25.2pt; width: 463.68pt; height: 489.6pt; z-index: 1" viewBox="0 0 463.68 489.6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="463.68" height="489.6" fill="none" stroke="#ffffff" stroke-width="0.5" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">20XX</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">Sample Footer Text</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">‹#›</span></li>
   </ul>
 </div>
@@ -98,7 +102,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 448.43pt; top: 142.4pt; width: 429.33pt; height: 255.19pt; z-index: 1" viewBox="0 0 429.33 255.19" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="429.33" height="255.19" fill="#404040" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 461.5pt; top: 155.52pt; width: 403.2pt; height: 228.96pt; z-index: 1" viewBox="0 0 403.2 228.96" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="403.2" height="228.96" fill="none" stroke="#ffffff" stroke-width="0.5" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 13pt;">20XX</span></li>
   </ul>
 </div>
@@ -168,12 +172,12 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 48.56pt; top: 48.96pt; width: 523.76pt; height: 442.08pt; z-index: 1" viewBox="0 0 523.76 442.08" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="523.76" height="442.08" fill="#404040" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 238.04pt; top: 35.18pt; width: 151.2pt; height: 57.6pt; z-index: 1" viewBox="0 0 151.2 57.6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="151.2" height="57.6" fill="#96a9a9" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">Sample Footer Text</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">‹#›</span></li>
   </ul>
 </div>
@@ -190,7 +194,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 50.66pt; top: 51.04pt; width: 858.69pt; height: 157.25pt; z-index: 1" viewBox="0 0 858.69 157.25" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="858.69" height="157.25" fill="#404040" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 63.48pt; top: 64.15pt; width: 833.04pt; height: 131.04pt; z-index: 1" viewBox="0 0 833.04 131.04" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="833.04" height="131.04" fill="none" stroke="#ffffff" stroke-width="0.5" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #404040; font-size: 10pt;">20XX</span></li>
   </ul>
 </div>
@@ -232,7 +236,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: right; margin-bottom: 0pt; line-height: 1"><span style="color: #404040; font-size: 10pt;">7</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #262626; font-size: 10pt;">Sample Footer Text</span></li>
   </ul>
 </div>
@@ -296,7 +300,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 19pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="font-size: 18pt;">Add text, images, art, and videos. </span></li>
     <li><span style="font-size: 18pt;">Add transitions, animations, and motion. </span></li>
     <li><span style="font-size: 18pt;">Save to OneDrive, to get to your presentations from your computer, tablet, or phone. </span></li>
@@ -306,7 +310,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 19pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="font-size: 18pt;">Open the Design Ideas pane for instant slide makeovers. </span></li>
     <li><span style="font-size: 18pt;">When we have design ideas, we’ll show them to you right there. </span></li>
   </ul>
@@ -328,7 +332,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 19pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="font-size: 18pt;">Add text, images, art, and videos. </span></li>
     <li><span style="font-size: 18pt;">Add transitions, animations, and motion. </span></li>
     <li><span style="font-size: 18pt;">Save to OneDrive, to get to your presentations from your computer, tablet, or phone. </span></li>
@@ -340,7 +344,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 19pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="font-size: 18pt;">Open the Design Ideas pane for instant slide makeovers. </span></li>
     <li><span style="font-size: 18pt;">When we have design ideas, we’ll show them to you right there. </span></li>
     <li></li>
@@ -351,7 +355,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 19pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="font-size: 18pt;">This PowerPoint theme uses its own unique set of colors, fonts, and effects to create the overall look and feel of these slides. </span></li>
     <li><span style="font-size: 18pt;">PowerPoint has tons of themes to give your presentation just the right personality. </span></li>
     <li></li>
@@ -372,17 +376,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 442.05pt; top: 76.49pt; width: 442.8pt; height: 386.64pt; z-index: 1" viewBox="0 0 442.8 386.64" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="442.8" height="386.64" fill="none" stroke="#ffffff" stroke-width="0.5" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 429pt; top: 63.53pt; width: 468.9pt; height: 412.56pt; z-index: 1" viewBox="0 0 468.9 412.56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="468.9" height="412.56" fill="#000000" /></svg></div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #404040; font-size: 10pt;">20XX</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #ffffff; font-size: 10pt;">Sample Footer Text</span></li>
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="color: #404040; font-size: 10pt;">‹#›</span></li>
   </ul>
 </div>
@@ -412,7 +416,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="color: #ffffff; font-size: 10pt;">Sample Footer Text</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: '◦ '">
     <li><span style="font-size: 15pt;"><strong>12</strong></span></li>
   </ul>
 </div>

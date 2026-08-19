@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,7 +35,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <header class="doc-header">
 <p style="text-align: center; margin-bottom: 0pt; margin-left: 21.6pt; margin-right: 50.4pt; line-height: 1">&nbsp;</p>
 </header>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 331.2pt">
       <td style="width: 288pt;vertical-align: bottom; text-align: center"><img src="data:image/png;base64,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" width="68" height="51" alt="invitation icon" /></td>
@@ -44,7 +48,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="text-align: center; margin-bottom: 0pt; margin-left: 21.6pt; margin-right: 50.4pt; line-height: 1.15">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 367.2pt">
       <td style="width: 540pt;vertical-align: middle; text-align: center"><span style="font-size: 12pt;">To get started right away, just tap any placeholder text (such as this) and start typing to replace it with your own or delete for a blank card.</span></td>

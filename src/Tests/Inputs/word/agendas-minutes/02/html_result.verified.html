@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -63,7 +67,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
 <p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 36pt">
       <td style="width: 126pt;background-color: #f4a5f3;vertical-align: middle;border-right: 0.5pt solid #102857;border-bottom: 0.5pt solid #102857"><h3 id="time" style="margin-top: 0pt; line-height: 1.1"><span style="font-family: 'Tw Cen MT', sans-serif; color: #102857; text-transform: uppercase;">TIME</span></h3></td>
@@ -103,7 +107,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     <tr style="height: 57.6pt">
       <td style="width: 126pt;background-color: #707e9a;vertical-align: middle;border-top: 0.5pt solid #102857;border-right: 0.5pt solid #102857"><span style="color: #ffffff; font-size: 10pt;">11:45</span></td>
       <td style="width: 162pt;background-color: #707e9a;vertical-align: middle;border-top: 0.5pt solid #102857;border-right: 0.5pt solid #102857;border-left: 0.5pt solid #102857"><span style="color: #ffffff; font-size: 10pt;">New Business</span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="color: #ffffff; font-size: 10pt;">Recap</span></li>
           <li><span style="color: #ffffff; font-size: 10pt;">Programs</span></li>
         </ul>
@@ -117,7 +121,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 
 Description automatically generated" /></div>
 <p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 36pt">
       <td style="width: 126pt;background-color: #f4a5f3;vertical-align: middle;border-right: 0.5pt solid #102857;border-bottom: 0.5pt solid #102857"><h3 id="time-1" style="margin-top: 0pt; line-height: 1.1"><span style="font-family: 'Tw Cen MT', sans-serif; color: #102857; text-transform: uppercase;">TIME</span></h3></td>
@@ -127,7 +131,7 @@ Description automatically generated" /></div>
     <tr style="height: 43.2pt">
       <td style="width: 126pt;background-color: #707e9a;vertical-align: middle;border-top: 0.5pt solid #102857;border-right: 0.5pt solid #102857;border-bottom: 0.5pt solid #102857"><span style="color: #ffffff; font-size: 10pt;">12:00</span></td>
       <td style="width: 162pt;background-color: #707e9a;vertical-align: middle;border: 0.5pt solid #102857"><span style="color: #ffffff; font-size: 10pt;">Committee</span><span style="color: #ffffff; font-size: 10pt;"><strong> </strong></span><span style="color: #ffffff; font-size: 10pt;">Reports</span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="color: #ffffff; font-size: 10pt;">Membership </span></li>
           <li><span style="color: #ffffff; font-size: 10pt;">Volunteers </span></li>
           <li><span style="color: #ffffff; font-size: 10pt;">Newsletter </span></li>

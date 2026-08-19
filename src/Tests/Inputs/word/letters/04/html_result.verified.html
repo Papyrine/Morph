@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -41,7 +45,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="text-align: justify; margin-bottom: 12pt; line-height: 1.4">&nbsp;</p>
 <p style="text-align: justify; margin-bottom: 12pt; line-height: 1.4">&nbsp;</p>
 <p style="text-align: justify; margin-bottom: 12pt; line-height: 1.4">&nbsp;</p>
-<table>
+<table style="margin-left: -4.5pt">
   <tbody>
     <tr style="height: 62.55pt">
       <td style="width: 229.2pt"><span style="color: #595959;">Adrian King</span><br /><span style="color: #595959;">Express Shippers Ltd.</span><br /><span style="color: #595959;">89 Pacific Ave, </span><br /><span style="color: #595959;">San Francisco, CA 65432</span></td>
@@ -68,7 +72,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="text-align: justify; margin-bottom: 12pt; line-height: 1.4">&nbsp;</p>
 <footer class="doc-footer">
-<table>
+<table style="margin-left: -18pt; width: 104%">
   <tbody>
     <tr style="height: 14.4pt">
       <td style="width: 18.05pt;background-color: #fefac9;vertical-align: middle"></td>
