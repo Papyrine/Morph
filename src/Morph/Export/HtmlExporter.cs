@@ -425,7 +425,9 @@ static class HtmlExporter
                     WriteTable(table, depth);
                     break;
                 case ImageElement image:
-                    WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth);
+                    WriteImageParagraph(
+                        image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth,
+                        image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
                     break;
                 case FloatingImageElement floatingImage:
                     WriteFloatingImage(floatingImage, depth);
@@ -838,7 +840,17 @@ static class HtmlExporter
 
         // Resolves the image source before opening the <p> so a dropped image (no handler,
         // embedding disabled) produces no empty paragraph.
-        void WriteImageParagraph(byte[] data, string? contentType, double widthPoints, double heightPoints, string? description, int depth)
+        void WriteImageParagraph(
+            byte[] data,
+            string? contentType,
+            double widthPoints,
+            double heightPoints,
+            string? description,
+            int depth,
+            ImageCrop? crop = null,
+            double rotationDegrees = 0,
+            bool flipHorizontal = false,
+            bool flipVertical = false)
         {
             var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
             if (source == null)
@@ -847,7 +859,7 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p>");
-            AppendImageTag(source, widthPoints, heightPoints, description);
+            AppendImageTag(source, widthPoints, heightPoints, description, null, crop, rotationDegrees, flipHorizontal, flipVertical);
             builder.Append("</p>\n");
         }
 
@@ -869,7 +881,9 @@ static class HtmlExporter
             // below it, never beside — so it keeps the paragraph.
             if (image.WrapType == WrapType.TopAndBottom)
             {
-                WriteImageParagraph(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth);
+                WriteImageParagraph(
+                    image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth,
+                    image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
                 return;
             }
 
@@ -905,7 +919,9 @@ static class HtmlExporter
             }
 
             Indent(depth);
-            AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
+            AppendImageTag(
+                source, image.WidthPoints, image.HeightPoints, image.Description, style,
+                image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
             builder.Append('\n');
         }
 
@@ -928,7 +944,9 @@ static class HtmlExporter
             var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}";
 
             Indent(depth).Append("""<div style="position: relative">""");
-            AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
+            AppendImageTag(
+                source, image.WidthPoints, image.HeightPoints, image.Description, style,
+                image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
             builder.Append("</div>\n");
         }
 
@@ -1076,6 +1094,15 @@ static class HtmlExporter
                 }
             }
 
+            // Paragraph shading (w:shd, or a block background-color in HTML input) — Word draws a
+            // full-width band behind the paragraph; the <p>'s own background box is the reflowable
+            // equivalent.
+            var shading = DocumentExportHelpers.NormalizeColor(properties.BackgroundColorHex);
+            if (shading != null)
+            {
+                parts.Add($"background-color: {shading}");
+            }
+
             if (parts.Count > 0)
             {
                 builder.Append(" style=\"").Append(string.Join("; ", parts)).Append('"');
@@ -1208,6 +1235,19 @@ static class HtmlExporter
                 tableStyles.Add($"width: {Number(fraction * 100)}%");
             }
 
+            // w:tblCellSpacing switches Word to the detached-border model: an outer frame around
+            // the table plus a box per cell, separated by twice the declared spacing. That is
+            // exactly CSS's separate-borders table, so override the stylesheet's collapse and put
+            // the table's own borders on the frame (the per-cell boxes already ride on the cells).
+            if (tableProperties.CellSpacingPoints > 0)
+            {
+                tableStyles.Add($"border-collapse: separate; border-spacing: {Length(2 * tableProperties.CellSpacingPoints)}");
+                if (tableProperties.DefaultBorders is {HasAnyBorder: true} frame)
+                {
+                    AppendBorders(tableStyles, frame);
+                }
+            }
+
             if (tableStyles.Count > 0)
             {
                 builder.Append(" style=\"").Append(string.Join("; ", tableStyles)).Append('"');
@@ -1303,7 +1343,7 @@ static class HtmlExporter
                 var borders = TableLayout.ResolveCellBorders(
                     properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex]);
 
-                var cellStyle = CellStyle(properties, borders);
+                var cellStyle = CellStyle(properties, borders, table.Properties);
 
                 // A cell holding anchored art becomes the positioning context for it (below).
                 if (cell.Floats.Count > 0)
@@ -1336,9 +1376,10 @@ static class HtmlExporter
         }
 
         // Per-cell layout that the shared stylesheet can't express: explicit column width, shading,
-        // a non-default vertical alignment, and resolved borders. Top alignment is the td/th
-        // stylesheet default, so only middle/bottom are emitted.
-        static string? CellStyle(TableCellProperties properties, CellBorders? borders)
+        // a non-default vertical alignment, declared cell margins, text direction, diagonals, and
+        // resolved borders. Top alignment is the td/th stylesheet default, so only middle/bottom
+        // are emitted.
+        static string? CellStyle(TableCellProperties properties, CellBorders? borders, TableProperties tableProperties)
         {
             var parts = new List<string>();
 
@@ -1364,9 +1405,53 @@ static class HtmlExporter
                 parts.Add($"vertical-align: {verticalAlign}");
             }
 
+            // Declared cell margins (w:tcMar / w:tblCellMar) become padding. A per-cell override is
+            // always the author's explicit ask; the table-wide default is emitted only when it
+            // exceeds the stylesheet's generic 4pt/7pt look — an ordinary Word default (0 vertical,
+            // 5.4pt horizontal) keeps the shared rule.
+            var padding = properties.Padding ??
+                (ExceedsStylesheetPadding(tableProperties.DefaultCellPadding) ? tableProperties.DefaultCellPadding : null);
+            if (padding != null)
+            {
+                parts.Add($"padding: {BoxShorthand(padding.Top, padding.Right, padding.Bottom, padding.Left)}");
+            }
+
+            // w:textDirection — btLr reads bottom-up along the left edge, tbRl top-down along the
+            // right. Both are real CSS writing modes, so the browser wraps the vertical text itself.
+            var writingMode = properties.TextDirection switch
+            {
+                CellTextDirection.BottomToTop => "writing-mode: sideways-lr",
+                CellTextDirection.TopToBottom => "writing-mode: vertical-rl",
+                _ => null
+            };
+            if (writingMode != null)
+            {
+                parts.Add(writingMode);
+            }
+
             if (borders is {HasAnyBorder: true})
             {
                 AppendBorders(parts, borders);
+            }
+
+            // w:tl2br / w:tr2bl — CSS has no diagonal border, but a corner-to-corner gradient band
+            // draws the same line: the `to bottom left` gradient line's perpendicular through 50%
+            // passes exactly through the top-left and bottom-right corners (and mirrored for the
+            // other diagonal), so the coloured band is the diagonal at the declared width.
+            if (properties.Diagonals is {HasAny: true} diagonals)
+            {
+                var lines = new List<string>();
+                if (diagonals.Down.IsVisible)
+                {
+                    lines.Add(DiagonalGradient("to bottom left", diagonals.Down));
+                }
+
+                if (diagonals.Up.IsVisible)
+                {
+                    lines.Add(DiagonalGradient("to bottom right", diagonals.Up));
+                }
+
+                parts.Add($"background-image: {string.Join(", ", lines)}");
             }
 
             if (parts.Count == 0)
@@ -1376,6 +1461,18 @@ static class HtmlExporter
 
             return string.Join(';', parts);
         }
+
+        static string DiagonalGradient(string direction, BorderEdge edge)
+        {
+            var color = DocumentExportHelpers.NormalizeColor(edge.ColorHex) ?? "#000000";
+            var half = Length(Math.Max(edge.WidthPoints, 0.5) / 2);
+            return $"linear-gradient({direction}, transparent calc(50% - {half}), {color} calc(50% - {half}), {color} calc(50% + {half}), transparent calc(50% + {half}))";
+        }
+
+        // True when any edge of the table-wide cell margin visibly exceeds the stylesheet's
+        // td/th padding (4pt vertical, 7pt horizontal).
+        static bool ExceedsStylesheetPadding(CellSpacing padding) =>
+            padding.Top > 4.05 || padding.Bottom > 4.05 || padding.Left > 7.05 || padding.Right > 7.05;
 
         // Emits the minimal CSS border declarations for a four-edge border set: a single shorthand
         // when all four edges are present and identical, otherwise one declaration per visible edge.
@@ -1436,7 +1533,17 @@ static class HtmlExporter
                 _ => "solid"
             };
             var color = DocumentExportHelpers.NormalizeColor(edge.ColorHex) ?? "#000000";
-            return $"{edge.WidthPoints.ToString("0.##", CultureInfo.InvariantCulture)}pt {style} {color}";
+
+            // A CSS double's width is the whole three-band stack (line, gap, line in equal thirds),
+            // while w:sz declares one LINE. Emitting the declared width gave the browser too little
+            // room to draw two lines at all — "1.5pt double" is under the ~3px minimum and renders
+            // as a single thin rule — so multi-line styles emit the stack the raster backends
+            // actually reserve (BorderStroke.Extent), which the browser then divides back into
+            // Word's two visible rules.
+            var width = style == "double"
+                ? BorderStroke.Extent(edge.Style, edge.WidthPoints, BorderStroke.Scope.Cell)
+                : edge.WidthPoints;
+            return $"{width.ToString("0.##", CultureInfo.InvariantCulture)}pt {style} {color}";
         }
 
         static int ComputeRowSpan(IReadOnlyList<TableRow> rows, int startRow, int gridColumn)
@@ -1586,7 +1693,9 @@ static class HtmlExporter
                             builder.Append("<br />");
                         }
 
-                        AppendImage(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description);
+                        AppendImage(
+                            image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description,
+                            image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
                         separatorPending = true;
                         break;
                     case FloatingImageElement floatingImage:
@@ -1595,7 +1704,9 @@ static class HtmlExporter
                             builder.Append("<br />");
                         }
 
-                        AppendImage(floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description);
+                        AppendImage(
+                            floatingImage.ImageData, floatingImage.ContentType, floatingImage.WidthPoints, floatingImage.HeightPoints, floatingImage.Description,
+                            floatingImage.Crop, floatingImage.RotationDegrees, floatingImage.FlipHorizontal, floatingImage.FlipVertical);
                         separatorPending = true;
                         break;
                 }
@@ -1624,7 +1735,9 @@ static class HtmlExporter
                     }
 
                     var style = $"position: absolute; left: {Length(image.HorizontalPositionPoints)}; top: {Length(image.VerticalPositionPoints)}; z-index: {(image.BehindText ? "-1" : "1")}";
-                    AppendImageTag(source, image.WidthPoints, image.HeightPoints, image.Description, style);
+                    AppendImageTag(
+                        source, image.WidthPoints, image.HeightPoints, image.Description, style,
+                        image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -1673,7 +1786,9 @@ static class HtmlExporter
 
             if (run.InlineImageData is {} imageData)
             {
-                AppendImage(imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription);
+                AppendImage(
+                    imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription,
+                    run.InlineImageCrop, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical);
                 return;
             }
 
@@ -2356,7 +2471,16 @@ static class HtmlExporter
             }
         }
 
-        void AppendImage(byte[] data, string? contentType, double widthPoints, double heightPoints, string? alt)
+        void AppendImage(
+            byte[] data,
+            string? contentType,
+            double widthPoints,
+            double heightPoints,
+            string? alt,
+            ImageCrop? crop = null,
+            double rotationDegrees = 0,
+            bool flipHorizontal = false,
+            bool flipVertical = false)
         {
             var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
             if (source == null)
@@ -2366,11 +2490,74 @@ static class HtmlExporter
                 return;
             }
 
-            AppendImageTag(source, widthPoints, heightPoints, alt);
+            AppendImageTag(source, widthPoints, heightPoints, alt, null, crop, rotationDegrees, flipHorizontal, flipVertical);
         }
 
-        void AppendImageTag(string source, double widthPoints, double heightPoints, string? alt, string? style = null)
+        // Flip before rotation, matching DrawingML: a:xfrm's rotation applies to the already
+        // flipped picture. CSS transform lists apply right-to-left, so the scale goes last.
+        static string? ImageTransform(double rotationDegrees, bool flipHorizontal, bool flipVertical)
         {
+            var transforms = new List<string>();
+            if (Math.Abs(rotationDegrees) > 0.01)
+            {
+                transforms.Add($"rotate({Number(rotationDegrees)}deg)");
+            }
+
+            if (flipHorizontal || flipVertical)
+            {
+                transforms.Add($"scale({(flipHorizontal ? "-1" : "1")}, {(flipVertical ? "-1" : "1")})");
+            }
+
+            return transforms.Count == 0 ? null : $"transform: {string.Join(" ", transforms)}";
+        }
+
+        void AppendImageTag(
+            string source,
+            double widthPoints,
+            double heightPoints,
+            string? alt,
+            string? style = null,
+            ImageCrop? crop = null,
+            double rotationDegrees = 0,
+            bool flipHorizontal = false,
+            bool flipVertical = false)
+        {
+            var transform = ImageTransform(rotationDegrees, flipHorizontal, flipVertical);
+
+            // a:srcRect — draw the full image at the enlarged rectangle its crop implies and clip
+            // back to the frame: a hidden-overflow box the frame's size, the full image inside it
+            // offset by the cropped-away edges. The transform (and any float/absolute placement
+            // style) rides on the box, since it is the frame that Word rotates and positions.
+            if (crop is {IsCropped: true} sourceRect && widthPoints > 0 && heightPoints > 0)
+            {
+                var (offsetX, offsetY, fullWidth, fullHeight) = sourceRect.Expand(0, 0, widthPoints, heightPoints);
+                if (Math.Abs(fullWidth - widthPoints) > 0.01 || Math.Abs(fullHeight - heightPoints) > 0.01 ||
+                    Math.Abs(offsetX) > 0.01 || Math.Abs(offsetY) > 0.01)
+                {
+                    var boxStyle = $"display: inline-block; overflow: hidden; width: {ToPixels(widthPoints)}px; height: {ToPixels(heightPoints)}px";
+                    if (transform != null)
+                    {
+                        boxStyle += $"; {transform}";
+                    }
+
+                    if (style != null)
+                    {
+                        boxStyle += $"; {style}";
+                    }
+
+                    builder.Append("<span style=\"").Append(boxStyle).Append("\">");
+                    var imageStyle = $"margin: {Length(offsetY)} 0 0 {Length(offsetX)}";
+                    AppendImageTag(source, fullWidth, fullHeight, alt, imageStyle);
+                    builder.Append("</span>");
+                    return;
+                }
+            }
+
+            if (transform != null)
+            {
+                style = style == null ? transform : $"{style}; {transform}";
+            }
+
             builder.Append("<img src=\"").Append(EncodeAttribute(source)).Append('"');
             if (widthPoints > 0)
             {
