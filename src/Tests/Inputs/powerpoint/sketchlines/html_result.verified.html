@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -81,7 +85,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="color: #404040; font-size: 32pt; letter-spacing: 1.5pt;"><strong>Engaging the audience</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 16.65pt; letter-spacing: 1.5pt;">Make eye contact with your audience to create a sense of intimacy and involvement</span></li>
     <li><span style="color: #404040; font-size: 16.65pt; letter-spacing: 1.5pt;">Weave relatable stories into your presentation using narratives that&#160;make your message memorable and impactful</span></li>
     <li><span style="color: #404040; font-size: 16.65pt; letter-spacing: 1.5pt;">Encourage questions and provide thoughtful responses to&#160;enhance audience participation</span></li>
@@ -106,7 +110,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="color: #404040; font-size: 32pt; letter-spacing: 1.5pt;"><strong>Effective delivery techniques</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Voice modulation&#160;is a powerful tool in public speaking. It involves varying pitch, tone, and volume to convey emotion, emphasize points, and maintain interest.&#160;</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Pitch variation</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Tone inflection</span></li>
@@ -114,7 +118,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Effective body language enhances your message, making it more impactful and memorable.</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Meaningful eye contact</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Purposeful gestures</span></li>
@@ -143,7 +147,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 9.3pt; margin-bottom: 0pt; line-height: 1.4"><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Maintaining composure during the Q&amp;A session is essential for projecting confidence and authority. Consider the following tips for staying composed:</span></p>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Stay calm</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Actively listen</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Pause and reflect</span></li>
@@ -158,7 +162,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="color: #404040; font-size: 32pt;"><strong>Speaking impact</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Your ability to communicate effectively will leave a lasting impact on your audience</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Effectively communicating involves not only delivering a message but also resonating with the experiences, values, and emotions of those listening&#160;</span></li>
   </ul>
@@ -224,7 +228,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 1"><span style="color: #404040; font-size: 32pt; letter-spacing: 1.5pt;"><strong>Our competition </strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Seek feedback</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Reflect on performance</span></li>
     <li><span style="color: #404040; font-size: 18pt; letter-spacing: 1.5pt;">Explore new techniques</span></li>
@@ -234,24 +238,24 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Consistent rehearsal</span>
-      <ul>
+      <ul style="list-style-type: disc">
         <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Practice makes&#160;perfect, so strengthen your familiarity with the presentation</span></li>
       </ul>
     </li>
     <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Refine delivery style</span>
-      <ul>
+      <ul style="list-style-type: disc">
         <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Pacing, tone, and emphasis</span></li>
       </ul>
     </li>
     <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Timing and transitions</span>
-      <ul>
+      <ul style="list-style-type: disc">
         <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Aim for seamless, professional delivery</span></li>
       </ul>
     </li>
     <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Practice audience</span>
-      <ul>
+      <ul style="list-style-type: disc">
         <li><span style="color: #404040; font-size: 12.6pt; letter-spacing: 1.5pt;">Enlist colleagues to listen &amp; provide feedback</span></li>
       </ul>
     </li>

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -56,7 +60,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h3 id="mission-and-goals" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">MISSION AND GOALS </span></h3>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1"><span style="font-size: 10pt;">Describe your company&#39;s mission and goals.</span></p>
 <h3 id="questions-for-consumers" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Questions for consumers</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
@@ -105,7 +109,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="audience-and-market" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Audience and market</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
@@ -154,7 +158,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="questions-to-narrow-down-your-target-audience" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">QUESTIONS TO NARROW DOWN YOUR TARGET AUDIENCE</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 27.05pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
@@ -211,7 +215,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="consumer-perceptions" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Consumer perceptions</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
@@ -260,7 +264,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="quantitative-metrics" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Quantitative metrics</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
@@ -317,7 +321,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 27.05pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
@@ -374,7 +378,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 31.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Step</span></td>
@@ -436,7 +440,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1">&nbsp;</p>
 <footer class="doc-footer">
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
       <td style="width: 99.05pt"><span style="font-size: 8pt;">1/9/23 </span></td>

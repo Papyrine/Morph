@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -35,7 +39,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.16"><span style="font-size: 14pt;"><strong>2. Text Formatting</strong></span></p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">This section shows </span><span style="font-size: 12pt;"><strong>bold</strong></span><span style="font-size: 12pt;">, </span><span style="font-size: 12pt;"><em>italic</em></span><span style="font-size: 12pt;">, and </span><span style="color: #ff0000; font-size: 12pt;">colored</span><span style="font-size: 12pt;"> text.</span></p>
 <p style="line-height: 1.16"><span style="font-size: 14pt;"><strong>3. Key Features</strong></span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 12pt;">Multiple text formatting options</span></li>
   <li><span style="font-size: 12pt;">Table support with borders</span></li>
   <li><span style="font-size: 12pt;">Various page sizes</span></li>

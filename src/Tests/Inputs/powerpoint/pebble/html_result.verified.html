@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -290,7 +294,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.25"><span style="font-size: 24pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 16pt;">Add text, images, art, and videos.</span></li>
     <li><span style="font-size: 16pt;">Add transitions, animations, and motion.</span></li>
     <li><span style="font-size: 16pt;">Save to One Drive, to get to your presentations from your computer, tablet, or phone.</span></li>
@@ -302,7 +306,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.25"><span style="font-size: 24pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 16pt;">Add text, images, art, and videos.</span></li>
     <li><span style="font-size: 16pt;">Add transitions, animations, and motion.</span></li>
     <li><span style="font-size: 16pt;">Save to One Drive, to get to your presentations from your computer, tablet, or phone.</span></li>
@@ -329,7 +333,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.25"><span style="font-size: 24pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 14pt;">Add text, images, art, and videos.</span></li>
     <li><span style="font-size: 14pt;">Add transitions, animations, and motion.</span></li>
     <li><span style="font-size: 14pt;">Save to One Drive, to get to your presentations from your computer, tablet, or phone.</span></li>
@@ -341,7 +345,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.25"><span style="font-size: 24pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 14pt;">Add text, images, art, and videos.</span></li>
     <li><span style="font-size: 14pt;">Add transitions, animations, and motion.</span></li>
     <li><span style="font-size: 14pt;">Save to One Drive, to get to your presentations from your computer, tablet, or phone.</span></li>
@@ -354,7 +358,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.25"><span style="font-size: 24pt;"><strong>Subtitle</strong></span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 14pt;">Add text, images, art, and videos.</span></li>
     <li><span style="font-size: 14pt;">Add transitions, animations, and motion.</span></li>
     <li><span style="font-size: 14pt;">Save to One Drive, to get to your presentations from your computer, tablet, or phone.</span></li>

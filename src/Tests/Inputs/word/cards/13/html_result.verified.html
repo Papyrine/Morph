@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -61,7 +65,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 260.73pt; top: 590.84pt; width: 235.85pt; height: 128.6pt; z-index: -1" viewBox="0 0 235.85 128.6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="235.85" height="128.6" fill="none" stroke="#ffffff" stroke-width="1" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 260.73pt; top: 598.3pt; width: 156.6pt; height: 34.8pt; z-index: -1" viewBox="0 0 156.6 34.8" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="156.6" height="34.8" fill="#ffffff" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 472.46pt; top: 695.9pt; width: 24.05pt; height: 24.05pt; z-index: -1" viewBox="0 0 24.05 24.05" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="24.05" height="24.05" fill="#ffffff" /></svg></div>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 136.8pt">
       <td style="width: 252pt"><span style="color: #194652; font-size: 24pt;"><strong>Fabrikam, Inc. </strong></span><span style="color: #194652; font-size: 24pt;"><strong><em> </em></strong></span><br /><br /><span style="color: #194652; font-size: 8pt;"><strong>Kristel Kangro </strong></span><br /><span style="color: #194652; font-size: 8pt;">1234 East Main Street </span><br /><span style="color: #194652; font-size: 8pt;">Portland, OR 54321 </span><br /><span style="color: #194652; font-size: 8pt;">www.fabrikam.com</span><span style="font-family: Verdana, sans-serif; color: #194652; font-size: 8pt;"> </span><br /><span style="color: #194652; font-size: 8pt;">(415) 555-0123| kristel@fabrikam.com</span><br /></td>

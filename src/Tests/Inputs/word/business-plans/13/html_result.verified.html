@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -73,7 +77,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.1">&nbsp;</p>
 <h1 id="introduction" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Introduction </span></h1>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Creating an extensive business plan is necessary for most businesses. However, creating a more concise business plan offers benefits that outweigh the investment of time:</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;">The process of thinking and writing the plan provides clarity for the business.</span></li>
   <li><span style="color: #595959; font-size: 12pt;">If capital is needed from outside sources, investors want to see a plan that demonstrates a solid understanding and vision for the business.</span></li>
   <li><span style="color: #595959; font-size: 12pt;">The plan will help prioritize tasks that are most important.</span></li>
@@ -96,7 +100,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;"><strong>The Executive Summary should be written last </strong></span><span style="color: #595959; font-size: 12pt;">after the rest of the plan. It is an overview (with a suggested length of no more than one page) of the business, including the problem the business aims to solve, why this business’ solution is different, the business’ ideal customer, and the expected results. The Executive Summary should provide a high-level and optimistic description of the company. </span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">If the business requires outside investment or external investors, include how much is needed, how it will be used, and how it will make the business more profitable. Think of this section as the first thing a potential investor reads, thus, it must capture their interest quickly. </span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Suggested headings to organize this business plan include the following.</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Opportunity</strong></span><span style="color: #595959; font-size: 12pt;">: What problem will the business solve?</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Mission</strong></span><span style="color: #595959; font-size: 12pt;">: What do we do? How do we do it? Whom do we do it for?</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Solution</strong></span><span style="color: #595959; font-size: 12pt;">: How will the service uniquely solve the problem identified?</span></li>
@@ -109,7 +113,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="company-overview" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Company overview </span></h1>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">The Company Overview is a brief summary of the intended business, including what it uniquely delivers, the mission, how it got started, market positioning, operational structure, and financial goals. After reviewing this section, the reader should have a broad understanding of what the business is setting out to do and how it is organized.</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">This section is not meant to be lengthy. Keep it short and succinct. This is a snapshot of the business. The type of business will determine which of the following sections will be required for the business plan. Only include what is needed to properly represent the business and remove anything else.</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Company summary</strong></span><span style="color: #595959; font-size: 12pt;">: This is the introductory section to the company, also known as the ‘elevator pitch’ of what the company stands for and is setting out to do. Include the company’s goals and some of the near-term objectives.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Mission statement</strong></span><span style="color: #595959; font-size: 12pt;">: This is a concise statement on the guiding principles of the company and what the company aims to do for customers, employees, owners, and other stakeholders.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Company history</strong></span><span style="color: #595959; font-size: 12pt;">: This provides the back story, especially the personal story, of why the business was founded. Use this section to give the overarching history of the company from its start and bring the reader up-to-date on where the company is now in terms of sales, profits, key services, and customers.</span></li>
@@ -122,19 +126,19 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">After framing the opportunity, describe the service in detail and how it is the solution the business offers, how it solves that problem, and what benefits customers will receive.</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">This section also describes in more detail how the services will be rendered and the pricing structure (e.g., fixed rate versus an hourly fee). Describe how the company plans to differentiate itself from its competitors. What is the target market and how can the customer capitalize on your unique offering?</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Depending on the type of business, the following sections may or may not be necessary. Only include relevant sections and remove everything else.</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Opportunity</strong></span><span style="color: #595959; font-size: 12pt;">: Describe the current market for the business’ offered service. At a high level, what is the market and who are its participants; is it business customers or consumers; what is the specific geography, etc.? More details on the market will be provided in the next section of the plan. Next, describe the current state of available services and how the business will offer better. Also discuss any additional services the company plans to offer in the future.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Product overview</strong></span><span style="color: #595959; font-size: 12pt;">: Describe the service offerings of the business in as much detail as possible. If it is effective to include pictures, this would be a good place to place them.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Key participants</strong></span><span style="color: #595959; font-size: 12pt;">: Identify any strategic partners in the business, such as critical suppliers, distributors, referral partners, or any others. In some businesses, products are custom-made and any break in their supply will impact the business. There may be key contributors to the services offered, so it is important to identify them.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Pricing</strong></span><span style="color: #595959; font-size: 12pt;">: Provide pricing of the service, gross margin projects, and upgrade paths. Describe why the company’s pricing will be attractive to the target market. Have a gauge on the competitor’s pricing and explain how the business’ service is unique to justify its pricing structure.</span>
-    <ul>
+    <ul style="list-style-type: circle">
       <li><span style="color: #595959; font-size: 12pt;">Note the difference between working hours and billable hours. All working hours are not billable. If the business has employees with differing skill levels (for example, in a law practice, there are associates, paralegals, lawyers, partners, etc.), indicate the various billing rates.</span></li>
     </ul>
   </li>
 </ul>
 <p style="line-height: 1.16"><span style="color: #595959; font-size: 12pt;">Communicate rates clearly to clients and customers. If there are potential additional fees which will be passed on to clients or customers, define and establish them up front.</span></p>
 <h1 id="market-analysis" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Market analysis </span></h1>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Industry type</strong></span><span style="color: #595959; font-size: 12pt;">: Begin with broader descriptions of the market opportunity. For instance, if the intended business is a home-based travel agency, the industry type would be service industry. In this particular market, the global revenues are projected to exceed $183 billion, but the local agency will have a much smaller market. Identify the potential clientele in the company’s local geography that might fit into the target demographic group. This section will also identify any industry regulations and evaluate trends in market growth and stability.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Market segmentation</strong></span><span style="color: #595959; font-size: 12pt;">: This section defines the main market segments and those the business is targeting now. A market segment is a group of people (or other businesses) within the industry; identify smaller segments, such as luxury travel or exotic cruisers. The market can also be segmented by criteria such as quality, price, range of products, geography, demographics, and others. Consider answering questions such as: Is the segment growing, shrinking, or will it be flat for the next few years? What percentage of the market will be reachable? What share of the market is anticipated within the next 2-3 years? Graphics are best used in a section like this to either show growth (line graph) or percentages of markets or groups (pie chart).</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Competition</strong></span><span style="color: #595959; font-size: 12pt;">: All businesses compete in one way or another. It may be with specific, direct competitors or it may be with the way customers have been doing things for a long time. When identifying the competition, identify who else is providing services to solve the same problem the business seeks to address. What are the business’ advantages over these competitors? How will the company’s voice be heard over the noise of competitors? Sometimes a business plan includes a matrix of features and compares how each business offers or does not offer those features. This section reflects how the company’s solution is different and better suited for the identified target market compared to the competition.</span></li>
@@ -144,7 +148,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <tbody>
     <tr style="height: 154.8pt">
       <td style="width: 233.75pt"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Strengths</strong></span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Advantage</span></li>
           <li><span style="font-size: 10pt;">Capabilities</span></li>
           <li><span style="font-size: 10pt;">Assets, people</span></li>
@@ -155,7 +159,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
         </ul>
       </td>
       <td style="width: 233.75pt"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Weaknesses</strong></span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Disadvantages </span></li>
           <li><span style="font-size: 10pt;">Gap in capabilities </span></li>
           <li><span style="font-size: 10pt;">Cash flow </span></li>
@@ -167,7 +171,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
     <tr>
       <td style="width: 233.75pt"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Opportunities</strong></span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Areas to improve</span></li>
           <li><span style="font-size: 10pt;">New segments</span></li>
           <li><span style="font-size: 10pt;">Industry trends</span></li>
@@ -176,7 +180,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
         </ul>
       </td>
       <td style="width: 233.75pt"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Threats</strong></span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Economy movement</span></li>
           <li><span style="font-size: 10pt;">Obstacles faced</span></li>
           <li><span style="font-size: 10pt;">Competitor actions</span></li>
@@ -193,7 +197,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Additionally, it is necessary to outline how the company will continue to develop and maintain a loyal customer base. This section includes management responsibilities. What are the envisioned phases for future growth and the capabilities that need to be in place to realize growth?</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">The operating plan describes how the business works. Depending on the type of business, important elements of this plan should include how the company will bring services to market and how it will support customers. It is the logistics, technology, and basic blocking and tackling of the business.</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Depending on the type of business, the following sections may or may not be necessary. Only include what is needed and remove everything else. Remember: try to keep the business plan as short as possible. Excessive detail in this section could easily make the plan too long.</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Order fulfillment</strong></span><span style="color: #595959; font-size: 12pt;">: Describe the company’s procedures for delivering services to its customers. As a service company, determine how to keep track of the customer base, form of communications, and how best to manage sales and data.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Payment</strong></span><span style="color: #595959; font-size: 12pt;">: Describe the standard payment terms and the payment methods accepted. Describe the pricing plans (one-time service fees, hourly-based fees, markups, and any other fees) and any impact on cash flow.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Technology</strong></span><span style="color: #595959; font-size: 12pt;">: If technology is critical to the business, whether it is part of the service offering or is fundamental to delivering a service, describe the key technologies used that are proprietary. If the business data (company or customer) is at risk, describe the data security plan in place, as well as any backup or recovery in the case of a disaster or outage.</span></li>
@@ -203,10 +207,10 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </ul>
 <h1 id="marketing-and-sales-plan" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Marketing and sales plan </span></h1>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Promoting the business, whether through generating leads or traffic to a website or store, is one of the most important functions of any business. In this section of the plan, provide details of the intended marketing of the business. Describe the key messages and channels used for generating leads and promoting the business. This section should also describe any sales strategy. Depending on the type of business, the following sections may or may not be necessary. Only include what is needed and remove everything else.</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Key messages</strong></span><span style="color: #595959; font-size: 12pt;">: Describe the key messages that will elevate services in the target customers’ eyes. If there are sample collateral or graphical images of some messages, include them.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Marketing activities</strong></span><span style="color: #595959; font-size: 12pt;">: Which of the following promotion options provide the company the best chance of product recognition, qualified leads, store traffic, or appointments?</span>
-    <ul>
+    <ul style="list-style-type: circle">
       <li><span style="color: #595959; font-size: 12pt;">Media advertising (newspaper, magazine, television, radio)</span></li>
       <li><span style="color: #595959; font-size: 12pt;">Direct mail</span></li>
       <li><span style="color: #595959; font-size: 12pt;">Telephone solicitation</span></li>
@@ -221,12 +225,12 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="financial-plan" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Financial plan </span></h1>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Creating a financial plan is where all of the business planning comes together. Up to this point, the target market, target customers, and pricing have all been identified. These items, along with assumptions, will help estimate the company’s sales forecast. The other side of the business will be what expenses are expected. This is important on an ongoing basis to see when the business is profitable. It is also important to know what expenses will need to be funded before customer sales, or the cash they generate, is received.</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">At a minimum, this section should include estimated start-up costs and projected profit and loss, along with a summary of the assumptions being made with these projections. Assumptions should include initial and ongoing sales, along with the timing of these inflows.</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Projected start-up costs</strong></span><span style="color: #595959; font-size: 12pt;">: The table below shows a sample of ongoing and one-time cost items that the business might need in order to open. Many businesses are paid on credit over time and do not have cash coming in immediately. It is necessary to make assumptions about how many months of recurring items, in addition to one-time expenses, to estimate when cash will begin to flow into the company. To begin with, the company will have to fund out of savings or an initial investment. There is a blank table in the Appendix to complete potential start-up cost projections.</span></li>
 </ul>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="margin-left: 18pt; text-indent: -18pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100.26%">
   <thead>
     <tr style="height: 36pt">
       <th colspan="5" style="vertical-align: middle;border-bottom: 0.5pt solid #e9eae6"><h1 id="start-up-costs" style="font-size: 18pt; margin-top: 0pt; line-height: 1.16"><span style="font-weight: normal; font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Start-up costs</span></h1></th>
@@ -420,7 +424,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-left: 18pt; text-indent: -18pt; line-height: 1.1">&nbsp;</p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;"><strong>Projected profit and loss model</strong></span><span style="color: #595959; font-size: 12pt;">: The model below shows a sample of the projections a small business is forecasting for their first 12 months of operations. The top portion of the table shows projected sales and gross profit. This is a good place to begin creating the company’s sales forecast. The next section itemizes the recurring expenses the business is projecting for the same months. These should be consistent with the estimated start-up costs completed in the prior section. At the bottom of this model, it will be possible to see when the company is becoming profitable and what expense items are the most impactful to its profitability. There is a blank table in the Appendix to complete the business’ own start-up cost projections.</span></p>
 <p style="margin-left: 18pt; text-indent: -18pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <thead>
     <tr style="height: 36pt">
       <th colspan="16" style="width: 648pt;border-bottom: 0.5pt solid #e9eae6"><h1 id="start-up-costs-1" style="font-size: 18pt; margin-top: 0pt; line-height: 1.16"><span style="font-weight: normal; font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Start-up costs</span></h1></th>
@@ -840,7 +844,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="margin-left: 18pt; text-indent: -18pt; line-height: 1.1">&nbsp;</p>
 <h1 id="appendix" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Appendix</span></h1>
-<table>
+<table style="width: 100%">
   <thead>
     <tr style="height: 36pt">
       <th colspan="5" style="border-bottom: 0.5pt solid #e9eae6"><h1 id="start-up-costs-2" style="font-size: 18pt; margin-top: 0pt; line-height: 1.16"><span style="font-weight: normal; font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Start-up costs </span></h1></th>
@@ -1031,7 +1035,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="instructions-for-getting-started-with-estimated-start-up-costs" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Instructions for getting started with estimated start-up costs </span></h1>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Determining a business&#39; startup costs is critical to ensure enough cash is available to begin business operations within the budgeted time frame as well as within the cost budget. Startup costs typically fall within two categories: monthly costs and one-time costs. Monthly costs cover costs that occur each month during the startup period, and one-time costs are costs that will be incurred once during the startup period.</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;"><strong>Steps for preparation:</strong></span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Step 1</strong></span><span style="color: #595959; font-size: 12pt;">: Enter the company name and the date this estimate is being prepared.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Step 2</strong></span><span style="color: #595959; font-size: 12pt;">: Enter the number of months and the monthly cost for each cost item that is recurring. For one-time costs only, skip the monthly costs. If there are cost items that have both recurring and one-time amounts, enter those as well. </span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Step 3</strong></span><span style="color: #595959; font-size: 12pt;">: Once all of the costs are entered, review the individual items and total amount to see where the budget can be fine-tuned or move something out into the future when more revenue is coming in.</span></li>
@@ -1039,7 +1043,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16">&nbsp;</p>
-<table>
+<table style="width: 99.54%">
   <thead>
     <tr style="height: 36pt">
       <th colspan="15" style="width: 645pt;border-bottom: 0.5pt solid #e9eae6"><h1 id="start-up-costs-3" style="font-size: 18pt; margin-top: 0pt; line-height: 1.16"><span style="font-weight: normal; font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Start-up costs</span></h1></th>
@@ -1477,7 +1481,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="instructions-for-getting-started-on-profit-loss-projections" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 8pt; line-height: 1.16"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; letter-spacing: 1pt; text-transform: uppercase;">Instructions for getting started on profit &amp; loss projections</span></h1>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;">Completing projections for Profit and Loss of a new company is a good exercise to understand and communicate when the company will begin to break even and see how sales and profits will grow. The top portion of the model to the left, Revenue, is a good way to forecast sales, month by month for the first year. The lower portion then applies estimated expenses for the same period of time to derive the business&#39; profitability.</span></p>
 <p style="line-height: 1.1"><span style="color: #595959; font-size: 12pt;"><strong>Steps for preparation:</strong></span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #595959; font-size: 12pt;"><strong>Step 1</strong></span><span style="color: #595959; font-size: 12pt;">: Enter the company name and the date this projection is being prepared.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Step 2</strong></span><span style="color: #595959; font-size: 12pt;">: For each month, beginning in January or whenever the start is estimated, enter the expected sales to be. This could be for a single service or multiple services. Add lines to this model for additional offerings. From this, subtract any product returns or discounts that are to be tracked (these should be shown as negative numbers, for example, -10). Below Net Sales, enter the Cost of Goods Sold. This refers to the monetized value of the time spent on a particular client.</span></li>
   <li><span style="color: #595959; font-size: 12pt;"><strong>Step 3</strong></span><span style="color: #595959; font-size: 12pt;">: For each month, enter the estimated salaries, marketing, utilities, and other items that are projected.</span></li>
@@ -1485,7 +1489,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </ul>
 <p style="line-height: 1.16">&nbsp;</p>
 <footer class="doc-footer">
-<p style="margin-bottom: 0pt; line-height: 1.1"><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; color: #7f7f7f; font-size: 8pt; letter-spacing: 1.5pt; text-transform: uppercase;"><strong>Sand + Polish Contractors</strong></span> <span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; color: #7f7f7f; font-size: 8pt; letter-spacing: 1.5pt; text-transform: uppercase;"><strong>4</strong></span></p>
+<p style="display: flex; margin-bottom: 0pt; line-height: 1.1"><span><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; color: #7f7f7f; font-size: 8pt; letter-spacing: 1.5pt; text-transform: uppercase;"><strong>Sand + Polish Contractors</strong></span></span><span style="flex: 1; min-width: 8pt"></span><span><span style="font-family: 'Avenir Next LT Pro Demi', sans-serif; color: #7f7f7f; font-size: 8pt; letter-spacing: 1.5pt; text-transform: uppercase;"><strong>4</strong></span></span></p>
 </footer>
 </body>
 </html>

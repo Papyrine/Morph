@@ -47,6 +47,10 @@ static class HtmlExporter
         li { margin: 0; }
         table { border-collapse: collapse; margin: 0 0 8pt; }
         td, th { padding: 4pt 7pt; vertical-align: top; }
+        /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+           the runs and cells. Without this, the browser's th defaults bolded and centred header
+           cells Word renders regular and left-aligned. */
+        th { font-weight: inherit; text-align: inherit; }
         hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
         header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
         footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -124,6 +128,17 @@ static class HtmlExporter
             bodyStyle.Add($"background-color: {pageBackground}");
         }
 
+        // Decorative page borders (w:pgBorders) ride on the body box — the export has no pages,
+        // so one frame around the whole flow stands in for Word's per-page frame. The space
+        // offsets are not modelled here; the body edge is close enough for a reflowing export.
+        if (document.PageSettings.PageBorders is { HasAnyBorder: true } pageBorders)
+        {
+            AddBodyBorder(bodyStyle, "border-top", pageBorders.Top);
+            AddBodyBorder(bodyStyle, "border-right", pageBorders.Right);
+            AddBodyBorder(bodyStyle, "border-bottom", pageBorders.Bottom);
+            AddBodyBorder(bodyStyle, "border-left", pageBorders.Left);
+        }
+
         if (bodyStyle.Count > 0)
         {
             doc.Append(" style=\"").Append(string.Join("; ", bodyStyle)).Append('"');
@@ -196,6 +211,14 @@ static class HtmlExporter
         }
 
         return false;
+    }
+
+    static void AddBodyBorder(List<string> bodyStyle, string property, BorderEdge edge)
+    {
+        if (edge.IsVisible)
+        {
+            bodyStyle.Add($"{property}: {HtmlWriter.BorderCss(edge)}");
+        }
     }
 
     static bool HasContent(HeaderFooterContent? content) =>
@@ -456,12 +479,162 @@ static class HtmlExporter
                 return;
             }
 
+            if (TryWriteTabbedParagraph(paragraph, depth))
+            {
+                return;
+            }
+
             Indent(depth).Append("<p");
             AppendParagraphStyle(paragraph.Properties);
             builder.Append('>');
             AppendInline(paragraph.Runs);
             builder.Append("</p>\n");
         }
+
+        // A paragraph that lays its content out against DECLARED tab stops — a TOC entry with a
+        // dot leader to a right stop, a multi-column row of left stops, a decimal figure column, a
+        // signature underline — reflows as flex boxes sized from the stops, instead of collapsing
+        // every tab to a single space. Only declared stops are handled: a tab riding the default
+        // 36pt grid lands wherever the text before it ends, which a reflowing export cannot know.
+        // Tabs pair with stops in declaration order (the common authoring shape — each of the
+        // corpus fixtures declares exactly one stop per tab); a paragraph with more tabs than
+        // stops, or a mid-line right/decimal stop that is not the final tab, keeps the fallback.
+        bool TryWriteTabbedParagraph(ParagraphElement paragraph, int depth)
+        {
+            if (paragraph.Properties.TabStops.Count == 0)
+            {
+                return false;
+            }
+
+            var stops = new List<TabStop>();
+            foreach (var stop in paragraph.Properties.TabStops)
+            {
+                if (stop.Alignment != TabAlignment.Bar)
+                {
+                    stops.Add(stop);
+                }
+            }
+
+            stops.Sort((a, b) => a.PositionPoints.CompareTo(b.PositionPoints));
+            if (stops.Count == 0)
+            {
+                return false;
+            }
+
+            var segments = new List<List<Run>> {new()};
+            foreach (var run in paragraph.Runs)
+            {
+                if (run.IsTab)
+                {
+                    segments.Add(new());
+                }
+                else if (run.InlineImageData != null || run.InlineShapeGroup != null)
+                {
+                    // Images inside a flex row would become flex items and shift; leave those
+                    // paragraphs on the plain path.
+                    return false;
+                }
+                else
+                {
+                    segments[^1].Add(run);
+                }
+            }
+
+            var tabCount = segments.Count - 1;
+            if (tabCount == 0 || tabCount > stops.Count)
+            {
+                return false;
+            }
+
+            // A right/decimal stop short of the right edge right-justifies the FOLLOWING segment
+            // inside the span up to the stop, consuming two segments at once — only supportable
+            // as the final tab.
+            for (var i = 0; i < tabCount - 1; i++)
+            {
+                if (stops[i].Alignment is TabAlignment.Right or TabAlignment.Decimal &&
+                    stops[i].PositionPoints < pageSettings.ContentWidth - 40)
+                {
+                    return false;
+                }
+            }
+
+            Indent(depth).Append("<p");
+            AppendParagraphStyle(paragraph.Properties, extraStyle: "display: flex");
+            builder.Append('>');
+
+            var start = 0.0;
+            var index = 0;
+            while (index < segments.Count)
+            {
+                var isLastSegment = index == segments.Count - 1;
+                if (isLastSegment)
+                {
+                    builder.Append("<span>");
+                    AppendInline(segments[index]);
+                    builder.Append("</span>");
+                    index++;
+                    continue;
+                }
+
+                var stop = stops[index];
+                if (stop.Alignment is TabAlignment.Right or TabAlignment.Decimal)
+                {
+                    if (stop.PositionPoints >= pageSettings.ContentWidth - 40)
+                    {
+                        // The stop sits at (or near) the content's right edge: a stretching filler
+                        // pushes the rest of the line flush right, carrying the leader as a rule.
+                        builder.Append("<span>");
+                        AppendInline(segments[index]);
+                        builder.Append("</span><span style=\"flex: 1; ").Append(LeaderStyle(stop.Leader)).Append("\"></span>");
+                        start = stop.PositionPoints;
+                        index++;
+                    }
+                    else
+                    {
+                        // Mid-line right/decimal stop (guarded above to be the final tab): the box
+                        // runs from the previous stop to this one, this segment at its left edge
+                        // and the next right-justified at the stop. Decimal alignment degrades to
+                        // right alignment, which coincides with it whenever the column's values
+                        // carry the same number of fraction digits.
+                        builder.Append("<span style=\"display: inline-flex; justify-content: space-between; min-width: ")
+                            .Append(Length(stop.PositionPoints - start))
+                            .Append("\"><span>");
+                        AppendInline(segments[index]);
+                        builder.Append("</span><span>");
+                        AppendInline(segments[index + 1]);
+                        builder.Append("</span></span>");
+                        start = stop.PositionPoints;
+                        index += 2;
+                    }
+                }
+                else
+                {
+                    // Left stop (center approximated as left): this segment's box ends where the
+                    // stop begins, so the next segment starts at the stop's position.
+                    builder.Append("<span style=\"min-width: ")
+                        .Append(Length(stop.PositionPoints - start))
+                        .Append("\">");
+                    AppendInline(segments[index]);
+                    builder.Append("</span>");
+                    start = stop.PositionPoints;
+                    index++;
+                }
+            }
+
+            builder.Append("</p>\n");
+            return true;
+        }
+
+        // The flex filler that stands in for a leader tab: a rule along the gap, lifted to sit
+        // near the baseline. A leaderless tab keeps a minimum gap so the two sides never touch.
+        static string LeaderStyle(TabLeader leader) => leader switch
+        {
+            TabLeader.Dot => "border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.28em",
+            TabLeader.Hyphen => "border-bottom: 1pt dashed currentColor; margin: 0 2pt 0.28em",
+            TabLeader.MiddleDot => "border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.4em",
+            TabLeader.Underscore or TabLeader.Heavy => "border-bottom: 1pt solid currentColor; margin: 0 2pt 0.28em",
+            _ => "min-width: 8pt"
+        };
 
         // Emits a heading paragraph as <hN ...>...</hN> (no indent or trailing newline — the body
         // and cell emit paths bracket it differently).
@@ -739,9 +912,22 @@ static class HtmlExporter
             ParagraphProperties properties,
             double defaultBeforePoints = 0,
             double defaultAfterPoints = defaultSpacingAfterPoints,
-            double? fontSizePoints = null)
+            double? fontSizePoints = null,
+            string? extraStyle = null)
         {
+            // w:bidi — the paragraph reads right-to-left. dir="rtl" flips the default alignment
+            // to the right and lets the browser run its own bidi reordering, matching the raster
+            // backends' right-aligned layout.
+            if (properties.IsRightToLeft)
+            {
+                builder.Append(" dir=\"rtl\"");
+            }
+
             var parts = new List<string>();
+            if (extraStyle != null)
+            {
+                parts.Add(extraStyle);
+            }
 
             // A heading's lifted uniform run size (see AppendHeading) rides on the same attribute.
             if (fontSizePoints is {} fontSize)
@@ -871,6 +1057,18 @@ static class HtmlExporter
                         builder.Append(" start=\"").Append(start.Value).Append('"');
                     }
                 }
+                else
+                {
+                    // The level's own glyph decides the marker. Browsers cycle disc/circle/square by
+                    // nesting depth and then stay on square, so a level-4 "•" renders as a square and
+                    // Word's deeper Wingdings markers (▪, ►) are lost without this. Glyphs with a CSS
+                    // keyword use it; the rest become a string marker of the glyph itself.
+                    var listStyle = BulletStyleType(nodes[index].Paragraph.Properties.Numbering?.Text);
+                    if (listStyle != null)
+                    {
+                        builder.Append(" style=\"list-style-type: ").Append(listStyle).Append('"');
+                    }
+                }
 
                 builder.Append(">\n");
                 while (index < nodes.Count && nodes[index].Ordered == ordered)
@@ -900,6 +1098,19 @@ static class HtmlExporter
         // The CSS list-style-type for an ordered level's counter style, or null for Decimal (the
         // <ol> default, which needs no override). CSS names letter styles "alpha"; the ")" vs "."
         // marker suffix isn't expressible via list-style-type and is left as the CSS default ".".
+        // The CSS marker for an unordered level's bullet glyph. Word's Symbol-font "•" is the
+        // browser's disc and the Courier "o" its circle; everything else — the Wingdings small
+        // square, pointer, and any other glyph the parser surfaced — is emitted as a CSS string
+        // marker so the exact character shows. A trailing space keeps the string marker from
+        // hugging the item text. Null (no numbering info) leaves the browser default.
+        static string? BulletStyleType(string? glyph) => glyph switch
+        {
+            null or "" => null,
+            "•" or "●" => "disc",
+            "o" or "○" => "circle",
+            _ => $"'{glyph} '"
+        };
+
         static string? ListStyleType(ListNumberFormat format) => format switch
         {
             ListNumberFormat.UpperRoman => "upper-roman",
@@ -911,7 +1122,43 @@ static class HtmlExporter
 
         void WriteTable(TableElement table, int depth)
         {
-            Indent(depth).Append("<table>\n");
+            Indent(depth).Append("<table");
+
+            // Table-level geometry the stylesheet can't know: w:jc rides on the margins (a
+            // centred/right table otherwise renders flush left), w:tblInd indents a left table,
+            // and a pct-width table (w:tblW type="pct") fills its container instead of hugging
+            // content. dxa widths stay off the table — their columns already carry cell widths.
+            var tableStyles = new List<string>();
+            var tableProperties = table.Properties;
+            switch (tableProperties.Alignment)
+            {
+                case TextAlignment.Center:
+                    tableStyles.Add("margin-left: auto; margin-right: auto");
+                    break;
+                case TextAlignment.Right:
+                    tableStyles.Add("margin-left: auto");
+                    break;
+                default:
+                    if (Math.Abs(tableProperties.IndentPoints) > 0.01)
+                    {
+                        tableStyles.Add($"margin-left: {Length(tableProperties.IndentPoints)}");
+                    }
+
+                    break;
+            }
+
+            if (tableProperties.FillContainer)
+            {
+                var fraction = tableProperties.PreferredWidthFraction ?? 1.0;
+                tableStyles.Add($"width: {Number(fraction * 100)}%");
+            }
+
+            if (tableStyles.Count > 0)
+            {
+                builder.Append(" style=\"").Append(string.Join("; ", tableStyles)).Append('"');
+            }
+
+            builder.Append(">\n");
 
             var rows = table.Rows;
             var totalColumns = 0;
@@ -1112,7 +1359,7 @@ static class HtmlExporter
             }
         }
 
-        static string BorderCss(BorderEdge edge)
+        public static string BorderCss(BorderEdge edge)
         {
             // CSS has no equivalent for OOXML's thin/thick pairs or the wave styles, so those map
             // to the nearest keyword: any multi-line style becomes `double`, any broken one
@@ -1454,7 +1701,27 @@ static class HtmlExporter
 
             if (properties.Underline)
             {
-                builder.Append("<u>");
+                // w:u/@w:color and w:u/@w:val="double" ride on the <u> as text-decoration
+                // overrides; a plain underline stays a bare tag.
+                if (properties.UnderlineColorHex != null || properties.DoubleUnderline)
+                {
+                    var decorations = new List<string>();
+                    if (properties.DoubleUnderline)
+                    {
+                        decorations.Add("text-decoration-style: double");
+                    }
+
+                    if (properties.UnderlineColorHex != null)
+                    {
+                        decorations.Add($"text-decoration-color: {DocumentExportHelpers.NormalizeColor(properties.UnderlineColorHex)}");
+                    }
+
+                    builder.Append($"""<u style="{string.Join("; ", decorations)}">""");
+                }
+                else
+                {
+                    builder.Append("<u>");
+                }
             }
 
             if (properties.Strikethrough)

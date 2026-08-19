@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -53,7 +57,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="color: #2c3948; font-size: 12pt;">2</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 12pt;">2</span></li>
   </ul>
 </div>
@@ -91,7 +95,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="color: #2c3948; font-size: 12pt;">5</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 12pt;">5</span></li>
   </ul>
 </div>
@@ -115,7 +119,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Voice modulation&#160;is a powerful tool in public speaking. It involves varying pitch, tone, and volume to convey emotion, emphasize points, and maintain interest.&#160;</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Pitch variation</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Tone inflection</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Volume control</span></li>
@@ -126,7 +130,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Effective body language enhances your message, making it more impactful and memorable.</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Meaningful eye contact</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Purposeful gestures</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Maintain good posture</span></li>
@@ -141,7 +145,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 0.9"><span style="color: #2c3948; font-size: 44pt;">Navigating Q&amp;A sessions</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Know your material in advance</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Anticipate common questions</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Rehearse your responses</span></li>
@@ -152,7 +156,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Maintaining composure during the Q&amp;A session is essential for projecting confidence and authority. Consider the following tips for staying composed:</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Stay calm</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Actively listen</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Pause and reflect</span></li>
@@ -182,7 +186,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 28pt"><span style="color: #2c3948; font-size: 44pt;">Dynamic delivery&#160;&#160;</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Learn to infuse energy into your delivery to leave a lasting impression</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">One of the goals of effective communication is to motivate your audience</span></li>
   </ul>
@@ -234,7 +238,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 0.9"><span style="color: #2c3948; font-size: 44pt;">Our competition  </span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Seek feedback</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Reflect on performance</span></li>
     <li><span style="color: #2c3948; font-size: 18pt;">Explore new techniques</span></li>
@@ -244,19 +248,19 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Consistent rehearsal</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Practice makes&#160;perfect, so strengthen your familiarity <br />with the presentation</span></li>
   </ul>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Refine delivery style</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Pacing, tone, and emphasis</span></li>
   </ul>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Timing and transitions</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Aim for seamless, professional delivery</span></li>
   </ul>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1.1"><span style="color: #2c3948; font-size: 18pt;">Practice audience</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="color: #2c3948; font-size: 18pt;">Enlist colleagues to listen &amp; provide feedback</span></li>
   </ul>
 </div>

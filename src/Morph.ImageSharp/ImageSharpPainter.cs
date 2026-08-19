@@ -33,6 +33,14 @@ static class ImageSharpPainter
                 {
                     PaintItem(context, canvas, item);
                 }
+
+                // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+                // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+                if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+                {
+                    var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                    PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges);
+                }
             }
 
             // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
@@ -83,6 +91,22 @@ static class ImageSharpPainter
 
     static void PaintLine(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedLine line)
     {
+        // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
+        foreach (var run in line.Runs)
+        {
+            if (run.Properties.IsRevisionMark)
+            {
+                var barX = P(context, context.PageSettings.MarginLeft / 2);
+                canvas.DrawLine(context.GetPen(Color.Black, P(context, 0.75)), new PointF(barX, P(context, line.Y)), new PointF(barX, P(context, line.Y + line.Height)));
+                break;
+            }
+        }
+
+        PaintLineContent(context, canvas, line);
+    }
+
+    static void PaintLineContent(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedLine line)
+    {
         var ascent = line.Baseline - line.Y;
         foreach (var run in line.Runs)
         {
@@ -110,8 +134,17 @@ static class ImageSharpPainter
             var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
             if (properties.Underline)
             {
+                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
+                var underlineColor = properties.UnderlineColorHex == null
+                    ? color
+                    : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
                 var underlineY = P(context, line.Baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(P(context, run.X), underlineY), new PointF(P(context, run.X + run.Width), underlineY));
+                canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), underlineY), new PointF(P(context, run.X + run.Width), underlineY));
+                if (properties.DoubleUnderline)
+                {
+                    var secondY = underlineY + strokeWidth * 2;
+                    canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), secondY), new PointF(P(context, run.X + run.Width), secondY));
+                }
             }
 
             if (properties.Strikethrough)
@@ -143,21 +176,41 @@ static class ImageSharpPainter
         var (_, ascent) = ImageSharpRenderContext.GetFontMetrics(font);
         var top = P(context, baseline) - ascent * context.Scale;
 
+        // An italic run whose family bundles no italic face resolved a non-italic style
+        // (PickAvailableStyle): Word synthesizes an oblique, so shear the glyphs right about
+        // the baseline by the Word-measured skew. Advances are unchanged, matching Word.
+        var oblique = properties.Italic && !font.IsItalic;
+        if (oblique)
+        {
+            var skew = (float) FontHelpers.SyntheticItalicSkew;
+            var baselineY = P(context, baseline);
+            canvas.Save(new DrawingOptions
+            {
+                Transform = new(new Matrix3x2(1, 0, -skew, 1, skew * baselineY, 0))
+            });
+        }
+
         if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
         {
             canvas.DrawText(Options(context, font, P(context, penX), top), text.AsSpan(), brush, null);
-            return;
+        }
+        else
+        {
+            var trackingPixels = P(context, properties.CharacterSpacingPoints);
+            var x = P(context, penX);
+            for (var i = 0; i < text.Length; i++)
+            {
+                var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+                var piece = text.Substring(i, length);
+                canvas.DrawText(Options(context, font, x, top), piece.AsSpan(), brush, null);
+                x += P(context, context.MeasureText(font, piece)) + trackingPixels;
+                i += length - 1;
+            }
         }
 
-        var trackingPixels = P(context, properties.CharacterSpacingPoints);
-        var x = P(context, penX);
-        for (var i = 0; i < text.Length; i++)
+        if (oblique)
         {
-            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
-            var piece = text.Substring(i, length);
-            canvas.DrawText(Options(context, font, x, top), piece.AsSpan(), brush, null);
-            x += P(context, context.MeasureText(font, piece)) + trackingPixels;
-            i += length - 1;
+            canvas.Restore();
         }
     }
 

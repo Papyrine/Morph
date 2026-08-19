@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -71,14 +75,14 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 5.21pt; top: 710.2pt; width: 31.01pt; height: 31.06pt; z-index: -1" viewBox="0 0 31.01 31.06" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="15.5" cy="15.53" rx="15.5" ry="15.53" fill="#3281a2" stroke="#d55d15" stroke-width="8" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
 <h1 id="new-business" style="font-size: 14pt; margin-top: 24pt; margin-bottom: 6pt; line-height: 1.1"><span style="color: #8f3e0e; letter-spacing: 0.5pt; text-transform: uppercase;">New business </span></h1>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #404040; font-size: 10pt;">Recap of Back to School night – September 9</span></li>
   <li><span style="color: #404040; font-size: 10pt;">Parent Education Programs – Counselors</span></li>
   <li><span style="color: #404040; font-size: 10pt;">Teacher Grants Application Process – School Principal</span></li>
 </ul>
 <h1 id="committee-reports" style="font-size: 14pt; margin-top: 24pt; margin-bottom: 6pt; line-height: 1.1"><span style="color: #8f3e0e; letter-spacing: 0.5pt; text-transform: uppercase;">Committee reports </span></h1>
 <p style="margin-bottom: 6pt; line-height: 1.1"><span style="font-size: 10pt;">Committee reports</span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #404040; font-size: 10pt;">Membership</span></li>
   <li><span style="color: #404040; font-size: 10pt;">Volunteers</span></li>
   <li><span style="color: #404040; font-size: 10pt;">Newsletter</span></li>

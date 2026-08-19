@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -34,7 +38,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 406.61pt; top: 34.16pt; width: 15.25pt; height: 15.25pt; z-index: 1" viewBox="0 0 15.25 15.25" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="15.25" height="15.25" fill="none" stroke="#415b5c" stroke-width="1.5" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 343.53pt; top: 91.92pt; width: 15.25pt; height: 15.25pt; z-index: 1" viewBox="0 0 15.25 15.25" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="15.25" height="15.25" fill="none" stroke="#415b5c" stroke-width="1.5" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 413.93pt; top: 131.76pt; width: 14.03pt; height: 14.03pt; z-index: 1" viewBox="0 0 14.03 14.03" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="14.03" height="14.03" fill="none" stroke="#415b5c" stroke-width="1.5" /></svg></div>
-<table>
+<table style="margin-left: auto; margin-right: auto">
   <tbody>
     <tr style="height: 23.79pt">
       <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom"></td>

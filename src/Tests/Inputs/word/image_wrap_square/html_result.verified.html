@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -40,7 +44,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <li>Links </li>
   <li>Images </li>
   <li>Tables 
-    <ul>
+    <ul style="list-style-type: disc">
       <li>Simple Tables </li>
       <li>Complex Tables </li>
     </ul>
@@ -60,7 +64,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h2 id="tables" style="font-size: 18pt; margin-top: 6pt; margin-bottom: 6pt; line-height: 1.15">Tables</h2>
 <h3 id="simple-tables" style="font-size: 14pt; margin-top: 6pt; margin-bottom: 6pt; line-height: 1.15">Simple Tables</h3>
 <p style="margin-top: 6pt; margin-bottom: 6pt; line-height: 1.15">Simple tables have a uniform number of columns and rows, without any merged cells:</p>
-<table>
+<table style="margin-left: 5.4pt">
   <thead>
     <tr>
       <th style="width: 80.85pt;border: 0.5pt solid #000000"><strong>Screen Reader</strong></th>
@@ -99,7 +103,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 0pt; line-height: 0.5">&nbsp;</p>
 <h3 id="complex-tables" style="font-size: 14pt; margin-top: 6pt; margin-bottom: 6pt; line-height: 1.15">Complex Tables</h3>
 <p style="margin-top: 6pt; margin-bottom: 6pt; line-height: 1.15">The following is a complex table, using merged cells as headers for sections within the table. This can&#39;t be made accessible in all types of documents:</p>
-<table>
+<table style="margin-left: 5.75pt">
   <tbody>
     <tr>
       <td style="width: 90pt;border: 0.5pt solid #000000"></td>

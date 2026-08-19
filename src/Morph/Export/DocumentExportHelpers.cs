@@ -306,6 +306,8 @@ static class DocumentExportHelpers
         left.Bold == right.Bold &&
         left.Italic == right.Italic &&
         left.Underline == right.Underline &&
+        left.UnderlineColorHex == right.UnderlineColorHex &&
+        left.DoubleUnderline == right.DoubleUnderline &&
         left.Strikethrough == right.Strikethrough &&
         left.AllCaps == right.AllCaps &&
         left.SmallCaps == right.SmallCaps &&

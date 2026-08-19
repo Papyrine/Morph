@@ -101,9 +101,9 @@ sealed class SkiaRenderContext(
         resolver.Resolve(fontFamily, bold, italic);
 
     // SKFont is allocated per fragment in the hot path, but is fully determined by
-    // (typeface, scaledSize, embolden) — rendering mode is fixed per context. Cache
+    // (typeface, scaledSize, embolden, oblique) — rendering mode is fixed per context. Cache
     // for the lifetime of the context (one document render); disposed in Dispose.
-    readonly Dictionary<(SKTypeface, float, bool), SKFont> fontCache = [];
+    readonly Dictionary<(SKTypeface, float, bool, bool), SKFont> fontCache = [];
 
     // First-level memo keyed by the raw run request, so the per-fragment path is one
     // dictionary hit — the typeface resolve and the synthetic-embolden weight check
@@ -131,7 +131,8 @@ sealed class SkiaRenderContext(
 
         var scaledSize = fontSize * Scale;
         var embolden = ShouldSyntheticallyEmbolden(typeface, props);
-        var font = GetOrCreateCachedFont(typeface, scaledSize, embolden);
+        var oblique = props.Italic && typeface.FontStyle.Slant == SKFontStyleSlant.Upright;
+        var font = GetOrCreateCachedFont(typeface, scaledSize, embolden, oblique);
         requestFontCache[requestKey] = font;
         return font;
     }
@@ -140,11 +141,11 @@ sealed class SkiaRenderContext(
     /// Creates an SKFont with consistent rendering properties from a typeface and font size.
     /// </summary>
     public SKFont CreateFontFromTypeface(SKTypeface typeface, float fontSizePoints) =>
-        GetOrCreateCachedFont(typeface, fontSizePoints * Scale, embolden: false);
+        GetOrCreateCachedFont(typeface, fontSizePoints * Scale, embolden: false, oblique: false);
 
-    SKFont GetOrCreateCachedFont(SKTypeface typeface, float scaledSize, bool embolden)
+    SKFont GetOrCreateCachedFont(SKTypeface typeface, float scaledSize, bool embolden, bool oblique)
     {
-        var key = (typeface, scaledSize, embolden);
+        var key = (typeface, scaledSize, embolden, oblique);
         if (fontCache.TryGetValue(key, out var cached))
         {
             return cached;
@@ -156,6 +157,17 @@ sealed class SkiaRenderContext(
         {
             font.Embolden = true;
         }
+
+        if (oblique)
+        {
+            // An italic run whose family bundles no italic face: Word synthesizes an oblique.
+            // Negative SkewX slants glyphs to the right about the baseline. The magnitude is
+            // Word-measured (_probe_synitalic, 96pt and 48pt Century Gothic italic, left and
+            // right stem edges regressed): 0.1355 and 0.1371 against 0.0000 on the upright
+            // control — size-independent, and well below Skia's conventional 0.25 fake italic.
+            font.SkewX = -(float) FontHelpers.SyntheticItalicSkew;
+        }
+
         fontCache[key] = font;
         return font;
     }

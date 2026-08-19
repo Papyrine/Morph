@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -59,7 +63,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 321.83pt; top: 547.63pt; width: 207.43pt; height: 217.12pt; z-index: -1" viewBox="0 0 207.43 217.12" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.86,104.64 L105.59,0 L207.43,101.7 L92.04,217.12 L20.13,216.84 L17.4,216.66 L14.78,216.12 L12.29,215.26 L9.97,214.09 L7.83,212.65 L5.89,210.94 L4.19,209.01 L2.75,206.87 L1.58,204.55 L0.72,202.06 L0.18,199.44 L0,196.71 L0.86,104.64 Z" fill="#568269" transform="rotate(45 103.71 108.56)" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 251.93pt; top: 650.94pt; width: 72.29pt; height: 73.76pt; z-index: -1" viewBox="0 0 72.29 73.76" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,73.76 L0,0 L72.29,73.76 L0,73.76 Z" fill="#889b9f" /></svg></div>
 <p style="text-align: right; margin-bottom: 1pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 136.8pt">
       <td style="width: 252pt;vertical-align: middle; text-align: right"><span style="color: #ffffff; font-size: 14pt; text-transform: uppercase;"><strong>Davide Milano </strong></span><br /><br /><br /><span style="color: #ffffff; font-size: 7pt;">333 3rd Ave. </span><br /><span style="color: #ffffff; font-size: 7pt;">Seattle, WA 54321 </span><br /><span style="color: #ffffff; font-size: 7pt;">(417) 555-0123 </span><br /><br /><span style="color: #ffffff; font-size: 7pt;">davide@contoso.com </span><br /><span style="color: #ffffff; font-size: 7pt;">www.contoso.com</span></td>

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,7 +34,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: 'Century Gothic', sans-serif; max-width: 540pt; padding: 31.7pt 36pt 21.6pt; position: relative">
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: -31.75pt; width: 221.8pt; height: 792pt; z-index: -1" viewBox="0 0 221.8 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="221.8" height="792" fill="#d3ccf8" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 175.95pt">
       <td rowspan="4" style="width: 184.6pt"><h1 id="angelica-astrom" style="font-size: 10pt; margin-top: 0pt; line-height: 1.5"><span style="letter-spacing: 1pt; text-transform: uppercase;">ANGELICA ASTROM</span></h1><br /><span style="font-size: 10pt;">(212) 555-0155</span><br /><span style="font-size: 10pt;">angelica@example.com</span><br /><span style="font-size: 10pt;">123 South St.</span><br /><span style="font-size: 10pt;">Manhattan, NY 76543</span></td>
@@ -45,7 +49,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
     <tr style="height: 94.05pt">
       <td style="width: 318.55pt"><h1 id="dear-joseph-price" style="font-size: 10pt; margin-top: 0pt; line-height: 1.5"><span style="letter-spacing: 1pt; text-transform: uppercase;">DEAR JOSEPH PRICE:</span></h1><br /><span style="font-size: 10pt;">I am writing in response to your online advertisement for a UX designer. After reading your job description, I am confident that my skills and my passion for technology are a perfect match for this position. I would bring to your company a broad range of skills, including:</span><br />
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">UI/UX design</span></li>
           <li><span style="font-size: 10pt;">User research</span></li>
           <li><span style="font-size: 10pt;">Usability testing</span></li>

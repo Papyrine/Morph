@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,7 +34,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: 'Century Gothic', sans-serif; max-width: 540pt; padding: 36pt 36pt 21.6pt; position: relative; background-color: #ffffff">
 <div style="position: relative"><svg style="position: absolute; left: 354.95pt; top: -36.15pt; width: 221pt; height: 792pt; z-index: -1" viewBox="0 0 221 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="221" height="792" fill="#d3ebfd" fill-opacity="0.5" /></svg></div>
 <p style="margin-top: 6pt; margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 81pt">
       <td style="width: 319.5pt;border-bottom: 0.5pt solid #043d68"><h1 id="angelica-astrom" style="font-size: 26pt; margin-top: 0pt; margin-bottom: 6pt; line-height: 1.1"><span style="color: #043d68; letter-spacing: 1pt;">Angelica Astrom</span></h1><h2 id="uiux-designer" style="font-size: 12pt; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="color: #043d68; letter-spacing: 1pt; text-transform: uppercase;">UI/UX Designer</span></h2></td>
@@ -44,7 +48,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
     <tr style="height: 418.5pt">
       <td style="width: 319.5pt"><svg width="169" height="1" viewBox="0 0 1609090 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="1609090" y2="0" stroke-linecap="square" stroke="#043d68" stroke-width="0.67" vector-effect="non-scaling-stroke" /></svg><br /><h2 id="dear-joseph-price" style="font-size: 12pt; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="color: #043d68; letter-spacing: 1pt; text-transform: uppercase;">Dear Joseph Price:</span></h2><br /><span style="color: #043d68; font-size: 10pt;">I am writing in response to your online advertisement for a UX designer. After reading your job description, I am confident that my skills and my passion for technology are a perfect match for this position. I would bring to your company a broad range of skills, including:</span><br />
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="color: #043d68; font-size: 10pt;">UI/UX design</span></li>
           <li><span style="color: #043d68; font-size: 10pt;">User research</span></li>
           <li><span style="color: #043d68; font-size: 10pt;">Usability testing</span></li>

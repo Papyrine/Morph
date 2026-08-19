@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -64,7 +68,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 10pt; line-height: 1.15"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAREAAAAeCAMAAAA8a9rdAAAAAXNSR0IArs4c6QAAAAlwSFlzAAASdAAAEnQB3mYfeAAAAHhQTFRFAAAAnNfUntnVntmxhNnVntmOadnVadjVnrWxhLXVnrWOnrVrabXVhLWOT7XVnpFHhJFrT5GxNZHVNZHUhG0kaW0kGm2xaUgkaUgBaUgANUhrT0gkGkiOGkhrAEiOTyQAGiRHACRrNQEANQAAAABHGgAAAAAkAAAApttS0gAAAAJ0Uk5TAGA7IaxgAAABdUlEQVR42u2WYVODMAyGMWSoGw6tjokTZh0l//8fOvBDWjibu24f3F3yhePlJc09bdpmoOHHXZYpBCWiRJSIElEiSkSJKBElcmNEKqoB3sj42sPe0dCWvrQ6dQBNX7CSH4moRZgFf7YIEMnKIn29yM6wGIuQH/vCU+gcJlbd6nu0vIpEpsQbF1S/cTTGsJWJkEWBSCQri1QLzjQiZDGBCFTUNWQgSPaJkO/JYpyIRa5KIrLMyiI8faDglImw2a/u3idiUeoaptmFU/T7ypxSiYhZKx457uTgFUHLNRIlIq8RriBcnxUZfl7UNZGsnlhx24TONCLpXSPPpkQkAkTOyuJExEScCV3D1SV0jdTxPOT6NOuaHVuS95H2EeDZ9cX195HdRUTkU6EZpW72W0P130TYL541g7n+WWPxnatL6xqO9cERtWXoOpwlXOzmwzZKRMoK+XQfKYXxE4hwdSERvbPqLV6JKBElokSUiBJRIv+fiMY8fgBDeYAwI1aYawAAAABJRU5ErkJggg==" width="218" height="24" alt="Logo placeholder" /></p>
 <h1 id="marketing-sales-team" style="font-size: 26pt; line-height: 1"><span style="color: #000942; letter-spacing: 2pt; text-transform: uppercase;">MARKETING &amp; SALES TEAM </span></h1>
 <p style="margin-top: 12pt; margin-bottom: 16pt; line-height: 1"><span style="color: #000942; font-size: 16pt; letter-spacing: 2pt; text-transform: uppercase;">Meeting minutes</span></p>
-<table>
+<table style="margin-left: -4.5pt">
   <tbody>
     <tr style="height: 22.05pt">
       <td style="width: 103.5pt"><span style="font-size: 9pt; text-transform: uppercase;"><strong>LOCATION: </strong></span></td>

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -42,7 +46,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-family: Rockwell, sans-serif; font-size: 28pt; letter-spacing: 4pt; text-transform: uppercase;">Agenda</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Eco-friendly packaging and materials</span></li>
     <li><span style="font-size: 18pt;">Renewable energy technologies and their integration</span></li>
     <li><span style="font-size: 18pt;">Circular economy and product lifecycle management&#160;</span></li>
@@ -76,7 +80,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-family: Rockwell, sans-serif; font-size: 28pt; letter-spacing: 4pt; text-transform: uppercase;">Engaging the audience</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Make eye contact with your audience to create a sense of intimacy and involvement</span></li>
     <li><span style="font-size: 18pt;">Weave relatable stories into your presentation using narratives that&#160;make your message memorable and impactful</span></li>
     <li><span style="font-size: 18pt;">Encourage questions and provide thoughtful responses to&#160;enhance audience participation</span></li>
@@ -101,7 +105,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="font-size: 18pt;">This is a powerful tool in public speaking. It involves varying pitch, tone, and volume to convey emotion, emphasize points, and maintain interest. </span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Pitch variation</span></li>
     <li><span style="font-size: 18pt;">Tone inflection</span></li>
     <li><span style="font-size: 18pt;">Volume control</span></li>
@@ -110,7 +114,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="font-size: 18pt;">Effective body language enhances your message, making it more impactful and memorable.</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Meaningful eye contact</span></li>
     <li><span style="font-size: 18pt;">Purposeful gestures</span></li>
     <li><span style="font-size: 18pt;">Maintain good posture</span></li>
@@ -132,7 +136,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </div>
 <div>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="font-size: 18pt;">Maintaining composure during the Q&amp;A session is essential for projecting confidence and authority. Consider the following tips for staying composed:</span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Stay calm</span></li>
     <li><span style="font-size: 18pt;">Actively listen</span></li>
     <li><span style="font-size: 18pt;">Pause and reflect</span></li>
@@ -205,19 +209,19 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-family: Rockwell, sans-serif; font-size: 28pt; letter-spacing: 4pt; text-transform: uppercase;">Final tips &amp; takeaways</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Consistent rehearsal</span></li>
   </ul>
   <p style="margin-top: 5pt; margin-bottom: 0pt; margin-left: 22.32pt; line-height: 1.25"><span style="font-size: 18pt;"><em>Strengthen your familiarity</em></span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Refine delivery style</span></li>
   </ul>
   <p style="margin-top: 5pt; margin-bottom: 0pt; margin-left: 22.32pt; line-height: 1.25"><span style="font-size: 18pt;"><em>Pacing, tone, and emphasis</em></span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Timing and transitions</span></li>
   </ul>
   <p style="margin-top: 5pt; margin-bottom: 0pt; margin-left: 22.32pt; line-height: 1.25"><span style="font-size: 18pt;"><em>Aim for seamless, professional delivery</em></span></p>
-  <ul>
+  <ul style="list-style-type: ' '">
     <li><span style="font-size: 18pt;">Practice audience</span></li>
   </ul>
   <p style="margin-top: 5pt; margin-bottom: 0pt; margin-left: 22.32pt; line-height: 1.25"><span style="font-size: 18pt;"><em>Enlist colleagues to listen &amp; provide feedback</em></span></p>

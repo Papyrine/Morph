@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -39,7 +43,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="experience" style="font-size: 12pt; margin-top: 8pt; margin-bottom: 6pt; line-height: 1"><span style="font-family: 'Arial Black', sans-serif; letter-spacing: -0.5pt;">Experience</span></h1>
 <p style="margin-bottom: 6pt; line-height: 0.7"><svg width="624" height="1" viewBox="0 0 5943600 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="5943600" y2="0" stroke-linecap="square" stroke="#000000" stroke-width="1.33" vector-effect="non-scaling-stroke" /></svg></p>
 <h2 id="fluerogendata-scientist-20xx-20xx" style="font-size: 10pt; margin-top: 9pt; margin-bottom: 5pt; line-height: 1"><span style="color: #191919;">FlueroGen&#160;|&#160;Data Scientist&#160;</span> <span style="color: #191919;">20XX – 20XX</span></h2>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Increased customer retention by 20%</span></li>
   <li><span style="font-size: 10pt;">Reduced fraudulent charges by 50%</span></li>
   <li><span style="font-size: 10pt;">Improved product recommendations and increased sales</span></li>
@@ -47,7 +51,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </ul>
 <p style="margin-bottom: 6pt; line-height: 1">&nbsp;</p>
 <h2 id="pantheros-labs-junior-data-scientist-20xx-20xx" style="font-size: 10pt; margin-top: 9pt; margin-bottom: 5pt; line-height: 1"><span style="color: #191919;">Pantheros Labs&#160;| Junior Data Scientist</span> <span style="color: #191919;">20XX – 20XX</span></h2>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Cleaned and preprocessed data</span></li>
   <li><span style="font-size: 10pt;">Conducted statistical tests for decision support</span></li>
   <li><span style="font-size: 10pt;">Developed machine learning models for prediction</span></li>
@@ -64,7 +68,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 6pt; line-height: 1">&nbsp;</p>
 <h1 id="skills-abilities" style="font-size: 12pt; margin-top: 8pt; margin-bottom: 6pt; line-height: 1"><span style="font-family: 'Arial Black', sans-serif; letter-spacing: -0.5pt;">Skills &amp; abilities</span></h1>
 <p style="margin-bottom: 6pt; line-height: 0.7"><svg width="624" height="1" viewBox="0 0 5943600 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="5943600" y2="0" stroke-linecap="square" stroke="#000000" stroke-width="1.33" vector-effect="non-scaling-stroke" /></svg></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="font-size: 10pt;">Management</span></li>
   <li><span style="font-size: 10pt;">Problem solving</span></li>
   <li><span style="font-size: 10pt;">Communication</span></li>

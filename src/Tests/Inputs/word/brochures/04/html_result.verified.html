@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -34,7 +38,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: -22pt; top: 0pt; width: 276.63pt; height: 344.98pt; z-index: -1" viewBox="0 0 276.63 344.98" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M276.63,0 L0,0 L0,344.98 L276.63,306.07 L276.63,0 Z" fill="#c6c2b9" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: -22pt; top: 0pt; width: 276.66pt; height: 335.97pt; z-index: -1" viewBox="0 0 276.66 335.97" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M276.66,0 L0,0 L0,335.97 L276.66,297.07 L276.66,0 Z" fill="#77a6ae" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="margin-left: -22.5pt">
   <tbody>
     <tr style="height: 268.5pt">
       <td style="width: 262.35pt; text-align: center"><br /><span style="color: #0e3a53; font-size: 18pt; letter-spacing: 0.2pt;"><strong><em>“Add a quote here to highlight your business, provide feedback from happy customers, or share your company’s motto, tagline, or mission.”</em></strong></span></td>
@@ -74,7 +78,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="margin-left: 5.5pt">
   <tbody>
     <tr style="height: 21.6pt">
       <td style="width: 234.35pt;vertical-align: middle"></td>
@@ -85,7 +89,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
     <tr style="height: 268.5pt">
       <td rowspan="2" style="width: 234.35pt"><h1 id="headline-1-1" style="font-size: 24pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1"><span style="color: #0e3a53;">Headline 1</span></h1><span style="color: #0e3a53;">At any time, you can easily change the text of any section in this document by simply clicking and typing. The template is prepared so that formatting stays in tact with the new information you include.</span><br /><span style="color: #0e3a53;">To update formatting, from the Home tab, you can use the Quick Styles gallery for the built in styles. You can also format text directly by using the other controls on the Home tab.</span><br /><span style="color: #0e3a53;">Add some bullets to your text too!</span>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="color: #0e3a53;">Bullet Point Line N1</span></li>
           <li><span style="color: #0e3a53;">Bullet Point Line N2</span></li>
           <li><span style="color: #0e3a53;">Bullet Point Line N3</span></li>

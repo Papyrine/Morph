@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -98,7 +102,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 188.94pt; top: 583.54pt; width: 12.35pt; height: 12.53pt; z-index: -1" viewBox="0 0 12.35 12.53" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="6.18" cy="6.27" rx="6.18" ry="6.27" fill="#e7e6e6" fill-opacity="0.39" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 416.72pt; top: 171.79pt; width: 159.28pt; height: 570.44pt; z-index: -1" viewBox="0 0 159.28 570.44" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="159.28" height="570.44" fill="#492a86" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="margin-left: auto; margin-right: auto; width: 100%">
   <tbody>
     <tr style="height: 94.5pt">
       <td style="width: 36pt"></td>
@@ -206,7 +210,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 417.74pt; top: 596.65pt; width: 125.34pt; height: 119.79pt; z-index: -1" viewBox="0 0 125.34 119.79" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="125.34" height="119.79" fill="#492a86" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 0pt; top: -0pt; width: 575.96pt; height: 38.5pt; z-index: -1" viewBox="0 0 575.96 38.5" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L575.96,0 L575.96,38.5 L0,38.5 Z" fill="#ffffff" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="margin-left: auto; margin-right: auto; width: 97.94%">
   <tbody>
     <tr style="height: 27pt">
       <td style="width: 9pt"></td>

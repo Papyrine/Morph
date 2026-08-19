@@ -22,13 +22,17 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
 </style>
 </head>
 <body style="font-family: 'Trebuchet MS', sans-serif; max-width: 504pt; padding: 54pt 54pt 36pt">
-<table>
+<table style="width: 100%">
   <thead>
     <tr>
       <th style="width: 72pt"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAABHCAMAAAAa0aSMAAAAAXNSR0IArs4c6QAAAAlwSFlzAAAXEQAAFxEByibzPwAAAMNQTFRFAAAAP5/fNarfAF/fAF/UOqniOqnkO6jjOqnjO6fjAF/UAGHUAGHUAGHTAGHTAGLUAGHTAGHUAF/RAF/TAF/XAGHUAGHUAF/TAF/TAGHUAF/SAF/UAF/UAGHTAGHUAGHUAGHTAF/SAF/SOaniOafhOqnhOajiOajjN6ffAGHUOqjjAGHVOqnjOajjAF/POqfhP6/fOqnkAGLVOKniOanjAF/SOaXfOajiOajiOanjOqnjOqrkOqnjOqjjOqnjOanjOKjhW49RfgAAAEF0Uk5TAAgYCBi/jzjfQDCv//fnj8/XOFgg779wQJdoYEi3x9+AeCjHeGhYlyCnt5+n7xBgEIeHSIBQKFDPn9cwr+f/93CuDbSGAAACvElEQVR42sXYSVciQRAE4ABaQahGFBHcUGeccd9YBKSp5v//qrlUXybgFRk9781370vyIosMbHTo7IYIDrzdT2xy7uzSk/BxdeXN8i+ADVJnd4Eg83a/AHbSc3YtBGtv9wSwtyNn107C11+5N1tVAXblBJfh48q3t/stRoWdIdj3dguAdZ3gqBa+Hnu7xgfYcapE9pgia3AAdtJ2ghsET97uE6zWcYLTMpH9roC1nKBXLNKlENl8CTZyiosykb0To8IeEdx7uz0xKqz9Fj6febv8QYwKG5SJ7LsYFXaIYM/bZXJUeJFSZPXnTY9K2gyf13NvNxajwvplIrsAaaau1CJdeLsGL9Lk2il6CUXWoM5RGTpJt4jsq7ebgDw6yXOZyM75V7l1kutikU48Ue6EqdMMykR2DTJ0klER2ca/et6colODHtnXKoi20dMfCDLxeWNJ6szOUXjIvdULiHixXAGQL5bVBzartaUjMqjm4p3A+s5mCugDucd2HfMipYEIdwK7NC3SIrLK2ZLXQcTsHuMvlZX+vOl/QG5A1nINpmd3WAN4IOLzxpKeoY0ja7EG07N7gY3mYg3GakeGNo7M1DuBTQ2LlM3VGoyd7tTG6QNZYDfNndo4YSBUg0WcxY/I7Zbq88aSNN7GbZcZarCIW8MiJUvheVP+iJwiIovUYAbdSBsnD+QONh3DIiX7hjtBze4j4qp5pAYzaEXaOGkg7yBidgeAPpAMgsPtbVzcp/68cXZtizT+h2gMyfn2Ni5uHX/e9Oz2AcgDaVQguuRFCn0gdcha1MbtiuuQCTR8RHRhMovUYGp2n2E0pztBlrSpjdMGskY5fVqk0kD2oOEjYgS7MdVgumnRxkGQ0fOmuwptnGJJNZiuGdo4SUY1mO4stHGKJd0JuiRtJ1C9UA2mu51CVs3pTvg/Ps3P2x/eBwHoUPLS6gAAAABJRU5ErkJggg==" width="86" height="45" alt="Accent icon" /></th>
@@ -54,7 +58,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 6pt; margin-bottom: 6pt; line-height: 1.2"><span style="color: #322d27;"><strong>[Add your text here.]</strong></span></p>
 <h1 id="announcements" style="font-size: 14pt; margin-top: 22pt; margin-bottom: 10pt; line-height: 1"><span style="color: #0061d4;">Announcements</span></h1>
 <p style="margin-top: 6pt; margin-bottom: 6pt; line-height: 1.2"><span style="color: #322d27;"><strong>[Add your text here.]</strong></span></p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 46.8pt">
       <td style="width: 201.4pt;vertical-align: bottom;border-bottom: 0.5pt solid #6d7f91"></td>

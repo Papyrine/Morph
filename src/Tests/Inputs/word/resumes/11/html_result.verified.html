@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -33,7 +37,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
 <p style="margin-bottom: 6pt; margin-left: -36pt; line-height: 1.3"></p>
-<p style="margin-bottom: 0pt; line-height: 1.3"><span style="font-size: 10pt;">chanchals@example.com</span> <span style="font-size: 10pt;">(718) 555–0100</span> <span style="font-size: 10pt;">LinkedIn profile</span></p>
+<p style="display: flex; margin-bottom: 0pt; line-height: 1.3"><span style="min-width: 36pt"><span style="font-size: 10pt;">chanchals@example.com</span></span><span style="min-width: 180pt"><span style="font-size: 10pt;">(718) 555–0100</span></span><span><span style="font-size: 10pt;">LinkedIn profile</span></span></p>
 <p style="margin-bottom: 0pt; margin-left: -36pt; line-height: 1.3"><svg width="720" height="1" viewBox="0 0 6858000 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="6858000" y2="0" stroke-linecap="square" stroke="#000000" stroke-width="0.67" vector-effect="non-scaling-stroke" /></svg></p>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
@@ -62,8 +66,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
 <h2 id="skills" style="font-size: 12pt; margin-top: 0pt; line-height: 1"><span style="letter-spacing: 1pt; text-transform: uppercase;">SKILLS</span></h2>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
-<p style="margin-bottom: 0pt; line-height: 1.3"><span style="font-size: 10pt;">Project management</span> <span style="font-size: 10pt;">Data analysis</span> <span style="font-size: 10pt;">Communication</span></p>
-<p style="margin-bottom: 0pt; line-height: 1.3"><span style="font-size: 10pt;">Organization</span> <span style="font-size: 10pt;">Problem-solving </span> <span style="font-size: 10pt;">Management</span></p>
+<p style="display: flex; margin-bottom: 0pt; line-height: 1.3"><span style="min-width: 36pt"><span style="font-size: 10pt;">Project management</span></span><span style="min-width: 180pt"><span style="font-size: 10pt;">Data analysis</span></span><span><span style="font-size: 10pt;">Communication</span></span></p>
+<p style="display: flex; margin-bottom: 0pt; line-height: 1.3"><span style="min-width: 36pt"><span style="font-size: 10pt;">Organization</span></span><span style="min-width: 180pt"><span style="font-size: 10pt;">Problem-solving </span></span><span><span style="font-size: 10pt;">Management</span></span></p>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
 </body>
 </html>

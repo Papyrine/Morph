@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -29,7 +33,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: Arial, sans-serif; max-width: 421.2pt; padding: 54pt 36pt 18pt 154.8pt">
 <header class="doc-header">
-<table>
+<table style="margin-left: auto; width: 128.2%">
   <tbody>
     <tr style="height: 36pt">
       <td style="width: 104.4pt;vertical-align: bottom"><span style="font-size: 18pt;">05.26.2023</span></td>
@@ -47,7 +51,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="margin-bottom: 19pt; line-height: 1">&nbsp;</p>
 </header>
-<table>
+<table style="margin-left: -117pt; width: 128.2%">
   <tbody>
     <tr style="height: 45pt">
       <td style="width: 104.4pt;vertical-align: bottom"><span style="font-size: 18pt;">05.26.2023 </span></td>
@@ -67,7 +71,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-bottom: 9pt; line-height: 1.4">&nbsp;</p>
-<table>
+<table style="margin-left: auto; width: 128.2%">
   <tbody>
     <tr style="height: 66.3pt">
       <td style="width: 400pt"><span style="color: #ea1b1b; font-size: 18pt; letter-spacing: 0.5pt; text-transform: uppercase;"><strong>Caneiro Group </strong></span><br /><br /><span style="color: #ea1b1b; font-size: 10pt;"><strong>Tel</strong></span><span style="color: #ea1b1b; font-size: 10pt;"> 123-456-7890</span><br /><span style="color: #ea1b1b; font-size: 10pt;"><strong>Fax</strong></span><span style="color: #ea1b1b; font-size: 10pt;"> 123-456-7891</span></td>
@@ -83,7 +87,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="margin-bottom: 9pt; line-height: 1.4">&nbsp;</p>
 <footer class="doc-footer">
-<table>
+<table style="margin-left: auto; width: 128.2%">
   <tbody>
     <tr style="height: 4.3pt">
       <td style="width: 540pt;background-color: #000000"></td>

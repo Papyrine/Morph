@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -42,7 +46,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #7ca655; font-size: 9pt;">(718) 555–0100 </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #7ca655; font-size: 9pt;">yuuri@example.com </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
-<table>
+<table style="width: 100.28%">
   <tbody>
     <tr style="height: 108pt">
       <td colspan="5" style="vertical-align: bottom"><h1 id="yuuri-tanaka" style="font-size: 48pt; margin-top: 1.35pt; margin-bottom: 12pt; line-height: 0.9"><span style="font-family: 'Franklin Gothic Medium', sans-serif; color: #231f20;">Yuuri Tanaka</span></h1></td>
@@ -77,7 +81,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #aa5881; font-size: 9pt;">(718) 555–0100 </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #aa5881; font-size: 9pt;">yuuri@example.com </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
-<table>
+<table style="width: 100.28%">
   <tbody>
     <tr style="height: 108pt">
       <td colspan="5" style="vertical-align: bottom"><h1 id="yuuri-tanaka-1" style="font-size: 48pt; margin-top: 1.35pt; margin-bottom: 12pt; line-height: 0.9"><span style="font-family: 'Franklin Gothic Medium', sans-serif; color: #231f20;">Yuuri Tanaka</span></h1></td>
@@ -112,7 +116,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #808080; font-size: 9pt;">(718) 555–0100 </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #808080; font-size: 9pt;">yuuri@example.com </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
-<table>
+<table style="width: 100.28%">
   <tbody>
     <tr style="height: 108pt">
       <td colspan="5" style="vertical-align: bottom"><h1 id="yuuri-tanaka-2" style="font-size: 48pt; margin-top: 1.35pt; margin-bottom: 12pt; line-height: 0.9"><span style="font-family: 'Franklin Gothic Medium', sans-serif; color: #231f20;">Yuuri Tanaka</span></h1></td>
