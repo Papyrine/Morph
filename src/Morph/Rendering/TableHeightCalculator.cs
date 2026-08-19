@@ -383,6 +383,30 @@ static class TableHeightCalculator
                 height += lineHeight;
             }
 
+            // Paragraph borders (w:pBdr) reserve their rules and w:space in the cell exactly as the
+            // placement path draws them (Fragmenter's cell border run): the group's first member
+            // charges the top edge, its last the bottom, mirroring SharesBorderGroupWith so a run of
+            // same-bordered paragraphs pays each edge once. Measure and placement must agree or the
+            // row under-sizes and the content overflows it.
+            if (props.Borders is {HasAnyBorder: true} paragraphBorders)
+            {
+                var opensGroup = i == 0 ||
+                                 separatedFromPrevious.Contains(i) ||
+                                 !paragraphs[i - 1].Properties.SharesBorderGroupWith(props);
+                if (opensGroup && BorderStroke.Draws(paragraphBorders.Top))
+                {
+                    height += (float) (BorderStroke.Extent(paragraphBorders.Top.Style, paragraphBorders.Top.WidthPoints) + props.BorderTopSpacePoints);
+                }
+
+                var closesGroup = i == paragraphs.Count - 1 ||
+                                  separatedFromPrevious.Contains(i + 1) ||
+                                  !props.SharesBorderGroupWith(paragraphs[i + 1].Properties);
+                if (closesGroup && BorderStroke.Draws(paragraphBorders.Bottom))
+                {
+                    height += (float) (BorderStroke.Extent(paragraphBorders.Bottom.Style, paragraphBorders.Bottom.WidthPoints) + props.BorderBottomSpacePoints);
+                }
+            }
+
             // The LAST paragraph's after-spacing stacks on the cell's bottom margin, same as
             // inter-paragraph spacing: Word sizes the row as margins + lines + full after
             // (measured on table_default_style: tblCellMar 3pt/3pt, Normal 8pt-after, one

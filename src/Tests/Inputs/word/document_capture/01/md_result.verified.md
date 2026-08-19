@@ -1,6 +1,6 @@
-﻿Footnote ref [^1]
+﻿Footnote ref[^1]
 
-Endnote ref [^2]
+Endnote ref[^2]
 
 *x*
 

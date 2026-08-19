@@ -341,6 +341,16 @@ static class HtmlExporter
         int imageIndex;
         int shapeIndex;
 
+        // The paragraph siblings either side of the one currently being written, where the caller
+        // knows them (the body walk and cell content). Word draws ONE box around a run of
+        // consecutive paragraphs sharing the same w:pBdr (SharesBorderGroupWith), so the border
+        // emission needs to know whether its neighbours continue the group: a non-first member
+        // trades its top edge for the w:between rule and a non-last member drops its bottom edge —
+        // without this, cover-letters/10's three Heading2 address lines each drew the style's top
+        // rule where Word rules once, above the group.
+        ParagraphProperties? borderGroupPrevious;
+        ParagraphProperties? borderGroupNext;
+
         readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
         readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
         readonly List<(int Number, string Text)> notes = [];
@@ -394,6 +404,9 @@ static class HtmlExporter
                 // that never shows between them (letters/10's 18pt-after lines render tight).
                 // The raster path already honours it; the export drops the margin-bottom on a
                 // contextual paragraph whose next sibling shares its style.
+                borderGroupPrevious = index > 0 ? (elements[index - 1] as ParagraphElement)?.Properties : null;
+                borderGroupNext = index + 1 < elements.Count ? (elements[index + 1] as ParagraphElement)?.Properties : null;
+
                 if (element is ParagraphElement {Properties.ContextualSpacing: true} contextual &&
                     index + 1 < elements.Count &&
                     elements[index + 1] is ParagraphElement next &&
@@ -407,10 +420,14 @@ static class HtmlExporter
                         IsCollapsedCellMark = contextual.IsCollapsedCellMark,
                         IsSectionBreakMark = contextual.IsSectionBreakMark
                     }, depth);
+                    borderGroupPrevious = null;
+                    borderGroupNext = null;
                     continue;
                 }
 
                 WriteBlock(element, depth);
+                borderGroupPrevious = null;
+                borderGroupNext = null;
             }
         }
 
@@ -618,7 +635,15 @@ static class HtmlExporter
             Indent(depth).Append("<p");
             AppendParagraphStyle(paragraph.Properties, extraStyle: "display: flex");
             builder.Append('>');
+            WriteTabbedSegments(segments, stops);
+            builder.Append("</p>\n");
+            return true;
+        }
 
+        // The flex-item spans of a tabbed paragraph, written into an already-opened
+        // `display: flex` element (a <p> or a heading).
+        void WriteTabbedSegments(List<List<Run>> segments, List<TabStop> stops, bool inHeading = false, double inheritedFontSizePoints = defaultBodyFontSizePoints)
+        {
             var start = 0.0;
             var index = 0;
             while (index < segments.Count)
@@ -627,7 +652,7 @@ static class HtmlExporter
                 if (isLastSegment)
                 {
                     builder.Append("<span>");
-                    AppendInline(segments[index]);
+                    AppendInline(segments[index], inHeading, inheritedFontSizePoints);
                     builder.Append("</span>");
                     index++;
                     continue;
@@ -641,7 +666,7 @@ static class HtmlExporter
                         // The stop sits at (or near) the content's right edge: a stretching filler
                         // pushes the rest of the line flush right, carrying the leader as a rule.
                         builder.Append("<span>");
-                        AppendInline(segments[index]);
+                        AppendInline(segments[index], inHeading, inheritedFontSizePoints);
                         builder.Append("</span><span style=\"flex: 1; ").Append(LeaderStyle(stop.Leader)).Append("\"></span>");
                         start = stop.PositionPoints;
                         index++;
@@ -656,9 +681,9 @@ static class HtmlExporter
                         builder.Append("<span style=\"display: inline-flex; justify-content: space-between; min-width: ")
                             .Append(Length(stop.PositionPoints - start))
                             .Append("\"><span>");
-                        AppendInline(segments[index]);
+                        AppendInline(segments[index], inHeading, inheritedFontSizePoints);
                         builder.Append("</span><span>");
-                        AppendInline(segments[index + 1]);
+                        AppendInline(segments[index + 1], inHeading, inheritedFontSizePoints);
                         builder.Append("</span></span>");
                         start = stop.PositionPoints;
                         index += 2;
@@ -671,15 +696,75 @@ static class HtmlExporter
                     builder.Append("<span style=\"min-width: ")
                         .Append(Length(stop.PositionPoints - start))
                         .Append("\">");
-                    AppendInline(segments[index]);
+                    AppendInline(segments[index], inHeading, inheritedFontSizePoints);
                     builder.Append("</span>");
                     start = stop.PositionPoints;
                     index++;
                 }
             }
+        }
 
-            builder.Append("</p>\n");
-            return true;
+        // The tab-stop layout plan a HEADING can reuse: the sorted non-bar stops and per-tab run
+        // segments, under the same restrictions the paragraph flex path applies — declared stops
+        // only, tabs within the stop count, no inline images, mid-line right/decimal only as the
+        // final tab. Null when the heading should keep the plain path. resumes/18's Experience
+        // rows are the shape that demanded it: Heading2 declares a left stop and authors
+        // "20XX – 20XX<tab>Senior Editor…", which collapsed to a single space-joined line.
+        (List<List<Run>> Segments, List<TabStop> Stops)? PlanTabbedHeading(ParagraphElement paragraph)
+        {
+            if (paragraph.Properties.TabStops.Count == 0)
+            {
+                return null;
+            }
+
+            var stops = new List<TabStop>();
+            foreach (var stop in paragraph.Properties.TabStops)
+            {
+                if (stop.Alignment != TabAlignment.Bar)
+                {
+                    stops.Add(stop);
+                }
+            }
+
+            stops.Sort((a, b) => a.PositionPoints.CompareTo(b.PositionPoints));
+            if (stops.Count == 0)
+            {
+                return null;
+            }
+
+            var segments = new List<List<Run>> {new()};
+            foreach (var run in paragraph.Runs)
+            {
+                if (run.IsTab)
+                {
+                    segments.Add(new());
+                }
+                else if (run.InlineImageData != null || run.InlineShapeGroup != null)
+                {
+                    return null;
+                }
+                else
+                {
+                    segments[^1].Add(run);
+                }
+            }
+
+            var tabCount = segments.Count - 1;
+            if (tabCount == 0 || tabCount > stops.Count)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < tabCount - 1; i++)
+            {
+                if (stops[i].Alignment is TabAlignment.Right or TabAlignment.Decimal &&
+                    stops[i].PositionPoints < pageSettings.ContentWidth - 40)
+                {
+                    return null;
+                }
+            }
+
+            return (segments, stops);
         }
 
         // The flex filler that stands in for a leader tab: a rule along the gap, lifted to sit
@@ -716,9 +801,26 @@ static class HtmlExporter
                 ? uniformSize
                 : null;
 
-            AppendParagraphStyle(paragraph.Properties, defaultHeadingSpacingBeforePoints, defaultHeadingSpacingAfterPoints, liftedSize);
+            // A heading laying its content out against declared tab stops (resumes/18's
+            // "date<tab>title" Experience rows) takes the same flex form the paragraph path uses,
+            // inside the heading tag so it keeps its semantics and stylesheet weight.
+            var tabPlan = PlanTabbedHeading(paragraph);
+            AppendParagraphStyle(
+                paragraph.Properties,
+                defaultHeadingSpacingBeforePoints,
+                defaultHeadingSpacingAfterPoints,
+                liftedSize,
+                tabPlan != null ? "display: flex" : null);
             builder.Append('>');
-            AppendInline(paragraph.Runs, inHeading: true, effectiveSize);
+            if (tabPlan is { } plan)
+            {
+                WriteTabbedSegments(plan.Segments, plan.Stops, inHeading: true, effectiveSize);
+            }
+            else
+            {
+                AppendInline(paragraph.Runs, inHeading: true, effectiveSize);
+            }
+
             builder.Append($"</h{level}>");
         }
 
@@ -1076,23 +1178,7 @@ static class HtmlExporter
                 parts.Add($"line-height: {Length(properties.LineSpacingPoints)}");
             }
 
-            // Paragraph borders (w:pBdr) — each bordered paragraph renders as its own box. Word merges
-            // consecutive same-bordered paragraphs into one box; this independent-box form is the
-            // close-enough reflowable approximation.
-            if (properties.Borders is {HasAnyBorder: true} borders)
-            {
-                AppendBorders(parts, borders);
-
-                // w:pBdr/@w:space is the gap between each border and the text → CSS padding.
-                var top = properties.BorderTopSpacePoints;
-                var right = properties.BorderRightSpacePoints;
-                var bottom = properties.BorderBottomSpacePoints;
-                var left = properties.BorderLeftSpacePoints;
-                if (top > 0 || right > 0 || bottom > 0 || left > 0)
-                {
-                    parts.Add($"padding: {BoxShorthand(top, right, bottom, left)}");
-                }
-            }
+            AppendParagraphBorderStyle(parts, properties);
 
             // Paragraph shading (w:shd, or a block background-color in HTML input) — Word draws a
             // full-width band behind the paragraph; the <p>'s own background box is the reflowable
@@ -1106,6 +1192,50 @@ static class HtmlExporter
             if (parts.Count > 0)
             {
                 builder.Append(" style=\"").Append(string.Join("; ", parts)).Append('"');
+            }
+        }
+
+        // Paragraph borders (w:pBdr). Word draws ONE box around a run of consecutive paragraphs
+        // sharing the same w:pBdr (SharesBorderGroupWith), so where the neighbours are known
+        // (borderGroupPrevious/Next) the group law applies per member: the top edge belongs to the
+        // group's first member (a later member shows the w:between rule there, or nothing) and the
+        // bottom edge to its last. Members still render as separate CSS boxes, so a full four-sided
+        // group keeps small side gaps at member boundaries — the reflowable residue.
+        void AppendParagraphBorderStyle(List<string> parts, ParagraphProperties properties)
+        {
+            if (properties.Borders is not {HasAnyBorder: true} borders)
+            {
+                return;
+            }
+
+            var joinsPrevious = borderGroupPrevious != null && borderGroupPrevious.SharesBorderGroupWith(properties);
+            var joinsNext = borderGroupNext != null && properties.SharesBorderGroupWith(borderGroupNext);
+            var top = properties.BorderTopSpacePoints;
+            var bottom = properties.BorderBottomSpacePoints;
+            var effective = borders;
+            if (joinsPrevious)
+            {
+                effective = effective with {Top = properties.BorderBetween};
+                top = properties.BorderBetween.IsVisible ? properties.BorderBetweenSpacePoints : 0;
+            }
+
+            if (joinsNext)
+            {
+                effective = effective with {Bottom = BorderEdge.None};
+                bottom = 0;
+            }
+
+            if (effective.HasAnyBorder)
+            {
+                AppendBorders(parts, effective);
+            }
+
+            // w:pBdr/@w:space is the gap between each border and the text → CSS padding.
+            var right = properties.BorderRightSpacePoints;
+            var left = properties.BorderLeftSpacePoints;
+            if (top > 0 || right > 0 || bottom > 0 || left > 0)
+            {
+                parts.Add($"padding: {BoxShorthand(top, right, bottom, left)}");
             }
         }
 
@@ -1660,11 +1790,16 @@ static class HtmlExporter
                         var level = DocumentExportHelpers.TryGetHeadingLevel(paragraph.Properties);
                         if (level != null)
                         {
+                            borderGroupPrevious = index > 0 ? (content[index - 1] as ParagraphElement)?.Properties : null;
+                            borderGroupNext = index + 1 < content.Count ? (content[index + 1] as ParagraphElement)?.Properties : null;
                             AppendHeading(paragraph, level.Value);
+                            borderGroupPrevious = null;
+                            borderGroupNext = null;
                             separatorPending = false;
                         }
                         else if (paragraph.Properties.SpacingBeforePoints > 0.01 ||
-                                 paragraph.Properties.SpacingAfterPoints > 0.01)
+                                 paragraph.Properties.SpacingAfterPoints > 0.01 ||
+                                 paragraph.Properties.Borders is {HasAnyBorder: true})
                         {
                             // A cell paragraph that declares before/after spacing renders as a real
                             // block so the spacing survives — the <br /> join below drops it, which
@@ -1672,12 +1807,22 @@ static class HtmlExporter
                             // blocks with w:spacing (rather than empty paragraphs) read as one
                             // run-together mass (todo #35: cover-letters/05..12, letters/12,
                             // newsletters/03). Margins are explicit because the stylesheet's p rule
-                            // would otherwise donate its own 8pt to every such paragraph.
+                            // would otherwise donate its own 8pt to every such paragraph. A bordered
+                            // cell paragraph takes the same block form so its w:pBdr rules survive
+                            // (resumes/08's separator rules above EXPERIENCE/ABOUT ME), with the
+                            // border-group law applied against its paragraph siblings.
+                            var cellBlockParts = new List<string>
+                            {
+                                $"margin: {Length(paragraph.Properties.SpacingBeforePoints)} 0 {Length(paragraph.Properties.SpacingAfterPoints)}"
+                            };
+                            borderGroupPrevious = index > 0 ? (content[index - 1] as ParagraphElement)?.Properties : null;
+                            borderGroupNext = index + 1 < content.Count ? (content[index + 1] as ParagraphElement)?.Properties : null;
+                            AppendParagraphBorderStyle(cellBlockParts, paragraph.Properties);
+                            borderGroupPrevious = null;
+                            borderGroupNext = null;
                             builder
-                                .Append("<p style=\"margin: ")
-                                .Append(Length(paragraph.Properties.SpacingBeforePoints))
-                                .Append(" 0 ")
-                                .Append(Length(paragraph.Properties.SpacingAfterPoints))
+                                .Append("<p style=\"")
+                                .Append(string.Join("; ", cellBlockParts))
                                 .Append("\">");
                             AppendInline(paragraph.Runs);
                             builder.Append("</p>");

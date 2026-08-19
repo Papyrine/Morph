@@ -167,7 +167,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | **Inventory** |  | $0 | $0 | $0 |
 | **Cash-On-Hand (Working Capital)** |  | $0 | $1,000 | $1,000 |
 | **Miscellaneous** |  | $0 | $2,000 | $2,000 |
-| **ESTIMATED START-UP BUDGET** |  |  |  | **$26,472** |
+| ESTIMATED START-UP BUDGET |  |  |  | **$26,472** |
 | **\*Based on part-time employees. This may change once you hit your growth benchmark.** |  |  |  |  |
 
 **Projected profit and loss model:** The model below shows a sample of the projections a small business is forecasting for their first 12 months of operations. The top portion of the table shows projected sales and gross profit. This is a good place to begin creating the company’s sales forecast. The next section itemizes the recurring expenses the business is projecting for the same months. These should be consistent with the estimated start-up costs completed in the prior section. At the bottom of this model, it will be possible to see when the company is becoming profitable and what expense items are the most impactful to its profitability. There is a blank table in the Appendix to complete the business’ own start-up cost projections.
@@ -175,7 +175,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | START-UP COSTS |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Your Office-Based Agency** |  |  |  |  |  |  | January 1, 20XX |  |  |  |  |  |  |  |
-| **REVENUE** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** |  | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
+| REVENUE | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** |  | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
 | **Estimated Sales** | $5,000 | $13,000 | $16,000 | $7,000 | $14,500 | $16,400 |  | $22,500 | $23,125 | $24,549 | $22,000 | $25,000 | $27,349 | $216,423 |
 | **Less Sales Returns & Discounts** | $0 | ($350) | $0 | ($206) | ($234) | $0 |  | $0 | ($280) | ($1,200) | ($1,600) | $0 | ($2,400) | ($6,270) |
 | **Service Revenue** | $0 | $0 | $0 | $0 | $0 | $250 |  | $350 | $100 | $0 | $0 | $1,245 | $1,360 | $3,305 |
@@ -183,7 +183,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | **Net Sales** | $5,000 | $12,650 | $16,000 | $6,794 | $14,266 | $16,650 |  | $22,850 | $24,445 | $23,349 | $20,400 | $26,245 | $26,309 | $214,958 |
 | **Cost of Goods Sold\*** | $2,000 | $5,200 | $6,400 | $2,800 | $5,800 | $6,560 |  | $9,000 | $9,250 | $9,820 | $8,800 | $10,000 | $10,940 | $86,569 |
 | **Gross Profit** | $3,000 | $7,450 | $9,600 | $3,994 | $8,466 | $10,090 |  | $13,850 | $15,195 | $13,529 | $11,600 | $16,245 | $15,369 | $128,389 |
-| **EXPENSES** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** |  | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
+| EXPENSES | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** |  | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
 | **Salaries & Wages** | $2,500 | $2,500 | $3,500 | $5,000 | $5,000 | $5,000 |  | $8,000 | $9,000 | $9,000 | $9,000 | $9,000 | $9,000 | $76,500 |
 | **Marketing/Advertising** | $400 | $450 | $450 | $450 | $900 | $900 |  | $900 | $900 | $900 | $900 | $1,200 | $1,200 | $9,550 |
 | **Sales Commissions** | $250 | $650 | $800 | $350 | $725 | $820 |  | $1,125 | $1,156 | $1,227 | $1,100 | $1,250 | $1,367 | $10,821 |
@@ -198,7 +198,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | **Total Expenses** | $6,525 | $5,575 | $6,775 | $8,525 | $8,650 | $9,295 |  | $12,100 | $13,131 | $13,827 | $13,825 | $13,575 | $13,942 | $125,746 |
 | **Income Before Taxes** | ($3,525) | $1,875 | $2,825 | ($4,531) | ($184) | $795 |  | $1,750 | $2,064 | ($298) | ($2,225) | $2,670 | $1,427 | $2,643 |
 | **Income Tax Expense** | ($529) | $281 | $424 | ($680) | ($28) | $119 |  | $263 | $310 | ($45) | ($334) | $401 | $214 | $396 |
-| **NET INCOME** | **($2,996)** | **$1,594** | **$2,401** | **($3,851)** | **($156)** | **$676** |  | **$1,488** | **$1,754** | **($253)** | **($1,891)** | **$2,270** | **$1,213** | **$2,246** |
+| NET INCOME | **($2,996)** | **$1,594** | **$2,401** | **($3,851)** | **($156)** | **$676** |  | **$1,488** | **$1,754** | **($253)** | **($1,891)** | **$2,270** | **$1,213** | **$2,246** |
 | **\*In the service industry, Cost of Goods Sold is the monetized value of the time spent on the client.** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 # Appendix
@@ -207,7 +207,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | --- | --- |
 | Office-Based Agency | Date |
 
-| **COST ITEMS** | **MONTHS** | **COST/ MONTH** | **ONE-TIME COST** | **TOTAL COST** |
+| COST ITEMS | MONTHS | COST/ MONTH | ONE-TIME COST | TOTAL COST |
 | --- | --- | --- | --- | --- |
 | Advertising/Marketing |  |  |  |  |
 | Employee Salaries |  |  |  |  |
@@ -247,15 +247,15 @@ Determining a business' startup costs is critical to ensure enough cash is avail
 | START-UP COSTS |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Office-Based Agency** |  |  |  |  |  |  |  | Date |  |  |  |  |  |  |
-| **REVENUE** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
+| REVENUE | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
 | **Estimated Product Sales** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Less Sales Returns & Discounts** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Service Revenue** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Other Revenue** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **Net Sales** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **Cost of Goods Sold** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **Gross Profit** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **EXPENSES** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
+| Net Sales |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Cost of Goods Sold |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Gross Profit |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| EXPENSES | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** |  | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |
 | **Salaries & Wages** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Marketing/Advertising** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Sales Commissions** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
@@ -269,10 +269,10 @@ Determining a business' startup costs is critical to ensure enough cash is avail
 | **Office Supplies** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Interest Expense** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **Other 1** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **Total Expenses** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **Income Before Taxes** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **Income Tax Expense** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| **NET INCOME** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Total Expenses |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Income Before Taxes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| Income Tax Expense |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| NET INCOME |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | **\* In the service industry, Cost of Goods Sold is the monetized value of the time spent on the client.** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 ## Instructions for Getting Started on Profit & Loss Projections 

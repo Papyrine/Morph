@@ -66,8 +66,8 @@ yourname@example.com  •  (123) 456‐7890 •  www.example.com
 | Skills  |
 | --- |
 
-**Programming languages:** **List programming languages or skills**
+**Programming languages:** List programming languages or skills
 
-**Computer software/ frameworks:**  **Microsoft office, Adobe Photoshop, Maple, Git, React, jQuery**
+**Computer software/ frameworks:**  Microsoft office, Adobe Photoshop, Maple, Git, React, jQuery
 
-**Languages:**  **Portuguese (advanced), French (advanced)**
+**Languages:**  Portuguese (advanced), French (advanced)

@@ -81,7 +81,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "APPENDIX\nSTART-UP COSTS\nOffice-Based Agency Date\nCOST ITEMS MONTHS COST/ MONTH ONE-TIME COST TOTAL\nCOST\nAdvertising/Marketing\nEmployee Salaries\nEmployee Payroll Taxes and Benefits\nRent/Lease Payments/Utilities\nPostage/Shipping\nCommunication/Telephone\nComputer Equipment\nComputer Software\nInsurance\nInterest Expense\nBank Service Charges\nSupplies\nTravel & Entertainment\nEquipment\nFurniture & Fixtures\nLeasehold Improvements\nSecurity Deposit(s)\nBusiness Licenses/Permits/Fees\nProfessional Services - Legal, Accounting\nConsultant(s)\nInventory\nCash-On-Hand (Working Capital)\nMiscellaneous\nESTIMATED START-UP BUDGET"
+        "Text": "APPENDIX\nSTART-UP COSTS\nOffice-Based Agency Date\nCOST ITEMS MONTHS COST/ MONTH ONE-TIME COST TOTAL COST\nAdvertising/Marketing\nEmployee Salaries\nEmployee Payroll Taxes and Benefits\nRent/Lease Payments/Utilities\nPostage/Shipping\nCommunication/Telephone\nComputer Equipment\nComputer Software\nInsurance\nInterest Expense\nBank Service Charges\nSupplies\nTravel & Entertainment\nEquipment\nFurniture & Fixtures\nLeasehold Improvements\nSecurity Deposit(s)\nBusiness Licenses/Permits/Fees\nProfessional Services - Legal, Accounting\nConsultant(s)\nInventory\nCash-On-Hand (Working Capital)\nMiscellaneous\nESTIMATED START-UP BUDGET"
       },
       {
         "Width": 612.0,
@@ -111,8 +111,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5089,
-      "Ssim": 0.6996,
+      "ErrorMetric": 0.5108,
+      "Ssim": 0.6918,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
@@ -199,16 +199,16 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.1151,
-      "Ssim": 0.7797,
+      "ErrorMetric": 0.1149,
+      "Ssim": 0.7799,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.238,
-      "Ssim": 0.5668,
+      "ErrorMetric": 0.2379,
+      "Ssim": 0.5667,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
@@ -231,8 +231,8 @@
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.1107,
-      "Ssim": 0.7559,
+      "ErrorMetric": 0.1098,
+      "Ssim": 0.7581,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "pdf_result#page_0017.verified.png",
       "ReceivedFile": "pdf_result#page_0017.received.png"

@@ -189,7 +189,7 @@ At a minimum, this section should include estimated start-up costs and projected
 | Total Expenses | $6,525 | $5,575 | $6,775 | $8,525 | $8,650 | $9,295 | $12,100 |  | $13,131 | $13,827 | $13,825 | $13,575 | $13,942 | $125,746 |  |
 | Income Before Taxes | ($3,525) | $1,875 | $2,825 | ($4,531) | ($184) | $795 | $1,750 |  | $2,064 | ($298) | ($2,225) | $2,670 | $1,427 | $2,643 |  |
 | Income Tax Expense | ($529) | $281 | $424 | ($680) | ($28) | $119 | $263 |  | $310 | ($45) | ($334) | $401 | $214 | $396 |  |
-| **NET INCOME** | **($2,996)** | **$1,594** | **$2,401** | **($3,851)** | **($156)** | **$676** | **$1,488** |  | **$1,754** | **($253)** | **($1,891)** | **$2,270** | **$1,213** | **$2,246** |  |
+| **NET INCOME** | ($2,996) | $1,594 | $2,401 | ($3,851) | ($156) | $676 | $1,488 |  | $1,754 | ($253) | ($1,891) | $2,270 | **$**1,213 | $2,246 |  |
 | **\*In the service industry, Cost of Goods Sold is the monetized value of the time spent on the client.** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 # Appendix
@@ -236,7 +236,7 @@ Determining a business' startup costs is critical to ensure enough cash is avail
 | Start-up costs |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Your Home-Based Agency** |  |  |  |  |  |  |  |  |  |  | **January 1, 20XX** |  |  |  |
-| **REVENUE** | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |  |
+| REVENUE | **JAN** | **FEB** | **MAR** | **APR** | **MAY** | **JUN** | **JUL** | **AUG** | **SEP** | **OCT** | **NOV** | **DEC** | **YTD** |  |
 | Estimated Product Sales |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | Less Sales Returns & Discounts |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | Service Revenue |  |  |  |  |  |  |  |  |  |  |  |  |  |  |

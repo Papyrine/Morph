@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Footnote ref 1\nEndnote ref 1\nx\nFootnotes\n1. This is a footnote.\nEndnotes\n1. This is an endnote."
+        "Text": "Footnote ref1\nEndnote refi\nx\nFootnotes\n1. This is a footnote.\nEndnotes\ni. This is an endnote."
       }
     ]
   },

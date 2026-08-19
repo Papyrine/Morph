@@ -99,6 +99,13 @@ sealed class ParsedDocument
     public IReadOnlyList<Endnote> Endnotes { get; init; } = [];
 
     /// <summary>
+    /// The endnote counter style (settings.xml <c>w:endnotePr/w:numFmt</c>). Word's default is
+    /// lowercase roman — an undeclared endnote mark reads "i", not "1" — where footnotes default
+    /// to decimal. Drives the notes appendix numbering so it matches the reference marks.
+    /// </summary>
+    public ListNumberFormat EndnoteNumberFormat { get; init; } = ListNumberFormat.LowerRoman;
+
+    /// <summary>
     /// Embedded OLE objects (w:object / o:OLEObject) referenced from the document body.
     /// Renderer does not yet draw the embedded payload — these are captured for inspection only.
     /// </summary>
