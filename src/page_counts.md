@@ -143,6 +143,23 @@ washes and regressions revert, but the measured knowledge is kept.
 
 ## Pass 4 experiment ledger (newest first)
 
+- **22 — exact row fit landed for plain content rows, narrowing experiment 12's "load-bearing"
+  verdict (2026-08-19).** Found off-corpus: a 1216-row summary table over 52 landscape pages (COMPASS
+  stocktake report, via Parchment's resolved PAGEREFs), where `HasSpaceFor`'s 2% slack is 9.6pt
+  against a 17.7pt single-line row. A boundary row 1.5pt past the margin was kept where Word moves
+  it — one extra row on roughly every fourth page, a full page lost by the table's end, and every
+  PAGEREF below the table one page low (Word-COM verified: du4 55 vs engine 54, total 64 vs 63).
+  The narrowing exp 12 never tried: strict fit ONLY in `PlaceTableRowByRow`'s per-row decision, for
+  rows without a vertical merge; the whole-table move, the merge-head exemption and every paragraph
+  decision keep the slack. Corpus page counts: **330/330, zero changes** — while re-running exp 12's
+  global zero now costs 3 (business-plans/15 19→21, newsletters/09 4→5, resumes/06 3→6; down from
+  net −6, the height-model fixes since have absorbed the rest). The engine now reproduces Word's
+  row-by-row page boundaries on the stocktake table exactly; the earlier strict-fit revert
+  ("costing business-plans/15 a page") predated PlaceSplitRow's split-acceptance test, which is what
+  turns the pathological boundary splits back into whole-row moves. Word's exact fit
+  (`widorp.cxx:134,157`) is now complied with for the row case; the slack survives elsewhere as
+  exp 12 found, compensating residual over-measurement. Pinned by
+  `CanonicalFragmenterTests.A_row_barely_past_the_bottom_margin_moves_rather_than_overhanging`.
 - **20 — the table-style `w:pPr` cascade step: landed, and it unblocked the docDefaults `w:line`
   cascade.** ECMA-376 resolves a paragraph inside a table as `docDefaults → table style w:pPr →
   paragraph style chain → direct w:pPr`; Morph skipped the middle step entirely. `resumes/07`'s
@@ -309,7 +326,7 @@ references are evidence for the behaviour, not code to port (LO is MPL-2.0). Ver
 | compatibilityMode default 12 | `SettingsTable.cxx:633` | exp 5 |
 | mode ≤14 flag set (MinLineHeightByFly, TabOverMargin, AddFrameOffsets, HiddenParaMark) | `SettingsTable.cxx:685-691`, `itrform2.cxx:358`; UseFormerTextWrapping `txtfly.cxx:863` | not modelled (image_wrap_square) |
 | Header content pushes body down | `PropertyMap.cxx:1149` | exp 9 (verified, deferred) |
-| Exact bottom-of-page fit, no slack | `widorp.cxx:134,157` | exp 12 (load-bearing, restored) |
+| Exact bottom-of-page fit, no slack | `widorp.cxx:134,157` | exp 12 (load-bearing, restored); exp 22 (complied for plain table rows) |
 | Trailing blanks overhang the wrap boundary | `DomainMapper.cxx:142`, `guess.cxx:99-116`, `portxt.cxx:256` | exp 10 (verified, reverted) |
 | Break type comes from the following section's `sectPr` | ECMA-376 §17.6.22 | exp 11 (built, reverted) |
 | Omitted `docDefaults` `w:sz` is 20 half-points, not the built-in | ECMA-376 §17.3.2.38; Word probe | exp 17 (landed) |
