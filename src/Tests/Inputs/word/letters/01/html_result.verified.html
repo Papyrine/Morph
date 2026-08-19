@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -33,23 +37,23 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
 </header>
 <p style="margin-right: 30pt; line-height: 1.16">&nbsp;</p>
-<p style="text-align: right; line-height: 1.16">&nbsp;</p>
-<p style="text-align: right; line-height: 1.16">&nbsp;</p>
+<p style="text-align: right; margin-bottom: 0pt; line-height: 1.16">&nbsp;</p>
+<p style="text-align: right; margin-bottom: 0pt; line-height: 1.16">&nbsp;</p>
 <p style="text-align: right; line-height: 1.16">&nbsp;</p>
 <table>
   <tbody>
     <tr>
-      <td style="width: 134.75pt"><br /><strong>Your Logo Here</strong><br /></td>
-      <td style="width: 369.25pt; text-align: right"><strong>Date</strong><br /><br /><strong>Your Name</strong><br /><strong>Your Address</strong><br /><strong>Your Phone Number</strong><br /></td>
+      <td style="width: 134.75pt"><p style="margin: 0pt 0 8pt"><strong>Your Logo Here</strong></p></td>
+      <td style="width: 369.25pt; text-align: right"><p style="margin: 0pt 0 8pt"><strong>Date</strong></p><p style="margin: 0pt 0 8pt"><strong>Your Name</strong></p><p style="margin: 0pt 0 8pt"><strong>Your Address</strong></p><p style="margin: 0pt 0 8pt"><strong>Your Phone Number</strong></p></td>
     </tr>
   </tbody>
 </table>
-<p style="text-align: right; line-height: 1.16">&nbsp;</p>
-<p style="line-height: 1.16">&nbsp;</p>
-<p style="line-height: 1.16">&nbsp;</p>
-<p style="line-height: 1.16"><strong>Recipient Name</strong></p>
-<p style="line-height: 1.16">Recipient Company Name</p>
-<p style="line-height: 1.16">Recipient Address</p>
+<p style="text-align: right; margin-bottom: 0pt; line-height: 1.16">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.16">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.16">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><strong>Recipient Name</strong></p>
+<p style="margin-bottom: 0pt; line-height: 1.16">Recipient Company Name</p>
+<p style="margin-bottom: 0pt; line-height: 1.16">Recipient Address</p>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16">Dear Recipient Name,</p>
 <p style="line-height: 1.16">I am pleased to write this letter of recommendation for Abigail Jackson. I have had the pleasure of working with Ms. Jackson for a long time, during which she consistently demonstrated exceptional professionalism and dedication in data analysis.</p>

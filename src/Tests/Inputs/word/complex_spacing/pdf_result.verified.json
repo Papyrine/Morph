@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1. Left and Right Indentation\nNo indentation - This paragraph has no left or right indentation applied.\nLeft indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.\nRight indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.\nBoth left (1440) and right (1440) indent - This paragraph is\nindented from both margins, creating a narrower text column.\n2. First Line Indentation\nFirst line indent 720 twips - This paragraph has its first line indented further than\nsubsequent lines. This is commonly used in traditional book formatting and formal\ndocuments.\nFirst line indent 1440 twips - A larger first line indent. The first line starts\nfurther in, while all subsequent lines in this paragraph begin at the normal left margin.\n3. Hanging Indentation\nHanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the\nmargin but all subsequent lines are indented. This is commonly used for bibliographies and\nlists.\nHanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines\nare indented an additional 1440 twips from there, creating a pronounced hanging\neffect.\n4. Mirror Indents\nMirror indents enabled with left 1440 - In a two-sided document, this\nbecomes the inside margin indent, mirroring on odd/even pages.\n5. Spacing Before\nNo spacing before - This paragraph has the default spacing.\nSpacing before 240 twips (12pt) - This paragraph has additional space above it.\nSpacing before 480 twips (24pt) - Even more space above this paragraph.\n6. Spacing After\nSpacing after 240 twips (12pt) - This paragraph has space below it."
+        "Text": "1. Left and Right Indentation\nNo indentation - This paragraph has no left or right indentation applied.\nLeft indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.\nRight indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.\nBoth left (1440) and right (1440) indent - This paragraph is\nindented from both margins, creating a narrower text column.\n2. First Line Indentation\nFirst line indent 720 twips - This paragraph has its first line indented further than\nsubsequent lines. This is commonly used in traditional book formatting and formal\ndocuments.\nFirst line indent 1440 twips - A larger first line indent. The first line starts\nfurther in, while all subsequent lines in this paragraph begin at the normal left margin.\n3. Hanging Indentation\nHanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the\nmargin but all subsequent lines are indented. This is commonly used for bibliographies and\nlists.\nHanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines\nare indented an additional 1440 twips from there, creating a pronounced hanging\neffect.\n4. Mirror Indents\nMirror indents enabled with left 1440 - In a two-sided document, this becomes the inside\nmargin indent, mirroring on odd/even pages.\n5. Spacing Before\nNo spacing before - This paragraph has the default spacing.\nSpacing before 240 twips (12pt) - This paragraph has additional space above it.\nSpacing before 480 twips (24pt) - Even more space above this paragraph.\n6. Spacing After\nSpacing after 240 twips (12pt) - This paragraph has space below it."
       },
       {
         "Width": 612.0,
@@ -21,7 +21,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Exactly 600 twips - Very generous fixed spacing of 600 twips.\n13. Line Spacing: Multiple\nMultiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing.\nThe value is specified as 240 * 2.5 = 600 twips.\nMultiple 3.0 - Triple line spacing (720 twips).\n14. Contextual Spacing (Same Style)\nFirst paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear\nbelow.\nSecond paragraph with same style, spacing after 240 - contextual spacing OFF. Space will\nappear below.\nThird paragraph with style, spacing after 240 - contextual spacing ON. No space between\nsame-style paragraphs.\nFourth paragraph with style, spacing after 240 - contextual spacing ON.\n15. Widow/Orphan Control\nWidow/Orphan control ON - This paragraph has widow and orphan control enabled, which\nprevents single lines from being left alone at the top or bottom of a page. This is a longer\nparagraph to demonstrate the effect when it wraps across pages.\nWidow/Orphan control OFF - This paragraph has widow and orphan control disabled.\nSingle lines may be left alone at page boundaries. This is a longer paragraph to demonstrate\nthe effect when it wraps across pages.\n16. Keep With Next\nKeep with next paragraph ENABLED - This paragraph will stay with the following paragraph\non the same page.\nThis paragraph is kept with the previous one.\nKeep with next paragraph DISABLED - Normal behavior.\n17. Keep Lines Together"
+        "Text": "Exactly 600 twips - Very generous fixed spacing of 600 twips.\n13. Line Spacing: Multiple\nMultiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing.\nThe value is specified as 240 * 2.5 = 600 twips.\nMultiple 3.0 - Triple line spacing (720 twips).\n14. Contextual Spacing (Same Style)\nFirst paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear\nbelow.\nSecond paragraph with same style, spacing after 240 - contextual spacing OFF. Space will\nappear below.\nThird paragraph with style, spacing after 240 - contextual spacing ON. No space between\nsame-style paragraphs.\nFourth paragraph with style, spacing after 240 - contextual spacing ON.\n15. Widow/Orphan Control\nWidow/Orphan control ON - This paragraph has widow and orphan control enabled, which\nprevents single lines from being left alone at the top or bottom of a page. This is a longer\nparagraph to demonstrate the effect when it wraps across pages.\nWidow/Orphan control OFF - This paragraph has widow and orphan control disabled.\nSingle lines may be left alone at page boundaries. This is a longer paragraph to\ndemonstrate the effect when it wraps across pages.\n16. Keep With Next\nKeep with next paragraph ENABLED - This paragraph will stay with the following paragraph\non the same page.\nThis paragraph is kept with the previous one.\nKeep with next paragraph DISABLED - Normal behavior.\n17. Keep Lines Together"
       },
       {
         "Width": 612.0,
@@ -31,41 +31,41 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Page break before ENABLED - This paragraph will always start on a new page.\nNormal paragraph after the forced page break.\n19. Suppress Line Numbers\nSuppress line numbers ENABLED - This paragraph will not show line numbers even if the\ndocument has line numbering enabled.\nSuppress line numbers DISABLED - This paragraph will show line numbers if document line\nnumbering is enabled.\n20. Hyphenation\nHyphenation allowed - This paragraph with extraordinarily long words like 'characterization'\nand 'incomprehensibility' can be hyphenated at line breaks.\nHyphenation suppressed - This paragraph with extraordinarily long words like\n'characterization' and 'incomprehensibility' will not be hyphenated at line breaks.\n21. Complex Combinations\nCombination 1: Left indent 720, right indent 720, first line 360, before\n240, after 240, double spacing, keep with next, suppress line numbers.\nThis follows the previous paragraph with keep-with-next.\nCombination 2: Hanging indent 1440, spacing before 360, exactly 400 twips line spacing, keep lines\ntogether, widow/orphan control, don't hyphenate."
+        "Text": "Page break before ENABLED - This paragraph will always start on a new page.\nNormal paragraph after the forced page break.\n19. Suppress Line Numbers\nSuppress line numbers ENABLED - This paragraph will not show line numbers even if the\ndocument has line numbering enabled.\nSuppress line numbers DISABLED - This paragraph will show line numbers if document line\nnumbering is enabled.\n20. Hyphenation\nHyphenation allowed - This paragraph with extraordinarily long words like\n'characterization' and 'incomprehensibility' can be hyphenated at line breaks.\nHyphenation suppressed - This paragraph with extraordinarily long words like\n'characterization' and 'incomprehensibility' will not be hyphenated at line breaks.\n21. Complex Combinations\nCombination 1: Left indent 720, right indent 720, first line 360, before\n240, after 240, double spacing, keep with next, suppress line numbers.\nThis follows the previous paragraph with keep-with-next.\nCombination 2: Hanging indent 1440, spacing before 360, exactly 400 twips line spacing, keep lines\ntogether, widow/orphan control, don't hyphenate."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Combination 3: Left 1440, right 720, hanging 720, before 480, after 120, at\nleast 350 twips, contextual spacing, page break before.\nCombination 4: Mirror indents, left 2160, first line 720, before\n600, after 600, multiple 2.0 spacing, keep with next, keep lines\ntogether, suppress line numbers, don't hyphenate.\nFollowing paragraph for keep-with-next demonstration.\nCombination 5: Both left and right 1800, hanging 900, before\n200, after 400, exactly 550 twips, widow/orphan OFF,\ncontextual spacing."
+        "Text": "Combination 3: Left 1440, right 720, hanging 720, before 480, after 120, at\nleast 350 twips, contextual spacing, page break before.\nCombination 4: Mirror indents, left 2160, first line 720, before 600, after 600,\nmultiple 2.0 spacing, keep with next, keep lines together, suppress line numbers, don't\nhyphenate.\nFollowing paragraph for keep-with-next demonstration.\nCombination 5: Both left and right 1800, hanging 900, before\n200, after 400, exactly 550 twips, widow/orphan OFF,\ncontextual spacing."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Combination 6: Right indent only 1440, first line 1080, spacing\nbefore 720, 1.5 line spacing, all pagination options enabled.\nFollowing paragraph for keep-with-next.\nCombination 7: Maximum complexity - left 2880,\nright 2880, hanging 1440, mirror\nindents, before 840, after 840, at\nleast 500 twips, contextual\nspacing, all pagination controls, all\nformatting exceptions.\nFinal following paragraph to demonstrate keep-with-next.\n22. Document Summary\nThis document contains comprehensive examples of all spacing and formatting options\navailable in Word documents, including indentations, line spacing variants, pagination\ncontrols, and formatting exceptions in various combinations."
+        "Text": "Combination 6: Right indent only 1440, first line 1080, spacing\nbefore 720, 1.5 line spacing, all pagination options enabled.\nFollowing paragraph for keep-with-next.\nCombination 7: Maximum complexity - left 2880, right 2880, hanging 1440, mirror indents,\nbefore 840, after 840, at least 500 twips, contextual spacing, all pagination controls, all\nformatting exceptions.\nFinal following paragraph to demonstrate keep-with-next.\n22. Document Summary\nThis document contains comprehensive examples of all spacing and formatting options\navailable in Word documents, including indentations, line spacing variants, pagination\ncontrols, and formatting exceptions in various combinations."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0918,
-      "Ssim": 0.8406,
+      "ErrorMetric": 0.0917,
+      "Ssim": 0.8412,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0822,
-      "Ssim": 0.8595,
+      "ErrorMetric": 0.0797,
+      "Ssim": 0.8686,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0986,
-      "Ssim": 0.7752,
+      "ErrorMetric": 0.0972,
+      "Ssim": 0.7808,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
@@ -80,24 +80,24 @@
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0631,
-      "Ssim": 0.894,
+      "ErrorMetric": 0.0619,
+      "Ssim": 0.8973,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0345,
-      "Ssim": 0.9228,
+      "ErrorMetric": 0.036,
+      "Ssim": 0.9151,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0529,
-      "Ssim": 0.8685,
+      "ErrorMetric": 0.051,
+      "Ssim": 0.8734,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"

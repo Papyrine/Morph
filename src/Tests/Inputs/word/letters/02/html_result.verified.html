@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -36,21 +40,21 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 64.8pt">
-      <td><span style="font-size: 10pt;"><strong><em>Your Name<br />Your Company<br />Your Email Address<br />Your Phone Number</em></strong></span></td>
+      <td><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;"><strong><em>Your Name<br />Your Company<br />Your Email Address<br />Your Phone Number</em></strong></span></p></td>
       <td><h1 id="letter-of" style="font-size: 24pt; text-align: right; margin-top: 0pt; margin-bottom: 6pt; line-height: 1.5"><span style="font-weight: normal; letter-spacing: -0.5pt;">Letter of </span></h1><h1 id="recommendation" style="font-size: 24pt; text-align: right; margin-top: 0pt; margin-bottom: 6pt; line-height: 1.5"><span style="font-weight: normal; letter-spacing: -0.5pt;">Recommendation</span></h1></td>
     </tr>
     <tr style="height: 64.8pt">
-      <td><span style="font-size: 10pt;"><strong><em>Recipient Name<br />Recipient Company Name<br />Recipient Address</em></strong></span></td>
-      <td style="text-align: right"><br /><span style="font-size: 10pt;"><strong><em>Date</em></strong></span><br /></td>
+      <td><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;"><strong><em>Recipient Name<br />Recipient Company Name<br />Recipient Address</em></strong></span></p></td>
+      <td style="text-align: right"><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;"><strong><em>Date</em></strong></span></p></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-bottom: 6pt; line-height: 1.5">&nbsp;</p>
-<p style="margin-bottom: 6pt; line-height: 1.5">&nbsp;</p>
-<p style="margin-bottom: 6pt; line-height: 1.5">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 10pt;">Dear Recipient, </span></p>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 10pt;">I am pleased to write this letter of recommendation for Adrian King. I have had the pleasure of working with Adrian for a long time, during which he consistently demonstrated exceptional professionalism, dedication, and expertise in marketing, sales and management.</span></p>
@@ -59,7 +63,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.16"><span style="font-size: 10pt;">I am confident that Adrian will continue to make valuable contributions wherever he goes, and I highly recommend him for any business opportunity or position. Should you have any questions or need further information, please do not hesitate to contact me.</span></p>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 10pt;">Best Regards,</span></p>
-<p style="margin-bottom: 6pt; line-height: 1.5"><span style="font-size: 10pt;"><br />Your Name</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.5"><span style="font-size: 10pt;"><br />Your Name</span></p>
 <p style="margin-bottom: 6pt; line-height: 1.5"><span style="font-size: 10pt;">Your Position</span></p>
 </body>
 </html>

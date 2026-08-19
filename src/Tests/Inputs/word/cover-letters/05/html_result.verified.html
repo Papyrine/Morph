@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -42,7 +46,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #7ca655; font-size: 9pt;">(718) 555–0100 </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #7ca655; font-size: 9pt;">yuuri@example.com </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
-<table>
+<table style="width: 100.28%">
   <tbody>
     <tr style="height: 108pt">
       <td colspan="5" style="vertical-align: bottom"><h1 id="yuuri-tanaka" style="font-size: 48pt; margin-top: 1.35pt; margin-bottom: 12pt; line-height: 0.9"><span style="font-family: 'Franklin Gothic Medium', sans-serif; color: #231f20;">Yuuri Tanaka</span></h1></td>
@@ -54,8 +58,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td></td>
     </tr>
     <tr style="height: 129.6pt">
-      <td colspan="2"><span style="color: #7ca655; font-size: 9pt;">Adrian King</span><br /><span style="color: #7ca655; font-size: 9pt;">Hiring Manager  </span><br /><span style="color: #7ca655; font-size: 9pt;">VanArsdel, Ltd.</span><br /><span style="color: #7ca655; font-size: 9pt;">123 Elm Avenue</span><br /><span style="color: #7ca655; font-size: 9pt;">City, State 98052</span></td>
-      <td colspan="2"><span style="color: #231f20; font-size: 9pt;">Dear Adrian King, </span><br /><span style="color: #231f20; font-size: 9pt;">Start with a statement about why you are excited about the job you are seeking. Enthusiasm is key, and your personal connection to the role is much more important than flashy words and exclamation marks. Keep it brief and easy to read quickly. </span><br /><span style="color: #231f20; font-size: 9pt;">If you feel a second paragraph is needed, touch on areas of the role that interest you. State your desire to learn more, suggest a follow up call or email. Be clear about your respect for busy schedules. </span><br /><span style="color: #231f20; font-size: 9pt;">(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the best it can be.)</span><br /><span style="color: #231f20; font-size: 9pt;">Sincerely,</span><br /><span style="color: #231f20; font-size: 9pt;">Yuuri Tanaka </span></td>
+      <td colspan="2"><p style="margin: 12pt 0 0pt"><span style="color: #7ca655; font-size: 9pt;">Adrian King</span></p><p style="margin: 2pt 0 0pt"><span style="color: #7ca655; font-size: 9pt;">Hiring Manager  </span></p><p style="margin: 2pt 0 0pt"><span style="color: #7ca655; font-size: 9pt;">VanArsdel, Ltd.</span></p><p style="margin: 2pt 0 0pt"><span style="color: #7ca655; font-size: 9pt;">123 Elm Avenue</span></p><p style="margin: 2pt 0 0pt"><span style="color: #7ca655; font-size: 9pt;">City, State 98052</span></p></td>
+      <td colspan="2"><p style="margin: 12pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Dear Adrian King, </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Start with a statement about why you are excited about the job you are seeking. Enthusiasm is key, and your personal connection to the role is much more important than flashy words and exclamation marks. Keep it brief and easy to read quickly. </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">If you feel a second paragraph is needed, touch on areas of the role that interest you. State your desire to learn more, suggest a follow up call or email. Be clear about your respect for busy schedules. </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the best it can be.)</span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Sincerely,</span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Yuuri Tanaka </span></p></td>
     </tr>
   </tbody>
 </table>
@@ -77,7 +81,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #aa5881; font-size: 9pt;">(718) 555–0100 </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #aa5881; font-size: 9pt;">yuuri@example.com </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
-<table>
+<table style="width: 100.28%">
   <tbody>
     <tr style="height: 108pt">
       <td colspan="5" style="vertical-align: bottom"><h1 id="yuuri-tanaka-1" style="font-size: 48pt; margin-top: 1.35pt; margin-bottom: 12pt; line-height: 0.9"><span style="font-family: 'Franklin Gothic Medium', sans-serif; color: #231f20;">Yuuri Tanaka</span></h1></td>
@@ -89,8 +93,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td></td>
     </tr>
     <tr style="height: 129.6pt">
-      <td colspan="2"><span style="color: #aa5881; font-size: 9pt;">Adrian King</span><br /><span style="color: #aa5881; font-size: 9pt;">Hiring Manager  </span><br /><span style="color: #aa5881; font-size: 9pt;">VanArsdel, Ltd.</span><br /><span style="color: #aa5881; font-size: 9pt;">123 Elm Avenue</span><br /><span style="color: #aa5881; font-size: 9pt;">City, State 98052</span></td>
-      <td colspan="2"><span style="color: #231f20; font-size: 9pt;">Dear Adrian King, </span><br /><span style="color: #231f20; font-size: 9pt;">Start with a statement about why you are excited about the job you are seeking. Enthusiasm is key, and your personal connection to the role is much more important than flashy words and exclamation marks. Keep it brief and easy to read quickly. </span><br /><span style="color: #231f20; font-size: 9pt;">If you feel a second paragraph is needed, touch on areas of the role that interest you. State your desire to learn more, suggest a follow up call or email. Be clear about your respect for busy schedules. </span><br /><span style="color: #231f20; font-size: 9pt;">(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the best it can be.)</span><br /><span style="color: #231f20; font-size: 9pt;">Sincerely,</span><br /><span style="color: #231f20; font-size: 9pt;">Yuuri Tanaka </span></td>
+      <td colspan="2"><p style="margin: 12pt 0 0pt"><span style="color: #aa5881; font-size: 9pt;">Adrian King</span></p><p style="margin: 2pt 0 0pt"><span style="color: #aa5881; font-size: 9pt;">Hiring Manager  </span></p><p style="margin: 2pt 0 0pt"><span style="color: #aa5881; font-size: 9pt;">VanArsdel, Ltd.</span></p><p style="margin: 2pt 0 0pt"><span style="color: #aa5881; font-size: 9pt;">123 Elm Avenue</span></p><p style="margin: 2pt 0 0pt"><span style="color: #aa5881; font-size: 9pt;">City, State 98052</span></p></td>
+      <td colspan="2"><p style="margin: 12pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Dear Adrian King, </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Start with a statement about why you are excited about the job you are seeking. Enthusiasm is key, and your personal connection to the role is much more important than flashy words and exclamation marks. Keep it brief and easy to read quickly. </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">If you feel a second paragraph is needed, touch on areas of the role that interest you. State your desire to learn more, suggest a follow up call or email. Be clear about your respect for busy schedules. </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the best it can be.)</span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Sincerely,</span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Yuuri Tanaka </span></p></td>
     </tr>
   </tbody>
 </table>
@@ -112,7 +116,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #808080; font-size: 9pt;">(718) 555–0100 </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #808080; font-size: 9pt;">yuuri@example.com </span></p>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
-<table>
+<table style="width: 100.28%">
   <tbody>
     <tr style="height: 108pt">
       <td colspan="5" style="vertical-align: bottom"><h1 id="yuuri-tanaka-2" style="font-size: 48pt; margin-top: 1.35pt; margin-bottom: 12pt; line-height: 0.9"><span style="font-family: 'Franklin Gothic Medium', sans-serif; color: #231f20;">Yuuri Tanaka</span></h1></td>
@@ -124,8 +128,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td></td>
     </tr>
     <tr style="height: 129.6pt">
-      <td colspan="2"><span style="color: #808080; font-size: 9pt;">Adrian King</span><br /><span style="color: #808080; font-size: 9pt;">Hiring Manager  </span><br /><span style="color: #808080; font-size: 9pt;">VanArsdel, Ltd.</span><br /><span style="color: #808080; font-size: 9pt;">123 Elm Avenue</span><br /><span style="color: #808080; font-size: 9pt;">City, State 98052</span></td>
-      <td colspan="2"><span style="color: #231f20; font-size: 9pt;">Dear Adrian King, </span><br /><span style="color: #231f20; font-size: 9pt;">Start with a statement about why you are excited about the job you are seeking. Enthusiasm is key, and your personal connection to the role is much more important than flashy words and exclamation marks. Keep it brief and easy to read quickly. </span><br /><span style="color: #231f20; font-size: 9pt;">If you feel a second paragraph is needed, touch on areas of the role that interest you. State your desire to learn more, suggest a follow up call or email. Be clear about your respect for busy schedules. </span><br /><span style="color: #231f20; font-size: 9pt;">(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the best it can be.)</span><br /><span style="color: #231f20; font-size: 9pt;">Sincerely,</span><br /><span style="color: #231f20; font-size: 9pt;">Yuuri Tanaka </span></td>
+      <td colspan="2"><p style="margin: 12pt 0 0pt"><span style="color: #808080; font-size: 9pt;">Adrian King</span></p><p style="margin: 2pt 0 0pt"><span style="color: #808080; font-size: 9pt;">Hiring Manager  </span></p><p style="margin: 2pt 0 0pt"><span style="color: #808080; font-size: 9pt;">VanArsdel, Ltd.</span></p><p style="margin: 2pt 0 0pt"><span style="color: #808080; font-size: 9pt;">123 Elm Avenue</span></p><p style="margin: 2pt 0 0pt"><span style="color: #808080; font-size: 9pt;">City, State 98052</span></p></td>
+      <td colspan="2"><p style="margin: 12pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Dear Adrian King, </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Start with a statement about why you are excited about the job you are seeking. Enthusiasm is key, and your personal connection to the role is much more important than flashy words and exclamation marks. Keep it brief and easy to read quickly. </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">If you feel a second paragraph is needed, touch on areas of the role that interest you. State your desire to learn more, suggest a follow up call or email. Be clear about your respect for busy schedules. </span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">(Here’s a tip: be sure to try Word Editor for suggestions on how to make this cover letter the best it can be.)</span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Sincerely,</span></p><p style="margin: 6pt 0 12pt"><span style="color: #231f20; font-size: 9pt;">Yuuri Tanaka </span></p></td>
     </tr>
   </tbody>
 </table>

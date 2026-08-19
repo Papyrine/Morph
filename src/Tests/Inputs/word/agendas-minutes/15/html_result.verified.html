@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,7 +35,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: -72pt; top: -36pt; width: 612pt; height: 792.1pt; z-index: -1" viewBox="0 0 612 792.1" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="792.1" fill="#edf3db" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: -72pt; top: 524.4pt; width: 612pt; height: 231.59pt; z-index: -1" viewBox="0 0 612 231.59" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="231.59" fill="#dbe7b6" /></svg></div>
 <p style="margin-top: 2pt; margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 9pt">
       <td rowspan="6"><h1 id="team-meeting-minutes" style="font-size: 36pt; margin-bottom: 12pt; line-height: 1"><span style="font-family: 'Century Gothic', sans-serif; color: #546422; text-transform: uppercase;">Team Meeting minutes</span></h1></td>
@@ -39,20 +43,20 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td></td>
     </tr>
     <tr style="height: 13.5pt">
-      <td><span style="font-size: 12pt;"><strong>Location:</strong></span></td>
-      <td><span style="font-size: 12pt;">Conference room </span></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;"><strong>Location:</strong></span></p></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;">Conference room </span></p></td>
     </tr>
     <tr style="height: 18pt">
-      <td><span style="font-size: 12pt;"><strong>Date:</strong></span></td>
-      <td><span style="font-size: 12pt;">1/9/23 </span></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;"><strong>Date:</strong></span></p></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;">1/9/23 </span></p></td>
     </tr>
     <tr style="height: 18pt">
-      <td><span style="font-size: 12pt;"><strong>Time:</strong></span></td>
-      <td><span style="font-size: 12pt;">9:30 a.m. </span></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;"><strong>Time:</strong></span></p></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;">9:30 a.m. </span></p></td>
     </tr>
     <tr style="height: 18pt">
-      <td><span style="font-size: 12pt;"><strong>Facilitator:</strong></span></td>
-      <td><span style="font-size: 12pt;">Petja Hrovat </span></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;"><strong>Facilitator:</strong></span></p></td>
+      <td><p style="margin: 2pt 0 0pt"><span style="font-size: 12pt;">Petja Hrovat </span></p></td>
     </tr>
     <tr style="height: 24.6pt">
       <td></td>
@@ -69,19 +73,19 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </ol>
 <p style="margin-top: 12pt; margin-bottom: 12pt; line-height: 1">&nbsp;</p>
 <p style="margin-top: 12pt; margin-bottom: 12pt; margin-left: 18pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 19.1pt">
-      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><span style="color: #ffffff; font-size: 12pt;"><strong>Action items </strong></span></td>
-      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><span style="color: #ffffff; font-size: 12pt;"><strong>Owner(s)</strong></span></td>
-      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><span style="color: #ffffff; font-size: 12pt;"><strong>Deadline</strong></span></td>
-      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><span style="color: #ffffff; font-size: 12pt;"><strong>Status</strong></span></td>
+      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="color: #ffffff; font-size: 12pt;"><strong>Action items </strong></span></p></td>
+      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="color: #ffffff; font-size: 12pt;"><strong>Owner(s)</strong></span></p></td>
+      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="color: #ffffff; font-size: 12pt;"><strong>Deadline</strong></span></p></td>
+      <td style="background-color: #546421;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="color: #ffffff; font-size: 12pt;"><strong>Status</strong></span></p></td>
     </tr>
     <tr style="height: 14.4pt">
-      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><span style="font-size: 12pt;">Board nominations </span></td>
-      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><span style="font-size: 12pt;">Kiana Anderson </span></td>
-      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><span style="font-size: 12pt;">1/30/23 </span></td>
-      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><span style="font-size: 12pt;">Action items</span></td>
+      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="font-size: 12pt;">Board nominations </span></p></td>
+      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="font-size: 12pt;">Kiana Anderson </span></p></td>
+      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="font-size: 12pt;">1/30/23 </span></p></td>
+      <td style="background-color: #ecf2da;border: 0.25pt solid #546421; text-align: center"><p style="margin: 6pt 0 6pt"><span style="font-size: 12pt;">Action items</span></p></td>
     </tr>
     <tr style="height: 14.4pt">
       <td style="background-color: #ecf2da;border: 0.25pt solid #546421"></td>

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -38,7 +42,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h2 id="your-address" style="font-size: 12pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1"><span style="font-weight: normal;"><em>Your Address</em></span></h2>
 <h1 id="thank-you" style="font-size: 28pt; text-align: right; margin-top: 0pt; line-height: 1"><span style="font-weight: normal; color: #156082; letter-spacing: -0.5pt;">Thank You</span></h1>
 <h2 id="date" style="font-size: 12pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1"><span style="font-weight: normal;"><em>Date</em></span></h2>
-<p style="margin-bottom: 12pt; line-height: 1.1">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
 <p style="margin-bottom: 12pt; line-height: 1.1"><span style="font-size: 12pt;">Dear Recipient,</span></p>
 <p style="margin-bottom: 12pt; line-height: 1.1">&nbsp;</p>
 <p style="margin-bottom: 12pt; line-height: 1.1"><span style="font-size: 12pt;">We would like to extend our heartfelt thanks for your recent purchase of our new generation robot. We truly appreciate your support and are thrilled to have you as a valued customer.</span></p>
@@ -47,8 +51,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 12pt; line-height: 1.1"><span style="font-size: 12pt;">Thank you once again for choosing Robotine Manufacturing. We are grateful for your trust and look forward to building a lasting relationship with you.</span></p>
 <p style="margin-bottom: 12pt; line-height: 1.1">&nbsp;</p>
 <p style="margin-bottom: 12pt; line-height: 1.1"><span style="font-size: 12pt;">Warm regards,</span></p>
-<p style="margin-bottom: 12pt; line-height: 1.1">&nbsp;</p>
-<p style="margin-bottom: 12pt; line-height: 1.1"><span style="font-size: 12pt;">Your Name</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.1">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1.1"><span style="font-size: 12pt;">Your Name</span></p>
 <p style="margin-bottom: 12pt; line-height: 1.1"><span style="font-size: 12pt;">Your Title</span></p>
 </body>
 </html>

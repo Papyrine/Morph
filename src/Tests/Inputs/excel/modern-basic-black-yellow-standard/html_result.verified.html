@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,297 +35,297 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div>
   <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-size: 13pt;"><strong>LOGO</strong></span></p>
 </div>
-<table>
+<table style="margin-left: auto; margin-right: auto">
   <tbody>
     <tr style="height: 19.68pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 45.06pt">
-      <td colspan="6" style="width: 490.36pt;background-color: #0d0d0d;vertical-align: middle"><span style="font-family: Impact, sans-serif; color: #fedb61; font-size: 49.2pt;">INVOICE</span></td>
+      <td colspan="6" style="width: 490.36pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-family: Impact, sans-serif; color: #fedb61; font-size: 49.2pt;">INVOICE</span></td>
     </tr>
     <tr style="height: 14.02pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"><span style="color: #ffffff; font-size: 9.84pt;">Invoice #:</span></td>
-      <td colspan="5" style="width: 391.91pt;background-color: #0d0d0d;vertical-align: middle"><span style="color: #ffffff; font-size: 9.84pt;">123456789</span></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="color: #ffffff; font-size: 9.84pt;">Invoice #:</span></td>
+      <td colspan="5" style="width: 391.91pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="color: #ffffff; font-size: 9.84pt;">123456789</span></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"><span style="color: #ffffff; font-size: 9.84pt;">Due Date:</span></td>
-      <td colspan="5" style="width: 391.91pt;background-color: #0d0d0d;vertical-align: middle"><span style="color: #ffffff; font-size: 9.84pt;">7/16/2026</span></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="color: #ffffff; font-size: 9.84pt;">Due Date:</span></td>
+      <td colspan="5" style="width: 391.91pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="color: #ffffff; font-size: 9.84pt;">7/16/2026</span></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"><span style="color: #ffffff; font-size: 9.84pt;">Invoice Date: </span></td>
-      <td colspan="5" style="width: 391.91pt;background-color: #0d0d0d;vertical-align: middle"><span style="color: #ffffff; font-size: 9.84pt;">7/16/2026</span></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="color: #ffffff; font-size: 9.84pt;">Invoice Date: </span></td>
+      <td colspan="5" style="width: 391.91pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"><span style="color: #ffffff; font-size: 9.84pt;">7/16/2026</span></td>
     </tr>
     <tr style="height: 19.68pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #fedb61;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #fedb61;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #fedb61;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #fedb61;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #fedb61;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #fedb61;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;"><strong>Bill To:</strong></span></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;"><strong>Bill From:</strong></span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;"><strong>Bill To:</strong></span></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;"><strong>Bill From:</strong></span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">Name/Company Name</span></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">Name/Company Name</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Name/Company Name</span></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Name/Company Name</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">City, State, Zip Code</span></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">City, State, Zip Code</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">City, State, Zip Code</span></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">City, State, Zip Code</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">Email</span></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">Email</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Email</span></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Email</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">Phone</span></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;">Phone</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td colspan="2" style="width: 196.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Phone</span></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Phone</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 19.68pt">
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Item Name</span></td>
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Description</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">Price</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">Quantity</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">Total</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Item Name</span></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Description</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">Price</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">Quantity</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">Total</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Item Name 1</span></td>
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Description 1</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$50.00</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">14</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$700.00</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Item Name 1</span></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Description 1</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$50.00</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">14</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$700.00</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Item Name 2</span></td>
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Description 2</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$56.00</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">15</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$840.00</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Item Name 2</span></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Description 2</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$56.00</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">15</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$840.00</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Item Name 3</span></td>
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Description 3</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$78.00</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">11</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$858.00</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Item Name 3</span></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Description 3</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$78.00</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">11</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$858.00</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Item Name 4</span></td>
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Description 4</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$64.00</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">12</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$768.00</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Item Name 4</span></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Description 4</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$64.00</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">12</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$768.00</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Item Name 5</span></td>
-      <td style="width: 98.45pt;vertical-align: middle"><span style="font-size: 9.84pt;">Description 5</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$55.00</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">13</span></td>
-      <td style="width: 93.43pt;vertical-align: middle; text-align: right"><span style="font-size: 9.84pt;">$715.00</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Item Name 5</span></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;">Description 5</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$55.00</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">13</span></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt; text-align: right"><span style="font-size: 9.84pt;">$715.00</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #f2f2f2;vertical-align: middle;border-top: 0.5pt solid #000000;border-left: 0.5pt solid #000000"><span style="font-size: 9.84pt;">Subtotal:</span></td>
-      <td style="width: 93.43pt;background-color: #f2f2f2;vertical-align: middle;border-top: 0.5pt solid #000000;border-right: 0.5pt solid #000000; text-align: right"><span style="font-size: 9.84pt;">$3,881.00</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #f2f2f2;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000;border-left: 0.5pt solid #000000"><span style="font-size: 9.84pt;">Subtotal:</span></td>
+      <td style="width: 93.43pt;background-color: #f2f2f2;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000;border-right: 0.5pt solid #000000; text-align: right"><span style="font-size: 9.84pt;">$3,881.00</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;border-top: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000;border-left: 0.5pt solid #000000"><span style="font-size: 9.84pt;">Tax:</span></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;border-top: 0.5pt solid #000000;border-right: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000; text-align: right"><span style="font-size: 9.84pt;">6.00%</span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000;border-left: 0.5pt solid #000000"><span style="font-size: 9.84pt;">Tax:</span></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000;border-right: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000; text-align: right"><span style="font-size: 9.84pt;">6.00%</span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;border-top: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000;border-left: 0.5pt solid #000000"><span style="color: #fedb61; font-size: 9.84pt;"><strong>Amount Due:</strong></span></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;border-top: 0.5pt solid #000000;border-right: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000; text-align: right"><span style="color: #fedb61; font-size: 9.84pt;"><strong>$4,113.86</strong></span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000;border-left: 0.5pt solid #000000"><span style="color: #fedb61; font-size: 9.84pt;"><strong>Amount Due:</strong></span></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000;border-right: 0.5pt solid #000000;border-bottom: 0.5pt solid #000000; text-align: right"><span style="color: #fedb61; font-size: 9.84pt;"><strong>$4,113.86</strong></span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="6" style="width: 490.36pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;"><strong>Notes:</strong></span></td>
+      <td colspan="6" style="width: 490.36pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;"><strong>Notes:</strong></span></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td colspan="6" style="width: 490.36pt;background-color: #ffffff;vertical-align: middle"><span style="font-size: 9.84pt;"><strong>Terms &amp; Conditions:</strong></span></td>
+      <td colspan="6" style="width: 490.36pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"><span style="font-size: 9.84pt;"><strong>Terms &amp; Conditions:</strong></span></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;border-bottom: 0.5pt solid #000000"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;border-bottom: 0.5pt solid #000000"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt;border-bottom: 0.5pt solid #000000"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt;border-bottom: 0.5pt solid #000000"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;border-top: 0.5pt solid #000000; text-align: center"><span style="font-size: 9.84pt;"><strong>Signature</strong></span></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td colspan="2" style="width: 186.86pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt;border-top: 0.5pt solid #000000; text-align: center"><span style="font-size: 9.84pt;"><strong>Signature</strong></span></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 14.76pt">
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
     <tr style="height: 19.68pt">
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle"></td>
-      <td style="width: 13.17pt;vertical-align: middle"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 98.45pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 93.43pt;background-color: #0d0d0d;vertical-align: middle;padding: 0pt 1.64pt"></td>
+      <td style="width: 13.17pt;vertical-align: middle;padding: 0pt 1.64pt"></td>
     </tr>
   </tbody>
 </table>

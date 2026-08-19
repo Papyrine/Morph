@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,49 +35,49 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <table>
   <tbody>
     <tr>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Employee ID</strong></span></td>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Full Name</strong></span></td>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Email Address</strong></span></td>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Hire Date</strong></span></td>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Annual Salary</strong></span></td>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Is Active</strong></span></td>
-      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><span style="font-size: 12pt;"><strong>Status</strong></span></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Employee ID</strong></span></p></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Full Name</strong></span></p></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Email Address</strong></span></p></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Hire Date</strong></span></p></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Annual Salary</strong></span></p></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Is Active</strong></span></p></td>
+      <td style="background-color: #abcdef;border: 3pt solid #000000; text-align: center"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;"><strong>Status</strong></span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">John Doe</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">john@company.com</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2020-01-15</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">75000</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">True</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Full Time</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">John Doe</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">john@company.com</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2020-01-15</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">75000</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">True</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Full Time</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Jane Smith</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">jane@company.com</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2019-03-22</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">120000</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">True</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Full Time</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Jane Smith</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">jane@company.com</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2019-03-22</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">120000</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">True</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Full Time</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">3</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Bob Johnson</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">bob@company.com</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2021-07-10</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">45000</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">False</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Part Time</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">3</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Bob Johnson</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">bob@company.com</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2021-07-10</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">45000</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">False</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Part Time</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">4</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Alice Brown</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">alice@company.com</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2018-11-05</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">95000</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">True</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Contract</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">4</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Alice Brown</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">alice@company.com</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2018-11-05</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">95000</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">True</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Contract</span></p></td>
     </tr>
   </tbody>
 </table>

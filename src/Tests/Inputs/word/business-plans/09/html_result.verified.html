@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -56,11 +60,11 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h3 id="mission-and-goals" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">MISSION AND GOALS </span></h3>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1"><span style="font-size: 10pt;">Describe your company&#39;s mission and goals.</span></p>
 <h3 id="questions-for-consumers" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Questions for consumers</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
-      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions</span></td>
+      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">No.</span></p></td>
+      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -68,7 +72,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Question for consumers #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List questions that you can use in your target audience profile.</em></span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Question for consumers #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List questions that you can use in your target audience profile.</em></span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -76,7 +80,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Question for consumers #2</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Question for consumers #2</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -84,7 +88,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Question for consumers #3</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Question for consumers #3</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -92,7 +96,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Question for consumers #4</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Question for consumers #4</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -100,16 +104,16 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Question for consumers #5</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Question for consumers #5</span></p></td>
     </tr>
   </tbody>
 </table>
 <h3 id="audience-and-market" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Audience and market</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
-      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and Market</span></td>
+      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">No.</span></p></td>
+      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and Market</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -117,7 +121,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and market #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>Identify who makes up your target audience and your market.</em></span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and market #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>Identify who makes up your target audience and your market.</em></span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -125,7 +129,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and market #2</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and market #2</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -133,7 +137,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and market #3</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and market #3</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -141,7 +145,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and market #4</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and market #4</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -149,16 +153,16 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and market #5</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and market #5</span></p></td>
     </tr>
   </tbody>
 </table>
 <h3 id="questions-to-narrow-down-your-target-audience" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">QUESTIONS TO NARROW DOWN YOUR TARGET AUDIENCE</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 27.05pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
-      <td style="width: 440.95pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Audience and Market</span></td>
+      <td style="width: 27.05pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">No.</span></p></td>
+      <td style="width: 440.95pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Audience and Market</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -166,7 +170,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions to narrow down target audience #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List questions that you can use to help you narrow down who your target audience is.</em></span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions to narrow down target audience #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List questions that you can use to help you narrow down who your target audience is.</em></span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -174,7 +178,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions to narrow down target audience #2</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions to narrow down target audience #2</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -182,7 +186,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions to narrow down target audience #3</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions to narrow down target audience #3</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -190,7 +194,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions to narrow down target audience #4</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions to narrow down target audience #4</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -198,7 +202,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions to narrow down target audience #5</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions to narrow down target audience #5</span></p></td>
     </tr>
   </tbody>
 </table>
@@ -211,11 +215,11 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h3 id="consumer-perceptions" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Consumer perceptions</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
-      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions</span></td>
+      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">No.</span></p></td>
+      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -223,7 +227,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Consumer perceptions #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List consumer perceptions about your product or service.</em></span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Consumer perceptions #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List consumer perceptions about your product or service.</em></span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -231,7 +235,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Consumer perceptions #2</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Consumer perceptions #2</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -239,7 +243,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Consumer perceptions #3</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Consumer perceptions #3</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -247,7 +251,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Consumer perceptions #4</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Consumer perceptions #4</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -255,16 +259,16 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Consumer perceptions #5</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Consumer perceptions #5</span></p></td>
     </tr>
   </tbody>
 </table>
 <h3 id="quantitative-metrics" style="font-size: 16pt; margin-top: 18pt; margin-bottom: 3pt; line-height: 1"><span style="font-family: 'Segoe UI Semibold', sans-serif; color: #32634a; letter-spacing: 0.5pt; text-transform: uppercase;">Quantitative metrics</span></h3>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
-      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions</span></td>
+      <td style="width: 27pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">No.</span></p></td>
+      <td style="width: 440.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -272,7 +276,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Quantitative metrics #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List quantitative metrics that you will use to evaluate the effectiveness of the plan.</em></span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Quantitative metrics #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List quantitative metrics that you will use to evaluate the effectiveness of the plan.</em></span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -280,7 +284,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Quantitative metrics #2</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Quantitative metrics #2</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -288,7 +292,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Quantitative metrics #3</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Quantitative metrics #3</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -296,7 +300,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Quantitative metrics #4</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Quantitative metrics #4</span></p></td>
     </tr>
     <tr>
       <td style="width: 27pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -304,7 +308,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Quantitative metrics #5</span></td>
+      <td style="width: 440.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Quantitative metrics #5</span></p></td>
     </tr>
   </tbody>
 </table>
@@ -317,11 +321,11 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 27.05pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">No.</span></td>
-      <td style="width: 440.95pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Questions</span></td>
+      <td style="width: 27.05pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">No.</span></p></td>
+      <td style="width: 440.95pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Questions</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -329,7 +333,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Adjust the plan #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List the changes that you need to make to your plan so that it will be more successful.</em></span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Adjust the plan #1<br /></span><span style="color: #595959; font-size: 10pt;"><em>List the changes that you need to make to your plan so that it will be more successful.</em></span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -337,7 +341,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Adjust the plan #2</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Adjust the plan #2</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -345,7 +349,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Adjust the plan #3</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Adjust the plan #3</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -353,7 +357,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Adjust the plan #4</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Adjust the plan #4</span></p></td>
     </tr>
     <tr>
       <td style="width: 27.05pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -361,7 +365,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Adjust the plan #5</span></td>
+      <td style="width: 440.95pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Adjust the plan #5</span></p></td>
     </tr>
   </tbody>
 </table>
@@ -374,13 +378,13 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 31.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Step</span></td>
-      <td style="width: 292.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Action</span></td>
-      <td style="width: 67.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Due date for completion</span></td>
-      <td style="width: 76.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">% complete</span></td>
+      <td style="width: 31.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Step</span></p></td>
+      <td style="width: 292.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Action</span></p></td>
+      <td style="width: 67.5pt;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Due date for completion</span></p></td>
+      <td style="width: 76.5pt;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">% complete</span></p></td>
     </tr>
     <tr>
       <td style="width: 31.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -388,9 +392,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Action</span></td>
-      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Date</span></td>
-      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">%</span></td>
+      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Action</span></p></td>
+      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Date</span></p></td>
+      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">%</span></p></td>
     </tr>
     <tr>
       <td style="width: 31.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -398,9 +402,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Action</span></td>
-      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Date</span></td>
-      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">%</span></td>
+      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Action</span></p></td>
+      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Date</span></p></td>
+      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">%</span></p></td>
     </tr>
     <tr>
       <td style="width: 31.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -408,9 +412,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Action</span></td>
-      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Date</span></td>
-      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">%</span></td>
+      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Action</span></p></td>
+      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Date</span></p></td>
+      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">%</span></p></td>
     </tr>
     <tr>
       <td style="width: 31.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4">
@@ -418,9 +422,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Action</span></td>
-      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Date</span></td>
-      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">%</span></td>
+      <td style="width: 292.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Action</span></p></td>
+      <td style="width: 67.5pt;border: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Date</span></p></td>
+      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-bottom: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">%</span></p></td>
     </tr>
     <tr>
       <td style="width: 31.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4">
@@ -428,20 +432,20 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li></li>
         </ol>
       </td>
-      <td style="width: 292.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Action</span></td>
-      <td style="width: 67.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">Date</span></td>
-      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><span style="font-size: 10pt;">%</span></td>
+      <td style="width: 292.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Action</span></p></td>
+      <td style="width: 67.5pt;border-top: 0.5pt solid #aad1d4;border-right: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">Date</span></p></td>
+      <td style="width: 76.5pt;border-top: 0.5pt solid #aad1d4;border-left: 0.5pt solid #aad1d4"><p style="margin: 3pt 0 3pt"><span style="font-size: 10pt;">%</span></p></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-top: 3pt; margin-bottom: 3pt; line-height: 1">&nbsp;</p>
 <footer class="doc-footer">
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="width: 99.05pt"><span style="font-size: 8pt;">1/9/23 </span></td>
-      <td style="width: 298.75pt; text-align: center"><span style="font-size: 8pt;">Target Audience Profiling Plan </span></td>
-      <td style="width: 98.65pt; text-align: right"><span style="font-size: 8pt;">3</span></td>
+      <td style="width: 99.05pt"><p style="margin: 3pt 0 3pt"><span style="font-size: 8pt;">1/9/23 </span></p></td>
+      <td style="width: 298.75pt; text-align: center"><p style="margin: 3pt 0 3pt"><span style="font-size: 8pt;">Target Audience Profiling Plan </span></p></td>
+      <td style="width: 98.65pt; text-align: right"><p style="margin: 3pt 0 3pt"><span style="font-size: 8pt;">1</span></p></td>
     </tr>
   </tbody>
 </table>

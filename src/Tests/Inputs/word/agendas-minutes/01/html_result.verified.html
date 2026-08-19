@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -33,7 +37,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h1 id="resume-writing-workshop" style="font-size: 30pt; margin-top: 0pt; line-height: 1.04"><span style="font-weight: normal; font-family: 'Century Schoolbook', sans-serif; color: #515f23; letter-spacing: 0.5pt; text-transform: uppercase;">resume writing workshop </span></h1>
 <h2 id="agenda" style="font-size: 22pt; margin-top: 0pt; line-height: 1.04"><span style="font-weight: normal; font-family: 'Century Schoolbook', sans-serif; color: #515f23; letter-spacing: 0.5pt; text-transform: uppercase;">Agenda </span></h2>
 <p style="margin-bottom: 0pt; line-height: 1.04">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 28.8pt">
       <td style="width: 67.5pt;vertical-align: bottom"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Location:</span></td>
@@ -54,60 +58,60 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-bottom: 0pt; line-height: 1.04">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 50.4pt">
-      <td colspan="3" style="width: 468pt;vertical-align: bottom;border-bottom: 1pt solid #f1c4be"><h1 id="schedule" style="font-size: 12pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Century Schoolbook', sans-serif; color: #9e2f20; letter-spacing: 1pt; text-transform: uppercase;">schedule</span></h1></td>
+      <td colspan="3" style="width: 468pt;vertical-align: bottom;padding: 5.75pt;border-bottom: 1pt solid #f1c4be"><h1 id="schedule" style="font-size: 12pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Century Schoolbook', sans-serif; color: #9e2f20; letter-spacing: 1pt; text-transform: uppercase;">schedule</span></h1></td>
     </tr>
     <tr style="height: 14.35pt">
-      <td style="width: 162.35pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">11:00 AM</span></td>
-      <td style="width: 175.1pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Registration &amp; sign-in</span></td>
-      <td style="width: 130.55pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">1</span><span style="font-size: 10pt; letter-spacing: 0.5pt;"><sup>st</sup></span><span style="font-size: 10pt; letter-spacing: 0.5pt;"> floor lobby</span></td>
+      <td style="width: 162.35pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">11:00 AM</span></td>
+      <td style="width: 175.1pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Registration &amp; sign-in</span></td>
+      <td style="width: 130.55pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">1</span><span style="font-size: 10pt; letter-spacing: 0.5pt;"><sup>st</sup></span><span style="font-size: 10pt; letter-spacing: 0.5pt;"> floor lobby</span></td>
     </tr>
     <tr style="height: 14.35pt">
-      <td style="width: 162.35pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">11:30 AM</span></td>
-      <td style="width: 175.1pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Defining goals</span></td>
-      <td style="width: 130.55pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 300</span></td>
+      <td style="width: 162.35pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">11:30 AM</span></td>
+      <td style="width: 175.1pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Defining goals</span></td>
+      <td style="width: 130.55pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 300</span></td>
     </tr>
     <tr style="height: 14.35pt">
-      <td style="width: 162.35pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">12:15 PM</span></td>
-      <td style="width: 175.1pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Shaping your personal brand</span></td>
-      <td style="width: 130.55pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 300</span></td>
+      <td style="width: 162.35pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">12:15 PM</span></td>
+      <td style="width: 175.1pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Shaping your personal brand</span></td>
+      <td style="width: 130.55pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 300</span></td>
     </tr>
     <tr style="height: 14.35pt">
-      <td style="width: 162.35pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">12:45 PM</span></td>
-      <td style="width: 175.1pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Lunch break</span></td>
-      <td style="width: 130.55pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"></td>
+      <td style="width: 162.35pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">12:45 PM</span></td>
+      <td style="width: 175.1pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Lunch break</span></td>
+      <td style="width: 130.55pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"></td>
     </tr>
     <tr style="height: 14.35pt">
-      <td style="width: 162.35pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">1:15 PM</span></td>
-      <td style="width: 175.1pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Efficient resume writing</span></td>
-      <td style="width: 130.55pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 305</span></td>
+      <td style="width: 162.35pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">1:15 PM</span></td>
+      <td style="width: 175.1pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Efficient resume writing</span></td>
+      <td style="width: 130.55pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 305</span></td>
     </tr>
     <tr style="height: 14.35pt">
-      <td style="width: 162.35pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">2:00 PM</span></td>
-      <td style="width: 175.1pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">How to stand out</span></td>
-      <td style="width: 130.55pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 305</span></td>
+      <td style="width: 162.35pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">2:00 PM</span></td>
+      <td style="width: 175.1pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">How to stand out</span></td>
+      <td style="width: 130.55pt;padding: 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Room 305</span></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-bottom: 0pt; line-height: 1.04">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 36pt">
-      <td style="width: 467.5pt;vertical-align: bottom;border-bottom: 1pt solid #f1c4be"><h1 id="additional-information" style="font-size: 12pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Century Schoolbook', sans-serif; color: #9e2f20; letter-spacing: 1pt; text-transform: uppercase;">additional information</span></h1></td>
+      <td style="width: 467.5pt;vertical-align: bottom;padding: 6pt 5.75pt;border-bottom: 1pt solid #f1c4be"><h1 id="additional-information" style="font-size: 12pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Century Schoolbook', sans-serif; color: #9e2f20; letter-spacing: 1pt; text-transform: uppercase;">additional information</span></h1></td>
     </tr>
     <tr>
-      <td colspan="2" style="width: 468pt;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Register in advance at www.interestingsite.com</span></td>
+      <td colspan="2" style="width: 468pt;padding: 6pt 5.75pt;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Register in advance at www.interestingsite.com</span></td>
     </tr>
     <tr>
-      <td colspan="2" style="width: 468pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Bring your resume, a notebook and/or a personal electronic device to take notes.</span></td>
+      <td colspan="2" style="width: 468pt;padding: 6pt 5.75pt;border-top: 1pt solid #f1c4be;border-bottom: 1pt solid #f1c4be"><span style="font-size: 10pt; letter-spacing: 0.5pt;">Bring your resume, a notebook and/or a personal electronic device to take notes.</span></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-bottom: 0pt; line-height: 1.04">&nbsp;</p>
 <footer class="doc-footer">
-<p style="text-align: right; margin-bottom: 0pt; line-height: 1"><span style="color: #515f23; font-size: 8pt; letter-spacing: 0.5pt; text-transform: uppercase;"><strong>Page 1</strong></span></p>
+<p style="text-align: right; margin-bottom: 0pt; line-height: 1"><span style="color: #515f23; font-size: 8pt; letter-spacing: 0.5pt; text-transform: uppercase;"><strong>Page </strong></span><span style="color: #515f23; font-size: 8pt; letter-spacing: 0.5pt; text-transform: uppercase;"><strong>1</strong></span></p>
 </footer>
 </body>
 </html>

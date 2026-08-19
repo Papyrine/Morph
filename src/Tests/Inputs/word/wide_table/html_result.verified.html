@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -32,36 +36,36 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <table>
   <tbody>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Col 3</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Col 4</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Col 5</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Col 6</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Col 3</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Col 4</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Col 5</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Col 6</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R1C1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R1C2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R1C3</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R1C4</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R1C5</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R1C6</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R1C1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R1C2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R1C3</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R1C4</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R1C5</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R1C6</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R2C1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R2C2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R2C3</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R2C4</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R2C5</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R2C6</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R2C1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R2C2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R2C3</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R2C4</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R2C5</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R2C6</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R3C1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R3C2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R3C3</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R3C4</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R3C5</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">R3C6</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R3C1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R3C2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R3C3</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R3C4</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R3C5</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">R3C6</span></p></td>
     </tr>
   </tbody>
 </table>

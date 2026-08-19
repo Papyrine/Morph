@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -37,8 +41,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 14pt"><span style="color: #ff5733;">Hex color: #FF5733</span></p>
 <p style="margin-bottom: 14pt"><span style="color: #333333;">Short hex: #333</span></p>
 <p style="margin-bottom: 14pt"><span style="color: #6495ed;">RGB: rgb(100, 149, 237) - Cornflower Blue</span></p>
-<p style="margin-bottom: 14pt">Light yellow background</p>
-<p style="margin-bottom: 14pt"><span style="color: #00008b;">Light gray bg, dark blue text</span></p>
-<p style="margin-bottom: 14pt"><span style="color: #333333;">Div with background and padding</span></p>
+<p style="margin-bottom: 14pt; background-color: #ffffcc">Light yellow background</p>
+<p style="margin-bottom: 14pt; background-color: #d3d3d3"><span style="color: #00008b;">Light gray bg, dark blue text</span></p>
+<p style="margin-bottom: 14pt; background-color: #e0e0e0"><span style="color: #333333;">Div with background and padding</span></p>
 </body>
 </html>

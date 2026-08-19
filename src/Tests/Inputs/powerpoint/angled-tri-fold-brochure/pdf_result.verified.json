@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "Contoso &\nContoso\n We are committed\nto protecting your\nrights and fighting for\njustice. \nContact\n4567 Main St \nBuffalo, NY 98052\n555-0100\ninfo@contoso.com\nwww.contoso.com\nPARTNERS AT LAW"
+        "Text": "Contoso &\nContoso\n We are committed\nto protecting your\nrights and fighting for\njustice. \nContact\n4567 Main St \nBuffalo, NY 98052\n555-0100\ninfo@contoso.com\nwww.contoso.com\nPARTNERS AT LAW"
       },
       {
         "Width": 792.0,
@@ -24,7 +24,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.5694,
-      "Ssim": 0.7609,
+      "Ssim": 0.7608,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

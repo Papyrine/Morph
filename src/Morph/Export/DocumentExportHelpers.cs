@@ -286,6 +286,7 @@ static class DocumentExportHelpers
     static bool CanMerge(Run left, Run right)
     {
         if (left.IsTab || right.IsTab ||
+            left.PageField != PageFieldKind.None || right.PageField != PageFieldKind.None ||
             left.InlineImageData != null || right.InlineImageData != null ||
             left.InlineShapeGroup != null || right.InlineShapeGroup != null ||
             left.FootnoteReferenceId != null || right.FootnoteReferenceId != null ||
@@ -306,6 +307,8 @@ static class DocumentExportHelpers
         left.Bold == right.Bold &&
         left.Italic == right.Italic &&
         left.Underline == right.Underline &&
+        left.UnderlineColorHex == right.UnderlineColorHex &&
+        left.DoubleUnderline == right.DoubleUnderline &&
         left.Strikethrough == right.Strikethrough &&
         left.AllCaps == right.AllCaps &&
         left.SmallCaps == right.SmallCaps &&

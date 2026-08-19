@@ -150,9 +150,13 @@ public class CanonicalFragmenterTests
     /// to the font and leaves the bare single-spaced pitch — which is NOT the auto test's box either, since
     /// the default <see cref="ParagraphProperties.LineSpacingMultiplier"/> is Word's 1.08.
     /// </summary>
+    // The 16pt page height moved 197 → 198 when the atLeast baseline was bottom-anchored
+    // (LineAscentPoints, 2026-08-19): the straddling line's ASCENT grew by the box excess, so the
+    // guard below needs one more point of page for the baseline to stay inside the margin while
+    // the box still overhangs. The fragmenter rule under test is unchanged.
     [Test]
     [Arguments(10, 199, 11)]
-    [Arguments(16, 197, 9)]
+    [Arguments(16, 198, 9)]
     public async Task An_atLeast_spaced_line_needs_its_whole_box_inside_the_margin(double declaredPoints, double pageHeight, int expected)
     {
         var page = Page(pageHeight);
@@ -413,6 +417,57 @@ public class CanonicalFragmenterTests
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         var afterLine = document.Pages[1].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, after));
         await Assert.That(afterLine.Y).IsEqualTo(20f);
+    }
+
+    /// <summary>
+    /// A plain content row is fitted against the remainder EXACTLY — a row past the bottom margin by
+    /// any amount moves, with none of <c>HasSpaceFor</c>'s rounding slack. Word-measured on a
+    /// 1216-row summary table over 52 landscape pages: the slack reached 9.6pt against a 17.7pt row,
+    /// so a boundary row 1.5pt over stayed where Word moves it — one extra row kept on roughly every
+    /// fourth page, a whole page lost by the table's end, and every PAGEREF below the table one low.
+    /// </summary>
+    [Test]
+    public async Task A_row_barely_past_the_bottom_margin_moves_rather_than_overhanging()
+    {
+        // Fourteen single-line rows, sized off their own laid-out height rather than a hard-coded
+        // pitch so the boundary geometry below cannot drift from the height model. The labels are
+        // letters so every row is the same width — the auto-fit cell hugs the widest label, and a
+        // wider one ("Row 10") wraps to a second line and breaks the uniform-height premise. Built
+        // fresh per layout: Layout owns the element tree it is given and mutates it.
+        static TableElement Table() =>
+            new()
+            {
+                Properties = new(),
+                Rows =
+                [
+                    .. Enumerable.Range(0, 14).Select(index => new TableRow
+                    {
+                        Cells =
+                        [
+                            new()
+                            {
+                                Content = [P($"Row {(char) ('a' + index)}")],
+                                Properties = new()
+                            }
+                        ]
+                    })
+                ]
+            };
+
+        var rowHeight = fragmenter.Layout([Table()], Page(10_000))
+            .Pages[0].Items.OfType<PlacedTableRow>().First().Height;
+
+        // A content band 1.5pt short of twelve rows: the twelfth overhangs by 1.5pt — inside a 2%
+        // slack (~3.4pt here), outside the exact fit — and the table is over 110% of the band, so it
+        // flows row by row, the path under test.
+        var page = Page(12 * rowHeight - 1.5f + 40);
+        var document = fragmenter.Layout([Table()], page);
+        var contentBottom = (float) (page.HeightPoints - page.MarginBottom);
+
+        var firstPage = document.Pages[0].Items.OfType<PlacedTableRow>().ToList();
+        await Assert.That(firstPage.Count).IsEqualTo(11);
+        await Assert.That(firstPage[^1].Y + firstPage[^1].Height).IsLessThanOrEqualTo(contentBottom);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedTableRow>().Count()).IsEqualTo(3);
     }
 
     /// <summary>

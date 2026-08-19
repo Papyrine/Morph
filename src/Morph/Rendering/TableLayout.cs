@@ -100,7 +100,32 @@ static class TableLayout
     internal static CellSpacing GetEffectiveMargin(TableCellProperties cellProps, TableProperties tableProps) =>
         cellProps.Margin ?? tableProps.DefaultCellMargin;
 
-    internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null)
+    /// <summary>
+    /// How far a cell's drawn box sits inside its layout slot under the detached-border model
+    /// (<c>w:tblCellSpacing</c> &gt; 0), per edge. Word-probed at 2/6/12pt
+    /// (<c>_probe_cellspacing</c>): every gap in the drawn result is 2 × spacing — cell-to-cell
+    /// from the two neighbours' single insets meeting, frame-to-cell from the outer cell taking a
+    /// DOUBLE inset on its table-edge sides (measured 11/27/52px at 150 DPI against predicted
+    /// 2 × spacing plus the rules' half-widths). Row extras ride on the slot heights
+    /// (<see cref="TableHeightCalculator"/> widens the first and last slots), so the vertical
+    /// insets here stay uniform; pass row context only for the box maths, not the measure.
+    /// </summary>
+    internal static CellSpacing CellSpacingInsets(TableProperties tableProps, int gridCol, int span, int totalCols, int rowIndex = -1, int totalRows = -1)
+    {
+        var spacing = tableProps.CellSpacingPoints;
+        if (spacing <= 0)
+        {
+            return new(0);
+        }
+
+        var left = spacing + (gridCol == 0 ? spacing : 0);
+        var right = spacing + (gridCol + span >= totalCols ? spacing : 0);
+        var top = spacing + (rowIndex == 0 ? spacing : 0);
+        var bottom = spacing + (rowIndex >= 0 && rowIndex == totalRows - 1 ? spacing : 0);
+        return new(top, right, bottom, left);
+    }
+
+    internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null, IReadOnlyList<TableRow>? rows = null)
     {
         if (cellProps.Borders != null)
         {
@@ -138,13 +163,87 @@ static class TableLayout
         var isFirstCol = colIndex == 0;
         var isLastCol = colIndex == totalCols - 1;
 
+        // A neighbouring cell's EXPLICIT w:tcBorders suppresses the style-inherited inside border
+        // on the shared edge: Word's conflict rule lets a direct `nil` beat a table-style border
+        // from either side of the edge. Without this, a layout table whose cells nil their own
+        // borders still grew rules wherever a nilled cell abutted one with no w:tcBorders at all —
+        // the neighbour inherited the style's insideH/insideV for the same edge and drew it
+        // (newsletters/04's column dividers and byline rules, which Word renders borderless).
+        // A neighbour whose explicit facing edge is VISIBLE changes nothing here: both cells then
+        // draw the same edge, which overdraws harmlessly.
+        var span = Math.Max(1, cellProps.GridSpan);
+        var sameRow = row?.Cells;
+        var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex - 1)?.Borders?.Right);
+        var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex + span)?.Borders?.Left);
+        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders?.Bottom);
+        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders?.Top);
+
         return new()
         {
-            Top = isFirstRow ? outer?.Top ?? BorderEdge.None : insideH ?? BorderEdge.None,
-            Bottom = isLastRow ? outer?.Bottom ?? BorderEdge.None : insideH ?? BorderEdge.None,
-            Left = isFirstCol ? outer?.Left ?? BorderEdge.None : insideV ?? BorderEdge.None,
-            Right = isLastCol ? outer?.Right ?? BorderEdge.None : insideV ?? BorderEdge.None
+            Top = isFirstRow ? outer?.Top ?? BorderEdge.None : suppressTop ? BorderEdge.None : insideH ?? BorderEdge.None,
+            Bottom = isLastRow ? outer?.Bottom ?? BorderEdge.None : suppressBottom ? BorderEdge.None : insideH ?? BorderEdge.None,
+            Left = isFirstCol ? outer?.Left ?? BorderEdge.None : suppressLeft ? BorderEdge.None : insideV ?? BorderEdge.None,
+            Right = isLastCol ? outer?.Right ?? BorderEdge.None : suppressRight ? BorderEdge.None : insideV ?? BorderEdge.None
         };
+    }
+
+    static bool FacingEdgeExplicitlyInvisible(BorderEdge? facing) =>
+        facing is {IsVisible: false};
+
+    /// <summary>
+    /// The cell whose declaration governs the given grid position, following a vertical-merge
+    /// continuation up to its span head — the merged region is ONE cell, so its head's explicit
+    /// borders speak for every row it covers.
+    /// </summary>
+    static TableCellProperties? FacingCell(IReadOnlyList<TableRow>? rows, IReadOnlyList<TableCell>? cells, int rowIndex, int gridColumn)
+    {
+        var facing = CellCovering(cells, gridColumn);
+        if (facing is not {VerticalMerge: VerticalMergeType.Continue, Borders: null} || rows == null)
+        {
+            return facing;
+        }
+
+        for (var above = rowIndex - 1; above >= 0; above--)
+        {
+            var candidate = CellCovering(rows[above].Cells, gridColumn);
+            if (candidate == null)
+            {
+                return facing;
+            }
+
+            if (candidate.VerticalMerge != VerticalMergeType.Continue)
+            {
+                return candidate;
+            }
+        }
+
+        return facing;
+    }
+
+    static IReadOnlyList<TableCell>? RowCells(IReadOnlyList<TableRow>? rows, int rowIndex) =>
+        rows != null && rowIndex >= 0 && rowIndex < rows.Count ? rows[rowIndex].Cells : null;
+
+    /// <summary>The cell whose grid span covers <paramref name="gridColumn"/>, or null.</summary>
+    static TableCellProperties? CellCovering(IReadOnlyList<TableCell>? cells, int gridColumn)
+    {
+        if (cells == null || gridColumn < 0)
+        {
+            return null;
+        }
+
+        var start = 0;
+        foreach (var cell in cells)
+        {
+            var width = Math.Max(1, cell.Properties.GridSpan);
+            if (gridColumn < start + width)
+            {
+                return cell.Properties;
+            }
+
+            start += width;
+        }
+
+        return null;
     }
 
     /// <summary>

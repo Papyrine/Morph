@@ -16,7 +16,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "TABLE OF CONTENTS\nTABE OF CONTENTS. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .1\nGETTING STARTED. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .2\nWhat to include. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2\nFocus on what you do best. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2\nDON’T FORGET THE MISSION. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .3\nMAKE IT YOUR OWN. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4\nCustomize in almost no time. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4\nMake it picture perfect. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4\nOur products and services. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .5\nOUR PRODUCTS & SERVICES\nAPPETIZERS AND HORS D'OEUVRES\nWondering why the page number on this page is\n5? This is the inside back cover.\nThis booklet is setup to make it easy to print a\ntwo-sided, eight-page booklet. The tips on this\npage will help you get that done.\nBUFFET-STYLE MEALS\nThe bottom of inside pages is setup for you to\nmanually add page numbers, so it’s easy to adjust\nnumbering for your printing preferences. The\ntable of contents at left is also setup for manual\nediting, so you can easily update page numbers.\nPLATED DINNERS\nTo print this booklet two-sided, click File and then\nclick Print. Under the option that defaults to Print\nOne Sided, select a two-sided print setting. This\nbooklet is setup to flip on the short side of the\npage.\n5"
+        "Text": "TABLE OF CONTENTS\nTABE OF CONTENTS.............................................................................................1\nGETTING STARTED.................................................................................................2\nWhat to include..........................................................................................................2\nFocus on what you do best..................................................................................... 2\nDON’T FORGET THE MISSION.........................................................................3\nMAKE IT YOUR OWN..........................................................................................4\nCustomize in almost no time..................................................................................4\nMake it picture perfect............................................................................................. 4\nOur products and services.......................................................................................5\nOUR PRODUCTS & SERVICES\nAPPETIZERS AND HORS D'OEUVRES\nWondering why the page number on this page is\n5? This is the inside back cover.\nThis booklet is setup to make it easy to print a\ntwo-sided, eight-page booklet. The tips on this\npage will help you get that done.\nBUFFET-STYLE MEALS\nThe bottom of inside pages is setup for you to\nmanually add page numbers, so it’s easy to adjust\nnumbering for your printing preferences. The\ntable of contents at left is also setup for manual\nediting, so you can easily update page numbers.\nPLATED DINNERS\nTo print this booklet two-sided, click File and then\nclick Print. Under the option that defaults to Print\nOne Sided, select a two-sided print setting. This\nbooklet is setup to flip on the short side of the\npage.\n5"
       },
       {
         "Width": 792.0,
@@ -33,32 +33,32 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.594,
-      "Ssim": 0.8405,
+      "ErrorMetric": 0.5836,
+      "Ssim": 0.8746,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1204,
-      "Ssim": 0.8476,
+      "ErrorMetric": 0.1056,
+      "Ssim": 0.9123,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1443,
-      "Ssim": 0.8167,
+      "ErrorMetric": 0.1371,
+      "Ssim": 0.8347,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1663,
-      "Ssim": 0.8162,
+      "ErrorMetric": 0.1619,
+      "Ssim": 0.8264,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

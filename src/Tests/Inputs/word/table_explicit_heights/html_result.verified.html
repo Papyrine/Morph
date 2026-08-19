@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,19 +34,19 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: Aptos, sans-serif; max-width: 468pt; padding: 72pt">
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Table with Explicit Row Heights</span></p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Row 1: 100pt, Row 2: 200pt, Row 3: 150pt</span></p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 100pt">
-      <td><span style="font-size: 12pt;">Row 1, Cell 1 (100pt height)</span></td>
-      <td><span style="font-size: 12pt;">Row 1, Cell 2</span></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 1, Cell 1 (100pt height)</span></p></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 1, Cell 2</span></p></td>
     </tr>
     <tr style="height: 200pt">
-      <td><span style="font-size: 12pt;">Row 2, Cell 1 (200pt height)</span></td>
-      <td><span style="font-size: 12pt;">Row 2, Cell 2</span></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 2, Cell 1 (200pt height)</span></p></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 2, Cell 2</span></p></td>
     </tr>
     <tr style="height: 150pt">
-      <td><span style="font-size: 12pt;">Row 3, Cell 1 (150pt height)</span></td>
-      <td><span style="font-size: 12pt;">Row 3, Cell 2</span></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 3, Cell 1 (150pt height)</span></p></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 3, Cell 2</span></p></td>
     </tr>
   </tbody>
 </table>

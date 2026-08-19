@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -38,8 +42,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 12pt; line-height: 1.2">&nbsp;</p>
 <p>LOGO</p>
 <h1 id="memo" style="font-size: 24pt; margin-top: 24pt; line-height: 1"><span style="font-family: Calibri, sans-serif; color: #632e62;">Memo</span></h1>
-<p style="margin-top: 18pt; margin-bottom: 18pt; line-height: 1.5"><span style="font-size: 14pt;"><strong>To: </strong></span><span style="font-size: 14pt;">Recipient Name</span></p>
-<p style="margin-top: 18pt; margin-bottom: 18pt; line-height: 1.5"><span style="font-size: 14pt;"><strong>From:</strong></span><span style="font-size: 14pt;"> Your Name</span></p>
+<p style="margin-top: 18pt; margin-bottom: 0pt; line-height: 1.5"><span style="font-size: 14pt;"><strong>To: </strong></span><span style="font-size: 14pt;">Recipient Name</span></p>
+<p style="margin-top: 18pt; margin-bottom: 0pt; line-height: 1.5"><span style="font-size: 14pt;"><strong>From:</strong></span><span style="font-size: 14pt;"> Your Name</span></p>
 <p style="margin-top: 18pt; margin-bottom: 18pt; line-height: 1.5"><span style="font-size: 14pt;"><strong>CC:</strong></span><span style="font-size: 14pt;"> Other recipients</span></p>
 <h2 id="some-of-the-sample-text-in-this-document-indicates-the-name-of-the-style-applied-so-that-you-can-easily-apply-the-same-formatting-again-to-get-started-right-away-just-tap-any-placeholder-text-such-as-this-and-start-typing" style="font-size: 16pt; margin-top: 0pt; margin-bottom: 24pt; line-height: 1.2"><span style="font-weight: normal; color: #632e62;">Some of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting again. To get started right away, just tap any placeholder text (such as this) and start typing.</span></h2>
 <p style="margin-bottom: 12pt; line-height: 1.2"><span style="font-size: 12pt;">View and edit this document in Word on your computer, tablet, or phone. You can edit text; easily insert content such as pictures, shapes, or tables; and seamlessly save the document to the cloud from Word on your Windows, Mac, Android, or iOS device.</span></p>
@@ -51,7 +55,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 12pt; line-height: 1.2">&nbsp;</p>
 <p style="margin-bottom: 12pt; line-height: 1.2">&nbsp;</p>
 <p style="margin-bottom: 12pt; line-height: 1.2">&nbsp;</p>
-<p style="text-align: center; margin-bottom: 18pt; line-height: 1"><span style="font-size: 12pt;">STREET ADDRESS, CITY, STATE  ZIP CODE</span></p>
+<p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">STREET ADDRESS, CITY, STATE  ZIP CODE</span></p>
 <p style="text-align: center; margin-bottom: 18pt; line-height: 1"><span style="font-size: 12pt;">T: TELEPHONE  W: WEBSITE</span></p>
 </body>
 </html>

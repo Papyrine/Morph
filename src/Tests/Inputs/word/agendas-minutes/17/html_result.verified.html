@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -47,53 +51,53 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
 <p style="margin-bottom: 0pt; line-height: 1.5">&nbsp;</p>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 95.04%">
   <tbody>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt"><h3 id="meeting-time" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Meeting time</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">05/15, 11:30 – 1:00 PM</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="meeting-time" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Meeting time</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">05/15, 11:30 – 1:00 PM</span></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt"><h3 id="meeting-called-by" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Meeting called by</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">Ian Hansson</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="meeting-called-by" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Meeting called by</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">Ian Hansson</span></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt"><h3 id="attendees" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Attendees</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">Petja Hrovat, Kristiina Mae, Lodovico Udinesi</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="attendees" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Attendees</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">Petja Hrovat, Kristiina Mae, Lodovico Udinesi</span></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt"><h3 id="please-read" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Please read</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">Reading list</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="please-read" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Please read</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">Reading list</span></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt"><h3 id="please-bring" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Please bring</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">Supplies</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="please-bring" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Please bring</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">Supplies</span></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt"><h3 id="time" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Time</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">11:30 – 1:00 PM</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="time" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Time</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">11:30 – 1:00 PM</span></td>
     </tr>
     <tr style="height: 77.85pt">
-      <td style="width: 166.5pt"><h3 id="location" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Location</span></h3></td>
-      <td colspan="2" style="width: 333.05pt"><span style="color: #404040; font-size: 10pt;">Conference Room</span></td>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="location" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Location</span></h3></td>
+      <td colspan="2" style="width: 333.05pt;padding: 0pt 0pt 0pt 14.4pt"><span style="color: #404040; font-size: 10pt;">Conference Room</span></td>
     </tr>
     <tr style="height: 72.9pt">
-      <td style="width: 166.5pt"><h3 id="discussion" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Discussion</span></h3>
-        <ul>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="discussion" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Discussion</span></h3>
+        <ul style="list-style-type: disc">
           <li><span style="color: #404040; font-size: 10pt;">Fiscal review | Briana Hernandez </span></li>
           <li><span style="color: #404040; font-size: 10pt;">New business | Asaf Karten</span></li>
           <li><span style="color: #404040; font-size: 10pt;">Team updates | Kristiina Mae </span></li>
         </ul>
       </td>
-      <td style="width: 166.5pt"><h3 id="board-vote" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Board vote</span></h3>
-        <ul>
+      <td style="width: 166.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="board-vote" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Board vote</span></h3>
+        <ul style="list-style-type: disc">
           <li><span style="color: #404040; font-size: 10pt;">Vote 1 | Petja Hrovat </span></li>
           <li><span style="color: #404040; font-size: 10pt;">Vote 2 | Lodovico Udinesi </span></li>
           <li><span style="color: #404040; font-size: 10pt;">Vote 3 | Ian Hansson </span></li>
         </ul>
       </td>
-      <td style="width: 166.55pt"><h3 id="team-building" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Team building</span></h3>
-        <ul>
+      <td style="width: 166.55pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="team-building" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Team building</span></h3>
+        <ul style="list-style-type: disc">
           <li><span style="color: #404040; font-size: 10pt;">Activity 1 | Kristiina Mae </span></li>
           <li><span style="color: #404040; font-size: 10pt;">Activity 2 | Lodovico Udinesi </span></li>
           <li><span style="color: #404040; font-size: 10pt;">Activity 3 | Ian Hansson </span></li>
@@ -107,7 +111,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <table>
   <tbody>
     <tr>
-      <td style="width: 499.5pt"><h3 id="additional-instructions" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Additional Instructions</span></h3><span style="color: #404040; font-size: 10pt;">Use this section for additional instructions, comments, or directions.</span></td>
+      <td style="width: 499.5pt;padding: 0pt 0pt 0pt 14.4pt"><h3 id="additional-instructions" style="font-size: 14pt; margin-top: 0pt; line-height: 1"><span style="font-family: 'Bodoni MT Condensed', sans-serif; color: #404040;">Additional Instructions</span></h3><span style="color: #404040; font-size: 10pt;">Use this section for additional instructions, comments, or directions.</span></td>
     </tr>
   </tbody>
 </table>

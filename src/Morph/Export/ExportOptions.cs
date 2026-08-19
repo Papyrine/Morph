@@ -16,6 +16,22 @@ public abstract record ExportOptions
     public string? FontDirectory { get; init; }
 
     /// <summary>
+    /// Optional delegate to resolve missing fonts. Called with the font family name that could not
+    /// be found; return an alternative family, or null to fall through to the curated alias map,
+    /// the platform resolver, and finally <see cref="DefaultFont"/>.
+    /// <para>
+    /// Consulted only once <see cref="FontDirectory"/> / the bundled faces and the host's installed
+    /// fonts have both missed, so a family the machine can already serve never reaches it.
+    /// </para>
+    /// <para>
+    /// Shared rather than raster-only because a workbook resolves fonts at PARSE time: Excel's
+    /// column-width unit is a glyph of the body font, so the grid every format is built on — HTML
+    /// and Markdown included — is sized by whichever face this maps to.
+    /// </para>
+    /// </summary>
+    public Func<string, string?>? FontFallback { get; init; }
+
+    /// <summary>
     /// Overrides the fallback font family used when the source document does not declare a default
     /// run font. When <c>null</c>, a customized <see cref="DefaultFontSettings.DefaultFont"/> is
     /// used, and with that left at its factory default such documents get the parser's built-in

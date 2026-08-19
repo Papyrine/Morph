@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,7 +34,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: 'Avenir Next LT Pro Light', sans-serif; max-width: 540pt; padding: 27pt 36pt 36pt; position: relative">
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: -27pt; width: 194.4pt; height: 792pt; z-index: -1" viewBox="0 0 194.4 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="194.4" height="792" fill="#e3f2ed" fill-opacity="0.5" /></svg></div>
 <p style="margin-bottom: 6pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 93.6pt">
       <td colspan="5" style="width: 540pt"><h1 id="tonniethomsen" style="margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-family: Georgia, sans-serif; color: #4a9b82; font-size: 68pt;">Tonnie</span><span style="font-weight: normal; font-size: 10pt;"><br /></span><span style="font-family: Georgia, sans-serif; color: #4a9b82; font-size: 68pt;">Thomsen</span></h1></td>
@@ -41,13 +45,13 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td colspan="3" style="width: 364.5pt"><h1 id="june-30-20xx" style="font-size: 14pt; margin-top: 14pt; line-height: 1"><span style="font-family: Georgia, sans-serif; color: #4a9b82; text-transform: uppercase;">June 30, 20XX</span></h1></td>
     </tr>
     <tr style="height: 81pt">
-      <td rowspan="2" style="width: 157.5pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>ADDRESS </strong></span><br /><span style="font-size: 10pt;">987 6</span><span style="font-size: 10pt;"><sup>th</sup></span><span style="font-size: 10pt;"> Ave<br />Santa Fe, NM 76543<br />USA</span><br /><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>PHONE </strong></span><br /><span style="font-size: 10pt;">706.555.0123</span><br /><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>EMAIL </strong></span><br /><span style="font-size: 10pt;">tonnie@example.com</span><br /><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>Website </strong></span><br /><span style="font-size: 10pt;">www.interestingsite.com </span></td>
+      <td rowspan="2" style="width: 157.5pt"><p style="margin: 12pt 0 6pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>ADDRESS </strong></span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">987 6</span><span style="font-size: 10pt;"><sup>th</sup></span><span style="font-size: 10pt;"> Ave<br />Santa Fe, NM 76543<br />USA</span></p><p style="margin: 12pt 0 6pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>PHONE </strong></span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">706.555.0123</span></p><p style="margin: 12pt 0 6pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>EMAIL </strong></span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">tonnie@example.com</span></p><p style="margin: 12pt 0 6pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>Website </strong></span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">www.interestingsite.com </span></p></td>
       <td rowspan="2" style="width: 18pt"></td>
-      <td style="width: 207pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>Lilli Allik</strong></span><br /><span style="font-size: 10pt;">Principal<br />Emerald View Elementary</span></td>
-      <td style="width: 156.5pt"><br /><span style="font-size: 10pt;">4321 Maplewood Ave<br />Nashville, TN 65432</span></td>
+      <td style="width: 207pt"><p style="margin: 12pt 0 6pt"><span style="font-family: Georgia, sans-serif; text-transform: uppercase;"><strong>Lilli Allik</strong></span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">Principal<br />Emerald View Elementary</span></p></td>
+      <td style="width: 156.5pt"><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">4321 Maplewood Ave<br />Nashville, TN 65432</span></p></td>
     </tr>
     <tr style="height: 344.4pt">
-      <td colspan="2" style="width: 363.5pt"><br /><span style="font-size: 10pt;">Dear Principal Allik,</span><br /><br /><span style="font-size: 10pt;">I am excited to submit my application for the Elementary School Teacher position at Emerald View Elementary. As a passionate and experienced educator, I believe in creating a positive and inclusive classroom environment that supports students&#39; academic and social-emotional growth. </span><br /><br /><span style="font-size: 10pt;">I have a strong commitment to student-centered learning and personalized instruction that engages and challenges every student. I am confident that my dedication, creativity, and expertise will make me a valuable addition to your school community.</span><br /><br /><span style="font-size: 10pt;">Thank you for your consideration.</span><br /><br /><span style="font-size: 10pt;">Sincerely,</span><br /><span style="font-size: 10pt;">Tonnie Thomsen</span></td>
+      <td colspan="2" style="width: 363.5pt"><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">Dear Principal Allik,</span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">I am excited to submit my application for the Elementary School Teacher position at Emerald View Elementary. As a passionate and experienced educator, I believe in creating a positive and inclusive classroom environment that supports students&#39; academic and social-emotional growth. </span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">I have a strong commitment to student-centered learning and personalized instruction that engages and challenges every student. I am confident that my dedication, creativity, and expertise will make me a valuable addition to your school community.</span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">Thank you for your consideration.</span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">Sincerely,</span></p><p style="margin: 0pt 0 6pt"><span style="font-size: 10pt;">Tonnie Thomsen</span></p></td>
     </tr>
   </tbody>
 </table>

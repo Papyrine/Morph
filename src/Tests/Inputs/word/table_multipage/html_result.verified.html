@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -32,154 +36,154 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <table>
   <tbody>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Header 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Header 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Header 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Header 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Header 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Header 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 1, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 1, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 1, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 1, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 1, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 1, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 2, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 2, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 2, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 2, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 2, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 2, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 3, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 3, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 3, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 3, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 3, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 3, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 4, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 4, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 4, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 4, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 4, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 4, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 5, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 5, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 5, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 5, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 5, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 5, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 6, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 6, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 6, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 6, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 6, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 6, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 7, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 7, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 7, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 7, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 7, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 7, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 8, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 8, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 8, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 8, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 8, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 8, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 9, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 9, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 9, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 9, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 9, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 9, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 10, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 10, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 10, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 10, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 10, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 10, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 11, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 11, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 11, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 11, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 11, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 11, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 12, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 12, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 12, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 12, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 12, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 12, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 13, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 13, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 13, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 13, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 13, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 13, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 14, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 14, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 14, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 14, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 14, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 14, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 15, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 15, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 15, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 15, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 15, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 15, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 16, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 16, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 16, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 16, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 16, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 16, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 17, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 17, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 17, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 17, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 17, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 17, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 18, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 18, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 18, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 18, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 18, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 18, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 19, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 19, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 19, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 19, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 19, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 19, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 20, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 20, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 20, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 20, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 20, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 20, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 21, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 21, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 21, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 21, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 21, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 21, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 22, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 22, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 22, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 22, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 22, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 22, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 23, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 23, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 23, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 23, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 23, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 23, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 24, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 24, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 24, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 24, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 24, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 24, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 25, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 25, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 25, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 25, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 25, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 25, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 26, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 26, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 26, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 26, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 26, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 26, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 27, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 27, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 27, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 27, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 27, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 27, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 28, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 28, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 28, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 28, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 28, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 28, Col 3</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 29, Col 1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 29, Col 2</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">Row 29, Col 3</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 29, Col 1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 29, Col 2</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Row 29, Col 3</span></p></td>
     </tr>
   </tbody>
 </table>

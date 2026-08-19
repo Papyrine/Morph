@@ -80,6 +80,14 @@ static class PdfPainter
             {
                 PaintItem(context, graphics, item, rasterizeWordArt, onWarning);
             }
+
+            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            {
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                PaintBorder(context, graphics, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges));
+            }
         }
 
         return context.Document;
@@ -171,6 +179,7 @@ static class PdfPainter
     static void PaintLine(PdfRenderContext context, XGraphics graphics, PlacedLine line)
     {
         var ascent = line.Baseline - line.Y;
+        var revisionBarDrawn = false;
         foreach (var run in line.Runs)
         {
             // A tab-leader filler fills its span with the leader (tiled glyph, or a baseline rule for
@@ -186,6 +195,14 @@ static class PdfPainter
                 continue;
             }
 
+            // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
+            if (run.Properties.IsRevisionMark && !revisionBarDrawn)
+            {
+                revisionBarDrawn = true;
+                var barX = context.PageSettings.MarginLeft / 2;
+                graphics.DrawLine(context.GetPen(XColors.Black, 0.75), barX, line.Y, barX, line.Y + line.Height);
+            }
+
             var properties = run.Properties;
             var color = PdfRenderContext.ParseColor(properties.ColorHex);
 
@@ -195,15 +212,24 @@ static class PdfPainter
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(properties.BackgroundColorHex)), run.X, line.Y, run.Width, line.Height);
             }
 
-            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, line.Baseline, properties.CharacterSpacingPoints);
+            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, line.Baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties));
 
             // Underline below the baseline, strike through the x-height — geometry carried over from the
             // deleted PdfTextEngine.
             var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
             if (properties.Underline)
             {
+                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
+                var underlineColor = properties.UnderlineColorHex == null
+                    ? color
+                    : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
                 var underlineY = line.Baseline + properties.FontSizePoints * 0.12;
-                graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, underlineY, run.X + run.Width, underlineY);
+                graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, underlineY, run.X + run.Width, underlineY);
+                if (properties.DoubleUnderline)
+                {
+                    var secondY = underlineY + strokeWidth * 2;
+                    graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, secondY, run.X + run.Width, secondY);
+                }
             }
 
             if (properties.Strikethrough)
@@ -229,22 +255,39 @@ static class PdfPainter
     // Draws text, spreading each character by w:spacing tracking (letter-spacing). The run's placed width
     // already includes the tracking (the canonical measurer widened it), so a following run starts past it.
     // Per-glyph, so surrogate pairs stay intact.
-    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints)
+    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints, bool syntheticItalic = false)
     {
+        // An italic run whose family bundles no italic face: shear the glyphs right about the
+        // baseline by the Word-measured oblique. PdfSharp's own mustSimulateItalic is deliberately
+        // not used — it skews by sin 20° (0.342), 2.5x Word's slant (see PdfFontResolver).
+        XGraphicsState? state = null;
+        if (syntheticItalic)
+        {
+            var skew = FontHelpers.SyntheticItalicSkew;
+            state = graphics.Save();
+            graphics.MultiplyTransform(new XMatrix(1, 0, -skew, 1, skew * baseline, 0));
+        }
+
         if (trackingPoints == 0 || text.Length <= 1)
         {
             graphics.DrawString(text, font, brush, new XPoint(penX, baseline), baselineFormat);
-            return;
+        }
+        else
+        {
+            var x = penX;
+            for (var i = 0; i < text.Length; i++)
+            {
+                var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+                var piece = text.Substring(i, length);
+                graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
+                x += graphics.MeasureString(piece, font).Width + trackingPoints;
+                i += length - 1;
+            }
         }
 
-        var x = penX;
-        for (var i = 0; i < text.Length; i++)
+        if (state != null)
         {
-            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
-            var piece = text.Substring(i, length);
-            graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
-            x += graphics.MeasureString(piece, font).Width + trackingPoints;
-            i += length - 1;
+            graphics.Restore(state);
         }
     }
 
@@ -284,7 +327,11 @@ static class PdfPainter
 
         // Word spaces leader dots about a glyph-width apart, so tile at ~2x the advance and draw each glyph
         // at its own X — adjacent glyphs read as a dense line, not the spaced dots Word draws.
-        var spacing = glyphWidth * 2;
+        // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
+        // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
+        // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
+        // number, where the doubled stride tiled half as many dots and stopped ~14px short.
+        var spacing = glyphWidth;
         var count = (int) Math.Floor((run.Width - glyphWidth) / spacing) + 1;
         if (count <= 0)
         {

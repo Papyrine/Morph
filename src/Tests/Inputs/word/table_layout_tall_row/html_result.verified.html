@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,17 +34,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: Aptos, sans-serif; max-width: 468pt; padding: 72pt">
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Layout Table with Tall Second Row</span></p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Similar to letters/05 structure</span></p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 80pt">
       <td></td>
       <td></td>
       <td></td>
-      <td><span style="font-size: 12pt;">Company Name</span><br /><span style="font-size: 12pt;">123 Main Street</span><br /><span style="font-size: 12pt;">City, State 12345</span></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Company Name</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">123 Main Street</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">City, State 12345</span></p></td>
     </tr>
     <tr style="height: 530pt">
       <td></td>
-      <td><span style="font-size: 12pt;">Recipient Name</span><br /><span style="font-size: 12pt;">456 Other Street</span><br /><span style="font-size: 12pt;">Other City, State 67890</span><br /><br /><span style="font-size: 12pt;">Date: January 1, 2024</span><br /><br /><span style="font-size: 12pt;">Dear Recipient,</span><br /><br /><span style="font-size: 12pt;">This is the body of the letter. It contains multiple paragraphs of text that would normally fill most of a page.</span><br /><br /><span style="font-size: 12pt;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</span><br /><br /><span style="font-size: 12pt;">Best regards,</span><br /><br /><span style="font-size: 12pt;">Sender Name</span><br /><span style="font-size: 12pt;">Title</span></td>
+      <td><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Recipient Name</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">456 Other Street</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Other City, State 67890</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Date: January 1, 2024</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Dear Recipient,</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">This is the body of the letter. It contains multiple paragraphs of text that would normally fill most of a page.</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Best regards,</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Sender Name</span></p><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">Title</span></p></td>
     </tr>
   </tbody>
 </table>

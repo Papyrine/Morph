@@ -24,18 +24,33 @@ public sealed class ExcelDocument
     /// glyphs of the workbook's body font, so which face resolves decides the grid's geometry. Pass the
     /// same value here as on the export options, or the two passes will disagree.
     /// </param>
-    public ExcelDocument(string xlsxPath, string? defaultFont = null, string? fontDirectory = null)
+    /// <param name="fontFallback">
+    /// Substitutes a family the directory does not hold, as <see cref="ExportOptions.FontFallback"/>
+    /// does. It belongs on the parse for the same reason <paramref name="fontDirectory"/> does — it
+    /// decides which face the column-width unit is measured from — and must match the export options
+    /// just as closely.
+    /// </param>
+    public ExcelDocument(
+        string xlsxPath,
+        string? defaultFont = null,
+        string? fontDirectory = null,
+        Func<string, string?>? fontFallback = null)
     {
         using var stream = File.OpenRead(xlsxPath);
-        Document = ExcelConverter.Parse(stream, defaultFont, fontDirectory);
+        Document = ExcelConverter.Parse(stream, defaultFont, fontDirectory, fontFallback);
     }
 
     /// <summary>Parses an XLSX stream.</summary>
     /// <param name="xlsxStream">The workbook to read.</param>
     /// <param name="defaultFont">Overrides the fallback family for text the workbook leaves unstyled.</param>
     /// <param name="fontDirectory">Restricts font resolution to this directory; see the file overload.</param>
-    public ExcelDocument(Stream xlsxStream, string? defaultFont = null, string? fontDirectory = null) =>
-        Document = ExcelConverter.Parse(xlsxStream, defaultFont, fontDirectory);
+    /// <param name="fontFallback">Substitutes a family the directory misses; see the file overload.</param>
+    public ExcelDocument(
+        Stream xlsxStream,
+        string? defaultFont = null,
+        string? fontDirectory = null,
+        Func<string, string?>? fontFallback = null) =>
+        Document = ExcelConverter.Parse(xlsxStream, defaultFont, fontDirectory, fontFallback);
 
     /// <summary>Exports the workbook as a normalized semantic HTML fragment.</summary>
     public string ExportToHtml(HtmlExportOptions? options = null) =>

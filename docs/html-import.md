@@ -38,6 +38,8 @@ These are Word-derived numbers. They are not defaults anyone would guess, and ch
 |---|---|---|
 | Block paragraph pitch | `spacing-after` **14pt** (12pt when the base font is over 14pt, so headings keep their own) | Word's AltChunk `<p>` pitch measures ≈57px at 150 DPI against a ~29px line box. The obvious 8pt packed paragraphs ~6pt too tight and every band and line drifted up the page. |
 | `<img>` dimensions | CSS px **× 0.75** → points | `width`/`height` attributes are CSS pixels. Treated as points they render ~33% oversized — a 312×234 image where Word draws 234×175 — and each caption pushes further down the page (`ParseDimensionAttribute`). |
+| `margin-left` indent | CSS px **× 0.75** → `LeftIndentPoints` | Word's staircase for `html_css_margin_padding` measures 78px and 156px at 150 DPI for `margin-left: 50px`/`100px` — exactly 37.5pt/75pt. The `margin` shorthand's left component carries the same meaning (a `margin: 20px` paragraph starts 31px ≈ 15pt in). |
+| Empty `<p>` | dropped | Word renders a normal single paragraph gap between the neighbours of `<p></p>`, not a blank line (`html_paragraphs` bands match Word only with the element gone). Whitespace-only counts as empty; `&nbsp;`, images and `<br>` are content (`HtmlParser.IsEmptyParagraph`). |
 
 ## Tables
 
@@ -89,7 +91,6 @@ Morph does not yet draw them: `ParseTable` sets only `DefaultBorders`, so `Table
 Tracked as issue **#31** in `src/todo.md`, listed here because they shape what the parser can express:
 
 - **Cell content is flattened to one run.** `cell.TextContent` builds a single run, so `<b>` or `<span style>` inside a `<td>` loses its formatting.
-- **`margin-left` is ignored**, so CSS-indented paragraphs sit flush at the left margin.
 - **Shaded blocks have no box.** A background renders as a thin full-width band rather than a padded, bordered box. See the attempt below before trying again.
 - **`vertical-align` on cells is unmodelled**, which is what `html_css_alignment` actually means to demonstrate.
 - Cell padding composes slightly tighter than Word's.

@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,7 +35,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: -36pt; width: 204.45pt; height: 792pt; z-index: -1" viewBox="0 0 204.45 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="204.45" height="792" fill="#d14140" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 11.31pt; top: -36pt; width: 78.62pt; height: 102.86pt; z-index: -1" viewBox="0 0 78.62 102.86" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,102.86 L78.57,102.86 L78.57,0 L0,0 L0,102.86 Z" fill="#ffffff" /></svg></div>
 <p style="margin-bottom: 6pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="margin-left: auto; margin-right: auto; width: 95.84%">
   <tbody>
     <tr style="height: 44.55pt">
       <td style="width: 124.85pt"><h1 id="jm" style="font-size: 24pt; margin-top: 6pt; margin-bottom: 6pt; margin-left: 14.4pt; line-height: 1"><span style="font-family: Georgia, sans-serif; color: #d14140;">JM</span></h1></td>
@@ -44,7 +48,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td colspan="5" style="width: 349.35pt"><span style="font-size: 10pt;">Experienced woodworker with 5+ years of experience in designing and crafting custom furniture and cabinetry. Proficient in using a variety of woodworking tools and techniques, with a focus on precision and attention to detail.</span></td>
     </tr>
     <tr style="height: 10.8pt">
-      <td rowspan="10" style="width: 124.85pt"><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Location</strong></span><br /><span style="color: #ffffff; font-size: 10pt;">Boston, MA</span><br /><br /><svg width="98" height="1" viewBox="0 0 932688 9144" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="932688" height="9144" fill="#ffffff" /></svg><br /><br /><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Phone</strong></span><br /><span style="color: #ffffff; font-size: 10pt;">(202) 555-0122</span><br /><br /><svg width="98" height="1" viewBox="0 0 932688 9144" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="932688" height="9144" fill="#ffffff" /></svg><br /><br /><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Email</strong></span><br /><span style="color: #ffffff; font-size: 10pt;">jordan@example.com</span><br /><br /><svg width="98" height="1" viewBox="0 0 932688 9144" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="932688" height="9144" fill="#ffffff" /></svg><br /><br /><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Website</strong></span><br /><span style="color: #ffffff; font-size: 10pt;">www.greatsiteaddress.com</span></td>
+      <td rowspan="10" style="width: 124.85pt"><p style="margin: 3pt 0 6pt"><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Location</strong></span></p><span style="color: #ffffff; font-size: 10pt;">Boston, MA</span><br /><p style="margin: 3pt 0 6pt"><svg width="98" height="1" viewBox="0 0 932688 9144" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="932688" height="9144" fill="#ffffff" /></svg></p><p style="margin: 3pt 0 6pt"><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Phone</strong></span></p><span style="color: #ffffff; font-size: 10pt;">(202) 555-0122</span><br /><p style="margin: 3pt 0 6pt"><svg width="98" height="1" viewBox="0 0 932688 9144" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="932688" height="9144" fill="#ffffff" /></svg></p><p style="margin: 3pt 0 6pt"><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Email</strong></span></p><span style="color: #ffffff; font-size: 10pt;">jordan@example.com</span><br /><p style="margin: 3pt 0 6pt"><svg width="98" height="1" viewBox="0 0 932688 9144" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="932688" height="9144" fill="#ffffff" /></svg></p><p style="margin: 3pt 0 6pt"><span style="font-family: Georgia, sans-serif; color: #ffffff; font-size: 10pt;"><strong>Website</strong></span></p><span style="color: #ffffff; font-size: 10pt;">www.greatsiteaddress.com</span></td>
       <td rowspan="10" style="width: 43.35pt"></td>
       <td colspan="3" rowspan="2" style="width: 79.3pt"><h1 id="experience" style="font-size: 10pt; margin-top: 3pt; line-height: 1"><span style="font-family: Georgia, sans-serif;">Experience</span></h1></td>
       <td colspan="2" style="width: 270.05pt;border-bottom: 1.5pt solid #000000"></td>
@@ -54,7 +58,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
     <tr style="height: 309.6pt">
       <td colspan="5" style="width: 349.35pt"><h2 id="20xx-present" style="font-size: 10pt; line-height: 1">20XX – present</h2><h3 id="woodworker-sand-polish-contractors-boston-ma" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal;">Woodworker </span><span style="font-weight: normal; color: #d14140;"> |  </span><span style="font-weight: normal;">Sand + Polish Contractors</span><span style="font-weight: normal; color: #d14140;">  |  </span><span style="font-weight: normal;">Boston, MA</span></h3>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Collaborated with clients to design and build custom furniture pieces, including chairs, tables, and bookcases</span></li>
           <li><span style="font-size: 10pt;">Operated various woodworking tools and machinery to cut, shape, <br />and sand wood</span></li>
           <li><span style="font-size: 10pt;">Maintained a clean and organized workshop environment</span></li>
@@ -62,7 +66,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
           <li><span style="font-size: 10pt;">Consistently met project deadlines and exceeded client expectations</span></li>
         </ul>
       <h2 id="20xx-20xx" style="font-size: 10pt; line-height: 1">20XX – 20XX</h2><h3 id="woodworker-demo-and-build-construction-llc-boston-ma" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal;">Woodworker </span><span style="font-weight: normal; color: #d14140;"> |  </span><span style="font-weight: normal;">Demo and Build Construction, LLC </span><span style="font-weight: normal; color: #d14140;"> |  </span><span style="font-weight: normal;">Boston, MA</span></h3>
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Assisted senior woodworkers in building and installing cabinetry and custom furniture pieces</span></li>
           <li><span style="font-size: 10pt;">Operated woodworking tools and machinery under the supervision of senior woodworkers</span></li>
           <li><span style="font-size: 10pt;">Learned to read and interpret blueprints and schematics</span></li>
@@ -93,7 +97,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
     <tr style="height: 87.3pt">
       <td colspan="5" style="width: 349.35pt;vertical-align: middle">
-        <ul>
+        <ul style="list-style-type: disc">
           <li><span style="font-size: 10pt;">Proficient in using hand and power tools such as saws, drills, sanders, <br />and routers</span></li>
           <li><span style="font-size: 10pt;">Skilled in reading and interpreting blueprints and schematics</span></li>
           <li><span style="font-size: 10pt;">Experienced in designing and building custom furniture and cabinetry</span></li>

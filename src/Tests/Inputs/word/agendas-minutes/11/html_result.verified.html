@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -39,16 +43,16 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td colspan="2" style="width: 504pt;border-bottom: 3pt solid #00663d"><h2 id="admin-meeting" style="font-size: 16pt; margin-top: 2pt; margin-bottom: 18pt; line-height: 1"><span style="font-weight: normal; letter-spacing: 2pt; text-transform: uppercase;">admin meeting</span></h2></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt;vertical-align: middle;border-top: 3pt solid #00663d"><span style="color: #44546a;">Date: </span></td>
-      <td style="width: 337.5pt;vertical-align: middle;border-top: 3pt solid #00663d"><span style="color: #44546a;">January 9th  </span></td>
+      <td style="width: 166.5pt;vertical-align: middle;border-top: 3pt solid #00663d"><p style="margin: 2pt 0 2pt"><span style="color: #44546a;">Date: </span></p></td>
+      <td style="width: 337.5pt;vertical-align: middle;border-top: 3pt solid #00663d"><p style="margin: 2pt 0 2pt"><span style="color: #44546a;">January 9th  </span></p></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt;vertical-align: middle"><span style="color: #44546a;">Time:  </span></td>
-      <td style="width: 337.5pt;vertical-align: middle"><span style="color: #44546a;">2:15 PM  </span></td>
+      <td style="width: 166.5pt;vertical-align: middle"><p style="margin: 2pt 0 2pt"><span style="color: #44546a;">Time:  </span></p></td>
+      <td style="width: 337.5pt;vertical-align: middle"><p style="margin: 2pt 0 2pt"><span style="color: #44546a;">2:15 PM  </span></p></td>
     </tr>
     <tr style="height: 36pt">
-      <td style="width: 166.5pt;vertical-align: middle;border-bottom: 3pt solid #00663d"><span style="color: #44546a;">Meeting called to order by: </span></td>
-      <td style="width: 337.5pt;vertical-align: middle;border-bottom: 3pt solid #00663d"><span style="color: #44546a;">Helen Karu  </span></td>
+      <td style="width: 166.5pt;vertical-align: middle;border-bottom: 3pt solid #00663d"><p style="margin: 2pt 0 2pt"><span style="color: #44546a;">Meeting called to order by: </span></p></td>
+      <td style="width: 337.5pt;vertical-align: middle;border-bottom: 3pt solid #00663d"><p style="margin: 2pt 0 2pt"><span style="color: #44546a;">Helen Karu  </span></p></td>
     </tr>
   </tbody>
 </table>
@@ -61,7 +65,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="margin-top: 2pt; margin-bottom: 2pt; line-height: 1"><span style="color: #44546a;">The budget for the current fiscal year was distributed and reviewed at the last meeting. In today&#39;s meeting, John  made a motion to approve the budget which was seconded by Helen. All present voted in favor of approving the budget as presented.</span></p>
 <h1 id="reports" style="font-size: 12pt; margin-top: 30pt; margin-bottom: 6pt; line-height: 1"><span style="letter-spacing: 1pt; text-transform: uppercase;">reports</span></h1>
 <p style="margin-top: 2pt; margin-bottom: 2pt; line-height: 1"><span style="color: #44546a;">Committee reports </span></p>
-<ul>
+<ul style="list-style-type: disc">
   <li><span style="color: #44546a;">Volunteers</span></li>
   <li><span style="color: #44546a;">Newsletter</span></li>
   <li><span style="color: #44546a;">Customer support</span></li>

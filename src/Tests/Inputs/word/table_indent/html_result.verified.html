@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -29,67 +33,67 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: Aptos, sans-serif; max-width: 468pt; padding: 72pt">
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Baseline table (no indent, 100% width):</span></p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">A</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">B</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">A</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">B</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2</span></p></td>
     </tr>
   </tbody>
 </table>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">List-item indent (tblInd=480 dxa):</span></p>
-<table>
+<table style="margin-left: 24pt; width: 100%">
   <tbody>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">A</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">B</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">A</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">B</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2</span></p></td>
     </tr>
   </tbody>
 </table>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Block-quote indent (tblInd=720 dxa):</span></p>
-<table>
+<table style="margin-left: 36pt; width: 100%">
   <tbody>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">A</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">B</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">A</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">B</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2</span></p></td>
     </tr>
   </tbody>
 </table>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Doubly-nested quote (tblInd=1440 dxa):</span></p>
-<table>
+<table style="margin-left: 72pt; width: 100%">
   <tbody>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">A</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">B</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">A</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">B</span></p></td>
     </tr>
     <tr>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">1</span></td>
-      <td style="border: 3pt solid #000000"><span style="font-size: 12pt;">2</span></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">1</span></p></td>
+      <td style="border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">2</span></p></td>
     </tr>
   </tbody>
 </table>
 <p style="line-height: 1.16">&nbsp;</p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Centred table with tblInd=720 (indent should collapse into slack):</span></p>
-<table>
+<table style="margin-left: auto; margin-right: auto">
   <tbody>
     <tr>
-      <td style="width: 75pt;border: 3pt solid #000000"><span style="font-size: 12pt;">A</span></td>
-      <td style="width: 75pt;border: 3pt solid #000000"><span style="font-size: 12pt;">B</span></td>
+      <td style="width: 75pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">A</span></p></td>
+      <td style="width: 75pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 12pt;">B</span></p></td>
     </tr>
   </tbody>
 </table>

@@ -22,26 +22,30 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
 </style>
 </head>
 <body style="font-family: Aptos, sans-serif; max-width: 468pt; padding: 72pt">
-<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 10pt;">Quarterly results:</span></p>
+<p style="line-height: 1.16"><span style="font-size: 10pt;">Quarterly results:</span></p>
 <table>
   <tbody>
     <tr style="height: 90pt">
-      <td style="width: 36pt;border: 3pt solid #000000"><span style="font-size: 10pt;">Quarter</span></td>
-      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 10pt;">Region</span></td>
+      <td style="width: 36pt;writing-mode: sideways-lr;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 10pt;">Quarter</span></p></td>
+      <td style="width: 150pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 10pt;">Region</span></p></td>
     </tr>
     <tr style="height: 40pt">
-      <td style="width: 36pt;border: 3pt solid #000000"><span style="font-size: 10pt;">Q1</span></td>
-      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 10pt;">North</span></td>
+      <td style="width: 36pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 10pt;">Q1</span></p></td>
+      <td style="width: 150pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 10pt;">North</span></p></td>
     </tr>
     <tr style="height: 40pt">
-      <td style="width: 36pt;border: 3pt solid #000000"><span style="font-size: 10pt;">Q2</span></td>
-      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 10pt;">South</span></td>
+      <td style="width: 36pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 10pt;">Q2</span></p></td>
+      <td style="width: 150pt;border: 3pt solid #000000"><p style="margin: 0pt 0 8pt"><span style="font-size: 10pt;">South</span></p></td>
     </tr>
   </tbody>
 </table>

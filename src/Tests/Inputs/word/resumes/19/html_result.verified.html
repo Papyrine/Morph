@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -30,12 +34,12 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: 'Arial Nova', sans-serif; max-width: 539.3pt; padding: 36pt 36.7pt 14.4pt 36pt; position: relative">
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: 167pt; width: 567.36pt; height: 552pt; z-index: -1" viewBox="0 0 567.36 552" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="567.36" height="552" fill="#a9d4db" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 86.4pt">
       <td><h1 id="robin-zupanc" style="font-size: 36pt; margin-top: 0pt; line-height: 0.9"><span style="letter-spacing: -0.8pt;">Robin Zupanc</span></h1><h2 id="paralegal" style="font-size: 20pt; margin-top: 0pt; line-height: 1"><span style="font-weight: normal;">Paralegal</span></h2></td>
       <td></td>
-      <td rowspan="2" style="vertical-align: bottom"><span style="font-size: 9pt;">State your career goals and show how they align with the job description you’re targeting. Be brief and keep it from sounding generic. Be yourself.  </span></td>
+      <td rowspan="2" style="vertical-align: bottom"><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">State your career goals and show how they align with the job description you’re targeting. Be brief and keep it from sounding generic. Be yourself.  </span></p></td>
     </tr>
     <tr style="height: 5.75pt">
       <td><svg width="406" height="7" viewBox="0 0 3867912 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="3867912" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="6.67" vector-effect="non-scaling-stroke" /></svg></td>
@@ -57,9 +61,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 115.2pt">
-      <td rowspan="7">20XX – Current <br /><strong>Paralegal </strong><strong><em>The Phone Company</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.</span><br />20XX – 20XX  <br /><strong>Paralegal </strong><strong><em>Trey Research</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.</span><br />20XX – 20XX  <br /><strong>Paralegal </strong><strong><em>Adatum Corporation</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the job description. Be concise, targeting 3-5 key areas.</span></td>
+      <td rowspan="7"><p style="margin: 12pt 0 0pt">20XX – Current </p><strong>Paralegal </strong><strong><em>The Phone Company</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.</span></p><p style="margin: 12pt 0 0pt">20XX – 20XX  </p><strong>Paralegal </strong><strong><em>Trey Research</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.</span></p><p style="margin: 12pt 0 0pt">20XX – 20XX  </p><strong>Paralegal </strong><strong><em>Adatum Corporation</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the job description. Be concise, targeting 3-5 key areas.</span></p></td>
       <td rowspan="7"></td>
-      <td>20XX – 20XX <br /><strong>A.A. Paralegal Studies </strong><br /><span style="font-size: 9pt;">Jasper University  </span></td>
+      <td><p style="margin: 12pt 0 0pt">20XX – 20XX </p><strong>A.A. Paralegal Studies </strong><br /><span style="font-size: 9pt;">Jasper University  </span></td>
     </tr>
     <tr>
       <td><h1 id="skills" style="margin-top: 0pt; line-height: 1">Skills</h1></td>
@@ -68,7 +72,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 126pt">
-      <td><span style="color: #231f20; font-size: 9pt;">Creativity </span><br /><span style="color: #231f20; font-size: 9pt;">Leadership </span><br /><span style="color: #231f20; font-size: 9pt;">Organization </span><br /><span style="color: #231f20; font-size: 9pt;">Problem solving</span><br /><span style="color: #231f20; font-size: 9pt;">Teamwork</span></td>
+      <td><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Creativity </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Leadership </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Organization </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Problem solving</span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Teamwork</span></p></td>
     </tr>
     <tr>
       <td><h1 id="contact" style="margin-top: 0pt; line-height: 1">Contact</h1></td>
@@ -77,18 +81,18 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 72.45pt">
-      <td><span style="font-size: 9pt;">4567 Main Street </span><br /><span style="font-size: 9pt;">City, State 98052 </span><br /><span style="font-size: 9pt;">(718) 555–0100 </span><br /><span style="font-size: 9pt;">robin@example.com  </span></td>
+      <td><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">4567 Main Street </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">City, State 98052 </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">(718) 555–0100 </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">robin@example.com  </span></p></td>
     </tr>
   </tbody>
 </table>
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: 167pt; width: 567.36pt; height: 552pt; z-index: -1" viewBox="0 0 567.36 552" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="567.36" height="552" fill="#fbe284" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 86.4pt">
       <td><h1 id="robin-zupanc-1" style="font-size: 36pt; margin-top: 0pt; line-height: 0.9"><span style="letter-spacing: -0.8pt;">Robin Zupanc</span></h1><h2 id="paralegal-1" style="font-size: 20pt; margin-top: 0pt; line-height: 1"><span style="font-weight: normal;">Paralegal</span></h2></td>
       <td></td>
-      <td rowspan="2" style="vertical-align: bottom"><span style="font-size: 9pt;">State your career goals and show how they align with the job description you’re targeting. Be brief and keep it from sounding generic. Be yourself.  </span></td>
+      <td rowspan="2" style="vertical-align: bottom"><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">State your career goals and show how they align with the job description you’re targeting. Be brief and keep it from sounding generic. Be yourself.  </span></p></td>
     </tr>
     <tr style="height: 5.75pt">
       <td><svg width="406" height="7" viewBox="0 0 3867912 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="3867912" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="6.67" vector-effect="non-scaling-stroke" /></svg></td>
@@ -110,9 +114,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 115.2pt">
-      <td rowspan="7">20XX - Current  <br /><strong>Paralegal </strong><strong><em>The Phone Company</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.</span><br />20XX – 20XX  <br /><strong>Paralegal </strong><strong><em>Trey Research</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.</span><br />20XX – 20XX  <br /><strong>Paralegal </strong><strong><em>Adatum Corporation</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the job description. Be concise, targeting 3-5 key areas.</span></td>
+      <td rowspan="7"><p style="margin: 12pt 0 0pt">20XX - Current  </p><strong>Paralegal </strong><strong><em>The Phone Company</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.</span></p><p style="margin: 12pt 0 0pt">20XX – 20XX  </p><strong>Paralegal </strong><strong><em>Trey Research</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.</span></p><p style="margin: 12pt 0 0pt">20XX – 20XX  </p><strong>Paralegal </strong><strong><em>Adatum Corporation</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the job description. Be concise, targeting 3-5 key areas.</span></p></td>
       <td rowspan="7"></td>
-      <td>20XX – 20XX <br /><strong>A.A. Paralegal Studies </strong><br /><span style="font-size: 9pt;">Jasper University  </span></td>
+      <td><p style="margin: 12pt 0 0pt">20XX – 20XX </p><strong>A.A. Paralegal Studies </strong><br /><span style="font-size: 9pt;">Jasper University  </span></td>
     </tr>
     <tr>
       <td><h1 id="skills-1" style="margin-top: 0pt; line-height: 1">Skills</h1></td>
@@ -121,7 +125,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 126pt">
-      <td><span style="color: #231f20; font-size: 9pt;">Creativity </span><br /><span style="color: #231f20; font-size: 9pt;">Leadership </span><br /><span style="color: #231f20; font-size: 9pt;">Organization </span><br /><span style="color: #231f20; font-size: 9pt;">Problem solving</span><br /><span style="color: #231f20; font-size: 9pt;">Teamwork</span></td>
+      <td><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Creativity </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Leadership </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Organization </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Problem solving</span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Teamwork</span></p></td>
     </tr>
     <tr>
       <td><h1 id="contact-1" style="margin-top: 0pt; line-height: 1">Contact</h1></td>
@@ -130,18 +134,18 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 72.45pt">
-      <td><span style="font-size: 9pt;">4567 Main Street </span><br /><span style="font-size: 9pt;">City, State 98052 </span><br /><span style="font-size: 9pt;">(718) 555–0100 </span><br /><span style="font-size: 9pt;">robin@example.com  </span></td>
+      <td><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">4567 Main Street </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">City, State 98052 </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">(718) 555–0100 </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">robin@example.com  </span></p></td>
     </tr>
   </tbody>
 </table>
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: 167pt; width: 567.36pt; height: 552pt; z-index: -1" viewBox="0 0 567.36 552" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="567.36" height="552" fill="#e4e4e4" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1.3">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 86.4pt">
       <td><h1 id="robin-zupanc-2" style="font-size: 36pt; margin-top: 0pt; line-height: 0.9"><span style="letter-spacing: -0.8pt;">Robin Zupanc</span></h1><h2 id="paralegal-2" style="font-size: 20pt; margin-top: 0pt; line-height: 1"><span style="font-weight: normal;">Paralegal</span></h2></td>
       <td></td>
-      <td rowspan="2" style="vertical-align: bottom"><span style="font-size: 9pt;">State your career goals and show how they align with the job description you’re targeting. Be brief and keep it from sounding generic. Be yourself.  </span></td>
+      <td rowspan="2" style="vertical-align: bottom"><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">State your career goals and show how they align with the job description you’re targeting. Be brief and keep it from sounding generic. Be yourself.  </span></p></td>
     </tr>
     <tr style="height: 5.75pt">
       <td><svg width="406" height="7" viewBox="0 0 3867912 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="3867912" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="6.67" vector-effect="non-scaling-stroke" /></svg></td>
@@ -163,9 +167,9 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 115.2pt">
-      <td rowspan="7">20XX - Current  <br /><strong>Paralegal </strong><strong><em>The Phone Company</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.</span><br />20XX – 20XX  <br /><strong>Paralegal </strong><strong><em>Trey Research</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.</span><br />20XX – 20XX  <br /><strong>Paralegal </strong><strong><em>Adatum Corporation</em></strong><br /><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the job description. Be concise, targeting 3-5 key areas.</span></td>
+      <td rowspan="7"><p style="margin: 12pt 0 0pt">20XX - Current  </p><strong>Paralegal </strong><strong><em>The Phone Company</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the specific job description. Be concise, targeting 3-5 key areas.</span></p><p style="margin: 12pt 0 0pt">20XX – 20XX  </p><strong>Paralegal </strong><strong><em>Trey Research</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Here again, take any opportunity to use words you find in the job description. Be brief.</span></p><p style="margin: 12pt 0 0pt">20XX – 20XX  </p><strong>Paralegal </strong><strong><em>Adatum Corporation</em></strong><p style="margin: 0pt 0 12pt"><span style="font-size: 9pt;">Summarize your key responsibilities and accomplishments. Where appropriate, use the language and words you find in the job description. Be concise, targeting 3-5 key areas.</span></p></td>
       <td rowspan="7"></td>
-      <td>20XX – 20XX <br /><strong>A.A. Paralegal Studies </strong><br /><span style="font-size: 9pt;">Jasper University  </span></td>
+      <td><p style="margin: 12pt 0 0pt">20XX – 20XX </p><strong>A.A. Paralegal Studies </strong><br /><span style="font-size: 9pt;">Jasper University  </span></td>
     </tr>
     <tr>
       <td><h1 id="skills-2" style="margin-top: 0pt; line-height: 1">Skills</h1></td>
@@ -174,7 +178,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 126pt">
-      <td><span style="color: #231f20; font-size: 9pt;">Creativity </span><br /><span style="color: #231f20; font-size: 9pt;">Leadership </span><br /><span style="color: #231f20; font-size: 9pt;">Organization </span><br /><span style="color: #231f20; font-size: 9pt;">Problem solving</span><br /><span style="color: #231f20; font-size: 9pt;">Teamwork</span></td>
+      <td><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Creativity </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Leadership </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Organization </span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Problem solving</span></p><p style="margin: 12pt 0 0pt"><span style="color: #231f20; font-size: 9pt;">Teamwork</span></p></td>
     </tr>
     <tr>
       <td><h1 id="contact-2" style="margin-top: 0pt; line-height: 1">Contact</h1></td>
@@ -183,7 +187,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td><svg width="221" height="3" viewBox="0 0 2103120 1" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="2103120" y2="0" stroke-linecap="square" stroke="#231f20" stroke-width="3.33" vector-effect="non-scaling-stroke" /></svg></td>
     </tr>
     <tr style="height: 72.45pt">
-      <td><span style="font-size: 9pt;">4567 Main Street </span><br /><span style="font-size: 9pt;">City, State 98052 </span><br /><span style="font-size: 9pt;">(718) 555–0100 </span><br /><span style="font-size: 9pt;">robin@example.com  </span></td>
+      <td><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">4567 Main Street </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">City, State 98052 </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">(718) 555–0100 </span></p><p style="margin: 12pt 0 0pt"><span style="font-size: 9pt;">robin@example.com  </span></p></td>
     </tr>
   </tbody>
 </table>

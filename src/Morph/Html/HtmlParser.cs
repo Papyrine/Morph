@@ -134,6 +134,16 @@ sealed class HtmlParser
                 break;
 
             case "p":
+                // Word drops an EMPTY <p> outright — the reference shows a normal single
+                // paragraph gap between its neighbours, not the blank line an empty paragraph
+                // element would take (html_paragraphs). Whitespace-only counts as empty, but a
+                // no-break space is real content (Word renders <p>&nbsp;</p> as a blank line),
+                // as is any embedded image or explicit break.
+                if (IsEmptyParagraph(element))
+                {
+                    break;
+                }
+
                 var style = ParseInlineStyle(element);
                 var para = CreateParagraph(element, 11, false, style);
                 elements.Add(para);
@@ -334,6 +344,26 @@ sealed class HtmlParser
         }
     }
 
+    static bool IsEmptyParagraph(IElement element)
+    {
+        if (element.QuerySelector("img, br") != null)
+        {
+            return false;
+        }
+
+        foreach (var ch in element.TextContent)
+        {
+            // Only ordinary inter-word whitespace is ignorable; U+00A0 (&nbsp;) and anything
+            // else is content.
+            if (ch is not (' ' or '\t' or '\r' or '\n'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     void ParseContainer(IElement element, List<DocumentElement> elements)
     {
         var background = ContainerBackgroundColor(element);
@@ -418,6 +448,7 @@ sealed class HtmlParser
                 // tight, so every band/line drifted up the page. Headings keep their own value.
                 SpacingAfterPoints = baseProps.FontSizePoints > 14 ? 12 : 14,
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
+                LeftIndentPoints = style?.MarginLeftPoints ?? 0,
                 LineSpacingMultiplier = style?.LineHeight ?? 1.08,
                 BackgroundColorHex = style?.BackgroundColor,
                 StyleId = styleId
@@ -769,6 +800,35 @@ sealed class HtmlParser
             if (TryParseCssDimension(textIndent, out var indentValue))
             {
                 result.TextIndent = indentValue;
+            }
+        }
+
+        // margin-left on a block indents it, exactly as Word imports it: a 50px margin renders
+        // the paragraph 37.5pt in from the margin (measured 78px at 150 DPI — the same 0.75pt/px
+        // rule as image and width attributes). The `margin` shorthand's left component carries the
+        // same meaning (a `margin: 20px` paragraph starts 31px in at 150 DPI = 15pt).
+        if (styles.TryGetValue("margin-left", out var marginLeft))
+        {
+            if (TryParseCssLengthToPoints(marginLeft, out var marginLeftValue))
+            {
+                result.MarginLeftPoints = marginLeftValue;
+            }
+        }
+        else if (styles.TryGetValue("margin", out var margin))
+        {
+            var values = margin.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            // CSS shorthand: 1 value = all edges, 2 = vertical horizontal, 3 = top horizontal
+            // bottom, 4 = top right bottom left.
+            var left = values.Length switch
+            {
+                1 => values[0],
+                2 or 3 => values[1],
+                4 => values[3],
+                _ => null
+            };
+            if (left != null && TryParseCssLengthToPoints(left, out var shorthandLeft))
+            {
+                result.MarginLeftPoints = shorthandLeft;
             }
         }
 

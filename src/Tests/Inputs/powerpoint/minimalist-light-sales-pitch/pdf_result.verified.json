@@ -16,7 +16,7 @@
       {
         "Width": 960.0,
         "Height": 540.0,
-        "Text": "ABOUT US\nAt Contoso, we empower organizations\nto foster collaborative thinking to further\ndrive workplace innovation. By\nclosing the loop and leveraging\nagile frameworks, we help business\ngrow organically and foster a\nconsumer-first mindset.\n20XX Pitch Deck 2"
+        "Text": "ABOUT US\nAt Contoso, we empower organizations\nto foster collaborative thinking to further\ndrive workplace innovation. By\nclosing the loop and leveraging\nagile frameworks, we help business\ngrow organically and foster a\nconsumer-first mindset.\n20XX Pitch Deck 2"
       }
     ]
   },
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0515,
-      "Ssim": 0.8593,
+      "ErrorMetric": 0.0514,
+      "Ssim": 0.8594,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

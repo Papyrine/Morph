@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,467 +35,467 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <table>
   <tbody>
     <tr style="height: 22.89pt">
-      <td colspan="6" style="width: 488.65pt;vertical-align: bottom"><span style="font-size: 15.96pt;"><strong>My List</strong></span></td>
+      <td colspan="6" style="width: 488.65pt;vertical-align: bottom;padding: 0pt 1.14pt"><span style="font-size: 15.96pt;"><strong>My List</strong></span></td>
     </tr>
     <tr style="height: 7.92pt">
-      <td style="width: 79.92pt;vertical-align: bottom"></td>
-      <td style="width: 74.27pt;vertical-align: bottom"></td>
-      <td style="width: 54.73pt;vertical-align: bottom"></td>
-      <td style="width: 63.85pt;vertical-align: bottom"></td>
-      <td style="width: 206.32pt;vertical-align: bottom"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 17.1pt">
-      <td style="width: 79.92pt;vertical-align: middle"><span style="font-size: 6.27pt;">Column 1</span></td>
-      <td style="width: 74.27pt;vertical-align: middle"><span style="font-size: 6.27pt;">Column 2</span></td>
-      <td style="width: 54.73pt;vertical-align: middle"><span style="font-size: 6.27pt;">Column 3</span></td>
-      <td style="width: 63.85pt;vertical-align: middle"><span style="font-size: 6.27pt;">Column 4</span></td>
-      <td colspan="2" style="width: 215.87pt;vertical-align: middle"><span style="font-size: 6.27pt;">Column 5</span></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 6.27pt;">Column 1</span></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 6.27pt;">Column 2</span></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 6.27pt;">Column 3</span></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 6.27pt;">Column 4</span></td>
+      <td colspan="2" style="width: 215.87pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 6.27pt;">Column 5</span></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td colspan="6" style="width: 488.65pt;vertical-align: middle"><span style="font-size: 5.7pt;">Item 1</span></td>
+      <td colspan="6" style="width: 488.65pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 5.7pt;">Item 1</span></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td colspan="6" style="width: 488.65pt;vertical-align: middle"><span style="font-size: 5.7pt;">Item 2</span></td>
+      <td colspan="6" style="width: 488.65pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 5.7pt;">Item 2</span></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td colspan="6" style="width: 488.65pt;vertical-align: middle"><span style="font-size: 5.7pt;">Item 3</span></td>
+      <td colspan="6" style="width: 488.65pt;vertical-align: middle;padding: 0pt 1.14pt"><span style="font-size: 5.7pt;">Item 3</span></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
     <tr style="height: 11.34pt">
-      <td style="width: 79.92pt;vertical-align: middle"></td>
-      <td style="width: 74.27pt;vertical-align: middle"></td>
-      <td style="width: 54.73pt;vertical-align: middle"></td>
-      <td style="width: 63.85pt;vertical-align: middle"></td>
-      <td style="width: 206.32pt;vertical-align: middle"></td>
-      <td style="width: 9.56pt;vertical-align: bottom"></td>
+      <td style="width: 79.92pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 74.27pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 54.73pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 63.85pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 206.32pt;vertical-align: middle;padding: 0pt 1.14pt"></td>
+      <td style="width: 9.56pt;vertical-align: bottom;padding: 0pt 1.14pt"></td>
     </tr>
   </tbody>
 </table>
 <table>
   <tbody>
     <tr style="height: 40.15pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: bottom"><span style="font-size: 24pt;"><strong>To Do List</strong></span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: bottom;padding: 0pt 2pt"><span style="font-size: 24pt;"><strong>To Do List</strong></span></td>
     </tr>
     <tr style="height: 10.15pt">
-      <td style="width: 130.31pt;vertical-align: bottom"></td>
-      <td style="width: 99.83pt;vertical-align: bottom"></td>
-      <td style="width: 85.35pt;vertical-align: bottom"></td>
-      <td style="width: 163.07pt;vertical-align: bottom"></td>
-      <td style="width: 119.64pt;vertical-align: bottom"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 30pt">
-      <td style="width: 130.31pt;vertical-align: middle">To Do</td>
-      <td style="width: 99.83pt;vertical-align: middle">Assigned To</td>
-      <td style="width: 85.35pt;vertical-align: middle">Due Date</td>
-      <td style="width: 163.07pt;vertical-align: middle">Done (Yes or No)</td>
-      <td colspan="6" style="width: 799.36pt;vertical-align: middle">More info</td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt">To Do</td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt">Assigned To</td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt">Due Date</td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt">Done (Yes or No)</td>
+      <td colspan="6" style="width: 799.36pt;vertical-align: middle;padding: 0pt 2pt">More info</td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Task 1</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Task 1</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Task 2</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Task 2</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Task 3</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Task 3</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 10.15pt">
-      <td style="width: 130.31pt;vertical-align: bottom"></td>
-      <td style="width: 99.83pt;vertical-align: bottom"></td>
-      <td style="width: 85.35pt;vertical-align: bottom"></td>
-      <td style="width: 163.07pt;vertical-align: bottom"></td>
-      <td style="width: 119.64pt;vertical-align: bottom"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 40.15pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: bottom"><span style="font-size: 24pt;"><strong>Shopping List</strong></span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: bottom;padding: 0pt 2pt"><span style="font-size: 24pt;"><strong>Shopping List</strong></span></td>
     </tr>
     <tr style="height: 10.15pt">
-      <td style="width: 130.31pt;vertical-align: bottom"></td>
-      <td style="width: 99.83pt;vertical-align: bottom"></td>
-      <td style="width: 85.35pt;vertical-align: bottom"></td>
-      <td style="width: 163.07pt;vertical-align: bottom"></td>
-      <td style="width: 119.64pt;vertical-align: bottom"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 30pt">
-      <td style="width: 130.31pt;vertical-align: middle">Product</td>
-      <td style="width: 99.83pt;vertical-align: middle">Brand</td>
-      <td style="width: 85.35pt;vertical-align: middle">Store Area</td>
-      <td style="width: 163.07pt;vertical-align: middle">Purchased (Yes or No)</td>
-      <td colspan="6" style="width: 799.36pt;vertical-align: middle">More info</td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt">Product</td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt">Brand</td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt">Store Area</td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt">Purchased (Yes or No)</td>
+      <td colspan="6" style="width: 799.36pt;vertical-align: middle;padding: 0pt 2pt">More info</td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Product 1</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Product 1</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Product 2</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Product 2</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Product 3</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Product 3</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 10.15pt">
-      <td style="width: 130.31pt;vertical-align: bottom"></td>
-      <td style="width: 99.83pt;vertical-align: bottom"></td>
-      <td style="width: 85.35pt;vertical-align: bottom"></td>
-      <td style="width: 163.07pt;vertical-align: bottom"></td>
-      <td style="width: 119.64pt;vertical-align: bottom"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 40.15pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: bottom"><span style="font-size: 24pt;"><strong>Contact List</strong></span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: bottom;padding: 0pt 2pt"><span style="font-size: 24pt;"><strong>Contact List</strong></span></td>
     </tr>
     <tr style="height: 10.15pt">
-      <td style="width: 130.31pt;vertical-align: bottom"></td>
-      <td style="width: 99.83pt;vertical-align: bottom"></td>
-      <td style="width: 85.35pt;vertical-align: bottom"></td>
-      <td style="width: 163.07pt;vertical-align: bottom"></td>
-      <td style="width: 119.64pt;vertical-align: bottom"></td>
-      <td style="width: 102.11pt;vertical-align: bottom"></td>
-      <td style="width: 154.69pt;vertical-align: bottom"></td>
-      <td style="width: 81.54pt;vertical-align: bottom"></td>
-      <td style="width: 324.62pt;vertical-align: bottom"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 30pt">
-      <td style="width: 130.31pt;vertical-align: middle">Name</td>
-      <td style="width: 99.83pt;vertical-align: middle">Address</td>
-      <td style="width: 85.35pt;vertical-align: middle">City</td>
-      <td style="width: 163.07pt;vertical-align: middle">State</td>
-      <td style="width: 119.64pt;vertical-align: middle">Zip Code</td>
-      <td style="width: 102.11pt;vertical-align: middle">Phone</td>
-      <td style="width: 154.69pt;vertical-align: middle">Email</td>
-      <td style="width: 81.54pt;vertical-align: middle">Birth Date</td>
-      <td colspan="2" style="width: 341.39pt;vertical-align: middle">More Info</td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt">Name</td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt">Address</td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt">City</td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt">State</td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt">Zip Code</td>
+      <td style="width: 102.11pt;vertical-align: middle;padding: 0pt 2pt">Phone</td>
+      <td style="width: 154.69pt;vertical-align: middle;padding: 0pt 2pt">Email</td>
+      <td style="width: 81.54pt;vertical-align: middle;padding: 0pt 2pt">Birth Date</td>
+      <td colspan="2" style="width: 341.39pt;vertical-align: middle;padding: 0pt 2pt">More Info</td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"><span style="font-size: 10pt;">Sydney Mattos</span></td>
-      <td style="width: 99.83pt;vertical-align: middle"><span style="font-size: 10pt;">4567 Main St</span></td>
-      <td style="width: 85.35pt;vertical-align: middle"><span style="font-size: 10pt;">Buffalo</span></td>
-      <td style="width: 163.07pt;vertical-align: middle"><span style="font-size: 10pt;">NY</span></td>
-      <td style="width: 119.64pt;vertical-align: middle"><span style="font-size: 10pt;">98052</span></td>
-      <td style="width: 102.11pt;vertical-align: middle"><span style="font-size: 10pt;">425-555-0100</span></td>
-      <td style="width: 154.69pt;vertical-align: middle"><span style="color: #0563c1; font-size: 10pt;"><u>sydney@adatum.com</u></span></td>
-      <td style="width: 81.54pt;vertical-align: middle"><span style="font-size: 10pt;">1/9/1990</span></td>
-      <td colspan="2" style="width: 341.39pt;vertical-align: middle"><span style="font-size: 10pt;">Married to Nathan, 2 children Cora and Caleb </span></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Sydney Mattos</span></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">4567 Main St</span></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Buffalo</span></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">NY</span></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">98052</span></td>
+      <td style="width: 102.11pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">425-555-0100</span></td>
+      <td style="width: 154.69pt;vertical-align: middle;padding: 0pt 2pt"><span style="color: #0563c1; font-size: 10pt;"><u>sydney@adatum.com</u></span></td>
+      <td style="width: 81.54pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">1/9/1990</span></td>
+      <td colspan="2" style="width: 341.39pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Married to Nathan, 2 children Cora and Caleb </span></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: middle"><span style="font-size: 10pt;">Nathan Rigby</span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Nathan Rigby</span></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: middle"><span style="font-size: 10pt;">Mateo Gomez</span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Mateo Gomez</span></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: middle"><span style="font-size: 10pt;">Wesley Brooks</span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Wesley Brooks</span></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: middle"><span style="font-size: 10pt;">Olivia Wilson</span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Olivia Wilson</span></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td colspan="10" style="width: 1277.91pt;vertical-align: middle"><span style="font-size: 10pt;">Maria Sullivan</span></td>
+      <td colspan="10" style="width: 1277.91pt;vertical-align: middle;padding: 0pt 2pt"><span style="font-size: 10pt;">Maria Sullivan</span></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: middle"></td>
-      <td style="width: 154.69pt;vertical-align: middle"></td>
-      <td style="width: 81.54pt;vertical-align: middle"></td>
-      <td style="width: 324.62pt;vertical-align: middle"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
     <tr style="height: 19.9pt">
-      <td style="width: 130.31pt;vertical-align: middle"></td>
-      <td style="width: 99.83pt;vertical-align: middle"></td>
-      <td style="width: 85.35pt;vertical-align: middle"></td>
-      <td style="width: 163.07pt;vertical-align: middle"></td>
-      <td style="width: 119.64pt;vertical-align: middle"></td>
-      <td style="width: 102.11pt;vertical-align: middle"></td>
-      <td style="width: 154.69pt;vertical-align: middle"></td>
-      <td style="width: 81.54pt;vertical-align: middle"></td>
-      <td style="width: 324.62pt;vertical-align: middle"></td>
-      <td style="width: 16.76pt;vertical-align: bottom"></td>
+      <td style="width: 130.31pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 99.83pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 85.35pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 163.07pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 119.64pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 102.11pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 154.69pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 81.54pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 324.62pt;vertical-align: middle;padding: 0pt 2pt"></td>
+      <td style="width: 16.76pt;vertical-align: bottom;padding: 0pt 2pt"></td>
     </tr>
   </tbody>
 </table>

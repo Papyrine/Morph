@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -32,7 +36,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: 28.5pt; top: 25.75pt; width: 903pt; height: 488.5pt; z-index: 1" viewBox="0 0 903 488.5" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="903" height="488.5" fill="none" stroke="#b32752" stroke-width="2.25" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 28.5pt; top: 25.75pt; width: 903pt; height: 488.5pt; z-index: 1" viewBox="0 0 903 488.5" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="903" height="488.5" fill="none" stroke="#ea9fb6" stroke-width="2.25" /></svg></div>
 <div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.9"><span style="font-family: 'Playfair Display', sans-serif; color: #faeceb; font-size: 72pt;">Innovative&#160;<br />marketing solutions</span></p>
+  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.9"><span style="font-family: 'Playfair Display', sans-serif; color: #faeceb; font-size: 72pt;">Innovative <br />marketing solutions</span></p>
 </div>
 <div>
   <p style="text-align: center; margin-top: 10pt; margin-bottom: 0pt; line-height: 0.9"><span style="color: #faeceb; font-size: 16pt; letter-spacing: 3pt; text-transform: uppercase;">Presented by Peyton Davis</span></p>
@@ -125,13 +129,13 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 0.9"><span style="font-family: 'Playfair Display', sans-serif; color: #b32752; font-size: 36pt;">Financial <br />overview</span></p>
 </div>
 <div>
-  <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="font-size: 20pt;">This underscores our&#160;commitment to financial stability,&#160;positioning us for sustained&#160;growth.&#160;</span></p>
+  <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="font-size: 20pt;">This underscores our commitment to financial stability, positioning us for sustained growth.&#160;</span></p>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="font-size: 20pt;">Key indicators show consistent revenue growth over the past quarter, attributed to strategic cost management and successful marketing.</span></p>
   <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1">&nbsp;</p>
 </div>
 <div>
-  <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;"><strong>Operating margins have&#160;improved, signaling operational&#160;efficiency, while strengthening our reserves.</strong></span></p>
-  <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;"><strong>This underscores our&#160;commitment to financial stability,&#160;positioning us for sustained&#160;growth.&#160;</strong></span></p>
+  <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;"><strong>Operating margins have improved, signaling operational efficiency, while strengthening our reserves.</strong></span></p>
+  <p style="margin-top: 10pt; margin-bottom: 0pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;"><strong>This underscores our commitment to financial stability, positioning us for sustained growth.&#160;</strong></span></p>
 </div>
 <div style="position: relative"><svg style="position: absolute; left: 0pt; top: 0pt; width: 960pt; height: 540pt; z-index: 1" viewBox="0 0 960 540" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="960" height="540" fill="#faeceb" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 28.5pt; top: 25.75pt; width: 903pt; height: 488.5pt; z-index: 1" viewBox="0 0 903 488.5" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="903" height="488.5" fill="none" stroke="#b32752" stroke-width="2.25" /></svg></div>
@@ -139,7 +143,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 0.9"><span style="font-family: 'Playfair Display', sans-serif; color: #b32752; font-size: 36pt;">Quarterly <br />targets</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 24pt;">Market expansion</span></li>
     <li><span style="font-size: 24pt;">Product innovation</span></li>
     <li><span style="font-size: 24pt;">Customer retention</span></li>
@@ -150,34 +154,34 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <table>
     <tbody>
       <tr style="height: 81.1pt">
-        <td style="width: 95.34pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Quarter</strong></span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Revenue </strong></span><span style="font-size: 18pt;"><strong><br /></strong></span><span style="font-size: 14pt;"><strong>growth (%)</strong></span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Market share increase (%)</strong></span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Customer acquisition</strong></span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Quarter</strong></span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Revenue </strong></span><span style="font-size: 18pt;"><strong><br /></strong></span><span style="font-size: 14pt;"><strong>growth (%)</strong></span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Market share increase (%)</strong></span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Customer acquisition</strong></span></td>
       </tr>
       <tr style="height: 81.1pt">
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q1</span></td>
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">12</span></td>
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">2</span></td>
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">500</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q1</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">12</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">2</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">500</span></td>
       </tr>
       <tr style="height: 81.1pt">
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q2</span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">15</span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">3</span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">600</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q2</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">15</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">3</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">600</span></td>
       </tr>
       <tr style="height: 81.1pt">
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q3</span></td>
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">18</span></td>
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">4</span></td>
-        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">700</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q3</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">18</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">4</span></td>
+        <td style="width: 95.34pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">700</span></td>
       </tr>
       <tr style="height: 81.1pt">
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q4</span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">20</span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">5</span></td>
-        <td style="width: 95.34pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">800</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Q4</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">20</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">5</span></td>
+        <td style="width: 95.34pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">800</span></td>
       </tr>
     </tbody>
   </table>
@@ -191,40 +195,40 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <table>
     <tbody>
       <tr style="height: 42.6pt">
-        <td style="width: 207pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Metric</strong></span></td>
-        <td style="width: 207pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Current value</strong></span></td>
-        <td style="width: 207pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Previous quarter</strong></span></td>
-        <td style="width: 207pt;vertical-align: middle;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Change (%)</strong></span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Metric</strong></span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Current value</strong></span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Previous quarter</strong></span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border-top: 1pt solid #b32752;border-right: 1pt solid #b32752;border-bottom: 2pt solid #b32752;border-left: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;"><strong>Change (%)</strong></span></td>
       </tr>
       <tr style="height: 42.6pt">
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Revenue</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$2,500,000</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$2,200,000</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+14%</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Revenue</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$2,500,000</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$2,200,000</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+14%</span></td>
       </tr>
       <tr style="height: 42.6pt">
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Operating expenses</span></td>
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$1,200,000</span></td>
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$1,400,000</span></td>
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">-14%</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Operating expenses</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$1,200,000</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$1,400,000</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">-14%</span></td>
       </tr>
       <tr style="height: 42.6pt">
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Net profit</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$1,000,000</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$800,000</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+25%</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Net profit</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$1,000,000</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$800,000</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+25%</span></td>
       </tr>
       <tr style="height: 42.6pt">
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Operating margin</span></td>
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">40%</span></td>
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">36%</span></td>
-        <td style="width: 207pt;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+4%</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Operating margin</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">40%</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">36%</span></td>
+        <td style="width: 207pt;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+4%</span></td>
       </tr>
       <tr style="height: 42.6pt">
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Cash reserves</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$5,000,000</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$4,500,000</span></td>
-        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+11%</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">Cash reserves</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$5,000,000</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">$4,500,000</span></td>
+        <td style="width: 207pt;background-color: #b32752;vertical-align: middle;padding: 3.6pt 7.2pt;border: 1pt solid #b32752; text-align: center"><span style="font-size: 14pt;">+11%</span></td>
       </tr>
     </tbody>
   </table>
@@ -241,7 +245,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <p style="margin-bottom: 0pt; line-height: 0.9"><span style="font-family: 'Playfair Display', sans-serif; color: #b32752; font-size: 36pt;">Future <br />initiatives</span></p>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="font-size: 20pt;">Green supply chain</span></li>
     <li><span style="font-size: 20pt;">Reduced carbon footprint</span></li>
     <li><span style="font-size: 20pt;">Waste reduction</span></li>
@@ -249,15 +253,15 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </ul>
 </div>
 <div>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #b32752; font-size: 24pt;"><strong>Product enhancement&#160;</strong></span></li>
   </ul>
   <p style="margin-bottom: 0pt; margin-left: 27.36pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;">Introduce regular updates and features to enhance product offerings.</span></p>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #b32752; font-size: 24pt;"><strong>Technology integration&#160;</strong></span></li>
   </ul>
   <p style="margin-bottom: 0pt; margin-left: 27.36pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;">Explore emerging technologies for potential integration into our operations.</span></p>
-  <ul>
+  <ul style="list-style-type: disc">
     <li><span style="color: #b32752; font-size: 24pt;"><strong>Collaborative partnerships&#160;</strong></span></li>
   </ul>
   <p style="margin-bottom: 0pt; margin-left: 27.36pt; line-height: 1"><span style="color: #b32752; font-size: 24pt;">Foster collaborations with tech innovators and industry leaders to drive innovation.</span></p>

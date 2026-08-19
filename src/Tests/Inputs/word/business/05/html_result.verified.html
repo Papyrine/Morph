@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -29,17 +33,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: Garamond, sans-serif; max-width: 504pt; padding: 18pt 54pt 27pt">
 <header class="doc-header">
-<table>
+<table style="margin-left: -7.2pt">
   <tbody>
     <tr style="height: 28.8pt">
-      <td style="width: 396pt"></td>
+      <td style="width: 396pt;padding: 14.4pt 0pt 0pt 7.2pt"></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
 <p style="margin-bottom: 12pt; line-height: 1.2">&nbsp;</p>
 </header>
-<table>
+<table style="margin-left: -36pt; width: 100%">
   <tbody>
     <tr style="height: 22.3pt">
       <td style="width: 33.6pt; position: relative"><div style="position: relative"><svg style="position: absolute; left: 483.05pt; top: 87.81pt; width: 50.06pt; height: 47.89pt; z-index: -1" viewBox="0 0 50.06 47.89" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M32.21,2.39 L34.35,2.53 L36.41,2.93 L38.37,3.58 L40.22,4.45 L41.93,5.54 L43.47,6.83 L44.84,8.29 L46,9.92 L46.95,11.69 L47.64,13.59 L48.08,15.61 L48.23,17.72 L48.23,46.14 L2.5,46.14 L2.5,2.39 L32.21,2.39 Z" fill="#fcd4a5" /></svg></div>
@@ -73,13 +77,13 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <h1 id="memorandum" style="font-size: 24pt; margin-top: 0pt; line-height: 1.5"><span style="color: #39302a;">Memorandum</span></h1>
-<p style="margin-top: 18pt; margin-bottom: 18pt; line-height: 1.5"><span style="color: #595959;"><strong>To:</strong></span><span style="color: #595959;"> Recipient Name</span></p>
-<p style="margin-top: 18pt; margin-bottom: 18pt; line-height: 1.5"><span style="color: #595959;"><strong>From</strong></span><span style="color: #595959;">: Your Name</span></p>
+<p style="margin-top: 18pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #595959;"><strong>To:</strong></span><span style="color: #595959;"> Recipient Name</span></p>
+<p style="margin-top: 18pt; margin-bottom: 0pt; line-height: 1.5"><span style="color: #595959;"><strong>From</strong></span><span style="color: #595959;">: Your Name</span></p>
 <p style="margin-top: 18pt; margin-bottom: 18pt; line-height: 1.5"><span style="color: #595959;"><strong>CC</strong></span><span style="color: #595959;">: Other recipients</span></p>
 <table>
   <tbody>
     <tr style="height: 450.9pt">
-      <td style="width: 503.5pt"><h2 id="some-of-the-sample-text-in-this-document-indicates-the-name-of-the-style-applied-so-that-you-can-easily-apply-the-same-formatting-again-to-get-started-right-away-just-tap-any-placeholder-text-such-as-this-and-start-typing" style="font-size: 16pt; margin-top: 0pt; margin-bottom: 24pt; line-height: 1.5"><span style="font-weight: normal; color: #39302a;">Some of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting again. To get started right away, just tap any placeholder text (such as this) and start typing.</span></h2><span style="font-size: 12pt;">View and edit this document in Word on your computer, tablet, or phone. You can edit text; easily insert content such as pictures, shapes, or tables; and seamlessly save the document to the cloud from Word on your Windows, Mac, Android, or iOS device.</span><br /><span style="font-size: 12pt;">Want to insert a picture from your files or add a shape, text box, or table? You got it! On the Insert tab of the ribbon, just tap the option you need.</span><br /><span style="font-size: 12pt;">Find even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a comment.</span><br /><span style="font-size: 12pt;">To update the contact information at the bottom of the document, double click in the footer, select the item you wish to update, and begin typing!</span></td>
+      <td style="width: 503.5pt"><h2 id="some-of-the-sample-text-in-this-document-indicates-the-name-of-the-style-applied-so-that-you-can-easily-apply-the-same-formatting-again-to-get-started-right-away-just-tap-any-placeholder-text-such-as-this-and-start-typing" style="font-size: 16pt; margin-top: 0pt; margin-bottom: 24pt; line-height: 1.5"><span style="font-weight: normal; color: #39302a;">Some of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting again. To get started right away, just tap any placeholder text (such as this) and start typing.</span></h2><p style="margin: 0pt 0 12pt"><span style="font-size: 12pt;">View and edit this document in Word on your computer, tablet, or phone. You can edit text; easily insert content such as pictures, shapes, or tables; and seamlessly save the document to the cloud from Word on your Windows, Mac, Android, or iOS device.</span></p><p style="margin: 0pt 0 12pt"><span style="font-size: 12pt;">Want to insert a picture from your files or add a shape, text box, or table? You got it! On the Insert tab of the ribbon, just tap the option you need.</span></p><p style="margin: 0pt 0 12pt"><span style="font-size: 12pt;">Find even more easy-to-use tools on the Insert tab, such as to add a hyperlink or insert a comment.</span></p><p style="margin: 0pt 0 12pt"><span style="font-size: 12pt;">To update the contact information at the bottom of the document, double click in the footer, select the item you wish to update, and begin typing!</span></p></td>
     </tr>
     <tr>
       <td style="width: 503.5pt; text-align: center"><span style="font-size: 12pt;">STREET ADDRESS, CITY, STATE  ZIP CODE</span><br /><span style="font-size: 12pt;"><strong>T</strong></span><span style="font-size: 12pt;">: TELEPHONE  </span><span style="font-size: 12pt;"><strong>W</strong></span><span style="font-size: 12pt;">: WEBSITE</span></td>
@@ -88,7 +92,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
 <footer class="doc-footer">
-<p style="text-align: center; margin-bottom: 0pt; margin-left: 216pt; line-height: 1"><span style="font-size: 12pt;">2</span></p>
+<p style="text-align: center; margin-bottom: 0pt; margin-left: 216pt; line-height: 1"><span style="font-size: 12pt;">1</span></p>
 <p style="margin-bottom: 12pt; line-height: 1.2">&nbsp;</p>
 </footer>
 </body>

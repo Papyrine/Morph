@@ -22,6 +22,10 @@ ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
 td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
 hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
 header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
 footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
@@ -31,26 +35,26 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <div style="position: relative"><svg style="position: absolute; left: -36pt; top: -36pt; width: 174.31pt; height: 792pt; z-index: -1" viewBox="0 0 174.31 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="174.31" height="792" fill="#d1e2e0" /></svg></div>
 <div style="position: relative"><svg style="position: absolute; left: 138.07pt; top: -36pt; width: 437.93pt; height: 792pt; z-index: -1" viewBox="0 0 437.93 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="437.93" height="792" fill="#e4dace" fill-opacity="0.5" /></svg></div>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 50.4pt">
       <td style="width: 139.5pt;vertical-align: middle"></td>
       <td style="width: 38pt"></td>
-      <td style="width: 359.5pt;vertical-align: bottom"><span style="font-family: 'Avenir Next LT Pro', sans-serif; font-size: 14pt;"><strong>Contoso Ltd.</strong></span><h2 id="april-4-20xx" style="font-size: 10pt; margin-top: 0pt; line-height: 1.15"><span style="font-weight: normal; color: #595959;">April 4, 20XX</span></h2></td>
+      <td style="width: 359.5pt;vertical-align: bottom"><p style="margin: 0pt 0 3pt"><span style="font-family: 'Avenir Next LT Pro', sans-serif; font-size: 14pt;"><strong>Contoso Ltd.</strong></span></p><h2 id="april-4-20xx" style="font-size: 10pt; margin-top: 0pt; line-height: 1.15"><span style="font-weight: normal; color: #595959;">April 4, 20XX</span></h2></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 72pt">
-      <td style="width: 45pt;vertical-align: middle"><svg width="29" height="104" viewBox="0 0 273050 993140" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="273050" height="993140" fill="#2f4a46" /></svg></td>
-      <td style="width: 495pt;vertical-align: middle"><h1 id="one-page-business-proposal" style="font-size: 47pt; margin-top: 0pt; line-height: 0.8"><span style="font-family: 'Avenir Next LT Pro', sans-serif; color: #2f4b46; letter-spacing: -0.5pt; text-transform: uppercase;">one page business proposal</span></h1></td>
+      <td style="width: 45pt;vertical-align: middle;padding: 36pt 5.4pt"><svg width="29" height="104" viewBox="0 0 273050 993140" preserveAspectRatio="none" style="overflow: visible" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="273050" height="993140" fill="#2f4a46" /></svg></td>
+      <td style="width: 495pt;vertical-align: middle;padding: 36pt 0pt"><h1 id="one-page-business-proposal" style="font-size: 47pt; margin-top: 0pt; line-height: 0.8"><span style="font-family: 'Avenir Next LT Pro', sans-serif; color: #2f4b46; letter-spacing: -0.5pt; text-transform: uppercase;">one page business proposal</span></h1></td>
     </tr>
   </tbody>
 </table>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<table>
+<table style="width: 100%">
   <tbody>
     <tr style="height: 453.05pt">
       <td style="width: 139.5pt"><h2 id="prepared-for" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1.15"><span style="font-weight: normal;">Prepared for:</span></h2><h3 id="avery-howard" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1">Avery Howard </h3><h3 id="contoso-ltd" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1">Contoso, Ltd. </h3><span style="font-size: 9pt;">avery@contoso.com</span><br /><span style="font-size: 9pt;">www.contoso.com</span><br /><span style="font-size: 9pt;">898-555-0111</span><br /><span style="font-size: 9pt;">987 6th Ave, </span><br /><span style="font-size: 9pt;">Santa Fe, NM 11121</span><br /><br /><h2 id="prepared-by" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1.15"><span style="font-weight: normal;">Prepared by:</span></h2><h3 id="casey-jensen" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1">Casey Jensen </h3><h3 id="fabrikam-inc" style="font-size: 9pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1">Fabrikam, Inc.</h3><span style="font-size: 9pt;">casey@fabrikam.com</span><br /><span style="font-size: 9pt;">www.fabrikam.com </span><br /><span style="font-size: 9pt;">573-555-0172</span><br /><span style="font-size: 9pt;">333 3rd Avenue,</span><br /><span style="font-size: 9pt;">Seattle, WA 89101</span></td>
