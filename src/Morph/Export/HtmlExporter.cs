@@ -71,7 +71,7 @@ static class HtmlExporter
 
         if (!options.EmitDocument)
         {
-            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes);
+            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, pageFieldsPreEvaluated: document.PageFieldsPreEvaluated);
             WriteHeaderFooter(fragmentWriter, headerContent, "header", "doc-header");
             fragmentWriter.WriteElements(document.Elements, 0);
             fragmentWriter.WriteNoteDefinitions();
@@ -145,7 +145,7 @@ static class HtmlExporter
         }
 
         doc.Append(">\n");
-        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc);
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated);
         WriteHeaderFooter(writer, headerContent, "header", "doc-header");
         writer.WriteElements(document.Elements, 0);
         writer.WriteNoteDefinitions();
@@ -314,7 +314,7 @@ static class HtmlExporter
         return Length(top);
     }
 
-    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null)
+    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null, bool pageFieldsPreEvaluated = false)
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
         // inline override.
@@ -386,6 +386,27 @@ static class HtmlExporter
 
                     index--;
                     WriteBlockQuote(quoteItems, depth);
+                    continue;
+                }
+
+                // w:contextualSpacing collapses the gap between same-style neighbours — Word's
+                // tight recipient/address blocks whose paragraphs declare a generous after-spacing
+                // that never shows between them (letters/10's 18pt-after lines render tight).
+                // The raster path already honours it; the export drops the margin-bottom on a
+                // contextual paragraph whose next sibling shares its style.
+                if (element is ParagraphElement {Properties.ContextualSpacing: true} contextual &&
+                    index + 1 < elements.Count &&
+                    elements[index + 1] is ParagraphElement next &&
+                    string.Equals(next.Properties.StyleId, contextual.Properties.StyleId, StringComparison.OrdinalIgnoreCase))
+                {
+                    WriteParagraph(new ParagraphElement
+                    {
+                        Runs = contextual.Runs,
+                        Properties = contextual.Properties with {SpacingAfterPoints = 0},
+                        IsAnchorOnlyMark = contextual.IsAnchorOnlyMark,
+                        IsCollapsedCellMark = contextual.IsCollapsedCellMark,
+                        IsSectionBreakMark = contextual.IsSectionBreakMark
+                    }, depth);
                     continue;
                 }
 
@@ -507,16 +528,21 @@ static class HtmlExporter
             }
 
             var stops = new List<TabStop>();
+            var barStops = new List<TabStop>();
             foreach (var stop in paragraph.Properties.TabStops)
             {
-                if (stop.Alignment != TabAlignment.Bar)
+                if (stop.Alignment == TabAlignment.Bar)
+                {
+                    barStops.Add(stop);
+                }
+                else
                 {
                     stops.Add(stop);
                 }
             }
 
             stops.Sort((a, b) => a.PositionPoints.CompareTo(b.PositionPoints));
-            if (stops.Count == 0)
+            if (stops.Count == 0 && barStops.Count == 0)
             {
                 return false;
             }
@@ -538,6 +564,35 @@ static class HtmlExporter
                 {
                     segments[^1].Add(run);
                 }
+            }
+
+            if (stops.Count == 0)
+            {
+                // Bar stops only (bar_tabs): the bars are vertical rules at their positions,
+                // independent of any tab characters, and the tabs themselves ride the default
+                // grid — approximated as a fixed gap, since a reflowing export cannot know where
+                // the grid lands. The rules are absolutely positioned children of the paragraph.
+                Indent(depth).Append("<p");
+                AppendParagraphStyle(paragraph.Properties, extraStyle: "position: relative");
+                builder.Append('>');
+                foreach (var bar in barStops)
+                {
+                    builder.Append("<span style=\"position: absolute; top: 0; bottom: 0; border-left: 0.75pt solid currentColor; left: ")
+                        .Append(Length(bar.PositionPoints))
+                        .Append("\"></span>");
+                }
+
+                for (var i = 0; i < segments.Count; i++)
+                {
+                    AppendInline(segments[i]);
+                    if (i < segments.Count - 1)
+                    {
+                        builder.Append("<span style=\"display: inline-block; min-width: 18pt\"></span>");
+                    }
+                }
+
+                builder.Append("</p>\n");
+                return true;
             }
 
             var tabCount = segments.Count - 1;
@@ -1587,7 +1642,11 @@ static class HtmlExporter
                 var run = runs[index];
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
-                    builder.Append($"""<a href="{EncodeAttribute(url)}">""");
+                    // The link's LOOK comes from the document's own runs — a Hyperlink-styled run
+                    // resolved blue+underline at parse and its spans carry that; a plain-styled
+                    // link (resumes/03's email, black and bare in Word) must not pick up the
+                    // browser's default blue underline on top.
+                    builder.Append($"""<a href="{EncodeAttribute(url)}" style="color: inherit; text-decoration: inherit">""");
                     while (index < runs.Count &&
                            runs[index].HyperlinkUrl == url)
                     {
@@ -1644,9 +1703,14 @@ static class HtmlExporter
             var properties = run.Properties;
             var tags = AppendOpenTags(properties, inHeading, inheritedFontSizePoints);
 
+            // A page-numbering field in a pageless export evaluates as a one-page document —
+            // "Page 1 of 1" — rather than shipping whatever total the source cached ("Page 1 of
+            // 3", or a header reading "Page 2 of 2"). The reflow really is one page.
+            var text = run.PageField == PageFieldKind.None || pageFieldsPreEvaluated ? run.Text : "1";
+
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
             // InlineStyle — so the source text stays intact rather than being eagerly uppercased.
-            AppendEncodedWithBreaks(run.Text);
+            AppendEncodedWithBreaks(text);
 
             AppendCloseTags(tags);
         }

@@ -121,6 +121,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // "spent" part of it. Captured in FinishPage before lastAfter resets.
         float pageCarriedAfter;
 
+        // Lines counted so far for w:lnNumType numbering — body flow lines of non-suppressed
+        // paragraphs. Reset per page (restart="newPage") in FinishPage and per section
+        // (restart="newSection") in ApplySectionBreak; "continuous" never resets.
+        int lineNumberCount;
+
         // The open w:pBdr border run: consecutive paragraphs whose borders, border spaces and indents all
         // match get ONE box around the lot, not one box each (see ParagraphProperties.SharesBorderGroupWith).
         // Held open across paragraphs because the box's bottom is not known until the run ends — the run is
@@ -255,6 +260,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 ApplyGeometry(settings);
                 y = contentTop;
                 columnTop = contentTop;
+            }
+
+            // w:lnNumType restart="newSection" numbers each section from Start again; "continuous"
+            // carries the count across, and "newPage" resets in FinishPage anyway.
+            if (current.LineNumbers is { Restart: LineNumberRestart.NewSection })
+            {
+                lineNumberCount = 0;
             }
 
             // The page this break started keeps a leading paragraph's spacing-before (see the field).
@@ -507,6 +519,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             currentPageSectionStart = false;
             // A float's exclusion belongs to the page it was anchored on; the new page starts clear.
             floatExclusions.Clear();
+
+            // w:lnNumType restart="newPage" (the OOXML default) numbers each page from Start again.
+            if (current.LineNumbers is { Restart: LineNumberRestart.NewPage })
+            {
+                lineNumberCount = 0;
+            }
         }
 
         // Drops the page's content into the middle of the margin band, for a sheet that asked to be centred
@@ -1529,7 +1547,41 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         items.Add(new PlacedShading(indentLeft, y, availableWidth, line.Height, properties.BackgroundColorHex));
                     }
 
-                    var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, LineRuns(paragraph, line, placedIndex, lineLeft), MapImages(line, lineLeft, baseline));
+                    var lineRuns = LineRuns(paragraph, line, placedIndex, lineLeft);
+
+                    // Line numbering (w:lnNumType): every counted body line carries its ordinal in
+                    // the left margin, right-aligned DistancePoints left of the text column, at the
+                    // line's own font — restored 2026-08-19 (the deleted production TextRenderers
+                    // drew these; the engine did not, so the gutters vanished in the flip).
+                    // Suppressed paragraphs (w:suppressLineNumbers) neither draw nor count.
+                    if (current.LineNumbers is { } lineNumbers && !properties.SuppressLineNumbers)
+                    {
+                        // w:start is the value BEFORE the first counted line — Word's UI "start
+                        // at 1" writes w:start="0", and the references for start="1" number their
+                        // first line 2 (count_by_5 marks lines 4/9/14/19, whose values are then
+                        // 5/10/15/20).
+                        lineNumberCount++;
+                        var ordinal = lineNumbers.Start + lineNumberCount;
+                        if (ordinal % Math.Max(1, lineNumbers.CountBy) == 0)
+                        {
+                            var reference = lineRuns.Count > 0 ? lineRuns[0].Properties : new RunProperties();
+                            var digitProperties = new RunProperties
+                            {
+                                FontFamily = reference.FontFamily,
+                                FontSizePoints = reference.FontSizePoints
+                            };
+                            var digits = ordinal.ToString(CultureInfo.InvariantCulture);
+                            var digitsWidth = measurer.MeasureRunWidth(digits, digitProperties);
+                            var withNumber = new List<PlacedRun>(lineRuns.Count + 1)
+                            {
+                                new(ColumnLeft - (float) lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties)
+                            };
+                            withNumber.AddRange(lineRuns);
+                            lineRuns = withNumber;
+                        }
+                    }
+
+                    var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, baseline));
                     items.Add(placedLine);
 
                     // A deferred float anchored above this paragraph belongs to the page this line landed on —

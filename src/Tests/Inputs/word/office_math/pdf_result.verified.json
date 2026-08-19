@@ -11,14 +11,14 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "The Pythagorean theorem: a2 +b2 =c2\nA simple fraction: 1/2 is one half."
+        "Text": "The Pythagorean theorem: a2 + b2 = c2\nA simple fraction: 1/2 is one half."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0039,
+      "ErrorMetric": 0.004,
       "Ssim": 0.9914,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",

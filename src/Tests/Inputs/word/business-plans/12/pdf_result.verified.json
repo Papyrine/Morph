@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "TABLE OF CONTENTS\nintroduction. . . . . . . . . . . . . . . . . . . . . . . . . . . . 3\n1. executive summary. . . . . . . . . . . . . . . . . . .4\n2. company overview. . . . . . . . . . . . . . . . . . . 5\n3. business description. . . . . . . . . . . . . . . . . . 6\n4. market analysis. . . . . . . . . . . . . . . . . . . . . .8\n5. operating plan. . . . . . . . . . . . . . . . . . . . . .10\n6. marketing and sales plan. . . . . . . . . . . . . 11\n7. financial plan. . . . . . . . . . . . . . . . . . . . . . .12\nAppendix. . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15\nInstructions for Getting Started with Estimated\nStart-Up Costs. . . . . . . . . . . . . . . . . . . . . . . . . 16\nInstructions for Getting Started on Profit & Loss\nProjections. . . . . . . . . . . . . . . . . . . . . . . . . . . . 18"
+        "Text": "TABLE OF CONTENTS\nintroduction........................................................ 3\n1. executive summary.....................................4\n2. company overview......................................5\n3. business description................................... 6\n4. market analysis...........................................8\n5. operating plan...........................................10\n6. marketing and sales plan..........................11\n7. financial plan.............................................12\nAppendix..........................................................15\nInstructions for Getting Started with Estimated\nStart-Up Costs................................................. 16\nInstructions for Getting Started on Profit & Loss\nProjections....................................................... 18"
       },
       {
         "Width": 612.0,
@@ -111,8 +111,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5074,
-      "Ssim": 0.7039,
+      "ErrorMetric": 0.5089,
+      "Ssim": 0.6996,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
