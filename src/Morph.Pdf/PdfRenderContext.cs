@@ -68,6 +68,29 @@ sealed class PdfRenderContext : RenderContextBase
         return font;
     }
 
+    // Whether an italic run needs the painter's synthetic oblique: the family (after the
+    // per-conversion fallback) bundles no italic face, so the resolver serves an upright one.
+    // Cached per (family, bold) — the resolver walk only runs for new combinations.
+    readonly Dictionary<(string Family, bool Bold), bool> syntheticItalicCache = [];
+
+    public bool NeedsSyntheticItalic(RunProperties properties)
+    {
+        if (!properties.Italic)
+        {
+            return false;
+        }
+
+        var family = ResolveFamily(properties.FontFamily, properties.Bold, italic: true);
+        var key = (family, properties.Bold);
+        if (!syntheticItalicCache.TryGetValue(key, out var needs))
+        {
+            needs = !PdfFontResolver.Instance.ResolvesToItalicFace(family, properties.Bold);
+            syntheticItalicCache[key] = needs;
+        }
+
+        return needs;
+    }
+
     // PdfSharp resolves faces through a process-global IFontResolver that cannot see per-conversion
     // state, so the FontFallback delegate is applied here rather than inside PdfFontResolver: the
     // substituted family is what reaches XFont, and the global resolver only ever sees a name it can
@@ -137,6 +160,9 @@ sealed class PdfRenderContext : RenderContextBase
     // the uncached XImage.FromStream behaviour — nothing is cached for a throwing source.
     readonly Dictionary<byte[], XImage> imageCache = new(ReferenceEqualityComparer.Instance);
 
+    // PixelKey -> PaletteKey of the first indexed PNG embedded with those pixels; see GetImage.
+    readonly Dictionary<string, string> indexedPixelIdentities = [];
+
     public XImage GetImage(byte[] data)
     {
         if (!imageCache.TryGetValue(data, out var image))
@@ -150,6 +176,27 @@ sealed class PdfRenderContext : RenderContextBase
             var decodable = GifToPng.IsGif(data)
                 ? GifToPng.Convert(data) ?? data
                 : IndexedPngNormalizer.Normalize(data);
+
+            // PDFsharp's document-level image dedup hashes an imported bitmap's PIXEL data but not
+            // its palette, so a recoloured copy of an already-embedded indexed PNG — identical
+            // indices, different PLTE — collides and draws as the FIRST image everywhere (menus/06's
+            // sheep rendered as page 2's white icon). Re-encode only the collider as RGBA, putting
+            // its colours into the data PDFsharp hashes; everything else embeds exactly as before.
+            if (IndexedPngNormalizer.PixelIdentity(decodable) is var (pixelKey, paletteKey))
+            {
+                if (indexedPixelIdentities.TryGetValue(pixelKey, out var firstPalette))
+                {
+                    if (firstPalette != paletteKey)
+                    {
+                        decodable = IndexedPngNormalizer.ExpandPaletteToRgba(decodable) ?? decodable;
+                    }
+                }
+                else
+                {
+                    indexedPixelIdentities[pixelKey] = paletteKey;
+                }
+            }
+
             using var stream = new MemoryStream(decodable);
             image = XImage.FromStream(stream);
             imageCache[data] = image;

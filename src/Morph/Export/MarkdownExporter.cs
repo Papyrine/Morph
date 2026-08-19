@@ -8,13 +8,13 @@ static class MarkdownExporter
 {
     public static string Export(ParsedDocument document, MarkdownExportOptions? options = null)
     {
-        var writer = new MarkdownWriter(options ?? new(), document.Footnotes, document.Endnotes);
+        var writer = new MarkdownWriter(options ?? new(), document.Footnotes, document.Endnotes, document.PageFieldsPreEvaluated);
         writer.WriteElements(document.Elements);
         writer.WriteNoteDefinitions();
         return writer.Finish();
     }
 
-    sealed class MarkdownWriter(MarkdownExportOptions options, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes)
+    sealed class MarkdownWriter(MarkdownExportOptions options, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, bool pageFieldsPreEvaluated = false)
     {
         readonly StringBuilder builder = new();
         int imageIndex;
@@ -419,7 +419,8 @@ static class MarkdownExporter
                         gridColumn,
                         rows.Count,
                         columnCount,
-                        rows[rowIndex]);
+                        rows[rowIndex],
+                        rows);
                     if (borders is
                         {
                             HasAnyBorder: true
@@ -506,7 +507,9 @@ static class MarkdownExporter
             // A w:br arrives as '\n' in run text and survives Inline(): body text renders it as a
             // backslash hard break (HardBreaks); headings and table cells — single-line constructs
             // where a real newline would end the block — render it as an inline <br> (HtmlBreaks).
-            var raw = run.Text;
+            // A page-numbering field evaluates as a one-page document ("Page 1 of 1") rather than
+            // shipping the source's cached total — mirroring the HTML export.
+            var raw = run.PageField == PageFieldKind.None || pageFieldsPreEvaluated ? run.Text : "1";
 
             var leadingLength = LeadingWhitespaceLength(raw);
             var trailingLength = TrailingWhitespaceLength(raw, leadingLength);

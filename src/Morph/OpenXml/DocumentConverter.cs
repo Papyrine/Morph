@@ -1,4 +1,4 @@
-namespace Morph;
+﻿namespace Morph;
 
 /// <summary>
 /// Abstract base for the DOCX → raster converters (<c>SkiaDocumentConverter</c> and
@@ -146,10 +146,50 @@ public abstract class DocumentConverter
         }
     }
 
+    // Every placed line under these items, a table cell's included. A cell's lines hang off its
+    // PlacedTableRow rather than sitting on the page, so reading only the top level leaves every
+    // paragraph inside a table out of the map below — and a bookmark anchored there comes back with
+    // no page at all rather than a wrong one, which a caller writing a PAGEREF renders as the
+    // field's placeholder text. Measured on a 316-paragraph report: 199 of its paragraphs resolved
+    // and the 117 that did not were exactly the ones in tables, so a summary table cross-referencing
+    // its own rows resolved nothing.
+    //
+    // This is the mirror of Flatten above, which already counts cell paragraphs on the ordinal side
+    // of the join — the two sides disagreed about table content in opposite directions, and the
+    // ordinal side was the one that was right. The recursion is real rather than one level deep
+    // because a cell can hold a table of its own.
+    //
+    // Floating text boxes and frames need no case: PlaceTextBox and PlaceFrame add their content to
+    // the page as body floats, so those lines are already top-level items here.
+    static IEnumerable<PlacedLine> Lines(IEnumerable<PlacedItem> items)
+    {
+        foreach (var item in items)
+        {
+            switch (item)
+            {
+                case PlacedLine line:
+                    yield return line;
+                    break;
+                case PlacedTableRow row:
+                    foreach (var cell in row.Cells)
+                    {
+                        foreach (var nested in Lines(cell.Content))
+                        {
+                            yield return nested;
+                        }
+                    }
+
+                    break;
+            }
+        }
+    }
+
     // The page each paragraph starts on, read straight off the laid-out tree: a placed line is
     // anchored back to the paragraph it came from, and the page it sits on knows its own number. A
     // paragraph split across a page boundary contributes lines to both, so the lowest page wins —
-    // a cross-reference points at where the paragraph begins.
+    // a cross-reference points at where the paragraph begins. That minimum is also what keeps a
+    // w:tblHeader row honest: its cells are re-emitted on every continuation page carrying the same
+    // ParagraphElement instances, and a bookmark in one belongs to the page the header first drew on.
     static Dictionary<ParagraphElement, int> ParagraphPages(ParsedDocument document, ImageExportOptions options)
     {
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
@@ -167,7 +207,7 @@ public abstract class DocumentConverter
         var pages = new Dictionary<ParagraphElement, int>();
         foreach (var page in laidOut.Pages)
         {
-            foreach (var line in page.Items.OfType<PlacedLine>())
+            foreach (var line in Lines(page.Items))
             {
                 if (!pages.TryGetValue(line.Paragraph, out var existing) ||
                     page.Number < existing)

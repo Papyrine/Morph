@@ -12,10 +12,10 @@
 /// </summary>
 public class ColumnWidthTests
 {
-    static double Measure(string family, double sizePoints)
+    static double Measure(string family, double sizePoints, Func<string, string?>? fontFallback = null)
     {
         var fontDirectory = Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts");
-        using var resolver = LayoutFonts.CreateResolver(fontDirectory, null);
+        using var resolver = LayoutFonts.CreateResolver(fontDirectory, fontFallback);
         return SheetGridBuilder.MaxDigitWidth(LayoutFonts.ToDelegate(resolver), family, sizePoints);
     }
 
@@ -36,6 +36,38 @@ public class ColumnWidthTests
 
         await Assert.That(unit).IsGreaterThan(7.6);
         await Assert.That(unit).IsEqualTo(7.691).Within(0.01);
+    }
+
+    /// <summary>
+    /// The caller's substitution map decides the unit for a family the directory cannot serve — the
+    /// grid has to be measured off the face the painter will draw, and the map is what names it.
+    ///
+    /// SpreadsheetParser dropped the map for a while, and the miss was invisible in both the corpus
+    /// (no scenario supplies one) and the Blazor app (its map names Aptos, which is also
+    /// DefaultFont, so the two agreed by coincidence). It shows the moment they differ: without the
+    /// map an unresolvable family measures Aptos at 7.835, with it Georgia at 9.002 — a 15% wider
+    /// column, on every output format, since the parse is shared.
+    /// </summary>
+    [Test]
+    public async Task SubstitutedFace_IsMeasuredRatherThanTheDefaultFont()
+    {
+        var substituted = Measure("No Such Face 9000", 11, _ => "Georgia");
+        var unsubstituted = Measure("No Such Face 9000", 11);
+
+        await Assert.That(substituted).IsEqualTo(9.002).Within(0.01);
+        await Assert.That(unsubstituted).IsEqualTo(7.835).Within(0.01);
+    }
+
+    /// <summary>
+    /// And only for a family that genuinely misses: a map is a last resort, not an override, so a
+    /// face the directory holds is measured as itself. Arial is in the bundled directory at 8.157.
+    /// </summary>
+    [Test]
+    public async Task ResolvableFace_IgnoresTheSubstitutionMap()
+    {
+        var unit = Measure("Arial", 11, _ => "Georgia");
+
+        await Assert.That(unit).IsEqualTo(8.157).Within(0.01);
     }
 
     [Test]

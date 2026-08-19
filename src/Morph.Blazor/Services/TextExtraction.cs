@@ -72,6 +72,21 @@ public static class TextExtraction
                 WalkChildren(element, builder);
                 builder.Append('\n');
                 return;
+            case "p" when element.ParentElement is {LocalName: "td" or "th"} cell:
+                // Inside a table cell a paragraph is a line of the cell, not a document block — a
+                // blank-line break here would tear the row apart, putting each tab-joined cell on
+                // its own paragraph. A cell whose only element is one paragraph reads straight
+                // through; multiple paragraphs separate with single line breaks.
+                if (cell.Children.Length == 1)
+                {
+                    WalkChildren(element, builder);
+                    return;
+                }
+
+                NewLine(builder);
+                WalkChildren(element, builder);
+                builder.Append('\n');
+                return;
             case "p":
             case "h1":
             case "h2":

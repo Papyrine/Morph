@@ -207,15 +207,15 @@ static class BorderStroke
         // dividing the declared width, which lands within 3px of Word. What Word actually does
         // there is unresolved; this is fitted to the measurement, not derived.
         //
-        // Nor does a TABLE CELL border, which is why the scope is a parameter. Measured directly off
-        // Word's render of table_default_style, whose table style declares `double` at sz=12: the
-        // drawn rule is 3px at 150 DPI — 1.44pt, the declared width as a total — where per-line
-        // would be 4.5pt / 9.4px. The paragraph measurements above are equally direct (the sz=24
-        // double draws lines at y=386 and y=399 of border_style_variants p3, a 19px stack), so the
-        // two scopes genuinely differ in Word rather than one reading being wrong. Applying the
-        // paragraph rule to cells widened table_default_style's rules and cost it 0.0524 -> 0.0546 AE.
-        var perLine = scope == Scope.Paragraph &&
-            style is BorderLineStyle.Double or BorderLineStyle.Triple or BorderLineStyle.DoubleWave;
+        // A TABLE CELL double follows the same per-line rule as a paragraph's. An earlier reading
+        // off table_default_style at sz=12 ("the declared width as a total") was settled at a size
+        // where the hypotheses are 2px apart; `_probe_celldouble` re-measured the cell scope at
+        // sz=6/12/24/48 and every magnitude draws line = w:sz, gap = w:sz (150 DPI: 13px lines with
+        // a 12px gap at 6pt, 6/6 at 3pt, 3/2 at 1.5pt, 1/2 at 0.75pt — centre-to-centre exactly
+        // 2 x w:sz throughout), and `_probe_celltriple` measured `triple` the same way at
+        // sz=12/24/48. The scopes still differ in PLACEMENT (a cell stack straddles its shared
+        // edge, below), which is why the parameter stays.
+        var perLine = style is BorderLineStyle.Double or BorderLineStyle.Triple or BorderLineStyle.DoubleWave;
 
         var unit = Math.Max(perLine ? totalWidth : totalWidth / units, minUnitPoints);
         var bands = new Band[(layout.Length + 1) / 2];

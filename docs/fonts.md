@@ -60,7 +60,7 @@ When a name doesn't match any indexed face, Morph falls back in this order:
    | `Grandview Display` | `Grandview` |
    | `Cambria Math` | `Cambria` |
 
-3. **User `FontFallback` delegate**, if `ImageExportOptions.FontFallback` / `PdfExportOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`.
+3. **User `FontFallback` delegate**, if `ExportOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`.
 4. **Platform font manager.** Skia's `SKTypeface.FromFamilyName` / ImageSharp's `SystemFonts` get a final chance, useful for fonts the user installed after Morph's caches loaded.
 
 If all four fall through, an `InvalidOperationException` is thrown listing every directory that was searched.
@@ -75,11 +75,13 @@ Font configuration is split between the shared [`ExportOptions`](../src/Morph/Ex
 |---|---|---|---|---|
 | `FontDirectory` | `string?` | `null` | `ExportOptions` — every format | Path to a directory of fonts to use exclusively. When set, system/user/Office/cloud caches and OS font fallbacks are bypassed. |
 | `DefaultFont` | `string?` | `null` (uses `Aptos`) | `ExportOptions` — every format | Family used when the document doesn't declare a default in `docDefaults`. Per-conversion override; doesn't affect other callers. |
-| `FontFallback` | `Func<string, string?>?` | `null` | `ImageExportOptions`, `PdfExportOptions` | Called when a requested font isn't resolved any other way. Return an alternative family name or `null` to throw. |
+| `FontFallback` | `Func<string, string?>?` | `null` | `ExportOptions` — every format | Called when a requested font isn't resolved any other way. Return an alternative family name or `null` to throw. |
 | `FontWidthScale` | `double` | `1.0` | `ImageExportOptions`, `PdfExportOptions` | Scale factor for measured glyph advances. `1.08` better matches Microsoft Word's text rendering and causes earlier line wrapping to compensate for Skia/ImageSharp running glyphs slightly tighter than GDI. |
 | `DeterministicRendering` | `bool?` | `null` (uses static default `false`) | `ImageExportOptions` only | When `true`, the Skia backend disables sub-pixel positioning and font hinting, falling back to integer-positioned greyscale anti-aliasing. Output is pixel-identical across machines and rasterizer versions; text is slightly softer. Intended for snapshot tests; leave off in production. |
 
-The HTML and Markdown exporters emit font *names* rather than measuring glyphs, so they take only the two `ExportOptions` entries. The process-wide equivalents of `DefaultFont`, `FontWidthScale` and `DeterministicRendering` live on the internal `DefaultFontSettings` and must be set before the first render.
+The HTML and Markdown exporters emit font *names* rather than measuring glyphs, so they take only the three `ExportOptions` entries. The process-wide equivalents of `DefaultFont`, `FontWidthScale` and `DeterministicRendering` live on the internal `DefaultFontSettings` and must be set before the first render.
+
+`FontFallback` is on the shared record rather than the two rendering ones because **a workbook resolves fonts at parse time, whatever it is being exported to**. Excel's column-width unit is a glyph of the body font (see [`ColumnWidthTests`](../src/Tests/SpecTests/Spreadsheet/ColumnWidthTests.cs)), so the grid every format is built on — HTML and Markdown included — is sized by whichever face the chain above lands on, and step 3 is what names it for a family the directory does not hold. At 11pt the swing is not subtle: Aptos measures 7.835, Arial 8.157, Georgia 9.002, so a map pointing at Georgia rather than falling through to `DefaultFont` widens every column by 15%. Pass the same `FontFallback` (and `FontDirectory`) to `ExcelDocument`'s constructor as to the export, or the parse and the paint will disagree.
 
 `FontWidthScale` reaches PDF text through the shared layout engine, the same way it reaches the raster backends: `CanonicalTextMeasurer` widens the measured glyph advances that drive line wrapping and right/decimal tab-stop resolution, and `PdfPainter`'s render context carries the same scale into the draw, so the pen advances by those same widths — one measure-equals-draw model for every backend. At the default 1.0 it is an exact no-op, so it never moves PDF output unless set.
 

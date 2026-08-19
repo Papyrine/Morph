@@ -64,7 +64,7 @@ input:
 
 Rendering needs real font files, and a browser has none of its own. The four **Aptos** faces (400/700,
 upright/italic) ship with `Morph.Blazor` as static web assets, are fetched once, and are written into the
-WASM in-memory filesystem; that directory is handed to **both** the PNG and PDF converters via
+WASM in-memory filesystem; that directory is handed to **every** converter via
 `ExportOptions.FontDirectory`, with every unresolved family mapped to Aptos. So any file renders —
 its own fonts (Calibri, Times New Roman, "Aptos Light", …) **substituted with Aptos**; layout and
 structure are preserved, exact glyph shapes are not. Shipping the real Microsoft fonts to a public site
@@ -75,7 +75,9 @@ Why a directory rather than the fonts embedded in `Morph.dll`: PdfSharp resolves
 global resolver that can't reach Morph's embedded fonts at all, and the ImageSharp path, given no
 directory, walks an OS-font fallback chain that throws in the browser (and on a clean CI runner) the
 moment a document names a weight the embedded set doesn't include. A pinned directory sidesteps both.
-The text exports (HTML, Markdown, plain text) don't rasterise, so they need no fonts.
+The text exports (HTML, Markdown, plain text) rasterise nothing but are handed the directory too: Excel's
+column-width unit is the widest digit of the workbook's body font, so a sheet's `td` widths come out of
+whichever face resolves — left to the OS the same workbook exports different columns on every machine.
 
 `index.html` preloads the four faces from `_content/Morph.Blazor/fonts/` so the download starts during
 the WASM boot rather than after it.

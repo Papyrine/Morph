@@ -8,6 +8,21 @@ sealed record RunProperties
     public bool Bold { get; init; }
     public bool Italic { get; init; }
     public bool Underline { get; init; }
+
+    /// <summary>
+    /// Underline colour from <c>w:u/@w:color</c> (hex, no #). Null (or "auto" in the source)
+    /// means the run's own text colour, which is Word's default.
+    /// </summary>
+    public string? UnderlineColorHex { get; init; }
+
+    /// <summary>Whether <c>w:u/@w:val</c> is <c>double</c> — two thin rules instead of one.</summary>
+    public bool DoubleUnderline { get; init; }
+
+    /// <summary>
+    /// Whether the run carries a tracked change (insertion or deletion). Word's markup view
+    /// draws a vertical change bar in the left margin beside any line containing one.
+    /// </summary>
+    public bool IsRevisionMark { get; init; }
     public bool Strikethrough { get; init; }
     public bool AllCaps { get; init; }
     public bool SmallCaps { get; init; }

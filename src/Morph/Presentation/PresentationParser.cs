@@ -115,7 +115,12 @@ sealed class PresentationParser(string defaultFont)
             PageSettings = pageSettings,
             Elements = elements,
             ThemeColors = themeColors,
-            ThemeFonts = themeFonts
+            ThemeFonts = themeFonts,
+
+            // Each slide's a:fld caches that slide's own number, so the text exporters keep the
+            // cached values — a DOCX header's single cached value repeated per page is the case
+            // the single-page evaluation exists for, and it does not apply here.
+            PageFieldsPreEvaluated = true
         };
     }
 

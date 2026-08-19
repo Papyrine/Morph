@@ -121,6 +121,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // "spent" part of it. Captured in FinishPage before lastAfter resets.
         float pageCarriedAfter;
 
+        // Lines counted so far for w:lnNumType numbering — body flow lines of non-suppressed
+        // paragraphs. Reset per page (restart="newPage") in FinishPage and per section
+        // (restart="newSection") in ApplySectionBreak; "continuous" never resets.
+        int lineNumberCount;
+
         // The open w:pBdr border run: consecutive paragraphs whose borders, border spaces and indents all
         // match get ONE box around the lot, not one box each (see ParagraphProperties.SharesBorderGroupWith).
         // Held open across paragraphs because the box's bottom is not known until the run ends — the run is
@@ -255,6 +260,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 ApplyGeometry(settings);
                 y = contentTop;
                 columnTop = contentTop;
+            }
+
+            // w:lnNumType restart="newSection" numbers each section from Start again; "continuous"
+            // carries the count across, and "newPage" resets in FinishPage anyway.
+            if (current.LineNumbers is { Restart: LineNumberRestart.NewSection })
+            {
+                lineNumberCount = 0;
             }
 
             // The page this break started keeps a leading paragraph's spacing-before (see the field).
@@ -507,6 +519,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             currentPageSectionStart = false;
             // A float's exclusion belongs to the page it was anchored on; the new page starts clear.
             floatExclusions.Clear();
+
+            // w:lnNumType restart="newPage" (the OOXML default) numbers each page from Start again.
+            if (current.LineNumbers is { Restart: LineNumberRestart.NewPage })
+            {
+                lineNumberCount = 0;
+            }
         }
 
         // Drops the page's content into the middle of the margin band, for a sheet that asked to be centred
@@ -1529,7 +1547,41 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         items.Add(new PlacedShading(indentLeft, y, availableWidth, line.Height, properties.BackgroundColorHex));
                     }
 
-                    var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, LineRuns(paragraph, line, placedIndex, lineLeft), MapImages(line, lineLeft, baseline));
+                    var lineRuns = LineRuns(paragraph, line, placedIndex, lineLeft);
+
+                    // Line numbering (w:lnNumType): every counted body line carries its ordinal in
+                    // the left margin, right-aligned DistancePoints left of the text column, at the
+                    // line's own font — restored 2026-08-19 (the deleted production TextRenderers
+                    // drew these; the engine did not, so the gutters vanished in the flip).
+                    // Suppressed paragraphs (w:suppressLineNumbers) neither draw nor count.
+                    if (current.LineNumbers is { } lineNumbers && !properties.SuppressLineNumbers)
+                    {
+                        // w:start is the value BEFORE the first counted line — Word's UI "start
+                        // at 1" writes w:start="0", and the references for start="1" number their
+                        // first line 2 (count_by_5 marks lines 4/9/14/19, whose values are then
+                        // 5/10/15/20).
+                        lineNumberCount++;
+                        var ordinal = lineNumbers.Start + lineNumberCount;
+                        if (ordinal % Math.Max(1, lineNumbers.CountBy) == 0)
+                        {
+                            var reference = lineRuns.Count > 0 ? lineRuns[0].Properties : new RunProperties();
+                            var digitProperties = new RunProperties
+                            {
+                                FontFamily = reference.FontFamily,
+                                FontSizePoints = reference.FontSizePoints
+                            };
+                            var digits = ordinal.ToString(CultureInfo.InvariantCulture);
+                            var digitsWidth = measurer.MeasureRunWidth(digits, digitProperties);
+                            var withNumber = new List<PlacedRun>(lineRuns.Count + 1)
+                            {
+                                new(ColumnLeft - (float) lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties)
+                            };
+                            withNumber.AddRange(lineRuns);
+                            lineRuns = withNumber;
+                        }
+                    }
+
+                    var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, baseline));
                     items.Add(placedLine);
 
                     // A deferred float anchored above this paragraph belongs to the page this line landed on —
@@ -1736,10 +1788,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // Splitting one lets its sparse content collapse into the space left and the reservation
                 // vanishes: table_layout_tall_row is two exact rows (80pt and 530pt) that Word carries onto a
                 // second page, and splitting the tall one folded the document back to a single page.
-                // Fit is judged with the SAME 2% slack every other break decision uses (HasSpaceFor) — a
-                // boundary row that squeezes under the shared rounding slack stays whole; testing the
-                // remainder strictly here split rows the move path would have kept, pushing their tails
-                // onto the next region and costing business-plans/15 a page.
+                // Fit against the remainder is EXACT, not HasSpaceFor's 2% slack: a row fits or it
+                // moves, which is Word's rule (LibreOffice's split deadline is likewise the remaining
+                // area verbatim, widorp.cxx:134/157). Measured on a 1216-row summary table spanning 52
+                // landscape pages (2026-08-19): the slack there is 9.6pt against a 17.7pt row, so a
+                // boundary row 1.5pt past the margin stayed put where Word moves it — one extra row kept
+                // on roughly every fourth page, compounding to a whole page lost by the table's end and
+                // every PAGEREF below the table resolving one page low. Strict fit reproduces Word's
+                // row-by-row page boundaries on that table exactly, and the corpus stays at 330/330
+                // page-count matches. Zeroing HasSpaceFor globally instead costs three scenarios
+                // (business-plans/15, newsletters/09, resumes/06), whose keeps ride the whole-table and
+                // merge-head slack — both untouched here.
+                // An earlier strict-fit attempt cost business-plans/15 a page by splitting rows the move
+                // path would have kept; the piece it lacked was PlaceSplitRow's split-acceptance test,
+                // which now turns those pathological splits back into whole-row moves.
                 // The height is the row's FULL height, an atLeast w:trHeight floor included. A content-only
                 // fit was briefly landed off a letters/04 in-situ reading ("Word keeps a floored row whose
                 // content fits the remainder") and is REFUTED: all four controlled fixtures
@@ -1748,31 +1810,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // height drift: Word's letter runs ~50pt more compact, so the floor simply FITS in Word's
                 // layout — and the engine keeps its one-page count through the whole-table move's slack.
                 //
-                // The slack itself is CONTENT'S: Word keeps business-plans/15's content-sized 79.6pt
-                // boundary table 13pt past the margin (drawn and clipped, the same tolerance the last-line
-                // rule gives auto-spaced text), yet moves business-plans/13's 21.6pt-FLOORED row when its
-                // floor crosses the bottom by 1.2pt (row box to 519.4, floor to 541.2, margin 540 — the
-                // measured break on every one of its landscape pages). A floor is a reservation, and a
-                // reservation must fit exactly — the same law that makes exact/atLeast line boxes strict
-                // where auto lines may overhang. So a floor-driven row is tested against the hard bottom,
-                // and a content-driven one keeps HasSpaceFor's shared rounding slack.
-                //
                 // A row carrying a vertical merge is exempt from the strict test: a merge span is one
                 // drawn unit and Word clips its overflow at the paper edge rather than moving it
                 // (resumes/06's bar span — the tie rule below stacks the continuations for the same
-                // reason), so its HEAD keeps the shared slack too. Without the exemption, resumes/06's
-                // span head at 1.1pt over the margin moved to a fresh page and re-split the document
-                // 3 pages into 6.
-                var floorDriven = row is
-                                  {
-                                      IsExactHeight: false,
-                                      HeightPoints: { } declaredFloor
-                                  } &&
-                                  rowHeight <= (float) declaredFloor + 0.5f &&
-                                  !HasMergedCell(row);
-                var overflows = floorDriven
-                    ? y + rowHeight > contentBottom
-                    : !HasSpaceFor(rowHeight);
+                // reason), so its HEAD keeps HasSpaceFor's shared slack. Without the exemption,
+                // resumes/06's span head at 1.1pt over the margin moved to a fresh page and re-split the
+                // document 3 pages into 6.
+                var overflows = HasMergedCell(row)
+                    ? !HasSpaceFor(rowHeight)
+                    : y + rowHeight > contentBottom;
                 var doesNotFitHere = !atRegionTop && overflows && !TableHeightCalculator.IsPinnedExact(row);
                 var oversize = rowHeight > contentHeight;
 
@@ -2096,7 +2142,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // through the break and boxing only the row's real ends. The edges are charged to the fragment's
         // content budget above, so the rules and the space they occupy stay in step.
         static CellBorders? FragmentBorders(TableCell cell, TableElement table, int rowIndex, int gridColIndex, int colCount, TableRow row) =>
-            TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+            TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
 
         // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
         // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the
@@ -2109,6 +2155,23 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var cells = new List<PlacedCell>();
             var cellX = tableX;
             var gridColIndex = 0;
+            var detached = table.Properties.CellSpacingPoints > 0;
+
+            // Detached-border model: the table FRAME is its own box at the row extent — left/right
+            // on every row, top/bottom closing the first/last — with each cell's box inset inside
+            // its slot (TableLayout.CellSpacingInsets carries the Word-probed gap law). A synthetic
+            // content-less cell carries the frame so the painters need no new item kind.
+            if (detached && table.Properties.DefaultBorders is {HasAnyBorder: true} frame)
+            {
+                var frameEdges = new CellBorders
+                {
+                    Top = rowIndex == 0 ? frame.Top : BorderEdge.None,
+                    Bottom = rowIndex == table.Rows.Count - 1 ? frame.Bottom : BorderEdge.None,
+                    Left = frame.Left,
+                    Right = frame.Right
+                };
+                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, [], false, 0, 0));
+            }
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
@@ -2132,9 +2195,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     ? TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights)
                     : rowHeight;
 
+                var boxX = cellX;
+                var boxY = rowY;
+                var boxWidth = cellWidth;
+                var boxHeight = cellHeight;
+                if (detached)
+                {
+                    var insets = TableLayout.CellSpacingInsets(table.Properties, gridColIndex, span, colCount, rowIndex, table.Rows.Count);
+                    boxX += (float) insets.Left;
+                    boxY += (float) insets.Top;
+                    boxWidth -= (float) insets.Horizontal;
+                    boxHeight -= (float) insets.Vertical;
+                }
+
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
-                var content = LayoutCellContent(cell, cellX + (float) padding.Left, rowY + (float) padding.Top, cellWidth - (float) padding.Horizontal, cellHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
-                var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row);
+                var content = LayoutCellContent(cell, boxX + (float) padding.Left, boxY + (float) padding.Top, boxWidth - (float) padding.Horizontal, boxHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
+                var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
                 // before the cell's paragraphs, so prepend them to the content.
@@ -2144,7 +2220,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, cellHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
 
                 cellX += cellWidth;
                 gridColIndex += span;

@@ -211,9 +211,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     TextAlignment defaultAlignment = TextAlignment.Left;
 
     // Document default line spacing, used when no style supplies one. Word's built-in Normal
-    // (line=278) applies only when the document declares no styles.xml or no docDefaults (see
-    // ExtractDefaultParagraphProperties); a document that DOES declare docDefaults without a
-    // w:line is single-spaced — Word-probed 2026-08-04 alongside the style-path fallback above
+    // (line=278) applies when the document declares no styles.xml, no docDefaults, or no
+    // default paragraph style (see ExtractDefaultParagraphProperties); a document that DOES
+    // declare docDefaults without a w:line AND defines a default paragraph style is
+    // single-spaced — Word-probed 2026-08-04 alongside the style-path fallback above
     // (an invented 1.08 lived here and was part of the same corpus-wide pitch drift).
     double defaultLineSpacingMultiplier = 1.0;
 
@@ -3482,7 +3483,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             TopSpacePoints = ReadSpacePoints(element.GetFirstChild<TopBorder>()),
             RightSpacePoints = ReadSpacePoints(element.GetFirstChild<RightBorder>()),
             BottomSpacePoints = ReadSpacePoints(element.GetFirstChild<BottomBorder>()),
-            LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>())
+            LeftSpacePoints = ReadSpacePoints(element.GetFirstChild<LeftBorder>()),
+
+            // offsetFrom="text" is the OOXML default; only an explicit "page" measures the
+            // spaces from the page edge.
+            MeasureFromText = element.OffsetFrom == null || element.OffsetFrom.Value != PageBorderOffsetValues.Page
         };
 
         static double ReadSpacePoints(BorderType? edge)
@@ -3504,7 +3509,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        var start = 1;
+        // w:start default 0: the attribute holds the value BEFORE the first counted line
+        // (Word's UI "start at 1" writes w:start="0"), so an absent attribute numbers the
+        // first line 1. See the Fragmenter's line-number emission for the reference evidence.
+        var start = 0;
         var countBy = 1;
         // Default 0.25 inch
         double distancePoints = 18;
@@ -3729,11 +3737,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return;
         }
 
-        // docDefaults IS present but carries no paragraph defaults: the document explicitly
-        // configured its document-wide defaults and omitted paragraph spacing, which Word
-        // reads as zero — not the 8pt built-in. Verified against resumes/13, cover-letters/03,
-        // letters/09, wedding/05 (all have <w:docDefaults> without a pPrDefault and render
-        // tight in Word). The field is already 0.
+        // docDefaults IS present but declares NO pPrDefault element at all, and the package
+        // defines no default paragraph style either: nothing has replaced Word's BUILT-IN
+        // Normal (8pt-after, line=278), so unstyled paragraphs still take its spacing.
+        // Measured against Word's references: even_odd_headers/02's footer line and
+        // decimal_tabs/01's rows each sit exactly the built-in spacing below a zero-spacing
+        // render (row pitch 46.5px vs the 25.5px bare line at 150 DPI). An EMPTY
+        // <w:pPrDefault/> is different — it is an explicit "no paragraph defaults" and Word
+        // reads it as zero: wordart declares one and its reference is tight (a built-in
+        // fallback there regressed pages 5-15 by +0.01..+0.045 AE). A defined default
+        // paragraph style also suppresses the built-in — resumes/13, cover-letters/03,
+        // letters/09 and wedding/05 all define Normal and render tight in Word.
+        var definesDefaultParagraphStyle = stylesPart.Styles.Elements<Style>()
+            .Any(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true);
+        if (docDefaults.ParagraphPropertiesDefault == null && !definesDefaultParagraphStyle)
+        {
+            defaultSpacingAfterPoints = builtInSpacingAfterPoints;
+            defaultLineSpacingMultiplier = builtInLineSpacingMultiplier;
+        }
+
+        // docDefaults IS present but carries no paragraph defaults beyond the cases above:
+        // the document explicitly configured its document-wide defaults and omitted
+        // paragraph spacing, which Word reads as zero — not the 8pt built-in.
         var pPrDefault = docDefaults.ParagraphPropertiesDefault;
         if (pPrDefault?.ParagraphPropertiesBaseStyle == null)
         {
@@ -4652,16 +4677,20 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         Left = ParseBorderEdge(exBorders.GetFirstChild<LeftBorder>())
                     };
 
-                    var insideH = ParseBorderEdge(exBorders.GetFirstChild<InsideHorizontalBorder>());
-                    if (insideH.IsVisible)
+                    // An override stored only when VISIBLE loses the explicit suppression case:
+                    // w:insideH/w:insideV val="none" parses invisible, and skipping it let the
+                    // table style's inside borders resurface on rows that switched them off —
+                    // newsletters/04's layout tables nil every row's borders through w:tblPrEx and
+                    // still grew column dividers and byline rules Word never draws. Present = the
+                    // row spoke, whatever it said.
+                    if (exBorders.GetFirstChild<InsideHorizontalBorder>() != null)
                     {
-                        rowOverrideInsideH = insideH;
+                        rowOverrideInsideH = ParseBorderEdge(exBorders.GetFirstChild<InsideHorizontalBorder>());
                     }
 
-                    var insideV = ParseBorderEdge(exBorders.GetFirstChild<InsideVerticalBorder>());
-                    if (insideV.IsVisible)
+                    if (exBorders.GetFirstChild<InsideVerticalBorder>() != null)
                     {
-                        rowOverrideInsideV = insideV;
+                        rowOverrideInsideV = ParseBorderEdge(exBorders.GetFirstChild<InsideVerticalBorder>());
                     }
                 }
 
@@ -6214,6 +6243,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 Runs = [],
                 Properties = props with {SpacingBeforePoints = 0},
                 IsAnchorOnlyMark = true
+            });
+        }
+        else if (result.Count > 0 && result[^1] is ColumnBreakElement)
+        {
+            // A paragraph that ENDS at a column break still has its mark, and Word places it at
+            // the top of the NEXT column as a line of its own — the following paragraph starts one
+            // line (plus this paragraph's after-spacing) further down. column_breaks and
+            // mixed_breaks both had post-break content a line high against Word's references.
+            // Deliberately NOT done for page breaks: page counts are Word-exact today and the
+            // page-break mark interacts with FinishPage's blank-page rules (see the sectPr note
+            // above) — that flip needs its own adjudication.
+            result.Add(new ParagraphElement
+            {
+                Runs = [],
+                Properties = props
             });
         }
 
@@ -9037,6 +9081,56 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// Parses a Drawing element to extract a WordArt shape.
     /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
     /// </summary>
+    /// <summary>
+    /// True when the run's resolved colour comes from an EXPLICIT <c>w:color</c> — on the run
+    /// itself, its character style chain, or its paragraph style chain — rather than the document
+    /// default. Distinguishes "the author asked for black" from "nothing said otherwise", which is
+    /// the boundary the <c>a:fontRef</c> fallback in <see cref="ParseWordArt"/> sits on.
+    /// </summary>
+    static bool DeclaresRunColor(OoxmlRunProperties? runProperties, MainDocumentPart mainPart, string? paragraphStyleId)
+    {
+        // w:color w:val="auto" is not a declared colour — "automatic" is precisely the value that
+        // defers to context, which for a DrawingML text box is the a:fontRef (wedding/08's
+        // Ampersand style carries an auto colour and Word still paints the fontRef's white).
+        static bool IsExplicit(Color? color) =>
+            color?.Val?.HasValue == true &&
+            !string.Equals(color.Val.Value, "auto", StringComparison.OrdinalIgnoreCase);
+
+        if (IsExplicit(runProperties?.GetFirstChild<Color>()))
+        {
+            return true;
+        }
+
+        var styles = mainPart.StyleDefinitionsPart?.Styles;
+        if (styles == null)
+        {
+            return false;
+        }
+
+        bool ChainDeclares(string? styleId)
+        {
+            for (var depth = 0; styleId != null && depth < 12; depth++)
+            {
+                var style = styles.Elements<Style>().FirstOrDefault(_ => _.StyleId?.Value == styleId);
+                if (style == null)
+                {
+                    return false;
+                }
+
+                if (IsExplicit(style.StyleRunProperties?.Color))
+                {
+                    return true;
+                }
+
+                styleId = style.BasedOn?.Val?.Value;
+            }
+
+            return false;
+        }
+
+        return ChainDeclares(runProperties?.RunStyle?.Val?.Value) || ChainDeclares(paragraphStyleId);
+    }
+
     DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left)
     {
         // Get dimensions from Inline or Anchor
@@ -9249,6 +9343,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var firstRunProperties = txbxContent.Descendants<OoxmlRun>().FirstOrDefault()?.RunProperties;
                 var resolvedRun = ParseRunProperties(firstRunProperties, mainPart, firstParagraphStyleId);
                 fillColor = resolvedRun.ColorHex;
+
+                // wps:style/a:fontRef is DrawingML's glyph-colour fallback and sits BELOW the
+                // w:rPr/style chain: it colours the glyphs only when neither the run nor any style
+                // in its chain declares w:color, in which case the cascade above resolved to the
+                // document default rather than anything the author asked for.
+                if (!DeclaresRunColor(firstRunProperties, mainPart, firstParagraphStyleId) &&
+                    ShapeParser.ExtractFontReferenceColor(wsp, currentThemeColors) is { } fontRefColor)
+                {
+                    fillColor = fontRefColor;
+                }
                 fontSize = resolvedRun.FontSizePoints;
                 bold = resolvedRun.Bold;
                 italic = resolvedRun.Italic;
@@ -9541,29 +9645,26 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return false;
         }
 
-        // Check for Office 2010 checkbox (w14:checkbox)
-        if (props.Descendants().Any(_ => _.LocalName == "checkbox"))
+        // A picture control renders an image the cached runs cannot carry — always the control path.
+        if (props.GetFirstChild<SdtContentPicture>() != null)
         {
             return true;
         }
 
-        // Check for combo box, dropdown, date or picture controls. Each needs rendering the cached
-        // content cannot supply on its own — a glyph, the selected item, a formatted date, an image.
-        if (props.GetFirstChild<SdtContentComboBox>() != null ||
+        // Every other inline control — checkbox (w14:checkbox), combo box, dropdown, date, plain
+        // text — prints as its cached content, laid out inline with the rest of the paragraph:
+        // Word's print output for content_control_inline is plain "☒ Yes", "Medium", "2025-06-15"
+        // with no box chrome, on the label's own line. So once the control HOLDS runs, those runs
+        // are the value and flow inline. Only an EMPTY control takes the block-control path, which
+        // can render what the cached content genuinely cannot supply — the checkbox glyph from its
+        // checked state, a date formatted from w:fullDate, or the grayed placeholder. (For w:text
+        // this was already the rule: the control path split a footer's paragraph around the block
+        // element, stranding the page number on its own line.)
+        if (props.Descendants().Any(_ => _.LocalName == "checkbox") ||
+            props.GetFirstChild<SdtContentComboBox>() != null ||
             props.GetFirstChild<SdtContentDropDownList>() != null ||
             props.GetFirstChild<SdtContentDate>() != null ||
-            props.GetFirstChild<SdtContentPicture>() != null)
-        {
-            return true;
-        }
-
-        // A PLAIN-TEXT control (w:text) is different: once it holds runs, those runs ARE the value and
-        // Word lays them out inline with the rest of the paragraph. Routing it through the control path
-        // emitted a block element and split the paragraph around it — which in a footer stranded the
-        // page number on its own line and dropped the value outright, the header/footer band rendering
-        // only paragraphs and tables. An EMPTY one still takes the control path so its placeholder can
-        // render, which is the one thing the cached content genuinely cannot supply.
-        if (props.GetFirstChild<SdtContentText>() != null)
+            props.GetFirstChild<SdtContentText>() != null)
         {
             return sdtRun.SdtContentRun?.Descendants<OoxmlRun>().All(_ => _.InnerText.Length == 0) ?? true;
         }
@@ -10300,6 +10401,20 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // w:mirrorIndents — left/right indents swap on even pages (mirror printing).
         var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
 
+        // Word drops a mirror paragraph's left/right and hanging indents entirely and keeps only
+        // w:firstLine, at least in a document without mirror margins. Word-measured
+        // (_probe_mirror, margin at 1in): left=1440 without the flag indents the full 1in;
+        // left=1440, left=2880, w:start=1440 and left=2880+hanging=1440 under the flag all render
+        // flush at the margin, while left=1440+firstLine=720 renders its first line at
+        // margin+0.5in. complex_spacing is the corpus case — Word wraps its Combination 7 at the
+        // full column width where the declared 2880/2880/1440 indents wrapped it into 10 lines.
+        if (mirrorIndents)
+        {
+            leftIndent = 0;
+            rightIndent = 0;
+            hangingIndent = 0;
+        }
+
         // Parse paragraph shading/background color (w:shd element)
         if (shadingElement != null)
         {
@@ -10406,11 +10521,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             var attributes = framePr.GetAttributes();
             var dropCapAttribute = attributes.AttributeValue("dropCap");
-            if (string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
+
+            // Word only honours a drop cap whose framePr also anchors the frame — its own
+            // authoring always writes w:wrap/w:hAnchor/w:vAnchor beside w:dropCap. A bare
+            // dropCap+lines (feature_capture/01) renders as a plain normal-size line in Word's
+            // reference, where the cap used to draw a spurious 3-line letter.
+            var frameAnchored = attributes.AttributeValue("wrap") != null ||
+                                attributes.AttributeValue("hAnchor") != null ||
+                                attributes.AttributeValue("vAnchor") != null;
+            if (frameAnchored && string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Drop;
             }
-            else if (string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
+            else if (frameAnchored && string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Margin;
             }
@@ -10635,12 +10758,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             RevisionMark.Inserted => properties with
             {
                 ColorHex = revisionColorHex,
-                Underline = true
+                Underline = true,
+                IsRevisionMark = true
             },
             RevisionMark.Deleted => properties with
             {
                 ColorHex = revisionColorHex,
-                Strikethrough = true
+                Strikethrough = true,
+                IsRevisionMark = true
             },
             _ => properties
         };
@@ -11049,9 +11174,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             italic = italicElement.IsOn();
         }
 
+        var underlineColorHex = (string?) null;
+        var doubleUnderline = false;
         if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
         {
             underline = true;
+            doubleUnderline = underlineElement.Val?.Value == UnderlineValues.Double;
+
+            // w:u/@w:color — the rule's own colour. "auto" (and absence) means the text colour,
+            // which a null carries.
+            var underlineColor = underlineElement.Color?.Value;
+            if (!string.IsNullOrEmpty(underlineColor) &&
+                !underlineColor.Equals("auto", StringComparison.OrdinalIgnoreCase))
+            {
+                underlineColorHex = underlineColor;
+            }
         }
 
         if (strikeElement != null)
@@ -11319,6 +11456,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Bold = bold,
             Italic = italic,
             Underline = underline,
+            UnderlineColorHex = underlineColorHex,
+            DoubleUnderline = doubleUnderline,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
             SmallCaps = smallCaps,
@@ -11345,12 +11484,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     static void AppendMathText(List<Run> runs, OpenXmlElement mathElement)
     {
         // Math text inherits the surrounding run's font size when available so equations don't
-        // collapse to the 11pt default. Variables render italic by default — Word's Cambria-Math
-        // convention; numbers and operators stay upright (handled inside EmitMathRun).
+        // collapse to the 11pt default, but sets in Cambria — Word's math face is Cambria Math
+        // regardless of the body font, and plain Cambria gives the same serif letterforms at a
+        // normal line box (Cambria Math's own vertical metrics are sized for stretchy operators
+        // and inflated every math line ~55px when tried). Variables render italic by default —
+        // Word's convention; numbers and operators stay upright (handled inside EmitMathRun).
         var context = runs.Count > 0 ? runs[^1].Properties : new();
         WalkMath(mathElement, runs, context with
         {
-            Italic = true
+            Italic = true,
+            FontFamily = "Cambria"
         });
     }
 
@@ -11452,7 +11595,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             // Math italic only applies to alphabetic variables; digits and operators stay upright.
+            // Word also spaces binary operators and relations — "a²+b²=c²" prints as
+            // "a² + b² = c²" — which OMML leaves implicit, so a bare operator token gains the
+            // padding here.
             var isVariable = text.All(char.IsLetter);
+            if (text.Length == 1 && "+−-=<>×÷±≤≥≠".Contains(text[0]))
+            {
+                text = $" {text} ";
+            }
+
             runs.Add(new()
             {
                 Text = text,

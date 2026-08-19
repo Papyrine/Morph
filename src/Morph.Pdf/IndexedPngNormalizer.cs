@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.IO.Compression;
+using System.Security.Cryptography;
 
 /// <summary>
 /// Re-encodes a sub-8-bit indexed PNG (<c>colourType 3</c>, <c>bitDepth</c> 1/2/4) to the same
@@ -51,6 +52,160 @@ static class IndexedPngNormalizer
             // original and let PDFsharp do whatever it did before.
             return data;
         }
+    }
+
+    /// <summary>
+    /// The palette-collision guard for PDFsharp's image dedup. PdfImageTable.ImageSelector keys an
+    /// imported bitmap by a hash of its PIXEL data — the palette is not part of the key — so two
+    /// indexed PNGs sharing pixel indices and differing only in <c>PLTE</c> (the same icon
+    /// recoloured, menus/06's white icon vs red sheep) collide, and the second draws as the first
+    /// everywhere it appears. <see cref="PixelIdentity"/> lets the caller detect that pair, and
+    /// <see cref="ExpandPaletteToRgba"/> re-encodes the colliding image as RGBA so its colours are
+    /// IN the pixel data PdfSharp hashes. Only the collider is re-encoded, so every PDF without
+    /// such a pair is byte-identical to before.
+    /// </summary>
+    public static (string PixelKey, string PaletteKey)? PixelIdentity(byte[] data)
+    {
+        if (!LooksIndexed8Bit(data))
+        {
+            return null;
+        }
+
+        try
+        {
+            var chunks = ReadChunks(data);
+            var pixelHash = SHA1.HashData(
+                chunks.Where(_ => _.Type is "IHDR" or "IDAT" or "tRNS").SelectMany(_ => _.Data).ToArray());
+            var paletteHash = SHA1.HashData(
+                chunks.Where(_ => _.Type == "PLTE").SelectMany(_ => _.Data).ToArray());
+            return (Convert.ToHexString(pixelHash), Convert.ToHexString(paletteHash));
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Re-encodes an 8-bit indexed PNG as RGBA at the same dimensions, resolving each index
+    /// through <c>PLTE</c>/<c>tRNS</c>. Returns null for anything that is not an 8-bit indexed
+    /// PNG or that fails to decode — the caller keeps the original.
+    /// </summary>
+    public static byte[]? ExpandPaletteToRgba(byte[] data)
+    {
+        if (!LooksIndexed8Bit(data))
+        {
+            return null;
+        }
+
+        try
+        {
+            var width = (int) BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(16, 4));
+            var height = (int) BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(20, 4));
+            var chunks = ReadChunks(data);
+            var palette = chunks.FirstOrDefault(_ => _.Type == "PLTE").Data;
+            if (palette == null || palette.Length % 3 != 0)
+            {
+                return null;
+            }
+
+            var transparency = chunks.FirstOrDefault(_ => _.Type == "tRNS").Data;
+            var idat = chunks
+                .Where(_ => _.Type == "IDAT")
+                .SelectMany(_ => _.Data)
+                .ToArray();
+            var indices = UnfilterDepth8(Inflate(idat), width, height);
+            if (indices == null)
+            {
+                return null;
+            }
+
+            var rgba = new byte[height * (1 + width * 4)];
+            var paletteEntries = palette.Length / 3;
+            for (var row = 0; row < height; row++)
+            {
+                var destination = row * (1 + width * 4) + 1;
+                for (var x = 0; x < width; x++)
+                {
+                    int index = indices[row * width + x];
+                    if (index >= paletteEntries)
+                    {
+                        index = 0;
+                    }
+
+                    rgba[destination] = palette[index * 3];
+                    rgba[destination + 1] = palette[index * 3 + 1];
+                    rgba[destination + 2] = palette[index * 3 + 2];
+                    rgba[destination + 3] = transparency != null && index < transparency.Length
+                        ? transparency[index]
+                        : (byte) 255;
+                    destination += 4;
+                }
+            }
+
+            using var output = new MemoryStream();
+            output.Write(Signature);
+            var header = (byte[]) chunks.First(_ => _.Type == "IHDR").Data.Clone();
+            // bit depth 8, colour type 6 (truecolour with alpha)
+            header[8] = 8;
+            header[9] = 6;
+            WriteChunk(output, "IHDR", header);
+            WriteChunk(output, "IDAT", Deflate(rgba));
+            WriteChunk(output, "IEND", []);
+            return output.ToArray();
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    static bool LooksIndexed8Bit(byte[] data) =>
+        data.Length >= 33 &&
+        data.AsSpan(0, 8).SequenceEqual(Signature) &&
+        BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(12, 4)) == 0x49484452 &&
+        data[24] == 8 &&
+        // colour type 3 = indexed, non-interlaced only
+        data[25] == 3 &&
+        data[28] == 0;
+
+    /// <summary>Un-filters a depth-8 single-channel image to raw indices (no filter bytes).</summary>
+    static byte[]? UnfilterDepth8(byte[] raw, int width, int height)
+    {
+        if (raw.Length < height * (width + 1))
+        {
+            return null;
+        }
+
+        var result = new byte[height * width];
+        var previous = new byte[width];
+        var current = new byte[width];
+        for (var row = 0; row < height; row++)
+        {
+            var sourceOffset = row * (width + 1);
+            var filter = raw[sourceOffset];
+            raw.AsSpan(sourceOffset + 1, width).CopyTo(current);
+            for (var i = 0; i < width; i++)
+            {
+                var left = i >= 1 ? current[i - 1] : 0;
+                var up = (int) previous[i];
+                var upLeft = i >= 1 ? previous[i - 1] : 0;
+                current[i] = filter switch
+                {
+                    0 => current[i],
+                    1 => (byte) (current[i] + left),
+                    2 => (byte) (current[i] + up),
+                    3 => (byte) (current[i] + ((left + up) >> 1)),
+                    4 => (byte) (current[i] + Paeth(left, up, upLeft)),
+                    _ => current[i]
+                };
+            }
+
+            current.CopyTo(result, row * width);
+            (previous, current) = (current, previous);
+        }
+
+        return result;
     }
 
     static bool Looks8BitExpandable(byte[] data, out int width, out int height, out int bitDepth)

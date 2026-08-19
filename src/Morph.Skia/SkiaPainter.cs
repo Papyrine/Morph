@@ -32,6 +32,14 @@ static class SkiaPainter
                 PaintItem(context, canvas, item);
             }
 
+            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            {
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges);
+            }
+
             Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
         }
     }
@@ -102,6 +110,20 @@ static class SkiaPainter
     static void PaintLine(SkiaRenderContext context, SKCanvas canvas, PlacedLine line)
     {
         var ascent = line.Baseline - line.Y;
+
+        // A line carrying a tracked change gets Word's change bar: a thin black rule in the left
+        // margin spanning the line (Word-measured on tracked_changes/01 — a ~0.5pt rule at half
+        // the left margin, x=36pt inside a 72pt margin at 150 DPI).
+        foreach (var run in line.Runs)
+        {
+            if (run.Properties.IsRevisionMark)
+            {
+                var barX = P(context, context.PageSettings.MarginLeft / 2);
+                canvas.DrawLine(barX, P(context, line.Y), barX, P(context, line.Y + line.Height), context.GetReusableRulePaint(SKColors.Black, P(context, 0.75)));
+                break;
+            }
+        }
+
         foreach (var run in line.Runs)
         {
             if (run.Leader != TabLeader.None)
@@ -129,8 +151,17 @@ static class SkiaPainter
             var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
             if (properties.Underline)
             {
+                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
+                var underlineColor = properties.UnderlineColorHex == null
+                    ? color
+                    : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
                 var underlineY = P(context, line.Baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(P(context, run.X), underlineY, P(context, run.X + run.Width), underlineY, context.GetReusableRulePaint(color, strokeWidth));
+                canvas.DrawLine(P(context, run.X), underlineY, P(context, run.X + run.Width), underlineY, context.GetReusableRulePaint(underlineColor, strokeWidth));
+                if (properties.DoubleUnderline)
+                {
+                    var secondY = underlineY + strokeWidth * 2;
+                    canvas.DrawLine(P(context, run.X), secondY, P(context, run.X + run.Width), secondY, context.GetReusableRulePaint(underlineColor, strokeWidth));
+                }
             }
 
             if (properties.Strikethrough)
@@ -215,7 +246,11 @@ static class SkiaPainter
             return;
         }
 
-        var spacing = glyphWidth * 2;
+        // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
+        // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
+        // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
+        // number, where the doubled stride tiled half as many dots and stopped ~14px short.
+        var spacing = glyphWidth;
         var runWidth = P(context, run.Width);
         var count = (int) Math.Floor((runWidth - glyphWidth) / spacing) + 1;
         if (count <= 0)

@@ -5,4 +5,5 @@
     public string? BackgroundColor { get; set; }
     public double? TextIndent { get; set; }
     public double? LineHeight { get; set; }
+    public double? MarginLeftPoints { get; set; }
 }

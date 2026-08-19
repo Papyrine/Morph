@@ -207,17 +207,31 @@ Italic style applied to text runs.
 - **Model**: `RunProperties.Italic`
 - **Test**: `italic_text/`
 
+> **Synthetic oblique**: an italic run whose family has no italic face (bundled Century Gothic,
+> Tenorite, Baskerville Old Face) is sheared right about the baseline instead of rendering
+> upright, in every backend. The shear is Word-measured, not conventional: `_probe_synitalic`
+> (96pt and 48pt Century Gothic italic, stem edges regressed on both sides, upright control at
+> exactly 0.0000) put Word's synthesized slant at **0.1355–0.1371** — size-independent — where
+> Skia's stock fake italic is 0.25 and PdfSharp's `mustSimulateItalic` is sin 20° (0.342,
+> PDFium-measured), which is why the PDF backend shears its own text matrix
+> (`PdfPainter.DrawTracked`) rather than using PdfSharp's simulation. The constant lives in
+> `FontHelpers.SyntheticItalicSkew`. A real italic face is never sheared — Word's own Calibri
+> italic measures 0.2001 and Morph reproduces it exactly through the face itself.
+
 
 #### Underline `DONE`
 
-Underline decoration on text. Rendered 2px below the text baseline.
+Underline decoration on text. Rendered 2px below the text baseline. `w:u/@w:color` paints the
+rule in its own colour (absent or `auto` means the run's text colour), and `w:val="double"`
+draws a second rule one gap below the first — every backend, plus
+`text-decoration-color` / `text-decoration-style: double` in the HTML export.
 
-- **OOXML**: `w:u` with `w:val` (single, double, dotted, dash, etc.)
+- **OOXML**: `w:u` with `w:val` (single, double, dotted, dash, etc.) and `w:color`
 - **Spec**: [Underline](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.underline)
-- **Model**: `RunProperties.Underline`
-- **Test**: `underline_text/`
+- **Model**: `RunProperties.Underline`, `RunProperties.UnderlineColorHex`, `RunProperties.DoubleUnderline`
+- **Test**: `underline_text/`, `wordart/` (page 9: red single + blue double)
 
-> **Consumers**: All underline types (single, double, dotted, dash, wave, etc.) are detected but currently render as a single solid underline.
+> **Consumers**: Underline types beyond single/double (dotted, dash, wave, etc.) are detected but render as a single solid underline.
 
 
 #### Strikethrough `DONE`
@@ -563,13 +577,13 @@ Vertical space above and below a paragraph, in points.
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
 - **Test**: `paragraph_spacing/`
 
-> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in only when the document has no `docDefaults` element (or no `styles.xml`); when `docDefaults` is present but omits paragraph defaults, the default is 0 — Word reads the omission as an explicit zero. The same extraction reads `pPrDefault/w:jc` into the base of the alignment cascade (card/label/menu templates centre every paragraph there; a style or paragraph `w:jc` — including an explicit "left" — still overrides).
+> **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in (with the 278/240 line multiplier) when nothing in the package has replaced the built-in Normal: no `styles.xml`, no `docDefaults`, or — refined 2026-08-19 — `docDefaults` present but with NO `w:pPrDefault` element at all and no default paragraph style defined (`even_odd_headers/02`'s footer line and `decimal_tabs/01`'s rows each sit exactly the built-in spacing below a zero-spacing render; the row pitch is 46.5px against the 25.5px bare line at 150 DPI). An EMPTY `<w:pPrDefault/>` is an explicit "no paragraph defaults" and reads as zero — `wordart` declares one and Word's reference is tight — as does a package that defines a default paragraph style (`resumes/13`, `cover-letters/03`, `letters/09`, `wedding/05`). The same extraction reads `pPrDefault/w:jc` into the base of the alignment cascade (card/label/menu templates centre every paragraph there; a style or paragraph `w:jc` — including an explicit "left" — still overrides).
 
 > **Contributors**: A paragraph whose only content is anchored drawing (the "background placeholder" pattern) still has a paragraph mark, and Word allocates a line for it. `ParseParagraph` therefore treats anchored art as producing no flow content and emits the empty paragraph anyway — testing `result.Count == 0` alone made that line appear or vanish depending on whether the shape parser happened to understand the drawing. The one exception is a placeholder carrying explicit spacing-after, where Word emits the trailing spacing but no line: that becomes an `IsAnchorOnlyMark` paragraph (see `agendas-minutes/11`) — inert in the engine today (todo #26), so it lays out as an ordinary empty paragraph.
 >
 > The predicate is `onlyFloatingArt`, and it must name **both** float types. It read `_ is FloatingShapeElement` alone until 2026-08-12, so a paragraph that lifted out a floating PICTURE matched no branch at all and lost its mark outright — `business-plans/13`'s cover anchors one image and one shape from a single paragraph, and losing that line carried its title and subtitle ~24pt up the page (restoring it puts the subtitle within 1px of Word: ink at 1407–1434 against Word's 1408–1434, where it had been 51px high). Widening it moved **35 scenarios by −0.559 / −0.467 / −0.556 on Skia / ImageSharp / PDF, 30 better and 4 worse, no page-count change**. The four are all templates whose anchor paragraph carries a tiny-font style (`GraphicAnchor`/`Graphicsanchor`/`ObjectAnchor` at `w:sz` 4–10 half-points), and on the two largest the render is measurably CLOSER to Word than the metric suggests — `agendas-minutes/02`'s title ink goes from 11px above Word's to 4px below, `brochures/07`'s from 9px above to 4px below — so they read as the new-ink offset penalty over a residual, not a lost rule.
 
-> **Exporters**: The raster/PDF backends allocate a line for every empty paragraph (above), so blank-line block spacing renders for free. Word's letter/résumé templates lean on this heavily — they separate date/address/greeting/body/closing with EMPTY paragraphs rather than paragraph after-spacing — so the HTML export must reproduce it explicitly: `HtmlExporter.WriteParagraph` emits an empty body paragraph as a one-line `<p>&nbsp;</p>` spacer (carrying its own before/after margins), and `AppendCellContent` emits a `<br />` for an empty cell paragraph, so `text / <empty> / text` keeps its gap. Dropping them — the naive "skip empty blocks" — ran the letters together (a dozen cover-letters / letters findings). One residual: a NON-blank cell paragraph still loses its `w:spacing`, because the inline `<br />` cell model carries only line breaks, not per-paragraph margins (todo #35); body-level paragraphs keep it on the `<p>` margin as normal.
+> **Exporters**: The raster/PDF backends allocate a line for every empty paragraph (above), so blank-line block spacing renders for free. Word's letter/résumé templates lean on this heavily — they separate date/address/greeting/body/closing with EMPTY paragraphs rather than paragraph after-spacing — so the HTML export must reproduce it explicitly: `HtmlExporter.WriteParagraph` emits an empty body paragraph as a one-line `<p>&nbsp;</p>` spacer (carrying its own before/after margins), and `AppendCellContent` emits a `<br />` for an empty cell paragraph, so `text / <empty> / text` keeps its gap. Dropping them — the naive "skip empty blocks" — ran the letters together (a dozen cover-letters / letters findings). A NON-blank cell paragraph that declares before/after `w:spacing` leaves the inline join and renders as a real `<p>` with explicit margins (2026-08-19), so a letter template separating its cell-held body with paragraph spacing keeps the gaps; zero-spacing cell paragraphs stay on the compact `<br />` model. Body-level paragraphs keep their spacing on the `<p>` margin as normal.
 
 
 #### Line Spacing `DONE`
@@ -608,6 +622,8 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 >
 > **`atLeast` follows `exact`, not `auto`, and does so categorically** — probed three ways after the natural assumption proved wrong. Word keeps 41 lines at a declared 15.5pt where the lenient reading takes 42, and 30 at 21pt against 31. The case that fixes the shape of the rule is a declared 10pt that LOSES to Calibri's natural 13.4277pt pitch: Word keeps 44 against 45, so it is strict even where the box is the font's own and identical to what single `auto` produces. The leniency therefore belongs to the `auto` rule itself rather than to how the box was derived, which makes the test `rule != Auto` rather than any comparison of the declared value against the natural pitch. `Fragmenter.PlaceParagraph` implements the split; `CanonicalFragmenterTests` pins every branch, since no corpus document breaks a paragraph inside the narrow window where the readings disagree.
 >
+> **Where the baseline sits inside an `exact` or `atLeast` box** (settled 2026-08-19 by the fixtures themselves, which sweep 12/18/24/36pt against Word's references): an EXACT box hard-sets the baseline at **80% of the declared height**, whatever the font's natural ascent — the rule LibreOffice implements for Word compatibility (`itrform2.cxx`) — and an AT-LEAST box that grows past the natural pitch anchors its ink at the BOTTOM, the whole excess landing above the text. `CanonicalTextMeasurer.LineAscentPoints` carries both. Keeping the natural ascent left `line_spacing_exactly`'s band gaps at 42/54/67px against Word's 51/65/87 (the 0.8 rule predicts 51.7/64.2/86.7) and `line_spacing_at_least`'s at 47/55/66 against Word's 55/66/92 (bottom-anchoring predicts 54.1/66.7/91.7); with both rules the two fixtures match Word's band starts within 1px at every magnitude.
+>
 > **Consumers**: Single (1.0), 1.5, and Double (2.0) spacing all supported. Exactly mode fixes line height; AtLeast sets a minimum.
 
 
@@ -622,6 +638,8 @@ Suppresses spacing between paragraphs of the same style.
 - **Test**: `CanonicalContextualSpacingTests`, `TableRowHeightRulesTests`
 
 > **Contributors**: Collapses both before and after spacing when adjacent paragraphs share the same `StyleId`. Tracked via `LastParagraphStyleId` and `LastParagraphHadContextualSpacing` in `RenderContextBase`.
+>
+> **Exporters**: the HTML export drops `margin-bottom` on a contextual paragraph whose next sibling shares its style (`HtmlExporter.WriteElements` lookahead) — letters/10's recipient block declares 18pt-after on every line and renders tight in Word, and the export used to show the full gaps.
 >
 > **Two rules the cell path learned the hard way (2026-08-08).**
 >
@@ -741,6 +759,7 @@ Background color behind the full paragraph area.
 
 - **OOXML**: `w:shd` within `w:pPr`
 - **Model**: `ParagraphProperties.BackgroundColorHex`
+- **Export**: `HtmlExporter.AppendParagraphStyle` emits it as the `<p>`'s `background-color` (since 2026-08-19 — resumes/15's lavender name band, and the HTML-input block backgrounds in `html_inline_styles`/`html_css_colors`)
 - **Test**: `block_quote/`, `newsletters/14` (style-cascaded shading inside a layout-table cell), `resumes/15` (PDF)
 
 > **Contributors**: Rendered as a filled rectangle spanning the full paragraph height, respecting left/right indents, in the flow path AND the table-cell path (`RenderParagraphInBounds`) of all three backends — the shading cascades from the paragraph style like any pPr property (newsletters/14's DECEMBER banner is Subtitle-style shading). Paragraph BORDERS remain flow-path-only by design (Word does not border a paragraph inside a table cell — see `PdfTextEngine`).
@@ -840,7 +859,7 @@ Floating text frame (pre-DrawingML era) defined directly on a paragraph. Drop-ca
 
 #### Mirror Indents `DONE`
 
-Marks a paragraph for left/right indent swapping on even-numbered pages (mirror printing for facing pages). Morph parses the flag onto the paragraph; the renderer doesn't currently swap indents at draw time (parsed-but-not-applied — same status as `IsRightToLeft`). Documents that rely on this for legibility will see the same indents on every page.
+Marks a paragraph for left/right indent swapping on even-numbered pages (mirror printing for facing pages). Word-probed 2026-08-19 (`_probe_mirror`, margin at 1in, indents at two magnitudes): in a document without mirror margins Word DROPS a mirror paragraph's left/right and hanging indents entirely and keeps only `w:firstLine` — `w:left="1440"`, `w:left="2880"`, `w:start="1440"` and `left+hanging` under the flag all render flush at the margin, while `left=1440 firstLine=720` puts the first line at margin+0.5in; the same declarations without the flag indent in full. The parser therefore zeroes left/right/hanging when the flag is set (`complex_spacing` is the corpus case — its Combination 7 wraps at the full column width in Word where the declared 2880/2880/1440 indents wrapped it into 10 lines).
 
 - **OOXML**: `w:mirrorIndents` within `w:pPr`
 - **Spec**: [MirrorIndents](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.mirrorindents)
@@ -1041,9 +1060,9 @@ Per-cell border control for all four edges with color, width, and visibility. Fa
 >
 > **Geometry**: bands stack OUTWARD from the border box, innermost at offset 0, and each painter expands the band's SPAN by the same offset so the four edges close into concentric rectangles. Both halves matter: stacking inward put a wide border through its own text (a `triple` box rendered its label as "riple"), and drawing every band across the original box extent left the corners open, so the verticals came out as stubs beside full-width horizontals. A CELL stack is re-centred on its edge instead — the edge is shared with the neighbouring cell, so there is no outward side to thicken into, and Word draws labels/08's 3pt `double` as two rules straddling the boundary.
 >
-> **Three Word-measured rules live there, and they disagree with each other by scope** — both read off Word's own renders rather than the spec, because the spec's "width of the border" is ambiguous for a stacked style:
+> **The per-line rule holds in BOTH scopes** — read off Word's own renders rather than the spec, because the spec's "width of the border" is ambiguous for a stacked style:
 > - A PARAGRAPH border's `w:sz` is the width of EACH LINE for the symmetric families: Word draws a 3pt `double` as two 3pt lines with a 3pt gap, a 9.1pt stack (measured at y=386/399 on `border_style_variants` p3), and `_probe_bordersp` confirms the flow reserve to match — mark-to-mark 134px against a `single`'s 109px at the same `sz=24`.
-> - A CELL border's `w:sz` is the TOTAL: `table_default_style`'s style declares `double` at `sz=12` and Word draws a 3px rule at 150 DPI (1.44pt), where per-line would be 9.4px. Applying the paragraph rule to cells cost that scenario 0.0524 → 0.0546 AE.
+> - A CELL border follows the SAME rule: line = `w:sz`, gap = `w:sz`, centre-to-centre exactly `2 × w:sz`. `_probe_celldouble` measured it at four magnitudes (150 DPI: 13px lines with a 12px gap at `sz=48`, 6/6 at `sz=24`, 3/2 at `sz=12`, 1/2 at `sz=6`), and `_probe_celltriple` confirmed `triple` the same way at `sz=12/24/48` (three `sz`-wide lines with `sz`-wide gaps). An earlier reading off `table_default_style` at `sz=12` ("the declared width as a TOTAL") was settled at a size where the two hypotheses are 2px apart and antialiasing decides the answer — exactly the amplification failure mode this file warns about; at `sz=48` the readings are 12px apart and unambiguous. The scopes still differ in PLACEMENT: a cell stack straddles its shared edge, a paragraph stack grows outward.
 >
 > The thin/thick family follows neither — `thinThickLargeGap` at `sz=24` reserves ~5pt, not the 18pt its six units would imply — so it divides the declared width, landing within 3px of Word. That one is fitted to the measurement, not understood.
 >
@@ -1093,6 +1112,7 @@ Space between cell border and cell content (inside the cell).
 - **Spec**: [Cell Margins](http://officeopenxml.com/WPtableCellMargins.php)
 - **Model**: `TableCellProperties.Padding` (per-cell), `TableProperties.DefaultCellPadding`
 - **Parse**: `DocumentParser.ResolveStyleCellPadding` walks the style's `w:basedOn` chain taking each side from the NEAREST ancestor that states it; `MergeTableCellMargin` then merges the table's own `w:tblPr/w:tblCellMar` over that result per side (the pair is cached as `effectiveCellPadding`) and again for a row's `w:tblPrEx/w:tblCellMar`; `ParseCellMargin` does the same for a `w:tcMar`
+- **Export**: `HtmlExporter.CellStyle` emits the declared margins as CSS `padding` — always for a per-cell `w:tcMar` (the author's explicit ask), and for the table-wide default only when an edge exceeds the stylesheet's generic 4pt/7pt `td` look, so an ordinary Word default (0 vertical, 5.4pt horizontal) keeps the shared rule
 - **Test**: `table_cell_padding/`, `table_cell_padding_varied/`, `table_default_cell_margin/`, `table_grid_styling_padding/`, `TableCellMarginParseTests`
 
 > **Contributors**: `w:tblCellMar` merges PER SIDE at EVERY level of the cascade — style
@@ -1330,6 +1350,7 @@ Rotated text direction within cells (bottom-to-top, top-to-bottom).
 - **Parse**: cell-properties parser reads `w:textDirection` and maps `btLr` → `BottomToTop`, `tbRl` → `TopToBottom`
 - **Spec**: [TextDirection](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textdirection)
 - **Render**: Skia's `PageRenderer.RenderVerticalCellContent` wraps the cell's content draw in `SKCanvas.Save / Translate / RotateDegrees(±90) / Restore` around the bottom-left (btLr) or top-right (tbRl) of the content rect. ImageSharp renders the unrotated text into a temp `Image<Rgba32>` and applies `Mutate(_ => _.Rotate(±90))` before blitting at the cell's content origin.
+- **Export**: `HtmlExporter.CellStyle` maps `btLr` → `writing-mode: sideways-lr` and `tbRl` → `writing-mode: vertical-rl`, so the browser lays out (and wraps) the vertical text itself
 - **Test**: `table_text_direction/`
 
 > **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
@@ -1342,8 +1363,8 @@ Per-row overrides of table-level properties — most commonly used to suppress b
 - **OOXML**: `w:tblPrEx` within `w:tr` (containing `w:tblBorders`, `w:tblCellMar`)
 - **Spec**: [TablePropertyExceptions](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablepropertyexceptions)
 - **Model**: `TableRow.OverrideBorders`, `OverrideInsideHBorder`, `OverrideInsideVBorder`, `OverrideCellPadding`
-- **Parse**: `DocumentParser.ParseTable` reads `w:tblPrEx/w:tblBorders` and `w:tblPrEx/w:tblCellMar` from each row
-- **Render**: `TableLayout.ResolveCellBorders`, `GetEffectivePadding`, and `GetEffectiveMargin` accept the row and prefer its overrides over `TableProperties` defaults; cell-level explicit values still win over both
+- **Parse**: `DocumentParser.ParseTable` reads `w:tblPrEx/w:tblBorders` and `w:tblPrEx/w:tblCellMar` from each row. An inside-border override is stored whenever the ELEMENT is present, visible or not — `w:insideH`/`w:insideV` `val="none"` is an explicit suppression, and skipping invisible values let the table style's inside borders resurface on rows that switched them off (newsletters/04's layout tables nil every row's borders through `w:tblPrEx` and grew column dividers Word never draws).
+- **Render**: `TableLayout.ResolveCellBorders`, `GetEffectivePadding`, and `GetEffectiveMargin` accept the row and prefer its overrides over `TableProperties` defaults; cell-level explicit values still win over both. The resolver is also NEIGHBOUR-aware: a facing cell's explicit `w:tcBorders` whose shared edge is invisible suppresses this cell's style-inherited inside border (Word lets a direct `nil` beat a table-style border from either side), following a vertical merge up to its span head since the merged region is one cell.
 - **Test**: `TablePropertyExceptionsTests` (unit + end-to-end against `newsletters/04`)
 
 > **Contributors**: Resolution order is **cell explicit → row override → table default**. Only border + cell-margin overrides are modelled; less-common `w:tblPrEx` children (e.g. `w:tblLayout`, `w:shd`) are ignored.
@@ -1410,6 +1431,7 @@ Diagonal lines drawn corner-to-corner inside a cell (top-left to bottom-right or
 - **Model**: `TableCellProperties.Diagonals` (a `CellDiagonals` record with `Down` and `Up` `BorderEdge`s) — kept separate from `CellBorders` so cell-level diagonals don't break the four-side cell→table cascade
 - **Parse**: `DocumentParser` reads the two diagonal children inside `w:tcBorders`. The four-side `cellBorders` is only materialised when at least one of `w:top`/`w:right`/`w:bottom`/`w:left` is explicitly present, so a diagonals-only cell still inherits `w:tblBorders` for its sides.
 - **Render**: `PageRendererBase.RenderTableCell` invokes `DrawCellDiagonals` after `DrawCellBorders`; both Skia and ImageSharp implementations stroke a corner-to-corner line for each visible diagonal.
+- **Export**: `HtmlExporter.DiagonalGradient` — CSS has no diagonal border, so each diagonal is a corner-keyword `linear-gradient` band at the declared width and colour: the CSS spec constructs `to bottom left` so the perpendicular through the 50% stop passes exactly through the top-left and bottom-right corners (mirrored for `to bottom right`), making the coloured band the corner-to-corner line at any cell aspect ratio.
 - **Test**: `TableDiagonalBordersTests` (unit + end-to-end against `Tests/Inputs/table_diagonal_borders/01`)
 
 
@@ -1421,7 +1443,8 @@ Non-zero spacing between adjacent cells, producing the "detached" border layout 
 - **Spec**: [TableCellSpacing](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablecellspacing)
 - **Model**: `TableProperties.CellSpacingPoints` (in points; non-zero switches the table to detached-border mode)
 - **Parse**: `DocumentParser.ReadTableCellSpacing` reads `w:tblCellSpacing/@w:w` (twips → points), honours only `type="dxa"`. Falls back to the table style's value when the document doesn't specify its own.
-- **Render**: `TableLayout.ResolveCellBorders` returns the table's outer borders on all four edges of every cell when spacing is set; `RenderTableCell` insets each cell box by `CellSpacingPoints` on every side; `TableHeightCalculator.CalculateRowHeights` adds `2 * CellSpacingPoints` to each row's slot so the gaps show vertically; `RenderTableRows` draws an explicit outer frame at the table boundary to match Word's rendering.
+- **Render**: `TableLayout.ResolveCellBorders` returns the table's outer borders on all four edges of every cell when spacing is set. The engine's detached geometry (`Fragmenter.BuildRow` + `TableLayout.CellSpacingInsets`, 2026-08-19) insets each cell's drawn box by `CellSpacingPoints` per inner edge and by DOUBLE that on the table-outer edges, widens the first/last row slots by one spacing each, and emits the table frame as a content-less synthetic `PlacedCell` at the row extent — so every drawn gap is `2 × spacing`, the law `_probe_cellspacing` measured at 2/6/12pt (frame-to-cell 11/27/52px at 150 DPI, cell-to-cell the same from two adjacent single insets). Residual: Word's gap runs between the rules' inner FACES, so the engine reads ~half a rule-width tight per gap — sub-pixel at hairline widths.
+- **Export**: `HtmlExporter.WriteTable` overrides the stylesheet's `border-collapse: collapse` with `border-collapse: separate; border-spacing: 2 × CellSpacingPoints` and puts the table's own borders on the `<table>` as the outer frame — the per-cell boxes already ride on the cells, so the browser renders the same detached model.
 - **Test**: `TableCellSpacingTests` (unit + end-to-end against `Tests/Inputs/table_cell_spacing/01`)
 
 > **Contributors**: ECMA-376 §17.4.43 says the value applies as additional cell margin on every side, so the visible gap between two adjacent cells is `2 × CellSpacingPoints` (one half from each cell). The corpus only uses cellSpacing inside `TableWeb*` table-style definitions; no document.xml overrides it directly. Style-level cellSpacing is captured in `TableStyleBorderInfo.CellSpacingPoints` and surfaced when the document doesn't specify its own.
@@ -1562,11 +1585,18 @@ Document content flowing across 2+ columns per page.
 
 #### Column Breaks `DONE`
 
-Force content to the next column (or next page if in last column).
+Force content to the next column (or next page if in last column). A paragraph that ENDS at a
+column break still has its mark, and Word places it at the top of the NEXT column as a line of
+its own — the following paragraph starts one line (plus the break paragraph's after-spacing)
+further down. The parser emits an empty mark paragraph after the `ColumnBreakElement` for that
+case; measured against Word's references it took `column_breaks`' second column from one line
+high to within 1px, and `mixed_breaks`' post-break content from ~1.5 line heights high to within
+1px. Deliberately not done for page breaks — page counts are Word-exact and the page-break mark
+interacts with `FinishPage`'s blank-page rules, so that flip needs its own adjudication.
 
 - **OOXML**: `w:br` with `w:type="column"`
 - **Model**: `ColumnBreakElement`
-- **Test**: `column_breaks/`
+- **Test**: `column_breaks/`, `mixed_breaks/`
 
 
 ### 5.4 Breaks
@@ -1689,10 +1719,10 @@ Sequential line numbers displayed in the left margin. Configurable start value, 
 - **OOXML**: `w:lnNumType` — `w:start`, `w:countBy`, `w:distance`, `w:restart`
 - **Spec**: [Line Numbering](http://officeopenxml.com/WPsectionLineNum.php)
 - **Model**: `PageSettings.LineNumbers` → `LineNumberSettings`
-- **Render**: `RenderLineNumber()` in each raster `TextRenderer` and `Morph.Pdf/PdfTextEngine.cs`; shared counter `RenderContextBase.GetNextLineNumber()`
-- **Test**: `line_numbers_continuous/`, `line_numbers_count_by_5/`, `line_numbers_custom_distance/`, `line_numbers_restart_page/`, `line_numbers_restart_section/`
+- **Render**: the Fragmenter emits each counted body line's ordinal as an extra `PlacedRun` on the line itself, right-aligned `DistancePoints` left of the text column at the line's own font — restored 2026-08-19 (the deleted production `RenderLineNumber` paths drew these and the engine did not, so the gutters vanished in the flip). Every fixture now matches Word's reference band-for-band.
+- **Test**: `line_numbers_continuous/`, `line_numbers_count_by_5/`, `line_numbers_custom_distance/`, `line_numbers_restart_page/`, `line_numbers_restart_section/`, `line_numbers_suppressed/`
 
-> **Contributors**: Three restart modes: Continuous (never reset), NewPage (reset each page), NewSection (reset each section — via `SectionBreakHandler` for the raster backends and `ResetLineNumbersForSection` in the PDF backend). Counter managed in `RenderContextBase` (pre-incremented, so displayed values match Word's `Start+1..Start+N`); numbers appear at multiples of `w:countBy` and render at 10pt. Suppressed per-paragraph via `SuppressLineNumbers` (a suppressed paragraph is skipped and does not advance the counter).
+> **Contributors**: Three restart modes: Continuous (never reset), NewPage (reset in `FinishPage` — the OOXML default), NewSection (reset in `ApplySectionBreak`). **`w:start` holds the value BEFORE the first counted line** — Word's UI "start at 1" writes `w:start="0"`, and the references for the fixtures' `start="1"` number their first line 2 (`count_by_5` marks lines 4/9/14/19, whose VALUES are 5/10/15/20); the parser default is therefore 0, and numbers display at value % `countBy` == 0. Suppressed per-paragraph via `SuppressLineNumbers` (a suppressed paragraph is skipped and does not advance the counter). The HTML export deliberately carries no gutter — a per-layout-line feature has no place in reflow.
 
 
 ### 5.7 Page Decoration
@@ -1715,12 +1745,11 @@ Decorative borders around the page edges.
 - **OOXML**: `w:pgBorders` — `w:top`, `w:bottom`, `w:left`, `w:right` with style, color, size
 - **Spec**: [Page Borders](http://officeopenxml.com/WPsectionPgBorders.php)
 - **Model**: `PageBorders` record (`Morph/Parsing/PageBorders.cs`); `PageSettings.PageBorders`
-- **Parse**: `DocumentParser.ParsePageBorders()` (DOCX-only — HTML has no per-page concept)
-- **Render**: `PageRenderer.DrawPageBorders()` in both backends, called from `StartNewPage` after background fill
+- **Parse**: `DocumentParser.ParsePageBorders()` (DOCX-only — HTML has no per-page concept), including `w:offsetFrom` (`PageBorders.MeasureFromText`; "text" is the OOXML default)
+- **Render**: every painter frames the page after its items via the shared `PageBorders.EdgeRect` geometry (`SkiaPainter.Paint` / `ImageSharpPainter.Paint` / `PdfPainter.Paint`); the HTML export carries the frame as body borders (`HtmlExporter.AddBodyBorder`). Restored 2026-08-19 — the engine flip deleted the production `DrawPageBorders` and nothing consumed the model until then.
 - **Test**: `page_borders/`, spec test `PageBordersTests`
 
-> **Contributors**: Border style is currently rendered as a solid stroke regardless of the `w:val` style hint. Per-edge `space` attribute defines the inset from the page edge in points (Word default 24pt).
-> **AI**: Reuses `BorderEdge` and `ParseBorderEdge`. The style/decorative variants (double, dashed, art) collapse to single solid lines today; widen the renderer if those become important.
+> **Contributors**: Line styles flow through the shared `BorderStroke`, so double/dashed/etc. render as they do on cells; the ~160 art borders are not modelled. Per-edge `space` defines the inset in points (Word default 24pt). Word-measured on `page_borders/01` (offsetFrom="page", space=24pt, sz=3pt): the border's OUTER edge sits exactly the space from the page edge — rows 50–55 at 150 DPI — which is what `EdgeRect` reproduces; in "text" mode the space grows outward from the text boundary.
 
 
 #### Watermarks `DONE`
@@ -1753,6 +1782,8 @@ Images embedded in the text flow, advancing with surrounding content.
 - **Model**: `ImageElement` with `ImageData`, `WidthPoints`, `HeightPoints`, `ContentType`
 - **Parse**: `DocumentParser.ParseParagraph()` — drawing extraction
 - **Test**: `inline_image/`, `multiple_images/`
+
+> **Contributors — PDFsharp dedups images by their PIXELS, not their palette.** `PdfImageTable.ImageSelector` keys an imported bitmap by a hash of its pixel data, so two indexed PNGs sharing pixel indices and differing only in `PLTE` — the same icon recoloured, menus/06's white icon vs red sheep — collide, and whichever draws second renders as the first everywhere. `PdfRenderContext.GetImage` detects the pair via `IndexedPngNormalizer.PixelIdentity` (hash of IHDR+IDAT+tRNS vs hash of PLTE) and re-encodes only the collider as RGBA (`ExpandPaletteToRgba`), putting its colours into the data PDFsharp hashes; every PDF without such a pair is byte-identical to before. Reproduced outside Morph with a three-image PdfSharp 6.2.4 program, ruling out everything Morph-side.
 
 > **Consumers**: Supported formats: PNG, JPG, GIF, WEBP (via SkiaSharp codec), SVG (via Svg.Skia). Images scale to fit within available width.
 
@@ -1807,6 +1838,7 @@ Displaying only a portion of an image.
 - **Model**: `ImageCrop` record (`Left/Top/Right/Bottom` as 0..1 fractions); `Run.InlineImageCrop`, `ImageElement.Crop`, `FloatingImageElement.Crop`
 - **Parse**: `DocumentParser.ReadCrop()` reads `a:srcRect` (1000ths-of-percent → fraction) for both inline and drawing-element image paths. Negative values are kept (clamped to −10..1): a negative edge is padding — Word letterboxes the picture inside its frame with empty space on that edge (`business-plans/02`'s section-marker arrows).
 - **Render**: every placed image — inline, block or floating — reaches its backend as `PlacedImage.Crop` and is drawn by `SkiaShapeDrawing.DrawCropped` (Skia: `SKCanvas.DrawBitmap(src, dest)`, shared with the group-picture path) / `ImageSharpRenderContext.GetProcessedImage` (`image.Mutate(_ => _.Crop(...))`) / `ImageCrop.Expand` + `IntersectClip` in `PdfPainter.PaintImage` (PDF — PDFsharp has no source-rectangle API, so the whole image is drawn enlarged and clipped back to the box). **`SkiaPainter.PaintImage` ignored `Crop` until 2026-08-12** — the engine-path painters were written from the drawing primitives up and Skia's never got the source-rectangle port its shape path already had, so on that backend alone every cropped picture drew as a full-bitmap stretch (business-plans/13's cover photo, `l="15077" t="1231" r="15076"`, was 79% of that page's error; reconstructing both candidates from the source JPEG scored Word/ImageSharp/PDF at 1.7/1.3/1.0 mean abs error against the cropped image and Skia at 0.5 against the *uncropped* one). Fixing it moved 16 DOCX scenarios by −0.443 aggregate and 9 decks by −0.504, with no page-count change and the other two backends untouched. Rotation and flip are still deferred on that path. Padding crops (`ImageCrop.HasPadding`) bypass the raster source-rectangle fast paths — a source rect can't extend beyond the bitmap — and instead draw at `Expand`'s inset rectangle: Skia clips to the frame and draws the padded rect; ImageSharp composes the resized picture onto a transparent frame-sized canvas in `GetProcessedImage`; the PDF/HTML expand-and-clip paths handle negative fractions with no special casing (`Expand` returns a rectangle inside the box).
+- **Export**: `HtmlExporter.AppendImageTag` wraps a cropped image in a hidden-overflow inline block the frame's size, with the full image inside offset by the cropped-away edges via `ImageCrop.Expand` — the browser clips exactly as the raster backends do.
 - **Test**: `image_cropping/`
 
 > **Contributors**: Several existing scenarios that ship `a:srcRect` (cards/16, newsletters/14, business-plans/02, business-plans/03, brochures/06, wedding/02-10, labels/11, letters/13, brochures/02, cover-letters/12, newsletters/01) re-snapshot to the cropped output — most move closer to Word's reference, with `wedding/10` improving from 0.151 → 0.118 pixel-diff.
@@ -1819,7 +1851,7 @@ Rotating an image by a specified angle.
 - **OOXML**: `wp:anchor` or `wp:inline` > `a:xfrm` with `rot` attribute (in 60,000ths of a degree)
 - **Model**: `Run.InlineImageRotationDegrees`, `ImageElement.RotationDegrees`, `FloatingImageElement.RotationDegrees`
 - **Parse**: `DocumentParser.ReadRotationDegrees()` converts `rot` (60,000ths of a degree) to degrees; applied in `TryParseInlineImageRun` and `ParseDrawingElements`
-- **Render**: inline images rotate around their centre via `SKCanvas.RotateDegrees` (Skia) / `image.Mutate(_ => _.Rotate(...))` then recentre (ImageSharp) / `RotateAtTransform` in `PdfTextEngine.DrawImage` (PDF). Block-level images go through `PageRenderer.DrawBlockImage`, and anchored/floating images through `PdfPageRenderer.RenderFloatingImage`, applying the same rotation transform after crop and resize. `a:xfrm/@flipH`/`@flipV` mirror the picture around its centre inside the rotated frame on the same paths (Skia canvas scale, ImageSharp `FlipMode` pipeline steps, PDF scale transform); the HTML exporter applies no picture transforms.
+- **Render**: inline images rotate around their centre via `SKCanvas.RotateDegrees` (Skia) / `image.Mutate(_ => _.Rotate(...))` then recentre (ImageSharp) / `RotateAtTransform` in `PdfTextEngine.DrawImage` (PDF). Block-level images go through `PageRenderer.DrawBlockImage`, and anchored/floating images through `PdfPageRenderer.RenderFloatingImage`, applying the same rotation transform after crop and resize. `a:xfrm/@flipH`/`@flipV` mirror the picture around its centre inside the rotated frame on the same paths (Skia canvas scale, ImageSharp `FlipMode` pipeline steps, PDF scale transform). The HTML export emits the same transforms as CSS — `transform: rotate(..) scale(±1, ±1)` on the `<img>` (or on the crop wrapper), scale listed last since CSS applies the list right-to-left and DrawingML rotates the already-flipped picture; CSS transforms don't affect layout, which coincides with the un-rotated-footprint reservation below.
 - **Test**: `image_rotation/`, spec test `ImageRotationTests`
 
 > **Contributors**: Rotation reserves the original (un-rotated) bounding box, so rotated images can overlap surrounding text — Word instead reflows around the rotated bounding box. Acceptable for now; revisit if specific layouts demand the reflow behaviour.
@@ -2020,7 +2052,7 @@ Decorative text with fill, outline, shadow, reflection, and glow effects.
 > of Word's, and brochures/08's logo frame 43px left. Landing it measured **−0.1101 AE / +0.0591
 > SSIM** across `wordart`, `wordart-envelope`, `wedding/08` and `brochures/08`.
 >
-> **Contributors**: `ParseWordArt`'s claim condition has no warp check, so an INLINE standalone text-carrying wsp with `prstTxWarp="textNoShape"` — Word's inline text BOX — also lands here (business/06's LOGO frame). For those, the shape-level `a:ln` is the BOX border, not a glyph stroke: it parses into `WordArtElement.BoxLineColorHex`/`BoxLineWidthPoints`/`BoxLineAlpha` (via `ShapeParser.ExtractLineStyle` — theme + `lnRef` fallback) and each backend strokes the frame under the text; warped shapes keep the legacy spPr-`a:ln`-as-glyph-outline interpretation. Because an unwarped box renders as an ordinary text box, its glyph colour, size, weight and font follow the run's RESOLVED properties — direct run rPr over the paragraph style chain over the document defaults, via the same `ParseRunProperties` cascade the body path uses — not the first-run direct read the warped path uses. menus/03's "EVENT INTRO"/"EVENT DATE" labels carry NO run rPr, so their 10pt white formatting lives entirely in the Heading1→Normal chain (`w:color FFFFFF/background1`); reading only the direct run left them 36pt black, invisible on the dark band. (The shape's `wps:style/a:fontRef` colour — a lower-priority DrawingML fallback below the style chain, e.g. wedding/08's `&` badge whose white comes from `fontRef` `lt1` while its Ampersand style names no colour — is NOT yet consulted, so a box whose colour lives only in the fontRef still resolves to the document default.) Re-dispatching to `ParseTextBox` instead is NOT viable for inline drawings — it resolves positioning from the anchor and would land the box at absolute (0,0) rather than the flow cursor. Effects parsed: shadow, reflection, glow, outline (color + width), fill color. The raster backends draw styled text with effect layers directly. The PDF backend rasterizes each WordArt shape (`SkiaWordArtRasterizer` / `ImageSharpWordArtRasterizer`, discovered reflectively by `WordArtRasterizerFactory` — Skia preferred, then ImageSharp) into a transparent PNG at 300 DPI via the core `IWordArtRasterizer` contract (`WordArtRasterization.cs`) and embeds it at the shape's box. When neither `Morph.Skia` nor `Morph.ImageSharp` can be loaded, or `PdfExportOptions.RasterizeWordArt` is false, it falls back to the shape's plain text. The rasterizer reuses the full page renderer on a single-element transparent page (`RenderContextBase.TransparentBackground`), so the embedded image is pixel-identical to the raster backends' inline WordArt.
+> **Contributors**: `ParseWordArt`'s claim condition has no warp check, so an INLINE standalone text-carrying wsp with `prstTxWarp="textNoShape"` — Word's inline text BOX — also lands here (business/06's LOGO frame). For those, the shape-level `a:ln` is the BOX border, not a glyph stroke: it parses into `WordArtElement.BoxLineColorHex`/`BoxLineWidthPoints`/`BoxLineAlpha` (via `ShapeParser.ExtractLineStyle` — theme + `lnRef` fallback) and each backend strokes the frame under the text; warped shapes keep the legacy spPr-`a:ln`-as-glyph-outline interpretation. Because an unwarped box renders as an ordinary text box, its glyph colour, size, weight and font follow the run's RESOLVED properties — direct run rPr over the paragraph style chain over the document defaults, via the same `ParseRunProperties` cascade the body path uses — not the first-run direct read the warped path uses. menus/03's "EVENT INTRO"/"EVENT DATE" labels carry NO run rPr, so their 10pt white formatting lives entirely in the Heading1→Normal chain (`w:color FFFFFF/background1`); reading only the direct run left them 36pt black, invisible on the dark band. The shape's `wps:style/a:fontRef` colour — DrawingML's glyph-colour fallback BELOW the style chain — is consulted when neither the run nor any style in its chain declares an explicit `w:color` (`ShapeParser.ExtractFontReferenceColor` + `DeclaresRunColor`): wedding/08's `&` badge is white purely through a `fontRef` `lt1`, while menus/03's labels keep their style's explicit white over a `dk1` fontRef. **`w:color w:val="auto"` does not count as declared** — "automatic" is precisely the value that defers to context, and Word paints the fontRef through it (the Ampersand style carries an auto colour). Re-dispatching to `ParseTextBox` instead is NOT viable for inline drawings — it resolves positioning from the anchor and would land the box at absolute (0,0) rather than the flow cursor. Effects parsed: shadow, reflection, glow, outline (color + width), fill color. The raster backends draw styled text with effect layers directly. The PDF backend rasterizes each WordArt shape (`SkiaWordArtRasterizer` / `ImageSharpWordArtRasterizer`, discovered reflectively by `WordArtRasterizerFactory` — Skia preferred, then ImageSharp) into a transparent PNG at 300 DPI via the core `IWordArtRasterizer` contract (`WordArtRasterization.cs`) and embeds it at the shape's box. When neither `Morph.Skia` nor `Morph.ImageSharp` can be loaded, or `PdfExportOptions.RasterizeWordArt` is false, it falls back to the shape's plain text. The rasterizer reuses the full page renderer on a single-element transparent page (`RenderContextBase.TransparentBackground`), so the embedded image is pixel-identical to the raster backends' inline WordArt.
 
 
 #### WordArt Transforms `DONE`
@@ -2102,10 +2134,10 @@ Large decorative first letter spanning multiple lines at paragraph start.
 
 - **OOXML**: `w:framePr` with drop cap attributes (`w:dropCap`, `w:lines`, `w:wrap`)
 - **Model**: `DropCapPosition` enum (`None`, `Drop`, `Margin`); `ParagraphProperties.DropCap`, `ParagraphProperties.DropCapLines`
-- **Parse**: `ParseParagraphProperties` reads `w:framePr/@w:dropCap` and `@w:lines`
-- **Render**: `DropCapsExpander` (`Morph/Rendering/DropCapsExpander.cs`) splits the first character into its own sub-run with `FontSizePoints × DropCapLines`, followed by a forced line break and the remainder of the paragraph. Both backends apply the expander after `SmallCapsExpander` so the cap inherits any case transformations.
+- **Parse**: `ParseParagraphProperties` reads `w:framePr/@w:dropCap` and `@w:lines` — and honours them only when the framePr also anchors the frame (`w:wrap`/`w:hAnchor`/`w:vAnchor` present). Word ignores a bare `dropCap`+`lines`: `feature_capture/01` declares exactly that and Word's reference renders the paragraph as one normal-size line; Word's own authoring always writes the anchoring attributes beside `w:dropCap`.
+- **Render**: `DropCapsExpander` (`Morph/Rendering/DropCapsExpander.cs`) splits the first character into its own sub-run with `FontSizePoints × DropCapLines`, followed by a forced line break and the remainder of the paragraph — currently UNWIRED: the deleted production renderers called it, the engine does not, so a drop cap renders as a normal paragraph today.
 
-> **AI**: Word's drop cap also wraps the body text into the column to the right of the cap for the requested number of lines — the existing line-layout pipeline doesn't support arbitrary content cutouts, so the body text starts beneath the cap on a new line instead. Visually close for short paragraphs but pushes long paragraphs down by the cap's height.
+> **AI**: Word's drop cap also wraps the body text into the column to the right of the cap for the requested number of lines — the existing line-layout pipeline doesn't support arbitrary content cutouts, so wiring the expander back in would start the body beneath the cap on a new line instead. No corpus scenario carries a real (anchored) drop cap, which is why the unwiring went unnoticed.
 
 
 #### Embedded Objects (OLE) `DONE`
@@ -2149,7 +2181,7 @@ Single-line plain text input.
 - **OOXML**: `w:sdt` with `w:sdtPr` > `w:text`
 - **Model**: `ContentControlElement` with `ContentControlType.PlainText`
 
-> **Contributors — a FILLED run-level plain-text control stays inline.** Once `w:sdtContent` holds runs, those runs ARE the value and Word lays them out inline with the rest of the paragraph; nothing about the control needs rendering the cached content cannot supply. Routing it through the control path emitted a block `ContentControlElement` and split the paragraph around it, which cost three things: the value vanished from any header or footer (the band renders paragraphs and tables only, so a `COMPASS | <Title>` footer lost its title and stranded its page number on a second line), a centred label sat at the margin instead of inside its box (`labels/07`'s `[Name]` placeholders), and an inline `Name: John Doe` came out as two paragraphs. `IsContentControlType` now returns false for a plain-text control whose content has text, so it takes the existing inline-SDT path. An EMPTY one still routes through the control path — its placeholder is the one thing the cached content genuinely cannot supply. Net corpus AE −0.058.
+> **Contributors — a FILLED run-level control stays inline, whatever its type.** Once `w:sdtContent` holds runs, those runs ARE the value and Word's print output lays them out inline with the rest of the paragraph — plain "☒ Yes", "Medium", "2025-06-15" with no box chrome (`content_control_inline`'s reference), and `labels/07`'s `[Name]` centred in its cell through the paragraph's own style. Routing a filled control through the block path emitted a `ContentControlElement` widget and split the paragraph around it, which cost three things: the value vanished from any header or footer (the band renders paragraphs and tables only, so a `COMPASS | <Title>` footer lost its title and stranded its page number on a second line — and the HTML cell path dropped it outright, losing all eight `[Name]`s), a centred label sat at the margin instead of inside its box, and an inline `Name: John Doe` came out as two paragraphs. This landed first for plain text (net corpus AE −0.058) and was widened 2026-08-19 to checkbox/combo/dropdown/date: `IsContentControlType` returns true only for picture controls and for controls whose cached content is EMPTY — the checkbox glyph from its checked state, a date formatted from `w:fullDate`, or the grayed placeholder are the things the cached content genuinely cannot supply.
 
 
 #### Checkbox Content Control `DONE`
@@ -2339,7 +2371,7 @@ Default paragraph and run properties applied when no style or direct formatting 
 >
 > **Default run size** (`DocumentParser.ResolveDocDefaultFontSizePoints`) keys on `docDefaults` *presence*, mirroring the after-spacing rule above. No styles part or no `docDefaults` element → Word's normal.dotm built-in **12pt** (`builtInDefaultFontSizePoints`, evidence-backed against `long_paragraph`). `docDefaults` present but no `w:rPrDefault/w:sz` → the ECMA-376 §17.3.2.38 default of 20 half-points = **10pt** (`specDefaultFontSizePoints`), because Word reads the omission as an explicit 10pt rather than falling through to its built-in. A `w:sz` on the `Normal` style still outranks the document default. Verified by rendering doctored copies through Word: injecting `w:sz="20"` into `brochures/05` (which declares `docDefaults` and no `w:sz` anywhere) reproduces Word's render with zero differing text pixels, while `w:sz="24"` repaginates it from 4 pages to 5. 23 corpus scenarios declare `docDefaults` without a `w:sz`. Test: `DocDefaultFontSizeTests`.
 >
-> **Default line spacing** (`DocumentParser.docDefaultLineSpacingMultiplier`): `pPrDefault/w:spacing/@w:line` under the auto rule is a document-wide multiplier (`w:line ÷ 240`) that styles inherit when they declare none of their own. Word-probe-confirmed three ways — doubling `agendas-minutes/07`'s declared `w:line="264"` to 480 takes Word's own render from 2 pages to 3 and removing it leaves Word single-spaced; it *does* reach table-cell paragraphs, so the long-suspected "cells are exempt" rule is wrong (`brochures/05` is almost entirely cell text and doubling its docDefault takes Word from 4 pages to 7); and an explicit style `w:line="240"` means single and outranks it. Where a document declares no `pPrDefault` `w:line`, the invented fallbacks still apply (1.04 for a style with no base, 1.08 for the no-style path, and `builtInLineSpacingMultiplier` 278/240 only when there is no styles part or no `docDefaults`).
+> **Default line spacing** (`DocumentParser.docDefaultLineSpacingMultiplier`): `pPrDefault/w:spacing/@w:line` under the auto rule is a document-wide multiplier (`w:line ÷ 240`) that styles inherit when they declare none of their own. Word-probe-confirmed three ways — doubling `agendas-minutes/07`'s declared `w:line="264"` to 480 takes Word's own render from 2 pages to 3 and removing it leaves Word single-spaced; it *does* reach table-cell paragraphs, so the long-suspected "cells are exempt" rule is wrong (`brochures/05` is almost entirely cell text and doubling its docDefault takes Word from 4 pages to 7); and an explicit style `w:line="240"` means single and outranks it. Where a document declares no `pPrDefault` `w:line`, the invented fallbacks still apply (1.04 for a style with no base, 1.08 for the no-style path, and `builtInLineSpacingMultiplier` 278/240 when there is no styles part, no `docDefaults`, or no `w:pPrDefault` element alongside no default paragraph style — see the after-spacing rule under Spacing Before / After).
 >
 > Landing it took three attempts and two prerequisites — the table style `w:pPr` step above, and the rule that an Auto multiplier must not scale an inline image — because it is half of a compensating pair with the default run size: the same documents omit `w:sz`, so an inflated 12pt was cancelling an under-inflated pitch. Together: 75 scenarios move, 55 better / 20 worse, net **−1.8694 AE**, SSIM **+3.8378**, and zero page-count changes in either direction. Measurements per experiment are in `src/page_counts.md` (17–21).
 
@@ -2380,6 +2412,8 @@ Hyphens that prevent line breaks at that position.
 - **Render**: parsed to U+2011 and mapped to a plain `-` before layout (`SplitIntoWords` in the raster `TextRenderer`s, `PdfTextEngine.RunText` in the PDF) — the bundled faces carry no U+2011 glyph, and word splitting only breaks on whitespace, so it renders and stays unbreakable
 - **Test**: `hyphenation_nonbreaking/`
 
+> **The no-break space (U+00A0) follows the same shape** (`CanonicalParagraphMeasurer.Flatten`): tokenization splits only on ' ', so an nbsp glues its neighbours into one unbreakable token, and the token's TEXT then swaps the nbsp for a plain space before measuring and painting — Word draws it at the ordinary space advance, while a face that leaves U+00A0 unmapped resolved it to `.notdef`'s wide advance (business-plans/05 drew "designed to improve" with a double-width gap). The HTML export mirrors the presentation half (`HtmlExporter.SoftenNoBreakSpaces`): a single inter-word nbsp exports as a plain space so the browser's substitute face cannot widen it, while one beside another space, or at a text edge, keeps its `&#160;` against collapsing.
+
 
 #### Hyphenation Zone `DONE`
 
@@ -2419,10 +2453,22 @@ Positioned alignment points within a paragraph. Types: left, center, right, deci
 - **Test**: `tab_stops`, `decimal_tabs`, plus `TabStopResolverTests` in `src/Tests/SpecTests/Section2_Structures/`
 - **Spec**: [Tab Stops](http://officeopenxml.com/WPtab.php)
 
-> **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs, underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Bar tabs draw a vertical line at the stop's position on every line of the paragraph (independent of `<w:tab/>` characters) — `DrawBarTabs` in each backend. `num` tabs alias to Left (the parser falls them through to `TabAlignment.Left`) since their behaviour in modern Word is identical to a left-aligned tab inside a numbered-list paragraph. When a tab destination falls behind the cursor or the gap exceeds the remaining line width, the tab collapses gracefully — the matching wrap-on-tab where the cursor advances to the next line is intentionally not modelled because the existing wrap pipeline already breaks lines on whitespace. A Right/Center/Decimal stop past the paragraph's wrap width CLAMPS to the wrap width — TOC styles carry full-page stops into narrow cells, and Word right-aligns the page numbers at the cell edge (business-plans/12/13, verified against Word's renders).
+> **AI**: Implemented: left/center/right/decimal explicit stops, default-tab fallback (`w:defaultTabStop`), `w:val="clear"` removal, inherited stops via paragraph styles, dot/hyphen/middleDot/heavy leader glyphs tiled at the glyph's NATURAL advance (Word-measured on table_of_contents/01: dot pitch ~6.3px at 150 DPI with the last dot within one advance of the page number — a doubled stride drew half as many dots and stopped ~14px short), underscore leader as baseline line. Decimal alignment scans the following runs for the first `.` and aligns that x at the tab position; falls back to Right when no decimal is present (matches Word). Bar tabs draw a vertical line at the stop's position on every line of the paragraph (independent of `<w:tab/>` characters) — `DrawBarTabs` in each backend. `num` tabs alias to Left (the parser falls them through to `TabAlignment.Left`) since their behaviour in modern Word is identical to a left-aligned tab inside a numbered-list paragraph. When a tab destination falls behind the cursor or the gap exceeds the remaining line width, the tab collapses gracefully — the matching wrap-on-tab where the cursor advances to the next line is intentionally not modelled because the existing wrap pipeline already breaks lines on whitespace. A Right/Center/Decimal stop past the paragraph's wrap width CLAMPS to the wrap width — TOC styles carry full-page stops into narrow cells, and Word right-aligns the page numbers at the cell edge (business-plans/12/13, verified against Word's renders).
 
 > **Absolute position tabs (`w:ptab`).** These snap to no stop list: they jump to a position taken from the text area and align the following text there, which is how Word pins a footer's page number to the right margin or centres a header's marking without a stop. Modelled on `Run.PositionalTab` rather than resolved at parse time, because the position depends on the measure the paragraph is finally laid out in; `CanonicalParagraphMeasurer` resolves it against the column width beside the ordinary stop path, and a `w:leader` fills the gap exactly as a stop's does. `w:relativeTo` margin and page both resolve to that measure, `indent` to the paragraph's own left indent. A ptab that would pull text back behind the pen collapses, as a stop does. Word-probed against left/right/centre stops and right/centre/leadered ptabs in one render — Morph now lands all five within 3px.
 >
+> **Exporters**: the HTML export lays a paragraph with DECLARED stops out as a flex row
+> (`HtmlExporter.TryWriteTabbedParagraph`): a left/center stop sizes the preceding segment's box
+> to the stop position; a right/decimal stop at (or within 40pt of) the content's right edge
+> becomes a stretching filler carrying the leader as a dotted/dashed/solid rule — the TOC and
+> signature-underline patterns; a mid-line right/decimal stop right-justifies the following
+> segment inside a box ending at the stop (decimal degrades to right, which coincides with it
+> when the column's values carry equal fraction digits — `decimal_tabs/01`). Tabs pair with
+> stops in declaration order; a tab riding the DEFAULT 36pt grid still collapses to a single
+> space, because its landing position depends on the text width before it, which a reflowing
+> export cannot know (`resumes/14`/`resumes/16` are that residue). Markdown keeps the
+> single-space collapse.
+
 > **A leading tab must survive the split anchored art causes.** `ParseParagraph` breaks a paragraph's runs around anchored art so the art keeps its place in document order. Runs made only of tabs are not a paragraph though: flushing them strands the tab from the text it was advancing, so the continuation restarts at the indent, and a phantom blank line is left behind. That is how `Classification`'s header — a leading `<w:tab/>` against a centre stop, with an anchored decorative rule between it and the text — rendered its marking hard against the left margin, one line low. `IsTabOnly` holds those runs back to join the continuation; the art is out of flow, so nothing about the ordering changes.
 
 
@@ -2494,7 +2540,7 @@ Known mappings include:
 - Avenir Next LT Pro -> Century Gothic
 - Sagona -> Georgia
 
-> **Consumers**: Set `ImageExportOptions.FontFallback` / `PdfExportOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver. It cannot see per-conversion state, so the delegate is applied one level up in `PdfRenderContext` — after the indexed faces and `HostFontIndex` have both missed, and before the substituted family reaches PdfSharp.)
+> **Consumers**: Set `ExportOptions.FontFallback` to provide custom mappings for fonts not covered by built-in fallbacks. (The PDF backend's process-global `PdfFontResolver` consults the built-in `FontFallbacks` map and scores bundled faces by OS/2 weight/italic exactly like the shared resolver. It cannot see per-conversion state, so the delegate is applied one level up in `PdfRenderContext` — after the indexed faces and `HostFontIndex` have both missed, and before the substituted family reaches PdfSharp.)
 
 
 ### 10.3 Conversion Options
@@ -2522,9 +2568,9 @@ Multiplier applied to character width measurements for Word-compatible layout (d
 
 User-provided function to resolve missing font names.
 
-- **Model**: `ImageExportOptions.FontFallback`, `PdfExportOptions.FontFallback` — `Func<string, string?>`
+- **Model**: `ExportOptions.FontFallback` — `Func<string, string?>`
 
-> **Consumers**: Return a font name to use as a substitute, or null to continue with built-in fallback chain. Honoured by every backend: the PDF path applies it in `PdfRenderContext` before the family reaches PdfSharp, since its resolver is process-global and cannot see per-conversion state.
+> **Consumers**: Return a font name to use as a substitute, or null to continue with built-in fallback chain. Honoured by every backend: the PDF path applies it in `PdfRenderContext` before the family reaches PdfSharp, since its resolver is process-global and cannot see per-conversion state. It sits on the shared record rather than the two rendering ones because a workbook resolves fonts at PARSE time — Excel's column-width unit is a glyph of the body font — so it decides the grid geometry of the HTML and Markdown exports too.
 
 ---
 
@@ -2544,7 +2590,7 @@ Clickable links to external URLs or internal bookmarks. Rendered as styled text 
 - **Model**: Parsed as styled runs within `ParagraphElement`; the resolved target is captured on each run as `Run.HyperlinkUrl` (`r:id` → relationship URI, `w:anchor` → `#anchor`)
 - **Test**: `hyperlinks/`
 
-> **Consumers**: Hyperlink text renders with its styled formatting. Links are visual only in the raster (PNG/PDF) output — the page does not contain clickable regions — but the HTML and Markdown exporters emit real `<a href>` / `[text](url)` links from `Run.HyperlinkUrl`.
+> **Consumers**: Hyperlink text renders with its styled formatting. Links are visual only in the raster (PNG/PDF) output — the page does not contain clickable regions — but the HTML and Markdown exporters emit real `<a href>` / `[text](url)` links from `Run.HyperlinkUrl`. The HTML anchor carries `color: inherit; text-decoration: inherit`: the link's LOOK comes from the document's own resolved runs (a Hyperlink-styled run emits its blue and underline itself), so a plain-styled link — resumes/03's black bare email — no longer picks up the browser's default blue underline on top.
 
 
 ### 11.2 Comments & Tracked Changes
@@ -2577,7 +2623,12 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 
 > **Contributors**: Rendering "as accepted" (dropping deletions) was the original choice and it is **wrong against Word**: Word's own render of `tracked_changes/01` shows "removed." struck through in red on the page, so accepting the change silently deleted ink Word draws. The revision colour is `D13438`, sampled from that render at 150 DPI; Word cycles a palette per author and only the first entry is modelled, which covers the whole corpus (exactly one document carries tracked changes). The model record on `ParsedDocument.TrackedChanges` is unaffected either way, so a consumer that wants the accepted text still has it.
 >
-> Not yet rendered: the left-margin change bar Word draws beside a revised line, and `w:rPrChange` (run-property revision history).
+> The left-margin change bar landed 2026-08-19: any placed line whose runs carry
+> `RunProperties.IsRevisionMark` gets a 0.75pt black rule at half the left margin, spanning the
+> line box, in all three painters — Word-measured on `tracked_changes/01` (a ~1px column at
+> x=75 = 36pt inside the 72pt margin at 150 DPI, spanning the revised lines).
+>
+> Not yet rendered: `w:rPrChange` (run-property revision history).
 
 
 ### 11.3 Footnotes & Endnotes
@@ -2653,7 +2704,7 @@ Dynamic content fields (date, time, author, page count, expressions, etc.).
 - **Render**: most fields render Word's cached result inline. `PAGE`/`NUMPAGES`/`SECTIONPAGES` are evaluated per page instead: `PageRendererBase.ResolveParagraphPageFields` (and its header/footer/table walk) substitutes the live value using `RenderContextBase.CurrentPageNumber` / `TotalPageCount` before measurement. The total comes from a gated counting pass the raster/PDF converters run first when `RequiresTotalPageCount` is set. Section-restarted numbering (`w:pgNumType` `@start`/`@fmt`) applies through the render context's display offset and section format (see Page Numbering).
 - **Test**: `field_codes_simple/`, `page_numbers/`, spec test `FieldCodesTests`
 
-> **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record. The HTML/Markdown exporters keep the cached page-field text (no pagination), so only the paginated backends substitute; the counting pass is skipped for documents without a NUMPAGES/SECTIONPAGES field.
+> **Contributors**: Both forms (legacy single-element `w:fldSimple` and modern `w:fldChar`-bracketed) round-trip through the same `FieldCode` record. The HTML/Markdown exporters evaluate page fields as a ONE-page document — the reflow really is one page, so "Page 1 of 3" exports as "Page 1 of 1" and a header cached mid-document reads 1 rather than its stale ordinal. Presentations are exempt (`ParsedDocument.PageFieldsPreEvaluated`): each slide's `a:fld` caches that slide's own number, which IS the right text per slide-div. `DocumentExportHelpers.CanMerge` refuses to coalesce a field run into its neighbours so the field identity survives to the writer. The counting pass is skipped for documents without a NUMPAGES/SECTIONPAGES field.
 
 ---
 
@@ -2671,7 +2722,7 @@ Mathematical equations using Office Math Markup Language.
 - **OOXML**: `m:oMath` elements containing fractions, radicals, matrices, integrals, etc.
 - **Model**: presence detected via `ParsedDocument.Features.HasMath`; the actual content flows through paragraph runs.
 - **Parse**: `ParseParagraph` recognises `m:oMath` and `m:oMathPara` children inline and emits the concatenated text of all `m:t` descendants as a regular text run via `AppendMathText`.
-- **Render**: `WalkMath` recursively turns the math tree into runs with the right typography — italic variables, upright digits/operators, raised superscripts (`m:sSup`), lowered subscripts (`m:sSub`/`m:sSubSup`), and inline `numerator/denominator` for fractions (`m:f`). Radicals, big operators, n-aries, and matrices walk through the default branch and surface as plain text inline.
+- **Render**: `WalkMath` recursively turns the math tree into runs with the right typography — italic variables, upright digits/operators, raised superscripts (`m:sSup`), lowered subscripts (`m:sSub`/`m:sSubSup`), and inline `numerator/denominator` for fractions (`m:f`). Radicals, big operators, n-aries, and matrices walk through the default branch and surface as plain text inline. Math sets in **Cambria** — Word's math face is Cambria Math whatever the body font, and plain Cambria gives the same serif letterforms at a normal line box (Cambria Math's own vertical metrics are sized for stretchy operators and inflated every math line ~55px when tried) — and single-character binary operators/relations gain Word's surrounding spaces ("a² + b² = c²").
 
 > **AI**: True stacked-fraction layout requires line-level cutouts the renderer can't produce yet, so `m:f` falls back to inline `a/b`. Square-root glyphs and integral signs render as plain text without their associated symbols (`√`, `∫`). The visible difference vs Word is fraction stacking and big-operator glyphs; sub/superscripts now match Word's typography.
 

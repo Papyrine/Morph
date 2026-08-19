@@ -419,6 +419,37 @@ static class ShapeParser
     }
 
     /// <summary>
+    /// The glyph colour a <c>wps:style/a:fontRef</c> declares. DrawingML's text-style reference is
+    /// the fallback BELOW the w:rPr/style chain: Word colours a text box's glyphs from it only when
+    /// neither the run nor its styles name a colour (wedding/08's circled ampersand is white purely
+    /// through a <c>schemeClr lt1</c> fontRef, while menus/03's labels take their style's white over
+    /// a <c>dk1</c> fontRef). Returns null when the shape declares no fontRef colour.
+    /// </summary>
+    public static string? ExtractFontReferenceColor(WPS.WordprocessingShape wsp, ThemeColors? themeColors)
+    {
+        var fontReference = wsp.GetFirstChild<WPS.ShapeStyle>()?.FontReference;
+        if (fontReference == null)
+        {
+            return null;
+        }
+
+        var scheme = fontReference.GetFirstChild<A.SchemeColor>();
+        if (scheme?.Val?.HasValue == true && themeColors != null)
+        {
+            var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
+            return themeColors.ResolveColor(schemeValue, ExtractColorTransforms(scheme));
+        }
+
+        var rgb = fontReference.GetFirstChild<A.RgbColorModelHex>();
+        if (rgb?.Val?.HasValue == true)
+        {
+            return ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// The theme line style a <c>wps:style/a:lnRef</c> selects: the width comes from the theme's
     /// <c>lnStyleLst</c> (1-based by <c>@idx</c>), the colour from the lnRef's own colour child,
     /// which overrides the theme line's <c>phClr</c> placeholder.
