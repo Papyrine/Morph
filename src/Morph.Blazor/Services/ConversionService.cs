@@ -9,7 +9,9 @@ namespace Morph;
 /// and runs in WebAssembly; the Skia backend would need a native wasm build that the NuGet assets don't
 /// ship. The rendered formats (PNG, PDF) resolve fonts against a directory of bundled Aptos faces
 /// (<see cref="FontStore"/>) with every other family mapped onto Aptos — so any file renders, its own
-/// fonts substituted rather than failing. The text formats (HTML, Markdown, plain text) need no fonts.
+/// fonts substituted rather than failing. The text formats (HTML, Markdown, plain text) draw nothing
+/// but still take the directory, because a workbook's column widths are measured off its body font —
+/// see <see cref="ToHtml"/>.
 /// </summary>
 public static class ConversionService
 {
@@ -88,15 +90,22 @@ public static class ConversionService
         };
     }
 
-    /// <summary>Exports the source as Markdown.</summary>
-    public static string ToMarkdown(byte[] bytes, InputFormat source)
+    /// <summary>
+    /// Exports the source as Markdown. <paramref name="fontDirectory"/> pins font resolution for the
+    /// same reason the HTML export needs it — see <see cref="ToHtml"/>.
+    /// </summary>
+    public static string ToMarkdown(byte[] bytes, InputFormat source, string fontDirectory)
     {
         using var stream = new MemoryStream(bytes);
+        MarkdownExportOptions options = new()
+        {
+            FontDirectory = fontDirectory,
+        };
         return source switch
         {
-            InputFormat.Docx => DocumentConverter.ConvertToMarkdown(stream),
-            InputFormat.Xlsx => ExcelConverter.ConvertToMarkdown(stream),
-            InputFormat.Pptx => PowerPointConverter.ConvertToMarkdown(stream),
+            InputFormat.Docx => DocumentConverter.ConvertToMarkdown(stream, options),
+            InputFormat.Xlsx => ExcelConverter.ConvertToMarkdown(stream, options),
+            InputFormat.Pptx => PowerPointConverter.ConvertToMarkdown(stream, options),
             _ => throw UnknownSource(source),
         };
     }
@@ -105,28 +114,41 @@ public static class ConversionService
     /// Exports the source as a self-contained HTML document — the exporter's defaults emit the full
     /// document wrapper with styles inline and images embedded as data URIs, so the single file views
     /// anywhere with no companion assets.
+    ///
+    /// <paramref name="fontDirectory"/> pins font resolution even though nothing is drawn: Excel's
+    /// column-width unit is the widest digit of the workbook's body font, so a sheet's <c>td</c> widths
+    /// are whatever face resolves. Left to the OS they differ per machine — the sample invoice's Arial
+    /// resolves on Windows and falls through to the bundled Aptos on a clean Linux runner, moving every
+    /// column by 4%.
     /// </summary>
-    public static string ToHtml(byte[] bytes, InputFormat source) =>
-        ToHtml(bytes, source, null);
+    public static string ToHtml(byte[] bytes, InputFormat source, string fontDirectory) =>
+        ExportHtml(
+            bytes,
+            source,
+            new()
+            {
+                FontDirectory = fontDirectory,
+            });
 
     /// <summary>
     /// Exports the source as plain text. Morph has no text exporter, so this renders the semantic HTML
     /// fragment (no document wrapper, image references dropped) and flattens it via <see cref="TextExtraction"/>.
     /// </summary>
-    public static string ToText(byte[] bytes, InputFormat source)
+    public static string ToText(byte[] bytes, InputFormat source, string fontDirectory)
     {
-        var html = ToHtml(
+        var html = ExportHtml(
             bytes,
             source,
             new()
             {
+                FontDirectory = fontDirectory,
                 EmitDocument = false,
                 EmbedImagesAsBase64 = false,
             });
         return TextExtraction.FromHtml(html);
     }
 
-    static string ToHtml(byte[] bytes, InputFormat source, HtmlExportOptions? options)
+    static string ExportHtml(byte[] bytes, InputFormat source, HtmlExportOptions options)
     {
         using var stream = new MemoryStream(bytes);
         return source switch
@@ -165,16 +187,17 @@ public static class ConversionService
     /// <c>.png</c> for a one-page source, or a <c>.zip</c> of <c>page_0001.png</c>… when it has several —
     /// the extension and content type therefore travel with the bytes rather than being read off
     /// <see cref="FormatInfo"/>, which can't know the page count up front. <paramref name="fontDirectory"/>
-    /// pins font resolution for the rendered formats (PNG, PDF); the text formats ignore it.
+    /// pins font resolution for every format — the text ones draw nothing, but a workbook's column widths
+    /// are measured off its body font (see <see cref="ToHtml"/>).
     /// </summary>
     public static DownloadPayload BuildDownload(byte[] bytes, InputFormat source, OutputFormat format, ImageSettings image, string fontDirectory) =>
         format switch
         {
             OutputFormat.Png => PngDownload(RenderPngPages(bytes, source, image, fontDirectory)),
             OutputFormat.Pdf => new(ToPdf(bytes, source, fontDirectory), ".pdf", "application/pdf"),
-            OutputFormat.Html => new(Encoding.UTF8.GetBytes(ToHtml(bytes, source)), ".html", "text/html"),
-            OutputFormat.Markdown => new(Encoding.UTF8.GetBytes(ToMarkdown(bytes, source)), ".md", "text/markdown"),
-            OutputFormat.Text => new(Encoding.UTF8.GetBytes(ToText(bytes, source)), ".txt", "text/plain"),
+            OutputFormat.Html => new(Encoding.UTF8.GetBytes(ToHtml(bytes, source, fontDirectory)), ".html", "text/html"),
+            OutputFormat.Markdown => new(Encoding.UTF8.GetBytes(ToMarkdown(bytes, source, fontDirectory)), ".md", "text/markdown"),
+            OutputFormat.Text => new(Encoding.UTF8.GetBytes(ToText(bytes, source, fontDirectory)), ".txt", "text/plain"),
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown output format."),
         };
 
