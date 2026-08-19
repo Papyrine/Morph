@@ -151,14 +151,30 @@ washes and regressions revert, but the measured knowledge is kept.
   PAGEREF below the table one page low (Word-COM verified: du4 55 vs engine 54, total 64 vs 63).
   The narrowing exp 12 never tried: strict fit ONLY in `PlaceTableRowByRow`'s per-row decision, for
   rows without a vertical merge; the whole-table move, the merge-head exemption and every paragraph
-  decision keep the slack. Corpus page counts: **330/330, zero changes** — while re-running exp 12's
-  global zero now costs 3 (business-plans/15 19→21, newsletters/09 4→5, resumes/06 3→6; down from
-  net −6, the height-model fixes since have absorbed the rest). The engine now reproduces Word's
-  row-by-row page boundaries on the stocktake table exactly; the earlier strict-fit revert
-  ("costing business-plans/15 a page") predated PlaceSplitRow's split-acceptance test, which is what
-  turns the pathological boundary splits back into whole-row moves. Word's exact fit
-  (`widorp.cxx:134,157`) is now complied with for the row case; the slack survives elsewhere as
-  exp 12 found, compensating residual over-measurement. Pinned by
+  decision keep the slack. Re-running exp 12's global zero now costs 3 rather than its net −6
+  (business-plans/15 19→21, newsletters/09 4→5, resumes/06 3→6) — the height-model fixes since have
+  absorbed the rest — and all three ride the whole-table and merge-head slack this leaves alone.
+  **Corpus effect of the narrowed form: zero page-count changes anywhere, and 45 pages across 6
+  scenarios move on pixels — aggregate AE 12.4397 → 12.3668 (−0.0729), SSIM 35.7479 → 36.0566
+  (+0.3087), 24 pages better / 6 worse.** Biggest win `word/business/03` page 2 (SSIM +0.12 Skia,
+  +0.12 PDF, +0.05 ImageSharp): its ink used to start at row 43 against Word's 70 and now starts at
+  71, so the page's whole content block was 27px high and is now within a pixel. Biggest loss
+  `excel/social-media-editorial-theme-calendar` page 2 (AE +0.04, SSIM −0.016) against a small gain
+  on its page 1; `word/border_style_variants` page 5 moves −0.005 SSIM against +0.007 on page 4.
+  **Four of the six affected scenarios are spreadsheets** — a sheet paginates through the same row
+  loop — and three improve on every backend (basic-business-invoice,
+  inventory-list-with-highlighting, wedding-invitation-tracker).
+  The calendar is the one that goes the other way, and its shape is worth recording: its page-2 ink
+  runs rows 80-857 against Excel's 72-811, where it used to run 71-834. The split moved one row
+  later, so **Excel keeps a boundary row that Word's exact fit moves** — a hint that Excel's own
+  row tolerance is not Word's. `PlaceTableRowByRow` serves both, so if spreadsheet fidelity ever
+  needs it, the fit is the place to split the two rules; the corpus does not justify that yet
+  (3 sheets better, 1 worse).
+  The engine now reproduces Word's row-by-row page boundaries on the stocktake table exactly; the
+  earlier strict-fit revert ("costing business-plans/15 a page") predated PlaceSplitRow's
+  split-acceptance test, which is what turns the pathological boundary splits back into whole-row
+  moves. Word's exact fit (`widorp.cxx:134,157`) is now complied with for the row case; the slack
+  survives elsewhere as exp 12 found, compensating residual over-measurement. Pinned by
   `CanonicalFragmenterTests.A_row_barely_past_the_bottom_margin_moves_rather_than_overhanging`.
 - **20 — the table-style `w:pPr` cascade step: landed, and it unblocked the docDefaults `w:line`
   cascade.** ECMA-376 resolves a paragraph inside a table as `docDefaults → table style w:pPr →
