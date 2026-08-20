@@ -8586,9 +8586,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // An image fill clips to the shape's real silhouette, so a preset beyond the enum's
         // Rect/Ellipse needs its built contours (newsletters/13's arch-top photo is a
         // round2SameRect). Stroke-only shapes need them too — the outline IS the preset's
-        // silhouette (letters/05's triangle). Solid fills keep the Preset fast path — no
-        // contour churn there.
-        if (subpaths == null && (imageData != null || fillColorHex == null))
+        // silhouette (letters/05's triangle) — and so do GRADIENT fills, which the guard
+        // below otherwise drops for want of geometry (labels/04's light-blue hexagon
+        // accents: the hexagon builder exists, but a gradient shape carries the start
+        // colour as its fillColorHex and never reached it). Solid fills keep the Preset
+        // fast path — no contour churn there.
+        if (subpaths == null && (imageData != null || fillColorHex == null || gradient != null))
         {
             subpaths = PresetShapeGeometry.TryBuild(
                 shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);

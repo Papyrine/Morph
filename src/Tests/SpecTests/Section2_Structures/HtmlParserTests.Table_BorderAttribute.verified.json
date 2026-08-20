@@ -57,6 +57,29 @@
               }
             ],
             "Properties": {
+              "Borders": {
+                "Top": {
+                  "IsVisible": true,
+                  "WidthPoints": 0.75,
+                  "ColorHex": "B2B2B2"
+                },
+                "Right": {
+                  "IsVisible": true,
+                  "WidthPoints": 0.75,
+                  "ColorHex": "B2B2B2"
+                },
+                "Bottom": {
+                  "IsVisible": true,
+                  "WidthPoints": 0.75,
+                  "ColorHex": "B2B2B2"
+                },
+                "Left": {
+                  "IsVisible": true,
+                  "WidthPoints": 0.75,
+                  "ColorHex": "B2B2B2"
+                },
+                "HasAnyBorder": true
+              },
               "GridSpan": 1,
               "HideMark": false,
               "NoWrap": false,
@@ -97,9 +120,10 @@
       },
       "DefaultCellPadding": {},
       "DefaultCellMargin": {},
-      "IndentPoints": -1.5,
+      "IndentPoints": -3.0,
       "FillContainer": false,
-      "IsAutoFit": true
+      "IsAutoFit": true,
+      "CellSpacingPoints": 0.75
     }
   }
 ]

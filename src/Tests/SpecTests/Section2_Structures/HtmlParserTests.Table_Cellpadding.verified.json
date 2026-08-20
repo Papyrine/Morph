@@ -104,9 +104,10 @@
         "Vertical": 7.5
       },
       "DefaultCellMargin": {},
-      "IndentPoints": -3.75,
+      "IndentPoints": -5.25,
       "FillContainer": false,
-      "IsAutoFit": true
+      "IsAutoFit": true,
+      "CellSpacingPoints": 0.75
     }
   }
 ]
