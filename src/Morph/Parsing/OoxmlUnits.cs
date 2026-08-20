@@ -76,4 +76,41 @@ static class OoxmlUnits
 
     /// <summary>Converts half-points (used by w:sz, w:kern, w:position) to points.</summary>
     public static double HalfPointsToPoints(this uint halfPoints) => halfPoints / 2.0;
+
+    /// <summary>Word's largest font size, in points — the cap its own UI and file format stop at.</summary>
+    public const double MaxFontSizePoints = 1638.0;
+
+    /// <summary>
+    /// Parses a <c>w:sz</c> / <c>w:szCs</c> half-point font size into points, or null when the
+    /// attribute is unusable and the size should be inherited instead.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <c>w:sz</c> is <c>ST_HpsMeasure</c> — an UNSIGNED half-point measure — so zero, a negative
+    /// value and a non-numeric one are all out of schema, and Word caps the range it will honour at
+    /// <see cref="MaxFontSizePoints"/> regardless. Nothing downstream re-checks the number, so this
+    /// is the only place the range is enforced.
+    /// </para>
+    /// <para>
+    /// It has to be enforced somewhere, because a font size is not just a glyph height — it is the
+    /// multiplier on every advance width in the paragraph, so an absurd one propagates into the pen
+    /// position. <c>w:sz="-2147483647"</c> puts the pen at roughly -5.7e8pt after a single
+    /// character; a tab leader following it then spans that whole distance and the painters tile it
+    /// with 166 million dots, exhausting memory. Rejecting the value here keeps the pen in a range
+    /// the rest of the engine was written for — the painters bound the tiling as well, so neither
+    /// layer relies on the other.
+    /// </para>
+    /// </remarks>
+    public static double? FontSizeHalfPointsToPoints(string? halfPoints)
+    {
+        if (halfPoints == null ||
+            !double.TryParse(halfPoints, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) ||
+            !double.IsFinite(parsed) ||
+            parsed <= 0)
+        {
+            return null;
+        }
+
+        return Math.Min(parsed.HalfPointsToPoints(), MaxFontSizePoints);
+    }
 }
