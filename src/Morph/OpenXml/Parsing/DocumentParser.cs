@@ -3219,17 +3219,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    PageSettings ExtractPageSettings(Body body)
-    {
-        var sectionProps = body.Descendants<SectionProperties>().LastOrDefault();
-        if (sectionProps == null)
-        {
-            return new();
-        }
-
-        return ExtractPageSettings(sectionProps);
-    }
-
     PageSettings ExtractPageSettings(SectionProperties sectionProps)
     {
         var pageSize = sectionProps.GetFirstChild<PageSize>();
@@ -5880,7 +5869,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         // Try background shapes first (solid fill behind text)
                         // May return multiple shapes when a WordprocessingGroup contains multiple non-decorative shapes
                         var drawingChildSources = new Dictionary<DocumentElement, OpenXmlElement>();
-                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, props.SpacingBeforePoints, GetPartBytes, drawingChildSources, anchorAlignmentPage);
+                        var shapeElements = ShapeParser.ParseBackgroundShapes(drawing, currentThemeColors, mainPart, GetPartBytes, drawingChildSources, anchorAlignmentPage);
 
                         // Check if there's a group - groups may contain text boxes and images even without shapes
                         var hasGroup = drawing.Descendants<WPG.WordprocessingGroup>().Any();

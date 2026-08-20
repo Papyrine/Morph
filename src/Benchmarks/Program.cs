@@ -19,7 +19,7 @@ public class ConversionBenchmarks
     static readonly string mediumDoc = Path.Combine(inputsDir, "letters", "01", "input.docx");
     // Large (~5.5MB) - newsletter with many images
     static readonly string largeDoc = Path.Combine(inputsDir, "newsletters", "03", "input.docx");
-    // Table-heavy: exercises bordered cells + ParseColor caching + HasVerticalMerge dedup
+    // Table-heavy: exercises bordered cells + ParseColor caching
     static readonly string complexTablesDoc = Path.Combine(inputsDir, "complex_tables", "input.docx");
     // Long table that paginates row-by-row
     static readonly string tableMultipageDoc = Path.Combine(inputsDir, "table_multipage", "input.docx");

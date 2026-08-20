@@ -2313,7 +2313,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
             var rowHeights = TableHeightCalculator.CalculateRowHeights(
-                table, colWidths, measurer, TableLayout.HasVerticalMerge(table), addInteriorBorders: true);
+                table, colWidths, measurer, addInteriorBorders: true);
             var geometry = (colWidths, rowHeights);
             tableGeometryCache[(table, width)] = geometry;
             return geometry;
