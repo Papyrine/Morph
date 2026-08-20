@@ -593,6 +593,12 @@ static class TableLayout
                 var margin = GetEffectiveMargin(props, tableProps);
                 var horizontalChrome = (float) (padding.Horizontal + margin.Horizontal);
 
+                // Detached spacing (w:tblCellSpacing / HTML cellspacing) insets each cell's box
+                // inside its slot, so the slot must carry the content width PLUS those insets —
+                // without this term the spacing is paid out of the text measure and the columns
+                // re-wrap, which is what sank two earlier attempts at HTML per-cell borders.
+                horizontalChrome += (float) CellSpacingInsets(tableProps, gridColIndex, span, colCount).Horizontal;
+
                 var (cellPref, cellMin) = MeasureCellContentWidth(cell, measurer);
 
                 cellPref += horizontalChrome;

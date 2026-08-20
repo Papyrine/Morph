@@ -1044,6 +1044,7 @@ sealed class HtmlParser
         // borderless HTML table (`html_table`).
         var defaultBorders = new CellBorders();
         var borderWidthPoints = 0.0;
+        var hasBorderAttribute = false;
         var borderAttribute = tableElement.GetAttribute("border");
         if (!string.IsNullOrEmpty(borderAttribute) &&
             double.TryParse(borderAttribute, out var borderWidth))
@@ -1052,6 +1053,7 @@ sealed class HtmlParser
             {
                 var borderPt = borderWidth * pixelsToPoints;
                 borderWidthPoints = borderPt;
+                hasBorderAttribute = true;
                 var edge = new BorderEdge
                 {
                     IsVisible = true,
@@ -1070,6 +1072,24 @@ sealed class HtmlParser
             {
                 defaultBorders = new();
             }
+        }
+
+        // HTML cellspacing (HTML4 §11.3.3, default 2 CSS px) is the visible gap between cell
+        // boxes. Word's import maps it onto the DETACHED border model, where the stored
+        // w:tblCellSpacing is HALF the gap (every drawn gap is 2 × spacing). Probed with the
+        // `border` amplified to 8px and cellspacing at absent/0/12 (`_probe_htmlborders`,
+        // measured at 150 DPI): a colored header row renders as SEPARATE per-cell boxes —
+        // fills split by a white gap of exactly the cellspacing (3 device px at the default,
+        // 18 at cellspacing=12) — with every cell carrying its own 1-CSS-px grey rule on all
+        // four edges, while the `border` attribute's width draws only on the table FRAME.
+        // `border-collapse: collapse` (or cellspacing=0) collapses the boxes: the fills abut
+        // and the rules become shared inside edges.
+        var cellSpacingPixels = 2.0;
+        var cellspacingAttribute = tableElement.GetAttribute("cellspacing");
+        if (!string.IsNullOrEmpty(cellspacingAttribute) &&
+            double.TryParse(cellspacingAttribute, out var spacingPx))
+        {
+            cellSpacingPixels = Math.Max(0, spacingPx);
         }
 
         // Parse table-level style for padding, border and width CSS
@@ -1095,6 +1115,12 @@ sealed class HtmlParser
                 }
             }
 
+            if (tableStyles.TryGetValue("border-collapse", out var borderCollapse) &&
+                borderCollapse.Trim().Equals("collapse", StringComparison.OrdinalIgnoreCase))
+            {
+                cellSpacingPixels = 0;
+            }
+
             // width: 100% fills the container (drives the autofit scale-up); a px/pt width
             // becomes the preferred width. Fractional percentages have no table-level model
             // slot, so any near-full percentage maps to fill-the-container.
@@ -1114,6 +1140,27 @@ sealed class HtmlParser
                 }
             }
         }
+
+        // The per-cell chrome of a `border` table (probe above): with detached spacing every
+        // cell is its own box ruled 1 CSS px grey on all four edges; collapsed, the same rule
+        // becomes the shared inside edges instead. CSS-shorthand borders keep the old
+        // frame-only footing — the probe covered the attribute form.
+        var cellRule = new BorderEdge
+        {
+            IsVisible = true,
+            WidthPoints = pixelsToPoints,
+            ColorHex = htmlTableBorderColor
+        };
+        var cellBoxBorders = hasBorderAttribute && cellSpacingPixels > 0
+            ? new CellBorders
+            {
+                Top = cellRule,
+                Right = cellRule,
+                Bottom = cellRule,
+                Left = cellRule
+            }
+            : null;
+        var insideRule = hasBorderAttribute && cellSpacingPixels <= 0 ? cellRule : null;
 
         // Track active rowspans: column index -> remaining rows
         var activeRowspans = new Dictionary<int, int>();
@@ -1303,7 +1350,8 @@ sealed class HtmlParser
                         GridSpan = gridSpan,
                         VerticalMerge = verticalMerge,
                         WidthPoints = cellWidthPoints,
-                        WidthFraction = cellWidthFraction
+                        WidthFraction = cellWidthFraction,
+                        Borders = cellBoxBorders
                     }
                 });
 
@@ -1377,9 +1425,13 @@ sealed class HtmlParser
             defaultCellPadding = new(pixels * pixelsToPoints);
         }
 
+        // Detached spacing insets the outer cell's box by 2 × spacing from the frame, and the
+        // text-at-the-margin rule above covers everything left of the cell text — so the
+        // spacing inset joins the outdent.
+        var cellSpacingPoints = cellSpacingPixels * pixelsToPoints / 2;
         var leftInset = fillContainer
             ? 0
-            : (defaultCellPadding?.Left ?? 0) + borderWidthPoints;
+            : (defaultCellPadding?.Left ?? 0) + borderWidthPoints + 2 * cellSpacingPoints;
 
         return new()
         {
@@ -1390,7 +1442,10 @@ sealed class HtmlParser
                 DefaultCellPadding = defaultCellPadding ?? new CellSpacing(),
                 IndentPoints = -leftInset,
                 PreferredWidthPoints = preferredWidthPoints,
-                FillContainer = fillContainer
+                FillContainer = fillContainer,
+                CellSpacingPoints = cellSpacingPoints,
+                InsideHorizontalBorder = insideRule,
+                InsideVerticalBorder = insideRule
             }
         };
     }
