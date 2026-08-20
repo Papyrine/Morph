@@ -260,8 +260,7 @@ static class ImageSharpPainter
         // number, where the doubled stride tiled half as many dots and stopped ~14px short.
         var spacing = glyphWidth;
         var runWidth = P(context, run.Width);
-        var count = (int) Math.Floor((runWidth - glyphWidth) / spacing) + 1;
-        if (count <= 0)
+        if (!LeaderTiling.TryGetRange(P(context, run.X), runWidth, glyphWidth, spacing, P(context, context.PageSettings.WidthPoints), out var startX, out var count))
         {
             return;
         }
@@ -269,10 +268,9 @@ static class ImageSharpPainter
         var brush = context.GetBrush(color);
         var (_, ascent) = ImageSharpRenderContext.GetFontMetrics(font);
         var top = P(context, baseline) - ascent * context.Scale;
-        var startX = P(context, run.X);
         for (var index = 0; index < count; index++)
         {
-            canvas.DrawText(Options(context, font, startX + index * spacing, top), leaderChar.AsSpan(), brush, null);
+            canvas.DrawText(Options(context, font, (float) startX + index * spacing, top), leaderChar.AsSpan(), brush, null);
         }
     }
 

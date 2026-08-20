@@ -827,7 +827,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return specDefaultFontSizePoints;
         }
 
-        return double.Parse(size.Val.Value!).HalfPointsToPoints();
+        return OoxmlUnits.FontSizeHalfPointsToPoints(size.Val.Value) ?? specDefaultFontSizePoints;
     }
 
     // The document-wide kerning threshold, Word-probed with the _probe_kern_* fixtures (todo #43):
@@ -1417,9 +1417,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 // Font size (in half-points)
                 var fontSizeElement = runProps.GetFirstChild<FontSize>();
-                if (fontSizeElement?.Val?.HasValue == true)
+                if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSizeElement?.Val?.Value) is { } declaredSize)
                 {
-                    fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
+                    fontSize = declaredSize;
                 }
 
                 // Bold
@@ -3596,13 +3596,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             fontFamily = fonts.Ascii.Value;
         }
 
-        double? sizePoints = null;
         var size = rPr.GetFirstChild<FontSize>();
-        if (size?.Val?.HasValue == true &&
-            double.TryParse(size.Val.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var halfPoints))
-        {
-            sizePoints = halfPoints / 2;
-        }
+        var sizePoints = OoxmlUnits.FontSizeHalfPointsToPoints(size?.Val?.Value);
 
         string? colorHex = null;
         var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
@@ -9255,9 +9250,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var fontSizeElement = runProps.GetFirstChild<FontSize>();
-            if (fontSizeElement?.Val?.HasValue == true)
+            if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSizeElement?.Val?.Value) is { } declaredSize)
             {
-                fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
+                fontSize = declaredSize;
             }
 
             var boldElement = runProps.GetFirstChild<Bold>();
@@ -10506,9 +10501,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             styleRunProperties?.TryGetValue(styleId ?? "Normal", out markChain);
 
             var fontSize = paragraphMarkRunProps.GetFirstChild<FontSize>();
-            if (fontSize?.Val?.HasValue == true && double.TryParse(fontSize.Val.Value, out var halfPoints))
+            if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSize?.Val?.Value) is { } declaredMarkSize)
             {
-                paragraphMarkFontSize = halfPoints.HalfPointsToPoints();
+                paragraphMarkFontSize = declaredMarkSize;
             }
             else if (markChain != null)
             {
@@ -11183,9 +11178,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        if (fontSizeElement?.Val?.HasValue == true)
+        if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSizeElement?.Val?.Value) is { } declaredSize)
         {
-            fontSize = double.Parse(fontSizeElement.Val.Value!).HalfPointsToPoints();
+            fontSize = declaredSize;
         }
 
         if (boldElement != null)

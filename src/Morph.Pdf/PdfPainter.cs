@@ -332,8 +332,7 @@ static class PdfPainter
         // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
         // number, where the doubled stride tiled half as many dots and stopped ~14px short.
         var spacing = glyphWidth;
-        var count = (int) Math.Floor((run.Width - glyphWidth) / spacing) + 1;
-        if (count <= 0)
+        if (!LeaderTiling.TryGetRange(run.X, run.Width, glyphWidth, spacing, context.PageSettings.WidthPoints, out var startX, out var count))
         {
             return;
         }
@@ -342,7 +341,7 @@ static class PdfPainter
         var glyph = leaderChar.ToString();
         for (var index = 0; index < count; index++)
         {
-            graphics.DrawString(glyph, font, brush, new XPoint(run.X + index * spacing, baseline), baselineFormat);
+            graphics.DrawString(glyph, font, brush, new XPoint(startX + index * spacing, baseline), baselineFormat);
         }
     }
 

@@ -252,18 +252,16 @@ static class SkiaPainter
         // number, where the doubled stride tiled half as many dots and stopped ~14px short.
         var spacing = glyphWidth;
         var runWidth = P(context, run.Width);
-        var count = (int) Math.Floor((runWidth - glyphWidth) / spacing) + 1;
-        if (count <= 0)
+        if (!LeaderTiling.TryGetRange(P(context, run.X), runWidth, glyphWidth, spacing, P(context, context.PageSettings.WidthPoints), out var startX, out var count))
         {
             return;
         }
 
         var paint = context.GetReusableTextPaint(run.Properties);
         var y = P(context, baseline);
-        var startX = P(context, run.X);
         for (var index = 0; index < count; index++)
         {
-            canvas.DrawText(leaderChar, startX + index * spacing, y, font, paint);
+            canvas.DrawText(leaderChar, (float) startX + index * spacing, y, font, paint);
         }
     }
 
