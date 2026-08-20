@@ -12,14 +12,13 @@ static class TableHeightCalculator
 
     /// <summary>
     /// Computes the final height of every row in <paramref name="table"/>, accounting for
-    /// non-merged cells, explicit row heights (atLeast vs exact, vMerge-strict tables),
-    /// and vertically merged content overflow.
+    /// non-merged cells, explicit row heights (atLeast vs exact), and vertically merged content
+    /// overflow.
     /// </summary>
     public static float[] CalculateRowHeights(
         TableElement table,
         float[] colWidths,
         IParagraphMeasurer measurer,
-        bool hasVerticalMerge,
         bool addInteriorBorders = false)
     {
         var heights = new float[table.Rows.Count];

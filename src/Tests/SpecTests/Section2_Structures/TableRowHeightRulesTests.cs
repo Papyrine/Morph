@@ -277,7 +277,7 @@ public class TableRowHeightRulesTests
             ]
         };
 
-        var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer(), hasVerticalMerge: false);
+        var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer());
 
         // The single row is both first and last, so it accrues BOTH outer edges. There is no
         // artificial row-height floor (a blanket 20pt minimum was removed — it ballooned short
@@ -318,7 +318,7 @@ public class TableRowHeightRulesTests
             ]
         };
 
-        var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer(), hasVerticalMerge: false);
+        var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer());
 
         // No borders → no growth; the row is just the measured content (one 12pt stub line), with
         // no artificial minimum-height floor.

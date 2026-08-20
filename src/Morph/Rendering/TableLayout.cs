@@ -65,21 +65,6 @@ static class TableLayout
         return false;
     }
 
-    internal static bool HasVerticalMerge(TableElement table)
-    {
-        foreach (var row in table.Rows)
-        {
-            foreach (var cell in row.Cells)
-            {
-                if (cell.Properties.VerticalMerge is VerticalMergeType.Restart or VerticalMergeType.Continue)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     /// <summary>
     /// Resolves the effective cell padding ("cell margin" in Word's UI). OOXML's
