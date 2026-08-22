@@ -293,6 +293,11 @@ sealed class SpreadsheetParser(
         foreach (var element in sheetData.Elements<S.Row>())
         {
             row = element.RowIndex?.Value is { } stated ? (int) stated : row + 1;
+            if (row is < 1 or > CellReference.MaxRow)
+            {
+                throw new InvalidOperationException(
+                    $"Row index '{row}' is outside the valid range 1..{CellReference.MaxRow}.");
+            }
             element.RowIndex = (uint) row;
 
             var column = 0;
@@ -300,6 +305,11 @@ sealed class SpreadsheetParser(
             {
                 var statedColumn = CellReference.ColumnOf(cell.CellReference?.Value);
                 column = statedColumn == 0 ? column + 1 : statedColumn;
+                if (column > CellReference.MaxColumn)
+                {
+                    throw new InvalidOperationException(
+                        $"Column index '{column}' is outside the valid range 1..{CellReference.MaxColumn}.");
+                }
                 cell.CellReference = CellReference.Format(column, row);
             }
         }
