@@ -138,13 +138,15 @@ sealed class PdfFontResolver : IFontResolver
 
         if (!indexed)
         {
-            AddFace(family, new()
-            {
-                Path = path,
-                Weight = weight,
-                Width = 5,
-                Italic = italic
-            });
+            AddFace(
+                family,
+                new()
+                {
+                    Path = path,
+                    Weight = weight,
+                    Width = 5,
+                    Italic = italic
+                });
         }
 
         defaultFace ??= path;

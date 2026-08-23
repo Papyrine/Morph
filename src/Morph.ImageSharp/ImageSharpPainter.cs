@@ -596,7 +596,7 @@ static class ImageSharpPainter
             foreach (var (along, across) in BorderStroke.WavePoints(from, to, P(context, wave.Period), P(context, wave.Amplitude)))
             {
                 points.Add(horizontal
-                    ? new PointF((float) along, centre + (float) across)
+                    ? new((float) along, centre + (float) across)
                     : new PointF(centre + (float) across, (float) along));
             }
 

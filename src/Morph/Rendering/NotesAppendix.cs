@@ -130,36 +130,37 @@ static class NotesAppendix
 
         for (var noteIndex = 0; noteIndex < entries.Count; noteIndex++)
         {
-            paragraphs.Add(new()
-            {
-                Runs =
-                [
-                    // Sequential display number, matching the citation marks (footnotes.xml
-                    // ids start at 2; Word shows 1, 2, 3... for footnotes and i, ii, iii...
-                    // for default-format endnotes).
-                    new()
-                    {
-                        Text = $"{FormatOrdinal(noteIndex + 1, format)}. ",
-                        Properties = new()
-                        {
-                            Bold = true,
-                            FontSizePoints = 10
-                        }
-                    },
-                    new()
-                    {
-                        Text = entries[noteIndex],
-                        Properties = new()
-                        {
-                            FontSizePoints = 10
-                        }
-                    }
-                ],
-                Properties = new()
+            paragraphs.Add(
+                new()
                 {
-                    SpacingAfterPoints = 4
-                }
-            });
+                    Runs =
+                    [
+                        // Sequential display number, matching the citation marks (footnotes.xml
+                        // ids start at 2; Word shows 1, 2, 3... for footnotes and i, ii, iii...
+                        // for default-format endnotes).
+                        new()
+                        {
+                            Text = $"{FormatOrdinal(noteIndex + 1, format)}. ",
+                            Properties = new()
+                            {
+                                Bold = true,
+                                FontSizePoints = 10
+                            }
+                        },
+                        new()
+                        {
+                            Text = entries[noteIndex],
+                            Properties = new()
+                            {
+                                FontSizePoints = 10
+                            }
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 4
+                    }
+                });
         }
     }
 }

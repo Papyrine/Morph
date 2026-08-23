@@ -131,7 +131,7 @@ public class Samples
         var document = new WordDocument("document.docx");
 
         File.WriteAllText("document.html", document.ExportToHtml());
-        File.WriteAllText("document.md",   document.ExportToMarkdown());
+        File.WriteAllText("document.md", document.ExportToMarkdown());
         // extension method from Morph.Pdf
         document.ExportToPdf("document.pdf");
 
@@ -268,7 +268,7 @@ public class Samples
         var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
 
         await File.WriteAllTextAsync("page.html", document.ExportToHtml());
-        await File.WriteAllTextAsync("page.md",   document.ExportToMarkdown());
+        await File.WriteAllTextAsync("page.md", document.ExportToMarkdown());
         // extension method from Morph.Pdf
         document.ExportToPdf("page.pdf");
 
@@ -338,15 +338,17 @@ public class Samples
 
         // Word's Compress Pictures defaults to 220 DPI for print, which is a safer target
         // if the document is going to be printed rather than read on screen.
-        ImageCompressor.Compress("document.docx", new()
-        {
-            TargetDpi = 220,
-            JpegQuality = 85,
+        ImageCompressor.Compress(
+            "document.docx",
+            new()
+            {
+                TargetDpi = 220,
+                JpegQuality = 85,
 
-            // Opt in to writing opaque PNGs out as JPEG. Lossy, and it renames the package
-            // part, but for photographic content it is much the largest saving available.
-            ConvertOpaquePngToJpeg = true
-        });
+                // Opt in to writing opaque PNGs out as JPEG. Lossy, and it renames the package
+                // part, but for photographic content it is much the largest saving available.
+                ConvertOpaquePngToJpeg = true
+            });
 
         // Stream overloads write the compressed package to any destination.
         using var source = File.OpenRead("document.docx");

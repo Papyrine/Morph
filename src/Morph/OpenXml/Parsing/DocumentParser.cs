@@ -876,11 +876,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Id = idLong.ToString(),
-                Text = text
-            });
+            result.Add(
+                new()
+                {
+                    Id = idLong.ToString(),
+                    Text = text
+                });
         }
 
         return result;
@@ -909,11 +910,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Id = idLong.ToString(),
-                Text = text
-            });
+            result.Add(
+                new()
+                {
+                    Id = idLong.ToString(),
+                    Text = text
+                });
         }
 
         return result;
@@ -963,11 +965,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         inResult.Pop();
                         if (instruction.Length > 0)
                         {
-                            result.Add(new()
-                            {
-                                Instruction = instruction,
-                                Result = resultText
-                            });
+                            result.Add(
+                                new()
+                                {
+                                    Instruction = instruction,
+                                    Result = resultText
+                                });
                         }
 
                         break;
@@ -986,11 +989,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Instruction = instruction,
-                Result = resultText
-            });
+            result.Add(
+                new()
+                {
+                    Instruction = instruction,
+                    Result = resultText
+                });
         }
 
         return result;
@@ -6791,31 +6795,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var wspBlipFill = shapeProps.GetFirstChild<A.BlipFill>();
                 var blipImage = wspBlipFill != null ? ReadBlipImage(wspBlipFill, hostPart) : null;
 
-                shapes.Add(new()
-                {
-                    X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                    Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                    Width = shapeXfrm.Extents.Cx ?? 0,
-                    Height = shapeXfrm.Extents.Cy ?? 0,
-                    ColorHex = stroke.ColorHex,
-                    LineWidthEmu = stroke.WidthEmu,
-                    LineAlpha = stroke.Alpha,
-                    FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
-                    FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
-                    Geometry = MapGroupGeometry(shapeProps),
-                    Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
-                               ?? PresetShapeGeometry.TryBuild(
-                                   shapeProps.GetFirstChild<A.PresetGeometry>(),
-                                   shapeXfrm.Extents.Cx ?? 0,
-                                   shapeXfrm.Extents.Cy ?? 0),
-                    FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
-                    FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
-                    Shadow = ReadOuterShadow(shapeProps),
-                    ImageData = blipImage?.Data,
-                    ImageContentType = blipImage?.ContentType,
-                    ImageRasterFallbackData = blipImage?.RasterFallbackData,
-                    ImageCrop = wspBlipFill != null ? ReadCrop(wspBlipFill) : null
-                });
+                shapes.Add(
+                    new()
+                    {
+                        X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                        Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                        Width = shapeXfrm.Extents.Cx ?? 0,
+                        Height = shapeXfrm.Extents.Cy ?? 0,
+                        ColorHex = stroke.ColorHex,
+                        LineWidthEmu = stroke.WidthEmu,
+                        LineAlpha = stroke.Alpha,
+                        FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
+                        FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
+                        Geometry = MapGroupGeometry(shapeProps),
+                        Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
+                                   ?? PresetShapeGeometry.TryBuild(
+                                       shapeProps.GetFirstChild<A.PresetGeometry>(),
+                                       shapeXfrm.Extents.Cx ?? 0,
+                                       shapeXfrm.Extents.Cy ?? 0),
+                        FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
+                        FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
+                        Shadow = ReadOuterShadow(shapeProps),
+                        ImageData = blipImage?.Data,
+                        ImageContentType = blipImage?.ContentType,
+                        ImageRasterFallbackData = blipImage?.RasterFallbackData,
+                        ImageCrop = wspBlipFill != null ? ReadCrop(wspBlipFill) : null
+                    });
             }
             else if (child is PIC.Picture picture)
             {
@@ -6835,23 +6840,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // A picture has no wps:style, so its outline width has to be explicit.
                 var picStroke = ReadGroupStroke(picProps, lineReference: null);
 
-                shapes.Add(new()
-                {
-                    X = (picXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                    Y = (picXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                    Width = picXfrm.Extents.Cx ?? 0,
-                    Height = picXfrm.Extents.Cy ?? 0,
-                    ColorHex = picStroke.ColorHex,
-                    LineWidthEmu = picStroke.WidthEmu,
-                    LineAlpha = picStroke.Alpha,
-                    ImageDescription = ReadImageDescription(picture, drawing),
-                    Geometry = MapGroupGeometry(picProps),
-                    Shadow = ReadOuterShadow(picProps),
-                    ImageData = image.Data,
-                    ImageContentType = image.ContentType,
-                    ImageRasterFallbackData = image.RasterFallbackData,
-                    ImageCrop = ReadCrop(picture.BlipFill)
-                });
+                shapes.Add(
+                    new()
+                    {
+                        X = (picXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                        Y = (picXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                        Width = picXfrm.Extents.Cx ?? 0,
+                        Height = picXfrm.Extents.Cy ?? 0,
+                        ColorHex = picStroke.ColorHex,
+                        LineWidthEmu = picStroke.WidthEmu,
+                        LineAlpha = picStroke.Alpha,
+                        ImageDescription = ReadImageDescription(picture, drawing),
+                        Geometry = MapGroupGeometry(picProps),
+                        Shadow = ReadOuterShadow(picProps),
+                        ImageData = image.Data,
+                        ImageContentType = image.ContentType,
+                        ImageRasterFallbackData = image.RasterFallbackData,
+                        ImageCrop = ReadCrop(picture.BlipFill)
+                    });
             }
         }
 
@@ -11583,17 +11589,26 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // Inline fallback: numerator "/" denominator. Stacked fractions need cutout
                     // layout the line engine doesn't model, so this is the closest we can get.
                     var num = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Numerator>();
-                    if (num != null) WalkMath(num, runs, props);
-                    runs.Add(new()
+                    if (num != null)
                     {
-                        Text = "/",
-                        Properties = props with
+                        WalkMath(num, runs, props);
+                    }
+
+                    runs.Add(
+                        new()
                         {
-                            Italic = false
-                        }
-                    });
+                            Text = "/",
+                            Properties = props with
+                            {
+                                Italic = false
+                            }
+                        });
                     var den = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Denominator>();
-                    if (den != null) WalkMath(den, runs, props);
+                    if (den != null)
+                    {
+                        WalkMath(den, runs, props);
+                    }
+
                     break;
                 }
 
@@ -11630,16 +11645,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 text = $" {text} ";
             }
 
-            runs.Add(new()
-            {
-                Text = text,
-                Properties = isVariable
-                    ? props
-                    : props with
-                    {
-                        Italic = false
-                    }
-            });
+            runs.Add(
+                new()
+                {
+                    Text = text,
+                    Properties = isVariable
+                        ? props
+                        : props with
+                        {
+                            Italic = false
+                        }
+                });
         }
     }
 

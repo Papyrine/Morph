@@ -107,10 +107,11 @@ public class ImageCompressorTests
     {
         var output = Package
             .With(Picture(TestImages.Photograph(600, 450), inches: 2))
-            .Compress(new()
-            {
-                TargetDpi = null
-            });
+            .Compress(
+                new()
+                {
+                    TargetDpi = null
+                });
 
         await Assert.That(output.Images.Single().Outcome).IsNotEqualTo(ImageOutcome.Resampled);
         await Assert.That(TestImages.Width(output.Part("word/media/image1.png"))).IsEqualTo(600);
@@ -121,10 +122,11 @@ public class ImageCompressorTests
     {
         var package = Package.With(Picture(TestImages.Photograph(200, 150), inches: 2));
 
-        var output = package.Compress(new()
-        {
-            Codec = new StubCodec(200, 150)
-        });
+        var output = package.Compress(
+            new()
+            {
+                Codec = new StubCodec(200, 150)
+            });
 
         await Assert.That(output.Images.Single().Outcome).IsEqualTo(ImageOutcome.NoGain);
         await Assert.That(output.Saved).IsEqualTo(0);
@@ -137,10 +139,12 @@ public class ImageCompressorTests
         using var fixture = TempFile.Holding(Package.With(Picture(TestImages.Photograph(200, 150), inches: 2)).Bytes());
         var original = await File.ReadAllBytesAsync(fixture.Path);
 
-        var result = ImageCompressor.Compress(fixture.Path, new()
-        {
-            Codec = new StubCodec(200, 150)
-        });
+        var result = ImageCompressor.Compress(
+            fixture.Path,
+            new()
+            {
+                Codec = new StubCodec(200, 150)
+            });
 
         await Assert.That(result.Changed).IsFalse();
         await Assert.That((await File.ReadAllBytesAsync(fixture.Path)).SequenceEqual(original)).IsTrue();
@@ -208,10 +212,11 @@ public class ImageCompressorTests
         var warnings = new List<ExportWarning>();
         var package = Package.With(Picture([1, 2, 3, 4, 5], inches: 2));
 
-        var output = package.Compress(new()
-        {
-            OnWarning = warnings.Add
-        });
+        var output = package.Compress(
+            new()
+            {
+                OnWarning = warnings.Add
+            });
 
         await Assert.That(output.Images.Single().Outcome).IsEqualTo(ImageOutcome.Unreadable);
         await Assert.That(warnings.Single().Kind).IsEqualTo(WarningKind.ImageRenderingFailed);
@@ -226,10 +231,11 @@ public class ImageCompressorTests
     {
         var output = Package
             .With(Picture(TestImages.Photograph(400, 300), inches: 2))
-            .Compress(new()
-            {
-                ConvertOpaquePngToJpeg = true
-            });
+            .Compress(
+                new()
+                {
+                    ConvertOpaquePngToJpeg = true
+                });
 
         var image = output.Images.Single();
         await Assert.That(image.Outcome).IsEqualTo(ImageOutcome.Converted);
@@ -254,10 +260,12 @@ public class ImageCompressorTests
     {
         using var fixture = TempFile.Holding(Package.With(Picture(TestImages.Photograph(400, 300), inches: 2)).Bytes());
 
-        ImageCompressor.Compress(fixture.Path, new()
-        {
-            ConvertOpaquePngToJpeg = true
-        });
+        ImageCompressor.Compress(
+            fixture.Path,
+            new()
+            {
+                ConvertOpaquePngToJpeg = true
+            });
 
         using var document = WordprocessingDocument.Open(fixture.Path, false);
         var part = document.MainDocumentPart!.ImageParts.Single();
@@ -271,10 +279,11 @@ public class ImageCompressorTests
     {
         var output = Package
             .With(Picture(TestImages.Photograph(400, 300, translucent: true), inches: 2))
-            .Compress(new()
-            {
-                ConvertOpaquePngToJpeg = true
-            });
+            .Compress(
+                new()
+                {
+                    ConvertOpaquePngToJpeg = true
+                });
 
         await Assert.That(output.Images.Single().Outcome).IsNotEqualTo(ImageOutcome.Converted);
         await Assert.That(output.PartNames()).Contains("word/media/image1.png");
@@ -295,10 +304,11 @@ public class ImageCompressorTests
         var output = Package
             .With(Picture(TestImages.Photograph(400, 300), inches: 2))
             .WithPart("word/media/image1.jpeg", "image/jpeg", TestImages.Photograph(40, 30, jpeg: true))
-            .Compress(new()
-            {
-                ConvertOpaquePngToJpeg = true
-            });
+            .Compress(
+                new()
+                {
+                    ConvertOpaquePngToJpeg = true
+                });
 
         await Assert.That(output.Images.Single(_ => _.PartName.EndsWith(".png")).NewPartName)
             .IsEqualTo("word/media/image1-2.jpeg");
