@@ -28,7 +28,6 @@ sealed class SlideShapeParser(
     double slideHeightPoints,
     TableStylesPart? tableStylesPart)
 {
-
     readonly DrawingTextParser textParser = new(themeColors, themeFonts, defaultFont);
     readonly SlideTableParser tableParser = new(themeColors, new(themeColors, themeFonts, defaultFont));
 

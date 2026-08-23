@@ -96,17 +96,18 @@ sealed class HtmlParser
             case IText textNode:
                 if (textNode.TextContent.TryTrim(out var text))
                 {
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = text,
-                                Properties = DefaultRunProps()
-                            }
-                        ]
-                    });
+                    elements.Add(
+                        new ParagraphElement
+                        {
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = text,
+                                    Properties = DefaultRunProps()
+                                }
+                            ]
+                        });
                 }
 
                 break;
@@ -167,21 +168,22 @@ sealed class HtmlParser
                 break;
 
             case "br":
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = "",
-                            Properties = DefaultRunProps()
-                        }
-                    ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 0
-                    }
-                });
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = "",
+                                Properties = DefaultRunProps()
+                            }
+                        ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 0
+                        }
+                    });
                 break;
 
             case "blockquote":
@@ -191,14 +193,15 @@ sealed class HtmlParser
                 {
                     if (el is ParagraphElement p)
                     {
-                        elements.Add(new ParagraphElement
-                        {
-                            Runs = p.Runs,
-                            Properties = p.Properties with
+                        elements.Add(
+                            new ParagraphElement
                             {
-                                LeftIndentPoints = p.Properties.LeftIndentPoints + 36
-                            }
-                        });
+                                Runs = p.Runs,
+                                Properties = p.Properties with
+                                {
+                                    LeftIndentPoints = p.Properties.LeftIndentPoints + 36
+                                }
+                            });
                     }
                     else
                     {
@@ -209,24 +212,25 @@ sealed class HtmlParser
                 break;
 
             case "pre":
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = element.TextContent,
-                            Properties = new()
-                            {
-                                FontFamily = "Courier New"
-                            }
-                        }
-                    ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 8
-                    }
-                });
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = element.TextContent,
+                                Properties = new()
+                                {
+                                    FontFamily = "Courier New"
+                                }
+                            }
+                        ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 8
+                        }
+                    });
                 break;
 
             case "hr":
@@ -250,27 +254,28 @@ sealed class HtmlParser
                                 FontSizePoints = 11,
                                 Italic = true
                             });
-                        elements.Add(new ParagraphElement
-                        {
-                            Runs = captionRuns.Count > 0
-                                ? captionRuns
-                                :
-                                [
-                                    new()
-                                    {
-                                        Text = "",
-                                        Properties = DefaultRunProps() with
-                                        {
-                                            FontSizePoints = 11,
-                                            Italic = true
-                                        }
-                                    }
-                                ],
-                            Properties = new()
+                        elements.Add(
+                            new ParagraphElement
                             {
-                                SpacingAfterPoints = 8
-                            }
-                        });
+                                Runs = captionRuns.Count > 0
+                                    ? captionRuns
+                                    :
+                                    [
+                                        new()
+                                        {
+                                            Text = "",
+                                            Properties = DefaultRunProps() with
+                                            {
+                                                FontSizePoints = 11,
+                                                Italic = true
+                                            }
+                                        }
+                                    ],
+                                Properties = new()
+                                {
+                                    SpacingAfterPoints = 8
+                                }
+                            });
                     }
                     else
                     {
@@ -288,27 +293,28 @@ sealed class HtmlParser
                         FontSizePoints = 11,
                         Italic = true
                     });
-                elements.Add(new ParagraphElement
-                {
-                    Runs = figRuns.Count > 0
-                        ? figRuns
-                        :
-                        [
-                            new()
-                            {
-                                Text = "",
-                                Properties = DefaultRunProps() with
-                                {
-                                    FontSizePoints = 11,
-                                    Italic = true
-                                }
-                            }
-                        ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 8
-                    }
-                });
+                        Runs = figRuns.Count > 0
+                            ? figRuns
+                            :
+                            [
+                                new()
+                                {
+                                    Text = "",
+                                    Properties = DefaultRunProps() with
+                                    {
+                                        FontSizePoints = 11,
+                                        Italic = true
+                                    }
+                                }
+                            ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 8
+                        }
+                    });
                 break;
 
             case "img":
@@ -381,18 +387,19 @@ sealed class HtmlParser
         ParseNodes(element.ChildNodes, children);
         foreach (var child in children)
         {
-            if (child is ParagraphElement { Properties.BackgroundColorHex: null } para)
+            if (child is ParagraphElement {Properties.BackgroundColorHex: null} para)
             {
-                elements.Add(new ParagraphElement
-                {
-                    Runs = para.Runs,
-                    Properties = para.Properties with
+                elements.Add(
+                    new ParagraphElement
                     {
-                        BackgroundColorHex = background
-                    },
-                    IsAnchorOnlyMark = para.IsAnchorOnlyMark,
-                    IsCollapsedCellMark = para.IsCollapsedCellMark
-                });
+                        Runs = para.Runs,
+                        Properties = para.Properties with
+                        {
+                            BackgroundColorHex = background
+                        },
+                        IsAnchorOnlyMark = para.IsAnchorOnlyMark,
+                        IsCollapsedCellMark = para.IsCollapsedCellMark
+                    });
             }
             else
             {
@@ -423,15 +430,15 @@ sealed class HtmlParser
         // full-width paragraph shading below, so it is cleared here to avoid a redundant
         // glyph-tight highlight painted on top of the band.
         var baseProps = ParseSpanStyle(
-            element,
-            DefaultRunProps() with
+                element,
+                DefaultRunProps() with
+                {
+                    FontSizePoints = fontSize,
+                    Bold = bold
+                }) with
             {
-                FontSizePoints = fontSize,
-                Bold = bold
-            }) with
-        {
-            BackgroundColorHex = null
-        };
+                BackgroundColorHex = null
+            };
 
         var runs = ParseInlineElements(element, baseProps);
 
@@ -439,7 +446,7 @@ sealed class HtmlParser
         {
             Runs = runs.Count > 0
                 ? runs
-                : [new() { Text = "", Properties = baseProps }],
+                : [new() {Text = "", Properties = baseProps}],
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
@@ -1203,13 +1210,13 @@ sealed class HtmlParser
                 {
                     cells.Add(
                         new()
-                    {
-                        Content = [],
-                        Properties = new()
                         {
-                            VerticalMerge = VerticalMergeType.Continue
-                        }
-                    });
+                            Content = [],
+                            Properties = new()
+                            {
+                                VerticalMerge = VerticalMergeType.Continue
+                            }
+                        });
                     colIndex++;
                 }
 
@@ -1319,41 +1326,42 @@ sealed class HtmlParser
                         };
                     }
 
-                    cellElements.Add(new ParagraphElement
-                    {
-                        Properties = cellAlignment is { } alignment
-                            ? new()
-                            {
-                                Alignment = alignment
-                            }
-                            : new(),
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = text,
-                                Properties = cellRunProperties
-                            }
-                        ]
-                    });
+                    cellElements.Add(
+                        new ParagraphElement
+                        {
+                            Properties = cellAlignment is { } alignment
+                                ? new()
+                                {
+                                    Alignment = alignment
+                                }
+                                : new(),
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = text,
+                                    Properties = cellRunProperties
+                                }
+                            ]
+                        });
                 }
 
                 cells.Add(
                     new()
-                {
-                    Content = cellElements,
-                    Properties = new()
                     {
-                        Padding = cellPadding,
-                        Margin = cellMargin,
-                        BackgroundColorHex = cellBgColor,
-                        GridSpan = gridSpan,
-                        VerticalMerge = verticalMerge,
-                        WidthPoints = cellWidthPoints,
-                        WidthFraction = cellWidthFraction,
-                        Borders = cellBoxBorders
-                    }
-                });
+                        Content = cellElements,
+                        Properties = new()
+                        {
+                            Padding = cellPadding,
+                            Margin = cellMargin,
+                            BackgroundColorHex = cellBgColor,
+                            GridSpan = gridSpan,
+                            VerticalMerge = verticalMerge,
+                            WidthPoints = cellWidthPoints,
+                            WidthFraction = cellWidthFraction,
+                            Borders = cellBoxBorders
+                        }
+                    });
 
                 colIndex += gridSpan;
             }
@@ -1363,13 +1371,13 @@ sealed class HtmlParser
             {
                 cells.Add(
                     new()
-                {
-                    Content = [],
-                    Properties = new()
                     {
-                        VerticalMerge = VerticalMergeType.Continue
-                    }
-                });
+                        Content = [],
+                        Properties = new()
+                        {
+                            VerticalMerge = VerticalMergeType.Continue
+                        }
+                    });
                 colIndex++;
             }
 
@@ -1395,9 +1403,9 @@ sealed class HtmlParser
             {
                 rows.Add(
                     new()
-                {
-                    Cells = cells
-                });
+                    {
+                        Cells = cells
+                    });
             }
         }
 
@@ -1748,14 +1756,15 @@ sealed class HtmlParser
                     break;
                 case "dd":
                     var ddPara = CreateParagraph(child, 11, false);
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs = ddPara.Runs,
-                        Properties = ddPara.Properties with
+                    elements.Add(
+                        new ParagraphElement
                         {
-                            LeftIndentPoints = 36
-                        }
-                    });
+                            Runs = ddPara.Runs,
+                            Properties = ddPara.Properties with
+                            {
+                                LeftIndentPoints = 36
+                            }
+                        });
                     break;
             }
         }
@@ -1848,6 +1857,7 @@ sealed class HtmlParser
         {
             span = span[..^2].TrimEnd();
         }
+
         return double.TryParse(span, out result);
     }
 

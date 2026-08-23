@@ -21,7 +21,6 @@ using P = DocumentFormat.OpenXml.Presentation;
 /// </summary>
 sealed class PresentationParser(string defaultFont)
 {
-
     /// <summary>Default 4:3 slide, used when a package declares no <c>p:sldSz</c>.</summary>
     const long defaultSlideWidthEmu = 9144000;
     const long defaultSlideHeightEmu = 6858000;

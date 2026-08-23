@@ -2901,7 +2901,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                             _ => _
                         })
                         .ToList();
-                    result.Add(new ParagraphElement
+                    result.Add(
+                        new ParagraphElement
                     {
                         Runs = runs,
                         Properties = paragraph.Properties,
