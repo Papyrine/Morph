@@ -980,7 +980,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 AddBodyFloat(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText, absoluteY);
             }
 
-            foreach (var item in LayoutCellContent(new() { Content = textBox.Content }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top))
+            foreach (var item in LayoutCellContent(
+                         new()
+                         {
+                             Content = textBox.Content
+                         },
+                         boxX,
+                         boxY,
+                         boxWidth,
+                         boxHeight,
+                         CellVerticalAlignment.Top))
             {
                 AddBodyFloat(item, textBox.BehindText, absoluteY);
             }
@@ -1564,7 +1573,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         var ordinal = lineNumbers.Start + lineNumberCount;
                         if (ordinal % Math.Max(1, lineNumbers.CountBy) == 0)
                         {
-                            var reference = lineRuns.Count > 0 ? lineRuns[0].Properties : new RunProperties();
+                            var reference = lineRuns.Count > 0 ? lineRuns[0].Properties : new();
                             var digitProperties = new RunProperties
                             {
                                 FontFamily = reference.FontFamily,
@@ -2170,7 +2179,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     Left = frame.Left,
                     Right = frame.Right
                 };
-                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, [], false, 0, 0));
+                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, []));
             }
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)

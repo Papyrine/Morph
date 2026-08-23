@@ -131,7 +131,7 @@ public class DefaultOrientationTests
                     {
                         CellReference = "A1",
                         DataType = S.CellValues.String,
-                        CellValue = new("x")
+                        CellValue = [with("x")]
                     })));
 
         if (setup != null)

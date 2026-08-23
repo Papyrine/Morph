@@ -101,7 +101,7 @@ public class SlideBackgroundPlaceholderColorTests
         using (var document = PresentationDocument.Open(stream, true))
         {
             var slide = document.PresentationPart!.SlideParts.First().Slide!;
-            slide.CommonSlideData!.Background = new(BackgroundReference(color));
+            slide.CommonSlideData!.Background = [with(BackgroundReference(color))];
         }
 
         stream.Position = 0;

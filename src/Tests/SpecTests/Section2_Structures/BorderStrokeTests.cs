@@ -150,7 +150,7 @@ public class BorderStrokeTests
         await Assert.That(thick[0]).IsEqualTo(9).Within(0.0001f);
 
         // Dotted is on/off square; dotDotDash carries the two dots before its dash.
-        await Assert.That(BorderStroke.DashPattern(BorderLineStyle.Dotted, 1)).IsEquivalentTo(new[] {1f, 1f});
+        await Assert.That(BorderStroke.DashPattern(BorderLineStyle.Dotted, 1)).IsEquivalentTo([1f, 1f]);
         await Assert.That(BorderStroke.DashPattern(BorderLineStyle.DotDotDash, 1)!.Length).IsEqualTo(6);
         // Solid styles opt out entirely.
         await Assert.That(BorderStroke.DashPattern(BorderLineStyle.Single, 1)).IsNull();
@@ -163,7 +163,7 @@ public class BorderStrokeTests
         // The regression this whole model exists to prevent: these four collapsed to `Single`,
         // which made ParagraphProperties.SharesBorderGroupWith read four differently-bordered
         // paragraphs as one group and draw a single box around the lot.
-        BorderEdge Edge(BorderLineStyle style) => new()
+        static BorderEdge Edge(BorderLineStyle style) => new()
         {
             IsVisible = true,
             WidthPoints = 0.75,

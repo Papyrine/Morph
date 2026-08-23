@@ -65,7 +65,7 @@ public class TableGridSpanClampTests
         var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
         {
-            doc.AddMainDocumentPart().Document = new Document(new Body(table));
+            doc.AddMainDocumentPart().Document = [with(new Body(table))];
         }
 
         stream.Position = 0;
