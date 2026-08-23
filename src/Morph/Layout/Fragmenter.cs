@@ -396,7 +396,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceParagraph(controlParagraph);
                         break;
 
-                    case TableElement { Properties.IsFloating: true } table:
+                    case TableElement {Properties.IsFloating: true} table:
                         PlaceFloatingTable(table);
                         break;
 
@@ -404,7 +404,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTable(table);
                         break;
 
-                    case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 }:
+                    case FloatingImageElement image when DecodableImageBytes(image) is {Length: > 0}:
                         EmitBodyFloat(image, image.VerticalAnchor, image.AnchorParagraph);
                         break;
 
@@ -441,15 +441,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // mirroring the production RenderHorizontalRule geometry (line at slot middle).
                     case HorizontalRuleElement:
                         EnsureSpaceFor(6);
-                        items.Add(new PlacedBorder(ColumnLeft, y + 3, columnWidth, 0, new()
-                        {
-                            Top = new()
-                            {
-                                IsVisible = true,
-                                WidthPoints = 0.75,
-                                ColorHex = "A0A0A0"
-                            }
-                        }));
+                        items.Add(
+                            new PlacedBorder(
+                                ColumnLeft,
+                                y + 3,
+                                columnWidth,
+                                0,
+                                new()
+                                {
+                                    Top = new()
+                                    {
+                                        IsVisible = true,
+                                        WidthPoints = 0.75,
+                                        ColorHex = "A0A0A0"
+                                    }
+                                }));
                         y += 6;
                         atRegionTop = false;
                         lastAfter = 0;
@@ -1314,10 +1320,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // box so it paints over it, as a zero-height top-only border (the w:hr geometry).
             foreach (var betweenY in borderRunBetweens)
             {
-                items.Add(new PlacedBorder(left, betweenY, width, 0, new()
-                {
-                    Top = run.BorderBetween
-                }));
+                items.Add(
+                    new PlacedBorder(
+                        left,
+                        betweenY,
+                        width,
+                        0,
+                        new()
+                        {
+                            Top = run.BorderBetween
+                        }));
             }
 
             // The bottom space and rule occupy flow: the cursor clears them before whatever follows, so the
@@ -2415,10 +2427,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     foreach (var betweenY in cellBorderBetweens)
                     {
-                        lines.Add(new PlacedBorder(boxLeft, betweenY, boxWidth, 0, new()
-                        {
-                            Top = run.BorderBetween
-                        }));
+                        lines.Add(
+                            new PlacedBorder(
+                                boxLeft,
+                                betweenY,
+                                boxWidth,
+                                0,
+                                new()
+                                {
+                                    Top = run.BorderBetween
+                                }));
                     }
 
                     cellBorderBetweens = null;

@@ -249,7 +249,14 @@ public partial class MorphConverter : IDisposable
 
     static List<string> RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
     {
-        var pages = ConversionService.RenderPngPages(bytes, source, new() { Dpi = dpi }, fontDirectory);
+        var pages = ConversionService.RenderPngPages(
+            bytes,
+            source,
+            new()
+            {
+                Dpi = dpi
+            },
+            fontDirectory);
         var urls = new List<string>(pages.Count);
         foreach (var page in pages)
         {

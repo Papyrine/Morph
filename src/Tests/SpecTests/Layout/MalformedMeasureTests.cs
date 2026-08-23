@@ -49,7 +49,11 @@ public class MalformedMeasureTests
         using var stream = BuildLeaderDocument(attribute, value);
 
         var watch = Stopwatch.StartNew();
-        var pdf = new WordDocument(stream).ExportToPdf(new() {FontDirectory = fontsDirectory});
+        var pdf = new WordDocument(stream).ExportToPdf(
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
         watch.Stop();
 
         // A one-paragraph page. 166 million dots was ~5GB of content stream before it died.

@@ -255,10 +255,11 @@ public class TableAutofitTests
                     });
             }
 
-            rows.Add(new()
-            {
-                Cells = cells
-            });
+            rows.Add(
+                new()
+                {
+                    Cells = cells
+                });
         }
 
         return new()

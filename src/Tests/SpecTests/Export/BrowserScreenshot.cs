@@ -59,15 +59,16 @@ static class BrowserScreenshot
     public static async Task<byte[]> RenderHtmlAsync(string html, double deviceScale = 1)
     {
         var instance = await GetBrowserAsync();
-        await using var context = await instance.NewContextAsync(new()
-        {
-            ViewportSize = new()
+        await using var context = await instance.NewContextAsync(
+            new()
             {
-                Width = 1024,
-                Height = 768
-            },
-            DeviceScaleFactor = (float) deviceScale
-        });
+                ViewportSize = new()
+                {
+                    Width = 1024,
+                    Height = 768
+                },
+                DeviceScaleFactor = (float) deviceScale
+            });
         var page = await context.NewPageAsync();
 
         // Render from a real file:// page so the file:// @font-face URLs are same-scheme and load
@@ -87,12 +88,13 @@ static class BrowserScreenshot
             // captured mid-swap from a fallback face. EvaluateAsync takes no timeout and is not
             // bound by the default one, so this await is not a candidate for the same failure.
             await page.EvaluateAsync("async () => { await document.fonts.ready; }");
-            return await page.ScreenshotAsync(new()
-            {
-                FullPage = true,
-                Type = ScreenshotType.Png,
-                Timeout = pageTimeout
-            });
+            return await page.ScreenshotAsync(
+                new()
+                {
+                    FullPage = true,
+                    Type = ScreenshotType.Png,
+                    Timeout = pageTimeout
+                });
         }
         finally
         {
@@ -194,20 +196,21 @@ static class BrowserScreenshot
             }
 
             playwright = await Playwright.CreateAsync();
-            browser = await playwright.Chromium.LaunchAsync(new()
-            {
-                Headless = true,
-                Args =
-                [
-                    // Let the file:// page load the file:// @font-face URLs.
-                    "--allow-file-access-from-files",
-                    // Strip platform-specific text rasterization so two machines match: no hinting,
-                    // no LCD subpixel AA, fixed sRGB profile.
-                    "--font-render-hinting=none",
-                    "--disable-lcd-text",
-                    "--force-color-profile=srgb"
-                ]
-            });
+            browser = await playwright.Chromium.LaunchAsync(
+                new()
+                {
+                    Headless = true,
+                    Args =
+                    [
+                        // Let the file:// page load the file:// @font-face URLs.
+                        "--allow-file-access-from-files",
+                        // Strip platform-specific text rasterization so two machines match: no hinting,
+                        // no LCD subpixel AA, fixed sRGB profile.
+                        "--font-render-hinting=none",
+                        "--disable-lcd-text",
+                        "--force-color-profile=srgb"
+                    ]
+                });
         }
         finally
         {

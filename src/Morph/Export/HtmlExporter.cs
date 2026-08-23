@@ -412,14 +412,16 @@ static class HtmlExporter
                     elements[index + 1] is ParagraphElement next &&
                     string.Equals(next.Properties.StyleId, contextual.Properties.StyleId, StringComparison.OrdinalIgnoreCase))
                 {
-                    WriteParagraph(new ParagraphElement
-                    {
-                        Runs = contextual.Runs,
-                        Properties = contextual.Properties with {SpacingAfterPoints = 0},
-                        IsAnchorOnlyMark = contextual.IsAnchorOnlyMark,
-                        IsCollapsedCellMark = contextual.IsCollapsedCellMark,
-                        IsSectionBreakMark = contextual.IsSectionBreakMark
-                    }, depth);
+                    WriteParagraph(
+                        new()
+                        {
+                            Runs = contextual.Runs,
+                            Properties = contextual.Properties with {SpacingAfterPoints = 0},
+                            IsAnchorOnlyMark = contextual.IsAnchorOnlyMark,
+                            IsCollapsedCellMark = contextual.IsCollapsedCellMark,
+                            IsSectionBreakMark = contextual.IsSectionBreakMark
+                        },
+                        depth);
                     borderGroupPrevious = null;
                     borderGroupNext = null;
                     continue;

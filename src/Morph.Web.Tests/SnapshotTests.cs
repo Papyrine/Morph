@@ -97,7 +97,7 @@ public class SnapshotTests
         await page.GotoAsync($"http://localhost:{port}/");
         await SettleAsync(page);
 
-        await UploadSampleAsync(page, InputFormat.Docx);
+        await UploadSampleAsync(page);
 
         var image = await page.QuerySelectorAsync(".preview-page");
         var source = await image!.GetAttributeAsync("src");
@@ -190,24 +190,30 @@ public class SnapshotTests
         await UploadSampleAsync(page);
 
         await page.SelectOptionAsync(".convert-panel .format-select", "Markdown");
-        var text = await page.WaitForSelectorAsync(".result-text", new()
-        {
-            Timeout = 30000
-        });
+        var text = await page.WaitForSelectorAsync(
+            ".result-text",
+            new()
+            {
+                Timeout = 30000
+            });
         // The sample document embeds images; the pane view swaps their base64 payloads for size notes.
         await Assert.That(await text!.TextContentAsync()).Contains("KB elided");
         // ...and captions that swap under the header.
-        var note = await page.WaitForSelectorAsync(".result-note", new()
-        {
-            Timeout = 30000
-        });
+        var note = await page.WaitForSelectorAsync(
+            ".result-note",
+            new()
+            {
+                Timeout = 30000
+            });
         await Assert.That(await note!.TextContentAsync()).Contains("omitted for brevity");
 
         await page.SelectOptionAsync(".convert-panel .format-select", "Html");
-        var frame = await page.WaitForSelectorAsync(".result-frame", new()
-        {
-            Timeout = 30000
-        });
+        var frame = await page.WaitForSelectorAsync(
+            ".result-frame",
+            new()
+            {
+                Timeout = 30000
+            });
         var source = await frame!.GetAttributeAsync("src");
         await Assert.That(source).StartsWith("blob:");
 
@@ -361,16 +367,20 @@ public class SnapshotTests
     static async Task UploadSampleAsync(IPage page, InputFormat source = InputFormat.Docx)
     {
         var info = ConversionService.Find(source);
-        await page.SetInputFilesAsync("#source-file", new FilePayload
-        {
-            Name = info.SampleFileName,
-            MimeType = info.ContentType,
-            Buffer = Sample.BytesFor(source)
-        });
-        await page.WaitForSelectorAsync(".preview-page", new()
-        {
-            Timeout = 90000
-        });
+        await page.SetInputFilesAsync(
+            "#source-file",
+            new FilePayload
+            {
+                Name = info.SampleFileName,
+                MimeType = info.ContentType,
+                Buffer = Sample.BytesFor(source)
+            });
+        await page.WaitForSelectorAsync(
+            ".preview-page",
+            new()
+            {
+                Timeout = 90000
+            });
     }
 
     // The sample buttons render in ReadableFormats order, so the format's index picks its button.
@@ -407,14 +417,18 @@ public class SnapshotTests
         // render; wait for them so the captured HTML/PNG always includes them rather than racing a partial
         // footer. Match on Attached, not the default Visible, since the payload size is display:none at the
         // mobile viewport — it's still in the DOM, which is all we need to know the interop has completed.
-        await page.WaitForSelectorAsync(".footer-size", new()
-        {
-            State = WaitForSelectorState.Attached
-        });
-        await page.WaitForSelectorAsync(".footer-ram", new()
-        {
-            State = WaitForSelectorState.Attached
-        });
+        await page.WaitForSelectorAsync(
+            ".footer-size",
+            new()
+            {
+                State = WaitForSelectorState.Attached
+            });
+        await page.WaitForSelectorAsync(
+            ".footer-ram",
+            new()
+            {
+                State = WaitForSelectorState.Attached
+            });
     }
 
     static int GetAvailablePort()
