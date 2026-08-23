@@ -165,7 +165,7 @@ public class DefaultPaperSizeTests
         var cell = new S.Cell
         {
             DataType = S.CellValues.String,
-            CellValue = new("x")
+            CellValue = [with("x")]
         };
 
         if (cellReference != null)
@@ -192,14 +192,16 @@ public class DefaultPaperSizeTests
             var workbookPart = document.AddWorkbookPart();
             var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
             worksheetPart.Worksheet = worksheet;
-            workbookPart.Workbook = new(
-                new S.Sheets(
+            workbookPart.Workbook =
+            [
+                with(new S.Sheets(
                     new S.Sheet
                     {
                         Id = workbookPart.GetIdOfPart(worksheetPart),
                         SheetId = 1,
                         Name = "Sheet1"
-                    }));
+                    }))
+            ];
         }
 
         stream.Position = 0;

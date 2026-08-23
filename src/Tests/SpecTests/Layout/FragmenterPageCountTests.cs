@@ -33,7 +33,7 @@ public class FragmenterPageCountTests
             ParsedDocument document;
             try
             {
-                using var stream = File.OpenRead(input);
+                await using var stream = File.OpenRead(input);
                 document = new DocumentParser().Parse(stream);
             }
             catch

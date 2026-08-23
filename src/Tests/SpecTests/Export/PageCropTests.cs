@@ -212,7 +212,7 @@ public class PageCropTests
             PageSettings = Settings(),
             Elements =
             [
-                ExportTestBuilders.Para(ExportTestBuilders.TextRun("Cropping leaves the layout alone."))
+                Para(TextRun("Cropping leaves the layout alone."))
             ],
             Header = new()
             {
@@ -323,7 +323,7 @@ public class PageCropTests
             for (var x = 0; x < bitmap.Width; x++)
             {
                 var pixel = bitmap.GetPixel(x, y);
-                if (pixel.Red > 200 && pixel.Green < 50 && pixel.Blue < 50)
+                if (pixel is {Red: > 200, Green: < 50, Blue: < 50})
                 {
                     return true;
                 }

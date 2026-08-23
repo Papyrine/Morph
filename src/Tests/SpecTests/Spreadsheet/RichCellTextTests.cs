@@ -38,11 +38,11 @@ public class RichCellTextTests
     public async Task InlinePlainText_IsUnaffected()
     {
         using var stream = Workbook(
-            new S.Cell
+            new()
             {
                 CellReference = "A1",
                 DataType = S.CellValues.InlineString,
-                InlineString = new(new S.Text("plain"))
+                InlineString = [with(new S.Text("plain"))]
             });
 
         var text = CellText(stream);
@@ -66,12 +66,14 @@ public class RichCellTextTests
         {
             CellReference = "A1",
             DataType = S.CellValues.InlineString,
-            InlineString = new(
-                new S.Run(
-                    new S.RunProperties(new S.Bold()),
-                    new S.Text("Instructions: ")),
-                new S.Run(
-                    new S.Text("fill in every field.")))
+            InlineString =
+            [
+                with(new S.Run(
+                        new S.RunProperties(new S.Bold()),
+                        new S.Text("Instructions: ")),
+                    new S.Run(
+                        new S.Text("fill in every field.")))
+            ]
         };
 
     static MemoryStream Workbook(S.Cell cell, Action<WorkbookPart>? configure = null)
@@ -81,16 +83,18 @@ public class RichCellTextTests
         {
             var workbookPart = document.AddWorkbookPart();
             var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-            worksheetPart.Worksheet = new(new S.SheetData(new S.Row(cell)));
+            worksheetPart.Worksheet = [with(new S.SheetData(new S.Row(cell)))];
             configure?.Invoke(workbookPart);
-            workbookPart.Workbook = new(
-                new S.Sheets(
+            workbookPart.Workbook =
+            [
+                with(new S.Sheets(
                     new S.Sheet
                     {
                         Id = workbookPart.GetIdOfPart(worksheetPart),
                         SheetId = 1,
                         Name = "Sheet1"
-                    }));
+                    }))
+            ];
         }
 
         stream.Position = 0;
@@ -99,21 +103,23 @@ public class RichCellTextTests
 
     static MemoryStream SharedWorkbook() =>
         Workbook(
-            new S.Cell
+            new()
             {
                 CellReference = "A1",
                 DataType = S.CellValues.SharedString,
-                CellValue = new("0")
+                CellValue = [with("0")]
             },
             workbookPart =>
             {
                 var part = workbookPart.AddNewPart<SharedStringTablePart>();
-                part.SharedStringTable = new(
-                    new S.SharedStringItem(
+                part.SharedStringTable =
+                [
+                    with(new S.SharedStringItem(
                         new S.Run(
                             new S.RunProperties(new S.Bold()),
                             new S.Text("Instructions: ")),
                         new S.Run(
-                            new S.Text("fill in every field."))));
+                            new S.Text("fill in every field."))))
+                ];
             });
 }

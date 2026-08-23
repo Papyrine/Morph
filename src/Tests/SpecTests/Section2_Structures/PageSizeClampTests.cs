@@ -47,7 +47,7 @@ public class PageSizeClampTests
         var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
         {
-            doc.AddMainDocumentPart().Document = new Document(body);
+            doc.AddMainDocumentPart().Document = [with(body)];
         }
 
         stream.Position = 0;
