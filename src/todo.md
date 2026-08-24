@@ -80,7 +80,8 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
   **Corpus-wide the linearization is CLOSED**: no scenario now exceeds 2x Word's page height (median 0.75), where brochures/03 alone was ~2.7x and cards/19 far worse. Still open, and inherent rather than a placement bug: a page-RELATIVE float approximates its page top by the anchor's flow position, so a fixed-layout multi-panel document still overlaps where Word separates by page — brochures/03 is the case, its whole design living in two anchored groups of 29 pictures positioned per page. Closing that needs the export to paginate, which it deliberately does not.
 - **#35 Cell paragraph spacing in the HTML export — CLOSED 2026-08-19.** A cell paragraph that declares before/after `w:spacing` now leaves the inline `<br />` join and renders as a real `<p>` with explicit margins (`HtmlExporter.AppendCellContent`); zero-spacing cell paragraphs keep the compact inline model, so only cells that actually carry spacing changed. Cleared the family (cover-letters/05/07/09/10/12, letters/12, newsletters/03, compatibility_mode_14), all verified against the regenerated renders. EMPTY separator paragraphs were already spacers; body-level paragraphs were never affected.
-- **#31 HTML/AltChunk input gaps.** Block-level CSS, named colours, image sizing, paragraph pitch, table styling, `margin-left` indents (0.75pt/px, 2026-08-19) and the `border`-attribute table model (2026-08-20: detached per-cell boxes with cellspacing gaps, collapsed inside rules under `border-collapse`/`cellspacing=0`, the frame at the attribute width — `_probe_htmlborders`) all landed — the import model is documented in `docs/html-import.md`. Still open: cell-level inline formatting is flattened (`cell.TextContent` builds ONE run, so `<b>`/`<span style>` inside a cell lose their formatting); shaded blocks render as full-width bands with no padding or border; `vertical-align` on cells is unmodelled; cell padding composes slightly tighter than Word; per-cell CSS margins render as a uniform grid.
+- **#31 HTML/AltChunk input gaps.** Block-level CSS, named colours, image sizing, paragraph pitch, table styling, `margin-left` indents (0.75pt/px, 2026-08-19), the `border`-attribute table model (2026-08-20: detached per-cell boxes with cellspacing gaps, collapsed inside rules under `border-collapse`/`cellspacing=0`, the frame at the attribute width — `_probe_htmlborders`) and the CSS box model (2026-08-24: paragraph/div borders as `w:pBdr` with padding as `w:space`, per-edge longhands, per-cell CSS borders as `w:tcBorders`, vertical margins with Word's collapse rule — probed by round-tripping amplified fixtures through Word's own HTML import, `docs/html-import.md`) all landed. Still open: cell-level inline formatting is flattened (`cell.TextContent` builds ONE run, so `<b>`/`<span style>` inside a cell lose their formatting); `vertical-align` on cells is unmodelled; cell padding composes slightly tighter than Word; per-cell CSS margins render as a uniform grid.
+- **#46 Paragraph borders stroke centered where Word strokes outward** (measured 2026-08-24, `_probe_cssbox1`). The engine's `PlacedBorder` box puts each rule's CENTER on the box rectangle, while Word puts the rule's INNER edge there and strokes outward: at 6pt single with the text margin at x=150 (150 DPI), Word's left rule spans x135-146 against Morph's x144-155, and the box height runs one border width short (54px vs 42 at 6pt). Half the border width of offset per side — invisible at the corpus's usual 0.5-1pt, so every existing baseline embeds it. Fixing it is a paint-only change in the painters' edge stroking (the flow reserve already charges the full `BorderStroke.Extent`), but re-judges every `w:pBdr` scenario, including the amplified `border_style_variants`/`paragraph_borders` fixtures where it is 2-3px.
 
 ### Spreadsheet input (`Inputs/excel`)
 
@@ -563,9 +564,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### html_complex
 
 - MEDIUM | all | p1,p2 | "Visit our website for more information." paragraph spills to p2 top — the page break lands one element off Word's. BLOCKED by the intro-wrap root cause below (a narrow-measure issue); not cleanly fixable in isolation. (The interior-gridlines finding landed 2026-08-20 — border-collapse maps to inside rules.)
-- MEDIUM | all | p2 | Info/Warning/Error boxes have no coloured border and no padding — the fills render as thin full-width bands rather than padded boxes, and land offset on p2 from the reflow above (AE +0.019)
 - MEDIUM | all | p1 | **Intro paragraph wraps 3 lines vs Word's 2 — ATTEMPTED 2026-07-21, REVERTED (net regression).** TWO causes, not the sup/sub: (1) `HtmlParser` did NOT collapse HTML whitespace — literal source newlines in the `<p>` became hard breaks (the intro source has newlines after "and" and "have", exactly where Morph broke). (2) Morph's HTML body text measures ~6-9% NARROWER than Word (same font/size — first line ink height matches — so it's font metrics + sup/sub at 0.7×), so it UNDER-wraps. Fixing (1) alone (`CollapseWhitespace` on text nodes in `ParseInlineNodes`, char-by-char run→single-space, `<pre>` unaffected) is objectively correct HTML behaviour BUT over-corrects the intro to 1 line (Word's 2) because (2) then dominates, and REGRESSES the metric: html_complex p1 +0.068 AE / −0.021 SSIM, p2 +0.011, html_css_margin_padding +0.011 (only 3 scenarios changed; the newline-breaks had been *accidentally compensating* for the narrow measure). It also only SHIFTS the reflow (p2 then loses the "5. Styled Boxes" heading to p1) instead of fixing it. To truly land: fix the whitespace collapse AND match Word's text width (a corpus-wide font-metric issue — same class as the `header_footer`/`resumes` "wraps 3 vs 2 lines" findings), then the page break seats correctly.
-- MEDIUM | html | - | Info/Warning/Error box borders and padding missing in the export (backgrounds and text colors render since the paragraph-shading pass)
 
 ### html_css_alignment
 
@@ -573,21 +572,9 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | all | p1 | Justified paragraph breaks after "entire line" instead of Word's "fill the" (same 2-line count, different break word)
 - MEDIUM | html | - | width:100% lost in the export (content-width table; interior borders land with the 2026-08-20 model)
 
-### html_css_borders
-
-- MAJOR | all | p1 | All seven CSS paragraph borders missing (1px solid black, 2px red, 3px dashed blue, 2px dotted green, 4px double purple, top-red/bottom-blue, 5px orange left bar) — plain unboxed text lines, and with the borders/padding gone the stack compresses ~2in upward
-- MEDIUM | all | p1 | Table per-cell border styling lost: one uniform thin box, no 2px thick border on "Cell with thick border" vs 1px gray on "Cell with thin border", and no divider line between the two cells
-- MAJOR | html | - | Same seven paragraph borders missing in the HTML export
-- MEDIUM | html | - | Table cell border weight/color distinction and inner divider missing in the HTML export
-
-> The CSS box-border/padding attempt of 2026-07-21 was reverted; what it proved, what it cost
-> and what landing it requires are in `docs/html-import.md`.
-
 ### html_css_margin_padding
 
-- MEDIUM | all | p1 | #0066CC border box and its padding missing (background fills render as full-width bands)
-- MEDIUM | all | p1 | 20px div padding and 30px vertical margins collapsed — "Content inside padded div" not inset and "Paragraph with extra vertical margins" sits tight against its neighbors
-- MEDIUM | html | - | the #0066CC border box missing in the HTML export (its background and the margin-left indents render since 2026-08-19)
+- MEDIUM | all | p1 | the #CCE5FF bordered box is ~55px taller than Word's — its `<p>` source spans multiple lines and the uncollapsed whitespace renders as extra lines inside the box (the whitespace-collapse family, see html_complex's intro-wrap finding; the box itself, its padding and the vertical margins landed 2026-08-24)
 
 ### html_images
 
