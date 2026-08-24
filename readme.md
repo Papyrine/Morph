@@ -283,7 +283,7 @@ For multi-format export, `WordDocument` parses the source a single time and supp
 var document = new WordDocument("document.docx");
 
 File.WriteAllText("document.html", document.ExportToHtml());
-File.WriteAllText("document.md",   document.ExportToMarkdown());
+File.WriteAllText("document.md", document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("document.pdf");
 ```
@@ -454,7 +454,7 @@ await File.WriteAllBytesAsync("page.pdf", pdf);
 var document = await HtmlDocument.LoadAsync("<h1>Hello</h1><p>World</p>");
 
 await File.WriteAllTextAsync("page.html", document.ExportToHtml());
-await File.WriteAllTextAsync("page.md",   document.ExportToMarkdown());
+await File.WriteAllTextAsync("page.md", document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("page.pdf");
 ```
@@ -480,7 +480,7 @@ foreach (var (bookmark, page) in pages)
     Console.WriteLine($"{bookmark} is on page {page}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L361-L372' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L363-L374' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 It costs a layout pass and nothing more — the answer is read off the layout engine's placed items, so no page is drawn and no rendering backend is involved. Bookmarks that cannot be placed, such as one sitting between paragraphs at body level (`ParagraphIndex == null`), are absent from the result rather than reported at a guessed page.
@@ -612,22 +612,24 @@ foreach (var image in ImageCompressor.Inspect("document.docx"))
 
 // Word's Compress Pictures defaults to 220 DPI for print, which is a safer target
 // if the document is going to be printed rather than read on screen.
-ImageCompressor.Compress("document.docx", new()
-{
-    TargetDpi = 220,
-    JpegQuality = 85,
+ImageCompressor.Compress(
+    "document.docx",
+    new()
+    {
+        TargetDpi = 220,
+        JpegQuality = 85,
 
-    // Opt in to writing opaque PNGs out as JPEG. Lossy, and it renames the package
-    // part, but for photographic content it is much the largest saving available.
-    ConvertOpaquePngToJpeg = true
-});
+        // Opt in to writing opaque PNGs out as JPEG. Lossy, and it renames the package
+        // part, but for photographic content it is much the largest saving available.
+        ConvertOpaquePngToJpeg = true
+    });
 
 // Stream overloads write the compressed package to any destination.
 using var source = File.OpenRead("document.docx");
 using var target = File.Create("document-small.docx");
 ImageCompressor.Compress(source, target);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L330-L356' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L330-L358' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The encoding is done by an `ImageCodec`, because the core `Morph` package has no imaging dependency. Referencing `Morph.ImageSharp` or `Morph.Skia` is enough for one to be found — ImageSharp is preferred, since SkiaSharp's PNG encoder exposes no compression level. Set `ImageCompressionOptions.Codec` to supply a different one.
