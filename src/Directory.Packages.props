@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AngleSharp" Version="1.7.1" />
+    <PackageVersion Include="AngleSharp" Version="1.7.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <!-- Blazor. Components.Web is the Morph.Blazor component package's only framework dependency — it is
          a plain Razor class library, so it builds anywhere and stays in Release solution builds. The
@@ -43,8 +43,8 @@
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="3.1.0" />
     <PackageVersion Include="Svg.Skia" Version="5.2.1" />
     <PackageVersion Include="Verify.PDFium" Version="1.4.1" />
-    <PackageVersion Include="TUnit" Version="1.65.38" />
+    <PackageVersion Include="TUnit" Version="1.65.51" />
     <PackageVersion Include="Verify.DiffPlex" Version="3.3.1" />
-    <PackageVersion Include="Verify.TUnit" Version="32.0.0-beta.11" />
+    <PackageVersion Include="Verify.TUnit" Version="32.0.0-beta.13" />
   </ItemGroup>
 </Project>
