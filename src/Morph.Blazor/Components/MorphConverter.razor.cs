@@ -364,12 +364,14 @@ public partial class MorphConverter : IDisposable
         return new(payload.Bytes, null, url, false);
     }
 
-    async Task RevokeAsync(ResultPreview preview)
+    Task RevokeAsync(ResultPreview preview)
     {
         if (preview.Url is { } url)
         {
-            await Interop.RevokeObjectUrlAsync(url);
+            return Interop.RevokeObjectUrlAsync(url);
         }
+
+        return Task.CompletedTask;
     }
 
     async Task Download()
