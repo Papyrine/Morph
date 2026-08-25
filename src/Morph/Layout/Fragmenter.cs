@@ -580,10 +580,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 items[index] = ShiftItem(items[index], offset);
             }
 
-            var page = bodies.Count;
+            var pageIndex = bodies.Count;
             for (var index = 0; index < bodyFloats.Count; index++)
             {
-                if (bodyFloats[index].Page == page)
+                if (bodyFloats[index].Page == pageIndex)
                 {
                     bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
                 }
@@ -2925,7 +2925,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
         // they span the whole page. Front-text (foreground) header art is a later slice; header/footer
         // text and band tables lay out in LayoutBand.
-        static IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings page, bool isFooter)
+        static IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter)
         {
             if (band == null)
             {
@@ -2933,13 +2933,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             var items = new List<PlacedItem>();
-            var marginLeft = (float) page.MarginLeft;
+            var marginLeft = (float) settings.MarginLeft;
             // A paragraph-anchored band float positions from the band's own origin: the header distance for
             // a header, the footer distance up from the page bottom for a footer. Page/margin anchors are
             // absolute and shared by both.
             var bandTop = isFooter
-                ? (float) (page.HeightPoints - page.FooterDistance)
-                : (float) page.HeaderDistance;
+                ? (float) (settings.HeightPoints - settings.FooterDistance)
+                : (float) settings.HeaderDistance;
 
             // A band's behind-text floating art is anchored like a body float but from the band origin —
             // the page edge, the top margin, or the band itself. Both band images and band shapes (e.g.
@@ -2951,7 +2951,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 verticalAnchor switch
                 {
                     VerticalAnchor.Page => (float) verticalOffset,
-                    VerticalAnchor.Margin => (float) page.MarginTop + (float) verticalOffset,
+                    VerticalAnchor.Margin => (float) settings.MarginTop + (float) verticalOffset,
                     _ => bandTop + (float) verticalOffset
                 });
 
