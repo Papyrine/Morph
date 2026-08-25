@@ -176,17 +176,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // the same way, and FooterBand has always measured both. Skipping tables here left the body reserving
         // only the header's text: a banner header whose masthead is a shaded one-column table (a protective
         // marking over a colour bar) reserved two lines and let the first body heading land inside the bar.
-        float HeaderReservedTop(PageSettings settings, HeaderFooterContent? header)
+        float HeaderReservedTop(PageSettings settings, HeaderFooterContent? content)
         {
             var marginTop = (float) settings.MarginTop;
-            if (settings.TopMarginIsAbsolute || header == null)
+            if (settings.TopMarginIsAbsolute || content == null)
             {
                 return marginTop;
             }
 
             var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             var headerHeight = 0f;
-            foreach (var element in header.Elements)
+            foreach (var element in content.Elements)
             {
                 if (element is ParagraphElement paragraph)
                 {
