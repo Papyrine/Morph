@@ -354,19 +354,20 @@ public class HtmlExporterTests
     public Task PageGeometry() =>
         // The page margins become the body padding and the content width its max-width, so text
         // wraps at Word's measure.
-        VerifyHtml(new()
-        {
-            PageSettings = new()
+        VerifyHtml(
+            new()
             {
-                WidthPoints = 612,
-                HeightPoints = 792,
-                MarginTop = 28.8,
-                MarginRight = 36,
-                MarginBottom = 72,
-                MarginLeft = 36
-            },
-            Elements = [Para(TextRun("wide measure"))]
-        });
+                PageSettings = new()
+                {
+                    WidthPoints = 612,
+                    HeightPoints = 792,
+                    MarginTop = 28.8,
+                    MarginRight = 36,
+                    MarginBottom = 72,
+                    MarginLeft = 36
+                },
+                Elements = [Para(TextRun("wide measure"))]
+            });
 
     [Test]
     public Task NestedTableInCell()
@@ -391,31 +392,32 @@ public class HtmlExporterTests
     public Task FootnotesAndEndnotes() =>
         // Footnote and endnote citations become <sup> links, numbered together in reference order,
         // plus a trailing <section class="footnotes"> of definitions with back-links.
-        VerifyHtml(new()
-        {
-            PageSettings = new(),
-            Elements =
-            [
-                Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
-                Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
-            ],
-            Footnotes =
-            [
-                new()
-                {
-                    Id = "1",
-                    Text = "The footnote body."
-                }
-            ],
-            Endnotes =
-            [
-                new()
-                {
-                    Id = "1",
-                    Text = "The endnote body."
-                }
-            ]
-        });
+        VerifyHtml(
+            new()
+            {
+                PageSettings = new(),
+                Elements =
+                [
+                    Para(TextRun("See note "), FootnoteRef("1"), TextRun(" and "), EndnoteRef("1"), TextRun(".")),
+                    Para(TextRun("Reuse "), FootnoteRef("1"), TextRun(" here."))
+                ],
+                Footnotes =
+                [
+                    new()
+                    {
+                        Id = "1",
+                        Text = "The footnote body."
+                    }
+                ],
+                Endnotes =
+                [
+                    new()
+                    {
+                        Id = "1",
+                        Text = "The endnote body."
+                    }
+                ]
+            });
 
     [Test]
     public Task ImageAltText() =>

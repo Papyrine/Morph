@@ -74,7 +74,7 @@ static class NotesAppendix
 
         var values = (int[]) [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
         var symbols = (string[]) ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
-        var builder = new System.Text.StringBuilder();
+        var builder = new StringBuilder();
         for (var i = 0; i < values.Length; i++)
         {
             while (number >= values[i])
@@ -130,36 +130,37 @@ static class NotesAppendix
 
         for (var noteIndex = 0; noteIndex < entries.Count; noteIndex++)
         {
-            paragraphs.Add(new()
-            {
-                Runs =
-                [
-                    // Sequential display number, matching the citation marks (footnotes.xml
-                    // ids start at 2; Word shows 1, 2, 3... for footnotes and i, ii, iii...
-                    // for default-format endnotes).
-                    new()
-                    {
-                        Text = $"{FormatOrdinal(noteIndex + 1, format)}. ",
-                        Properties = new()
-                        {
-                            Bold = true,
-                            FontSizePoints = 10
-                        }
-                    },
-                    new()
-                    {
-                        Text = entries[noteIndex],
-                        Properties = new()
-                        {
-                            FontSizePoints = 10
-                        }
-                    }
-                ],
-                Properties = new()
+            paragraphs.Add(
+                new()
                 {
-                    SpacingAfterPoints = 4
-                }
-            });
+                    Runs =
+                    [
+                        // Sequential display number, matching the citation marks (footnotes.xml
+                        // ids start at 2; Word shows 1, 2, 3... for footnotes and i, ii, iii...
+                        // for default-format endnotes).
+                        new()
+                        {
+                            Text = $"{FormatOrdinal(noteIndex + 1, format)}. ",
+                            Properties = new()
+                            {
+                                Bold = true,
+                                FontSizePoints = 10
+                            }
+                        },
+                        new()
+                        {
+                            Text = entries[noteIndex],
+                            Properties = new()
+                            {
+                                FontSizePoints = 10
+                            }
+                        }
+                    ],
+                    Properties = new()
+                    {
+                        SpacingAfterPoints = 4
+                    }
+                });
         }
     }
 }

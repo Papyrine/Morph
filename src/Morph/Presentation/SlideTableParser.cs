@@ -11,9 +11,9 @@ using A = DocumentFormat.OpenXml.Drawing;
 /// </summary>
 sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textParser)
 {
-
     /// <summary>PowerPoint's default cell insets (ECMA-376 §21.1.3.17): 0.1" sides, 0.05" ends.</summary>
     const double defaultSideMarginEmu = 91440;
+
     const double defaultEndMarginEmu = 45720;
 
     public TableElement? Parse(A.Table table, TableStylesPart? stylesPart)
@@ -175,17 +175,19 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
                 continue;
             }
 
-            result.Add(new ParagraphElement
-            {
-                Runs = paragraph.Runs
-                    .Select(_ => _.WithProperties(_.Properties with
-                    {
-                        ColorHex = _.Properties.ColorHex ?? styled.ColorHex,
-                        Bold = _.Properties.Bold || styled.Bold
-                    }))
-                    .ToArray(),
-                Properties = paragraph.Properties
-            });
+            result.Add(
+                new ParagraphElement
+                {
+                    Runs = paragraph.Runs
+                        .Select(_ => _.WithProperties(
+                            _.Properties with
+                            {
+                                ColorHex = _.Properties.ColorHex ?? styled.ColorHex,
+                                Bold = _.Properties.Bold || styled.Bold
+                            }))
+                        .ToArray(),
+                    Properties = paragraph.Properties
+                });
         }
 
         return result;

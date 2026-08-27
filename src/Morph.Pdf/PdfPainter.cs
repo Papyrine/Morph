@@ -265,7 +265,7 @@ static class PdfPainter
         {
             var skew = FontHelpers.SyntheticItalicSkew;
             state = graphics.Save();
-            graphics.MultiplyTransform(new XMatrix(1, 0, -skew, 1, skew * baseline, 0));
+            graphics.MultiplyTransform(new(1, 0, -skew, 1, skew * baseline, 0));
         }
 
         if (trackingPoints == 0 || text.Length <= 1)
@@ -718,7 +718,7 @@ static class PdfPainter
             var points = new List<XPoint>();
             foreach (var (along, across) in BorderStroke.WavePoints(from, to, wave.Period, wave.Amplitude))
             {
-                points.Add(horizontal ? new XPoint(along, centre + across) : new XPoint(centre + across, along));
+                points.Add(horizontal ? new(along, centre + across) : new XPoint(centre + across, along));
             }
 
             if (points.Count > 1)

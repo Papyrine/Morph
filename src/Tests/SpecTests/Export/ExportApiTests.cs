@@ -53,14 +53,16 @@ public class ExportApiTests
         var document = Doc(image);
 
         var received = new List<EmbeddedImage>();
-        var output = HtmlExporter.Export(document, new()
-        {
-            ImageHandler = info =>
+        var output = HtmlExporter.Export(
+            document,
+            new()
             {
-                received.Add(info);
-                return $"images/image-{info.Index}.png";
-            }
-        });
+                ImageHandler = info =>
+                {
+                    received.Add(info);
+                    return $"images/image-{info.Index}.png";
+                }
+            });
 
         await Assert.That(received.Count).IsEqualTo(1);
         await Assert.That(received[0].ContentType).IsEqualTo("image/png");
@@ -72,13 +74,20 @@ public class ExportApiTests
     [Test]
     public async Task MarkdownImageHandler_ProvidesSrc()
     {
-        var image = new ImageElement {ImageData = [1, 2], WidthPoints = 10, HeightPoints = 10};
+        var image = new ImageElement
+        {
+            ImageData = [1, 2],
+            WidthPoints = 10,
+            HeightPoints = 10
+        };
         var document = Doc(image);
 
-        var output = MarkdownExporter.Export(document, new()
-        {
-            ImageHandler = info => $"img/{info.Index}.png"
-        });
+        var output = MarkdownExporter.Export(
+            document,
+            new()
+            {
+                ImageHandler = info => $"img/{info.Index}.png"
+            });
 
         await Assert.That(output).Contains("![](img/0.png)");
         await Assert.That(output).DoesNotContain("base64,");
@@ -87,15 +96,21 @@ public class ExportApiTests
     [Test]
     public async Task HtmlOnWarning_FiresForUnsupportedElement()
     {
-        var document = Doc(new InkElement
-        {
-            WidthPoints = 100,
-            HeightPoints = 100,
-            Strokes = []
-        });
+        var document = Doc(
+            new InkElement
+            {
+                WidthPoints = 100,
+                HeightPoints = 100,
+                Strokes = []
+            });
 
         var warnings = new List<ExportWarning>();
-        HtmlExporter.Export(document, new() {OnWarning = warnings.Add});
+        HtmlExporter.Export(
+            document,
+            new()
+            {
+                OnWarning = warnings.Add
+            });
 
         await Assert.That(warnings.Count).IsEqualTo(1);
         await Assert.That(warnings[0].Kind).IsEqualTo(WarningKind.UnsupportedElement);
@@ -105,15 +120,21 @@ public class ExportApiTests
     [Test]
     public async Task MarkdownOnWarning_FiresForUnsupportedElement()
     {
-        var document = Doc(new InkElement
-        {
-            WidthPoints = 100,
-            HeightPoints = 100,
-            Strokes = []
-        });
+        var document = Doc(
+            new InkElement
+            {
+                WidthPoints = 100,
+                HeightPoints = 100,
+                Strokes = []
+            });
 
         var warnings = new List<ExportWarning>();
-        MarkdownExporter.Export(document, new() {OnWarning = warnings.Add});
+        MarkdownExporter.Export(
+            document,
+            new()
+            {
+                OnWarning = warnings.Add
+            });
 
         await Assert.That(warnings.Count).IsEqualTo(1);
         await Assert.That(warnings[0].Kind).IsEqualTo(WarningKind.UnsupportedElement);
@@ -144,15 +165,19 @@ public class ExportApiTests
             return;
         }
 
-        var firstPageOnly = PdfDocumentConverter.ConvertToPdf(inputPath, new()
-        {
-            FontDirectory = fontsDirectory,
-            Pages = PageRange.Single(1)
-        });
-        var fullDocument = PdfDocumentConverter.ConvertToPdf(inputPath, new()
-        {
-            FontDirectory = fontsDirectory
-        });
+        var firstPageOnly = PdfDocumentConverter.ConvertToPdf(
+            inputPath,
+            new()
+            {
+                FontDirectory = fontsDirectory,
+                Pages = PageRange.Single(1)
+            });
+        var fullDocument = PdfDocumentConverter.ConvertToPdf(
+            inputPath,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
         using var trimmed = PdfSharp.Pdf.IO.PdfReader.Open(new MemoryStream(firstPageOnly), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
         using var full = PdfSharp.Pdf.IO.PdfReader.Open(new MemoryStream(fullDocument), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);

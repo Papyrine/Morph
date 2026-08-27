@@ -18,7 +18,7 @@ public class ShapeNoFillTests
     public async Task NoFillInSpPrSuppressesFillRefFromWpsStyle()
     {
         var parser = new DocumentParser();
-        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "cover-letters", "03", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "cover-letters", "03", "input.docx"));
         var doc = parser.Parse(stream);
 
         await Assert.That(doc.PageSettings.BackgroundColorHex).IsEqualTo("2E2946");

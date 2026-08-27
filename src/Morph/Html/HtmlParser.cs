@@ -65,7 +65,52 @@ sealed class HtmlParser
         }
 
         instance.ParseNodes(body.ChildNodes, elements);
+        instance.CollapseDeclaredMargins(elements);
         return elements;
+    }
+
+    // Word collapses adjacent vertical margins the way a browser does: the gap between two
+    // paragraphs is the LARGER of the first's bottom and the second's top, an undeclared margin
+    // counting as the ~14pt NormalWeb auto spacing (probed 2026-08-24: a `margin: 0` paragraph
+    // followed by an unstyled one still renders Word's full auto gap). The layout engine already
+    // takes max(spacing-after, next spacing-before), which reproduces every case except a DECLARED
+    // bottom smaller than an UNDECLARED neighbour top — that neighbour's Before is 0 in this
+    // model, its auto living in the default spacing-after — so lift exactly those Afters to the
+    // successor's auto. Two paragraphs BOTH declaring their facing margins keep the true
+    // collapsed value (a `margin: 0` pair packs tight, like the paragraphs of a padded div).
+    readonly Dictionary<ParagraphElement, double> declaredBottomMargins = [];
+    readonly HashSet<ParagraphElement> declaredTopMargins = [];
+
+    void CollapseDeclaredMargins(List<DocumentElement> elements)
+    {
+        for (var i = 0; i < elements.Count - 1; i++)
+        {
+            if (elements[i] is not ParagraphElement para ||
+                !declaredBottomMargins.TryGetValue(para, out var bottom) ||
+                elements[i + 1] is not ParagraphElement next ||
+                declaredTopMargins.Contains(next))
+            {
+                continue;
+            }
+
+            var auto = next.Runs.Count > 0 && next.Runs[0].Properties.FontSizePoints > 14 ? 12d : 14d;
+            if (auto <= bottom)
+            {
+                continue;
+            }
+
+            elements[i] = new ParagraphElement
+            {
+                Runs = para.Runs,
+                Properties = para.Properties with
+                {
+                    SpacingAfterPoints = auto
+                },
+                IsAnchorOnlyMark = para.IsAnchorOnlyMark,
+                IsSectionBreakMark = para.IsSectionBreakMark,
+                IsCollapsedCellMark = para.IsCollapsedCellMark
+            };
+        }
     }
 
     /// <summary>
@@ -96,17 +141,18 @@ sealed class HtmlParser
             case IText textNode:
                 if (textNode.TextContent.TryTrim(out var text))
                 {
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = text,
-                                Properties = DefaultRunProps()
-                            }
-                        ]
-                    });
+                    elements.Add(
+                        new ParagraphElement
+                        {
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = text,
+                                    Properties = DefaultRunProps()
+                                }
+                            ]
+                        });
                 }
 
                 break;
@@ -171,21 +217,22 @@ sealed class HtmlParser
                 break;
 
             case "br":
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = "",
-                            Properties = DefaultRunProps()
-                        }
-                    ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 0
-                    }
-                });
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = "",
+                                Properties = DefaultRunProps()
+                            }
+                        ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 0
+                        }
+                    });
                 break;
 
             case "blockquote":
@@ -195,14 +242,15 @@ sealed class HtmlParser
                 {
                     if (el is ParagraphElement p)
                     {
-                        elements.Add(new ParagraphElement
-                        {
-                            Runs = p.Runs,
-                            Properties = p.Properties with
+                        elements.Add(
+                            new ParagraphElement
                             {
-                                LeftIndentPoints = p.Properties.LeftIndentPoints + 36
-                            }
-                        });
+                                Runs = p.Runs,
+                                Properties = p.Properties with
+                                {
+                                    LeftIndentPoints = p.Properties.LeftIndentPoints + 36
+                                }
+                            });
                     }
                     else
                     {
@@ -213,24 +261,25 @@ sealed class HtmlParser
                 break;
 
             case "pre":
-                elements.Add(new ParagraphElement
-                {
-                    Runs =
-                    [
-                        new()
-                        {
-                            Text = element.TextContent,
-                            Properties = new()
-                            {
-                                FontFamily = "Courier New"
-                            }
-                        }
-                    ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 8
-                    }
-                });
+                        Runs =
+                        [
+                            new()
+                            {
+                                Text = element.TextContent,
+                                Properties = new()
+                                {
+                                    FontFamily = "Courier New"
+                                }
+                            }
+                        ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 8
+                        }
+                    });
                 break;
 
             case "hr":
@@ -254,27 +303,28 @@ sealed class HtmlParser
                                 FontSizePoints = 11,
                                 Italic = true
                             });
-                        elements.Add(new ParagraphElement
-                        {
-                            Runs = captionRuns.Count > 0
-                                ? captionRuns
-                                :
-                                [
-                                    new()
-                                    {
-                                        Text = "",
-                                        Properties = DefaultRunProps() with
-                                        {
-                                            FontSizePoints = 11,
-                                            Italic = true
-                                        }
-                                    }
-                                ],
-                            Properties = new()
+                        elements.Add(
+                            new ParagraphElement
                             {
-                                SpacingAfterPoints = 8
-                            }
-                        });
+                                Runs = captionRuns.Count > 0
+                                    ? captionRuns
+                                    :
+                                    [
+                                        new()
+                                        {
+                                            Text = "",
+                                            Properties = DefaultRunProps() with
+                                            {
+                                                FontSizePoints = 11,
+                                                Italic = true
+                                            }
+                                        }
+                                    ],
+                                Properties = new()
+                                {
+                                    SpacingAfterPoints = 8
+                                }
+                            });
                     }
                     else
                     {
@@ -292,27 +342,28 @@ sealed class HtmlParser
                         FontSizePoints = 11,
                         Italic = true
                     });
-                elements.Add(new ParagraphElement
-                {
-                    Runs = figRuns.Count > 0
-                        ? figRuns
-                        :
-                        [
-                            new()
-                            {
-                                Text = "",
-                                Properties = DefaultRunProps() with
-                                {
-                                    FontSizePoints = 11,
-                                    Italic = true
-                                }
-                            }
-                        ],
-                    Properties = new()
+                elements.Add(
+                    new ParagraphElement
                     {
-                        SpacingAfterPoints = 8
-                    }
-                });
+                        Runs = figRuns.Count > 0
+                            ? figRuns
+                            :
+                            [
+                                new()
+                                {
+                                    Text = "",
+                                    Properties = DefaultRunProps() with
+                                    {
+                                        FontSizePoints = 11,
+                                        Italic = true
+                                    }
+                                }
+                            ],
+                        Properties = new()
+                        {
+                            SpacingAfterPoints = 8
+                        }
+                    });
                 break;
 
             case "img":
@@ -370,83 +421,101 @@ sealed class HtmlParser
 
     void ParseContainer(IElement element, List<DocumentElement> elements)
     {
-        var containerStyle = ParseInlineStyle(element);
-        var background = containerStyle?.BackgroundColor;
-        var borders = containerStyle?.Borders is { HasAnyBorder: true } declared ? declared : null;
-        if (background == null && borders == null && containerStyle is not { MarginTopPoints: not null } and not { MarginBottomPoints: not null })
+        var style = ParseInlineStyle(element);
+        if (style == null ||
+            (style.BackgroundColor == null && style.Borders == null &&
+             style.MarginTopPoints == null && style.MarginBottomPoints == null))
         {
             ParseNodes(element.ChildNodes, elements);
             return;
         }
 
-        // A container carrying its own box (<div style="background…; border…; padding…">) is a
-        // paragraph box in Word — the fill and border rules push down onto each child paragraph,
-        // and identical borders on consecutive children merge into ONE box under the border-group
-        // law, which is exactly the CSS box around the div. The div's own vertical margins are the
-        // BLOCK's pitch: margin-top joins the flow at the first child, margin-bottom (or, when the
-        // div declares none, the ordinary 14pt block gap) leaves at the last child — measured on
-        // html_css_margin_padding, whose padded div's child declares margin:0 yet Word still
-        // spaces the next block a full 14pt below it.
+        // A container carrying its own background-color (e.g. <div style="background-color:#E0E0E0">)
+        // is paragraph shading in Word — a full-width band behind everything it wraps — and a
+        // container border/padding is Word's w:divBdr, rendered exactly like a w:pBdr around the
+        // div's paragraphs (probed 2026-08-24: an amplified bordered div and an identically
+        // bordered <p> render pixel-identical boxes, and a two-paragraph div gets ONE contiguous
+        // box). Morph has no block-box model, so push the fill and the box onto each child
+        // paragraph that doesn't declare its own; identical border records then group into a
+        // single box through SharesBorderGroupWith. The div's vertical margins are space outside
+        // the box: spacing before on the first paragraph, after on the last.
         var children = new List<DocumentElement>();
         ParseNodes(element.ChildNodes, children);
-        var paragraphCount = 0;
+        var lastParagraph = children.OfType<ParagraphElement>().LastOrDefault();
+        var seenFirstParagraph = false;
         foreach (var child in children)
         {
-            if (child is ParagraphElement)
-            {
-                paragraphCount++;
-            }
-        }
-
-        var paragraphIndex = 0;
-        foreach (var child in children)
-        {
-            if (child is ParagraphElement para)
-            {
-                paragraphIndex++;
-                var properties = para.Properties;
-                if (properties.BackgroundColorHex == null && background != null)
-                {
-                    properties = properties with {BackgroundColorHex = background};
-                }
-
-                if (properties.Borders is not { HasAnyBorder: true } && borders != null)
-                {
-                    properties = properties with
-                    {
-                        Borders = borders,
-                        BorderTopSpacePoints = containerStyle?.PaddingTopPoints ?? 0,
-                        BorderRightSpacePoints = containerStyle?.PaddingRightPoints ?? 0,
-                        BorderBottomSpacePoints = containerStyle?.PaddingBottomPoints ?? 0,
-                        BorderLeftSpacePoints = containerStyle?.PaddingLeftPoints ?? 0
-                    };
-                }
-
-                if (paragraphIndex == 1 && containerStyle?.MarginTopPoints is { } containerTop)
-                {
-                    properties = properties with {SpacingBeforePoints = Math.Max(properties.SpacingBeforePoints, containerTop)};
-                }
-
-                if (paragraphIndex == paragraphCount)
-                {
-                    properties = properties with
-                    {
-                        SpacingAfterPoints = containerStyle?.MarginBottomPoints ?? 14
-                    };
-                }
-
-                elements.Add(new ParagraphElement
-                {
-                    Runs = para.Runs,
-                    Properties = properties,
-                    IsAnchorOnlyMark = para.IsAnchorOnlyMark,
-                    IsCollapsedCellMark = para.IsCollapsedCellMark
-                });
-            }
-            else
+            if (child is not ParagraphElement para)
             {
                 elements.Add(child);
+                continue;
             }
+
+            var props = para.Properties;
+            if (style.BackgroundColor != null && props.BackgroundColorHex == null)
+            {
+                props = props with
+                {
+                    BackgroundColorHex = style.BackgroundColor
+                };
+            }
+
+            if (style.Borders != null && props.Borders == null)
+            {
+                props = props with
+                {
+                    Borders = style.Borders,
+                    BorderTopSpacePoints = style.BorderTopSpacePoints,
+                    BorderBottomSpacePoints = style.BorderBottomSpacePoints,
+                    BorderLeftSpacePoints = style.BorderLeftSpacePoints,
+                    BorderRightSpacePoints = style.BorderRightSpacePoints
+                };
+            }
+
+            var declaredTop = declaredTopMargins.Remove(para);
+            var declaredBottom = declaredBottomMargins.Remove(para, out var bottomValue);
+            if (!seenFirstParagraph)
+            {
+                seenFirstParagraph = true;
+                if (style.MarginTopPoints is { } marginTop)
+                {
+                    props = props with
+                    {
+                        SpacingBeforePoints = marginTop
+                    };
+                    declaredTop = true;
+                }
+            }
+
+            if (ReferenceEquals(para, lastParagraph) && style.MarginBottomPoints is { } marginBottom)
+            {
+                props = props with
+                {
+                    SpacingAfterPoints = marginBottom
+                };
+                declaredBottom = true;
+                bottomValue = marginBottom;
+            }
+
+            var clone = new ParagraphElement
+            {
+                Runs = para.Runs,
+                Properties = props,
+                IsAnchorOnlyMark = para.IsAnchorOnlyMark,
+                IsSectionBreakMark = para.IsSectionBreakMark,
+                IsCollapsedCellMark = para.IsCollapsedCellMark
+            };
+            if (declaredTop)
+            {
+                declaredTopMargins.Add(clone);
+            }
+
+            if (declaredBottom)
+            {
+                declaredBottomMargins[clone] = bottomValue;
+            }
+
+            elements.Add(clone);
         }
     }
 
@@ -459,54 +528,58 @@ sealed class HtmlParser
         // full-width paragraph shading below, so it is cleared here to avoid a redundant
         // glyph-tight highlight painted on top of the band.
         var baseProps = ParseSpanStyle(
-            element,
-            DefaultRunProps() with
+                element,
+                DefaultRunProps() with
+                {
+                    FontSizePoints = fontSize,
+                    Bold = bold
+                }) with
             {
-                FontSizePoints = fontSize,
-                Bold = bold
-            }) with
-        {
-            BackgroundColorHex = null
-        };
+                BackgroundColorHex = null
+            };
 
         var runs = ParseInlineElements(element, baseProps);
 
-        // A declared border box (any visible edge) takes the CSS padding as its w:pBdr w:space —
-        // the gap between text and rule. Word applies the padding ONLY through a border: the
-        // bordered #CCE5FF box on html_css_margin_padding measures 76px tall (1.5px rule +
-        // 23.4px space + 26px line each way at 150 DPI) with the rule outdented to x=123 against
-        // the 150 text margin, while the padded borderless #DDD div right above it is a plain
-        // 28px line band at the margin. Vertical margins become paragraph spacing — the engine's
-        // max-collapse of before/after IS the CSS margin collapse (a 30px margin-top after a
-        // 14pt-after paragraph measures 22.5pt, not 36.5).
-        var borders = style?.Borders is { HasAnyBorder: true } declaredBorders ? declaredBorders : null;
-
-        return new()
+        var paragraph = new ParagraphElement
         {
             Runs = runs.Count > 0
                 ? runs
-                : [new() { Text = "", Properties = baseProps }],
+                : [new() {Text = "", Properties = baseProps}],
             Properties = new()
             {
                 Alignment = style?.Alignment ?? TextAlignment.Left,
                 // Word's AltChunk HTML import spaces block paragraphs ~14pt apart (measured
                 // <p> pitch ≈ 57px at 150 DPI vs a ~29px line box); 8pt packed them ~6pt too
                 // tight, so every band/line drifted up the page. Headings keep their own value.
-                SpacingAfterPoints = style?.MarginBottomPoints ?? (baseProps.FontSizePoints > 14 ? 12 : 14),
+                // A declared vertical margin replaces the default outright (`margin: 0` packs
+                // paragraphs tight, exactly as Word's import zeroes their w:spacing).
                 SpacingBeforePoints = style?.MarginTopPoints ?? 0,
+                SpacingAfterPoints = style?.MarginBottomPoints ?? (baseProps.FontSizePoints > 14 ? 12 : 14),
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
                 LeftIndentPoints = style?.MarginLeftPoints ?? 0,
                 RightIndentPoints = style?.MarginRightPoints ?? 0,
                 LineSpacingMultiplier = style?.LineHeight ?? 1.08,
                 BackgroundColorHex = style?.BackgroundColor,
-                Borders = borders,
-                BorderTopSpacePoints = borders != null ? style?.PaddingTopPoints ?? 0 : 0,
-                BorderRightSpacePoints = borders != null ? style?.PaddingRightPoints ?? 0 : 0,
-                BorderBottomSpacePoints = borders != null ? style?.PaddingBottomPoints ?? 0 : 0,
-                BorderLeftSpacePoints = borders != null ? style?.PaddingLeftPoints ?? 0 : 0,
+                Borders = style?.Borders,
+                BorderTopSpacePoints = style?.BorderTopSpacePoints ?? 0,
+                BorderBottomSpacePoints = style?.BorderBottomSpacePoints ?? 0,
+                BorderLeftSpacePoints = style?.BorderLeftSpacePoints ?? 0,
+                BorderRightSpacePoints = style?.BorderRightSpacePoints ?? 0,
                 StyleId = styleId
             }
         };
+
+        if (style?.MarginBottomPoints is { } declaredBottom)
+        {
+            declaredBottomMargins[paragraph] = declaredBottom;
+        }
+
+        if (style?.MarginTopPoints != null)
+        {
+            declaredTopMargins.Add(paragraph);
+        }
+
+        return paragraph;
     }
 
     static List<Run> ParseInlineElements(IElement element, RunProperties baseProps)
@@ -902,45 +975,83 @@ sealed class HtmlParser
             }
         }
 
-        // margin-left on a block indents it, exactly as Word imports it: a 50px margin renders
-        // the paragraph 37.5pt in from the margin (measured 78px at 150 DPI — the same 0.75pt/px
-        // rule as image and width attributes). The vertical margins become paragraph spacing under
-        // CSS collapse semantics (max, not sum — measured on html_css_margin_padding: a 30px
-        // margin-top after a 14pt-after paragraph gives a 22.5pt gap, where DOCX addition would
-        // give 36.5), applied where the paragraph joins the flow. margin-right shortens the
-        // shading band and the wrap measure, like a right indent.
-        var (marginTop, marginRight, marginBottom, marginLeft) = ParseCssSides(styles, "margin");
-        result.MarginTopPoints = marginTop;
-        result.MarginRightPoints = marginRight;
-        result.MarginBottomPoints = marginBottom;
-        result.MarginLeftPoints = marginLeft;
+        // Margins map exactly as Word imports them (probed by round-tripping a fixture through
+        // Word, 2026-08-24: `margin: 60px` → w:ind left/right 900tw plus w:spacing before/after
+        // 900tw): the horizontal margins indent the paragraph at the 0.75pt/px rule the image and
+        // width attributes use — a 50px left margin renders 37.5pt in (measured 78px at 150 DPI) —
+        // and the vertical margins become spacing before/after, replacing the NormalWeb-style
+        // defaults only where declared.
+        var margins = ParseCssBoxLengths(styles, "margin");
+        result.MarginLeftPoints = margins.Left;
+        result.MarginRightPoints = margins.Right;
+        result.MarginTopPoints = margins.Top;
+        result.MarginBottomPoints = margins.Bottom;
 
-        // padding maps to the w:pBdr w:space gap — only consumed when a border is present, which
-        // is Word's own gate (a padded borderless div renders as a plain band).
-        var (paddingTop, paddingRight, paddingBottom, paddingLeft) = ParseCssSides(styles, "padding");
-        result.PaddingTopPoints = paddingTop;
-        result.PaddingRightPoints = paddingRight;
-        result.PaddingBottomPoints = paddingBottom;
-        result.PaddingLeftPoints = paddingLeft;
-
-        // border shorthand boxes all four edges; per-edge longhands override one edge each, so
-        // "border-top: 2px solid red; border-bottom: 2px solid blue" produces just those two rules.
-        CellBorders? borders = null;
+        // The border box, following Word's own HTML import (probed the same way): the box is the
+        // w:pBdr model — the text stays at the margin and each border outdents by its space +
+        // width — with the CSS padding becoming each bordered edge's w:space in whole points
+        // (20px → w:space 15, 5px → 4). Padding on a borderless edge is dropped entirely: Word
+        // renders a padded, borderless <p> or <div> as a plain unpadded band.
+        var top = default(BorderEdge);
+        var right = default(BorderEdge);
+        var bottom = default(BorderEdge);
+        var left = default(BorderEdge);
         if (styles.TryGetValue("border", out var borderShorthand))
         {
-            borders = ParseCssBorderShorthand(borderShorthand);
+            top = right = bottom = left = ParseCssBorderEdge(borderShorthand);
         }
 
-        foreach (var (edgeName, apply) in borderEdgeSetters)
+        if (styles.TryGetValue("border-top", out var borderTop))
         {
-            if (styles.TryGetValue(edgeName, out var edgeValue) &&
-                ParseCssBorderEdge(edgeValue) is { } edge)
+            top = ParseCssBorderEdge(borderTop);
+        }
+
+        if (styles.TryGetValue("border-right", out var borderRight))
+        {
+            right = ParseCssBorderEdge(borderRight);
+        }
+
+        if (styles.TryGetValue("border-bottom", out var borderBottom))
+        {
+            bottom = ParseCssBorderEdge(borderBottom);
+        }
+
+        if (styles.TryGetValue("border-left", out var borderLeft))
+        {
+            left = ParseCssBorderEdge(borderLeft);
+        }
+
+        if (top != null || right != null || bottom != null || left != null)
+        {
+            result.Borders = new()
             {
-                borders = apply(borders ?? new(), edge);
+                Top = top ?? BorderEdge.None,
+                Right = right ?? BorderEdge.None,
+                Bottom = bottom ?? BorderEdge.None,
+                Left = left ?? BorderEdge.None
+            };
+
+            var padding = ParseCssBoxLengths(styles, "padding");
+            if (top != null && padding.Top is { } paddingTop)
+            {
+                result.BorderTopSpacePoints = Math.Round(paddingTop);
+            }
+
+            if (right != null && padding.Right is { } paddingRight)
+            {
+                result.BorderRightSpacePoints = Math.Round(paddingRight);
+            }
+
+            if (bottom != null && padding.Bottom is { } paddingBottom)
+            {
+                result.BorderBottomSpacePoints = Math.Round(paddingBottom);
+            }
+
+            if (left != null && padding.Left is { } paddingLeft)
+            {
+                result.BorderLeftSpacePoints = Math.Round(paddingLeft);
             }
         }
-
-        result.Borders = borders;
 
         if (styles.TryGetValue("line-height", out var lineHeight))
         {
@@ -1341,13 +1452,13 @@ sealed class HtmlParser
                 {
                     cells.Add(
                         new()
-                    {
-                        Content = [],
-                        Properties = new()
                         {
-                            VerticalMerge = VerticalMergeType.Continue
-                        }
-                    });
+                            Content = [],
+                            Properties = new()
+                            {
+                                VerticalMerge = VerticalMergeType.Continue
+                            }
+                        });
                     colIndex++;
                 }
 
@@ -1355,12 +1466,12 @@ sealed class HtmlParser
 
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
+                CellBorders? cellCssBorders = null;
                 var cellBgColor = rowBackgroundColor;
                 var cellTextColor = rowTextColor;
                 TextAlignment? cellAlignment = null;
                 double? cellWidthPoints = null;
                 double? cellWidthFraction = null;
-                CellBorders? cellStyleBorders = null;
                 var cellStyle = cell.GetAttribute("style");
                 if (!string.IsNullOrEmpty(cellStyle))
                 {
@@ -1368,12 +1479,13 @@ sealed class HtmlParser
                     cellPadding = ParseCssSpacing(cellStyles, "padding");
                     cellMargin = ParseCssSpacing(cellStyles, "margin");
 
-                    // A td's own border style overrides the table model for that cell — Word draws
-                    // html_css_borders' "2px solid black" cell heavy and its "1px solid gray"
-                    // neighbour light where the shared grid would draw both uniform.
-                    if (cellStyles.TryGetValue("border", out var cellBorderValue))
+                    // A cell's own CSS border becomes its w:tcBorders, overriding the table
+                    // chrome for that cell — Word's import maps it with the same width law as
+                    // paragraph borders (probed 2026-08-24: 8px → w:sz 48, 2px gray → w:sz 12
+                    // color 808080).
+                    if (cellStyles.TryGetValue("border", out var cellBorder))
                     {
-                        cellStyleBorders = ParseCssBorderShorthand(cellBorderValue);
+                        cellCssBorders = ParseCssBorderShorthand(cellBorder);
                     }
                     if (cellStyles.TryGetValue("background-color", out var bg))
                     {
@@ -1466,41 +1578,42 @@ sealed class HtmlParser
                         };
                     }
 
-                    cellElements.Add(new ParagraphElement
-                    {
-                        Properties = cellAlignment is { } alignment
-                            ? new()
-                            {
-                                Alignment = alignment
-                            }
-                            : new(),
-                        Runs =
-                        [
-                            new()
-                            {
-                                Text = text,
-                                Properties = cellRunProperties
-                            }
-                        ]
-                    });
+                    cellElements.Add(
+                        new ParagraphElement
+                        {
+                            Properties = cellAlignment is { } alignment
+                                ? new()
+                                {
+                                    Alignment = alignment
+                                }
+                                : new(),
+                            Runs =
+                            [
+                                new()
+                                {
+                                    Text = text,
+                                    Properties = cellRunProperties
+                                }
+                            ]
+                        });
                 }
 
                 cells.Add(
                     new()
-                {
-                    Content = cellElements,
-                    Properties = new()
                     {
-                        Padding = cellPadding,
-                        Margin = cellMargin,
-                        BackgroundColorHex = cellBgColor,
-                        GridSpan = gridSpan,
-                        VerticalMerge = verticalMerge,
-                        WidthPoints = cellWidthPoints,
-                        WidthFraction = cellWidthFraction,
-                        Borders = cellStyleBorders ?? cellBoxBorders
-                    }
-                });
+                        Content = cellElements,
+                        Properties = new()
+                        {
+                            Padding = cellPadding,
+                            Margin = cellMargin,
+                            BackgroundColorHex = cellBgColor,
+                            GridSpan = gridSpan,
+                            VerticalMerge = verticalMerge,
+                            WidthPoints = cellWidthPoints,
+                            WidthFraction = cellWidthFraction,
+                            Borders = cellCssBorders ?? cellBoxBorders
+                        }
+                    });
 
                 colIndex += gridSpan;
             }
@@ -1510,13 +1623,13 @@ sealed class HtmlParser
             {
                 cells.Add(
                     new()
-                {
-                    Content = [],
-                    Properties = new()
                     {
-                        VerticalMerge = VerticalMergeType.Continue
-                    }
-                });
+                        Content = [],
+                        Properties = new()
+                        {
+                            VerticalMerge = VerticalMergeType.Continue
+                        }
+                    });
                 colIndex++;
             }
 
@@ -1542,9 +1655,9 @@ sealed class HtmlParser
             {
                 rows.Add(
                     new()
-                {
-                    Cells = cells
-                });
+                    {
+                        Cells = cells
+                    });
             }
         }
 
@@ -1895,14 +2008,15 @@ sealed class HtmlParser
                     break;
                 case "dd":
                     var ddPara = CreateParagraph(child, 11, false);
-                    elements.Add(new ParagraphElement
-                    {
-                        Runs = ddPara.Runs,
-                        Properties = ddPara.Properties with
+                    elements.Add(
+                        new ParagraphElement
                         {
-                            LeftIndentPoints = 36
-                        }
-                    });
+                            Runs = ddPara.Runs,
+                            Properties = ddPara.Properties with
+                            {
+                                LeftIndentPoints = 36
+                            }
+                        });
                     break;
             }
         }
@@ -1995,6 +2109,7 @@ sealed class HtmlParser
         {
             span = span[..^2].TrimEnd();
         }
+
         return double.TryParse(span, out result);
     }
 
@@ -2025,21 +2140,24 @@ sealed class HtmlParser
 
     static CellBorders? ParseCssBorderShorthand(string value)
     {
-        var edge = ParseCssBorderEdge(value);
-        if (edge == null)
+        if (value.AsSpan().Trim().IsEmpty)
         {
             return null;
         }
 
-        return edge.IsVisible
-            ? CellBorders.Uniform(edge)
-            : new();
+        var edge = ParseCssBorderEdge(value);
+        return edge == null
+            ? new()
+            : CellBorders.Uniform(edge);
     }
 
-    /// <summary>One CSS border value (<c>2px dashed blue</c>) as a <see cref="BorderEdge"/>,
-    /// keeping the style token — the engine strokes dashed/dotted/double per
-    /// <see cref="BorderStroke"/>, so discarding it (the pre-2026-08 behaviour) drew every CSS
-    /// style solid. <c>none</c>/<c>hidden</c> come back as an invisible edge.</summary>
+    // A CSS border declaration, mapped onto the OOXML border Word's own HTML import produces.
+    // Probed by round-tripping amplified fixtures through Word and reading the w:pBdr/w:tcBorders
+    // back out (2026-08-24): the width is the CSS length capped at Word's 6pt border maximum and
+    // stored in whole eighth-points; `double` divides the declared width across its three bands
+    // (12px → w:sz 24, 3pt per line) and the 3-D pairs across their two (8px groove → w:sz 24);
+    // and the style tokens land on dashed/dotted/double/threeDEngrave/threeDEmboss/inset/outset.
+    // Returns null for `none`/`hidden` — no edge at all.
     static BorderEdge? ParseCssBorderEdge(string value)
     {
         var trimmed = value.AsSpan().Trim();
@@ -2050,7 +2168,7 @@ sealed class HtmlParser
 
         var widthPt = 0.75;
         var color = "000000";
-        var lineStyle = BorderLineStyle.Single;
+        var style = BorderLineStyle.Single;
 
         foreach (var partRange in trimmed.Split(' '))
         {
@@ -2060,27 +2178,49 @@ sealed class HtmlParser
                 continue;
             }
 
-            if (part.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+            if (part.EndsWith("px", StringComparison.OrdinalIgnoreCase) ||
+                part.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
             {
-                if (TryParseCssDimension(part, out var px))
-                {
-                    widthPt = px * 0.75;
-                }
-            }
-            else if (part.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
-            {
-                if (TryParseCssDimension(part, out var pt))
+                if (TryParseCssLengthToPoints(part, out var pt))
                 {
                     widthPt = pt;
                 }
             }
-            else if (CssBorderLineStyle(part) is { } mapped)
+            else if (part is "solid")
             {
-                lineStyle = mapped;
+                style = BorderLineStyle.Single;
             }
-            else if (part is "none" || part is "hidden")
+            else if (part is "dashed")
             {
-                return BorderEdge.None;
+                style = BorderLineStyle.Dashed;
+            }
+            else if (part is "dotted")
+            {
+                style = BorderLineStyle.Dotted;
+            }
+            else if (part is "double")
+            {
+                style = BorderLineStyle.Double;
+            }
+            else if (part is "groove")
+            {
+                style = BorderLineStyle.ThreeDEngrave;
+            }
+            else if (part is "ridge")
+            {
+                style = BorderLineStyle.ThreeDEmboss;
+            }
+            else if (part is "inset")
+            {
+                style = BorderLineStyle.Inset;
+            }
+            else if (part is "outset")
+            {
+                style = BorderLineStyle.Outset;
+            }
+            else if (part is "none" or "hidden")
+            {
+                return null;
             }
             else
             {
@@ -2092,59 +2232,35 @@ sealed class HtmlParser
             }
         }
 
-        // CSS declares a double border's TOTAL width; DOCX w:sz declares EACH line of the stack
-        // (BorderStroke draws line-gap-line at w:sz apiece), so the value converts at a third —
-        // html_css_borders' "4px double purple" measures ~5 device px in Word's import, the 1pt
-        // per-line stack, where passing the total drew a 19px triple-weight band.
-        if (lineStyle == BorderLineStyle.Double)
+        widthPt = style switch
         {
-            widthPt /= 3;
-        }
+            BorderLineStyle.Double => widthPt / 3,
+            BorderLineStyle.ThreeDEngrave or BorderLineStyle.ThreeDEmboss => widthPt / 2,
+            _ => widthPt
+        };
 
         return new()
         {
             IsVisible = true,
-            WidthPoints = widthPt,
+            WidthPoints = Math.Min(6.0, Math.Round(widthPt * 8) / 8),
             ColorHex = color,
-            Style = lineStyle
+            Style = style
         };
     }
 
-    static BorderLineStyle? CssBorderLineStyle(CharSpan token) => token switch
-    {
-        "solid" => BorderLineStyle.Single,
-        "dashed" => BorderLineStyle.Dashed,
-        "dotted" => BorderLineStyle.Dotted,
-        "double" => BorderLineStyle.Double,
-        "groove" => BorderLineStyle.ThreeDEngrave,
-        "ridge" => BorderLineStyle.ThreeDEmboss,
-        "inset" => BorderLineStyle.Inset,
-        "outset" => BorderLineStyle.Outset,
-        _ => null
-    };
-
-    // Per-edge longhand names paired with the edge each one replaces, for the border-* loop.
-    static readonly (string Name, Func<CellBorders, BorderEdge, CellBorders> Apply)[] borderEdgeSetters =
-    [
-        ("border-top", (borders, edge) => borders with {Top = edge}),
-        ("border-right", (borders, edge) => borders with {Right = edge}),
-        ("border-bottom", (borders, edge) => borders with {Bottom = edge}),
-        ("border-left", (borders, edge) => borders with {Left = edge})
-    ];
-
-    /// <summary>The four sides of a CSS box shorthand (<c>margin</c>/<c>padding</c>) in points,
-    /// longhands (<c>margin-top</c>…) overriding the shorthand's expansion per side.</summary>
-    static (double? Top, double? Right, double? Bottom, double? Left) ParseCssSides(
-        Dictionary<string, string> styles,
-        string property)
+    // The four components of a CSS box shorthand (margin/padding) merged with its per-edge
+    // longhands, in points. Null where neither form declared the edge, so callers can keep
+    // their defaults for unspecified edges. Non-length values ("auto") parse to null.
+    static (double? Top, double? Right, double? Bottom, double? Left) ParseCssBoxLengths(Dictionary<string, string> styles, string property)
     {
         double? top = null, right = null, bottom = null, left = null;
+
         if (styles.TryGetValue(property, out var shorthand))
         {
             var values = shorthand.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             // CSS shorthand: 1 value = all edges, 2 = vertical horizontal, 3 = top horizontal
             // bottom, 4 = top right bottom left.
-            (var topRaw, var rightRaw, var bottomRaw, var leftRaw) = values.Length switch
+            var (t, r, b, l) = values.Length switch
             {
                 1 => (values[0], values[0], values[0], values[0]),
                 2 => (values[0], values[1], values[0], values[1]),
@@ -2152,35 +2268,38 @@ sealed class HtmlParser
                 4 => (values[0], values[1], values[2], values[3]),
                 _ => (null, null, null, null)
             };
-            top = ParseCssSide(topRaw);
-            right = ParseCssSide(rightRaw);
-            bottom = ParseCssSide(bottomRaw);
-            left = ParseCssSide(leftRaw);
+
+            top = ParseEdge(t);
+            right = ParseEdge(r);
+            bottom = ParseEdge(b);
+            left = ParseEdge(l);
         }
 
-        if (styles.TryGetValue($"{property}-top", out var topLonghand))
+        if (styles.TryGetValue($"{property}-top", out var topValue))
         {
-            top = ParseCssSide(topLonghand) ?? top;
+            top = ParseEdge(topValue) ?? top;
         }
 
-        if (styles.TryGetValue($"{property}-right", out var rightLonghand))
+        if (styles.TryGetValue($"{property}-right", out var rightValue))
         {
-            right = ParseCssSide(rightLonghand) ?? right;
+            right = ParseEdge(rightValue) ?? right;
         }
 
-        if (styles.TryGetValue($"{property}-bottom", out var bottomLonghand))
+        if (styles.TryGetValue($"{property}-bottom", out var bottomValue))
         {
-            bottom = ParseCssSide(bottomLonghand) ?? bottom;
+            bottom = ParseEdge(bottomValue) ?? bottom;
         }
 
-        if (styles.TryGetValue($"{property}-left", out var leftLonghand))
+        if (styles.TryGetValue($"{property}-left", out var leftValue))
         {
-            left = ParseCssSide(leftLonghand) ?? left;
+            left = ParseEdge(leftValue) ?? left;
         }
 
         return (top, right, bottom, left);
-    }
 
-    static double? ParseCssSide(string? raw) =>
-        raw != null && TryParseCssLengthToPoints(raw, out var points) ? points : null;
+        static double? ParseEdge(string? value) =>
+            value != null && TryParseCssLengthToPoints(value, out var points)
+                ? points
+                : null;
+    }
 }

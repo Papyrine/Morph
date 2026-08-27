@@ -34,10 +34,11 @@ public class DefaultOrientationTests
     [Test]
     public async Task PageSetupWithoutOrientation_IsLandscape()
     {
-        using var stream = Sheet(new()
-        {
-            PaperSize = 9
-        });
+        using var stream = Sheet(
+            new()
+            {
+                PaperSize = 9
+            });
 
         var settings = ExcelConverter.Parse(stream, Pinned()).PageSettings;
 
@@ -49,10 +50,11 @@ public class DefaultOrientationTests
     [Test]
     public async Task OrientationDefault_IsLandscape()
     {
-        using var stream = Sheet(new()
-        {
-            Orientation = S.OrientationValues.Default
-        });
+        using var stream = Sheet(
+            new()
+            {
+                Orientation = S.OrientationValues.Default
+            });
 
         var settings = ExcelConverter.Parse(stream, Pinned()).PageSettings;
 
@@ -64,10 +66,11 @@ public class DefaultOrientationTests
     [Test]
     public async Task StatedPortrait_WinsOverTheDefault()
     {
-        using var stream = Sheet(new()
-        {
-            Orientation = S.OrientationValues.Portrait
-        });
+        using var stream = Sheet(
+            new()
+            {
+                Orientation = S.OrientationValues.Portrait
+            });
 
         var settings = ExcelConverter.Parse(stream, Pinned()).PageSettings;
 
@@ -78,10 +81,11 @@ public class DefaultOrientationTests
     [Test]
     public async Task StatedLandscape_IsUnchanged()
     {
-        using var stream = Sheet(new()
-        {
-            Orientation = S.OrientationValues.Landscape
-        });
+        using var stream = Sheet(
+            new()
+            {
+                Orientation = S.OrientationValues.Landscape
+            });
 
         var settings = ExcelConverter.Parse(stream, Pinned()).PageSettings;
 
@@ -131,7 +135,7 @@ public class DefaultOrientationTests
                     {
                         CellReference = "A1",
                         DataType = S.CellValues.String,
-                        CellValue = new("x")
+                        CellValue = [with("x")]
                     })));
 
         if (setup != null)
@@ -145,14 +149,16 @@ public class DefaultOrientationTests
             var workbookPart = document.AddWorkbookPart();
             var worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
             worksheetPart.Worksheet = worksheet;
-            workbookPart.Workbook = new(
-                new S.Sheets(
+            workbookPart.Workbook =
+            [
+                with(new S.Sheets(
                     new S.Sheet
                     {
                         Id = workbookPart.GetIdOfPart(worksheetPart),
                         SheetId = 1,
                         Name = "Sheet1"
-                    }));
+                    }))
+            ];
         }
 
         stream.Position = 0;

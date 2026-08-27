@@ -90,61 +90,82 @@ A second probe amplified the variables (`_probe_htmlborders`: `border=8`, cellsp
 
 The mapping (`ParseTable`): `CellSpacingPoints = cellspacing_px × 0.75 / 2` — the model's detached law draws every gap at 2 × spacing — applied to EVERY html table, borderless included; per-cell `Borders` of 0.75pt `B2B2B2` when detached; `InsideHorizontalBorder`/`InsideVerticalBorder` when collapsed; the frame stays on `DefaultBorders` at the attribute width. The spacing insets join the column measure (`TableLayout.CalculateContentBasedColumnWidths` adds `CellSpacingInsets(...).Horizontal` per cell) so the gaps are not paid out of the text measure — the re-wrap that sank the earlier attempts — and the table outdent carries the outer cell's 2 × spacing inset so cell text still lands at the text margin. CSS-shorthand borders (`style="border: ..."`) keep the frame-only footing; the probe covered the attribute form. Landing measured +0.045 AE over 26 pages — the new-ink offset penalty of many thin rules — while the probe and the `html_table_cellpadding`/`html_complex` crops show the structure matching Word box for box.
 
-## CSS box borders, padding and margins — the landed model (2026-08-21)
+## CSS box borders, padding and margins — the landed model (2026-08-24)
 
-The 2026-07-21 attempt at this was reverted on three named blockers; all three dissolved before
-the retry, which landed against Word's own measured geometry (`html_css_borders`,
-`html_css_margin_padding`, `html_complex`'s Info/Warning/Error boxes — every box within a few px
-of the reference).
+A first attempt (2026-07-21) was reverted for three named blockers; by the retry, the engine's
+`BorderStroke` had already dissolved the first two (every line style strokes correctly, and the
+`w:pBdr` reservation/grouping machinery was in place), and the third — "tune padding until box
+heights match Word" — dissolved once the mapping was probed instead of guessed. The decisive probe:
+**round-trip amplified CSS fixtures through Word itself** (open the `.htm` over COM, `SaveAs2` to
+DOCX, read the OOXML it produces) — that yields Word's exact import mapping losslessly, where pixel
+measurement had led the first attempt to invent a padding→indent rule Word does not have.
 
-- **Border → `ParagraphProperties.Borders`, style token kept.** `ParseCssBorderEdge` maps
-  solid/dashed/dotted/double/groove/ridge/inset/outset onto `BorderLineStyle`, and the engine's
-  `BorderStroke` (landed 2026-08 for DOCX border styles) strokes them in all three backends —
-  the first revert's "every style draws solid" is gone. Per-edge longhands
-  (`border-top`/`-right`/`-bottom`/`-left`) override the shorthand's edge. CSS declares a double
-  border's TOTAL width where `w:sz` declares EACH line, so `double` converts at a third.
-- **Padding → the `w:pBdr` `w:space` gap, applied only through a border — Word's own gate.**
-  Word keeps the text at the margin and outdents the rule by border + padding (the 15px-padded
-  `#CCE5FF` box strokes at x=123 against the 150px text margin at 150 DPI, box height 76px =
-  rule + 23.4px space + 26px line each way), while the padded but border-LESS `#DDD` div right
-  above it renders as a plain 28px one-line band at the margin. So padding maps to the four
-  `Border*SpacePoints` and nothing else — no indent change (the reverted attempt's
-  padding→indent mapping was wrong), and no reservation-gate change (the reverted attempt's
-  blast-radius worry disappears with it).
-- **Vertical margins → paragraph spacing; the engine's max-collapse IS the CSS margin
-  collapse.** A `margin-top: 30px` paragraph after a 14pt-after paragraph measures a 22.5pt gap
-  in Word (max), not 36.5 (sum) — and the fragmenter already collapses
-  `max(lastAfter, SpacingBefore)`. `margin-bottom` replaces the 14pt block pitch;
-  `margin-right` becomes a right indent (Word shortens the `#EEE` band's right edge by exactly
-  the 20px margin).
-- **A `<div>`'s box pushes onto its child paragraphs** (`ParseContainer`): borders + padding +
-  background propagate to each child, and identical borders on consecutive children merge into
-  ONE box under the paragraph border-group law — which is exactly the CSS box around the div.
-  The div's own margins are the block's pitch: margin-top joins at the first child,
-  margin-bottom (or the ordinary 14pt block gap when none is declared — measured: Word spaces
-  the next block 14pt below a `margin: 0` child) leaves at the last.
-- **Shading fills the border box.** `Fragmenter.FlushBorderRun` inserts one `PlacedShading`
-  covering the whole box rect (rule to rule, across the space gap) behind the member lines;
-  Word's boxes are solid from rule to rule. This applies to DOCX `w:pBdr` + `w:shd` paragraphs
-  too, which is Word's DOCX behaviour as well.
-- **Edge whitespace sheds.** Source indentation such as `<p style="…">\n    text\n</p>` neither
-  renders in a browser nor in Word, but the literal newlines became soft breaks and each took a
-  line box — the `#CCE5FF` box grew two blank lines taller than Word's until
-  `TrimEdgeWhitespace` dropped them. INTERNAL whitespace stays untouched: the full CSS collapse
-  was tried 2026-07-21 and reverted (the newline hard-breaks compensate the narrow measure in
-  `html_complex`'s intro — see that scenario's entry in `src/todo.md`).
-- **A `td`'s own `border` style overrides the table model for that cell** — Word draws
-  `html_css_borders`' "2px solid black" cell heavy and its "1px solid gray" neighbour light
-  where the shared grid drew both uniform.
+The measured mapping (amplified probes: 8/16px borders, 20/40px paddings, 60px margins, every
+style token; both probe packages re-rendered through RenderHelper for the drawn geometry):
+
+- **A paragraph border is `w:pBdr`, not a CSS box.** The text stays at the margin and each border
+  outdents by `w:space + width` (probed at 8px + 40px padding: box edge at x=72 for a margin of
+  150 at 150 DPI). Word never indents the text for border or padding — the first attempt's
+  padding→indent mapping, judged "load-bearing" off crops, is refuted by Word's own conversion,
+  which emits **no `w:ind` at all** for bordered, padded paragraphs.
+- **Width:** CSS length × 0.75pt/px, capped at Word's 6pt border maximum (16px solid → `w:sz 48`,
+  same as 8px), stored in whole eighth-points. `double` divides the declared width across its
+  three bands (12px → `w:sz 24`: 3pt per line, stacking back to 9pt); `groove`/`ridge` divide by
+  two. Style tokens: solid→`single`, dashed→`dashed`, dotted→`dotted`, double→`double`,
+  groove→`threeDEngrave`, ridge→`threeDEmboss`, inset→`inset`, outset→`outset`.
+- **Padding is each bordered edge's `w:space`,** in whole points (20px → 15, 5px → 4, rounded to
+  nearest). Padding on a borderless edge is **dropped entirely** — Word renders a padded,
+  borderless `<p>` or `<div>` as a plain unpadded band, so `html_css_margin_padding`'s "padded
+  div" is a thin band in Word's own reference.
+- **Margins:** horizontal → `w:ind` left/right, vertical → `w:spacing` before/after, all at
+  0.75pt/px (60px → 900 twips each way). A declared vertical margin replaces the NormalWeb-style
+  auto spacing outright — `margin: 0` converts to explicit `w:spacing` 0.
+- **Margin collapsing:** Word spaces adjacent paragraphs by the LARGER of the facing margins, an
+  undeclared margin counting as the ~14pt auto (a `margin: 0` paragraph before an unstyled one
+  still gets the full auto gap; two `margin: 0` paragraphs pack tight). The engine's
+  `max(spacing-after, next spacing-before)` reproduces every case except a declared bottom
+  smaller than an undeclared neighbour's auto — `HtmlParser.CollapseDeclaredMargins` lifts
+  exactly those.
+- **A bordered `<div>` renders identically to a bordered `<p>`** — Word stores it as `w:divBdr`
+  in `webSettings.xml` (same units) and draws one contiguous box around all the div's paragraphs.
+  `ParseContainer` pushes the box onto each child paragraph; identical border records then group
+  into a single box through `SharesBorderGroupWith`. (Round-tripping through Word's own DOCX
+  and Morph's OOXML parser LOSES these boxes — Morph does not read `webSettings.xml` — so the
+  HTML path is the more faithful one.)
+- **A cell's own CSS border is its `w:tcBorders`,** same width law (8px → `w:sz 48`, 2px gray →
+  `w:sz 12` `808080`), overriding the table chrome for that cell.
+
+Landing judged 2026-08-24: only `html_css_borders`, `html_css_margin_padding` and `html_complex`
+moved. AE rose on all three (+0.003 to +0.021) — the same new-ink offset penalty the detached
+border landing paid — while SSIM rose where structure dominates (`html_css_borders` 0.891 → 0.932)
+and the crops match Word band-for-band: all seven bordered paragraphs within 1-4px of Word's box
+extents, and `html_complex`'s Info/Warning/Error boxes at h76 x126-1148 against Word's h76-77
+x123-1152 (its p2 SSIM dip is those taller boxes sitting on the pre-existing intro-wrap reflow
+offset, not a defect).
+
+**Residual, engine-level:** Morph strokes a paragraph border CENTERED on the box rectangle where
+Word strokes it OUTWARD from the text-side edge (probed at 6pt: Word's rule at x135-146 against
+Morph's x144-155 for a margin at 150). Half the border width of offset per side — ≤1px at the
+corpus's usual 0.5-1pt, so invisible everywhere except amplified fixtures. Changing it means
+re-judging every DOCX `w:pBdr` baseline; tracked in `src/todo.md`.
 
 ## Lists: bare line boxes, one block gap
 
-Word's imported list rows measure the bare line box — 30.5px/row at 150 DPI against the line's
-own ~30px, so items carry NO after-spacing (a 4pt item spacing overshot to 38.5px/row) — and the
-pitch runs uniform straight through every nesting level (`html_nested_lists`' six items land on
-one 30.5px grid, sub-list boundaries included). Only the LAST item of the outermost list block
-carries the ordinary 14pt block pitch, giving the ~42px gap the references show before whatever
-follows (`HtmlParser.EndListBlock`).
+Word's imported list rows measure the bare line box — 30.5px/row at 150 DPI against the line's own
+~30px, so items carry NO after-spacing (a 4pt item spacing overshot to 38.5px/row) — and the pitch
+runs uniform straight through every nesting level (`html_nested_lists`' six items land on one
+30.5px grid, sub-list boundaries included). Only the LAST item of the outermost list block carries
+the ordinary 14pt block pitch, giving the ~42px gap the references show before whatever follows
+(`HtmlParser.EndListBlock`).
+
+## Edge whitespace sheds
+
+Source indentation such as `<p style="…">\n    text\n</p>` renders in neither a browser nor Word,
+but the literal newlines became soft breaks and each took a line box — a bordered box grew two
+blank lines taller than Word's until `TrimEdgeWhitespace` dropped them. INTERNAL whitespace stays
+untouched: the full CSS collapse was tried 2026-07-21 and reverted, because the newline hard-breaks
+compensate the narrow measure in `html_complex`'s intro — see that scenario's entry in
+`src/todo.md`.
 
 ## Known gaps
 

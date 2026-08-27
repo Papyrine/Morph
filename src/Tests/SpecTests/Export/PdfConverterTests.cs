@@ -23,7 +23,12 @@ public class PdfConverterTests
     [MethodDataSource(nameof(SampleInputs))]
     public async Task ProducesValidPdf(string inputPath)
     {
-        var pdf = PdfDocumentConverter.ConvertToPdf(inputPath, new() {FontDirectory = fontsDirectory});
+        var pdf = PdfDocumentConverter.ConvertToPdf(
+            inputPath,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
         await Assert.That(pdf.Length).IsGreaterThan(1000);
         // Every PDF starts with the "%PDF-" header.
@@ -35,8 +40,18 @@ public class PdfConverterTests
     public async Task OutputIsDeterministic()
     {
         var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "bullet_list", "input.docx");
-        var first = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
-        var second = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory});
+        var first = PdfDocumentConverter.ConvertToPdf(
+            input,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
+        var second = PdfDocumentConverter.ConvertToPdf(
+            input,
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
 
         await Assert.That(second).IsEquivalentTo(first);
     }
@@ -53,8 +68,20 @@ public class PdfConverterTests
     {
         var input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "wordart-envelope", "input.docx");
 
-        var withArt = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory, RasterizeWordArt = true});
-        var withoutArt = PdfDocumentConverter.ConvertToPdf(input, new() {FontDirectory = fontsDirectory, RasterizeWordArt = false});
+        var withArt = PdfDocumentConverter.ConvertToPdf(
+            input,
+            new()
+            {
+                FontDirectory = fontsDirectory,
+                RasterizeWordArt = true
+            });
+        var withoutArt = PdfDocumentConverter.ConvertToPdf(
+            input,
+            new()
+            {
+                FontDirectory = fontsDirectory,
+                RasterizeWordArt = false
+            });
 
         // The warps reserve their height either way, so only the drawing differs — dropping four
         // rasterized figures makes for a markedly smaller file.

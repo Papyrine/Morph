@@ -207,7 +207,7 @@ sealed class GposKernTable
 
         if (any)
         {
-            classSubtables.Add(new([.. cov], class1, class2, (ushort) class2Count, matrix));
+            classSubtables.Add(new([.. cov], class1, class2, class2Count, matrix));
         }
     }
 
