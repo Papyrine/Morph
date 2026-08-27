@@ -143,6 +143,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         float borderRunWidth;
         // Y of each internal member boundary that a visible w:between edge rules.
         readonly List<float> borderRunBetweens = [];
+        // Where in `items` the run's first member began, so a shaded box's fill can be INSERTED
+        // there — behind the member lines already placed — rather than appended over them.
+        int borderRunItemsIndex;
 
         // Left edge of the current column, in points from the page's left.
         float ColumnLeft => fullContentLeft + currentColumn * (columnWidth + columnSpacing);
@@ -1299,6 +1302,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var width = borderRunWidth + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints;
             var top = borderRunTop - (float) run.BorderTopSpacePoints;
             var height = borderRunBottom - borderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
+
+            // Shading fills the whole border box — out to the rules, across the w:space gap —
+            // not only the text lines: Word's html_css_margin_padding #CCE5FF box is solid from
+            // rule to rule, 23.4px of filled padding around a 26px line at 150 DPI. Inserted at
+            // the run's start so it paints BEHIND the member lines (and their own per-line bands,
+            // which sit inside it), while the border itself still paints over everything.
+            if (!string.IsNullOrEmpty(run.BackgroundColorHex))
+            {
+                items.Insert(borderRunItemsIndex, new PlacedShading(left, top, width, height, run.BackgroundColorHex));
+            }
+
             items.Add(new PlacedBorder(left, top, width, height, borders));
 
             // w:between rules each internal boundary; the box itself carries no edge there. Emitted after the
@@ -1420,6 +1434,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // box would span the gap, so a break disables it (per-fragment borders are a later slice).
             float? borderTop = null;
             var borderBroke = false;
+            var paragraphItemsStart = items.Count;
 
             var lineIndex = 0;
             while (lineIndex < paragraphLines.Count)
@@ -1616,6 +1631,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     borderRunProperties = properties;
                     borderRunTop = boxTop;
                     borderRunWidth = availableWidth;
+                    borderRunItemsIndex = paragraphItemsStart;
                 }
                 else if (properties.BorderBetween.IsVisible)
                 {
@@ -3038,13 +3054,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // paragraph — the list marker positioned in the hanging-indent gutter to the left of the text.
         IReadOnlyList<PlacedRun> LineRuns(ParagraphElement paragraph, LaidOutLine line, int lineIndex, float lineLeft)
         {
-            var runs = MapRuns(line, lineLeft);
             if (lineIndex == 0 && paragraph.Properties.Numbering is { Text.Length: > 0 } numbering)
             {
-                return [MarkerRun(paragraph, numbering, lineLeft), .. runs];
+                // A marker that overruns the text indent pushes the FIRST line's text to the
+                // next tab stop (see CanonicalParagraphMeasurer.MarkerTextShift, which narrowed
+                // the wrap by the same amount); the marker itself stays in the gutter.
+                var shift = measurer.MarkerTextShift(paragraph);
+                return [MarkerRun(paragraph, numbering, lineLeft), .. MapRuns(line, lineLeft + shift)];
             }
 
-            return runs;
+            return MapRuns(line, lineLeft);
         }
 
         // The list marker as a placed run: its text in the bullet or number font, a hanging indent to the
@@ -3053,20 +3072,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // text edge, so the marker offsets back from there.
         PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float lineLeft)
         {
-            var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
-            var useBulletFont = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily);
-            var markerProperties = new RunProperties
-            {
-                FontFamily = useBulletFont ? "Morph Bullets" : firstProperties.FontFamily,
-                FontSizePoints = firstProperties.FontSizePoints,
-                Bold = !useBulletFont && firstProperties.Bold,
-                ColorHex = numbering.ColorHex ?? firstProperties.ColorHex
-            };
-
+            var markerProperties = CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering);
             var markerWidth = measurer.MeasureRunWidth(numbering.Text, markerProperties);
             var hanging = (float) paragraph.Properties.HangingIndentPoints;
+
+            // w:lvlJc="right" anchors the marker's RIGHT edge at the number position, the numeral
+            // growing leftward into the margin so the periods of I./VIII./XVIII. line up —
+            // _probe_numtab's right edges landed within 3px of the position at two geometries.
             var markerX = hanging > 0.01f
-                ? lineLeft - hanging
+                ? numbering.MarkerRightAligned
+                    ? lineLeft - hanging - markerWidth
+                    : lineLeft - hanging
                 : lineLeft - markerWidth - 3f;
 
             return new(markerX, markerWidth, numbering.Text, markerProperties);

@@ -1984,6 +1984,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         public int StartNumber { get; init; } = 1;
         public NumberFormatValues NumberFormat { get; init; } = NumberFormatValues.Decimal;
 
+        /// <summary><c>w:lvlJc="right"</c> — the marker right-aligns at the number position
+        /// (see <see cref="NumberingInfo.MarkerRightAligned"/> for the probe law).</summary>
+        public bool RightAligned { get; init; }
+
         /// <summary>
         /// OOXML <c>w:lvlRestart</c>. <c>null</c> = default behaviour (restart whenever any
         /// shallower level increments). <c>0</c> = never restart. A positive value <c>K</c>
@@ -2059,6 +2063,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // Get start number
                 var startNumber = level.StartNumberingValue?.Val?.Value ?? 1;
                 var lvlRestart = level.LevelRestart?.Val?.Value;
+                var rightAligned = level.LevelJustification?.Val?.Value == LevelJustificationValues.Right;
 
                 levels[ilvl] = new()
                 {
@@ -2070,7 +2075,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     IsBullet = isBullet,
                     StartNumber = startNumber,
                     NumberFormat = numFmt ?? NumberFormatValues.Decimal,
-                    LevelRestart = lvlRestart
+                    LevelRestart = lvlRestart,
+                    RightAligned = rightAligned
                 };
             }
 
@@ -2117,7 +2123,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         HangingIndentPoints = baseDef.HangingIndentPoints,
                         IsBullet = baseDef.IsBullet,
                         StartNumber = startOverride.Value,
-                        NumberFormat = baseDef.NumberFormat
+                        NumberFormat = baseDef.NumberFormat,
+                        RightAligned = baseDef.RightAligned
                     };
                 }
             }
@@ -2903,6 +2910,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ColorHex = levelDef.ColorHex,
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints,
+            MarkerRightAligned = levelDef.RightAligned,
             Format = levelDef.IsBullet ? ListNumberFormat.Bullet : MapNumberFormat(levelDef.NumberFormat)
         };
     }

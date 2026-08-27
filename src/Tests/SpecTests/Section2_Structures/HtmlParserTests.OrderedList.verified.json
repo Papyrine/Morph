@@ -28,7 +28,6 @@
       }
     ],
     "Properties": {
-      "SpacingAfterPoints": 4.0,
       "LineSpacingMultiplier": 1.08,
       "LeftIndentPoints": 36.0,
       "HangingIndentPoints": 18.0,
@@ -40,6 +39,7 @@
         "Level": 0,
         "IndentPoints": 36.0,
         "HangingIndentPoints": 18.0,
+        "MarkerRightAligned": false,
         "Format": "Decimal"
       },
       "KeepLines": false,
@@ -88,7 +88,7 @@
       }
     ],
     "Properties": {
-      "SpacingAfterPoints": 4.0,
+      "SpacingAfterPoints": 14.0,
       "LineSpacingMultiplier": 1.08,
       "LeftIndentPoints": 36.0,
       "HangingIndentPoints": 18.0,
@@ -100,6 +100,7 @@
         "Level": 0,
         "IndentPoints": 36.0,
         "HangingIndentPoints": 18.0,
+        "MarkerRightAligned": false,
         "Format": "Decimal"
       },
       "KeepLines": false,

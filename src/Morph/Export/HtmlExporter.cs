@@ -453,7 +453,14 @@ static class HtmlExporter
                     Indent(depth).Append("<hr />\n");
                     break;
                 case FloatingTextBoxElement textBox:
-                    Indent(depth).Append("<div>\n");
+                    // In-flow placement (the reflowable export's model for wrapped text boxes),
+                    // but with the box's own chrome — its fill and frame are what make a quote
+                    // box or panel read as one (they were dropped, leaving bare paragraphs).
+                    // A box with nothing visible in it stays a bare div: labels/11 carries thirty
+                    // EMPTY white label boxes whose 0.25pt near-white outlines and insets
+                    // otherwise stripe the page and push the flow ~350px down.
+                    var hasVisibleContent = textBox.Content.Any(_ => _ is not ParagraphElement contentParagraph || !IsBlankForHtml(contentParagraph));
+                    Indent(depth).Append(hasVisibleContent ? TextBoxOpenTag(textBox, positionStyle: null) : "<div>").Append('\n');
                     WriteElements(textBox.Content, depth + 1);
                     Indent(depth).Append("</div>\n");
                     break;
@@ -466,10 +473,10 @@ static class HtmlExporter
                     WriteContentControl(contentControl, depth);
                     break;
                 case WordArtElement wordArt:
-                    WriteTextParagraph(wordArt.Text, depth);
+                    WriteInlineWordArt(wordArt, depth);
                     break;
                 case FloatingWordArtElement floatingWordArt:
-                    WriteTextParagraph(floatingWordArt.Text, depth);
+                    WriteFloatingWordArt(floatingWordArt, depth);
                     break;
                 case TextFormFieldElement textField:
                     WriteTextParagraph(textField.Value.Length > 0 ? textField.Value : textField.DefaultText ?? "", depth);
@@ -1881,6 +1888,20 @@ static class HtmlExporter
                             floatingImage.Crop, floatingImage.RotationDegrees, floatingImage.FlipHorizontal, floatingImage.FlipVertical);
                         separatorPending = true;
                         break;
+                    case WordArtElement wordArt:
+                        // A WordArt inside cell content fell off this switch with no output at
+                        // all — wedding/08's circled "&" badge glyph, brochures/08's "Contoso
+                        // Logo" frame. Written with its box chrome like the body path.
+                        if (separatorPending)
+                        {
+                            builder.Append("<br />");
+                        }
+
+                        builder.Append('\n');
+                        WriteInlineWordArt(wordArt, depth + 1);
+                        Indent(depth);
+                        separatorPending = false;
+                        break;
                 }
             }
         }
@@ -1914,6 +1935,22 @@ static class HtmlExporter
                 else if (element is FloatingShapeElement shape)
                 {
                     WriteShape(shape, 0);
+                }
+                else if (element is FloatingTextBoxElement textBox)
+                {
+                    // The other half of the cell-float fix: a cell-anchored TEXT BOX fell off
+                    // this dispatch with no output at all — brochures/06's quote text and
+                    // attribution simply vanished from the export. Placed absolutely against
+                    // the cell like the images and shapes above.
+                    var textBoxStyle = $"position: absolute; left: {Length(textBox.HorizontalPositionPoints)}; top: {Length(textBox.VerticalPositionPoints)}; width: {Length(textBox.WidthPoints)}; z-index: {(textBox.BehindText ? "-1" : "1")}";
+                    builder.Append(TextBoxOpenTag(textBox, textBoxStyle)).Append('\n');
+                    WriteElements(textBox.Content, 0);
+                    builder.Append("</div>\n");
+                }
+                else if (element is FloatingWordArtElement wordArt)
+                {
+                    var wordArtStyle = $"position: absolute; left: {Length(wordArt.HorizontalPositionPoints)}; top: {Length(wordArt.VerticalPositionPoints)}; z-index: {(wordArt.BehindText ? "-1" : "1")}";
+                    AppendWordArtParagraph(wordArt, wordArtStyle);
                 }
             }
         }
@@ -2264,6 +2301,136 @@ static class HtmlExporter
             }
 
             return null;
+        }
+
+        /// <summary>The opening div of a text box, carrying its chrome — fill, frame and Word's
+        /// default inner inset — plus an optional positioning prefix. The chrome is what makes a
+        /// quote box or panel read as one; it was dropped entirely (bare
+        /// <c>&lt;div&gt;</c>), and cell-anchored text boxes were dropped whole.</summary>
+        static string TextBoxOpenTag(FloatingTextBoxElement textBox, string? positionStyle)
+        {
+            var style = new StringBuilder();
+            if (positionStyle != null)
+            {
+                style.Append(positionStyle).Append("; ");
+            }
+
+            var chrome = false;
+            if (DocumentExportHelpers.NormalizeColor(textBox.BackgroundColorHex) is { } fill)
+            {
+                style.Append($"background-color: {fill}; ");
+                chrome = true;
+            }
+
+            if (DocumentExportHelpers.NormalizeColor(textBox.LineColorHex) is { } line && textBox.LineWidthPoints > 0)
+            {
+                style.Append($"border: {Number(textBox.LineWidthPoints)}pt solid {line}; ");
+                chrome = true;
+            }
+
+            if (chrome)
+            {
+                // Word's default text-box inset: 0.05in top/bottom, 0.1in left/right.
+                style.Append("padding: 3.6pt 7.2pt; ");
+            }
+
+            if (style.Length == 0)
+            {
+                return "<div>";
+            }
+
+            style.Length -= 2;
+            return $"""<div style="{style}">""";
+        }
+
+        /// <summary>One WordArt text as a styled paragraph — family, size, weight and fill colour
+        /// kept (they exported as plain small black body text); the warp itself has no
+        /// reflowable-HTML form and is deliberately not attempted.</summary>
+        void AppendWordArtParagraph(IWordArtVisual wordArt, string? extraStyle)
+        {
+            var style = new StringBuilder();
+            style.Append($"font-family: '{wordArt.FontFamily}', sans-serif; font-size: {Number(wordArt.FontSizePoints)}pt; margin: 0; ");
+            if (wordArt.Bold)
+            {
+                style.Append("font-weight: bold; ");
+            }
+
+            if (wordArt.Italic)
+            {
+                style.Append("font-style: italic; ");
+            }
+
+            if (DocumentExportHelpers.NormalizeColor(wordArt.FillColorHex) is { } fill)
+            {
+                style.Append($"color: {fill}; ");
+            }
+
+            if (extraStyle != null)
+            {
+                style.Append(extraStyle).Append("; ");
+            }
+
+            style.Length -= 2;
+            builder.Append($"""<p style="{style}">{EncodeText(wordArt.Text)}</p>""").Append('\n');
+        }
+
+        void WriteInlineWordArt(WordArtElement wordArt, int depth)
+        {
+            // An UNWARPED WordArt is Word's inline text box, and its Box* chrome — the fill and
+            // frame behind the text — is the visible thing (business/06's outlined LOGO box,
+            // brochures/08's "Contoso Logo" frame ring). A BoxSubpaths frame must not fill solid
+            // (the ring's centre is open), so it approximates as a border at the preset frame's
+            // ring thickness (1/8 of the short side).
+            var boxStyle = new StringBuilder();
+            if (wordArt.BoxSubpaths is {Count: > 0} && DocumentExportHelpers.NormalizeColor(wordArt.BoxFillColorHex) is { } ringFill)
+            {
+                var ring = Math.Min(wordArt.WidthPoints, wordArt.HeightPoints) / 8;
+                boxStyle.Append($"border: {Number(ring)}pt solid {ringFill}; ");
+            }
+            else
+            {
+                if (wordArt.BoxSubpaths == null && DocumentExportHelpers.NormalizeColor(wordArt.BoxFillColorHex) is { } boxFill)
+                {
+                    boxStyle.Append($"background-color: {boxFill}; ");
+                }
+
+                if (DocumentExportHelpers.NormalizeColor(wordArt.BoxLineColorHex) is { } boxLine && wordArt.BoxLineWidthPoints > 0)
+                {
+                    boxStyle.Append($"border: {Number(wordArt.BoxLineWidthPoints)}pt solid {boxLine}; ");
+                }
+            }
+
+            if (boxStyle.Length == 0)
+            {
+                Indent(depth);
+                AppendWordArtParagraph(wordArt, null);
+                return;
+            }
+
+            boxStyle.Append($"width: {Length(wordArt.WidthPoints)}; min-height: {Length(wordArt.HeightPoints)}; ");
+            boxStyle.Append("display: flex; align-items: center; justify-content: center; ");
+            if (wordArt.Alignment == TextAlignment.Center)
+            {
+                boxStyle.Append("margin-left: auto; margin-right: auto; ");
+            }
+
+            boxStyle.Length -= 2;
+            Indent(depth).Append($"""<div style="{boxStyle}">""").Append('\n');
+            Indent(depth + 1);
+            AppendWordArtParagraph(wordArt, null);
+            Indent(depth).Append("</div>\n");
+        }
+
+        void WriteFloatingWordArt(FloatingWordArtElement wordArt, int depth)
+        {
+            // Same zero-height relative wrapper as WriteShape: the display text places at its
+            // anchor offsets without consuming flow height.
+            Indent(depth).Append("""<div style="position: relative">""").Append('\n');
+            Indent(depth + 1);
+            AppendWordArtParagraph(
+                wordArt,
+                $"position: absolute; left: {Length(wordArt.HorizontalPositionPoints)}; top: {Length(wordArt.VerticalPositionPoints)}; z-index: {(wordArt.BehindText ? "-1" : "1")}");
+            Indent(depth).Append("</div>\n");
         }
 
         // A background shape (w:drawing anchored behindDoc) becomes an absolutely-positioned inline

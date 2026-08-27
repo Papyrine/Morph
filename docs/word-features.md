@@ -988,6 +988,25 @@ Lists with multiple indent levels, each with its own bullet or numbering style.
 - **Test**: `nested_list/`, `deep_nested_list/`
 
 > **Contributors**: Level-specific formatting (indent, hanging indent, bullet character, font) resolved during parsing from the abstractNum definition. Deep nesting (6+ levels) tested.
+>
+> **Marker alignment and the overflow tab (probed 2026-08-21, `_probe_numtab`, 24pt with four
+> numbering variants).** Two laws, both measured within 1px of Word after landing:
+>
+> - **`w:lvlJc="right"` right-aligns the marker**: its RIGHT edge sits at the number position
+>   (`left − hanging`), the numeral growing leftward into the margin so the periods of
+>   I./VIII./XVIII. line up (probe right edges landed within 3px of the position at two
+>   geometries). Modelled as `NumberingInfo.MarkerRightAligned`, consumed by
+>   `Fragmenter.MarkerRun`. Before this, `agendas-minutes/14`'s roman headings drew the numeral
+>   LEFT-aligned at the position, overrunning the text ("III.APPROVAL OF MINUTES").
+> - **A left-aligned marker that overruns the text indent pushes the FIRST line's text to the
+>   next tab stop** — the text indent itself when the marker ends before it (the ordinary case),
+>   else the next DEFAULT-interval stop measured from the margin. The probe's "888." ending
+>   96.5pt from the margin put its text at exactly 108pt (the next 36pt multiple), matching
+>   `business-plans/12`'s section headings ("1." at 22pt over an 18pt hanging → text at 36pt,
+>   where the run-together "1.EXECUTIVE SUMMARY" had been). Implemented as
+>   `CanonicalParagraphMeasurer.MarkerTextShift`, applied identically to the first line's wrap
+>   width and to `Fragmenter.LineRuns`' placement so measure and paint agree; continuation lines
+>   stay at the LeftIndent.
 
 ---
 
@@ -1934,7 +1953,8 @@ Positioned text containers with optional background, outline, shape geometry and
 
 - **OOXML**: `wps:wsp` with `wps:txbx` content
 - **Model**: `FloatingTextBoxElement` with content, rotation, background color, `a:ln` outline (`LineColorHex`/`LineWidthPoints`) and `Subpaths` (the shape's `a:custGeom` or built preset — roundRect/stadium label chrome, plaque frames)
-- **Render**: Skia/ImageSharp/PDF draw the fill and outline through the shape's contours (even-odd) before the text content; the text itself still lays out in the rectangular box. All three rotate the whole box (chrome + text) about its centre when `a:xfrm/@rot` (or a composed nested-group rotation) is present — the PDF via `RotateAtTransform`. The HTML exporter emits neither outline, geometry nor rotation for text boxes.
+- **Render**: Skia/ImageSharp/PDF draw the fill and outline through the shape's contours (even-odd) before the text content; the text itself still lays out in the rectangular box. All three rotate the whole box (chrome + text) about its centre when `a:xfrm/@rot` (or a composed nested-group rotation) is present — the PDF via `RotateAtTransform`.
+- **Export**: the HTML exporter keeps a body-flow text box in flow but wraps it in its chrome — fill, `a:ln` frame and Word's default 0.05/0.1in inner inset (`TextBoxOpenTag`); geometry contours and rotation are not attempted. A CELL-anchored text box places absolutely against its cell like the images and shapes (`AppendCellFloats`) — it previously fell off that dispatch entirely, which is how `brochures/06`'s quote text vanished from the export. WordArt exports as a styled paragraph — family, size, weight, fill colour (`AppendWordArtParagraph`); an UNWARPED WordArt is Word's inline text box and carries its `Box*` chrome (`business/06`'s outlined LOGO box), a `BoxSubpaths` frame ring approximating as a border at the preset's eighth-of-short-side thickness (`brochures/08`'s "Contoso Logo"). Warps have no reflowable-HTML form and are deliberately not attempted.
 
 
 #### Inline Shape Groups `DONE`
