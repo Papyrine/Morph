@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="Microsoft.Playwright" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="DiffEngine" />
     <ProjectReference Include="..\Morph.Web\Morph.Web.csproj" />
   </ItemGroup>
 

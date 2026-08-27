@@ -39,6 +39,7 @@ public static class ModuleInitializer
         // library default of 96 DPI the page images were coarser, so thin vector strokes
         // (e.g. custGeom leaf veins) rasterised heavier than the other backends.
         VerifyPDFium.Initialize(150);
+        VerifierSettings.Inline(maxLines: 10, applyMaxLinesToExisting: true);
         VerifierSettings.InitializePlugins();
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
