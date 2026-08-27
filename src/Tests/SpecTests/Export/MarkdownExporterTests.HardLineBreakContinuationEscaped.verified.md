@@ -1,3 +1,0 @@
-﻿Shopping:\
-\- milk\
-\- eggs

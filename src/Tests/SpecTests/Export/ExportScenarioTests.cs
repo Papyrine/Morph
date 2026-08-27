@@ -64,7 +64,9 @@ public class ExportScenarioTests
         await Verify(targets)
             .UseDirectory(directory)
             .UseFileName("html_result")
-            .IgnoreParameters();
+            .IgnoreParameters()
+            // Parameterised over every scenario, so one inline literal could never serve them all.
+            .NotInline();
     }
 
     [Test]
@@ -84,7 +86,9 @@ public class ExportScenarioTests
         await Verify(targets)
             .UseDirectory(directory)
             .UseFileName("md_result")
-            .IgnoreParameters();
+            .IgnoreParameters()
+            // Parameterised over every scenario, so one inline literal could never serve them all.
+            .NotInline();
     }
 
     // Rasterise a PDF page at the DPI the scenario's reference images were rendered at, so the two
@@ -125,7 +129,9 @@ public class ExportScenarioTests
             .SkipPdfNormalization()
             .UseDirectory(directory)
             .UseFileName("pdf_result")
-            .IgnoreParameters();
+            .IgnoreParameters()
+            // Parameterised over every scenario, so one inline literal could never serve them all.
+            .NotInline();
         if (diffs != null)
         {
             settings = settings.AppendValue("PageDiffs", diffs);

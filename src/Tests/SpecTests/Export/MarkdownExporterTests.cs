@@ -7,7 +7,12 @@ public class MarkdownExporterTests
     public Task Paragraph()
     {
         var export = MarkdownExporter.Export(Doc(Para(TextRun("Hello world"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                Hello world
+
+                """);
     }
 
     [Test]
@@ -18,7 +23,16 @@ public class MarkdownExporterTests
                 Heading(1, "Title"),
                 Heading(2, "Section"),
                 Heading(3, "Subsection")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                # Title
+
+                ## Section
+
+                ### Subsection
+
+                """);
     }
 
     [Test]
@@ -31,7 +45,16 @@ public class MarkdownExporterTests
                 Styled("Title", "My Document"),
                 Styled("Subtitle", "A subtitle"),
                 Heading(1, "First Section")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                # My Document
+
+                ## A subtitle
+
+                # First Section
+
+                """);
     }
 
     [Test]
@@ -45,7 +68,18 @@ public class MarkdownExporterTests
                 Styled("Quote", TextRun("First quoted line.", italic: true)),
                 Styled("Quote", TextRun("Second quoted line.", italic: true)),
                 Para(TextRun("Outro"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                Intro
+
+                > *First quoted line.*
+                >
+                > *Second quoted line.*
+
+                Outro
+
+                """);
     }
 
     [Test]
@@ -62,7 +96,12 @@ public class MarkdownExporterTests
                     TextRun("under", underline: true),
                     TextRun(" "),
                     TextRun("struck", strike: true))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                normal **bold** *italic* <u>under</u> ~~struck~~
+
+                """);
     }
 
     [Test]
@@ -71,7 +110,12 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("both", bold: true, italic: true))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                ***both***
+
+                """);
     }
 
     [Test]
@@ -85,7 +129,12 @@ public class MarkdownExporterTests
                     TextRun(" and H"),
                     TextRun("2", vertical: VerticalRunAlignment.Subscript),
                     TextRun("O"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                E = mc<sup>2</sup> and H<sub>2</sub>O
+
+                """);
     }
 
     [Test]
@@ -94,7 +143,12 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("a * b _ c [d] `code`"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                a \* b \_ c \[d\] \`code\`
+
+                """);
     }
 
     [Test]
@@ -106,7 +160,12 @@ public class MarkdownExporterTests
                     TextRun("lead "),
                     TextRun("bold ", bold: true),
                     TextRun("tail"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                lead **bold** tail
+
+                """);
     }
 
     [Test]
@@ -118,7 +177,12 @@ public class MarkdownExporterTests
                     TextRun("see "),
                     TextRun("the docs", url: "https://example.com/docs"),
                     TextRun(" now"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                see [the docs](https://example.com/docs) now
+
+                """);
     }
 
     [Test]
@@ -128,7 +192,13 @@ public class MarkdownExporterTests
             Doc(
                 ListItem("•", 18, "first"),
                 ListItem("•", 18, "second")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                - first
+                - second
+
+                """);
     }
 
     [Test]
@@ -138,7 +208,13 @@ public class MarkdownExporterTests
             Doc(
                 ListItem("1.", 18, "one"),
                 ListItem("2.", 18, "two")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                1. one
+                2. two
+
+                """);
     }
 
     [Test]
@@ -149,7 +225,14 @@ public class MarkdownExporterTests
                 ListItem("1.", 18, "outer one"),
                 ListItem("•", 54, "inner bullet"),
                 ListItem("2.", 18, "outer two")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                1. outer one
+                    - inner bullet
+                2. outer two
+
+                """);
     }
 
     [Test]
@@ -161,7 +244,15 @@ public class MarkdownExporterTests
                     Row(header: true, "Name", "Value"),
                     Row(header: false, "alpha", "1"),
                     Row(header: false, "beta", "2"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                | Name | Value |
+                | --- | --- |
+                | alpha | 1 |
+                | beta | 2 |
+
+                """);
     }
 
     [Test]
@@ -186,7 +277,13 @@ public class MarkdownExporterTests
                     {
                         Cells = [cell]
                     })));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                | • first<br>• second<br>1. ordered |
+                | --- |
+
+                """);
     }
 
     [Test]
@@ -197,7 +294,14 @@ public class MarkdownExporterTests
                 Table(
                     Row(header: true, "a|b", "c"),
                     Row(header: false, "d", "e|f"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                | a\|b | c |
+                | --- | --- |
+                | d | e\|f |
+
+                """);
     }
 
     [Test]
@@ -214,7 +318,12 @@ public class MarkdownExporterTests
                 HeightPoints = 12,
                 Description = "A logo [PNG]"
             }));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                ![A logo \[PNG\]](data:image/png;base64,AQID)
+
+                """);
     }
 
     [Test]
@@ -248,7 +357,18 @@ public class MarkdownExporterTests
                 }
             ]
         };
-        return Verify(MarkdownExporter.Export(document), extension: "md");
+        return Verify(MarkdownExporter.Export(document), extension: "md")
+            .Snapshot(
+                """
+                See note [^1] and [^2].
+
+                Reuse [^1] here.
+
+                [^1]: The footnote body.
+
+                [^2]: The endnote body.
+
+                """);
     }
 
     [Test]
@@ -259,7 +379,16 @@ public class MarkdownExporterTests
                 Para(TextRun("above")),
                 new HorizontalRuleElement(),
                 Para(TextRun("below"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                above
+
+                ---
+
+                below
+
+                """);
     }
 
     [Test]
@@ -271,7 +400,15 @@ public class MarkdownExporterTests
             Doc(
                 Para(TextRun("First line\nSecond line")),
                 Para(TextRun("trailing break dropped\n"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                First line\
+                Second line
+
+                trailing break dropped
+
+                """);
     }
 
     [Test]
@@ -282,7 +419,14 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("Shopping:\n- milk\n- eggs"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                Shopping:\
+                \- milk\
+                \- eggs
+
+                """);
     }
 
     [Test]
@@ -295,7 +439,14 @@ public class MarkdownExporterTests
                 Table(
                     Row(header: true, "a", "b"),
                     Row(header: false, "one\ntwo", "c"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                | a | b |
+                | --- | --- |
+                | one<br>two | c |
+
+                """);
     }
 
     [Test]
@@ -328,7 +479,14 @@ public class MarkdownExporterTests
                         }
                     ]
                 }));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                | a |
+                | --- |
+                | first<br>second |
+
+                """);
     }
 
     [Test]
@@ -369,7 +527,16 @@ public class MarkdownExporterTests
                     }),
                 BlankTable(null),
                 Para(TextRun("below"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                above
+
+                ---
+
+                below
+
+                """);
     }
 
     [Test]
@@ -379,7 +546,12 @@ public class MarkdownExporterTests
         // <br> (matching the HTML exporter) rather than a real newline, which would end the heading.
         var export = MarkdownExporter.Export(
             Doc(Heading(1, "SINCERELY,\nSHEETAL PARMAR")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                # SINCERELY,<br>SHEETAL PARMAR
+
+                """);
     }
 
     [Test]
@@ -411,7 +583,14 @@ public class MarkdownExporterTests
                     TextRun("go", url: "https://example.com"),
                     hiddenLinked,
                     TextRun(" here", url: "https://example.com"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                visible tail
+
+                [go here](https://example.com)
+
+                """);
     }
 
     [Test]
@@ -436,7 +615,12 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("use <b>tags</b> at AT&T for &copy; and &#169;"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                use \<b>tags\</b> at AT&T for \&copy; and \&#169;
+
+                """);
     }
 
     [Test]
@@ -447,7 +631,13 @@ public class MarkdownExporterTests
             Doc(
                 ListItem("10.", 18, "ten"),
                 ListItem("11.", 18, "eleven")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                10. ten
+                11. eleven
+
+                """);
     }
 
     [Test]
@@ -461,7 +651,15 @@ public class MarkdownExporterTests
                 LevelListItem("o", 1, "level 1"),
                 LevelListItem("▪", 2, "level 2"),
                 LevelListItem("•", 0, "level 0 again")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                - level 0
+                    - level 1
+                        - level 2
+                - level 0 again
+
+                """);
     }
 
     [Test]
@@ -489,7 +687,14 @@ public class MarkdownExporterTests
                 Item(0, 18, "outer"),
                 Item(0, 36, "inner"),
                 Item(0, 18, "outer again")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                - outer
+                    - inner
+                - outer again
+
+                """);
     }
 
     [Test]
@@ -503,7 +708,15 @@ public class MarkdownExporterTests
                 DirectIndentListItem("•", 72, "level 2"),
                 DirectIndentListItem("•", 108, "level 3"),
                 DirectIndentListItem("•", 36, "level 1 again")));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                - level 1
+                    - level 2
+                        - level 3
+                - level 1 again
+
+                """);
     }
 
     [Test]
@@ -523,7 +736,13 @@ public class MarkdownExporterTests
                 ]
             });
         var export = MarkdownExporter.Export(Doc(outer));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                | outer text<br>inner a<br>inner b | plain |
+                | --- | --- |
+
+                """);
     }
 
     [Test]
@@ -532,6 +751,11 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("wiki", url: "https://en.wikipedia.org/wiki/Foo_(bar)"))));
-        return Verify(export, extension: "md");
+        return Verify(export, extension: "md")
+            .Snapshot(
+                """
+                [wiki](https://en.wikipedia.org/wiki/Foo_%28bar%29)
+
+                """);
     }
 }
