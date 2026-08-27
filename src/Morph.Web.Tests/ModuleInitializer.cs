@@ -7,6 +7,7 @@ static class ModuleInitializer
     {
         VerifyPlaywright.Initialize(installPlaywright: true);
         VerifierSettings.UseSsimForPng(.7);
+        VerifierSettings.Inline(maxLines: 10, applyMaxLinesToExisting: true);
         VerifierSettings.InitializePlugins();
 
         // The sample workbook states no paper size, so the paper — and through it a fitted sheet's
