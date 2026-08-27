@@ -150,11 +150,15 @@ sealed class HtmlParser
                 break;
 
             case "ul":
+                var bulletListStart = elements.Count;
                 ParseList(element, elements);
+                EndListBlock(elements, bulletListStart);
                 break;
 
             case "ol":
+                var numberListStart = elements.Count;
                 ParseOrderedList(element, elements);
+                EndListBlock(elements, numberListStart);
                 break;
 
             case "table":
@@ -366,30 +370,75 @@ sealed class HtmlParser
 
     void ParseContainer(IElement element, List<DocumentElement> elements)
     {
-        var background = ContainerBackgroundColor(element);
-        if (background == null)
+        var containerStyle = ParseInlineStyle(element);
+        var background = containerStyle?.BackgroundColor;
+        var borders = containerStyle?.Borders is { HasAnyBorder: true } declared ? declared : null;
+        if (background == null && borders == null && containerStyle is not { MarginTopPoints: not null } and not { MarginBottomPoints: not null })
         {
             ParseNodes(element.ChildNodes, elements);
             return;
         }
 
-        // A container carrying its own background-color (e.g. <div style="background-color:#E0E0E0">)
-        // is paragraph shading in Word — a full-width band behind everything it wraps. Morph has no
-        // block-box model, so approximate by pushing the fill onto each child paragraph that doesn't
-        // already declare one of its own.
+        // A container carrying its own box (<div style="background…; border…; padding…">) is a
+        // paragraph box in Word — the fill and border rules push down onto each child paragraph,
+        // and identical borders on consecutive children merge into ONE box under the border-group
+        // law, which is exactly the CSS box around the div. The div's own vertical margins are the
+        // BLOCK's pitch: margin-top joins the flow at the first child, margin-bottom (or, when the
+        // div declares none, the ordinary 14pt block gap) leaves at the last child — measured on
+        // html_css_margin_padding, whose padded div's child declares margin:0 yet Word still
+        // spaces the next block a full 14pt below it.
         var children = new List<DocumentElement>();
         ParseNodes(element.ChildNodes, children);
+        var paragraphCount = 0;
         foreach (var child in children)
         {
-            if (child is ParagraphElement { Properties.BackgroundColorHex: null } para)
+            if (child is ParagraphElement)
             {
+                paragraphCount++;
+            }
+        }
+
+        var paragraphIndex = 0;
+        foreach (var child in children)
+        {
+            if (child is ParagraphElement para)
+            {
+                paragraphIndex++;
+                var properties = para.Properties;
+                if (properties.BackgroundColorHex == null && background != null)
+                {
+                    properties = properties with {BackgroundColorHex = background};
+                }
+
+                if (properties.Borders is not { HasAnyBorder: true } && borders != null)
+                {
+                    properties = properties with
+                    {
+                        Borders = borders,
+                        BorderTopSpacePoints = containerStyle?.PaddingTopPoints ?? 0,
+                        BorderRightSpacePoints = containerStyle?.PaddingRightPoints ?? 0,
+                        BorderBottomSpacePoints = containerStyle?.PaddingBottomPoints ?? 0,
+                        BorderLeftSpacePoints = containerStyle?.PaddingLeftPoints ?? 0
+                    };
+                }
+
+                if (paragraphIndex == 1 && containerStyle?.MarginTopPoints is { } containerTop)
+                {
+                    properties = properties with {SpacingBeforePoints = Math.Max(properties.SpacingBeforePoints, containerTop)};
+                }
+
+                if (paragraphIndex == paragraphCount)
+                {
+                    properties = properties with
+                    {
+                        SpacingAfterPoints = containerStyle?.MarginBottomPoints ?? 14
+                    };
+                }
+
                 elements.Add(new ParagraphElement
                 {
                     Runs = para.Runs,
-                    Properties = para.Properties with
-                    {
-                        BackgroundColorHex = background
-                    },
+                    Properties = properties,
                     IsAnchorOnlyMark = para.IsAnchorOnlyMark,
                     IsCollapsedCellMark = para.IsCollapsedCellMark
                 });
@@ -399,19 +448,6 @@ sealed class HtmlParser
                 elements.Add(child);
             }
         }
-    }
-
-    static string? ContainerBackgroundColor(IElement element)
-    {
-        var style = element.GetAttribute("style");
-        if (string.IsNullOrEmpty(style))
-        {
-            return null;
-        }
-
-        return ParseStyleAttribute(style).TryGetValue("background-color", out var background)
-            ? NormalizeColor(background)
-            : null;
     }
 
     ParagraphElement CreateParagraph(IElement element, double fontSize, bool bold, InlineStyle? style = null, string? styleId = null)
@@ -435,6 +471,16 @@ sealed class HtmlParser
 
         var runs = ParseInlineElements(element, baseProps);
 
+        // A declared border box (any visible edge) takes the CSS padding as its w:pBdr w:space —
+        // the gap between text and rule. Word applies the padding ONLY through a border: the
+        // bordered #CCE5FF box on html_css_margin_padding measures 76px tall (1.5px rule +
+        // 23.4px space + 26px line each way at 150 DPI) with the rule outdented to x=123 against
+        // the 150 text margin, while the padded borderless #DDD div right above it is a plain
+        // 28px line band at the margin. Vertical margins become paragraph spacing — the engine's
+        // max-collapse of before/after IS the CSS margin collapse (a 30px margin-top after a
+        // 14pt-after paragraph measures 22.5pt, not 36.5).
+        var borders = style?.Borders is { HasAnyBorder: true } declaredBorders ? declaredBorders : null;
+
         return new()
         {
             Runs = runs.Count > 0
@@ -446,11 +492,18 @@ sealed class HtmlParser
                 // Word's AltChunk HTML import spaces block paragraphs ~14pt apart (measured
                 // <p> pitch ≈ 57px at 150 DPI vs a ~29px line box); 8pt packed them ~6pt too
                 // tight, so every band/line drifted up the page. Headings keep their own value.
-                SpacingAfterPoints = baseProps.FontSizePoints > 14 ? 12 : 14,
+                SpacingAfterPoints = style?.MarginBottomPoints ?? (baseProps.FontSizePoints > 14 ? 12 : 14),
+                SpacingBeforePoints = style?.MarginTopPoints ?? 0,
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
                 LeftIndentPoints = style?.MarginLeftPoints ?? 0,
+                RightIndentPoints = style?.MarginRightPoints ?? 0,
                 LineSpacingMultiplier = style?.LineHeight ?? 1.08,
                 BackgroundColorHex = style?.BackgroundColor,
+                Borders = borders,
+                BorderTopSpacePoints = borders != null ? style?.PaddingTopPoints ?? 0 : 0,
+                BorderRightSpacePoints = borders != null ? style?.PaddingRightPoints ?? 0 : 0,
+                BorderBottomSpacePoints = borders != null ? style?.PaddingBottomPoints ?? 0 : 0,
+                BorderLeftSpacePoints = borders != null ? style?.PaddingLeftPoints ?? 0 : 0,
                 StyleId = styleId
             }
         };
@@ -460,7 +513,53 @@ sealed class HtmlParser
     {
         var runs = new List<Run>();
         ParseInlineNodes(element.ChildNodes, runs, baseProps);
+        TrimEdgeWhitespace(runs);
         return runs;
+    }
+
+    /// <summary>Sheds whitespace at the very start and end of a block's inline content — source
+    /// indentation like <c>&lt;p style="…"&gt;\n    text\n&lt;/p&gt;</c>, which neither a browser
+    /// nor Word renders. The literal newlines otherwise become soft line breaks and each takes a
+    /// line box (a bordered box grew two blank lines taller than Word's). INTERNAL whitespace is
+    /// deliberately untouched — the full CSS collapse was tried 2026-07-21 and reverted, see
+    /// docs/html-import.md.</summary>
+    static void TrimEdgeWhitespace(List<Run> runs)
+    {
+        while (runs.Count > 0 && runs[0] is { InlineImageData: null, InlineShapeGroup: null } first && !first.IsTab)
+        {
+            var trimmed = first.Text.TrimStart(' ', '\t', '\r', '\n');
+            if (trimmed.Length == first.Text.Length)
+            {
+                break;
+            }
+
+            if (trimmed.Length == 0)
+            {
+                runs.RemoveAt(0);
+                continue;
+            }
+
+            runs[0] = first.WithText(trimmed);
+            break;
+        }
+
+        while (runs.Count > 0 && runs[^1] is { InlineImageData: null, InlineShapeGroup: null } last && !last.IsTab)
+        {
+            var trimmed = last.Text.TrimEnd(' ', '\t', '\r', '\n');
+            if (trimmed.Length == last.Text.Length)
+            {
+                break;
+            }
+
+            if (trimmed.Length == 0)
+            {
+                runs.RemoveAt(runs.Count - 1);
+                continue;
+            }
+
+            runs[^1] = last.WithText(trimmed);
+            break;
+        }
     }
 
     static void ParseInlineNodes(INodeList nodes, List<Run> runs, RunProperties props)
@@ -805,32 +904,43 @@ sealed class HtmlParser
 
         // margin-left on a block indents it, exactly as Word imports it: a 50px margin renders
         // the paragraph 37.5pt in from the margin (measured 78px at 150 DPI — the same 0.75pt/px
-        // rule as image and width attributes). The `margin` shorthand's left component carries the
-        // same meaning (a `margin: 20px` paragraph starts 31px in at 150 DPI = 15pt).
-        if (styles.TryGetValue("margin-left", out var marginLeft))
+        // rule as image and width attributes). The vertical margins become paragraph spacing under
+        // CSS collapse semantics (max, not sum — measured on html_css_margin_padding: a 30px
+        // margin-top after a 14pt-after paragraph gives a 22.5pt gap, where DOCX addition would
+        // give 36.5), applied where the paragraph joins the flow. margin-right shortens the
+        // shading band and the wrap measure, like a right indent.
+        var (marginTop, marginRight, marginBottom, marginLeft) = ParseCssSides(styles, "margin");
+        result.MarginTopPoints = marginTop;
+        result.MarginRightPoints = marginRight;
+        result.MarginBottomPoints = marginBottom;
+        result.MarginLeftPoints = marginLeft;
+
+        // padding maps to the w:pBdr w:space gap — only consumed when a border is present, which
+        // is Word's own gate (a padded borderless div renders as a plain band).
+        var (paddingTop, paddingRight, paddingBottom, paddingLeft) = ParseCssSides(styles, "padding");
+        result.PaddingTopPoints = paddingTop;
+        result.PaddingRightPoints = paddingRight;
+        result.PaddingBottomPoints = paddingBottom;
+        result.PaddingLeftPoints = paddingLeft;
+
+        // border shorthand boxes all four edges; per-edge longhands override one edge each, so
+        // "border-top: 2px solid red; border-bottom: 2px solid blue" produces just those two rules.
+        CellBorders? borders = null;
+        if (styles.TryGetValue("border", out var borderShorthand))
         {
-            if (TryParseCssLengthToPoints(marginLeft, out var marginLeftValue))
+            borders = ParseCssBorderShorthand(borderShorthand);
+        }
+
+        foreach (var (edgeName, apply) in borderEdgeSetters)
+        {
+            if (styles.TryGetValue(edgeName, out var edgeValue) &&
+                ParseCssBorderEdge(edgeValue) is { } edge)
             {
-                result.MarginLeftPoints = marginLeftValue;
+                borders = apply(borders ?? new(), edge);
             }
         }
-        else if (styles.TryGetValue("margin", out var margin))
-        {
-            var values = margin.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            // CSS shorthand: 1 value = all edges, 2 = vertical horizontal, 3 = top horizontal
-            // bottom, 4 = top right bottom left.
-            var left = values.Length switch
-            {
-                1 => values[0],
-                2 or 3 => values[1],
-                4 => values[3],
-                _ => null
-            };
-            if (left != null && TryParseCssLengthToPoints(left, out var shorthandLeft))
-            {
-                result.MarginLeftPoints = shorthandLeft;
-            }
-        }
+
+        result.Borders = borders;
 
         if (styles.TryGetValue("line-height", out var lineHeight))
         {
@@ -873,6 +983,32 @@ sealed class HtmlParser
         }
 
         return result;
+    }
+
+    // Word closes a top-level list block with the ordinary block-paragraph gap: the item pitch is
+    // the bare line box (items carry NO after-spacing — measured 30.5px/row at 150 DPI against the
+    // line's own ~30px, where a 4pt item spacing overshot to 38.5), and only the LAST item of the
+    // outermost list carries the 14pt block pitch, giving the ~42px gap the reference shows before
+    // whatever follows. A nested list's last item gets nothing — the pitch runs uniform straight
+    // through every nesting level (html_nested_lists' six items land on one 30.5px grid).
+    static void EndListBlock(List<DocumentElement> elements, int firstItemIndex)
+    {
+        if (elements.Count <= firstItemIndex ||
+            elements[^1] is not ParagraphElement { Properties.Numbering: not null } lastItem)
+        {
+            return;
+        }
+
+        elements[^1] = new ParagraphElement
+        {
+            Runs = lastItem.Runs,
+            Properties = lastItem.Properties with
+            {
+                SpacingAfterPoints = 14
+            },
+            IsAnchorOnlyMark = lastItem.IsAnchorOnlyMark,
+            IsCollapsedCellMark = lastItem.IsCollapsedCellMark
+        };
     }
 
     void ParseList(IElement listElement, List<DocumentElement> elements, int level = 0)
@@ -1007,7 +1143,9 @@ sealed class HtmlParser
             {
                 LeftIndentPoints = textIndent,
                 HangingIndentPoints = hangingIndent,
-                SpacingAfterPoints = 4,
+                // Zero, not a small value: Word's imported list rows measure the bare line box
+                // (30.5px at 150 DPI) — see EndListBlock for the block-closing gap.
+                SpacingAfterPoints = 0,
                 Numbering = new()
                 {
                     Text = marker,
@@ -1222,12 +1360,21 @@ sealed class HtmlParser
                 TextAlignment? cellAlignment = null;
                 double? cellWidthPoints = null;
                 double? cellWidthFraction = null;
+                CellBorders? cellStyleBorders = null;
                 var cellStyle = cell.GetAttribute("style");
                 if (!string.IsNullOrEmpty(cellStyle))
                 {
                     var cellStyles = ParseStyleAttribute(cellStyle);
                     cellPadding = ParseCssSpacing(cellStyles, "padding");
                     cellMargin = ParseCssSpacing(cellStyles, "margin");
+
+                    // A td's own border style overrides the table model for that cell — Word draws
+                    // html_css_borders' "2px solid black" cell heavy and its "1px solid gray"
+                    // neighbour light where the shared grid would draw both uniform.
+                    if (cellStyles.TryGetValue("border", out var cellBorderValue))
+                    {
+                        cellStyleBorders = ParseCssBorderShorthand(cellBorderValue);
+                    }
                     if (cellStyles.TryGetValue("background-color", out var bg))
                     {
                         cellBgColor = NormalizeColor(bg);
@@ -1351,7 +1498,7 @@ sealed class HtmlParser
                         VerticalMerge = verticalMerge,
                         WidthPoints = cellWidthPoints,
                         WidthFraction = cellWidthFraction,
-                        Borders = cellBoxBorders
+                        Borders = cellStyleBorders ?? cellBoxBorders
                     }
                 });
 
@@ -1878,6 +2025,23 @@ sealed class HtmlParser
 
     static CellBorders? ParseCssBorderShorthand(string value)
     {
+        var edge = ParseCssBorderEdge(value);
+        if (edge == null)
+        {
+            return null;
+        }
+
+        return edge.IsVisible
+            ? CellBorders.Uniform(edge)
+            : new();
+    }
+
+    /// <summary>One CSS border value (<c>2px dashed blue</c>) as a <see cref="BorderEdge"/>,
+    /// keeping the style token — the engine strokes dashed/dotted/double per
+    /// <see cref="BorderStroke"/>, so discarding it (the pre-2026-08 behaviour) drew every CSS
+    /// style solid. <c>none</c>/<c>hidden</c> come back as an invisible edge.</summary>
+    static BorderEdge? ParseCssBorderEdge(string value)
+    {
         var trimmed = value.AsSpan().Trim();
         if (trimmed.IsEmpty)
         {
@@ -1886,6 +2050,7 @@ sealed class HtmlParser
 
         var widthPt = 0.75;
         var color = "000000";
+        var lineStyle = BorderLineStyle.Single;
 
         foreach (var partRange in trimmed.Split(' '))
         {
@@ -1909,16 +2074,13 @@ sealed class HtmlParser
                     widthPt = pt;
                 }
             }
-            else if (part is "solid" || part is "dashed" ||
-                     part is "dotted" || part is "double" ||
-                     part is "groove" || part is "ridge" ||
-                     part is "inset" || part is "outset")
+            else if (CssBorderLineStyle(part) is { } mapped)
             {
-                // Style token — skip (we treat all visible styles the same)
+                lineStyle = mapped;
             }
-            else if (part is "none")
+            else if (part is "none" || part is "hidden")
             {
-                return new();
+                return BorderEdge.None;
             }
             else
             {
@@ -1930,18 +2092,95 @@ sealed class HtmlParser
             }
         }
 
-        var edge = new BorderEdge
+        // CSS declares a double border's TOTAL width; DOCX w:sz declares EACH line of the stack
+        // (BorderStroke draws line-gap-line at w:sz apiece), so the value converts at a third —
+        // html_css_borders' "4px double purple" measures ~5 device px in Word's import, the 1pt
+        // per-line stack, where passing the total drew a 19px triple-weight band.
+        if (lineStyle == BorderLineStyle.Double)
+        {
+            widthPt /= 3;
+        }
+
+        return new()
         {
             IsVisible = true,
             WidthPoints = widthPt,
-            ColorHex = color
-        };
-        return new()
-        {
-            Top = edge,
-            Right = edge,
-            Bottom = edge,
-            Left = edge
+            ColorHex = color,
+            Style = lineStyle
         };
     }
+
+    static BorderLineStyle? CssBorderLineStyle(CharSpan token) => token switch
+    {
+        "solid" => BorderLineStyle.Single,
+        "dashed" => BorderLineStyle.Dashed,
+        "dotted" => BorderLineStyle.Dotted,
+        "double" => BorderLineStyle.Double,
+        "groove" => BorderLineStyle.ThreeDEngrave,
+        "ridge" => BorderLineStyle.ThreeDEmboss,
+        "inset" => BorderLineStyle.Inset,
+        "outset" => BorderLineStyle.Outset,
+        _ => null
+    };
+
+    // Per-edge longhand names paired with the edge each one replaces, for the border-* loop.
+    static readonly (string Name, Func<CellBorders, BorderEdge, CellBorders> Apply)[] borderEdgeSetters =
+    [
+        ("border-top", (borders, edge) => borders with {Top = edge}),
+        ("border-right", (borders, edge) => borders with {Right = edge}),
+        ("border-bottom", (borders, edge) => borders with {Bottom = edge}),
+        ("border-left", (borders, edge) => borders with {Left = edge})
+    ];
+
+    /// <summary>The four sides of a CSS box shorthand (<c>margin</c>/<c>padding</c>) in points,
+    /// longhands (<c>margin-top</c>…) overriding the shorthand's expansion per side.</summary>
+    static (double? Top, double? Right, double? Bottom, double? Left) ParseCssSides(
+        Dictionary<string, string> styles,
+        string property)
+    {
+        double? top = null, right = null, bottom = null, left = null;
+        if (styles.TryGetValue(property, out var shorthand))
+        {
+            var values = shorthand.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            // CSS shorthand: 1 value = all edges, 2 = vertical horizontal, 3 = top horizontal
+            // bottom, 4 = top right bottom left.
+            (var topRaw, var rightRaw, var bottomRaw, var leftRaw) = values.Length switch
+            {
+                1 => (values[0], values[0], values[0], values[0]),
+                2 => (values[0], values[1], values[0], values[1]),
+                3 => (values[0], values[1], values[2], values[1]),
+                4 => (values[0], values[1], values[2], values[3]),
+                _ => (null, null, null, null)
+            };
+            top = ParseCssSide(topRaw);
+            right = ParseCssSide(rightRaw);
+            bottom = ParseCssSide(bottomRaw);
+            left = ParseCssSide(leftRaw);
+        }
+
+        if (styles.TryGetValue($"{property}-top", out var topLonghand))
+        {
+            top = ParseCssSide(topLonghand) ?? top;
+        }
+
+        if (styles.TryGetValue($"{property}-right", out var rightLonghand))
+        {
+            right = ParseCssSide(rightLonghand) ?? right;
+        }
+
+        if (styles.TryGetValue($"{property}-bottom", out var bottomLonghand))
+        {
+            bottom = ParseCssSide(bottomLonghand) ?? bottom;
+        }
+
+        if (styles.TryGetValue($"{property}-left", out var leftLonghand))
+        {
+            left = ParseCssSide(leftLonghand) ?? left;
+        }
+
+        return (top, right, bottom, left);
+    }
+
+    static double? ParseCssSide(string? raw) =>
+        raw != null && TryParseCssLengthToPoints(raw, out var points) ? points : null;
 }

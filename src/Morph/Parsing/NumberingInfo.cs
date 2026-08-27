@@ -38,6 +38,14 @@ sealed record NumberingInfo
     public double HangingIndentPoints { get; init; }
 
     /// <summary>
+    /// <c>w:lvlJc="right"</c>: the marker right-aligns — its RIGHT edge sits at the number
+    /// position (left − hanging), the numeral growing leftward into the margin so the periods of
+    /// I./VIII./XVIII. line up. Probed at 24pt (<c>_probe_numtab</c>): right edges landed within
+    /// 3px of the position at two geometries while left-jc markers start there instead.
+    /// </summary>
+    public bool MarkerRightAligned { get; init; }
+
+    /// <summary>
     /// The level's counter style (<c>w:numFmt</c>). Drives the ordered-list marker style in the
     /// HTML export so roman/letter lists don't collapse to decimal; <see cref="ListNumberFormat.Decimal"/>
     /// is the browser default and stays clean.

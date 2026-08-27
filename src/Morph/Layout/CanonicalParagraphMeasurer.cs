@@ -182,6 +182,61 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties));
     }
 
+    /// <summary>
+    /// The font a list marker draws in — the paragraph's first-run properties, swapped to the
+    /// bullet face for glyph markers. Shared by the fragmenter's marker placement and the
+    /// first-line shift below so measure and paint agree.
+    /// </summary>
+    internal static RunProperties MarkerProperties(ParagraphElement paragraph, NumberingInfo numbering)
+    {
+        var firstProperties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : new();
+        var useBulletFont = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily);
+        return new()
+        {
+            FontFamily = useBulletFont ? "Morph Bullets" : firstProperties.FontFamily,
+            FontSizePoints = firstProperties.FontSizePoints,
+            Bold = !useBulletFont && firstProperties.Bold,
+            ColorHex = numbering.ColorHex ?? firstProperties.ColorHex
+        };
+    }
+
+    /// <summary>
+    /// How far the FIRST line's text starts right of the paragraph's LeftIndent when the list
+    /// marker overruns it. Word's numbering suffix is a tab: the text lands at the first stop
+    /// past the marker's end — the text indent itself when the marker ends before it (the
+    /// ordinary case, zero shift), else the next DEFAULT-interval stop. Probed at 24pt
+    /// (<c>_probe_numtab</c>): a "888." ending 96.5pt from the margin put its text at exactly
+    /// 108pt, the next 36pt multiple. A right-aligned marker ends AT the number position and
+    /// never overruns. Continuation lines stay at the LeftIndent.
+    /// </summary>
+    public float MarkerTextShift(ParagraphElement paragraph)
+    {
+        var properties = paragraph.Properties;
+        if (properties.Numbering is not { Text.Length: > 0 } numbering ||
+            numbering.MarkerRightAligned)
+        {
+            return 0;
+        }
+
+        var hanging = (float) properties.HangingIndentPoints;
+        if (hanging <= 0.01f)
+        {
+            // The no-hanging branch draws the marker to the LEFT of the text position.
+            return 0;
+        }
+
+        var markerWidth = MeasureRunWidth(numbering.Text, MarkerProperties(paragraph, numbering));
+        var markerEnd = properties.LeftIndentPoints - hanging + markerWidth;
+        if (markerEnd <= properties.LeftIndentPoints - 0.01)
+        {
+            return 0;
+        }
+
+        var interval = properties.DefaultTabStopPoints > 0.01 ? properties.DefaultTabStopPoints : 36.0;
+        var stop = (Math.Floor(markerEnd / interval) + 1) * interval;
+        return (float) (stop - properties.LeftIndentPoints);
+    }
+
     // Word applies pair kerning to a run whose size reaches the resolved w:kern threshold; zero
     // (the spec default when docDefaults declare no kern) disables it. The threshold itself is
     // resolved by the parser, including the built-in-Normal default for a document with no
@@ -262,7 +317,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         // positions the marker, the text stays at the LeftIndent on every line. The Fragmenter shifts the
         // first line's X by the same (FirstLineIndent − Hanging) so the wrap and the paint agree.
         var firstLineWidth = paragraph.Properties.Numbering is { Text.Length: > 0 }
-            ? wrapWidth
+            ? wrapWidth - MarkerTextShift(paragraph)
             : wrapWidth
               - (float) paragraph.Properties.FirstLineIndentPoints
               + (float) paragraph.Properties.HangingIndentPoints;

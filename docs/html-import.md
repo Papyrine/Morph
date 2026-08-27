@@ -90,29 +90,66 @@ A second probe amplified the variables (`_probe_htmlborders`: `border=8`, cellsp
 
 The mapping (`ParseTable`): `CellSpacingPoints = cellspacing_px × 0.75 / 2` — the model's detached law draws every gap at 2 × spacing — applied to EVERY html table, borderless included; per-cell `Borders` of 0.75pt `B2B2B2` when detached; `InsideHorizontalBorder`/`InsideVerticalBorder` when collapsed; the frame stays on `DefaultBorders` at the attribute width. The spacing insets join the column measure (`TableLayout.CalculateContentBasedColumnWidths` adds `CellSpacingInsets(...).Horizontal` per cell) so the gaps are not paid out of the text measure — the re-wrap that sank the earlier attempts — and the table outdent carries the outer cell's 2 × spacing inset so cell text still lands at the text margin. CSS-shorthand borders (`style="border: ..."`) keep the frame-only footing; the probe covered the attribute form. Landing measured +0.045 AE over 26 pages — the new-ink offset penalty of many thin rules — while the probe and the `html_table_cellpadding`/`html_complex` crops show the structure matching Word box for box.
 
+## CSS box borders, padding and margins — the landed model (2026-08-21)
+
+The 2026-07-21 attempt at this was reverted on three named blockers; all three dissolved before
+the retry, which landed against Word's own measured geometry (`html_css_borders`,
+`html_css_margin_padding`, `html_complex`'s Info/Warning/Error boxes — every box within a few px
+of the reference).
+
+- **Border → `ParagraphProperties.Borders`, style token kept.** `ParseCssBorderEdge` maps
+  solid/dashed/dotted/double/groove/ridge/inset/outset onto `BorderLineStyle`, and the engine's
+  `BorderStroke` (landed 2026-08 for DOCX border styles) strokes them in all three backends —
+  the first revert's "every style draws solid" is gone. Per-edge longhands
+  (`border-top`/`-right`/`-bottom`/`-left`) override the shorthand's edge. CSS declares a double
+  border's TOTAL width where `w:sz` declares EACH line, so `double` converts at a third.
+- **Padding → the `w:pBdr` `w:space` gap, applied only through a border — Word's own gate.**
+  Word keeps the text at the margin and outdents the rule by border + padding (the 15px-padded
+  `#CCE5FF` box strokes at x=123 against the 150px text margin at 150 DPI, box height 76px =
+  rule + 23.4px space + 26px line each way), while the padded but border-LESS `#DDD` div right
+  above it renders as a plain 28px one-line band at the margin. So padding maps to the four
+  `Border*SpacePoints` and nothing else — no indent change (the reverted attempt's
+  padding→indent mapping was wrong), and no reservation-gate change (the reverted attempt's
+  blast-radius worry disappears with it).
+- **Vertical margins → paragraph spacing; the engine's max-collapse IS the CSS margin
+  collapse.** A `margin-top: 30px` paragraph after a 14pt-after paragraph measures a 22.5pt gap
+  in Word (max), not 36.5 (sum) — and the fragmenter already collapses
+  `max(lastAfter, SpacingBefore)`. `margin-bottom` replaces the 14pt block pitch;
+  `margin-right` becomes a right indent (Word shortens the `#EEE` band's right edge by exactly
+  the 20px margin).
+- **A `<div>`'s box pushes onto its child paragraphs** (`ParseContainer`): borders + padding +
+  background propagate to each child, and identical borders on consecutive children merge into
+  ONE box under the paragraph border-group law — which is exactly the CSS box around the div.
+  The div's own margins are the block's pitch: margin-top joins at the first child,
+  margin-bottom (or the ordinary 14pt block gap when none is declared — measured: Word spaces
+  the next block 14pt below a `margin: 0` child) leaves at the last.
+- **Shading fills the border box.** `Fragmenter.FlushBorderRun` inserts one `PlacedShading`
+  covering the whole box rect (rule to rule, across the space gap) behind the member lines;
+  Word's boxes are solid from rule to rule. This applies to DOCX `w:pBdr` + `w:shd` paragraphs
+  too, which is Word's DOCX behaviour as well.
+- **Edge whitespace sheds.** Source indentation such as `<p style="…">\n    text\n</p>` neither
+  renders in a browser nor in Word, but the literal newlines became soft breaks and each took a
+  line box — the `#CCE5FF` box grew two blank lines taller than Word's until
+  `TrimEdgeWhitespace` dropped them. INTERNAL whitespace stays untouched: the full CSS collapse
+  was tried 2026-07-21 and reverted (the newline hard-breaks compensate the narrow measure in
+  `html_complex`'s intro — see that scenario's entry in `src/todo.md`).
+- **A `td`'s own `border` style overrides the table model for that cell** — Word draws
+  `html_css_borders`' "2px solid black" cell heavy and its "1px solid gray" neighbour light
+  where the shared grid drew both uniform.
+
+## Lists: bare line boxes, one block gap
+
+Word's imported list rows measure the bare line box — 30.5px/row at 150 DPI against the line's
+own ~30px, so items carry NO after-spacing (a 4pt item spacing overshot to 38.5px/row) — and the
+pitch runs uniform straight through every nesting level (`html_nested_lists`' six items land on
+one 30.5px grid, sub-list boundaries included). Only the LAST item of the outermost list block
+carries the ordinary 14pt block pitch, giving the ~42px gap the references show before whatever
+follows (`HtmlParser.EndListBlock`).
+
 ## Known gaps
 
 Tracked as issue **#31** in `src/todo.md`, listed here because they shape what the parser can express:
 
 - **Cell content is flattened to one run.** `cell.TextContent` builds a single run, so `<b>` or `<span style>` inside a `<td>` loses its formatting.
-- **Shaded blocks have no box.** A background renders as a thin full-width band rather than a padded, bordered box. See the attempt below before trying again.
 - **`vertical-align` on cells is unmodelled**, which is what `html_css_alignment` actually means to demonstrate.
 - Cell padding composes slightly tighter than Word's.
-
-## Attempted and reverted: CSS box borders and padding
-
-2026-07-21, affecting `html_css_borders`, `html_css_margin_padding`, `html_complex` and `html_css_colors`. Recorded because the approach was sound and the blockers are specific — a retry should start from here rather than from scratch.
-
-The model already carries what is needed: `ParagraphProperties.Borders`, the four `Border{Top,Bottom,Left,Right}SpacePoints`, and `ParseCssBorderShorthand` for `1px solid #rrggbb`. The implementation read `border`/`padding`/`margin` in `ParseInlineStyle` (with a new `FirstCssLengthPoints` converting CSS px→pt at 0.75); mapped border → `Borders`, padding → all four border-spaces *and* Left/RightIndent, and margin → spacing-after; and propagated the whole box to child paragraphs from `ParseContainer`.
-
-Mapping padding to indents as well as border-spaces is the load-bearing part: border-space alone puts the border *outside* the text, which is the DOCX `w:pBdr` model, not the CSS box model. In all three renderers the shading band also had to move after `paragraphStartY` and expand by the border-spaces, because it was drawn tight to the text before the top-space reservation.
-
-**Borders and padded boxes did render** — crops confirmed the Info/Warning/Error boxes and the `#CCE5FF` padded paragraph matching Word closely — but the metric regressed everywhere: `html_complex` p2 +0.053 AE, `html_css_margin_padding` +0.034, `html_css_borders` +0.021 AE and **−0.048 SSIM**, `html_css_colors` +0.010. Three causes, all still true:
-
-1. **Every border style draws solid.** `ParseCssBorderShorthand` discards the style token, and the paragraph-border renderers ignore `BorderEdge.Style` outright (Skia's `CreatePaint` sets colour, width and Stroke, with no dash effect). Word draws dashed, dotted and double.
-2. **Per-edge longhands are unparsed** — `border-top`/`-bottom`/`-left` produce nothing, so "Top red, bottom blue borders" and "Left border only" stay blank.
-3. **Cumulative vertical drift** — padded box heights don't match Word's, so every border below the first progressively misaligns. This dominates the AE.
-
-Blast radius to watch on a retry: broadening the space-reservation gate from "has border" to "has border OR border-space > 0" (so padding without a border still reserves room) shifted two DOCX scenarios' PDF output — `brochures/06` and `newsletters/14`, paragraphs with border-space and no top border. Keep the gate keyed off a border, or accept and re-judge those.
-
-To land it: map the CSS style token to `BorderEdge.Style` and teach all three paragraph-border renderers to stroke dashed/dotted/double; parse the per-edge `border-*` longhands; then tune padding until box heights match Word, and only then re-judge.
