@@ -6,6 +6,14 @@
 /// </summary>
 static class CellReference
 {
+    // Excel's grid ends at row 1,048,576 and column XFD (16,384) — see "Excel specifications and
+    // limits". An index beyond them cannot name a real cell, so it is rejected like any other
+    // unreadable reference rather than carried into a SheetRange: a crafted reference at
+    // int.MaxValue otherwise turns every `<= range.LastRow` walk into a non-terminating loop,
+    // because the increment overflows past the bound (#174).
+    public const int MaxRow = 1_048_576;
+    public const int MaxColumn = 16_384;
+
     /// <summary>The 1-based column of a reference such as <c>BC7</c>, or 0 when it cannot be read.</summary>
     public static int ColumnOf(string? reference)
     {
@@ -24,6 +32,12 @@ static class CellReference
             }
 
             column = column * 26 + (upper - 'A') + 1;
+
+            // Checked per letter, so the accumulator bails before it can overflow int.
+            if (column > MaxColumn)
+            {
+                return 0;
+            }
         }
 
         return column;
@@ -54,7 +68,7 @@ static class CellReference
         }
 
         var digits = new string(reference.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit).ToArray());
-        return int.TryParse(digits, out var row) ? row : 0;
+        return int.TryParse(digits, out var row) && row <= MaxRow ? row : 0;
     }
 
     /// <summary>Parses an <c>A1:F19</c> range, or a single <c>A1</c>, into inclusive bounds.</summary>
@@ -90,6 +104,13 @@ static class CellReference
 
         var lastColumn = ColumnOf(parts[1]);
         var lastRow = RowOf(parts[1]);
+        if (lastColumn == 0 || lastRow == 0)
+        {
+            // Half a range is no range: folding the 0 sentinel into Min/Max would fabricate a
+            // FirstRow or FirstColumn of 0, one off the top of a grid that counts from 1.
+            return null;
+        }
+
         return new(
             Math.Min(firstRow, lastRow),
             Math.Min(firstColumn, lastColumn),

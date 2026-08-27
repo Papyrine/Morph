@@ -184,10 +184,11 @@ static class ImageSharpPainter
         {
             var skew = (float) FontHelpers.SyntheticItalicSkew;
             var baselineY = P(context, baseline);
-            canvas.Save(new DrawingOptions
-            {
-                Transform = new(new Matrix3x2(1, 0, -skew, 1, skew * baselineY, 0))
-            });
+            canvas.Save(
+                new()
+                {
+                    Transform = new(new(1, 0, -skew, 1, skew * baselineY, 0))
+                });
         }
 
         if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
@@ -595,7 +596,7 @@ static class ImageSharpPainter
             foreach (var (along, across) in BorderStroke.WavePoints(from, to, P(context, wave.Period), P(context, wave.Amplitude)))
             {
                 points.Add(horizontal
-                    ? new PointF((float) along, centre + (float) across)
+                    ? new((float) along, centre + (float) across)
                     : new PointF(centre + (float) across, (float) along));
             }
 

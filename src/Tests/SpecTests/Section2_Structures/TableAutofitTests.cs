@@ -165,7 +165,7 @@ public class TableAutofitTests
             cellWidths: [[100, 100]],
             gridWidths: [100, 100],
             preferredTableWidth: 200,
-            ["a b c", new string('x', 60)]);
+            ["a b c", new('x', 60)]);
 
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
@@ -255,10 +255,11 @@ public class TableAutofitTests
                     });
             }
 
-            rows.Add(new()
-            {
-                Cells = cells
-            });
+            rows.Add(
+                new()
+                {
+                    Cells = cells
+                });
         }
 
         return new()

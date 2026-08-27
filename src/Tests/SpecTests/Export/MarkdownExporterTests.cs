@@ -362,10 +362,11 @@ public class MarkdownExporterTests
         var export = MarkdownExporter.Export(
             Doc(
                 Para(TextRun("above")),
-                BlankTable(new()
-                {
-                    Bottom = BorderEdge.Default
-                }),
+                BlankTable(
+                    new()
+                    {
+                        Bottom = BorderEdge.Default
+                    }),
                 BlankTable(null),
                 Para(TextRun("below"))));
         return Verify(export, extension: "md");

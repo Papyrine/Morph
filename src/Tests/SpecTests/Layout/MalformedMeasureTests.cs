@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using W = DocumentFormat.OpenXml.Wordprocessing;
@@ -50,7 +49,11 @@ public class MalformedMeasureTests
         using var stream = BuildLeaderDocument(attribute, value);
 
         var watch = Stopwatch.StartNew();
-        var pdf = new WordDocument(stream).ExportToPdf(new() {FontDirectory = fontsDirectory});
+        var pdf = new WordDocument(stream).ExportToPdf(
+            new()
+            {
+                FontDirectory = fontsDirectory
+            });
         watch.Stop();
 
         // A one-paragraph page. 166 million dots was ~5GB of content stream before it died.
@@ -197,7 +200,7 @@ public class MalformedMeasureTests
                 new W.Run(runProperties, new W.Text("a")),
                 new W.Run(new W.TabChar()));
 
-            document.AddMainDocumentPart().Document = new(new W.Body(paragraph));
+            document.AddMainDocumentPart().Document = [with(new W.Body(paragraph))];
         }
 
         stream.Position = 0;
@@ -211,14 +214,16 @@ public class MalformedMeasureTests
         using (var document = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
         {
             var mainPart = document.AddMainDocumentPart();
-            mainPart.Document = new(new W.Body(new W.Paragraph(new W.Run(new W.Text("a")))));
+            mainPart.Document = [with(new W.Body(new W.Paragraph(new W.Run(new W.Text("a")))))];
 
             var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
-            stylesPart.Styles = new(
-                new W.DocDefaults(
+            stylesPart.Styles =
+            [
+                with(new W.DocDefaults(
                     new W.RunPropertiesDefault(
                         new W.RunPropertiesBaseStyle(
-                            new W.FontSize {Val = value}))));
+                            new W.FontSize {Val = value}))))
+            ];
         }
 
         stream.Position = 0;

@@ -159,8 +159,8 @@ static class BorderStroke
             // Touching sub-bands, innermost first. A groove is dark on the OUTSIDE (its top edge
             // reads dark then light going inward); a ridge is the other way round.
             return style == BorderLineStyle.ThreeDEngrave
-                ? [new Band(0, light), new Band(light / 2 + dark / 2, dark, bevelShade)]
-                : [new Band(0, dark, bevelShade), new Band(dark / 2 + light / 2, light)];
+                ? [new(0, light), new(light / 2 + dark / 2, dark, bevelShade)]
+                : [new(0, dark, bevelShade), new(dark / 2 + light / 2, light)];
         }
 
         // Line/gap layout in units, outermost first. Odd entries are gaps.

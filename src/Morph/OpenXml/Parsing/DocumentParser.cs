@@ -43,7 +43,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // scenarios, and the style-less autofit fixtures sit on zero-slack column knife-edges under the
     // narrower family. The full ledger is src/todo.md #43.
     const string builtInDefaultFontFamily = "Aptos";
+
     const double builtInDefaultFontSizePoints = 12.0;
+
     // Word's built-in Normal kerns (measured, threshold unprobed - kerning was observed at every
     // size tried, 10pt and up, so 1pt errs toward kerning small text the way Word appears to).
     const double builtInKerningMinPoints = 1.0;
@@ -395,7 +397,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Append floating tables that were nested inside cells. Lifting them here lets the
         // top-level rendering loop handle pagination and absolute positioning, rather than
         // attempting to render them within a parent cell whose page-flow may differ.
-        if (pendingLiftedFloatingTables is { Count: > 0 } lifted)
+        if (pendingLiftedFloatingTables is {Count: > 0} lifted)
         {
             elements.AddRange(lifted);
             pendingLiftedFloatingTables = null;
@@ -437,6 +439,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Both bookmark and comment extraction anchor to paragraph ordinals; the map costs a
         // full body walk, so it's built at most once and only when either feature is present.
         Dictionary<Paragraph, int>? paragraphOrdinals = null;
+
         Dictionary<Paragraph, int> ParagraphOrdinals()
         {
             if (paragraphOrdinals == null)
@@ -876,11 +879,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Id = idLong.ToString(),
-                Text = text
-            });
+            result.Add(
+                new()
+                {
+                    Id = idLong.ToString(),
+                    Text = text
+                });
         }
 
         return result;
@@ -909,11 +913,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Id = idLong.ToString(),
-                Text = text
-            });
+            result.Add(
+                new()
+                {
+                    Id = idLong.ToString(),
+                    Text = text
+                });
         }
 
         return result;
@@ -963,11 +968,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         inResult.Pop();
                         if (instruction.Length > 0)
                         {
-                            result.Add(new()
-                            {
-                                Instruction = instruction,
-                                Result = resultText
-                            });
+                            result.Add(
+                                new()
+                                {
+                                    Instruction = instruction,
+                                    Result = resultText
+                                });
                         }
 
                         break;
@@ -986,11 +992,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var resultText = string.Concat(simple.Descendants<Text>().Select(_ => _.Text));
-            result.Add(new()
-            {
-                Instruction = instruction,
-                Result = resultText
-            });
+            result.Add(
+                new()
+                {
+                    Instruction = instruction,
+                    Result = resultText
+                });
         }
 
         return result;
@@ -3989,7 +3996,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         else if (sdtChild is Table sdtTable)
                         {
                             var parsedSdtTable = ParseTable(sdtTable, mainPart);
-                                    if (parsedSdtTable != null)
+                            if (parsedSdtTable != null)
                             {
                                 elements.Add(parsedSdtTable);
                             }
@@ -4218,10 +4225,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 floatingYOffsetPoints = tblpPr.TablePositionY.Value / OoxmlUnits.TwipsPerPoint;
             }
+
             if (tblpPr?.TablePositionX?.HasValue == true)
             {
                 floatingXOffsetPoints = tblpPr.TablePositionX.Value / OoxmlUnits.TwipsPerPoint;
             }
+
             if (tblpPr?.VerticalAnchor?.Value is { } vAnch)
             {
                 floatingVAnchor = vAnch == VerticalAnchorValues.Page
@@ -4230,6 +4239,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         ? FloatingTableVerticalAnchor.Margin
                         : FloatingTableVerticalAnchor.Text;
             }
+
             if (tblpPr?.HorizontalAnchor?.Value is { } hAnch)
             {
                 floatingHAnchor = hAnch == HorizontalAnchorValues.Page
@@ -5295,8 +5305,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Get paragraph style ID for style-based property resolution
         var paragraphStyleId = paraProps?.ParagraphStyleId?.Val?.Value;
         var inScopedPart = para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
-            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
-            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Footer>().Any();
+                           || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
+                           || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Footer>().Any();
         var props = ParseParagraphProperties(paraProps, mainPart, paragraphStyleId, omitParagraphMark: inScopedPart);
 
         // --- PAGE / NUMPAGES / SECTIONPAGES field tracking ---
@@ -5340,8 +5350,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             {
                                 Text = state.ResultText.ToString(),
                                 Properties = state.ResultProperties
-                                    ?? state.SeparateProperties
-                                    ?? ParseRunProperties(null, mainPart, paragraphStyleId),
+                                             ?? state.SeparateProperties
+                                             ?? ParseRunProperties(null, mainPart, paragraphStyleId),
                                 PageField = state.Kind,
                                 PageFieldNumberFormat = state.NumberFormat
                             });
@@ -5465,11 +5475,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         // Emit current paragraph content before the content control
                         if (runs.Count > 0)
                         {
-                            result.Add(new ParagraphElement
-                            {
-                                Runs = new List<Run>(runs),
-                                Properties = props
-                            });
+                            result.Add(
+                                new ParagraphElement
+                                {
+                                    Runs = new List<Run>(runs),
+                                    Properties = props
+                                });
                             runs.Clear();
                         }
 
@@ -5505,11 +5516,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 {
                                     if (runs.Count > 0)
                                     {
-                                        result.Add(new ParagraphElement
-                                        {
-                                            Runs = new List<Run>(runs),
-                                            Properties = props
-                                        });
+                                        result.Add(
+                                            new ParagraphElement
+                                            {
+                                                Runs = new List<Run>(runs),
+                                                Properties = props
+                                            });
                                         runs.Clear();
                                     }
 
@@ -5521,11 +5533,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 {
                                     if (runs.Count > 0)
                                     {
-                                        result.Add(new ParagraphElement
-                                        {
-                                            Runs = new List<Run>(runs),
-                                            Properties = props
-                                        });
+                                        result.Add(
+                                            new ParagraphElement
+                                            {
+                                                Runs = new List<Run>(runs),
+                                                Properties = props
+                                            });
                                         runs.Clear();
                                     }
 
@@ -5563,11 +5576,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                     // Emit current paragraph content before the images
                                     if (runs.Count > 0)
                                     {
-                                        result.Add(new ParagraphElement
-                                        {
-                                            Runs = new List<Run>(runs),
-                                            Properties = props
-                                        });
+                                        result.Add(
+                                            new ParagraphElement
+                                            {
+                                                Runs = new List<Run>(runs),
+                                                Properties = props
+                                            });
                                         runs.Clear();
                                     }
 
@@ -5598,11 +5612,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             {
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                    result.Add(
+                                        new ParagraphElement
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -5614,11 +5629,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             {
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                    result.Add(
+                                        new ParagraphElement
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -5671,11 +5687,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             {
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                    result.Add(
+                                        new ParagraphElement
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -6053,11 +6070,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                     // Emit current paragraph content before the text box
                                     if (runs.Count > 0)
                                     {
-                                        result.Add(new ParagraphElement
-                                        {
-                                            Runs = new List<Run>(runs),
-                                            Properties = props
-                                        });
+                                        result.Add(
+                                            new ParagraphElement
+                                            {
+                                                Runs = new List<Run>(runs),
+                                                Properties = props
+                                            });
                                         runs.Clear();
                                     }
 
@@ -6086,11 +6104,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                             // Emit current paragraph content before the images
                                             if (runs.Count > 0)
                                             {
-                                                result.Add(new ParagraphElement
-                                                {
-                                                    Runs = new List<Run>(runs),
-                                                    Properties = props
-                                                });
+                                                result.Add(
+                                                    new ParagraphElement
+                                                    {
+                                                        Runs = new List<Run>(runs),
+                                                        Properties = props
+                                                    });
                                                 runs.Clear();
                                             }
 
@@ -6114,11 +6133,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 // Emit current paragraph content before the break
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                    result.Add(
+                                        new ParagraphElement
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -6129,11 +6149,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 // Emit current paragraph content before the break
                                 if (runs.Count > 0)
                                 {
-                                    result.Add(new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
+                                    result.Add(
+                                        new ParagraphElement
+                                        {
+                                            Runs = new List<Run>(runs),
+                                            Properties = props
+                                        });
                                     runs.Clear();
                                 }
 
@@ -6219,22 +6240,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // whether the preceding content still fits — a different question, and one that moved
             // sample.docx from 6 pages to 5 with no Word reference to adjudicate it. Left alone until
             // it is probed on its own terms.
-            result.Add(new ParagraphElement
-            {
-                Runs = [],
-                Properties = sectionBreak != null
-                    ? props with {SuppressLineNumbers = true}
-                    : props,
-                IsSectionBreakMark = sectionBreak is {BreakType: SectionBreakType.Continuous}
-            });
+            result.Add(
+                new ParagraphElement
+                {
+                    Runs = [],
+                    Properties = sectionBreak != null
+                        ? props with {SuppressLineNumbers = true}
+                        : props,
+                    IsSectionBreakMark = sectionBreak is {BreakType: SectionBreakType.Continuous}
+                });
         }
         else if (runs.Count > 0)
         {
-            result.Add(new ParagraphElement
-            {
-                Runs = runs,
-                Properties = props
-            });
+            result.Add(
+                new ParagraphElement
+                {
+                    Runs = runs,
+                    Properties = props
+                });
         }
         else if (props.SpacingAfterPoints > 0 && onlyFloatingArt)
         {
@@ -6246,12 +6269,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // mark in this case, only the trailing spacing. Without this, the table or
             // heading immediately after a background placeholder paragraph snaps too
             // high (see agendas-minutes/11).
-            result.Add(new ParagraphElement
-            {
-                Runs = [],
-                Properties = props with {SpacingBeforePoints = 0},
-                IsAnchorOnlyMark = true
-            });
+            result.Add(
+                new ParagraphElement
+                {
+                    Runs = [],
+                    Properties = props with {SpacingBeforePoints = 0},
+                    IsAnchorOnlyMark = true
+                });
         }
         else if (result.Count > 0 && result[^1] is ColumnBreakElement)
         {
@@ -6262,11 +6286,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // Deliberately NOT done for page breaks: page counts are Word-exact today and the
             // page-break mark interacts with FinishPage's blank-page rules (see the sectPr note
             // above) — that flip needs its own adjudication.
-            result.Add(new ParagraphElement
-            {
-                Runs = [],
-                Properties = props
-            });
+            result.Add(
+                new ParagraphElement
+                {
+                    Runs = [],
+                    Properties = props
+                });
         }
 
         // Add section break after paragraph content
@@ -6289,10 +6314,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 switch (element)
                 {
-                    case FloatingImageElement { AnchorParagraph: null } image:
+                    case FloatingImageElement {AnchorParagraph: null} image:
                         image.AnchorParagraph = anchorParagraph;
                         break;
-                    case FloatingShapeElement { AnchorParagraph: null } shape:
+                    case FloatingShapeElement {AnchorParagraph: null} shape:
                         shape.AnchorParagraph = anchorParagraph;
                         break;
                 }
@@ -6328,7 +6353,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         public double M11;
         public double M12;
         public double M21;
+
         public double M22;
+
         // Accumulated translation in EMUs
         public double OffsetX;
         public double OffsetY;
@@ -6799,31 +6826,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var wspBlipFill = shapeProps.GetFirstChild<A.BlipFill>();
                 var blipImage = wspBlipFill != null ? ReadBlipImage(wspBlipFill, hostPart) : null;
 
-                shapes.Add(new()
-                {
-                    X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                    Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                    Width = shapeXfrm.Extents.Cx ?? 0,
-                    Height = shapeXfrm.Extents.Cy ?? 0,
-                    ColorHex = stroke.ColorHex,
-                    LineWidthEmu = stroke.WidthEmu,
-                    LineAlpha = stroke.Alpha,
-                    FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
-                    FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
-                    Geometry = MapGroupGeometry(shapeProps),
-                    Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
-                               ?? PresetShapeGeometry.TryBuild(
-                                   shapeProps.GetFirstChild<A.PresetGeometry>(),
-                                   shapeXfrm.Extents.Cx ?? 0,
-                                   shapeXfrm.Extents.Cy ?? 0),
-                    FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
-                    FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
-                    Shadow = ReadOuterShadow(shapeProps),
-                    ImageData = blipImage?.Data,
-                    ImageContentType = blipImage?.ContentType,
-                    ImageRasterFallbackData = blipImage?.RasterFallbackData,
-                    ImageCrop = wspBlipFill != null ? ReadCrop(wspBlipFill) : null
-                });
+                shapes.Add(
+                    new()
+                    {
+                        X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                        Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                        Width = shapeXfrm.Extents.Cx ?? 0,
+                        Height = shapeXfrm.Extents.Cy ?? 0,
+                        ColorHex = stroke.ColorHex,
+                        LineWidthEmu = stroke.WidthEmu,
+                        LineAlpha = stroke.Alpha,
+                        FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
+                        FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
+                        Geometry = MapGroupGeometry(shapeProps),
+                        Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
+                                   ?? PresetShapeGeometry.TryBuild(
+                                       shapeProps.GetFirstChild<A.PresetGeometry>(),
+                                       shapeXfrm.Extents.Cx ?? 0,
+                                       shapeXfrm.Extents.Cy ?? 0),
+                        FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
+                        FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
+                        Shadow = ReadOuterShadow(shapeProps),
+                        ImageData = blipImage?.Data,
+                        ImageContentType = blipImage?.ContentType,
+                        ImageRasterFallbackData = blipImage?.RasterFallbackData,
+                        ImageCrop = wspBlipFill != null ? ReadCrop(wspBlipFill) : null
+                    });
             }
             else if (child is PIC.Picture picture)
             {
@@ -6843,23 +6871,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // A picture has no wps:style, so its outline width has to be explicit.
                 var picStroke = ReadGroupStroke(picProps, lineReference: null);
 
-                shapes.Add(new()
-                {
-                    X = (picXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                    Y = (picXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                    Width = picXfrm.Extents.Cx ?? 0,
-                    Height = picXfrm.Extents.Cy ?? 0,
-                    ColorHex = picStroke.ColorHex,
-                    LineWidthEmu = picStroke.WidthEmu,
-                    LineAlpha = picStroke.Alpha,
-                    ImageDescription = ReadImageDescription(picture, drawing),
-                    Geometry = MapGroupGeometry(picProps),
-                    Shadow = ReadOuterShadow(picProps),
-                    ImageData = image.Data,
-                    ImageContentType = image.ContentType,
-                    ImageRasterFallbackData = image.RasterFallbackData,
-                    ImageCrop = ReadCrop(picture.BlipFill)
-                });
+                shapes.Add(
+                    new()
+                    {
+                        X = (picXfrm.Offset.X ?? 0) - chOffX + paddingX,
+                        Y = (picXfrm.Offset.Y ?? 0) - chOffY + paddingY,
+                        Width = picXfrm.Extents.Cx ?? 0,
+                        Height = picXfrm.Extents.Cy ?? 0,
+                        ColorHex = picStroke.ColorHex,
+                        LineWidthEmu = picStroke.WidthEmu,
+                        LineAlpha = picStroke.Alpha,
+                        ImageDescription = ReadImageDescription(picture, drawing),
+                        Geometry = MapGroupGeometry(picProps),
+                        Shadow = ReadOuterShadow(picProps),
+                        ImageData = image.Data,
+                        ImageContentType = image.ContentType,
+                        ImageRasterFallbackData = image.RasterFallbackData,
+                        ImageCrop = ReadCrop(picture.BlipFill)
+                    });
             }
         }
 
@@ -7456,7 +7485,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     static string? ReadImageDescription(OpenXmlElement pic, Drawing drawing)
     {
         return Describe(pic.Descendants().FirstOrDefault(_ => _.LocalName == "cNvPr"))
-            ?? Describe(drawing.Descendants().FirstOrDefault(_ => _.LocalName == "docPr"));
+               ?? Describe(drawing.Descendants().FirstOrDefault(_ => _.LocalName == "docPr"));
 
         static string? Describe(OpenXmlElement? properties)
         {
@@ -8304,6 +8333,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 return true;
             }
         }
+
         return false;
     }
 
@@ -9364,6 +9394,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     fillColor = fontRefColor;
                 }
+
                 fontSize = resolvedRun.FontSizePoints;
                 bold = resolvedRun.Bold;
                 italic = resolvedRun.Italic;
@@ -10686,6 +10717,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Unicode characters for hyphenation
     // Soft hyphen (optional break point)
     const char softHyphenChar = '\u00AD';
+
     // Non-breaking hyphen
     const char nonBreakingHyphenChar = '\u2011';
 
@@ -10710,7 +10742,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             hyperlinkUrlsByRelId.TryGetValue(relationshipId, out target);
         }
 
-        if (hyperlink.Anchor?.Value is { Length: > 0 } anchor)
+        if (hyperlink.Anchor?.Value is {Length: > 0} anchor)
         {
             return target == null ? $"#{anchor}" : $"{target}#{anchor}";
         }
@@ -11033,6 +11065,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             smallCaps = DeclaredRunProperties.ToggleAcross(tableRun.SmallCaps, paragraphDeclared?.SmallCaps);
             underline = paragraphDeclared?.Underline ?? tableRun.Underline ?? underline;
         }
+
         if (color == automaticColorSentinel)
         {
             color = automaticRunColorHex;
@@ -11591,17 +11624,26 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // Inline fallback: numerator "/" denominator. Stacked fractions need cutout
                     // layout the line engine doesn't model, so this is the closest we can get.
                     var num = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Numerator>();
-                    if (num != null) WalkMath(num, runs, props);
-                    runs.Add(new()
+                    if (num != null)
                     {
-                        Text = "/",
-                        Properties = props with
+                        WalkMath(num, runs, props);
+                    }
+
+                    runs.Add(
+                        new()
                         {
-                            Italic = false
-                        }
-                    });
+                            Text = "/",
+                            Properties = props with
+                            {
+                                Italic = false
+                            }
+                        });
                     var den = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Denominator>();
-                    if (den != null) WalkMath(den, runs, props);
+                    if (den != null)
+                    {
+                        WalkMath(den, runs, props);
+                    }
+
                     break;
                 }
 
@@ -11638,16 +11680,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 text = $" {text} ";
             }
 
-            runs.Add(new()
-            {
-                Text = text,
-                Properties = isVariable
-                    ? props
-                    : props with
-                    {
-                        Italic = false
-                    }
-            });
+            runs.Add(
+                new()
+                {
+                    Text = text,
+                    Properties = isVariable
+                        ? props
+                        : props with
+                        {
+                            Italic = false
+                        }
+                });
         }
     }
 

@@ -179,17 +179,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // the same way, and FooterBand has always measured both. Skipping tables here left the body reserving
         // only the header's text: a banner header whose masthead is a shaded one-column table (a protective
         // marking over a colour bar) reserved two lines and let the first body heading land inside the bar.
-        float HeaderReservedTop(PageSettings settings, HeaderFooterContent? header)
+        float HeaderReservedTop(PageSettings settings, HeaderFooterContent? content)
         {
             var marginTop = (float) settings.MarginTop;
-            if (settings.TopMarginIsAbsolute || header == null)
+            if (settings.TopMarginIsAbsolute || content == null)
             {
                 return marginTop;
             }
 
             var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             var headerHeight = 0f;
-            foreach (var element in header.Elements)
+            foreach (var element in content.Elements)
             {
                 if (element is ParagraphElement paragraph)
                 {
@@ -399,7 +399,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceParagraph(controlParagraph);
                         break;
 
-                    case TableElement { Properties.IsFloating: true } table:
+                    case TableElement {Properties.IsFloating: true} table:
                         PlaceFloatingTable(table);
                         break;
 
@@ -407,7 +407,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         PlaceTable(table);
                         break;
 
-                    case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 }:
+                    case FloatingImageElement image when DecodableImageBytes(image) is {Length: > 0}:
                         EmitBodyFloat(image, image.VerticalAnchor, image.AnchorParagraph);
                         break;
 
@@ -444,15 +444,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // mirroring the production RenderHorizontalRule geometry (line at slot middle).
                     case HorizontalRuleElement:
                         EnsureSpaceFor(6);
-                        items.Add(new PlacedBorder(ColumnLeft, y + 3, columnWidth, 0, new()
-                        {
-                            Top = new()
-                            {
-                                IsVisible = true,
-                                WidthPoints = 0.75,
-                                ColorHex = "A0A0A0"
-                            }
-                        }));
+                        items.Add(
+                            new PlacedBorder(
+                                ColumnLeft,
+                                y + 3,
+                                columnWidth,
+                                0,
+                                new()
+                                {
+                                    Top = new()
+                                    {
+                                        IsVisible = true,
+                                        WidthPoints = 0.75,
+                                        ColorHex = "A0A0A0"
+                                    }
+                                }));
                         y += 6;
                         atRegionTop = false;
                         lastAfter = 0;
@@ -577,10 +583,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 items[index] = ShiftItem(items[index], offset);
             }
 
-            var page = bodies.Count;
+            var pageIndex = bodies.Count;
             for (var index = 0; index < bodyFloats.Count; index++)
             {
-                if (bodyFloats[index].Page == page)
+                if (bodyFloats[index].Page == pageIndex)
                 {
                     bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
                 }
@@ -983,7 +989,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 AddBodyFloat(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText, absoluteY);
             }
 
-            foreach (var item in LayoutCellContent(new() { Content = textBox.Content }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top))
+            foreach (var item in LayoutCellContent(
+                         new()
+                         {
+                             Content = textBox.Content
+                         },
+                         boxX,
+                         boxY,
+                         boxWidth,
+                         boxHeight,
+                         CellVerticalAlignment.Top))
             {
                 AddBodyFloat(item, textBox.BehindText, absoluteY);
             }
@@ -1319,10 +1334,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // box so it paints over it, as a zero-height top-only border (the w:hr geometry).
             foreach (var betweenY in borderRunBetweens)
             {
-                items.Add(new PlacedBorder(left, betweenY, width, 0, new()
-                {
-                    Top = run.BorderBetween
-                }));
+                items.Add(
+                    new PlacedBorder(
+                        left,
+                        betweenY,
+                        width,
+                        0,
+                        new()
+                        {
+                            Top = run.BorderBetween
+                        }));
             }
 
             // The bottom space and rule occupy flow: the cursor clears them before whatever follows, so the
@@ -1579,7 +1600,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         var ordinal = lineNumbers.Start + lineNumberCount;
                         if (ordinal % Math.Max(1, lineNumbers.CountBy) == 0)
                         {
-                            var reference = lineRuns.Count > 0 ? lineRuns[0].Properties : new RunProperties();
+                            var reference = lineRuns.Count > 0 ? lineRuns[0].Properties : new();
                             var digitProperties = new RunProperties
                             {
                                 FontFamily = reference.FontFamily,
@@ -2186,7 +2207,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     Left = frame.Left,
                     Right = frame.Right
                 };
-                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, [], false, 0, 0));
+                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, []));
             }
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
@@ -2422,10 +2443,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     foreach (var betweenY in cellBorderBetweens)
                     {
-                        lines.Add(new PlacedBorder(boxLeft, betweenY, boxWidth, 0, new()
-                        {
-                            Top = run.BorderBetween
-                        }));
+                        lines.Add(
+                            new PlacedBorder(
+                                boxLeft,
+                                betweenY,
+                                boxWidth,
+                                0,
+                                new()
+                                {
+                                    Top = run.BorderBetween
+                                }));
                     }
 
                     cellBorderBetweens = null;
@@ -2890,7 +2917,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                             _ => _
                         })
                         .ToList();
-                    result.Add(new ParagraphElement
+                    result.Add(
+                        new ParagraphElement
                     {
                         Runs = runs,
                         Properties = paragraph.Properties,
@@ -2913,7 +2941,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
         // they span the whole page. Front-text (foreground) header art is a later slice; header/footer
         // text and band tables lay out in LayoutBand.
-        static IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings page, bool isFooter)
+        static IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter)
         {
             if (band == null)
             {
@@ -2921,13 +2949,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             var items = new List<PlacedItem>();
-            var marginLeft = (float) page.MarginLeft;
+            var marginLeft = (float) settings.MarginLeft;
             // A paragraph-anchored band float positions from the band's own origin: the header distance for
             // a header, the footer distance up from the page bottom for a footer. Page/margin anchors are
             // absolute and shared by both.
             var bandTop = isFooter
-                ? (float) (page.HeightPoints - page.FooterDistance)
-                : (float) page.HeaderDistance;
+                ? (float) (settings.HeightPoints - settings.FooterDistance)
+                : (float) settings.HeaderDistance;
 
             // A band's behind-text floating art is anchored like a body float but from the band origin —
             // the page edge, the top margin, or the band itself. Both band images and band shapes (e.g.
@@ -2939,7 +2967,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 verticalAnchor switch
                 {
                     VerticalAnchor.Page => (float) verticalOffset,
-                    VerticalAnchor.Margin => (float) page.MarginTop + (float) verticalOffset,
+                    VerticalAnchor.Margin => (float) settings.MarginTop + (float) verticalOffset,
                     _ => bandTop + (float) verticalOffset
                 });
 

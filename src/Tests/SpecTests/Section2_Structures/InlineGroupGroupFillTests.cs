@@ -14,7 +14,7 @@ public class InlineGroupGroupFillTests
     public async Task GrpFillInlineGroupShapesInheritTheirGroupFill()
     {
         var parser = new DocumentParser();
-        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "brochures", "06", "input.docx"));
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "brochures", "06", "input.docx"));
         var doc = parser.Parse(stream);
 
         var groups = CollectInlineGroups(doc.Elements).ToList();

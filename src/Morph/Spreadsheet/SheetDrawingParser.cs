@@ -22,7 +22,6 @@ using XDR = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 /// </summary>
 sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser textParser, Func<OpenXmlPart, byte[]> partBytes)
 {
-
     /// <summary>
     /// The sheet's drawings as absolutely positioned floats, in document order (which is z-order).
     ///

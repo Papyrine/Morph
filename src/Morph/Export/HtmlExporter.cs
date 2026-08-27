@@ -412,14 +412,16 @@ static class HtmlExporter
                     elements[index + 1] is ParagraphElement next &&
                     string.Equals(next.Properties.StyleId, contextual.Properties.StyleId, StringComparison.OrdinalIgnoreCase))
                 {
-                    WriteParagraph(new ParagraphElement
-                    {
-                        Runs = contextual.Runs,
-                        Properties = contextual.Properties with {SpacingAfterPoints = 0},
-                        IsAnchorOnlyMark = contextual.IsAnchorOnlyMark,
-                        IsCollapsedCellMark = contextual.IsCollapsedCellMark,
-                        IsSectionBreakMark = contextual.IsSectionBreakMark
-                    }, depth);
+                    WriteParagraph(
+                        new()
+                        {
+                            Runs = contextual.Runs,
+                            Properties = contextual.Properties with {SpacingAfterPoints = 0},
+                            IsAnchorOnlyMark = contextual.IsAnchorOnlyMark,
+                            IsCollapsedCellMark = contextual.IsCollapsedCellMark,
+                            IsSectionBreakMark = contextual.IsSectionBreakMark
+                        },
+                        depth);
                     borderGroupPrevious = null;
                     borderGroupNext = null;
                     continue;
@@ -2198,7 +2200,7 @@ static class HtmlExporter
             }
         }
 
-        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFont, double inheritedFontSizePoints)
+        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFontFamily, double inheritedFontSizePoints)
         {
             var color = DocumentExportHelpers.NormalizeColor(properties.ColorHex);
             // Black is the default text colour; emitting a span for it is just noise.
@@ -2222,7 +2224,7 @@ static class HtmlExporter
             // Only a run whose font differs from the document's <body> font needs an inline family;
             // the common case (run matches the body font) inherits and stays clean.
             var hasFont = !string.IsNullOrEmpty(properties.FontFamily) &&
-                          !string.Equals(properties.FontFamily, bodyFont, StringComparison.OrdinalIgnoreCase);
+                          !string.Equals(properties.FontFamily, bodyFontFamily, StringComparison.OrdinalIgnoreCase);
 
             // Expanded / condensed tracking (w:spacing on the run) — template heading and body
             // styles lean on it heavily, and without it text wraps at a different measure than

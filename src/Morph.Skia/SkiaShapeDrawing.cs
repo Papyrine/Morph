@@ -80,7 +80,7 @@ static class SkiaShapeDrawing
             // templates.
             using var clip = new SKPath();
             clip.AddOval(destRect);
-            canvas.ClipPath(clip, SKClipOperation.Intersect, antialias: true);
+            canvas.ClipPath(clip, antialias: true);
         }
 
         var crop = shape.ImageCrop is {IsCropped: true} cropped ? cropped : null;

@@ -17,7 +17,7 @@ public class StrictToTransitionalTests
     {
         using var input = new MemoryStream(BuildDocx(strictWordNs, strictRelType, "Strict hello"));
 
-        using var normalized = StrictToTransitional.Normalize(input);
+        await using var normalized = StrictToTransitional.Normalize(input);
 
         // A Strict document produces a fresh buffer, never the input stream.
         await Assert.That(ReferenceEquals(normalized, input)).IsFalse();

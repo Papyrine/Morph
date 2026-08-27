@@ -904,6 +904,7 @@ public class CanonicalFragmenterTests
 
         bool HasHeader(int pageIndex, string text) =>
             document.Pages[pageIndex].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == text);
+
         await Assert.That(HasHeader(0, "Odd Header")).IsTrue();
         await Assert.That(HasHeader(0, "Even Header")).IsFalse();
         await Assert.That(HasHeader(1, "Even Header")).IsTrue();
@@ -1176,6 +1177,7 @@ public class CanonicalFragmenterTests
 
         bool HasFooter(int pageIndex) => document.Pages[pageIndex].Items.OfType<PlacedLine>()
             .SelectMany(_ => _.Runs).Any(_ => _.Text == "Footer text");
+
         await Assert.That(HasFooter(0)).IsFalse();
         await Assert.That(HasFooter(1)).IsTrue();
     }
@@ -1283,10 +1285,12 @@ public class CanonicalFragmenterTests
         var fillers = Enumerable.Range(0, 10).Select(_ => P("filler")).ToArray();
         var text = string.Join(' ', Enumerable.Repeat("lorem", 40));
 
-        ParagraphElement Tail(bool widowControl) => P(text, new()
-        {
-            WidowControl = widowControl
-        });
+        ParagraphElement Tail(bool widowControl) => P(
+            text,
+            new()
+            {
+                WidowControl = widowControl
+            });
 
         static int Page1TailLines(LaidOutDocument document) =>
             document.Pages[0].Items.OfType<PlacedLine>().Count(_ => _.Runs.Any(run => run.Text.Contains("lorem")));
@@ -1656,10 +1660,11 @@ public class CanonicalFragmenterTests
     public async Task First_line_indent_shifts_only_the_first_line_right()
     {
         var lines = fragmenter.Layout([
-                P(wrapping, new()
-                {
-                    FirstLineIndentPoints = 24
-                })
+                P(wrapping,
+                    new()
+                    {
+                        FirstLineIndentPoints = 24
+                    })
             ], Page(400))
             .Pages[0].Items.OfType<PlacedLine>().ToList();
         await Assert.That(lines.Count > 1).IsTrue();
@@ -1672,11 +1677,13 @@ public class CanonicalFragmenterTests
     public async Task Hanging_indent_outdents_only_the_first_line_left()
     {
         var lines = fragmenter.Layout([
-                P(wrapping, new()
-                {
-                    LeftIndentPoints = 40,
-                    HangingIndentPoints = 30
-                })
+                P(
+                    wrapping,
+                    new()
+                    {
+                        LeftIndentPoints = 40,
+                        HangingIndentPoints = 30
+                    })
             ], Page(400))
             .Pages[0].Items.OfType<PlacedLine>().ToList();
         await Assert.That(lines.Count > 1).IsTrue();
@@ -1932,16 +1939,20 @@ public class CanonicalFragmenterTests
         // right-aligns flush to the right content edge (280pt).
         var left = (PlacedLine) fragmenter.Layout([P("word")], Page(400)).Pages[0].Items[0];
         var centred = (PlacedLine) fragmenter.Layout([
-            P("word", new()
-            {
-                Alignment = TextAlignment.Center
-            })
+            P(
+                "word",
+                new()
+                {
+                    Alignment = TextAlignment.Center
+                })
         ], Page(400)).Pages[0].Items[0];
         var right = (PlacedLine) fragmenter.Layout([
-            P("word", new()
-            {
-                Alignment = TextAlignment.Right
-            })
+            P(
+                "word",
+                new()
+                {
+                    Alignment = TextAlignment.Right
+                })
         ], Page(400)).Pages[0].Items[0];
 
         await Assert.That(left.X).IsEqualTo(20f).Within(0.01f);
@@ -2028,10 +2039,12 @@ public class CanonicalFragmenterTests
     {
         // 300pt wide, 20pt margins → 260pt available, right content edge at 280pt. A justified paragraph
         // long enough to wrap fills its non-last lines to that edge.
-        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 40)), new()
-        {
-            Alignment = TextAlignment.Justify
-        });
+        var paragraph = P(
+            string.Join(' ', Enumerable.Repeat("lorem", 40)),
+            new()
+            {
+                Alignment = TextAlignment.Justify
+            });
         var lines = fragmenter.Layout([paragraph], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
 
         await Assert.That(lines.Count > 1).IsTrue();
@@ -2270,10 +2283,12 @@ public class CanonicalFragmenterTests
             ]
         };
 
-        var above = P("above", new()
-        {
-            SpacingAfterPoints = 30
-        });
+        var above = P(
+            "above",
+            new()
+            {
+                SpacingAfterPoints = 30
+            });
         var items = fragmenter.Layout([above, floatingTable, P("below")], Page(400)).Pages[0].Items.ToList();
         var aboveLine = items.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "above"));
         var row = items.OfType<PlacedTableRow>().Single();
@@ -2778,7 +2793,15 @@ public class CanonicalFragmenterTests
                     [
                         new()
                         {
-                            Content = [P("Client Company Name", new() {Alignment = alignment})],
+                            Content =
+                            [
+                                P(
+                                    "Client Company Name",
+                                    new()
+                                    {
+                                        Alignment = alignment
+                                    })
+                            ],
                             Properties = new()
                             {
                                 WidthPoints = 40,
