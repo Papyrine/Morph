@@ -37,7 +37,7 @@ static class SkiaPainter
             if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
             {
                 var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges);
+                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
             }
 
             Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
@@ -710,9 +710,11 @@ static class SkiaPainter
         }
 
         var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
-        foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
+        var bands = BorderStroke.Bands(edge.Style, edge.WidthPoints, scope);
+        var shift = BorderStroke.OutwardShift(bands, scope);
+        foreach (var band in bands)
         {
-            var offset = P(context, band.Offset);
+            var offset = P(context, band.Offset + shift);
             var half = P(context, band.Thickness) / 2;
             var line = at + outward * offset;
             var start = from - offset - (extendStart ? half : 0);

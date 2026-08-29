@@ -86,7 +86,7 @@ static class PdfPainter
             if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
             {
                 var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                PaintBorder(context, graphics, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges));
+                PaintBorder(context, graphics, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges), BorderStroke.Scope.Page);
             }
         }
 
@@ -687,7 +687,7 @@ static class PdfPainter
 
     // A paragraph border box: stroke each visible edge around the box the Fragmenter already expanded by
     // the edge spaces. Same edge geometry as a table cell, just around a paragraph rather than a cell.
-    static void PaintBorder(PdfRenderContext context, XGraphics graphics, PlacedBorder border)
+    static void PaintBorder(PdfRenderContext context, XGraphics graphics, PlacedBorder border, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
     {
         float left = border.X, top = border.Y, right = border.X + border.Width, bottom = border.Y + border.Height;
         var borders = border.Borders;
@@ -699,10 +699,10 @@ static class PdfPainter
         var dr = BorderStroke.Draws(borders.Right);
         var dt = BorderStroke.Draws(borders.Top);
         var db = BorderStroke.Draws(borders.Bottom);
-        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, outward: -1, extendStart: dl, extendEnd: dr);
-        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, outward: 1, extendStart: dl, extendEnd: dr);
-        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, outward: -1, extendStart: dt, extendEnd: db);
-        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, outward: 1, extendStart: dt, extendEnd: db);
+        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, scope, outward: -1, extendStart: dl, extendEnd: dr);
+        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1, extendStart: dl, extendEnd: dr);
+        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1, extendStart: dt, extendEnd: db);
+        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1, extendStart: dt, extendEnd: db);
     }
 
     // The PDF painter's edge strokers take a PlacedBorder/PlacedCell rather than a bare rectangle,
@@ -759,12 +759,15 @@ static class PdfPainter
         }
 
         var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
-        foreach (var band in BorderStroke.Bands(edge.Style, edge.WidthPoints, scope))
+        var bands = BorderStroke.Bands(edge.Style, edge.WidthPoints, scope);
+        var shift = BorderStroke.OutwardShift(bands, scope);
+        foreach (var band in bands)
         {
             var half = band.Thickness / 2;
-            var line = at + outward * band.Offset;
-            var start = from - band.Offset - (extendStart ? half : 0);
-            var end = to + band.Offset + (extendEnd ? half : 0);
+            var offset = band.Offset + shift;
+            var line = at + outward * offset;
+            var start = from - offset - (extendStart ? half : 0);
+            var end = to + offset + (extendEnd ? half : 0);
             var pen = EdgePen(context, edge, band.Thickness, dash, band.Shade);
             if (horizontal)
             {
