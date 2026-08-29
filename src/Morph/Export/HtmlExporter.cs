@@ -2471,11 +2471,16 @@ static class HtmlExporter
             if (shape is {ImageData: {} imageData, FillColorHex: null, Gradient: null})
             {
                 // Image-filled shape: draw the bitmap stretched to the box (geometry clipping for
-                // image fills is rare and not worth a clipPath here).
+                // image fills is rare and not worth a clipPath here). The fill's a:alphaModFix
+                // transparency rides on the element, which is where brochures/08's photos get the
+                // navy of the panel behind them.
                 var source = ResolveImageSource(imageData, shape.ImageContentType, width, height);
                 if (source != null)
                 {
-                    builder.Append($"""<image href="{EncodeAttribute(source)}" width="{Number(width)}" height="{Number(height)}" preserveAspectRatio="none"{ShapeTransformAttribute(shape, width, height)} />""");
+                    var translucent = shape.ImageOpacity < 1
+                        ? $" opacity=\"{Number(Math.Clamp(shape.ImageOpacity, 0, 1))}\""
+                        : "";
+                    builder.Append($"""<image href="{EncodeAttribute(source)}" width="{Number(width)}" height="{Number(height)}" preserveAspectRatio="none"{translucent}{ShapeTransformAttribute(shape, width, height)} />""");
                 }
             }
             else
