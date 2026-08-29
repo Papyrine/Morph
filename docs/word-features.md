@@ -1902,7 +1902,7 @@ Color transformations applied to an embedded image at render time. Word template
 >
 > **Transparency lives on SHAPE FILLS, not pictures** (measured 2026-08-29). brochures/08 is the corpus's only `a:alphaModFix`, and all five of its blips sit under `wps:spPr/a:blipFill` rather than `pic:pic` — greyscale sources drawn at 50% over a navy panel, which reads as a navy duotone and was recorded as one for a year. Plumbing the opacity through the picture carriers alone changed nothing: the photos travel `FloatingShapeElement.ImageData`, so the read is in `ShapeParser` and the carry is `FloatingShapeElement.ImageOpacity`. Landing it took its two pages from a whole-page mean of (201.8, 168.2, 145.3) against Word's (184.2, 154.2, 134.7) to (185.4, 155.3, 136.0), with the worst photo tile going from 65.9 mean absolute difference to 0.3.
 >
-> Still unmodelled: shape fills carry their transparency but not their COLOUR transforms (`FloatingShapeElement` has no effect fields; no corpus scenario needs it yet), `a:clrChange`/`a:biLevel` parse to `None`, and the HTML export emits no shape image fills at all — brochures/08's export contains zero `<img>` tags, so its photos are absent rather than mis-coloured.
+> Still unmodelled: shape fills carry their transparency but not their COLOUR transforms (`FloatingShapeElement` has no effect fields; no corpus scenario needs it yet), and `a:clrChange`/`a:biLevel` parse to `None`. Note that a shape fill reaches the HTML export as an SVG `<image>` inside the shape's `<svg>` (`WriteShape`), not as an `<img>`, so its transparency is an `opacity` attribute there rather than the CSS `opacity` a picture gets.
 
 
 #### Image Adjustments (Brightness, Contrast, Saturation) `TODO`
