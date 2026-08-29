@@ -753,13 +753,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
                     var imageY = AnchoredY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
-                    AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
                     RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
                     break;
                 }
 
                 case FloatingShapeElement {ImageData: { Length: > 0 } shapeImage} shape when shape.ImageContentType != "image/svg+xml":
-                    AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                    AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical, Opacity: shape.ImageOpacity), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
 
                 case FloatingShapeElement shape:
@@ -2291,7 +2291,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var shapeY = cellY + (float) shape.VerticalPositionPoints;
                 if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
                 {
-                    shapes.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical));
+                    shapes.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical, Opacity: shape.ImageOpacity));
                 }
                 else if (shape.ImageData == null)
                 {
@@ -2977,7 +2977,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     DecodableImageBytes(image) is { Length: > 0 } data)
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
-                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data));
+                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -2990,7 +2990,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // front-text page-anchored header shapes) were silently dropped by the behind-only gate.
                     if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
                     {
-                        items.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical));
+                        items.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical, Opacity: shape.ImageOpacity));
                     }
                     else if (shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null))
                     {
@@ -3144,7 +3144,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
             {
                 var image = line.Images[imageIndex];
-                images[imageIndex] = new(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup);
+                images[imageIndex] = new(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity);
             }
 
             return images;

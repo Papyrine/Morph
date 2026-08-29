@@ -51,6 +51,9 @@ sealed class Run
     /// <summary>Duotone light end for the inline image; see <see cref="ImageElement.DuotoneLightColorHex"/>.</summary>
     public string? InlineImageDuotoneLightColorHex { get; init; }
 
+    /// <summary>Constant transparency for the inline image; see <see cref="ImageElement.Opacity"/>.</summary>
+    public double InlineImageOpacity { get; init; } = 1;
+
     /// <summary>
     /// True when this run represents a single w:tab character.
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
@@ -126,6 +129,7 @@ sealed class Run
             InlineImageColorEffect = InlineImageColorEffect,
             InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
             InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
+            InlineImageOpacity = InlineImageOpacity,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,
@@ -155,6 +159,7 @@ sealed class Run
             InlineImageColorEffect = InlineImageColorEffect,
             InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
             InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
+            InlineImageOpacity = InlineImageOpacity,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,

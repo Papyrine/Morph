@@ -30,6 +30,7 @@
                     },
                     "InlineImageFlipHorizontal": false,
                     "InlineImageFlipVertical": false,
+                    "InlineImageOpacity": 1.0,
                     "IsTab": false
                   }
                 ],
@@ -91,6 +92,7 @@
                     },
                     "InlineImageFlipHorizontal": false,
                     "InlineImageFlipVertical": false,
+                    "InlineImageOpacity": 1.0,
                     "IsTab": false
                   }
                 ],

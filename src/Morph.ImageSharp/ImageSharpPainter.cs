@@ -302,7 +302,7 @@ static class ImageSharpPainter
         var pad = WordArtRasterPage.Padding(wordArt.Visual);
         var width = (int) Math.Round(P(context, wordArt.Width + 2 * pad));
         var height = (int) Math.Round(P(context, wordArt.Height + 2 * pad));
-        if (context.GetProcessedImage(png, width, height, null, default, 0) is not {} processed)
+        if (context.GetProcessedImage(png, width, height, null, recolor: null, 0) is not {} processed)
         {
             return;
         }
@@ -329,7 +329,7 @@ static class ImageSharpPainter
 
         var width = (int) Math.Round(P(context, image.Width));
         var height = (int) Math.Round(P(context, image.Height));
-        var processed = context.GetProcessedImage(data, width, height, image.Crop, default, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+        var processed = context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
         if (processed == null)
         {
             return;

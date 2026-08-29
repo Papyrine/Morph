@@ -158,24 +158,49 @@ sealed class PdfRenderContext : RenderContextBase
     // N-page document used to embed N copies). Cache per source array (reference identity: the
     // parsed elements hold stable arrays). Decode failures propagate to the caller, matching
     // the uncached XImage.FromStream behaviour — nothing is cached for a throwing source.
-    readonly Dictionary<byte[], XImage> imageCache = new(ReferenceEqualityComparer.Instance);
+    readonly Dictionary<(byte[] Data, ImageRecolor? Recolor, double Opacity), XImage> imageCache = new(ImageKeyComparer.Instance);
+
+    // The same source array can be drawn both plainly and with effects, so the key carries them
+    // beside it: the array still compares by reference, the effects by value.
+    sealed class ImageKeyComparer : IEqualityComparer<(byte[] Data, ImageRecolor? Recolor, double Opacity)>
+    {
+        public static readonly ImageKeyComparer Instance = new();
+
+        public bool Equals((byte[] Data, ImageRecolor? Recolor, double Opacity) left, (byte[] Data, ImageRecolor? Recolor, double Opacity) right) =>
+            ReferenceEquals(left.Data, right.Data) &&
+            Equals(left.Recolor, right.Recolor) &&
+            left.Opacity.Equals(right.Opacity);
+
+        public int GetHashCode((byte[] Data, ImageRecolor? Recolor, double Opacity) key) =>
+            HashCode.Combine(RuntimeHelpers.GetHashCode(key.Data), key.Recolor, key.Opacity);
+    }
 
     // PixelKey -> PaletteKey of the first indexed PNG embedded with those pixels; see GetImage.
     readonly Dictionary<string, string> indexedPixelIdentities = [];
 
-    public XImage GetImage(byte[] data)
+    public XImage GetImage(byte[] data, ImageRecolor? recolor = null, double opacity = 1)
     {
-        if (!imageCache.TryGetValue(data, out var image))
+        if (!imageCache.TryGetValue((data, recolor, opacity), out var image))
         {
+            // The blip's effects: Word's Recolor gallery (a:duotone / a:grayscl / a:lum) and the
+            // a:alphaModFix transparency. PDFsharp embeds encoded bytes and has no pixel pipeline
+            // to apply either with, so they are baked in here by a raster backend if one is
+            // deployed — the arrangement WordArt already uses. The result is always a PNG, which
+            // the two re-encodes below then pass straight through.
+            var source = (recolor != null || opacity < 1) &&
+                         ImageEffectsFactory.TryGet()?.Bake(data, recolor, opacity) is { Length: > 0 } baked
+                ? baked
+                : data;
+
             // Two formats need re-encoding before PDFsharp will take them, both keyed on the
             // ORIGINAL array so the cache stays reference-stable and the work happens at most once:
             //   * GIF — PDFsharp's cross-platform build cannot decode it at all, so the first frame
             //     is transcoded to an indexed PNG (GifToPng).
             //   * a sub-8-bit indexed PNG — PDFsharp emits an all-zero soft mask for those, so the
             //     picture lands in the PDF and draws as nothing (IndexedPngNormalizer).
-            var decodable = GifToPng.IsGif(data)
-                ? GifToPng.Convert(data) ?? data
-                : IndexedPngNormalizer.Normalize(data);
+            var decodable = GifToPng.IsGif(source)
+                ? GifToPng.Convert(source) ?? source
+                : IndexedPngNormalizer.Normalize(source);
 
             // PDFsharp's document-level image dedup hashes an imported bitmap's PIXEL data but not
             // its palette, so a recoloured copy of an already-embedded indexed PNG — identical
@@ -199,7 +224,7 @@ sealed class PdfRenderContext : RenderContextBase
 
             using var stream = new MemoryStream(decodable);
             image = XImage.FromStream(stream);
-            imageCache[data] = image;
+            imageCache[(data, recolor, opacity)] = image;
         }
 
         return image;

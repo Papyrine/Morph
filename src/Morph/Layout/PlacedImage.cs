@@ -5,7 +5,10 @@
 /// directly on the page. A painter decodes the bytes and draws them into the box, applying the DrawingML
 /// transforms a floating image can carry: rotation and flip about the box centre, a source-rectangle
 /// <see cref="Crop"/>, and an ellipse or freeform clip. The transform fields default to none, so a plain
-/// image (a header background, most inline images) constructs with the five-argument form.
+/// image (a header background, most inline images) constructs with the five-argument form. A
+/// <see cref="Recolor"/> is Word's Recolor gallery transform (duotone, greyscale, washout), which the
+/// painter applies as a colour filter over whatever it draws, and <see cref="Opacity"/> is the blip's
+/// constant transparency (<c>a:alphaModFix</c>), which it composites with.
 ///
 /// An inline <see cref="ShapeGroup"/> (a grouped drawing embedded in a run) rides the same inline-image
 /// carrier: <see cref="Data"/> is then null and the painter draws the group's child shapes scaled into the
@@ -23,4 +26,6 @@ sealed record PlacedImage(
     bool ClipToEllipse = false,
     IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ClipSubpaths = null,
     ImageCrop? Crop = null,
-    InlineShapeGroup? ShapeGroup = null) : PlacedItem(X, Y, Width, Height);
+    InlineShapeGroup? ShapeGroup = null,
+    ImageRecolor? Recolor = null,
+    double Opacity = 1) : PlacedItem(X, Y, Width, Height);

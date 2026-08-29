@@ -45,6 +45,11 @@ sealed class ImageElement : DocumentElement
     /// <summary>The duotone ramp's light end (theme-resolved hex). Null = white, which keeps
     /// the Recolor-gallery (darkColor, white) form on the historical single-colour path.</summary>
     public string? DuotoneLightColorHex { get; init; }
+
+    /// <summary>Constant transparency from <c>a:alphaModFix</c> as a multiplier on the picture's
+    /// alpha; 1 (the default) draws it opaque. Independent of <see cref="ColorEffect"/> — a blip
+    /// may declare both.</summary>
+    public double Opacity { get; init; } = 1;
 }
 
 /// <summary>

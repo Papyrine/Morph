@@ -93,7 +93,7 @@ static class ImageSharpShapeDrawing
             return;
         }
 
-        var img = context.GetProcessedImage(imageBytes, (int) width, (int) height, shape.ImageCrop, BlipColorEffect.None, rotationDegrees: 0);
+        var img = context.GetProcessedImage(imageBytes, (int) width, (int) height, shape.ImageCrop, recolor: null, rotationDegrees: 0);
         if (img == null)
         {
             return;
