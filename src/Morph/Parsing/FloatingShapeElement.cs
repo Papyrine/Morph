@@ -63,6 +63,11 @@ sealed class FloatingShapeElement : DocumentElement
     /// <summary>Content type of the image (e.g., "image/jpeg"). Null if using solid color fill.</summary>
     public string? ImageContentType { get; init; }
 
+    /// <summary>Constant transparency on the fill's <c>a:blip</c> (<c>a:alphaModFix</c>) as a
+    /// multiplier on the picture's alpha; 1 (the default) draws it opaque. The fill's COLOUR
+    /// transforms are still unread here — see todo #8.</summary>
+    public double ImageOpacity { get; init; } = 1;
+
     /// <summary>Stroke color for the shape outline (hex RGB, no #). Null when no outline is drawn.</summary>
     public string? LineColorHex { get; init; }
 
@@ -159,6 +164,7 @@ sealed class FloatingShapeElement : DocumentElement
             Gradient = Gradient,
             ImageData = ImageData,
             ImageContentType = ImageContentType,
+            ImageOpacity = ImageOpacity,
             LineColorHex = LineColorHex,
             LineWidthPoints = LineWidthPoints,
             LineAlpha = LineAlpha,

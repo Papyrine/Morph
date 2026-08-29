@@ -6,4 +6,4 @@
 /// The box is unbreakable in the flow — its width counts toward the line width and its height can grow the
 /// line. Positioned with its bottom on the text baseline by the fragmenter.
 /// </summary>
-readonly record struct LaidOutImage(float X, float Width, float Height, byte[]? Data, double RotationDegrees = 0, bool FlipHorizontal = false, bool FlipVertical = false, ImageCrop? Crop = null, InlineShapeGroup? ShapeGroup = null);
+readonly record struct LaidOutImage(float X, float Width, float Height, byte[]? Data, double RotationDegrees = 0, bool FlipHorizontal = false, bool FlipVertical = false, ImageCrop? Crop = null, InlineShapeGroup? ShapeGroup = null, ImageRecolor? Recolor = null, double Opacity = 1);

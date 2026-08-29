@@ -118,15 +118,17 @@ static class SkiaShapeDrawing
     /// <see cref="ImageCrop.Expand"/> computes and clips it to the box, since Skia cannot sample outside
     /// the source. A null or all-zero crop is the plain stretch. Shared by the group-picture path and the
     /// layout engine's <c>PlacedImage</c> painter so a cropped picture draws the same either way.
+    /// An optional <paramref name="paint"/> carries the picture's colour filter (Word's Recolor
+    /// transforms); null draws the pixels untouched.
     /// </summary>
-    internal static void DrawCropped(SKCanvas canvas, SKBitmap image, SKRect destRect, ImageCrop? crop)
+    internal static void DrawCropped(SKCanvas canvas, SKBitmap image, SKRect destRect, ImageCrop? crop, SKPaint? paint = null)
     {
         if (crop is {HasPadding: true})
         {
             var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
             canvas.Save();
             canvas.ClipRect(destRect);
-            canvas.DrawBitmap(image, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)));
+            canvas.DrawBitmap(image, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), paint);
             canvas.Restore();
             return;
         }
@@ -138,11 +140,11 @@ static class SkiaShapeDrawing
                 (float) (crop.Top * image.Height),
                 (float) ((1 - crop.Right) * image.Width),
                 (float) ((1 - crop.Bottom) * image.Height));
-            canvas.DrawBitmap(image, source, destRect);
+            canvas.DrawBitmap(image, source, destRect, paint);
             return;
         }
 
-        canvas.DrawBitmap(image, destRect);
+        canvas.DrawBitmap(image, destRect, paint);
     }
 
     internal static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)

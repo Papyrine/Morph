@@ -430,15 +430,15 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     // with the context (this replaced the old per-page RetainForPage sink). Failed decodes
     // cache null — the call sites deliberately swallow undecodable images.
 
-    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, BlipColorEffect Effect, float Rotation, bool FlipHorizontal, bool FlipVertical, string? DuotoneColorHex, string? DuotoneLightColorHex), Image<Rgba32>?> processedImageCache = [];
+    readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop, ImageRecolor? Recolor, double Opacity, float Rotation, bool FlipHorizontal, bool FlipVertical), Image<Rgba32>?> processedImageCache = [];
 
     /// <summary>
-    /// Decoded image with crop → resize → recolor → rotate applied, cached for the context's
+    /// Decoded image with crop → resize → effects → rotate applied, cached for the context's
     /// lifetime. Callers must not mutate or dispose the result.
     /// </summary>
-    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, BlipColorEffect effect, float rotationDegrees, bool flipHorizontal = false, bool flipVertical = false, string? duotoneColorHex = null, string? duotoneLightColorHex = null)
+    public Image<Rgba32>? GetProcessedImage(byte[] data, int width, int height, ImageCrop? crop, ImageRecolor? recolor, float rotationDegrees, bool flipHorizontal = false, bool flipVertical = false, double opacity = 1)
     {
-        var key = (data, width, height, crop, effect, rotationDegrees, flipHorizontal, flipVertical, duotoneColorHex, duotoneLightColorHex);
+        var key = (data, width, height, crop, recolor, opacity, rotationDegrees, flipHorizontal, flipVertical);
         if (processedImageCache.TryGetValue(key, out var cached))
         {
             return cached;
@@ -475,38 +475,12 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
                 image.Mutate(_ => _.Resize(width, height));
             }
 
-            // Word's "Recolor" gallery presets.
-            switch (effect)
+            // The blip's effects: Word's "Recolor" gallery presets (a:duotone / a:grayscl /
+            // a:lum) from the shared recipe so this backend and Skia transform the same pixels the
+            // same way, then the a:alphaModFix transparency.
+            if (recolor != null || opacity < 1)
             {
-                case BlipColorEffect.Duotone when duotoneColorHex != null || duotoneLightColorHex != null:
-                    // a:duotone maps luminance onto a dark->light ramp: out_c = dark_c + L*(light_c - dark_c).
-                    // Greyscale first collapses every channel to L; the matrix then scales each
-                    // channel by (light_c - dark_c) and adds the dark_c bias. Word's Recolor
-                    // gallery pairs a dark colour with white; letters/02 pairs black with a
-                    // tinted accent instead.
-                    var dark = ParseColor(duotoneColorHex ?? "000000").ToPixel<Rgba32>();
-                    var light = ParseColor(duotoneLightColorHex ?? "FFFFFF").ToPixel<Rgba32>();
-                    var darkRed = dark.R / 255f;
-                    var darkGreen = dark.G / 255f;
-                    var darkBlue = dark.B / 255f;
-                    var duotoneMatrix = new ColorMatrix(
-                        light.R / 255f - darkRed, 0, 0, 0,
-                        0, light.G / 255f - darkGreen, 0, 0,
-                        0, 0, light.B / 255f - darkBlue, 0,
-                        0, 0, 0, 1,
-                        darkRed, darkGreen, darkBlue, 0);
-                    image.Mutate(_ => _.Grayscale().Filter(duotoneMatrix));
-                    break;
-                case BlipColorEffect.Grayscale:
-                case BlipColorEffect.Duotone:
-                    image.Mutate(_ => _.Grayscale());
-                    break;
-                case BlipColorEffect.Washout:
-                    // Word's washout: brightness +70%, contrast -50%. ImageSharp's
-                    // Brightness/Contrast operate in 0–N space — these constants line up
-                    // visually with Skia's color-matrix branch.
-                    image.Mutate(_ => _.Brightness(1.7f).Contrast(0.5f));
-                    break;
+                image.Mutate(_ => ImageSharpImageEffects.Apply(_, recolor, opacity));
             }
 
             // a:xfrm/@flipH/@flipV mirror before the rotation so the rotation spins the mirrored
@@ -555,7 +529,7 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             return cached;
         }
 
-        var source = GetProcessedImage(data, width, height, crop, BlipColorEffect.None, rotationDegrees: 0);
+        var source = GetProcessedImage(data, width, height, crop, recolor: null, rotationDegrees: 0);
         Image<Rgba32>? clipped = null;
         if (source != null)
         {

@@ -244,6 +244,7 @@ static class ShapeParser
                     VerticalPositionPercent = positioning.VerticalPositionPercent,
                     ImageData = imageData,
                     ImageContentType = contentType,
+                    ImageOpacity = DocumentParser.ReadBlipOpacity(blipFill.GetFirstChild<A.Blip>()),
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                 LineAlpha = lineAlpha,
@@ -904,6 +905,7 @@ static class ShapeParser
                     // Percent sizing intentionally not propagated — see solid-fill branch.
                     ImageData = imageData,
                     ImageContentType = contentType,
+                    ImageOpacity = DocumentParser.ReadBlipOpacity(blipFill.GetFirstChild<A.Blip>()),
                     LineColorHex = lineColor,
                     LineWidthPoints = lineWidth,
                 LineAlpha = lineAlpha,

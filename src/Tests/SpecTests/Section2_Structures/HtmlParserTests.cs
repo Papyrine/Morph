@@ -371,37 +371,11 @@ public class HtmlParserTests
 
     [Test]
     public Task Img_DataUri() =>
-        Verify(HtmlParser.Parse("<img src=\"data:image/png;base64,iVBORw0KGgo=\">"))
-            .Snapshot(
-                """
-                [
-                  {
-                    "ImageData": "iVBORw0KGgo=",
-                    "WidthPoints": 100.0,
-                    "HeightPoints": 100.0,
-                    "ContentType": "image/png",
-                    "FlipHorizontal": false,
-                    "FlipVertical": false
-                  }
-                ]
-                """);
+        Verify(HtmlParser.Parse("<img src=\"data:image/png;base64,iVBORw0KGgo=\">"));
 
     [Test]
     public Task Img_WithDimensions() =>
-        Verify(HtmlParser.Parse("<img src=\"data:image/png;base64,iVBORw0KGgo=\" width=\"200\" height=\"150\">"))
-            .Snapshot(
-                """
-                [
-                  {
-                    "ImageData": "iVBORw0KGgo=",
-                    "WidthPoints": 150.0,
-                    "HeightPoints": 112.5,
-                    "ContentType": "image/png",
-                    "FlipHorizontal": false,
-                    "FlipVertical": false
-                  }
-                ]
-                """);
+        Verify(HtmlParser.Parse("<img src=\"data:image/png;base64,iVBORw0KGgo=\" width=\"200\" height=\"150\">"));
 
     [Test]
     public async Task Img_NoSrc_Skipped()

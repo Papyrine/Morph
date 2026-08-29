@@ -6642,9 +6642,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // a:grayscl / a:duotone on the pic's blip — brochures/03's grey circle photo is an
         // inline pic whose greyscale was silently dropped on this path.
+        var inlineBlip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
         var (inlineColorEffect, inlineDuotoneColorHex, inlineDuotoneLightColorHex) = ReadBlipColorEffect(
-            blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip"),
+            inlineBlip,
             currentThemeColors);
+        var inlineOpacity = ReadBlipOpacity(inlineBlip);
 
         if (ReadBlipImage(blipFill, hostPart) is not { } image)
         {
@@ -6669,7 +6671,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             InlineImageCrop = crop,
             InlineImageColorEffect = inlineColorEffect,
             InlineImageDuotoneColorHex = inlineDuotoneColorHex,
-            InlineImageDuotoneLightColorHex = inlineDuotoneLightColorHex
+            InlineImageDuotoneLightColorHex = inlineDuotoneLightColorHex,
+            InlineImageOpacity = inlineOpacity
         };
     }
 
@@ -7341,6 +7344,37 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return LigatureMode.Standard;
     }
 
+    /// <summary>
+    /// Reads <c>a:alphaModFix</c> — the blip's constant transparency — as a multiplier on the
+    /// picture's alpha, 1 when absent. Word writes <c>@amt</c> as a percentage in thousandths
+    /// (<c>50000</c> = 50%), and values above 100% are legal (they amplify a source that is
+    /// already translucent), so only the negative case is rejected.
+    /// </summary>
+    /// <remarks>
+    /// Scanned independently of <see cref="ReadBlipColorEffect"/> because the two are separate
+    /// children of the same blip: a picture may declare a duotone AND a transparency, and the
+    /// effect scan returns on the first colour transform it finds.
+    /// </remarks>
+    internal static double ReadBlipOpacity(OpenXmlElement? blip)
+    {
+        if (blip == null)
+        {
+            return 1;
+        }
+
+        foreach (var child in blip.Elements())
+        {
+            if (child.LocalName == "alphaModFix" &&
+                int.TryParse(child.AttributeValue("amt"), out var amount) &&
+                amount >= 0)
+            {
+                return amount / 100000d;
+            }
+        }
+
+        return 1;
+    }
+
     internal static (BlipColorEffect Effect, string? DuotoneColorHex, string? DuotoneLightColorHex) ReadBlipColorEffect(OpenXmlElement? blip, ThemeColors? themeColors)
     {
         if (blip == null)
@@ -7705,6 +7739,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var (colorEffect, duotoneColorHex, duotoneLightColorHex) = ReadBlipColorEffect(blip, currentThemeColors);
+            var opacity = ReadBlipOpacity(blip);
             var description = ReadImageDescription(pic, drawing);
 
             // Create the image element
@@ -7724,6 +7759,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     ColorEffect = colorEffect,
                     DuotoneColorHex = duotoneColorHex,
                     DuotoneLightColorHex = duotoneLightColorHex,
+                    Opacity = opacity,
                     RasterFallbackData = rasterFallbackData,
                     RasterFallbackContentType = rasterFallbackContentType
                 };
@@ -7732,7 +7768,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, duotoneLightColorHex, clipToEllipse, clipSubpaths);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, duotoneLightColorHex, clipToEllipse, clipSubpaths, opacity);
                 result.Add(floatingImage);
                 childSources?[floatingImage] = pic;
             }
@@ -7744,7 +7780,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null)
+    FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null, double opacity = 1)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints, anchorAlignmentPage);
         var wrap = ParseWrap(anchor);
@@ -7759,6 +7795,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ColorEffect = colorEffect,
             DuotoneColorHex = duotoneColorHex,
             DuotoneLightColorHex = duotoneLightColorHex,
+            Opacity = opacity,
             RelativeHeight = positioning.RelativeHeight,
             LayoutInCell = positioning.LayoutInCell,
             HorizontalPositionPoints = positioning.HorizontalPositionPoints,

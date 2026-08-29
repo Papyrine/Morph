@@ -360,7 +360,7 @@ static class PdfPainter
 
         try
         {
-            var decoded = context.GetImage(data);
+            var decoded = context.GetImage(data, image.Recolor, image.Opacity);
             // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
             // alternative (Word does not combine the two).
             if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)

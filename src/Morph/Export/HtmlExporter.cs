@@ -76,6 +76,7 @@ static class HtmlExporter
             fragmentWriter.WriteElements(document.Elements, 0);
             fragmentWriter.WriteNoteDefinitions();
             WriteHeaderFooter(fragmentWriter, footerContent, "footer", "doc-footer");
+            fragmentWriter.WriteRecolorFilters();
             return fragmentWriter.ToString();
         }
 
@@ -150,6 +151,7 @@ static class HtmlExporter
         writer.WriteElements(document.Elements, 0);
         writer.WriteNoteDefinitions();
         WriteHeaderFooter(writer, footerContent, "footer", "doc-footer");
+        writer.WriteRecolorFilters();
         doc.Append("</body>\n</html>");
         return doc.ToString();
     }
@@ -338,6 +340,11 @@ static class HtmlExporter
         // into the final output instead of being materialized and copied once more at the end.
         readonly StringBuilder builder = output ?? new();
         readonly HashSet<string> usedHeadingIds = [];
+
+        // Distinct picture recolours used so far, in first-use order — the index is the filter's
+        // id. CSS has no duotone, so each becomes an SVG feColorMatrix the images reference and
+        // WriteRecolorFilters emits once at the end.
+        readonly List<ImageRecolor> recolorFilters = [];
         int imageIndex;
         int shapeIndex;
 
@@ -446,7 +453,8 @@ static class HtmlExporter
                 case ImageElement image:
                     WriteImageParagraph(
                         image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth,
-                        image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+                        image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
+                        ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
                     break;
                 case FloatingImageElement floatingImage:
                     WriteFloatingImage(floatingImage, depth);
@@ -961,7 +969,9 @@ static class HtmlExporter
             ImageCrop? crop = null,
             double rotationDegrees = 0,
             bool flipHorizontal = false,
-            bool flipVertical = false)
+            bool flipVertical = false,
+            ImageRecolor? recolor = null,
+            double opacity = 1)
         {
             var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
             if (source == null)
@@ -970,7 +980,7 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p>");
-            AppendImageTag(source, widthPoints, heightPoints, description, null, crop, rotationDegrees, flipHorizontal, flipVertical);
+            AppendImageTag(source, widthPoints, heightPoints, description, null, crop, rotationDegrees, flipHorizontal, flipVertical, recolor, opacity);
             builder.Append("</p>\n");
         }
 
@@ -994,7 +1004,8 @@ static class HtmlExporter
             {
                 WriteImageParagraph(
                     image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description, depth,
-                    image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+                    image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
+                    ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
                 return;
             }
 
@@ -1032,7 +1043,8 @@ static class HtmlExporter
             Indent(depth);
             AppendImageTag(
                 source, image.WidthPoints, image.HeightPoints, image.Description, style,
-                image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+                image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
+                ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
             builder.Append('\n');
         }
 
@@ -1057,7 +1069,8 @@ static class HtmlExporter
             Indent(depth).Append("""<div style="position: relative">""");
             AppendImageTag(
                 source, image.WidthPoints, image.HeightPoints, image.Description, style,
-                image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+                image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
+                ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
             builder.Append("</div>\n");
         }
 
@@ -1876,7 +1889,8 @@ static class HtmlExporter
 
                         AppendImage(
                             image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Description,
-                            image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+                            image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
+                            ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
                         separatorPending = true;
                         break;
                     case FloatingImageElement floatingImage:
@@ -1932,7 +1946,8 @@ static class HtmlExporter
                     var style = $"position: absolute; left: {Length(image.HorizontalPositionPoints)}; top: {Length(image.VerticalPositionPoints)}; z-index: {(image.BehindText ? "-1" : "1")}";
                     AppendImageTag(
                         source, image.WidthPoints, image.HeightPoints, image.Description, style,
-                        image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical);
+                        image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
+                        ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -1999,7 +2014,8 @@ static class HtmlExporter
             {
                 AppendImage(
                     imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription,
-                    run.InlineImageCrop, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical);
+                    run.InlineImageCrop, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical,
+                    ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), run.InlineImageOpacity);
                 return;
             }
 
@@ -2851,7 +2867,9 @@ static class HtmlExporter
             ImageCrop? crop = null,
             double rotationDegrees = 0,
             bool flipHorizontal = false,
-            bool flipVertical = false)
+            bool flipVertical = false,
+            ImageRecolor? recolor = null,
+            double opacity = 1)
         {
             var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
             if (source == null)
@@ -2861,7 +2879,62 @@ static class HtmlExporter
                 return;
             }
 
-            AppendImageTag(source, widthPoints, heightPoints, alt, null, crop, rotationDegrees, flipHorizontal, flipVertical);
+            AppendImageTag(source, widthPoints, heightPoints, alt, null, crop, rotationDegrees, flipHorizontal, flipVertical, recolor, opacity);
+        }
+
+        // Word's Recolor transforms have no CSS equivalent — filter: grayscale() covers one of
+        // the three and nothing covers a duotone ramp — so each becomes an SVG colour matrix the
+        // <img> references by id. The matrix is the shared recipe's rows verbatim, in the same
+        // row-per-output-channel order feColorMatrix takes.
+        string RecolorFilterId(ImageRecolor recolor)
+        {
+            var index = recolorFilters.IndexOf(recolor);
+            if (index < 0)
+            {
+                index = recolorFilters.Count;
+                recolorFilters.Add(recolor);
+            }
+
+            return $"morph-recolor-{index}";
+        }
+
+        /// <summary>
+        /// Emits the SVG filter definitions the exported images reference, or nothing when no image
+        /// carried a recolour. The element is zero-sized and hidden from assistive technology: it
+        /// exists only to be referenced. Filters resolve by id wherever they sit in the document,
+        /// so this can be written after the content that uses it.
+        /// </summary>
+        public void WriteRecolorFilters()
+        {
+            if (recolorFilters.Count == 0)
+            {
+                return;
+            }
+
+            // SVG filters interpolate in linearRGB by default, which would lighten every ramp;
+            // sRGB is the space the recipe's weights are stated in.
+            builder.Append("<svg width=\"0\" height=\"0\" style=\"position: absolute\" aria-hidden=\"true\">\n");
+            for (var index = 0; index < recolorFilters.Count; index++)
+            {
+                var (red, green, blue) = recolorFilters[index].Rows();
+                builder
+                    .Append("<filter id=\"morph-recolor-").Append(index).Append("\" color-interpolation-filters=\"sRGB\">")
+                    .Append("<feColorMatrix type=\"matrix\" values=\"")
+                    .Append(Matrix(red)).Append(' ')
+                    .Append(Matrix(green)).Append(' ')
+                    .Append(Matrix(blue)).Append(' ')
+                    .Append("0 0 0 1 0")
+                    .Append("\" /></filter>\n");
+            }
+
+            builder.Append("</svg>\n");
+
+            static string Matrix(ImageRecolor.Row row) =>
+                $"{Coefficient(row.Red)} {Coefficient(row.Green)} {Coefficient(row.Blue)} 0 {Coefficient(row.Offset)}";
+
+            // Five decimals rather than the two HtmlExporter.Number formats to: a colour matrix
+            // weight is a luminance coefficient, and rounding 0.2126 to 0.21 visibly shifts a ramp.
+            static string Coefficient(float value) => value.ToString("0.#####", CultureInfo.InvariantCulture);
         }
 
         // Flip before rotation, matching DrawingML: a:xfrm's rotation applies to the already
@@ -2891,7 +2964,9 @@ static class HtmlExporter
             ImageCrop? crop = null,
             double rotationDegrees = 0,
             bool flipHorizontal = false,
-            bool flipVertical = false)
+            bool flipVertical = false,
+            ImageRecolor? recolor = null,
+            double opacity = 1)
         {
             var transform = ImageTransform(rotationDegrees, flipHorizontal, flipVertical);
 
@@ -2918,7 +2993,7 @@ static class HtmlExporter
 
                     builder.Append("<span style=\"").Append(boxStyle).Append("\">");
                     var imageStyle = $"margin: {Length(offsetY)} 0 0 {Length(offsetX)}";
-                    AppendImageTag(source, fullWidth, fullHeight, alt, imageStyle);
+                    AppendImageTag(source, fullWidth, fullHeight, alt, imageStyle, recolor: recolor, opacity: opacity);
                     builder.Append("</span>");
                     return;
                 }
@@ -2927,6 +3002,23 @@ static class HtmlExporter
             if (transform != null)
             {
                 style = style == null ? transform : $"{style}; {transform}";
+            }
+
+            // The recolour rides on the <img> rather than any crop wrapper around it, so a cropped
+            // picture is filtered and its clipping box is not.
+            if (recolor != null)
+            {
+                var filter = $"filter: url(#{RecolorFilterId(recolor)})";
+                style = style == null ? filter : $"{style}; {filter}";
+            }
+
+            // a:alphaModFix — CSS opacity composites the whole element against what is behind it,
+            // which is what Word does with a translucent picture. The multiplier may legally exceed
+            // 100%, which on an opaque source means no change.
+            if (opacity < 1)
+            {
+                var translucent = $"opacity: {Number(Math.Clamp(opacity, 0, 1))}";
+                style = style == null ? translucent : $"{style}; {translucent}";
             }
 
             builder.Append("<img src=\"").Append(EncodeAttribute(source)).Append('"');

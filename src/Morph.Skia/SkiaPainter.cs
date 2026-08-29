@@ -318,6 +318,13 @@ static class SkiaPainter
         // a:xfrm rotation and flips transform about the box centre, exactly as PdfPainter.PaintImage
         // does — this painter drew rotated inline images UPRIGHT until 2026-08-19 (image_rotation/01
         // showed a plain rectangle against the other backends' diamonds).
+        //
+        // The blip's effects — Word's Recolor gallery (a:duotone / a:grayscl / a:lum) and the
+        // a:alphaModFix transparency — ride on the draw paint, so the pixels are filtered on their
+        // way to the canvas rather than decoded and rewritten. Both draws below take it, since a
+        // rotated picture carries its effects too.
+        using var paint = SkiaImageEffects.Paint(image.Recolor, image.Opacity);
+
         var box = SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height));
         if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
         {
@@ -334,12 +341,12 @@ static class SkiaPainter
                 canvas.Translate(-box.MidX, -box.MidY);
             }
 
-            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop);
+            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
             canvas.Restore();
             return;
         }
 
-        SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop);
+        SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
     }
 
     // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is
