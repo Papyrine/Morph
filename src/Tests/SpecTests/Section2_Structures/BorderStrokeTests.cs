@@ -184,4 +184,44 @@ public class BorderStrokeTests
             await Assert.That(matches).IsEqualTo(1);
         }
     }
+
+    [Test]
+    public async Task Paragraph_stack_shifts_outward_by_half_its_innermost_line()
+    {
+        // Word strokes a paragraph border outward from the box: probed at 3pt, 6pt and 12pt
+        // (_probe_pbdr), a left-only border's INNER edge stays put while its outer edge moves.
+        // Half the innermost thickness is what puts that face on the box.
+        var single = BorderStroke.Bands(BorderLineStyle.Single, 3);
+
+        await Assert.That(BorderStroke.OutwardShift(single, BorderStroke.Scope.Paragraph)).IsEqualTo(1.5).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Shift_uses_the_innermost_line_so_the_stack_keeps_its_gaps()
+    {
+        // A double's three units are all the declared width, so the shift is half of ONE line and
+        // every band moves by the same amount — the gaps Bands measured are untouched.
+        var bands = BorderStroke.Bands(BorderLineStyle.Double, 3);
+        var shift = BorderStroke.OutwardShift(bands, BorderStroke.Scope.Paragraph);
+
+        await Assert.That(shift).IsEqualTo(1.5).Within(0.0001);
+        // Inner face on the box, outer face at the full Extent — which is what the flow reserves.
+        await Assert.That(bands[0].Offset + shift - bands[0].Thickness / 2).IsEqualTo(0).Within(0.0001);
+        await Assert.That(bands[^1].Offset + shift + bands[^1].Thickness / 2)
+            .IsEqualTo(BorderStroke.Extent(BorderLineStyle.Double, 3)).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Cell_and_page_edges_do_not_shift()
+    {
+        // A cell edge straddles the grid line it shares with its neighbour, and a page frame
+        // arrives already centred from PageBorders.EdgeRect — shifting that one regressed
+        // page_borders/01 by +0.0096 AE before the scope existed.
+        var cell = BorderStroke.Bands(BorderLineStyle.Single, 3, BorderStroke.Scope.Cell);
+        var page = BorderStroke.Bands(BorderLineStyle.Single, 3, BorderStroke.Scope.Page);
+
+        await Assert.That(BorderStroke.OutwardShift(cell, BorderStroke.Scope.Cell)).IsEqualTo(0);
+        await Assert.That(BorderStroke.OutwardShift(page, BorderStroke.Scope.Page)).IsEqualTo(0);
+        await Assert.That(BorderStroke.OutwardShift([], BorderStroke.Scope.Paragraph)).IsEqualTo(0);
+    }
 }

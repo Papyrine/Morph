@@ -134,7 +134,15 @@ static class BorderStroke
     internal enum Scope
     {
         Paragraph,
-        Cell
+        Cell,
+
+        /// <summary>
+        /// A <c>w:pgBorders</c> page frame. Its rectangle already arrives as the line's CENTRE —
+        /// <see cref="PageBorders.EdgeRect"/> adds half the stroke on purpose, Word-measured on
+        /// page_borders/01 — so unlike a paragraph border it must not be shifted outward again.
+        /// Band layout is otherwise identical to <see cref="Paragraph"/>.
+        /// </summary>
+        Page
     }
 
     /// <summary>
@@ -322,6 +330,26 @@ static class BorderStroke
 
         return inward + outward;
     }
+
+    /// <summary>
+    /// How far OUTWARD the whole stack shifts so its inner face sits on the border box rather than
+    /// straddling it, in points. Word strokes a paragraph border outward from the box edge:
+    /// Word-probed at 3pt, 6pt and 12pt (<c>_probe_pbdr</c>), a left-only border's INNER edge stays
+    /// at the same x across all three while its outer edge moves left, where a centred stack would
+    /// have moved both. Shifting by half the INNERMOST band's thickness puts that face on the box
+    /// without disturbing the gaps inside the stack, so the multi-line families keep the geometry
+    /// <see cref="Bands"/> measured for them.
+    ///
+    /// <para>It also makes the paint agree with what the flow already reserves: the fragmenter
+    /// charges the full <see cref="Extent"/> from the box, which a centred stack only half used.</para>
+    ///
+    /// <para>Zero for a CELL edge, which straddles its shared grid line by design (see
+    /// <see cref="Bands"/>), and zero when nothing draws.</para>
+    /// </summary>
+    internal static double OutwardShift(Band[] bands, Scope scope) =>
+        scope != Scope.Paragraph || bands.Length == 0
+            ? 0
+            : bands[0].Thickness / 2;
 
     /// <summary>Whether this edge draws anything at all.</summary>
     internal static bool Draws(BorderEdge edge) =>
