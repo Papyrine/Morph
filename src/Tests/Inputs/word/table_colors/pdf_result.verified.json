@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Table with colored header:\nHeader 1Header 2Header 3\nData 1-1 Data 1-2 Data 1-3\nData 2-1 Data 2-2 Data 2-3\nData 3-1 Data 3-2 Data 3-3"
+        "Text": "Table with colored header:\nHeader 1 Header 2 Header 3\nData 1-1 Data 1-2 Data 1-3\nData 2-1 Data 2-2 Data 2-3\nData 3-1 Data 3-2 Data 3-3"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0175,
-      "Ssim": 0.9696,
+      "ErrorMetric": 0.0162,
+      "Ssim": 0.9703,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

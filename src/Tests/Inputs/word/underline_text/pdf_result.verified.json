@@ -11,14 +11,14 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Normal text, underlined text, and normal again."
+        "Text": "Normal text, underlined text , and normal again."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.003,
+      "ErrorMetric": 0.0028,
       "Ssim": 0.9951,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",

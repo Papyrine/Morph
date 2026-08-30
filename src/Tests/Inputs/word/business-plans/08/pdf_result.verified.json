@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1. Summary\nThis proposal outlines a streamlined solution designed to address key business challenges\nand drive growth. Our approach leverages industry expertise, innovative strategies, and\ndata-driven insights to create a tailored plan that delivers measurable results.\n2. Problem Statement\nBusinesses today face challenges such as inefficiencies, rising costs, and evolving market\ndemands. Addressing these issues requires a well-structured, strategic approach that\nensures long-term success.\n3. Solution\nOur solution is designed to enhance operations, increase efficiency, and improve overall\nperformance. By implementing best practices and modern technology, we help businesses\noptimize workflows, reduce costs, and drive innovation.\n4. Market Opportunity\nWith industry trends shifting rapidly, adopting a flexible and forward-thinking model is\nessential. Our approach provides businesses with scalable, adaptable solutions that align\nwith market demands and ensure long-term sustainability.\n5. Financial Summary\nBased on market analysis, businesses that implement our strategies see an average 20%\nreduction in operational costs and a 35% improvement in workflow efficiency within the\nfirst year. Clients can expect a strong return on investment through improved productivity\nand streamlined operations."
+        "Text": "1. Summary\nThis proposal outlines a streamlined solution designed to address key business challenges and\ndrive growth. Our approach leverages industry expertise, innovative strategies, and\ndata-driven insights to create a tailored plan that delivers measurable results.\n2. Problem Statement\nBusinesses today face challenges such as inefficiencies, rising costs, and evolving market\ndemands. Addressing these issues requires a well-structured, strategic approach that ensures\nlong-term success.\n3. Solution\nOur solution is designed to enhance operations, increase efficiency, and improve overall\nperformance. By implementing best practices and modern technology, we help businesses\noptimize workflows, reduce costs, and drive innovation.\n4. Market Opportunity\nWith industry trends shifting rapidly, adopting a flexible and forward-thinking model is\nessential. Our approach provides businesses with scalable, adaptable solutions that align with\nmarket demands and ensure long-term sustainability.\n5. Financial Summary\nBased on market analysis, businesses that implement our strategies see an average 20%\nreduction in operational costs and a 35% improvement in workflow efficiency within the first\nyear. Clients can expect a strong return on investment through improved productivity and\nstreamlined operations."
       }
     ]
   },
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0698,
-      "Ssim": 0.8926,
+      "ErrorMetric": 0.0705,
+      "Ssim": 0.8885,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

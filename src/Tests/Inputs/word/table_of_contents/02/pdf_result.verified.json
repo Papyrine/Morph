@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Table of Contents (hyphen leader)\nChapter 1 - Introduction--------------------------------------------------------------------------------------------------------- 1\nChapter 2 - Background--------------------------------------------------------------------------------------------------------11\nChapter 3 - Underscore leader 23\nChapter 4 - No leader 34\nChapter 5 - Middle dot leader···················································································································· 40"
+        "Text": "Table of Contents (hyphen leader)\nChapter 1 - Introduction--------------------------------------------------------------------------------------------------------- 1\nChapter 2 - Background-------------------------------------------------------------------------------------------------------- 11\nChapter 3 - Underscore leader 23\nChapter 4 - No leader 34\nChapter 5 - Middle dot leader····················································································································· 40"
       }
     ]
   },
@@ -19,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0128,
-      "Ssim": 0.9787,
+      "Ssim": 0.9791,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

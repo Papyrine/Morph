@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Table with Office 2010+ start/end default cell margins:\nCell\n1,1\nCell\n1,2\nCell\n2,1\nCell\n2,2"
+        "Text": "Table with Office 2010+ start/end default cell margins:\nCell 1,1 Cell 1,2\nCell 2,1 Cell 2,2"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.011,
-      "Ssim": 0.9783,
+      "ErrorMetric": 0.0077,
+      "Ssim": 0.9848,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

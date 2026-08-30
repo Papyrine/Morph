@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Tab stops demo\nChapter 1: Introduction................................................................................................... 1\nChapter 2: Background and motivation...........................................................................12\nChapter 3: Implementation..........................................................................................147\nName Role Team Location\nAlice Engineer Platform Sydney\nBob Designer Product Remote\nDefault tabs (0.5\"):\nA B C D\nLeft Centered Right\nSignature"
+        "Text": "Tab stops demo\nChapter 1: Introduction .................................................................................................................1\nChapter 2: Background and motivation ......................................................................................12\nChapter 3: Implementation ....................................................................................................... 147\nName Role Team Location\nAlice Engineer Platform Sydney\nBob Designer Product Remote\nDefault tabs (0.5\"):\nA B C D\nLeft Centered Right\nSignature"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0169,
-      "Ssim": 0.9718,
+      "ErrorMetric": 0.0176,
+      "Ssim": 0.9684,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

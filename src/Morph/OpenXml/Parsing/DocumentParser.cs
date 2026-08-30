@@ -36,13 +36,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // both 1.2207em, so 12pt * 1.2207 * 278/240 = 35.35px at 150 DPI either way.
     // A caller-supplied default font (ExportOptions.DefaultFont or a customized
     // DefaultFontSettings.DefaultFont) still overrides the family - see the constructor.
-    // Word's built-in family for this case is CALIBRI (probed - see the comment block above), and
-    // this constant should become "Calibri" one day - but not before the table/autofit interplay
-    // under changed advances is rooted: even with pair kerning landed, activating the Word-measured
-    // Calibri advances (src/Fonts/*.wordadvances.pending) measured worse via table-geometry
-    // scenarios, and the style-less autofit fixtures sit on zero-slack column knife-edges under the
-    // narrower family. The full ledger is src/todo.md #43.
-    const string builtInDefaultFontFamily = "Aptos";
+    // Word's built-in family for this case is CALIBRI (probed - see the comment block above).
+    // The flip from Aptos landed 2026-08-30 with the rest of the todo #43 bundle, once its two
+    // gates cleared: the "autofit slack" proved to be a mismeasurement (Word's rule is
+    // max(cellMargin, borderWidth/2) per side - see TableLayout), and the page-count loser
+    // resumes/16 proved to be Word's space-compression wedge, not advances (see
+    // CanonicalParagraphMeasurer.TryCompress). The Word-measured Calibri advances
+    // (src/Fonts/*.wordadvances) activated with it.
+    const string builtInDefaultFontFamily = "Calibri";
 
     const double builtInDefaultFontSizePoints = 12.0;
 

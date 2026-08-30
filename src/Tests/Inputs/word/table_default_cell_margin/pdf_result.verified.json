@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Table with large default cell margins:\nLarge margin cell\n1,1\nLarge margin cell\n1,2\nLarge margin cell\n2,1\nLarge margin cell\n2,2"
+        "Text": "Table with large default cell margins:\nLarge margin cell 1,1 Large margin cell 1,2\nLarge margin cell 2,1 Large margin cell 2,2"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0234,
-      "Ssim": 0.9493,
+      "ErrorMetric": 0.0181,
+      "Ssim": 0.9616,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "A famous quote:\n\"The only way to do great work is to love what you do. If you haven't found it\nyet, keep looking. Don't settle.\"\n— Steve Jobs"
+        "Text": "A famous quote:\n\"The only way to do great work is to love what you do. If you haven't found it yet,\nkeep looking. Don't settle.\"\n— Steve Jobs"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0067,
-      "Ssim": 0.9898,
+      "ErrorMetric": 0.0075,
+      "Ssim": 0.9869,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

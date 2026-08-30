@@ -1,4 +1,4 @@
-# Morph Feature Matrix
+﻿# Morph Feature Matrix
 
 Comprehensive inventory of Microsoft Word DOCX features — what Morph supports today, what is partial, and what remains to be implemented. This document serves as both reference documentation and a living roadmap.
 
@@ -348,6 +348,8 @@ pagination match Word's kerned text.
 
 > **AI**: The kern lookup is glyph-pair based and deliberately shaping-free — no GSUB, no contextual lookups. `KerningEnabled` in `CanonicalParagraphMeasurer` is the per-run gate.
 
+
+> **Space compression at the wrap boundary (2026-08-30).** Word shrinks a line's inter-word spaces rather than wrap when that lets the overflowing word fit: per space, at most one 120-dpi layout pixel (0.6pt) regardless of font size, and only-as-needed — `ceil(overhang / 0.6pt)` spaces narrow, the rest stay natural (XPS-measured mixes of 9+8, 14+3, 16+1 on `_probe_wedge`, a sentence swept over twelve right-indents; first seen as resumes/16's uniform 1.8pt spaces against 2.4pt on comfortable lines, one unmodelled wedge being that scenario's whole extra page). Paragraph-level compat flags do not gate it. Morph implements it in `CanonicalParagraphMeasurer.TryCompress` on the measurer's own pen grid, restricted to faces measuring with Word-exact `.wordadvances` sidecars — on approximately-measured fonts the sub-pixel wedge decision is noise and firing it regressed the corpus (`SpaceCompressionTests` pins the rule; the ledger is todo #43's landing note).
 
 #### Ligatures `DONE`
 
