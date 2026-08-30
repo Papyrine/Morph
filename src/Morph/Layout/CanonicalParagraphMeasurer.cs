@@ -296,6 +296,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // list. Nothing does: the fragmenter's LaidOutLine → PlacedLine build allocates its own arrays.
     readonly ConcurrentDictionary<(ParagraphElement Paragraph, float MaxWidth), IReadOnlyList<WrapLine>> wrapCache = [];
 
+    // Whether a run's face measures with Word's own advances (a .wordadvances sidecar) — the
+    // gate for the space-compression wedge. Cached per RunProperties reference: a paragraph's
+    // pieces share their run's properties instance.
+    readonly ConcurrentDictionary<RunProperties, bool> wordAdvancesByProperties = [];
+
+    bool HasWordAdvances(RunProperties properties) =>
+        wordAdvancesByProperties.GetOrAdd(
+            properties,
+            _ => resolveFont(_.FontFamily, _.Bold, _.Italic) is {WordAdvances: not null});
+
     IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth) =>
         wrapCache.GetOrAdd(
             (paragraph, maxWidth),
@@ -305,6 +315,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // buildItems false skips BuildLineItems and leaves every line's segments and images empty. A line's
     // WIDTH is the accumulated pen pixels, quantized in CommitLine below — BuildLineItems only positions
     // what the line already contains — so the widths a caller reads are identical either way.
+    // The most a single inter-word space gives up before Word wraps instead: one pixel of its
+    // 120-dpi layout grid, independent of font size — 10pt Calibri spaces drop 2.4pt → 1.8pt
+    // (4px → 3px) and never further (_probe_wedge, and the em-9 deltas in _probe_bp15's XPS).
+    const double wedgeQuantumPoints = 0.6;
+
     IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems)
     {
         var pieces = Flatten(paragraph);
@@ -327,6 +342,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         double linePixels = 0, gapPixels = 0;
         float linePitch = 0, gapPitch = 0;
         var lineHasWord = false;
+        var lineCompressed = false;
         var linePieces = new List<Piece>();
         var gapPieces = new List<Piece>();
 
@@ -366,6 +382,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var (segments, images) = BuildLineItems(
                 linePieces,
                 extraGapPixels,
+                lineCompressed,
                 paragraph.Properties.TabStops,
                 paragraph.Properties.DefaultTabStopPoints,
                 paragraph.Properties.LeftIndentPoints,
@@ -389,6 +406,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 linePixels = 0;
                 linePitch = 0;
                 lineHasWord = false;
+                lineCompressed = false;
                 linePieces.Clear();
                 gapPixels = 0;
                 gapPitch = 0;
@@ -434,6 +452,26 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 linePieces.AddRange(gapPieces);
                 linePieces.AddRange(wordPieces);
             }
+            else if (TryCompress(wordPixels))
+            {
+                // Word compresses inter-word spaces rather than wrap when that lets the word fit.
+                // Word-probed twice: resumes/16's own XPS first showed full lines whose 10pt Calibri
+                // spaces advance 1.8pt against 2.4pt everywhere else, and the measure sweep
+                // (_probe_wedge: one sentence over twelve right-indents) then exposed the real shape —
+                // compression is PER SPACE and just-enough (mixes like 9 narrowed + 8 natural,
+                // 14 + 3, 16 + 1, exactly the count the overhang needs), each space losing at most
+                // one 120-dpi layout pixel = 0.6pt regardless of font size, and paragraph-level
+                // compat flags do not gate it. So: a word wedges when the overhang is at most 0.6pt
+                // per available space; the reclaim spreads evenly here where Word quantises which
+                // spaces shrink, which keeps the line's total width exact and each origin within
+                // half a pixel. One wedge per line — a wedged line is full. Without this the last
+                // word wraps, and one such wrap pushed resumes/16 onto a second page.
+                linePixels += gapPixels + wordPixels;
+                linePitch = Math.Max(linePitch, Math.Max(gapPitch, wordPitch));
+                linePieces.AddRange(gapPieces);
+                linePieces.AddRange(wordPieces);
+                lineCompressed = true;
+            }
             else
             {
                 CommitLine(justify: true);
@@ -441,11 +479,89 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 linePitch = wordPitch;
                 linePieces.Clear();
                 linePieces.AddRange(wordPieces);
+                lineCompressed = false;
             }
 
             gapPixels = 0;
             gapPitch = 0;
             gapPieces.Clear();
+        }
+
+        // The wedge test and, when it passes, the in-place shrink of every space accumulated so far
+        // (the line's own and the pending gap) to 75% of its advance.
+        bool TryCompress(double wordPixels)
+        {
+            if (lineCompressed)
+            {
+                return false;
+            }
+
+            var lineSpaces = 0;
+            foreach (var piece in linePieces)
+            {
+                if (piece.IsSpace)
+                {
+                    lineSpaces++;
+                }
+            }
+
+            var spaces = lineSpaces + gapPieces.Count;
+            if (spaces == 0)
+            {
+                return false;
+            }
+
+            // The rule is Word's, but firing it through approximate advances misfires: whether the
+            // overhang is inside the give is decided at sub-pixel precision, exactly where a font
+            // model that is not Word's own turns near-fit lines into coin flips — adjudicated on
+            // the corpus, the ungated wedge moved agendas-minutes/15 (Franklin Gothic) +0.055 AE
+            // and repacked business-plans/15 (Tahoma-for-Univers) a page short, both fonts Morph
+            // measures by its own metrics. So the wedge fires only where the measure IS Word's:
+            // every text piece on the line resolves to a face carrying a .wordadvances sidecar.
+            foreach (var piece in linePieces)
+            {
+                if (!piece.IsSpace && piece.Text.Length > 0 && !HasWordAdvances(piece.Properties))
+                {
+                    return false;
+                }
+            }
+
+            // Whole pixels on the measurer's (and Word's) 120-dpi pen grid: the overhang the fit
+            // test saw, expressed as the number of one-pixel space shrinks that cover it.
+            var overhangPoints = CanonicalTextMeasurer.PixelsToPoints(linePixels + gapPixels + wordPixels) - LineWrapWidth();
+            if (overhangPoints <= 0)
+            {
+                return false;
+            }
+
+            var quanta = (int) Math.Ceiling(overhangPoints / wedgeQuantumPoints - 0.0001);
+            if (quanta > spaces)
+            {
+                return false;
+            }
+
+            // Shrink the first `quanta` spaces by exactly one pixel each — Word narrows a per-need
+            // COUNT of spaces and leaves the rest natural (the probe's 9+8 / 14+3 / 16+1 mixes);
+            // which specific spaces it picks is unmodelled, so these take the earliest.
+            var remaining = quanta;
+            for (var pieceIndex = 0; pieceIndex < linePieces.Count && remaining > 0; pieceIndex++)
+            {
+                if (linePieces[pieceIndex].IsSpace)
+                {
+                    linePieces[pieceIndex] = linePieces[pieceIndex] with {Pixels = linePieces[pieceIndex].Pixels - 1};
+                    linePixels -= 1;
+                    remaining--;
+                }
+            }
+
+            for (var pieceIndex = 0; pieceIndex < gapPieces.Count && remaining > 0; pieceIndex++)
+            {
+                gapPieces[pieceIndex] = gapPieces[pieceIndex] with {Pixels = gapPieces[pieceIndex].Pixels - 1};
+                gapPixels -= 1;
+                remaining--;
+            }
+
+            return true;
         }
 
         if (lineHasWord)
@@ -478,6 +594,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(
         List<Piece> linePieces,
         double extraGapPixels,
+        bool spacesAsGaps,
         IReadOnlyList<TabStop> tabStops,
         double defaultTabStopPoints,
         double leftIndentPoints,
@@ -574,8 +691,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             // When justifying, a space is a widened gap between words, not part of a segment: end the
-            // current word and advance past the space plus its even share of the leftover width.
-            if (extraGapPixels > 0 && piece.IsSpace)
+            // current word and advance past the space plus its even share of the leftover width. A
+            // COMPRESSED line (see the wedge in BuildWrap) does the same with its narrowed spaces, so
+            // the painters place each word at the measurer's origin instead of drawing the string with
+            // their own natural space advances.
+            if ((extraGapPixels > 0 || spacesAsGaps) && piece.IsSpace)
             {
                 FlushSegment();
                 cursor += piece.Pixels + extraGapPixels;

@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// The single canonical text measurer for the layout engine (<c>docs/layout-engine.md</c>):
 /// given a font's OpenType <see cref="FontMetrics"/>, it computes layout measurements with no backend
 /// font library involved, so every backend paginates from identical numbers rather than from
@@ -249,6 +249,18 @@ sealed class CanonicalTextMeasurer
             else
             {
                 advance = (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * roundedEmPixels;
+
+                // The space is deliberately absent from the sidecars (a run of spaces measures
+                // differently from a single inter-word gap), and on Word's track it is a WHOLE
+                // layout pixel: with word advances integer-snapped, the pen makes every gap
+                // round(fractional space) — 4px at 10pt Calibri (resumes/16's XPS, uniform on
+                // every comfortable line), 5px at 12pt. Carrying the fractional 4.52px here left
+                // lines ~half a pixel per space narrower than Word's, enough to fit an extra
+                // word and merge lines Word keeps (complex_spacing's band-count drift).
+                if (rune.Value == ' ')
+                {
+                    advance = Math.Round(advance, MidpointRounding.AwayFromZero);
+                }
             }
 
             pixels += advance;
