@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Normal, bold, italic, bold italic, underlined, all combined."
+        "Text": "Normal, bold, italic, bold italic , underlined , all combined ."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.004,
-      "Ssim": 0.9939,
+      "ErrorMetric": 0.0039,
+      "Ssim": 0.9934,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

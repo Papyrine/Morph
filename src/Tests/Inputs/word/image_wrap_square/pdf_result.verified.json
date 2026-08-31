@@ -11,28 +11,28 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Sample Document\nThis document was created using accessibility techniques for headings, lists, image alternate text, tables,\nand columns. It should be completely accessible using assistive technologies such as screen readers.\nHeadings\nThere are eight section headings in this document. At the beginning, \"Sample Document\" is a level 1\nheading. The main section headings, such as \"Headings\" and \"Lists\" are level 2 headings. The Tables\nsection contains two sub-headings, \"Simple Table\" and \"Complex Table,\" which are both level 3\nheadings.\nLists\nThe following outline of the sections of this document is an ordered (numbered) list with six items. The\nfifth item, \"Tables,\" contains a nested unordered (bulleted) list with two items.\n1. Headings\n2. Lists\n3. Links\n4. Images\n5. Tables\n• Simple Tables\n• Complex Tables\n6. Columns\nLinks\nIn web documents, links can point different locations on the page, different pages, or even\ndownloadable documents, such as Word documents or PDFs:\nTop of this Page\nSample Document\nSample Document (docx)\nImages\nDocuments may contain images. For example, there is an image of the web\naccessibility symbol to the left of this paragraph. Its alternate text is \"Web Access\nSymbol\".\nAlt text should communicate what an image means, not how it looks."
+        "Text": "Sample Document\nThis document was created using accessibility techniques for headings, lists, image alternate text, tables,\nand columns. It should be completely accessible using assistive technologies such as screen readers.\nHeadings\nThere are eight section headings in this document. At the beginning, \"Sample Document\" is a level 1\nheading. The mainsection headings,such as \"Headings\"and \"Lists\"are level 2 headings. The Tables section\ncontains two sub-headings, \"Simple Table\" and \"Complex Table,\" which are both level 3 headings.\nLists\nThe following outline of thesectionsof this documentis an ordered(numbered)list with six items. The fifth\nitem, \"Tables,\" contains a nested unordered (bulleted) list with two items.\n1. Headings\n2. Lists\n3. Links\n4. Images\n5. Tables\n• Simple Tables\n• Complex Tables\n6. Columns\nLinks\nIn web documents, links can point different locations on the page, different pages, or even downloadable\ndocuments, such as Word documents or PDFs:\nTop of this Page\nSample Document\nSample Document (docx)\nImages\nDocuments may contain images. For example, there is an image of the web\naccessibility symbol to the left of this paragraph. Its alternate text is \"Web Access\nSymbol\".\nAlt text should communicate what an image means, not how it looks."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Some images, such as charts or graphs, require long\ndescriptions, but not all document types allow that. In\nweb pages, long descriptions may be provided in several\nways: on the page below the image, via a link below the\nimage, or via a link on the image.\nTables\nSimple Tables\nSimple tables have a uniform number of columns and rows, without any merged cells:\nScreen Reader Responses Share\nJAWS 853 49%\nNVDA 238 14%\nWindow-Eyes 214 12%\nSystem Access 181 10%\nVoiceOver 159 9%\nComplex Tables\nThe following is a complex table, using merged cells as headers for sections within the table. This can't\nbe made accessible in all types of documents:\nMay 2012 September 2010\nScreen Reader Responses Share Responses Share\nJAWS 853 49% 727 59%\nNVDA 238 14% 105 9%\nWindow-Eyes 214 12% 138 11%\nSystem Access 181 10% 58 5%\nVoiceOver 159 9% 120 10%\nColumns\nThis is an example of columns. With columns,\nthe page is split into two or more horizontal\nsections. Unlike tables, in which you usually\nread across a row and then down to the next, in\ncolumns, you read down a column and then\nacross to the next.\nWhen columns are not created correctly, screen\nreaders may run lines together, reading the first\nline of the first column, then the first line of the\nsecond column, then the second line of the first\ncolumn, and so on. Obviously, that is not\naccessible."
+        "Text": "Some images, such as charts or graphs, require long\ndescriptions,but not all documenttypes allow that. In web\npages, long descriptionsmay be provided in several ways:\non the page below the image, via a link below the image,\nor via a link on the image.\nTables\nSimple Tables\nSimple tables have a uniform number of columns and rows, without any merged cells:\nScreen Reader Responses Share\nJAWS 853 49%\nNVDA 238 14%\nWindow-Eyes 214 12%\nSystem Access 181 10%\nVoiceOver 159 9%\nComplex Tables\nThe following is a complex table, using merged cells as headers for sections within the table. This can't be\nmade accessible in all types of documents:\nMay 2012 September 2010\nScreen Reader Responses Share Responses Share\nJAWS 853 49% 727 59%\nNVDA 238 14% 105 9%\nWindow-Eyes 214 12% 138 11%\nSystem Access 181 10% 58 5%\nVoiceOver 159 9% 120 10%\nColumns\nThisis an example of columns. With columns, the\npage issplitintotwo or more horizontalsections.\nUnlike tables, in which you usually read across a\nrow and then down to the next, in columns, you\nread downa column and then across to the next.\nWhen columns are not created correctly, screen\nreaders may run lines together, reading the first\nline of the first column, then the first line of the\nsecond column, then the second line of the first\ncolumn, and so on. Obviously, that is not\naccessible."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0759,
-      "Ssim": 0.8947,
+      "ErrorMetric": 0.0917,
+      "Ssim": 0.8396,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0974,
-      "Ssim": 0.8057,
+      "ErrorMetric": 0.0991,
+      "Ssim": 0.7966,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

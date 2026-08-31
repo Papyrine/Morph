@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "DANIELLE BRASSEUR\n4567 8th Avenue, Carson City, NV 10111 | (313) 555-0100 | danielle@example.com | www.linkedin.com\n4 April 20XX\nHiring Manager\nDowntown Credit Union\n123 Main Street\nSeattle, WA 87654\nDear Guy Oz,\nI am writing to express my interest in the accountant position at Downtown Credit Union. With a Bachelor of Science in\nAccounting and a strong background in public accounting, I am confident that my skills align well with your team’s needs.\nMy experience at Trey Research has equipped me with comprehensive knowledge in income tax preparation, audit support,\nfinancial statement preparation, and general ledger accounting, making me well-prepared to contribute to your company.\nAt Trey Research, I provided accounting services to individuals and businesses, while my prior experience as a Bookkeeper\nat Bandter Real Estate allowed me to manage bookkeeping, payroll, and invoice preparation. Additionally, my internship at\nOlson Harris Ltd. gave me hands-on experience in managing payroll and pension services for large employee bases. I am\nproficient in Microsoft NAV Dynamics and fluent in German, which enables me to communicate effectively in multilingual\nenvironments.\nI am excited about the opportunity to contribute to Downtown Credit Union and would welcome the chance to discuss how\nmy skills can support your team’s goals. Thank you for considering my application. I look forward to the possibility of\ncontributing to your organization.\nSincerely,\nDanielle Brasseur"
+        "Text": "DANIELLE BRASSEUR\n4567 8 th Avenue, Carson City, NV 10111 | (313) 555-0100 | danielle@example.com | www.linkedin.com\n4 April 20XX\nHiring Manager\nDowntown Credit Union\n123 Main Street\nSeattle, WA 87654\nDear Guy Oz,\nI am writing to express my interest in the accountant position at Downtown Credit Union. With a Bachelor of Science in\nAccounting and a strong background in public accounting, I am confident that my skills align well with your team’s needs.\nMy experience at Trey Research has equipped me with comprehensive knowledge in income tax preparation, audit\nsupport, financial statement preparation, and general ledger accounting, making me well-prepared to contribute to your\ncompany.\nAt Trey Research, I provided accounting services to individuals and businesses, while my prior experience as a Bookkeeper\nat Bandter Real Estate allowed me to manage bookkeeping, payroll, and invoice preparation. Additionally, my internship at\nOlson Harris Ltd. gave me hands-on experience in managing payroll and pension services for large employee bases. I am\nproficient in Microsoft NAV Dynamics and fluent in German, which enables me to communicate effectively in multilingual\nenvironments.\nI am excited about the opportunity to contribute to Downtown Credit Union and would welcome the chance to discuss how\nmy skills can support your team’s goals. Thank you for considering my application. I look forward to the possibility of\ncontributing to your organization.\nSincerely,\nDanielle Brasseur"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0722,
-      "Ssim": 0.8834,
+      "ErrorMetric": 0.0756,
+      "Ssim": 0.8614,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

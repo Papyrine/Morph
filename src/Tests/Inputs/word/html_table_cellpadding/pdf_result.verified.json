@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Cell with 15px\npadding\nAnother cell\nRow 2, Cell 1 Row 2, Cell\n2"
+        "Text": "Cell with 15px padding Another cell\nRow 2, Cell 1 Row 2, Cell 2"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0119,
-      "Ssim": 0.9721,
+      "ErrorMetric": 0.011,
+      "Ssim": 0.9759,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Employee\nID\nFull Name Email Address Hire Date Annual\nSalary\nIs\nActive\nStatus\n1 John Doe john@company.com2020-01-1575000 True Full Time\n2 Jane Smith jane@company.com2019-03-22120000 True Full Time\n3 Bob\nJohnson\nbob@company.com 2021-07-1045000 False Part\nTime\n4 Alice Brown alice@company.com2018-11-0595000 True Contract"
+        "Text": "Employee ID Full Name Email Address Hire Date Annual SalaryIs Active Status\n1 John Doe john@company.com2020-01-1575000 True Full Time\n2 Jane Smith jane@company.com 2019-03-22120000 True Full Time\n3 Bob Johnsonbob@company.com 2021-07-1045000 False Part Time\n4 Alice Brown alice@company.com2018-11-0595000 True Contract"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0581,
-      "Ssim": 0.8918,
+      "ErrorMetric": 0.0446,
+      "Ssim": 0.9062,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

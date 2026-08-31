@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Wide table with 6 columns:\nCol 1Col 2Col 3Col 4Col 5Col 6\nR1C1R1C2R1C3R1C4R1C5R1C6\nR2C1R2C2R2C3R2C4R2C5R2C6\nR3C1R3C2R3C3R3C4R3C5R3C6"
+        "Text": "Wide table with 6 columns:\nCol 1 Col 2 Col 3 Col 4 Col 5 Col 6\nR1C1 R1C2 R1C3 R1C4 R1C5 R1C6\nR2C1 R2C2 R2C3 R2C4 R2C5 R2C6\nR3C1 R3C2 R3C3 R3C4 R3C5 R3C6"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0181,
-      "Ssim": 0.9696,
+      "ErrorMetric": 0.0184,
+      "Ssim": 0.9676,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

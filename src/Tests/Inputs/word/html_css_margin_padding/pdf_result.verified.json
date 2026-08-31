@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "CSS margin and padding:\nParagraph with 50px left margin\nParagraph with 100px left margin\nParagraph with 20px margin all around\nContent inside padded div\nParagraph with 15px padding and visible background\nParagraph with extra vertical margins\nCentered table with padded\ncell"
+        "Text": "CSS margin and padding:\nParagraph with 50px left margin\nParagraph with 100px left margin\nParagraph with 20px margin all around\nContent inside padded div\nParagraph with 15px padding and visible background\nParagraph with extra vertical margins\nCentered table with padded cell"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0289,
-      "Ssim": 0.942,
+      "ErrorMetric": 0.0288,
+      "Ssim": 0.9441,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

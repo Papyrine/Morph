@@ -110,6 +110,14 @@ static class TableLayout
         return new(top, right, bottom, left);
     }
 
+    /// <summary>
+    /// Half a cell edge's stroke, which is how far it reaches into the cell — a cell border
+    /// straddles the grid line it shares with its neighbour (see <c>BorderStroke.Bands</c>). Zero
+    /// for an edge that draws nothing.
+    /// </summary>
+    static double HalfBorder(BorderEdge? edge) =>
+        edge != null && BorderStroke.Draws(edge) ? edge.WidthPoints / 2 : 0;
+
     internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null, IReadOnlyList<TableRow>? rows = null)
     {
         if (cellProps.Borders != null)
@@ -555,8 +563,9 @@ static class TableLayout
         var mins = new float[colCount];
         var tableProps = table.Properties;
 
-        foreach (var row in table.Rows)
+        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
+            var row = table.Rows[rowIndex];
             var gridColIndex = 0;
             foreach (var cell in row.Cells)
             {
@@ -576,7 +585,24 @@ static class TableLayout
 
                 var padding = GetEffectivePadding(props, tableProps, row);
                 var margin = GetEffectiveMargin(props, tableProps);
-                var horizontalChrome = (float) (padding.Horizontal + margin.Horizontal);
+
+                // Word insets a cell's content by the LARGER of its margin and half its border, not
+                // by their sum. Word-probed two ways at 150 DPI: sweeping the border 1/3/6pt against
+                // a ZERO w:tblCellMar (_probe_autofitborder) the column grows by exactly one border
+                // width — 2/6/12px over the content advance — while the same sweep against a 10pt
+                // margin grows by nothing, which is what rules out the additive reading. The margin
+                // sweep itself (_probe_autofit, 4/8/16/32 Courier New chars against 0/10/20pt) fits
+                // width = advance + 2 × margin with no residual slack at all, so this half-border
+                // term is the whole of what the engine was missing.
+                //
+                // It bites where the margin is small: 72 corpus scenarios declare a left/right
+                // w:tblCellMar of 2pt or less, most of them exactly zero, and there any declared
+                // border wins.
+                var borders = ResolveCellBorders(props, tableProps, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
+                var horizontalChrome = (float) (
+                    Math.Max(padding.Left, HalfBorder(borders?.Left)) +
+                    Math.Max(padding.Right, HalfBorder(borders?.Right)) +
+                    margin.Horizontal);
 
                 // Detached spacing (w:tblCellSpacing / HTML cellspacing) insets each cell's box
                 // inside its slot, so the slot must carry the content width PLUS those insets —

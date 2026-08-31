@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "TOC inside a narrow table cell\n(decorative panel) Contents\nIntroduction...................................................................1\nBackground................................................................... 4\nLong entry that spans more space................................ 9\nMethod........................................................................15\nConclusion................................................................... 27"
+        "Text": "TOC inside a narrow table cell\n(decorative panel) Contents\nIntroduction ..................................................................1\nBackground................................................................... 4\nLong entry that spans more space ...............................9\nMethod....................................................................... 15\nConclusion.................................................................. 27"
       }
     ]
   },
@@ -19,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0134,
-      "Ssim": 0.9726,
+      "Ssim": 0.9727,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

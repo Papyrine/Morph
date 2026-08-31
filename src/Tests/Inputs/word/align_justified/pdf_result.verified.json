@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "This text is justified. Justified text is aligned to both the left and right margins, creating a\nclean block appearance. This is commonly used in newspapers, books, and formal\ndocuments. The spacing between words is adjusted to ensure each line reaches both\nmargins."
+        "Text": "This text is justified. Justified text is aligned to both the left and right margins, creating a clean\nblock appearance. This is commonly used in newspapers, books, and formal documents. The\nspacing between words is adjusted to ensure each line reaches both margins."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0136,
-      "Ssim": 0.9816,
+      "ErrorMetric": 0.0149,
+      "Ssim": 0.9732,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
