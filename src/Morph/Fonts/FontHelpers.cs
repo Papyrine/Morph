@@ -1,4 +1,4 @@
-static class FontHelpers
+﻿static class FontHelpers
 {
     // Font fallback mappings for fonts that may not be installed
     internal static Dictionary<string, string> FontFallbacks { get; } = new(StringComparer.OrdinalIgnoreCase)
@@ -18,6 +18,12 @@ static class FontHelpers
         ["Sagona ExtraLight"] = "Georgia",
         ["Sagona Light"] = "Georgia",
         ["Daytona Light"] = "Calibri Light",
+        // Univers is a wide grotesque sans that no bundled face matches: scored against real
+        // Univers line spans read from business-plans/15's own XPS, every candidate runs narrow —
+        // Tahoma −5.9%, Arial/Helvetica −6.4%, Segoe UI −7.3%, Aptos −9.5%. Tahoma is the closest
+        // and is what this maps to; without an entry the family fell to the resolver's Aptos last
+        // resort, the worst of the measured candidates.
+        ["Univers"] = "Tahoma",
         ["Grandview Display"] = "Grandview",
         ["Cambria Math"] = "Cambria",
     };
