@@ -1,0 +1,51 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Calibri, sans-serif; max-width: 451.3pt; padding: 144pt 72pt; position: relative">
+<header class="doc-header">
+<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABLklEQVR4nO3UwQ0CMQwAweQa4Sri6oHmQwP3i1YgMfO35cfKc601fs95vb99AluOvXG4JywSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEvPxfDWb+Ws+FglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhMQofCdwFk46+x7IAAAAASUVORK5CYII=" width="192" height="96" style="position: absolute; left: 0pt; top: 0pt; z-index: -1" alt="" /></div>
+<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABKElEQVR4nO3UsQ2AMAwAwYT9h4LJwgJ00Qsk7npbLl6ea63xPdecb5/AlmNvHJ4Ji4SwSAiLhLBICIuEsEgIi4SwSAiLhLBICIuEsEgIi4SwSAiLhLBICIuEsEgIi4SwSAiLhLBICIvEPJu9/JyPRUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYJIRFQlgkhEVCWCSERUJYjMINI28FR+nM2GAAAAAASUVORK5CYII=" width="192" height="96" style="position: absolute; left: 307.3pt; top: 0pt; z-index: 1" alt="" /></div>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Header text</span></p>
+</header>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 1.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 2.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 3.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 4.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 5.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 6.</span></p>
+<footer class="doc-footer">
+<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABLklEQVR4nO3UwQ0CMQwAweQ64YrhCoL+QwP3i1YgMfO35cfKc601fs/5vr59AluOvXG4JywSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEvPxejab+Ws+FglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhMQofzj4Fe4FthkgAAAAASUVORK5CYII=" width="192" height="96" style="position: absolute; left: 0pt; top: 720pt; z-index: 1" alt="" /></div>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Footer text</span></p>
+</footer>
+</body>
+</html>

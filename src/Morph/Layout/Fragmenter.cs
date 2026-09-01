@@ -2973,7 +2973,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             foreach (var element in band.Elements)
             {
-                if (element is FloatingImageElement {BehindText: true} image &&
+                // Front-of-text band images are admitted on the same terms as front-of-text band
+                // shapes below: a logo anchored in the header is overwhelmingly written behindDoc="0"
+                // (Word's default when you drop a picture into a header and set Square/None wrapping),
+                // and the behind-only gate dropped it silently — a right-aligned letterhead logo simply
+                // never appeared. Painting it with the rest of the band is right for the same reason it
+                // is right for shapes: the band paints before the body, and header art sits above the
+                // body's top margin, so front/behind ordering against body text almost never arises.
+                if (element is FloatingImageElement image &&
                     DecodableImageBytes(image) is { Length: > 0 } data)
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
