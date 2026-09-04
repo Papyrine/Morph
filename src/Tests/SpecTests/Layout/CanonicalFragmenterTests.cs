@@ -796,12 +796,13 @@ public class CanonicalFragmenterTests
         var line = items.OfType<PlacedLine>().Single();
         var border = items.OfType<PlacedBorder>().Single();
 
-        // Only the bottom edge shows; the box spans the full 260pt column and its bottom sits the 4pt border
+        // Only the bottom edge shows; the box spans the 260pt column plus Word's side overhang (1pt left,
+        // 1.5pt right — Fragmenter.BorderBoxLeftOutset/RightOutset) and its bottom sits the 4pt border
         // space below the line, emitted after the line so a painter strokes it over the text.
         await Assert.That(border.Borders.Bottom.IsVisible).IsTrue();
         await Assert.That(border.Borders.Top.IsVisible).IsFalse();
-        await Assert.That(border.X).IsEqualTo(20f).Within(0.5f);
-        await Assert.That(border.Width).IsEqualTo(260f).Within(0.5f);
+        await Assert.That(border.X).IsEqualTo(19f).Within(0.5f);
+        await Assert.That(border.Width).IsEqualTo(262.5f).Within(0.5f);
         await Assert.That(border.Y + border.Height).IsEqualTo(line.Y + line.Height + 4f).Within(0.5f);
         await Assert.That(items.IndexOf(border) > items.IndexOf(line)).IsTrue();
     }
