@@ -19,6 +19,14 @@ sealed record BorderEdge
     /// <summary>Line style, the full <c>ST_Border</c> line enumeration.</summary>
     public BorderLineStyle Style { get; init; } = BorderLineStyle.Single;
 
+    /// <summary>
+    /// <c>w:space</c> in points — the gap between the text and this edge. Carried here for a RUN
+    /// border (<c>w:bdr</c>), whose reserve and box <see cref="BorderStroke.RunBorderReserve"/> and
+    /// <see cref="BorderStroke.RunBorderInset"/> derive from it; a paragraph edge keeps its space on
+    /// <c>ParagraphProperties</c> (per side) and leaves this at zero.
+    /// </summary>
+    public double SpacePoints { get; init; }
+
     public static BorderEdge None => new()
     {
         IsVisible = false

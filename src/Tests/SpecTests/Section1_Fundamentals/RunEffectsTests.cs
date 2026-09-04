@@ -67,7 +67,7 @@ public class RunEffectsTests
     {
         var doc = ParseSingleParagraph(rPr =>
         {
-            rPr.AppendChild(new Border { Val = BorderValues.Single, Size = 8, Color = "FF0000" });
+            rPr.AppendChild(new Border { Val = BorderValues.Single, Size = 8, Color = "FF0000", Space = 4 });
         });
 
         var run = doc.Elements.OfType<ParagraphElement>().First().Runs[0];
@@ -75,6 +75,9 @@ public class RunEffectsTests
         await Assert.That(border).IsNotNull();
         await Assert.That(border!.IsVisible).IsTrue();
         await Assert.That(border.ColorHex).IsEqualTo("FF0000");
+        await Assert.That(border.WidthPoints).IsEqualTo(1).Within(0.0001);
+        // w:space is what the line reserves around the run, on top of the stroke.
+        await Assert.That(border.SpacePoints).IsEqualTo(4).Within(0.0001);
     }
 
     [Test]

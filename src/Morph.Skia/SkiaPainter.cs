@@ -170,12 +170,13 @@ static class SkiaPainter
                 canvas.DrawLine(P(context, run.X), strikeY, P(context, run.X + run.Width), strikeY, context.GetReusableRulePaint(color, strokeWidth));
             }
 
-            // w:bdr — a box around this run alone, over the glyphs like Word's. Drawn from the line
-            // box, which is the same rectangle the highlight fills.
+            // w:bdr — a box around this run alone, over the glyphs like Word's, its rules the drawn
+            // stack plus the floored w:space outside the font's line box (BorderStroke.RunBorderBox).
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                PaintEdges(context, canvas, run.X, line.Y, run.Width, line.Height, CellBorders.Uniform(runBorder));
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs));
+                PaintEdges(context, canvas, boxX, boxY, boxWidth, boxHeight, CellBorders.Uniform(runBorder));
             }
         }
 
@@ -710,7 +711,7 @@ static class SkiaPainter
         }
 
         var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
-        var bands = BorderStroke.Bands(edge.Style, edge.WidthPoints, scope);
+        var bands = BorderStroke.Bands(edge.Style, edge.WidthPoints, scope, trailingEdge: outward > 0);
         var shift = BorderStroke.OutwardShift(bands, scope);
         foreach (var band in bands)
         {

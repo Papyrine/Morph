@@ -48,7 +48,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         for (var i = 0; i < wrapped.Count; i++)
         {
             var height = (float) CanonicalTextMeasurer.LineHeightPoints(
-                wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
+                wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints)
+                         + 2 * RunBorderPad(wrapped[i]);
 
             // An inline image grows the line exactly as LayoutLineContents places it — measure and
             // placement must agree or a cell's row height omits its image: newsletters/05's school
@@ -113,6 +114,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
                 textAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
 
+            // A run border (w:bdr) reserves its stack plus w:space above and below the font's line box —
+            // the line grows by twice the tallest such reserve and the baseline drops by it, exactly as
+            // LayoutLines charged. See BorderStroke.RunBorderReserve for the Word measurements.
+            var runBorderPad = RunBorderPad(wrapped[i]);
+            textHeight += 2 * runBorderPad;
+            textAscent += runBorderPad;
+
             // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
             // grow the line: ascent and height take the max of the text metrics and the tallest image.
             var images = wrapped[i].Images;
@@ -126,6 +134,21 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         }
 
         return result;
+    }
+
+    // The tallest run-border reserve on a line, in points — zero when no run on it carries a w:bdr.
+    static float RunBorderPad(WrapLine line)
+    {
+        var pad = 0d;
+        foreach (var segment in line.Segments)
+        {
+            if (segment.Properties.Border is { } border)
+            {
+                pad = Math.Max(pad, BorderStroke.RunBorderReserve(border));
+            }
+        }
+
+        return (float) pad;
     }
 
     public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth) =>
