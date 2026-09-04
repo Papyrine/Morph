@@ -1344,6 +1344,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // The width is what the edge DRAWS, not what w:sz declares — a multi-line style whose declared
         // width is too small to resolve is floored up to a visible stack (BorderStroke.Extent), and
         // charging only the declared width let those paragraphs pack tighter than Word's.
+        // Word's paragraph-border box overhangs the nominal (text extent − w:space) on the SIDES only, by a
+        // constant that is not the stroke width: XPS-read on _probe_pbdrwidth / _probe_pbdrside (2026-09-04),
+        // the left rule's inner face sits 1.0pt outside the nominal and the right rule's 1.5pt outside, at
+        // every width from 1pt to 12pt, at w:space 8 and 20, under left and right indents and under a
+        // different page margin (six readings each, 0.90–0.98 and 1.50–1.55; w:space=0 alone reads ~0.2pt
+        // more on both sides). Top and bottom faces are nominal within 0.2pt, so this is a paint-side
+        // offset with no flow reserve — the vertical reserves are unchanged.
+        const float BorderBoxLeftOutset = 1.0f;
+        const float BorderBoxRightOutset = 1.5f;
+
         static float EdgeReserve(BorderEdge edge, double spacePoints) =>
             BorderStroke.Draws(edge) ? (float) (BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints) : 0f;
 
@@ -1372,8 +1382,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // and gave the SAME edge whether or not a numbering marker occupied the gutter — so this is
             // indent-driven, not marker-driven. A first-line indent (which moves text RIGHT) never shifts it.
             // The right edge held at 1123px throughout, so the width takes the hanging back.
-            var left = ColumnLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints;
-            var width = borderRunWidth + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints;
+            var left = ColumnLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints - BorderBoxLeftOutset;
+            var width = borderRunWidth + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints + BorderBoxLeftOutset + BorderBoxRightOutset;
             var top = borderRunTop - (float) run.BorderTopSpacePoints;
             var height = borderRunBottom - borderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
 
@@ -2497,9 +2507,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     return;
                 }
 
-                var boxLeft = contentLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints;
+                var boxLeft = contentLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints - BorderBoxLeftOutset;
                 var boxWidth = contentWidth - (float) run.LeftIndentPoints - (float) run.RightIndentPoints
-                               + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints;
+                               + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints
+                               + BorderBoxLeftOutset + BorderBoxRightOutset;
                 var boxTop = cellBorderRunTop - (float) run.BorderTopSpacePoints;
                 var boxHeight = cellBorderRunBottom - cellBorderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
                 lines.Add(new PlacedBorder(boxLeft, boxTop, boxWidth, boxHeight, runBorders));
