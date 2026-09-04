@@ -48,24 +48,24 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1,
-      "Ssim": 0.7937,
+      "ErrorMetric": 0.0997,
+      "Ssim": 0.7944,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0974,
-      "Ssim": 0.7614,
+      "ErrorMetric": 0.0972,
+      "Ssim": 0.7619,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0976,
-      "Ssim": 0.7704,
+      "ErrorMetric": 0.0977,
+      "Ssim": 0.7705,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
@@ -73,7 +73,7 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0347,
-      "Ssim": 0.9198,
+      "Ssim": 0.9189,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -81,15 +81,15 @@
     {
       "Page": 5,
       "ErrorMetric": 0.0621,
-      "Ssim": 0.8881,
+      "Ssim": 0.8875,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0346,
-      "Ssim": 0.9199,
+      "ErrorMetric": 0.0348,
+      "Ssim": 0.919,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
@@ -97,7 +97,7 @@
     {
       "Page": 7,
       "ErrorMetric": 0.0507,
-      "Ssim": 0.8754,
+      "Ssim": 0.874,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"

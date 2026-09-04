@@ -11,7 +11,7 @@
       {
         "Width": 792.0,
         "Height": 612.0,
-        "Text": "WHO WE ARE\nCity Center Catering is a premier catering company that has been serving the\nlocal community for over a decade. Our passion for great food and\nexceptional service has made us the go-to choice for all types of events, from\nintimate dinners to large corporate events.\nYOUR\nPREMIER\nCATERING\nSOLUTION\nCONTACT US\n123 45th Street\nChicago, IL 54321\nPhone 302.555.0132\nEmail citycentercatering@example.com\nWeb www.greatsiteaddress.com\nREPLACE WITH\nLOGO\nCITY CENTER CATERING\nElevating your event with exceptional catering and service."
+        "Text": "WHO WE ARE\nCity Center Catering is a premier catering company that has been serving the\nlocal community for over a decade. Our passion for great food and\nexceptional service has made us the go-to choice for all types of events, from\nintimate dinners to large corporate events.\nYOUR\nPREMIER\nCATERING\nSOLUTION\nCONTACT US\n123 45th Street\nChicago, IL 54321\nPhone 302.555.0132\nEmail citycentercatering@example.com\nWeb www.greatsiteaddress.com\nREPLACE WITH\nLOGO CITY CENTER CATERING\nElevating your event with exceptional catering and service."
       },
       {
         "Width": 792.0,
@@ -33,8 +33,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5836,
-      "Ssim": 0.8754,
+      "ErrorMetric": 0.5837,
+      "Ssim": 0.8776,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
@@ -49,16 +49,16 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1371,
-      "Ssim": 0.8347,
+      "ErrorMetric": 0.1364,
+      "Ssim": 0.8371,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1619,
-      "Ssim": 0.8264,
+      "ErrorMetric": 0.1615,
+      "Ssim": 0.8293,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

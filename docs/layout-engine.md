@@ -579,7 +579,12 @@ is verbatim. Exact rows are now exempt, and every backend moved closer to Word.
    the production backends exactly but moved the corpus −0.0017 away from Word — Word is GDI, GDI ignores
    the flag), and SkiaSharp's reported ascent is platform-dependent (usWinAscent on Windows, hhea ascender
    under FreeType on linux — the metrics the container baselines were drawn with), so "match production" is
-   not a single target across platforms and the rule anchors to Word instead.
+   not a single target across platforms and the rule anchors to Word instead. *Superseded 2026-09-04:* the
+   `usWinAscent` reading was itself a coincidence of the faces it was measured on. A 23-face probe at three
+   sizes settled the rule as **line box minus descent** — the leading stacks above the text, the descent
+   (`usWinDescent`, or `−sTypoDescender` when the flag is set) below it — and the flag is honoured on the
+   descent side exactly as it already was on the box side. `docs/word-features.md`, Line Spacing, has the
+   measurements; `BaselineAscentContractTests` pins the rule and the Word pixel table.
 3. **Step 7 — delete** the old pagination — *complete; the checklist's step 7 entry above records the six
    slices as they ran.* The paragraph below is how the raster half read when it landed first, with the PDF
    half still pending.

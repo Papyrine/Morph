@@ -5,23 +5,23 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0917,
-      "Ssim": 0.7942,
+      "Ssim": 0.7952,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "skia_result#page_0001.verified.png",
       "ReceivedFile": "skia_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0895,
-      "Ssim": 0.7654,
+      "ErrorMetric": 0.0892,
+      "Ssim": 0.7655,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "skia_result#page_0002.verified.png",
       "ReceivedFile": "skia_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0894,
-      "Ssim": 0.7735,
+      "ErrorMetric": 0.0895,
+      "Ssim": 0.7741,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "skia_result#page_0003.verified.png",
       "ReceivedFile": "skia_result#page_0003.received.png"
@@ -29,23 +29,23 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0318,
-      "Ssim": 0.9209,
+      "Ssim": 0.9203,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "skia_result#page_0004.verified.png",
       "ReceivedFile": "skia_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0569,
-      "Ssim": 0.8882,
+      "ErrorMetric": 0.0571,
+      "Ssim": 0.8881,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "skia_result#page_0005.verified.png",
       "ReceivedFile": "skia_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0318,
-      "Ssim": 0.9207,
+      "ErrorMetric": 0.0319,
+      "Ssim": 0.9197,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "skia_result#page_0006.verified.png",
       "ReceivedFile": "skia_result#page_0006.received.png"
@@ -53,7 +53,7 @@
     {
       "Page": 7,
       "ErrorMetric": 0.0465,
-      "Ssim": 0.877,
+      "Ssim": 0.8753,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "skia_result#page_0007.verified.png",
       "ReceivedFile": "skia_result#page_0007.received.png"

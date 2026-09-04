@@ -4,56 +4,56 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0946,
-      "Ssim": 0.7797,
+      "ErrorMetric": 0.0916,
+      "Ssim": 0.7963,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.09,
-      "Ssim": 0.7653,
+      "ErrorMetric": 0.0892,
+      "Ssim": 0.7636,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0902,
-      "Ssim": 0.7677,
+      "ErrorMetric": 0.0895,
+      "Ssim": 0.7718,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "imagesharp_result#page_0003.verified.png",
       "ReceivedFile": "imagesharp_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.0321,
-      "Ssim": 0.9181,
+      "ErrorMetric": 0.032,
+      "Ssim": 0.9197,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "imagesharp_result#page_0004.verified.png",
       "ReceivedFile": "imagesharp_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0599,
-      "Ssim": 0.8697,
+      "ErrorMetric": 0.0573,
+      "Ssim": 0.8889,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "imagesharp_result#page_0005.verified.png",
       "ReceivedFile": "imagesharp_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0312,
-      "Ssim": 0.9239,
+      "ErrorMetric": 0.0319,
+      "Ssim": 0.9198,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "imagesharp_result#page_0006.verified.png",
       "ReceivedFile": "imagesharp_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0466,
-      "Ssim": 0.872,
+      "ErrorMetric": 0.0467,
+      "Ssim": 0.8749,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "imagesharp_result#page_0007.verified.png",
       "ReceivedFile": "imagesharp_result#page_0007.received.png"

@@ -79,26 +79,58 @@ sealed record FontMetrics
     public bool UseTypoMetrics { get; init; }
 
     /// <summary>
-    /// Where the baseline sits below the top of the line box: <see cref="WinAscent"/>, for every font —
-    /// including one that sets <c>USE_TYPO_METRICS</c> (OS/2 fsSelection bit 7). That flag is deliberately
-    /// ignored, and the choice is measured, twice over. Word lays text out with GDI metrics, which use
-    /// usWinAscent regardless of the flag; SkiaSharp honours the flag, so the production backends sit
-    /// ~0.071 em high against Word on every flagged font (Aptos — the corpus default — Bahnschrift, Trade
-    /// Gothic Next). A flag-honouring rule was implemented and measured corpus-wide: it matched the
-    /// production renderers exactly (184 faces, zero mismatches against SkiaSharp) and moved the corpus
-    /// AWAY from Word by −0.0017, 90 documents regressing — so it was reverted in favour of Word's own
-    /// behaviour. The engine's baselines therefore intentionally diverge from the production renderers on
-    /// flagged fonts, and beat them against Word there. "Match production" is not even one target:
-    /// SkiaSharp's reported ascent is platform-dependent — usWinAscent on Windows (GDI-compatible), the
-    /// hhea ascender on linux (FreeType), which is what the container-rendered baselines were drawn with —
-    /// so this rule is anchored to Word, the one stable oracle. Falls back to the hhea ascender for a font with no
-    /// <c>OS/2</c> table. Deliberately independent of <see cref="LineBoxUnits"/>: the baseline ignores the
-    /// typo flag while the line pitch honours it — each side separately Word-probed.
+    /// The descent below the baseline that Word reserves at the bottom of the line box — the same
+    /// family <see cref="LineBoxUnits"/> is built from: <c>−sTypoDescender</c> for a font that sets
+    /// USE_TYPO_METRICS, <c>usWinDescent</c> for any other OS/2-bearing font, the hhea descender
+    /// for a font with no <c>OS/2</c> table.
     /// </summary>
-    public int BaselineAscentUnits => WinAscent > 0 ? WinAscent : Ascender;
+    public int DescentUnits
+    {
+        get
+        {
+            if (UseTypoMetrics)
+            {
+                return -TypoDescender;
+            }
 
-    /// <summary>The baseline's distance below the line-box top, in points at <paramref name="sizePoints"/>.</summary>
-    public double BaselineAscentPoints(double sizePoints) => (double) BaselineAscentUnits / UnitsPerEm * sizePoints;
+            return WinAscent > 0 ? WinDescent : -Descender;
+        }
+    }
+
+    /// <summary>
+    /// Where the baseline sits below the top of the line box: the box minus <see cref="DescentUnits"/>,
+    /// so the line gap / external leading is stacked ABOVE the text and the descent is what remains
+    /// below it. Word-measured 2026-09-04 (<c>_probe_baseline</c> / <c>_probe_baseline2</c>: 23 faces at
+    /// 24/48/96pt, first baseline read from the XPS <c>Glyphs</c> origin against the page's top margin,
+    /// both flagged and unflagged faces, static and variable). Every face lands here; the earlier
+    /// <c>usWinAscent</c> rule only coincided on faces with no leading (Calibri, Segoe UI, Baskerville
+    /// Old Face) and was 0.071 em low on Aptos, 0.033 em on Arial, 0.19 em on Gabriola.
+    /// The two halves of the rule that the earlier reading got backwards:
+    /// <list type="bullet">
+    /// <item>A flagged font takes the TYPO box and descent — Aptos 48pt sits 75px down a 98px box
+    /// (typo 0.939 em; usWinAscent would be 81px), Gabriola 1.384 em (typo ascender 0.684 plus its
+    /// 0.7 em typo line gap on top; usWinAscent 1.191). Bahnschrift's 0.994 em is typo ascender + typo
+    /// gap, which merely equals its usWinAscent.</item>
+    /// <item>An unflagged font takes the GDI cell plus external leading, leading on top — Arial's 67-unit
+    /// hhea gap raises its baseline from 0.905 em to 0.938 em; Times New Roman's 87 from 0.891 to 0.934.</item>
+    /// </list>
+    /// </summary>
+    public int BaselineAscentUnits => LineBoxUnits - DescentUnits;
+
+    /// <summary>
+    /// The baseline's distance below the line-box top, in points at <paramref name="sizePoints"/>. The
+    /// descent is a whole number of pixels on Word's 120-dpi layout grid: the probe's baselines are
+    /// <c>round(box px) − round(descent px)</c> on 65 of 68 face/size rows, the other three one pixel
+    /// off (Word rounds Verdana 96pt's 33.59px descent down); <c>round(ascent + gap)</c> is worse
+    /// (10 misses, Calibri 48pt alone lands 77px against its 76.17). The box itself stays fractional
+    /// here — its snap is the per-line accumulation the fragmenter deliberately does not reproduce
+    /// (<c>docs/word-features.md</c>, Line Spacing) — so only the descent term is quantised.
+    /// </summary>
+    public double BaselineAscentPoints(double sizePoints)
+    {
+        var descentPixels = Math.Round((double) DescentUnits / UnitsPerEm * sizePoints * CanonicalTextMeasurer.ReferenceDpi / 72.0, MidpointRounding.AwayFromZero);
+        return LinePitchPoints(sizePoints) - descentPixels * 72.0 / CanonicalTextMeasurer.ReferenceDpi;
+    }
 
     /// <summary>
     /// Horizontal advance widths from <c>hmtx</c>, one per glyph up to <c>hhea.numberOfHMetrics</c>.

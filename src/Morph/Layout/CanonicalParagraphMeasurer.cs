@@ -162,10 +162,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return widest;
     }
 
-    // The baseline sits usWinAscent below the line-box top, not hhea ascender — the two are different
-    // metrics whose gap is font-specific (0.071 em for Aptos, 0.202 em for Calibri), and using the hhea one
-    // put a Calibri document's text up to a fifth of an em high inside every line. The line PITCH stays on
-    // the hhea box, which is what Word's XPS-measured pitch matches; only the baseline within it moves.
+    // The baseline sits (line box − descent) below the line-box top — the line gap stacks above the text,
+    // the descent below it (FontMetrics.BaselineAscentUnits, Word-probed across 23 faces). Neither the hhea
+    // ascender (0.2 em high on Calibri) nor usWinAscent (0.07 em low on Aptos, the corpus default) is
+    // that quantity; both were tried. The line PITCH is the same box, so the two agree by construction.
     float AscentPoints(RunProperties fontProperties)
     {
         var metrics = resolveFont(fontProperties.FontFamily, fontProperties.Bold, fontProperties.Italic);

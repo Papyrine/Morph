@@ -24,14 +24,14 @@
     {
       "Page": 1,
       "ErrorMetric": 0.7344,
-      "Ssim": 0.8697,
+      "Ssim": 0.8701,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1315,
+      "ErrorMetric": 0.1314,
       "Ssim": 0.84,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
