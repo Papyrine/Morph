@@ -687,6 +687,60 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // paragraph over, so the anchor's own placement is the single source of the float's page.
         readonly Dictionary<ParagraphElement, List<DocumentElement>> anchorDeferredFloats = [];
 
+        // w:mirrorIndents substitutions made this run, keyed by the parse instance. Anchor-keyed
+        // float lookups translate through this map so a float that names the original paragraph
+        // still finds its mirrored stand-in.
+        readonly Dictionary<ParagraphElement, ParagraphElement> mirrorSubstitutes = [];
+
+        /// <summary>
+        /// Word-measured mirror rule (<c>_probe_mirror</c>, <c>_probe_mirror2</c> — hanging and
+        /// firstLine swept on both parities; complex_spacing's Combination 7 confirms on a real
+        /// document): an even page keeps the declared indents; an odd page mirrors the box. With
+        /// F = firstLine − hanging, every line's right inset becomes left + F, the continuation
+        /// left becomes right − min(F, 0), and the first-line delta F itself is unchanged — in
+        /// field terms left' = right + hanging, right' = left + firstLine − hanging. Parity is
+        /// decided greedily from the page the paragraph starts on, like Word's own layout; a
+        /// mirror paragraph that splits across the page boundary keeps its starting parity.
+        /// </summary>
+        ParagraphElement MirrorForPage(ParagraphElement paragraph)
+        {
+            var properties = paragraph.Properties;
+            if (!properties.MirrorIndents ||
+                bodies.Count % 2 != 0 ||
+                (properties.LeftIndentPoints == 0 &&
+                 properties.RightIndentPoints == 0 &&
+                 properties.HangingIndentPoints == 0 &&
+                 properties.FirstLineIndentPoints == 0))
+            {
+                return paragraph;
+            }
+
+            if (mirrorSubstitutes.TryGetValue(paragraph, out var existing))
+            {
+                return existing;
+            }
+
+            var mirrored = new ParagraphElement
+            {
+                Runs = paragraph.Runs,
+                Properties = properties with
+                {
+                    LeftIndentPoints = properties.RightIndentPoints + properties.HangingIndentPoints,
+                    RightIndentPoints = properties.LeftIndentPoints + properties.FirstLineIndentPoints - properties.HangingIndentPoints,
+                },
+                IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
+                IsSectionBreakMark = paragraph.IsSectionBreakMark,
+                IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
+            };
+            mirrorSubstitutes[paragraph] = mirrored;
+            if (anchorDeferredFloats.Remove(paragraph, out var deferred))
+            {
+                anchorDeferredFloats[mirrored] = deferred;
+            }
+
+            return mirrored;
+        }
+
         // True when EmitBodyFloatAt would register a wrap exclusion for this element — such a float
         // cannot defer past its anchor paragraph, whose flow band must see the exclusion.
         static bool RegistersExclusion(DocumentElement element) =>
@@ -699,6 +753,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // anchor serves both.
         void EmitBodyFloat(DocumentElement element, VerticalAnchor verticalAnchor, ParagraphElement? anchor)
         {
+            if (anchor != null && mirrorSubstitutes.TryGetValue(anchor, out var substituted))
+            {
+                anchor = substituted;
+            }
+
             if (!IsAbsoluteY(verticalAnchor) && anchor != null &&
                 paragraphPreSpacingTops.TryGetValue(anchor, out var placedTop))
             {
@@ -1391,6 +1450,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 FinishPage(false);
             }
+
+            // w:mirrorIndents resolves against the parity of the page the paragraph starts on, so the
+            // substitution happens after the paragraph's own page break has landed it.
+            paragraph = MirrorForPage(paragraph);
+            properties = paragraph.Properties;
 
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
             // region top. If the collapsed gap plus the first line overflows, the line-level break below

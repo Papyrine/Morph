@@ -267,7 +267,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
     // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
     // the width/pitch arithmetic.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null);
+    // BreaksBefore marks a piece that may start a line even though the piece before it is not a space —
+    // the hyphen break opportunity (see TokenizeText). The word-gathering loop stops there instead of
+    // gluing every adjacent non-space piece into one unbreakable word.
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);
 
@@ -425,11 +428,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             // Gather the whole word — every adjacent non-space piece, even across a run boundary (but not
-            // across a forced break).
+            // across a forced break). A piece marked BreaksBefore ends the gather: it is the text after a
+            // hyphen, which Word may move to the next line. The first piece is always taken, so a word
+            // that begins at a break opportunity still advances.
             double wordPixels = 0;
             float wordPitch = 0;
             var wordPieces = new List<Piece>();
-            while (index < pieces.Count && !pieces[index].IsSpace && !pieces[index].IsBreak)
+            while (index < pieces.Count && !pieces[index].IsSpace && !pieces[index].IsBreak &&
+                   (wordPieces.Count == 0 || !pieces[index].BreaksBefore))
             {
                 wordPixels += pieces[index].Pixels;
                 wordPitch = Math.Max(wordPitch, pieces[index].Pitch);
@@ -811,7 +817,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     pieces.Add(new(false, 0, pitch, "", run.Properties, null, true, false));
                 }
 
-                foreach (var (token, isSpace) in TokenizeText(parts[partIndex]))
+                foreach (var (token, isSpace, breaksBefore) in TokenizeText(parts[partIndex]))
                 {
                     // A no-break space glues its neighbours into one unbreakable token (TokenizeText
                     // only splits on ' ', so it rides inside the word — Word never wraps at one),
@@ -825,7 +831,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
                     }
 
-                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false));
+                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false, null, breaksBefore));
                 }
             }
         }
@@ -896,17 +902,37 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     }
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),
-    // matching CanonicalTextMeasurer.WrapLines.
-    static IEnumerable<(string Text, bool IsSpace)> TokenizeText(string text)
+    // then splits each non-space run AFTER every internal hyphen, matching
+    // CanonicalTextMeasurer.WrapLines. The hyphen pieces carry BreaksBefore so the wrap may start a
+    // line at one; they are separate pieces rather than one token because a break opportunity inside a
+    // word is exactly what the gathering loop needs to see.
+    static IEnumerable<(string Text, bool IsSpace, bool BreaksBefore)> TokenizeText(string text)
     {
         var start = 0;
         for (var i = 1; i <= text.Length; i++)
         {
-            if (i == text.Length || text[i] == ' ' != (text[start] == ' '))
+            if (i != text.Length && text[i] == ' ' == (text[start] == ' '))
             {
-                yield return (text[start..i], text[start] == ' ');
-                start = i;
+                continue;
             }
+
+            var token = text[start..i];
+            if (text[start] == ' ')
+            {
+                yield return (token, true, false);
+            }
+            else
+            {
+                var first = true;
+                foreach (var piece in CanonicalTextMeasurer.SplitAfterDashes(token))
+                {
+                    yield return (piece, false, !first);
+                    first = false;
+                }
+            }
+
+            start = i;
         }
     }
+
 }

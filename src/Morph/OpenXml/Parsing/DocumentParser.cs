@@ -10485,22 +10485,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             pageBreakBefore = pageBreakBeforeElement.Val?.Value ?? true;
         }
 
-        // w:mirrorIndents — left/right indents swap on even pages (mirror printing).
         var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
 
-        // Word drops a mirror paragraph's left/right and hanging indents entirely and keeps only
-        // w:firstLine, at least in a document without mirror margins. Word-measured
-        // (_probe_mirror, margin at 1in): left=1440 without the flag indents the full 1in;
-        // left=1440, left=2880, w:start=1440 and left=2880+hanging=1440 under the flag all render
-        // flush at the margin, while left=1440+firstLine=720 renders its first line at
-        // margin+0.5in. complex_spacing is the corpus case — Word wraps its Combination 7 at the
-        // full column width where the declared 2880/2880/1440 indents wrapped it into 10 lines.
-        if (mirrorIndents)
-        {
-            leftIndent = 0;
-            rightIndent = 0;
-            hangingIndent = 0;
-        }
+        // A mirror paragraph keeps its declared indents in the model. Which side each indent lands
+        // on is a PAGE-PARITY question the Fragmenter answers at placement (Word-measured,
+        // _probe_mirror2 sweeping hanging/firstLine on both parities): even pages render as
+        // declared; odd pages mirror the box. An earlier probe read only line STARTS and concluded
+        // the indents were dropped entirely — every one of those observations is also produced by
+        // the mirror transform, and the right-edge measurements refute the drop.
 
         // Parse paragraph shading/background color (w:shd element)
         if (shadingElement != null)
