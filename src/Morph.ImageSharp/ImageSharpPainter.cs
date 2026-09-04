@@ -7,7 +7,7 @@ using Morph;
 /// page and flushes them when the canvas is disposed, then encodes the page image to PNG through the same
 /// page callback the production <c>ImageSharpPageRenderer</c> uses. The tree is in points
 /// and ImageSharp draws in pixels, so every coordinate scales by <see cref="RenderContextBase.PointsToPixels"/>;
-/// text is top-anchored, so a run's baseline drops by the font ascent.
+/// text is drawn with its alphabetic baseline at the engine's <c>PlacedLine.Baseline</c>, like the other painters.
 ///
 /// <para>Covers the block/table/column subset: paragraph text with its run decorations, tables, paragraph
 /// shading and borders, inline images (crop/rotation/flip baked by the context), tab leaders, and floating
@@ -167,14 +167,17 @@ static class ImageSharpPainter
         }
     }
 
-    // Text is top-anchored in ImageSharp, so the baseline drops by the font ascent (points) scaled to
-    // pixels. Per-character tracking mirrors SkiaPainter.DrawTracked, surrogate-safe.
+    // Text is anchored at the engine's baseline (TextBaseline.Alphabetic in Options) — the one place
+    // ImageSharp used to diverge from Skia and PDF, which draw at PlacedLine.Baseline directly. The
+    // previous top-anchored form subtracted SixLabors' own ascender (typo when flagged, else hhea) from
+    // the baseline, and SixLabors' LineBox placement does not put the baseline at origin + ascender
+    // either, so every run drew high by a font-specific fraction of the em (0.11 em on
+    // business-plans/13). Per-character tracking mirrors SkiaPainter.DrawTracked, surrogate-safe.
     static void DrawTracked(ImageSharpRenderContext context, DrawingCanvas canvas, string text, RunProperties properties, double penX, double baseline)
     {
         var font = context.GetFont(properties);
         var brush = context.GetBrush(ImageSharpRenderContext.ParseColor(properties.ColorHex));
-        var (_, ascent) = ImageSharpRenderContext.GetFontMetrics(font);
-        var top = P(context, baseline) - ascent * context.Scale;
+        var baselineY = P(context, baseline);
 
         // An italic run whose family bundles no italic face resolved a non-italic style
         // (PickAvailableStyle): Word synthesizes an oblique, so shear the glyphs right about
@@ -183,7 +186,6 @@ static class ImageSharpPainter
         if (oblique)
         {
             var skew = (float) FontHelpers.SyntheticItalicSkew;
-            var baselineY = P(context, baseline);
             canvas.Save(
                 new()
                 {
@@ -193,7 +195,7 @@ static class ImageSharpPainter
 
         if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
         {
-            canvas.DrawText(Options(context, font, P(context, penX), top), text.AsSpan(), brush, null);
+            canvas.DrawText(Options(context, font, P(context, penX), baselineY), text.AsSpan(), brush, null);
         }
         else
         {
@@ -203,7 +205,7 @@ static class ImageSharpPainter
             {
                 var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
                 var piece = text.Substring(i, length);
-                canvas.DrawText(Options(context, font, x, top), piece.AsSpan(), brush, null);
+                canvas.DrawText(Options(context, font, x, baselineY), piece.AsSpan(), brush, null);
                 x += P(context, context.MeasureText(font, piece)) + trackingPixels;
                 i += length - 1;
             }
@@ -215,11 +217,12 @@ static class ImageSharpPainter
         }
     }
 
-    static RichTextOptions Options(ImageSharpRenderContext context, Font font, float x, float top) =>
+    static RichTextOptions Options(ImageSharpRenderContext context, Font font, float x, float baseline) =>
         new(font)
         {
             Dpi = context.Dpi,
-            Origin = new PointF(x, top),
+            Origin = new PointF(x, baseline),
+            TextBaseline = TextBaseline.Alphabetic,
             KerningMode = KerningMode.Standard
         };
 
@@ -267,11 +270,10 @@ static class ImageSharpPainter
         }
 
         var brush = context.GetBrush(color);
-        var (_, ascent) = ImageSharpRenderContext.GetFontMetrics(font);
-        var top = P(context, baseline) - ascent * context.Scale;
+        var baselineY = P(context, baseline);
         for (var index = 0; index < count; index++)
         {
-            canvas.DrawText(Options(context, font, (float) startX + index * spacing, top), leaderChar.AsSpan(), brush, null);
+            canvas.DrawText(Options(context, font, (float) startX + index * spacing, baselineY), leaderChar.AsSpan(), brush, null);
         }
     }
 

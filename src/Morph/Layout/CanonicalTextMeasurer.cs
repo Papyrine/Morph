@@ -101,7 +101,7 @@ sealed class CanonicalTextMeasurer
 
     // The reference rasterizer runs at 120 dpi — the 125%-scaled display the XPS baselines were
     // measured on. It is the grid the pen position rounds onto; the em itself is not rounded (EmPixels).
-    const double referenceDpi = 120.0;
+    internal const double ReferenceDpi = 120.0;
 
     /// <summary>
     /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded
@@ -126,7 +126,7 @@ sealed class CanonicalTextMeasurer
     /// bypass this em entirely.</para>
     /// </summary>
     public static double EmPixels(double sizePoints) =>
-        sizePoints * referenceDpi / 72.0;
+        sizePoints * ReferenceDpi / 72.0;
 
     static long AdvanceUnits(FontMetrics metrics, string text)
     {
@@ -272,12 +272,12 @@ sealed class CanonicalTextMeasurer
 
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
     public static double PixelsToPoints(double pixels) =>
-        Math.Round(pixels, MidpointRounding.AwayFromZero) * 72.0 / referenceDpi;
+        Math.Round(pixels, MidpointRounding.AwayFromZero) * 72.0 / ReferenceDpi;
 
     /// <summary>The reference device pixels a fixed point width occupies — the inverse of
     /// <see cref="PixelsToPoints"/>, for placing an unbreakable box (an inline image) on the pixel track.</summary>
     public static double PixelsFromPoints(double points) =>
-        points * referenceDpi / 72.0;
+        points * ReferenceDpi / 72.0;
 
     /// <summary>
     /// The unrounded advance width of <paramref name="text"/> in points: <c>Σ advanceUnits * size /
