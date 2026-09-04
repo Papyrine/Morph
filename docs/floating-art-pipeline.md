@@ -195,6 +195,13 @@ business-plans/08's accent rule).
   `AppendHeaderFooterElements` — letters/02's header stacks an opaque white JPEG
   (z 251658240) UNDER its frame PNG (251658241), and painting in document order whited out
   the whole letterhead.
+- Because of that, `ResolveBandImages` admits a band float whatever its `behindDoc`. It used
+  to take images only when `BehindText` — which dropped the commonest header picture there is,
+  a right-aligned logo with `wrapNone`, since `behindDoc="0"` is what Word writes for one. The
+  shape branch had already been widened (cards/05's fold-guide rules); the image branch had
+  not, and no corpus scenario carried a front-of-text band PICTURE until `header_float_image`.
+  The `_probe_footerz` result below is the authority for admitting both: `behindDoc` is
+  meaningless inside a band.
 - The header/footer STORY as a whole sits below every body item, floats included.
   `Fragmenter.AssemblePages` emits
   `backgroundImages, footerImages, headerBand, footerBand, behindFloats, body, frontFloats`,

@@ -1,4 +1,4 @@
-# All PDF export scenarios (330)
+# All PDF export scenarios (331)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -130,6 +130,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [hanging_indent](#hanging_indent)
 - [header](#header)
 - [header_banner_table](#header_banner_table)
+- [header_float_image](#header_float_image)
 - [header_footer](#header_footer)
 - [header_full_bleed_banner](#header_full_bleed_banner)
 - [header_row_repeat/01](#header_row_repeat01)
@@ -1840,6 +1841,16 @@ PDF: [Morph PDF](header/pdf_result.verified.pdf)
 | <img src="header_banner_table/expected_0001.png" width="500"> | <img src="header_banner_table/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](header_banner_table/pdf_result.verified.pdf)
+
+
+## header_float_image
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0064 · SSIM: 0.9951** |
+| <img src="header_float_image/expected_0001.png" width="500"> | <img src="header_float_image/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](header_float_image/pdf_result.verified.pdf)
 
 
 ## header_footer
