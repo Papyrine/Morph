@@ -2,25 +2,23 @@
 /// Turns a <see cref="BorderEdge"/> into the concrete lines a painter strokes, so Skia, ImageSharp
 /// and PDF cannot drift apart on what "double" or "dotDash" means.
 ///
-/// <para><b>Bands.</b> A multi-line style lays out as units of line and gap: <c>double</c> is 1-1-1
-/// (line, gap, line), <c>triple</c> is 1-1-1-1-1, <c>thinThickSmallGap</c> is 1-1-2, and the Medium
-/// and Large variants widen only the gap. What one unit MEASURES differs by family, and both halves
-/// are Word-probed (see <c>_probe_bordersp</c> and the comment in <see cref="Bands"/>): for the
-/// symmetric families a unit is the declared <c>w:sz</c> itself, so a 3pt <c>double</c> stacks to
-/// 9pt, while the thin/thick family divides the declared width between its units. Offsets come back
-/// relative to the edge's CENTRE, which is where the single-line styles already draw — so this
-/// changes nothing for the plain <c>single</c> borders that make up almost the whole corpus.</para>
+/// <para><b>Bands.</b> A PARAGRAPH border is built on Word's 120-dpi layout grid, one 0.6pt pixel
+/// at a time, with the declared <c>w:sz</c> floored to that grid — see <see cref="ParagraphBands"/>
+/// for the per-family rules, all XPS-read. A CELL or PAGE border keeps the earlier PNG-probed
+/// model (<see cref="CellBands"/>): symmetric families repeat the declared width per line, the
+/// thin/thick family divides it. Offsets come back relative to the edge's centre, innermost band
+/// first, so a plain <c>single</c> draws one band at offset 0.</para>
 ///
 /// <para><b>Dashes.</b> Patterns are multiples of the declared width, which is how Word scales
 /// them: a 3pt dashed border has visibly longer dashes than a 0.5pt one.</para>
 ///
 /// <para><b>Bevels.</b> <c>threeDEngrave</c> and <c>threeDEmboss</c> are NOT a line/gap layout —
-/// Word draws one contiguous block, part darkened and part at the declared colour, in opposite
-/// order for the two. <c>inset</c> and <c>outset</c> carry no shading at all: at <c>sz=48</c> both
-/// are solid at the declared grey. All of that was measured at 6pt (<c>_probe_bevel</c>), because
-/// at the 0.75pt the fixture used originally every one of these collapses to 1-2px and
-/// antialiasing is indistinguishable from a light line — reading `outset` at that size suggested a
-/// highlight that does not exist.</para>
+/// Word draws one contiguous block of three shades (a paragraph's exact rectangles are in
+/// <see cref="ParagraphBands"/>), in opposite order for the two. <c>inset</c> and <c>outset</c>
+/// carry no shading at all: at <c>sz=48</c> both are solid at the declared grey. First measured at
+/// 6pt (<c>_probe_bevel</c>), because at the 0.75pt the fixture used originally every one of these
+/// collapses to 1-2px and antialiasing is indistinguishable from a light line — reading `outset` at
+/// that size suggested a highlight that does not exist.</para>
 ///
 /// <para><b>Waves.</b> <c>wave</c> and <c>doubleWave</c> are a triangular zigzag of FIXED geometry —
 /// Word ignores <c>w:sz</c> for them entirely, which is only visible if the probe sweeps widths.
@@ -146,16 +144,149 @@ static class BorderStroke
     }
 
     /// <summary>
-    /// The lines making up this edge, thicknesses already scaled from <paramref name="totalWidth"/>.
-    /// Returns empty for a style that draws nothing.
+    /// The lines making up this edge, innermost first, thicknesses already scaled from
+    /// <paramref name="totalWidth"/>. Returns empty for a style that draws nothing.
+    /// <paramref name="trailingEdge"/> is true for the right and bottom edges: the asymmetric
+    /// paragraph families are laid out in PAGE direction, not inside-out, so those two edges get
+    /// the mirror image of the top and left ones (see <see cref="ParagraphBands"/>).
     /// </summary>
-    internal static Band[] Bands(BorderLineStyle style, double totalWidth, Scope scope = Scope.Paragraph)
+    internal static Band[] Bands(BorderLineStyle style, double totalWidth, Scope scope = Scope.Paragraph, bool trailingEdge = false)
     {
         if (totalWidth <= 0 || style == BorderLineStyle.None)
         {
             return [];
         }
 
+        return scope == Scope.Paragraph
+            ? ParagraphBands(style, totalWidth, trailingEdge)
+            : CellBands(style, totalWidth, scope);
+    }
+
+    // One pixel of Word's 120-dpi layout grid, the unit every paragraph border is built from.
+    const double gridPoints = 0.6;
+
+    // The two bevel shades, from an 808080 declaration drawing 2A2A2A (42/128) and 353535 (53/128).
+    const double bevelFlankShade = 0.33;
+    const double bevelCoreShade = 0.41;
+
+    /// <summary>
+    /// A paragraph border on Word's own grid. XPS-read (<c>_probe_bands</c>: fifteen styles at
+    /// <c>w:sz</c> 12/24/48/96 as left-only borders; <c>_probe_bands2</c>: four-sided boxes and
+    /// odd widths), every band is a whole number of 120-dpi pixels (0.6pt), and the declared width
+    /// itself is FLOORED to that grid with a one-pixel minimum — <c>sz=9</c> (1.875px) draws 1px,
+    /// <c>sz=13</c> (2.71px) 2px, <c>sz=28</c> (5.83px) 5px, so a 1pt rule is 0.6pt and a 1.5pt
+    /// rule 1.2pt. The families, in page order (top-to-bottom / left-to-right), W being the declared
+    /// width — every unit is a POINT quantity (<see cref="ParagraphLayout"/>) that the paint floors
+    /// to the grid, and the flow reserves unfloored:
+    /// <list type="bullet">
+    /// <item><c>double</c> / <c>triple</c>: lines of W with gaps of W — the per-line rule.</item>
+    /// <item>SmallGap: the thin line and the gap are 0.75pt each (one pixel drawn), the thick line is W.</item>
+    /// <item>MediumGap: the thin line and the gap are W/2 each, the thick W.</item>
+    /// <item>LargeGap: the thin line is 0.75pt, the thick line 1.5pt (two pixels drawn), and the gap
+    /// is W — which is why this family looked as if it "divided" the declared width.</item>
+    /// <item><c>threeDEngrave</c> / <c>threeDEmboss</c>: three touching bands — a flank, a core of
+    /// W, a second flank — shaded 0.33 / 0.41 / 1.0 of the declared colour for the groove and
+    /// 1.0 / 0.41 / 0.33 for the ridge. The flank RESERVES 1.5pt whatever W is (the 0.75pt groove
+    /// in border_style_variants reserves 3.75pt an edge while drawing 1.8) and DRAWS half of W
+    /// floored, between one and two pixels: 1px at 0.75 and 1.5pt, 2px from 3pt up.</item>
+    /// <item><c>inset</c> / <c>outset</c> and every single-line style: one band of W.</item>
+    /// </list>
+    /// The asymmetric families are NOT inside-out symmetric: a four-sided <c>thinThickSmallGap</c>
+    /// box draws its thick line at the smaller coordinate on every edge (outer on the top and left,
+    /// INNER on the right and bottom), and the bevels shade in the same page direction. Hence
+    /// <paramref name="trailingEdge"/>: the layout is built in page order and reversed for the
+    /// right and bottom edges before stacking outward from the box.
+    /// </summary>
+    static Band[] ParagraphBands(BorderLineStyle style, double totalWidth, bool trailingEdge)
+    {
+        var layout = ParagraphLayout(style, totalWidth);
+
+        // Page order is outermost-first on the top and left edges; the right and bottom edges read
+        // the same page order from the inside out.
+        if (trailingEdge)
+        {
+            Array.Reverse(layout);
+        }
+
+        // Walk from the innermost band outward: it sits on the box at offset 0, and each further
+        // band clears its predecessor by half of each plus any gap between them.
+        var bands = new List<Band>();
+        var offset = 0d;
+        var previousThickness = 0d;
+        var pendingGap = 0d;
+        for (var i = layout.Length - 1; i >= 0; i--)
+        {
+            var (points, shade, drawn) = layout[i];
+            var thickness = drawn ?? GridFloor(points);
+            if (shade == null)
+            {
+                pendingGap += thickness;
+                continue;
+            }
+
+            if (bands.Count > 0)
+            {
+                offset += previousThickness / 2 + pendingGap + thickness / 2;
+            }
+
+            bands.Add(new(offset, thickness, shade.Value));
+            previousThickness = thickness;
+            pendingGap = 0;
+        }
+
+        return bands.ToArray();
+    }
+
+    // Word's thin unit and its "two-pixel" unit are POINT quantities — 0.75pt (sz=6) and 1.5pt
+    // (sz=12) — that happen to floor to one and two grid pixels when drawn.
+    const double hairPoints = 0.75;
+    const double twoPoints = 1.5;
+
+    /// <summary>
+    /// A paragraph family's stack in POINTS and in page order, before the grid floor — (thickness,
+    /// shade), a null shade being a gap. This is what the flow reserves (<see cref="Extent"/>):
+    /// <c>_probe_reserve</c> (XPS baselines of a bordered paragraph between two plain ones, Calibri
+    /// 12) measured the per-edge reserve at the DECLARED stack, not the drawn one — a 1pt single
+    /// reserves 0.97pt while drawing 0.6, a 3.5pt single 3.37 while drawing 3.0, `double` at 1.5pt
+    /// 4.56 (three 1.5s) while drawing 3.6, `triple` at 1.5pt 7.56, `thinThickSmallGap` at 3pt
+    /// 4.58 (3 + 0.75 + 0.75) while drawing 4.2, `thinThickLargeGap` at 3pt 5.17 (0.75 + 3 + 1.5)
+    /// while drawing 4.8, and the 6pt groove 9.08 (1.5 + 6 + 1.5) while drawing 8.4. Reserving the
+    /// drawn stack instead drifted html_css_borders' thirteen boxes 9px up the page.
+    /// </summary>
+    static (double Points, double? Shade, double? Drawn)[] ParagraphLayout(BorderLineStyle style, double w)
+    {
+        var half = w / 2;
+        // A bevel flank reserves a full 1.5pt but draws floor(W/2) pixels, capped at two.
+        var flankDrawn = Math.Min(2 * gridPoints, GridFloor(half));
+        return style switch
+        {
+            BorderLineStyle.Double or BorderLineStyle.DoubleWave => [(w, 1, null), (w, null, null), (w, 1, null)],
+            BorderLineStyle.Triple => [(w, 1, null), (w, null, null), (w, 1, null), (w, null, null), (w, 1, null)],
+            BorderLineStyle.ThinThickSmallGap => [(w, 1, null), (hairPoints, null, null), (hairPoints, 1, null)],
+            BorderLineStyle.ThickThinSmallGap => [(hairPoints, 1, null), (hairPoints, null, null), (w, 1, null)],
+            BorderLineStyle.ThinThickThinSmallGap => [(hairPoints, 1, null), (hairPoints, null, null), (w, 1, null), (hairPoints, null, null), (hairPoints, 1, null)],
+            BorderLineStyle.ThinThickMediumGap => [(w, 1, null), (half, null, null), (half, 1, null)],
+            BorderLineStyle.ThickThinMediumGap => [(half, 1, null), (half, null, null), (w, 1, null)],
+            BorderLineStyle.ThinThickThinMediumGap => [(half, 1, null), (half, null, null), (w, 1, null), (half, null, null), (half, 1, null)],
+            BorderLineStyle.ThinThickLargeGap => [(twoPoints, 1, null), (w, null, null), (hairPoints, 1, null)],
+            BorderLineStyle.ThickThinLargeGap => [(hairPoints, 1, null), (w, null, null), (twoPoints, 1, null)],
+            BorderLineStyle.ThinThickThinLargeGap => [(hairPoints, 1, null), (w, null, null), (twoPoints, 1, null), (w, null, null), (hairPoints, 1, null)],
+            BorderLineStyle.ThreeDEngrave => [(twoPoints, bevelFlankShade, flankDrawn), (w, bevelCoreShade, null), (twoPoints, 1, flankDrawn)],
+            BorderLineStyle.ThreeDEmboss => [(twoPoints, 1, flankDrawn), (w, bevelCoreShade, null), (twoPoints, bevelFlankShade, flankDrawn)],
+            _ => [(w, 1, null)]
+        };
+    }
+
+    // What a point quantity DRAWS as: floored to whole 120-dpi pixels, one pixel at least.
+    static double GridFloor(double points) =>
+        Math.Max(1, Math.Floor(points / gridPoints + 1e-6)) * gridPoints;
+
+    // The cell and page scopes keep the model that was measured for them — a cell stack straddles its
+    // shared grid line, and both were probed on their own fixtures (_probe_celldouble / _probe_celltriple,
+    // page_borders/01) before the paragraph grid above was read. Bringing them onto the grid is a
+    // separate adjudication.
+    static Band[] CellBands(BorderLineStyle style, double totalWidth, Scope scope)
+    {
         // The three-D bevels are not a line/gap layout at all — see bevelShade. Two touching
         // sub-bands, dark then light for the engraved groove and light then dark for the embossed
         // ridge, with no gap between them.
@@ -292,13 +423,18 @@ static class BorderStroke
     }
 
     /// <summary>
-    /// How thick this edge actually DRAWS, which is what it should reserve in the flow — not the
-    /// declared <c>w:sz</c>. They differ whenever the floor above kicks in: a `double` at sz=6
-    /// declares 0.75pt but stacks to 2.25pt, and reserving only the declared width packs more
-    /// paragraphs onto a page than Word fits.
+    /// What this edge reserves in the flow. For a PARAGRAPH border that is the declared stack in
+    /// points (<see cref="ParagraphLayout"/>) — Word charges a 1pt single its full point while
+    /// drawing it as one 0.6pt pixel, and a `double` at sz=6 three 0.75s. For a cell or page edge it
+    /// is what the edge draws, which differs from <c>w:sz</c> whenever the cell floor kicks in.
     /// </summary>
     internal static double Extent(BorderLineStyle style, double totalWidth, Scope scope = Scope.Paragraph)
     {
+        if (totalWidth <= 0 || style == BorderLineStyle.None)
+        {
+            return 0;
+        }
+
         // A wave's extent is its own fixed geometry, not anything w:sz implies.
         if (Waves(style) is {Length: > 0} waves)
         {
@@ -309,6 +445,17 @@ static class BorderStroke
             }
 
             return span + waves[0].Amplitude / 2 + waves[0].Thickness;
+        }
+
+        if (scope == Scope.Paragraph)
+        {
+            var total = 0d;
+            foreach (var (points, _, _) in ParagraphLayout(style, totalWidth))
+            {
+                total += points;
+            }
+
+            return total;
         }
 
         // The full thickness the stack occupies, from its innermost face to its outermost. Written
@@ -350,6 +497,55 @@ static class BorderStroke
         scope != Scope.Paragraph || bands.Length == 0
             ? 0
             : bands[0].Thickness / 2;
+
+    /// <summary>
+    /// What a RUN border (<c>w:bdr</c>) reserves on each side of the font's line box: the declared
+    /// stack plus <c>w:space</c>, in points, unfloored — the same reserve law as a paragraph edge.
+    /// XPS-read (<c>_probe_runbdr</c>, Calibri 12 single-spaced, four styles): a `single` at 0.75pt
+    /// with 1pt space grows the line pitch from 14.65 to 18.3 (2 × 1.75), 3pt / 4pt to 28.5
+    /// (2 × 7), 6pt / 0 to 26.7 (2 × 6), and a 1.5pt `double` with 2pt space to 27.6
+    /// (2 × (4.5 + 2)). The line box itself — the vertical rules' extent — stays the font box.
+    /// </summary>
+    internal static double RunBorderReserve(BorderEdge edge) =>
+        Draws(edge) ? Extent(edge.Style, edge.WidthPoints) + edge.SpacePoints : 0;
+
+    /// <summary>
+    /// How far outside the font's line box a run border's INNER face sits: <c>w:space</c> floored to
+    /// the grid, zero allowed. The same probe put the rules' outer faces at the line box plus the
+    /// drawn stack plus this — 1.2pt for 0.75pt / 1pt (0.6 + 0.6), 6.6pt for 3pt / 4pt (3 + 3.6),
+    /// 6.0pt for 6pt / 0, 5.4pt for the 1.5pt double with 2pt (3.6 + 1.8) — and pushed the run's
+    /// first glyph right by exactly the same amount.
+    /// </summary>
+    internal static double RunBorderInset(BorderEdge edge) =>
+        Math.Floor(edge.SpacePoints / gridPoints + 1e-6) * gridPoints;
+
+    /// <summary>The tallest <see cref="RunBorderReserve"/> among a line's runs — what the measurer grew the line by on each side.</summary>
+    internal static double LinePad(IReadOnlyList<PlacedRun> runs)
+    {
+        var pad = 0d;
+        foreach (var run in runs)
+        {
+            if (run.Properties.Border is { } border)
+            {
+                pad = Math.Max(pad, RunBorderReserve(border));
+            }
+        }
+
+        return pad;
+    }
+
+    /// <summary>
+    /// The rectangle a painter strokes a run border from (inner faces), so that with the outward
+    /// stroke the rules' OUTER faces land the drawn stack plus the floored space outside the font's
+    /// line box — the line box being the placed line shrunk by <paramref name="linePad"/> on each
+    /// side. Horizontally the box grows outward from the run by the same inset; Word instead pushes
+    /// the glyphs right by it, which the engine does not yet reproduce.
+    /// </summary>
+    internal static (double X, double Y, double Width, double Height) RunBorderBox(BorderEdge edge, double runX, double runWidth, double lineY, double lineHeight, double linePad)
+    {
+        var inset = RunBorderInset(edge);
+        return (runX - inset, lineY + linePad - inset, runWidth + 2 * inset, lineHeight - 2 * linePad + 2 * inset);
+    }
 
     /// <summary>Whether this edge draws anything at all.</summary>
     internal static bool Draws(BorderEdge edge) =>

@@ -1,20 +1,42 @@
 /// <summary>
 /// Covers <see cref="BorderStroke"/>, the shared recipe the three painters stroke a
-/// <c>w:pBdr</c>/<c>w:tcBorders</c> edge from. The numbers here are Word's, measured off its own
-/// render of the `border_style_variants` fixture at 150 DPI.
+/// <c>w:pBdr</c>/<c>w:tcBorders</c> edge from. The paragraph-scope numbers are Word's own, read
+/// from the border rectangles in its XPS output (<c>_probe_bands</c> / <c>_probe_bands2</c>,
+/// 2026-09-04): every band is a whole number of 120-dpi pixels (0.6pt) and the declared width is
+/// floored to that grid. The cell-scope numbers are from the earlier PNG-read probes.
 /// </summary>
 public class BorderStrokeTests
 {
+    // One pixel of Word's layout grid.
+    const double px = 0.6;
+
     [Test]
-    public async Task Single_styles_yield_one_band_on_the_edge_centre()
+    public async Task Single_styles_yield_one_band_on_the_edge_at_the_floored_grid_width()
     {
-        // The whole corpus is `single`, so this is the case that must not move: one band, full
-        // declared width, no offset — exactly where the painters drew before bands existed.
+        // The whole corpus is `single`, so this is the case that matters most: one band at offset
+        // 0, its width the declared w:sz floored to whole 120-dpi pixels — Word draws 1.5pt (2.5px)
+        // as 2px, and a 1pt rule as one pixel.
         var bands = BorderStroke.Bands(BorderLineStyle.Single, 1.5);
 
         await Assert.That(bands.Length).IsEqualTo(1);
         await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
-        await Assert.That(bands[0].Thickness).IsEqualTo(1.5).Within(0.0001);
+        await Assert.That(bands[0].Thickness).IsEqualTo(2 * px).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 1)[0].Thickness).IsEqualTo(px).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Declared_widths_floor_to_the_grid_with_a_one_pixel_minimum()
+    {
+        // _probe_bands2, `single` at odd sizes: sz=9 (1.875px) draws 1px, sz=13 (2.71px) 2px,
+        // sz=20 (4.17px) 4px, sz=28 (5.83px) 5px — floor, not round. sz=4 (0.83px) still draws.
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 9 / 8.0)[0].Thickness).IsEqualTo(px).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 13 / 8.0)[0].Thickness).IsEqualTo(2 * px).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 20 / 8.0)[0].Thickness).IsEqualTo(4 * px).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 28 / 8.0)[0].Thickness).IsEqualTo(5 * px).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 0.5)[0].Thickness).IsEqualTo(px).Within(0.0001);
+        // Exact multiples stay exact: 3pt is five pixels, 6pt ten.
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 3)[0].Thickness).IsEqualTo(3).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 6)[0].Thickness).IsEqualTo(6).Within(0.0001);
     }
 
     [Test]
@@ -28,8 +50,9 @@ public class BorderStrokeTests
     public async Task Double_draws_two_lines_each_at_the_declared_width()
     {
         // w:sz is the width of EACH line for this family, not of the stack: a 3pt double is two 3pt
-        // lines with a 3pt gap, 9pt overall. Word-probed — see BorderStroke.Bands. Reading sz as the
-        // total instead left the border 26px short of Word's at sz=24.
+        // lines with a 3pt gap, 9pt overall (_probe_bands sz=48: 6.0 / 6.0 / 6.0 at 6pt, and
+        // 12.03 / 12.0 / 12.02 at 12pt). Reading sz as the total instead left the border 26px
+        // short of Word's at sz=24.
         var bands = BorderStroke.Bands(BorderLineStyle.Double, 3);
 
         await Assert.That(bands.Length).IsEqualTo(2);
@@ -45,66 +68,165 @@ public class BorderStrokeTests
     [Test]
     public async Task Triple_draws_three_nested_lines_from_the_box_outward()
     {
+        // 1pt floors to one pixel, so the stack is five pixels: 0.6 line, 0.6 gap, and so on.
         var bands = BorderStroke.Bands(BorderLineStyle.Triple, 1);
 
         await Assert.That(bands.Length).IsEqualTo(3);
         await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
-        await Assert.That(bands[1].Offset).IsEqualTo(2).Within(0.0001);
-        await Assert.That(bands[2].Offset).IsEqualTo(4).Within(0.0001);
+        await Assert.That(bands[1].Offset).IsEqualTo(2 * px).Within(0.0001);
+        await Assert.That(bands[2].Offset).IsEqualTo(4 * px).Within(0.0001);
+        // The flow reserves the DECLARED stack — five 1pt units — even though it draws five pixels.
         await Assert.That(BorderStroke.Extent(BorderLineStyle.Triple, 1)).IsEqualTo(5).Within(0.0001);
     }
 
+    /// <summary>
+    /// Word's rectangles for the thin/thick families, left edge, innermost band first, as
+    /// (thickness, gap before the next band) in points. From <c>_probe_bands</c>; the gap is what
+    /// separates the bands' faces.
+    /// </summary>
+    public static IEnumerable<(string Style, double SizePoints, string Bands, string Gaps)> WordThinThickGeometry() =>
+    [
+        // SmallGap: thin = 1px, gap = 1px, thick = W. The THIN line is innermost on the left edge.
+        ("ThinThickSmallGap", 3, "0.6, 3.0", "0.6"),
+        ("ThinThickSmallGap", 12, "0.6, 12.0", "0.6"),
+        ("ThickThinSmallGap", 3, "3.0, 0.6", "0.6"),
+        ("ThinThickThinSmallGap", 6, "0.6, 6.0, 0.6", "0.6, 0.6"),
+        // MediumGap: thin = W/2, gap = W/2 (floored to the grid), thick = W.
+        ("ThinThickMediumGap", 3, "1.2, 3.0", "1.2"),
+        ("ThinThickMediumGap", 6, "3.0, 6.0", "3.0"),
+        ("ThickThinMediumGap", 12, "12.0, 6.0", "6.0"),
+        ("ThinThickThinMediumGap", 6, "3.0, 6.0, 3.0", "3.0, 3.0"),
+        // LargeGap: thin = 1px, thick = 2px, gap = W — the declared width goes into the GAP.
+        ("ThinThickLargeGap", 3, "0.6, 1.2", "3.0"),
+        ("ThinThickLargeGap", 12, "0.6, 1.2", "12.0"),
+        ("ThickThinLargeGap", 6, "1.2, 0.6", "6.0"),
+        ("ThinThickThinLargeGap", 6, "0.6, 1.2, 0.6", "6.0, 6.0"),
+        // At sz=12 (1.5pt) W is 2px, so the medium family's halves are one pixel.
+        ("ThinThickMediumGap", 1.5, "0.6, 1.2", "0.6"),
+        ("ThinThickLargeGap", 1.5, "0.6, 1.2", "1.2")
+    ];
+
     [Test]
-    public async Task The_thin_thick_family_divides_the_declared_width_instead()
+    [MethodDataSource(nameof(WordThinThickGeometry))]
+    public async Task Thin_thick_families_reproduce_Words_rectangles(string styleName, double sizePoints, string bandList, string gapList)
     {
-        // The other half of the measurement: thinThickLargeGap at sz=24 (3pt) reserves ~5pt in
-        // Word, not the 18pt six units of 3pt would give, so this family divides rather than
-        // repeating. Fitted to the probe, not derived — see BorderStroke.Bands.
-        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThinThickLargeGap, 3)).IsLessThan(7);
-        await Assert.That(BorderStroke.Extent(BorderLineStyle.Double, 3)).IsEqualTo(9).Within(0.0001);
+        var style = Enum.Parse<BorderLineStyle>(styleName);
+        var expectedBands = bandList.Split(',').Select(_ => double.Parse(_, CultureInfo.InvariantCulture)).ToArray();
+        var expectedGaps = gapList.Split(',').Select(_ => double.Parse(_, CultureInfo.InvariantCulture)).ToArray();
+        var bands = BorderStroke.Bands(style, sizePoints);
+
+        await Assert.That(bands.Length).IsEqualTo(expectedBands.Length);
+        for (var i = 0; i < bands.Length; i++)
+        {
+            await Assert.That(bands[i].Thickness).IsEqualTo(expectedBands[i]).Within(0.0001);
+            if (i > 0)
+            {
+                var gap = bands[i].Offset - bands[i - 1].Offset - bands[i].Thickness / 2 - bands[i - 1].Thickness / 2;
+                await Assert.That(gap).IsEqualTo(expectedGaps[i - 1]).Within(0.0001);
+            }
+        }
     }
 
     [Test]
-    public async Task Extent_is_what_the_edge_draws_so_the_flow_reserve_matches()
+    public async Task Asymmetric_families_mirror_on_the_right_and_bottom_edges()
     {
-        // A single edge reserves exactly its declared width; the multi-line families reserve their
-        // whole stack. Charging the declared width for a stacked border packed paragraphs tighter
-        // than Word's.
+        // _probe_bands2, a four-sided thinThickSmallGap box at 6pt: the thick line sits at the
+        // smaller coordinate on EVERY edge — outer on the top and left, inner on the right and
+        // bottom — so the trailing edges get the reversed layout.
+        var leading = BorderStroke.Bands(BorderLineStyle.ThinThickSmallGap, 6);
+        var trailing = BorderStroke.Bands(BorderLineStyle.ThinThickSmallGap, 6, trailingEdge: true);
+
+        await Assert.That(leading[0].Thickness).IsEqualTo(0.6).Within(0.0001);
+        await Assert.That(leading[1].Thickness).IsEqualTo(6).Within(0.0001);
+        await Assert.That(trailing[0].Thickness).IsEqualTo(6).Within(0.0001);
+        await Assert.That(trailing[1].Thickness).IsEqualTo(0.6).Within(0.0001);
+        // Same drawn stack, whichever way round — measured from the inner face, which
+        // OutwardShift puts on the box (half the innermost band), to the outer face: 6 + 0.6 + 0.6.
+        static double Span(BorderStroke.Band[] bands) => bands[0].Thickness / 2 + bands[^1].Offset + bands[^1].Thickness / 2;
+        await Assert.That(Span(trailing)).IsEqualTo(Span(leading)).Within(0.0001);
+        await Assert.That(Span(leading)).IsEqualTo(7.2).Within(0.0001);
+
+        // The symmetric families are unaffected.
+        var doubleLeading = BorderStroke.Bands(BorderLineStyle.Double, 3);
+        var doubleTrailing = BorderStroke.Bands(BorderLineStyle.Double, 3, trailingEdge: true);
+        await Assert.That(doubleTrailing[1].Offset).IsEqualTo(doubleLeading[1].Offset).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Bevels_are_three_touching_bands_shaded_in_page_direction()
+    {
+        // _probe_bands at 6pt, 808080 declared: 1.2pt at 2A2A2A, 6.0pt at 353535, 1.2pt at 7F7F7F
+        // for the groove, the ridge the other way round. Total drawn 8.4pt, not the 9.0 a 1.5x
+        // model gave — while the RESERVE is 1.5 + 6 + 1.5 = 9.0 (_probe_reserve: 9.08).
+        var groove = BorderStroke.Bands(BorderLineStyle.ThreeDEngrave, 6);
+
+        await Assert.That(groove.Length).IsEqualTo(3);
+        // Innermost first on a leading edge: the light flank is inner, the dark flank outer.
+        await Assert.That(groove[0].Thickness).IsEqualTo(1.2).Within(0.0001);
+        await Assert.That(groove[0].Shade).IsEqualTo(1).Within(0.0001);
+        await Assert.That(groove[1].Thickness).IsEqualTo(6).Within(0.0001);
+        await Assert.That(groove[1].Shade).IsEqualTo(0.41).Within(0.0001);
+        await Assert.That(groove[2].Thickness).IsEqualTo(1.2).Within(0.0001);
+        await Assert.That(groove[2].Shade).IsEqualTo(0.33).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 6)).IsEqualTo(9).Within(0.0001);
+        // Touching: no gap between the bands.
+        await Assert.That(groove[1].Offset - groove[0].Offset).IsEqualTo(3.6).Within(0.0001);
+
+        var ridge = BorderStroke.Bands(BorderLineStyle.ThreeDEmboss, 6);
+        await Assert.That(ridge[0].Shade).IsEqualTo(0.33).Within(0.0001);
+        await Assert.That(ridge[2].Shade).IsEqualTo(1).Within(0.0001);
+
+        // The flank draws floor(W/2) pixels, one at least, two at most, but always reserves 1.5pt:
+        // at sz=12 Word drew 0.6 / 1.2 / 0.6, and border_style_variants' sz=6 groove draws three
+        // single pixels (1.8pt) inside a box that reserves 3.75pt an edge.
+        var narrow = BorderStroke.Bands(BorderLineStyle.ThreeDEngrave, 1.5);
+        await Assert.That(narrow[0].Thickness).IsEqualTo(0.6).Within(0.0001);
+        await Assert.That(narrow[1].Thickness).IsEqualTo(1.2).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 1.5)).IsEqualTo(4.5).Within(0.0001);
+        var hairline = BorderStroke.Bands(BorderLineStyle.ThreeDEngrave, 0.75);
+        await Assert.That(hairline[0].Thickness + hairline[1].Thickness + hairline[2].Thickness).IsEqualTo(1.8).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 0.75)).IsEqualTo(3.75).Within(0.0001);
+
+        // inset / outset carry no shading at any width.
+        var inset = BorderStroke.Bands(BorderLineStyle.Inset, 6);
+        await Assert.That(inset.Length).IsEqualTo(1);
+        await Assert.That(inset[0].Shade).IsEqualTo(1).Within(0.0001);
+        await Assert.That(inset[0].Thickness).IsEqualTo(6).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Extent_is_the_declared_point_stack_not_the_floored_paint()
+    {
+        // _probe_reserve (XPS baselines, Calibri 12, a bordered paragraph between two plain ones):
+        // Word reserves the DECLARED stack in points and draws the grid-floored one. A 1pt single
+        // reserved 0.97pt while drawing 0.6; a 3.5pt single 3.37 while drawing 3.0; a 1.5pt
+        // double 4.56 (three 1.5s) while drawing 3.6. Reserving the drawn stack drifted
+        // html_css_borders' thirteen boxes 9px up the page.
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.Single, 1)).IsEqualTo(1).Within(0.0001);
+        await Assert.That(BorderStroke.Bands(BorderLineStyle.Single, 1)[0].Thickness).IsEqualTo(0.6).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.Single, 3.5)).IsEqualTo(3.5).Within(0.0001);
         await Assert.That(BorderStroke.Extent(BorderLineStyle.Single, 2)).IsEqualTo(2).Within(0.0001);
         await Assert.That(BorderStroke.Extent(BorderLineStyle.None, 2)).IsEqualTo(0).Within(0.0001);
-        await Assert.That(BorderStroke.Extent(BorderLineStyle.Double, 2)).IsGreaterThan(2);
-    }
-
-    [Test]
-    public async Task Thin_thick_pairs_keep_their_asymmetry()
-    {
-        // 1-1-2 outermost-first, and bands come back innermost-first, so thinThick's INNER line is
-        // the thick one and its outer line the thin one.
-        var thinThick = BorderStroke.Bands(BorderLineStyle.ThinThickSmallGap, 4);
-        await Assert.That(thinThick.Length).IsEqualTo(2);
-        await Assert.That(thinThick[0].Thickness).IsEqualTo(2).Within(0.0001);
-        await Assert.That(thinThick[1].Thickness).IsEqualTo(1).Within(0.0001);
-
-        // The mirror image.
-        var thickThin = BorderStroke.Bands(BorderLineStyle.ThickThinSmallGap, 4);
-        await Assert.That(thickThin[0].Thickness).IsEqualTo(1).Within(0.0001);
-        await Assert.That(thickThin[1].Thickness).IsEqualTo(2).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.Double, 1.5)).IsEqualTo(4.5).Within(0.0001);
+        // The thin/thick units are 0.75pt and 1.5pt: thinThickLargeGap at 3pt reserves 0.75 + 3 + 1.5
+        // (measured 5.17) and thinThickSmallGap 3 + 0.75 + 0.75 (measured 4.58).
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThinThickLargeGap, 3)).IsEqualTo(5.25).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThinThickSmallGap, 3)).IsEqualTo(4.5).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThinThickMediumGap, 6)).IsEqualTo(12).Within(0.0001);
     }
 
     [Test]
     public async Task A_narrow_multi_line_border_is_floored_rather_than_collapsed()
     {
         // sz=6 is 0.75pt, which split three ways would be 0.25pt a line — invisible at any DPI a
-        // document is read at. Word floors instead and lets the stack exceed w:sz: its own render
-        // draws this as two 1-2px lines with a 1px gap at 150 DPI. Without the floor every
-        // multi-line style collapses into one grey line at the widths real documents use.
+        // document is read at. Word floors each unit to one grid pixel instead and lets the stack
+        // exceed w:sz: its own render draws this double as two 1px lines with a 1px gap.
         var bands = BorderStroke.Bands(BorderLineStyle.Double, 0.75);
 
         await Assert.That(bands.Length).IsEqualTo(2);
-        await Assert.That(bands[0].Thickness).IsGreaterThanOrEqualTo(0.5);
-        // A clear gap survives between the two lines.
+        await Assert.That(bands[0].Thickness).IsEqualTo(px).Within(0.0001);
         var gap = bands[1].Offset - bands[0].Offset - bands[0].Thickness / 2 - bands[1].Thickness / 2;
-        await Assert.That(gap).IsGreaterThanOrEqualTo(0.5);
+        await Assert.That(gap).IsEqualTo(px).Within(0.0001);
     }
 
     [Test]
@@ -121,21 +243,38 @@ public class BorderStrokeTests
                      BorderLineStyle.ThreeDEngrave, BorderLineStyle.ThreeDEmboss, BorderLineStyle.Single
                  })
         {
-            var bands = BorderStroke.Bands(style, 3);
-            await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
-            foreach (var band in bands)
+            foreach (var trailing in new[] {false, true})
             {
-                await Assert.That(band.Offset).IsGreaterThanOrEqualTo(0);
-            }
+                var bands = BorderStroke.Bands(style, 3, trailingEdge: trailing);
+                await Assert.That(bands[0].Offset).IsEqualTo(0).Within(0.0001);
+                foreach (var band in bands)
+                {
+                    await Assert.That(band.Offset).IsGreaterThanOrEqualTo(0);
+                }
 
-            for (var i = 1; i < bands.Length; i++)
-            {
-                // Strictly outward, and never overlapping the band it stacks on.
-                var clearance = bands[i].Offset - bands[i - 1].Offset
-                    - bands[i].Thickness / 2 - bands[i - 1].Thickness / 2;
-                await Assert.That(clearance).IsGreaterThanOrEqualTo(-0.0001);
+                for (var i = 1; i < bands.Length; i++)
+                {
+                    // Strictly outward, and never overlapping the band it stacks on.
+                    var clearance = bands[i].Offset - bands[i - 1].Offset
+                        - bands[i].Thickness / 2 - bands[i - 1].Thickness / 2;
+                    await Assert.That(clearance).IsGreaterThanOrEqualTo(-0.0001);
+                }
             }
         }
+    }
+
+    [Test]
+    public async Task Cell_scope_keeps_its_own_measured_model()
+    {
+        // The cell probes (_probe_celldouble / _probe_celltriple) were read from PNGs at the
+        // declared widths, and a cell stack straddles its shared edge; that model is untouched by
+        // the paragraph grid — a 1.5pt cell single still draws 1.5pt, centred.
+        var single = BorderStroke.Bands(BorderLineStyle.Single, 1.5, BorderStroke.Scope.Cell);
+        await Assert.That(single[0].Thickness).IsEqualTo(1.5).Within(0.0001);
+
+        var cellDouble = BorderStroke.Bands(BorderLineStyle.Double, 3, BorderStroke.Scope.Cell);
+        await Assert.That(cellDouble.Length).IsEqualTo(2);
+        await Assert.That(cellDouble[0].Offset).IsEqualTo(-cellDouble[1].Offset).Within(0.0001);
     }
 
     [Test]

@@ -761,6 +761,56 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_run_border_reserves_its_stack_and_space_on_both_sides_of_the_line()
+    {
+        // _probe_runbdr (XPS baselines, Calibri 12 single-spaced): a w:bdr grows the line pitch by
+        // twice (declared stack + w:space) — 3pt / 4pt took 14.65 to 28.5, 6pt / 0 to 26.7 — and the
+        // glyphs sit that reserve below the grown line's top. Measured against a plain twin so the
+        // font's own box cancels.
+        static ParagraphElement Paragraph(BorderEdge? border) => new()
+        {
+            Runs =
+            [
+                new()
+                {
+                    Text = "Boxed",
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11,
+                        Border = border
+                    }
+                }
+            ],
+            Properties = new()
+        };
+
+        var plain = fragmenter.Layout([Paragraph(null)], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var boxed = fragmenter.Layout(
+            [
+                Paragraph(
+                    new()
+                    {
+                        IsVisible = true,
+                        WidthPoints = 3,
+                        SpacePoints = 4,
+                        ColorHex = "000000"
+                    })
+            ],
+            Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+
+        await Assert.That(boxed.Height - plain.Height).IsEqualTo(14f).Within(0.01f);
+        await Assert.That((boxed.Baseline - boxed.Y) - (plain.Baseline - plain.Y)).IsEqualTo(7f).Within(0.01f);
+        // The box the painters stroke: inner faces the floored space (4pt is six grid pixels, 3.6pt)
+        // outside the font's line box, which sits the full 7pt reserve inside the placed line.
+        var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(boxed.Runs[0].Properties.Border!, boxed.Runs[0].X, boxed.Runs[0].Width, boxed.Y, boxed.Height, BorderStroke.LinePad(boxed.Runs));
+        await Assert.That(boxY - boxed.Y).IsEqualTo(7 - 3.6).Within(0.01);
+        await Assert.That(boxHeight).IsEqualTo(plain.Height + 2 * 3.6).Within(0.01);
+        await Assert.That(boxed.Runs[0].X - boxX).IsEqualTo(3.6).Within(0.01);
+        await Assert.That(boxWidth - boxed.Runs[0].Width).IsEqualTo(7.2).Within(0.01);
+    }
+
+    [Test]
     public async Task A_bottom_bordered_paragraph_emits_a_border_box_below_its_text()
     {
         var paragraph = new ParagraphElement

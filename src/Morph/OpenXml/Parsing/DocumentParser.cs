@@ -5156,7 +5156,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             IsVisible = true,
             WidthPoints = width,
             ColorHex = color,
-            Style = MapBorderStyle(border.Val?.Value)
+            Style = MapBorderStyle(border.Val?.Value),
+            SpacePoints = border.Space?.Value ?? 0
         };
     }
 

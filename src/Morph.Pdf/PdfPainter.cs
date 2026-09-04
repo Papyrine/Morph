@@ -242,7 +242,8 @@ static class PdfPainter
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                PaintRunBorder(context, graphics, run.X, line.Y, run.Width, line.Height, runBorder);
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs));
+                PaintRunBorder(context, graphics, boxX, boxY, boxWidth, boxHeight, runBorder);
             }
         }
 
@@ -759,7 +760,7 @@ static class PdfPainter
         }
 
         var dash = BorderStroke.DashPattern(edge.Style, edge.WidthPoints);
-        var bands = BorderStroke.Bands(edge.Style, edge.WidthPoints, scope);
+        var bands = BorderStroke.Bands(edge.Style, edge.WidthPoints, scope, trailingEdge: outward > 0);
         var shift = BorderStroke.OutwardShift(bands, scope);
         foreach (var band in bands)
         {
