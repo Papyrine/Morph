@@ -4,7 +4,7 @@
     <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="AngleSharp" Version="1.7.2" />
+    <PackageVersion Include="AngleSharp" Version="1.7.3" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
     <!-- Blazor. Components.Web is the Morph.Blazor component package's only framework dependency — it is
          a plain Razor class library, so it builds anywhere and stays in Release solution builds. The
