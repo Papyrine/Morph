@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "GENERAL PRACTITIONER\nKAI CARTER\nT: 678-555-0103 // W: www.example.com // E: someone@example.com\nJozi Kos\nHiring Manager\nSydney Mattos MD\n210 Stars Avenue\nBerkeley, CA 45678\nDEAR JOZI KOS,\nI am writing to express my interest in the General Practitioner position at\nSydney Mattos MD, as advertised. With a strong background in providing\ncomprehensive healthcare, I am confident in my ability to contribute to the\nexceptional medical services your clinic is known for.\nIn my previous roles, including my recent position as a General Practitioner\nat Lamna Healthcare, I have demonstrated a commitment to delivering\npatient-focused care. My experience encompasses a wide range of medical\nconditions, and I am skilled in clinical diagnosis, health promotion, and\nchronic disease management. I am particularly proud of my achievements\nin spearheading community health initiatives and implementing\nevidence-based medicine to enhance diagnostic accuracy.\nEnclosed is my resume, which provides a detailed overview of my\nqualifications and experiences. I am confident that my skills align with the\nrequirements of the General Practitioner position at Sydney Mattos MD.\nThank you for considering my application. I look forward to the opportunity\nto discuss how my skills and experiences make me an ideal candidate for\nthis position. Please feel free to contact me at 678-555-0103 or\nkai@lamnahealthcare.com to schedule an interview.\nKai Carter\nEnclosure"
+        "Text": "GENERAL PRACTITIONER\nKAI CARTER\nT: 678-555-0103 // W: www.example.com // E: someone@example.com\nJozi Kos\nHiring Manager\nSydney Mattos MD\n210 Stars Avenue\nBerkeley, CA 45678\nDEAR JOZI KOS,\nI am writing to express my interest in the General Practitioner position at\nSydney Mattos MD, as advertised. With a strong background in providing\ncomprehensive healthcare, I am confident in my ability to contribute to the\nexceptional medical services your clinic is known for.\nIn my previous roles, including my recent position as a General Practitioner\nat Lamna Healthcare, I have demonstrated a commitment to delivering\npatient-focused care. My experience encompasses a wide range of medical\nconditions, and I am skilled in clinical diagnosis, health promotion, and\nchronic disease management. I am particularly proud of my achievements\nin spearheading community health initiatives and implementing evidence￾based medicine to enhance diagnostic accuracy.\nEnclosed is my resume, which provides a detailed overview of my\nqualifications and experiences. I am confident that my skills align with the\nrequirements of the General Practitioner position at Sydney Mattos MD.\nThank you for considering my application. I look forward to the opportunity\nto discuss how my skills and experiences make me an ideal candidate for\nthis position. Please feel free to contact me at 678-555-0103 or\nkai@lamnahealthcare.com to schedule an interview.\nKai Carter\nEnclosure"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0801,
-      "Ssim": 0.8612,
+      "ErrorMetric": 0.0797,
+      "Ssim": 0.8621,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

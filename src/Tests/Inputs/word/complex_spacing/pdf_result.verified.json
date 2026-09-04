@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1. Left and Right Indentation\nNo indentation - This paragraph has no left or right indentation applied.\nLeft indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.\nRight indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.\nBoth left (1440) and right (1440) indent - This paragraph is\nindented from both margins, creating a narrower text column.\n2. First Line Indentation\nFirst line indent 720 twips - This paragraph has its first line indented further than\nsubsequent lines. This is commonly used in traditional book formatting and formal\ndocuments.\nFirst line indent 1440 twips - A larger first line indent. The first line starts further\nin, while all subsequent lines in this paragraph begin at the normal left margin.\n3. Hanging Indentation\nHanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the\nmargin but all subsequent lines are indented. This is commonly used for bibliographies and\nlists.\nHanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines are\nindented an additional 1440 twips from there, creating a pronounced hanging effect.\n4. Mirror Indents\nMirror indents enabled with left 1440 - In a two-sided document, this becomes the inside\nmargin indent, mirroring on odd/even pages.\n5. Spacing Before\nNo spacing before - This paragraph has the default spacing.\nSpacing before 240 twips (12pt) - This paragraph has additional space above it.\nSpacing before 480 twips (24pt) - Even more space above this paragraph.\n6. Spacing After\nSpacing after 240 twips (12pt) - This paragraph has space below it.\nFollowing paragraph to show the effect."
+        "Text": "1. Left and Right Indentation\nNo indentation - This paragraph has no left or right indentation applied.\nLeft indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.\nRight indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.\nBoth left (1440) and right (1440) indent - This paragraph is\nindented from both margins, creating a narrower text column.\n2. First Line Indentation\nFirst line indent 720 twips - This paragraph has its first line indented further than\nsubsequent lines. This is commonly used in traditional book formatting and formal\ndocuments.\nFirst line indent 1440 twips - A larger first line indent. The first line starts further\nin, while all subsequent lines in this paragraph begin at the normal left margin.\n3. Hanging Indentation\nHanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the\nmargin but all subsequent lines are indented. This is commonly used for bibliographies and\nlists.\nHanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines are\nindented an additional 1440 twips from there, creating a pronounced hanging effect.\n4. Mirror Indents\nMirror indents enabled with left 1440 - In a two-sided document, this becomes\nthe inside margin indent, mirroring on odd/even pages.\n5. Spacing Before\nNo spacing before - This paragraph has the default spacing.\nSpacing before 240 twips (12pt) - This paragraph has additional space above it.\nSpacing before 480 twips (24pt) - Even more space above this paragraph.\n6. Spacing After\nSpacing after 240 twips (12pt) - This paragraph has space below it.\nFollowing paragraph to show the effect."
       },
       {
         "Width": 612.0,
@@ -36,20 +36,20 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Combination 3: Left 1440, right 720, hanging 720, before 480, after 120, at least\n350 twips, contextual spacing, page break before.\nCombination 4: Mirror indents, left 2160, first line 720, before 600, after 600, multiple\n2.0 spacing, keep with next, keep lines together, suppress line numbers, don't hyphenate.\nFollowing paragraph for keep-with-next demonstration.\nCombination 5: Both left and right 1800, hanging 900, before 200,\nafter 400, exactly 550 twips, widow/orphan OFF,\ncontextual spacing."
+        "Text": "Combination 3: Left 1440, right 720, hanging 720, before 480, after 120, at least\n350 twips, contextual spacing, page break before.\nCombination 4: Mirror indents, left 2160, first line 720, before\n600, after 600, multiple 2.0 spacing, keep with next, keep lines together,\nsuppress line numbers, don't hyphenate.\nFollowing paragraph for keep-with-next demonstration.\nCombination 5: Both left and right 1800, hanging 900, before 200,\nafter 400, exactly 550 twips, widow/orphan OFF,\ncontextual spacing."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Combination 6: Right indent only 1440, first line 1080,spacing before\n720, 1.5 line spacing, all pagination options enabled.\nFollowing paragraph for keep-with-next.\nCombination 7: Maximum complexity - left 2880, right 2880, hanging 1440, mirror indents,\nbefore 840, after 840, at least 500 twips, contextual spacing, all pagination controls, all\nformatting exceptions.\nFinal following paragraph to demonstrate keep-with-next.\n22. Document Summary\nThis document contains comprehensive examples of all spacing and formatting options\navailable in Word documents, including indentations, line spacing variants, pagination\ncontrols, and formatting exceptions in various combinations."
+        "Text": "Combination 6: Right indent only 1440, first line 1080,spacing before\n720, 1.5 line spacing, all pagination options enabled.\nFollowing paragraph for keep-with-next.\nCombination 7: Maximum complexity - left 2880,\nright 2880, hanging 1440, mirror\nindents, before 840, after 840, at\nleast 500 twips, contextual spacing,\nall pagination controls, all\nformatting exceptions.\nFinal following paragraph to demonstrate keep-with-next.\n22. Document Summary\nThis document contains comprehensive examples of all spacing and formatting options\navailable in Word documents, including indentations, line spacing variants, pagination\ncontrols, and formatting exceptions in various combinations."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1003,
-      "Ssim": 0.7922,
+      "ErrorMetric": 0.1,
+      "Ssim": 0.7937,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
@@ -88,16 +88,16 @@
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0347,
-      "Ssim": 0.9179,
+      "ErrorMetric": 0.0346,
+      "Ssim": 0.9199,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0492,
-      "Ssim": 0.8774,
+      "ErrorMetric": 0.0507,
+      "Ssim": 0.8754,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"

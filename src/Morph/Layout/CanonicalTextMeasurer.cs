@@ -304,10 +304,10 @@ sealed class CanonicalTextMeasurer
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within
-    /// <paramref name="maxWidthPoints"/>, breaking only at spaces (and at explicit <c>\n</c>). Returns
-    /// one entry per line. A single word wider than the measure occupies its own line — Word overflows
-    /// rather than splitting a word with no hyphenation point. Trailing-whitespace and hyphenation
-    /// nuances are refinements for later; this is the base greedy break.
+    /// <paramref name="maxWidthPoints"/>, breaking at spaces, after a dash (see
+    /// <see cref="SplitAfterDashes"/>) and at explicit <c>\n</c>. Returns one entry per line. A single
+    /// word wider than the measure occupies its own line — Word overflows rather than splitting a word
+    /// with no break opportunity in it.
     /// </summary>
     public static List<string> WrapLines(FontMetrics metrics, string text, double sizePoints, double maxWidthPoints)
     {
@@ -317,27 +317,44 @@ sealed class CanonicalTextMeasurer
         {
             var current = new StringBuilder();
             double linePixels = 0;
+            var afterSpace = false;
             foreach (var word in segment.Split(' '))
             {
-                var wordPixels = LinearPixels(metrics, word, sizePoints);
-                if (current.Length == 0)
+                foreach (var chunk in SplitAfterDashes(word))
                 {
-                    current.Append(word);
-                    linePixels = wordPixels;
+                    var chunkPixels = LinearPixels(metrics, chunk, sizePoints);
+
+                    // A hyphen break carries no space, so only a chunk that opens a space-delimited word
+                    // pays the gap — this is what keeps "E2E-" and "FinalisedActions-" adjacent.
+                    var gapPixels = afterSpace ? spacePixels : 0;
+                    if (current.Length == 0)
+                    {
+                        current.Append(chunk);
+                        linePixels = chunkPixels;
+                    }
+                    // Measure the whole candidate line (its cumulative pixels, rounded once) so the pen
+                    // position tracks the linear ideal instead of accumulating a per-word rounding error.
+                    else if (PixelsToPoints(linePixels + gapPixels + chunkPixels) <= maxWidthPoints)
+                    {
+                        if (afterSpace)
+                        {
+                            current.Append(' ');
+                        }
+
+                        current.Append(chunk);
+                        linePixels += gapPixels + chunkPixels;
+                    }
+                    else
+                    {
+                        lines.Add(current.ToString());
+                        current.Clear().Append(chunk);
+                        linePixels = chunkPixels;
+                    }
+
+                    afterSpace = false;
                 }
-                // Measure the whole candidate line (its cumulative pixels, rounded once) so the pen
-                // position tracks the linear ideal instead of accumulating a per-word rounding error.
-                else if (PixelsToPoints(linePixels + spacePixels + wordPixels) <= maxWidthPoints)
-                {
-                    current.Append(' ').Append(word);
-                    linePixels += spacePixels + wordPixels;
-                }
-                else
-                {
-                    lines.Add(current.ToString());
-                    current.Clear().Append(word);
-                    linePixels = wordPixels;
-                }
+
+                afterSpace = true;
             }
 
             lines.Add(current.ToString());
@@ -345,4 +362,51 @@ sealed class CanonicalTextMeasurer
 
         return lines;
     }
+
+    /// <summary>
+    /// Splits a word after each run of dashes, so "E2E-FinalisedActions-44b577b2" yields "E2E-",
+    /// "FinalisedActions-", "44b577b2". A word holding no dash yields itself.
+    /// </summary>
+    /// <remarks>
+    /// Word treats a dash as a line-break opportunity and the break falls AFTER it, so the dash stays on
+    /// the upper line. Probed by squeezing a token in an autofit table's first column against a second
+    /// column long enough to take every spare point, and comparing that width against the same token's
+    /// natural single-line width (<c>_probe_hyphen</c>, 10 cases, natural → squeezed in points):
+    /// <list type="bullet">
+    /// <item>breaks — <c>well-known-example-string</c> 128.05 → 78.95, <c>2024-2025-2026-2027</c>
+    /// 104.55 → 61.45, en dash U+2013 119.45 → 83.30, em dash U+2014 132.95 → 88.00</item>
+    /// <item>does not — a solid 29-character word (128.10, unmoved), a slash-separated one (143.35), and
+    /// the NON-BREAKING hyphen U+2011 (116.85), which is the control proving the effect is the character
+    /// and not the length</item>
+    /// </list>
+    /// Two edges settle where the break sits. A LEADING dash breaks: <c>-Supercalifragilisticexpial</c>
+    /// went 118.10 → 115.70, and that 2.40pt is exactly the hyphen's own advance — Word put the lone dash
+    /// on the upper line and the rest below, so no leading exemption belongs here. A TRAILING dash needs no
+    /// exemption either: breaking after it leaves the whole word above and nothing below, which measures as
+    /// unbreakable (118.10, unmoved) on its own.
+    /// <para>
+    /// A RUN of dashes breaks only after its last character, so "A--B" yields "A--" and "B" rather than
+    /// stranding a dash at the head of a line. The probe cannot separate that from breaking after the
+    /// first (both give the same minimum), so it is chosen for the rendering rather than measured.
+    /// </para>
+    /// </remarks>
+    public static IEnumerable<string> SplitAfterDashes(string word)
+    {
+        var start = 0;
+        for (var i = 0; i < word.Length - 1; i++)
+        {
+            if (IsDash(word[i]) && !IsDash(word[i + 1]))
+            {
+                yield return word[start..(i + 1)];
+                start = i + 1;
+            }
+        }
+
+        yield return word[start..];
+    }
+
+    // U+2011 NON-BREAKING HYPHEN is deliberately absent — that is the whole point of the character, and
+    // the probe confirms Word does not break at one.
+    static bool IsDash(char character) =>
+        character is '-' or '–' or '—';
 }

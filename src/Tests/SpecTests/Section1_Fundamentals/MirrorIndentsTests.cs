@@ -1,9 +1,8 @@
 /// <summary>
-/// Covers <c>w:mirrorIndents</c> parsing. The flag indicates that left/right indents
-/// should swap on even pages for mirror-printing layouts. Morph tracks the flag on
-/// <see cref="ParagraphProperties.MirrorIndents"/>; the renderer doesn't currently
-/// swap indents at draw time (parsed-but-not-applied — same status as
-/// <see cref="ParagraphProperties.IsRightToLeft"/>).
+/// Covers <c>w:mirrorIndents</c> parsing: the flag reaches
+/// <see cref="ParagraphProperties.MirrorIndents"/> with the declared indents intact. The
+/// page-parity transform itself lives in <see cref="Fragmenter"/> — see
+/// <c>MirrorIndentsLayoutTests</c> for the Word-measured geometry.
 /// </summary>
 public class MirrorIndentsTests
 {

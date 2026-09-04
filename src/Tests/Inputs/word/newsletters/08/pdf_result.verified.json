@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "HOUSE & HOME\nNEWS\nHOUSE & HOME NEWS\nWINTER ISSUE\nEDITION 09, VOL. 10\nYour ultimate source for the latest trends and tips in\nhome living...\nWhether you're a seasoned homeowner, a first-time\nbuyer, or someone simply seeking fresh ideas to\nspruce up your living space, our newsletter is your\ngo-to guide."
+        "Text": "HOUSE & HOME\nNEWS\nHOUSE & HOME NEWS\nWINTER ISSUE\nEDITION 09, VOL. 10\nYour ultimate source for the latest trends and tips in\nhome living...\nWhether you're a seasoned homeowner, a first-time\nbuyer, or someone simply seeking fresh ideas to\nspruce up your living space, our newsletter is your go￾to guide."
       },
       {
         "Width": 612.0,
@@ -24,7 +24,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.2775,
-      "Ssim": 0.9026,
+      "Ssim": 0.9024,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

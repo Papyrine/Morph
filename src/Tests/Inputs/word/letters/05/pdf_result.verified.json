@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select\nthe text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a\nbuilt-in font combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to\nthe Design tab and choose a color palette from the Colors menu. Hovering over\nthe different palettes will show you what your document would look like with the\nnew palette.\nTo change the color or font formatting back to the original settings, go to the\nDesign tab, and select the Theme menu. From there, choose the option to reset\nthe original template theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
+        "Text": "Contoso\n4567 Main St.\nBuffalo, NY 98052\nTaylor Phillips\n5678 Main St\nNew York, NY 90210\nSeptember 16, 20XX\nDear Taylor Phillips,\nWrite the body of your letter here. To update any of the letter's information, select\nthe text, and start typing.\nWant to change fonts? Go to the Home tab and choose Fonts. You can use a built￾in font combination or select one of your own.\nYou can also change the colors of the template to match your personal taste. Go to\nthe Design tab and choose a color palette from the Colors menu. Hovering over\nthe different palettes will show you what your document would look like with the\nnew palette.\nTo change the color or font formatting back to the original settings, go to the\nDesign tab, and select the Theme menu. From there, choose the option to reset\nthe original template theme.\nWarm Regards,\nCasey Jensen\nCEO\n212-555-0199\nwww.contoso.com\ncasey@contoso.com"
       },
       {
         "Width": 612.0,
@@ -37,7 +37,7 @@
     {
       "Page": 2,
       "ErrorMetric": 0.0588,
-      "Ssim": 0.8657,
+      "Ssim": 0.8661,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

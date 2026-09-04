@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "kai@lamnahealthcare.com 678-555-0103 www.lamnahealthcare.com\nGeneral Practitioner\nKAI CARTER\nWork Experience\nLamna Healthcare | General Practitioner\nDecember 20XX – present\nImplemented evidence-based medicine for\naccurate diagnosis, spearheaded a community\nhealth fair, provided free screenings to over 200\nresidents.\nTyler Stein MD. | Family Physician\nAugust 20XX – July 20XX\nManaged a diverse patient caseload, led a smoking\ncessation program resulting in a 30% increase in\nsuccessful quit attempts.\nCity Hospital | Medical Officer\nApril 20XX – August 20XX\nProvided emergency medical care with a focus on\ntrauma cases, collaborated with specialists to\nenhance patient outcomes.\nSkills\nClinical diagnosis\nPatient-centered care\nHealth promotion\nChronic disease management\nElectronic health records\nHobbies\nRunning\nPhotography\nTravel\nCooking\nDancing\nScuba diving\nEducation\nJasper University\nSeptember 20XX – June 20XX\nDean's List, Medical Research Award\nBellows College\nSeptember 20XX – May 20XX\nBachelor of Science in Biology, Cum Laude,\noutstanding research thesis\nProfile\nExperienced and\ncompassionate GP dedicated\nto delivering excellent patient\ncare. Known for strong\ndiagnostic skills and a\npatient-centered approach.\nCommitted to promoting health\nand wellness through\npersonalized treatment plans."
+        "Text": "kai@lamnahealthcare.com 678-555-0103 www.lamnahealthcare.com\nGeneral Practitioner\nKAI CARTER\nWork Experience\nLamna Healthcare | General Practitioner\nDecember 20XX – present\nImplemented evidence-based medicine for\naccurate diagnosis, spearheaded a community\nhealth fair, provided free screenings to over 200\nresidents.\nTyler Stein MD. | Family Physician\nAugust 20XX – July 20XX\nManaged a diverse patient caseload, led a smoking\ncessation program resulting in a 30% increase in\nsuccessful quit attempts.\nCity Hospital | Medical Officer\nApril 20XX – August 20XX\nProvided emergency medical care with a focus on\ntrauma cases, collaborated with specialists to\nenhance patient outcomes.\nSkills\nClinical diagnosis\nPatient-centered care\nHealth promotion\nChronic disease management\nElectronic health records\nHobbies\nRunning\nPhotography\nTravel\nCooking\nDancing\nScuba diving\nEducation\nJasper University\nSeptember 20XX – June 20XX\nDean's List, Medical Research Award\nBellows College\nSeptember 20XX – May 20XX\nBachelor of Science in Biology, Cum Laude,\noutstanding research thesis\nProfile\nExperienced and\ncompassionate GP dedicated\nto delivering excellent patient\ncare. Known for strong\ndiagnostic skills and a patient￾centered approach.\nCommitted to promoting health\nand wellness through\npersonalized treatment plans."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.091,
-      "Ssim": 0.8776,
+      "ErrorMetric": 0.0907,
+      "Ssim": 0.8791,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

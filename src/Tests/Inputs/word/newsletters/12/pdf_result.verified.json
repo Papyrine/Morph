@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "ISSUE NO | MONTH - MONTH YEAR | VOLUME\nTo change the images in this\nnewsletter, delete the existing image\nand insert a new one in it’s place.\nYou can use the Picture editing tools\nwithin Word to crop the image to\nsuit.\n“We don’t merely book your travel; we\ncan help you realize your travel dreams if\nyou give us an idea of what kind of\nexperience you seek.”\n- Henriette Andersen\nTo change the images in this\nnewsletter, delete the existing\nimage and insert a new one in\nit’s place. You can use the\nPicture editing tools within Word\nto crop the image to suit.\nMARGIE’S TRAVEL OFFERS\nYOU THE FOLLOWING:\n01\nBooking for any type\nof travel\n02\nQuick, thorough,\nknowledgeable\nresponses to calls and\nquestions\n03\nInternational services\n04\nResourceful and\nwell-traveled agents"
+        "Text": "ISSUE NO | MONTH - MONTH YEAR | VOLUME\nTo change the images in this\nnewsletter, delete the existing image\nand insert a new one in it’s place.\nYou can use the Picture editing tools\nwithin Word to crop the image to\nsuit.\n“We don’t merely book your travel; we\ncan help you realize your travel dreams if\nyou give us an idea of what kind of\nexperience you seek.”\n- Henriette Andersen\nTo change the images in this\nnewsletter, delete the existing\nimage and insert a new one in\nit’s place. You can use the\nPicture editing tools within Word\nto crop the image to suit.\nMARGIE’S TRAVEL OFFERS\nYOU THE FOLLOWING:\n01\nBooking for any type\nof travel\n02\nQuick, thorough,\nknowledgeable\nresponses to calls and\nquestions\n03\nInternational services\n04\nResourceful and well￾traveled agents"
       }
     ]
   },
@@ -32,7 +32,7 @@
     {
       "Page": 2,
       "ErrorMetric": 0.3438,
-      "Ssim": 0.8152,
+      "Ssim": 0.8147,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

@@ -66,7 +66,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "S M A L L B U S I N E S S P L A N\nS A N D + P O L I S H C O N T R A CT O R S 1 2\nFINANCIAL PLAN\nCreating a financial plan is where all of the business planning comes together. Up to\nthis point, the target market, target customers, and pricing have all been identified.\nThese items, along with assumptions, will help estimate the company’s sales forecast.\nThe other side of the business will be what expenses are expected. This is important\non an ongoing basis to see when the business is profitable. It is also important to\nknow what expenses will need to be funded before customer sales, or the cash they\ngenerate, is received.\nAt a minimum, this section should include estimated start-up costs and projected\nprofit and loss, along with a summary of the assumptions being made with these\nprojections. Assumptions should include initial and ongoing sales, along with the\ntiming of these inflows.\n• Projected start-up costs: The table below shows a sample of ongoing and\none-time cost items that the business might need in order to open. Many\nbusinesses are paid on credit over time and do not have cash coming in\nimmediately. It is necessary to make assumptions about how many months of\nrecurring items, in addition to one-time expenses, to estimate when cash will\nbegin to flow into the company. To begin with, the company will have to fund out\nof savings or an initial investment. There is a blank table in the Appendix to\ncomplete potential start-up cost projections."
+        "Text": "S M A L L B U S I N E S S P L A N\nS A N D + P O L I S H C O N T R A CT O R S 1 2\nFINANCIAL PLAN\nCreating a financial plan is where all of the business planning comes together. Up to\nthis point, the target market, target customers, and pricing have all been identified.\nThese items, along with assumptions, will help estimate the company’s sales forecast.\nThe other side of the business will be what expenses are expected. This is important\non an ongoing basis to see when the business is profitable. It is also important to\nknow what expenses will need to be funded before customer sales, or the cash they\ngenerate, is received.\nAt a minimum, this section should include estimated start-up costs and projected\nprofit and loss, along with a summary of the assumptions being made with these\nprojections. Assumptions should include initial and ongoing sales, along with the\ntiming of these inflows.\n• Projected start-up costs: The table below shows a sample of ongoing and one￾time cost items that the business might need in order to open. Many businesses\nare paid on credit over time and do not have cash coming in immediately. It is\nnecessary to make assumptions about how many months of recurring items, in\naddition to one-time expenses, to estimate when cash will begin to flow into the\ncompany. To begin with, the company will have to fund out of savings or an initial\ninvestment. There is a blank table in the Appendix to complete potential start-up\ncost projections."
       },
       {
         "Width": 792.0,
@@ -206,8 +206,8 @@
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.0799,
-      "Ssim": 0.8415,
+      "ErrorMetric": 0.0783,
+      "Ssim": 0.8484,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "pdf_result#page_0012.verified.png",
       "ReceivedFile": "pdf_result#page_0012.received.png"

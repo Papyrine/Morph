@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "01 SUMMARY\nThis proposal outlines a streamlined solution designed to address key\nbusiness challenges and drive growth. Our approach leverages industry\nexpertise, innovative strategies, and data-driven insights to create a tailored\nplan that delivers measurable results.\n02 PROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and\nevolving market demands. Addressing these issues requires a\nwell-structured approach.\n03 SOLUTION\nOur solution is designed to improve overall performance. Using best\npractices, we help businesses optimize workflows and drive innovation.\n04 MARKET OPPORTUNITY\nWith industry trends shifting, adopting a forward-thinking model is essential.\nOur approach provides businesses with scalable solutions that align with\nmarket demands.\n05 FINANCIAL SUMMARY\nOur strategies see an average 20% reduction in operational costs and a\n35% improvement in workflow efficiency. Clients can expect a strong return\non investment."
+        "Text": "01 SUMMARY\nThis proposal outlines a streamlined solution designed to address key\nbusiness challenges and drive growth. Our approach leverages industry\nexpertise, innovative strategies, and data-driven insights to create a tailored\nplan that delivers measurable results.\n02 PROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and\nevolving market demands. Addressing these issues requires a well￾structured approach.\n03 SOLUTION\nOur solution is designed to improve overall performance. Using best\npractices, we help businesses optimize workflows and drive innovation.\n04 MARKET OPPORTUNITY\nWith industry trends shifting, adopting a forward-thinking model is essential.\nOur approach provides businesses with scalable solutions that align with\nmarket demands.\n05 FINANCIAL SUMMARY\nOur strategies see an average 20% reduction in operational costs and a\n35% improvement in workflow efficiency. Clients can expect a strong return\non investment."
       }
     ]
   },
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0936,
-      "Ssim": 0.8678,
+      "ErrorMetric": 0.0934,
+      "Ssim": 0.8683,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
