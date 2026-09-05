@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// The footnote/endnote appendix on the engine path. Word draws footnotes at the bottom of the page
 /// where the reference appears; the shared <see cref="NotesAppendix"/> lists them at document end so
 /// the content isn't lost — production's long-standing behaviour, previously triplicated across the
@@ -8,6 +8,92 @@
 public class NotesAppendixTests
 {
     static string DocumentCaptureFile => Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "document_capture", "01", "input.docx");
+
+    [Test]
+    public async Task Note_text_takes_the_FootnoteText_style_size_and_falls_back_to_Word_built_in_10pt()
+    {
+        var styled = new ParsedDocument
+        {
+            PageSettings = new(),
+            Elements = [],
+            Footnotes = [new() { Id = "2", Text = "a note" }],
+            Endnotes = [new() { Id = "2", Text = "an endnote" }],
+            FootnoteTextSizePoints = 8,
+            EndnoteTextSizePoints = 12
+        };
+        var unstyled = new ParsedDocument
+        {
+            PageSettings = new(),
+            Elements = [],
+            Footnotes = [new() { Id = "2", Text = "a note" }],
+            Endnotes = [new() { Id = "2", Text = "an endnote" }]
+        };
+
+        var styledParagraphs = NotesAppendix.BuildElements(styled);
+        var unstyledParagraphs = NotesAppendix.BuildElements(unstyled);
+
+        // [0] Footnotes heading, [1] the note, [2] Endnotes heading, [3] the endnote.
+        await Assert.That(styledParagraphs[1].Runs[1].Properties.FontSizePoints).IsEqualTo(8d);
+        await Assert.That(styledParagraphs[1].Runs[0].Properties.FontSizePoints).IsEqualTo(8d);
+        await Assert.That(styledParagraphs[3].Runs[1].Properties.FontSizePoints).IsEqualTo(12d);
+        await Assert.That(unstyledParagraphs[1].Runs[1].Properties.FontSizePoints).IsEqualTo(10d);
+        await Assert.That(unstyledParagraphs[3].Runs[1].Properties.FontSizePoints).IsEqualTo(10d);
+    }
+
+    [Test]
+    public async Task The_parser_reads_the_note_style_sizes()
+    {
+        using var stream = BuildDocumentWithNoteStyles(footnoteHalfPoints: 24, endnoteHalfPoints: 16);
+        var document = new DocumentParser().Parse(stream);
+
+        await Assert.That(document.FootnoteTextSizePoints).IsEqualTo(12d);
+        await Assert.That(document.EndnoteTextSizePoints).IsEqualTo(8d);
+
+        using var bare = BuildDocumentWithNoteStyles(null, null);
+        var plain = new DocumentParser().Parse(bare);
+
+        await Assert.That(plain.FootnoteTextSizePoints).IsNull();
+        await Assert.That(plain.EndnoteTextSizePoints).IsNull();
+    }
+
+    static MemoryStream BuildDocumentWithNoteStyles(int? footnoteHalfPoints, int? endnoteHalfPoints)
+    {
+        var body = new DocumentFormat.OpenXml.Wordprocessing.Body(
+            new DocumentFormat.OpenXml.Wordprocessing.Paragraph(
+                new DocumentFormat.OpenXml.Wordprocessing.Run(new DocumentFormat.OpenXml.Wordprocessing.Text("x"))));
+
+        var stream = new MemoryStream();
+        using (var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+        {
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = [with(body)];
+
+            var styles = new DocumentFormat.OpenXml.Wordprocessing.Styles();
+            if (footnoteHalfPoints is { } footnote)
+            {
+                styles.Append(NoteStyle("FootnoteText", footnote));
+            }
+
+            if (endnoteHalfPoints is { } endnote)
+            {
+                styles.Append(NoteStyle("EndnoteText", endnote));
+            }
+
+            mainPart.AddNewPart<DocumentFormat.OpenXml.Packaging.StyleDefinitionsPart>().Styles = styles;
+        }
+
+        stream.Position = 0;
+        return stream;
+    }
+
+    static DocumentFormat.OpenXml.Wordprocessing.Style NoteStyle(string id, int halfPoints) => new()
+    {
+        Type = DocumentFormat.OpenXml.Wordprocessing.StyleValues.Paragraph,
+        StyleId = id,
+        StyleName = new DocumentFormat.OpenXml.Wordprocessing.StyleName { Val = id },
+        StyleRunProperties = new DocumentFormat.OpenXml.Wordprocessing.StyleRunProperties(
+            new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = halfPoints.ToString() })
+    };
 
     [Test]
     public async Task Separator_stubs_are_skipped_and_numbering_is_sequential()

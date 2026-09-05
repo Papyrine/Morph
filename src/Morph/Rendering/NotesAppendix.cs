@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Builds the footnote/endnote appendix as synthesized flow paragraphs. Word draws footnotes at the
 /// bottom of the page where the reference appears; that needs page-level reservation in the layout
 /// pass (not currently wired). Until then the notes are listed at document end so the content isn't
@@ -39,8 +39,8 @@ static class NotesAppendix
         }
 
         var paragraphs = new List<ParagraphElement>();
-        AppendSection(paragraphs, "Footnotes", footnotes.Select(_ => _.Text).ToList(), ListNumberFormat.Decimal);
-        AppendSection(paragraphs, "Endnotes", endnotes.Select(_ => _.Text).ToList(), document.EndnoteNumberFormat);
+        AppendSection(paragraphs, "Footnotes", footnotes.Select(_ => _.Text).ToList(), ListNumberFormat.Decimal, document.FootnoteTextSizePoints);
+        AppendSection(paragraphs, "Endnotes", endnotes.Select(_ => _.Text).ToList(), document.EndnoteNumberFormat, document.EndnoteTextSizePoints);
         return paragraphs;
     }
 
@@ -100,8 +100,13 @@ static class NotesAppendix
         return new(letter, cycle + 1);
     }
 
-    static void AppendSection(List<ParagraphElement> paragraphs, string heading, List<string> entries, ListNumberFormat format)
+    // Word sets a note body in the document's FootnoteText / EndnoteText style; its built-in styles are
+    // 10pt, which is the fallback when the styles part defines neither.
+    const double builtInNoteSizePoints = 10;
+
+    static void AppendSection(List<ParagraphElement> paragraphs, string heading, List<string> entries, ListNumberFormat format, double? noteSizePoints)
     {
+        var noteSize = noteSizePoints ?? builtInNoteSizePoints;
         if (entries.Count == 0)
         {
             return;
@@ -144,7 +149,7 @@ static class NotesAppendix
                             Properties = new()
                             {
                                 Bold = true,
-                                FontSizePoints = 10
+                                FontSizePoints = noteSize
                             }
                         },
                         new()
@@ -152,7 +157,7 @@ static class NotesAppendix
                             Text = entries[noteIndex],
                             Properties = new()
                             {
-                                FontSizePoints = 10
+                                FontSizePoints = noteSize
                             }
                         }
                     ],
