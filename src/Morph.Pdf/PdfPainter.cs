@@ -244,7 +244,7 @@ static class PdfPainter
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs));
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), BorderStroke.RunBorderReserves(run.Text));
                 PaintRunBorder(context, graphics, boxX, boxY, boxWidth, boxHeight, runBorder);
             }
         }

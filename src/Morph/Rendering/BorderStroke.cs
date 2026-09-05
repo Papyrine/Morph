@@ -650,13 +650,26 @@ static class BorderStroke
     internal static double RunBorderGlyphInset(BorderEdge edge) =>
         Draws(edge) ? DrawnStack(edge) + RunBorderInset(edge) : 0;
 
-    /// <summary>The tallest <see cref="RunBorderReserve"/> among a line's runs — what the measurer grew the line by on each side.</summary>
+    /// <summary>
+    /// Whether a bordered run grows its line and draws its rules outside the font's line box, or
+    /// draws them INSIDE it with no reserve. XPS-read on <c>_probe_runbdr4</c> (2026-09-05, Calibri 10
+    /// lines, `single` at 0.75/2.25/3/4.5pt with 0/1/8pt space, boxes mid-line, first and last): the
+    /// one thing that separates the two is the run's first character. " boxed " draws inside — top band
+    /// on the line top, bottom band ending on the line bottom, a 10pt line staying 12.6 — at every size
+    /// and position, while "boxed" reserves (16.2 at 2.25pt/1pt, 18.0 at 4.5pt/1pt, 22.8 at 2.25pt/8pt).
+    /// This is the case <c>_probe_runbdr2</c> found and <c>_probe_runbdr3</c> could not separate: its
+    /// mid-line runs all began with a space. The horizontal glyph inset applies either way.
+    /// </summary>
+    internal static bool RunBorderReserves(string text) =>
+        text.Length == 0 || text[0] != ' ';
+
+    /// <summary>The tallest <see cref="RunBorderReserve"/> among a line's reserving runs — what the measurer grew the line by on each side.</summary>
     internal static double LinePad(IReadOnlyList<PlacedRun> runs)
     {
         var pad = 0d;
         foreach (var run in runs)
         {
-            if (run.Properties.Border is { } border)
+            if (run.Properties.Border is { } border && RunBorderReserves(run.Text))
             {
                 pad = Math.Max(pad, RunBorderReserve(border));
             }
@@ -674,9 +687,18 @@ static class BorderStroke
     /// (<see cref="RunBorderGlyphInset"/>) — Word pushes the glyphs right by it, and so does the
     /// engine since 2026-09-05.
     /// </summary>
-    internal static (double X, double Y, double Width, double Height) RunBorderBox(BorderEdge edge, double runX, double runWidth, double lineY, double lineHeight, double linePad)
+    internal static (double X, double Y, double Width, double Height) RunBorderBox(BorderEdge edge, double runX, double runWidth, double lineY, double lineHeight, double linePad, bool reserves = true)
     {
         var inset = RunBorderInset(edge);
+        if (!reserves)
+        {
+            // Drawn inside the font's line box (RunBorderReserves): the rules' OUTER faces sit on the
+            // line box, so the inner rect the painter strokes outward from is the box shrunk by the
+            // drawn stack.
+            var drawn = DrawnStack(edge);
+            return (runX - inset, lineY + linePad + drawn, runWidth + 2 * inset, lineHeight - 2 * linePad - 2 * drawn);
+        }
+
         return (runX - inset, lineY + linePad - inset, runWidth + 2 * inset, lineHeight - 2 * linePad + 2 * inset);
     }
 

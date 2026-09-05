@@ -159,7 +159,7 @@ static class ImageSharpPainter
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs));
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), BorderStroke.RunBorderReserves(run.Text));
                 PaintEdges(context, canvas, boxX, boxY, boxWidth, boxHeight, CellBorders.Uniform(runBorder));
             }
         }
