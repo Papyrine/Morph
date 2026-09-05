@@ -57,6 +57,69 @@ public class TableIndentCompatibilityTests
     }
 
     [Test]
+    [Arguments(15, 0d)]
+    [Arguments(12, 10.8)]
+    [Arguments(14, 10.8)]
+    public async Task Modes_below_15_let_the_border_box_run_both_cell_margins_past_the_column(int mode, double expected)
+    {
+        // Table Normal's 108-twip margins on both sides: _probe_pct12 table A reads 479.25 for a 100% table
+        // on a 468pt column, _probe_pct15 468.
+        using var stream = BuildDocument(mode, null, styles: true, tableMarginTwips: null, firstCellMarginTwips: null);
+        var table = new DocumentParser().Parse(stream).Elements.OfType<TableElement>().First();
+
+        await Assert.That(table.Properties.WidthOverhangPoints).IsEqualTo(expected).Within(0.001);
+    }
+
+    [Test]
+    public async Task The_overhang_takes_the_first_cell_own_margin()
+    {
+        // _probe_pct12 table E: a 1in first-cell margin against the default last reads 545.4 = 468 + 72 + 5.4.
+        using var stream = BuildDocument(12, null, styles: true, tableMarginTwips: null, firstCellMarginTwips: 1440);
+        var table = new DocumentParser().Parse(stream).Elements.OfType<TableElement>().First();
+
+        await Assert.That(table.Properties.WidthOverhangPoints).IsEqualTo(77.4).Within(0.001);
+    }
+
+    [Test]
+    public async Task An_undeclared_indent_over_direct_margins_hangs_only_the_right_margin()
+    {
+        // table_autofit_no_widths: no styles part, direct margins — the border sits on the margin and the
+        // box runs the right margin past the column (Word 474 on 468).
+        using var stream = BuildDocument(12, null, styles: false, tableMarginTwips: 720, firstCellMarginTwips: null);
+        var table = new DocumentParser().Parse(stream).Elements.OfType<TableElement>().First();
+
+        await Assert.That(table.Properties.WidthOverhangPoints).IsEqualTo(36d).Within(0.001);
+    }
+
+    [Test]
+    public async Task A_grid_that_fits_the_column_does_not_grow_into_the_overhang()
+    {
+        var table = new TableElement
+        {
+            Rows = [new() { Cells = [new() { Properties = new(), Content = [] }, new() { Properties = new(), Content = [] }] }],
+            Properties = new() { GridColumnWidths = [234, 234], WidthOverhangPoints = 10.8 }
+        };
+
+        var widths = TableLayout.CalculateColumnWidths(table, 2, 468);
+
+        await Assert.That(widths.Sum()).IsEqualTo(468f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_percentage_table_fills_the_outdented_box()
+    {
+        var table = new TableElement
+        {
+            Rows = [new() { Cells = [new() { Properties = new(), Content = [] }, new() { Properties = new(), Content = [] }] }],
+            Properties = new() { GridColumnWidths = [100, 100], FillContainer = true, PreferredWidthFraction = 1.0, WidthOverhangPoints = 10.8 }
+        };
+
+        var widths = TableLayout.CalculateColumnWidths(table, 2, 468);
+
+        await Assert.That(widths.Sum()).IsEqualTo(478.8f).Within(0.01f);
+    }
+
+    [Test]
     public async Task ResolveTableIndent_covers_the_probe_matrix()
     {
         // Mode 15: the declared indent, or zero.

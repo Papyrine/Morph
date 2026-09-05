@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Shared table layout calculations used by both rendering backends.
 /// </summary>
 static class TableLayout
@@ -286,6 +286,13 @@ static class TableLayout
     /// </summary>
     internal static float[] CalculateColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer? measurer = null)
     {
+        // Under compatibility modes 12 and 14 the text column bounds the TEXT extent, and the border
+        // box may run the cell margins wider (TableProperties.WidthOverhangPoints, Word-probed): a
+        // percentage is taken of that outdented box and an over-wide autofit table squeezes to it,
+        // while a grid that fits the column keeps it — compatibility_mode_14's 539.5pt grid on a
+        // 540pt column stays put, so the plain autofit grow below still targets the column.
+        var outdented = availableWidth + (float) table.Properties.WidthOverhangPoints;
+
         var widths = new float[colCount];
         var gridWidths = table.Properties.GridColumnWidths;
         var isAutoFit = table.Properties.IsAutoFit;
@@ -371,7 +378,7 @@ static class TableLayout
             measurer != null &&
             GridShapeIsStale(gridWidths, widths))
         {
-            return CalculateContentBasedColumnWidths(table, colCount, availableWidth, measurer, widths);
+            return CalculateContentBasedColumnWidths(table, colCount, outdented, measurer, widths);
         }
 
         if (hasExplicitWidths && !gridIsAuthoritative)
@@ -412,11 +419,11 @@ static class TableLayout
                 totalExplicitWidth = fillTarget;
             }
 
-            if (totalExplicitWidth > availableWidth && isAutoFit)
+            if (totalExplicitWidth > outdented && isAutoFit)
             {
                 // Autofit only: a FIXED-layout table keeps its declared widths even when they
                 // overflow the text column — see OverflowsTextColumn below.
-                var scale = availableWidth / totalExplicitWidth;
+                var scale = outdented / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {
                     widths[i] *= scale;
@@ -434,7 +441,7 @@ static class TableLayout
                 // scaling it to 100% shifted all eight label columns. When w:tblW is dxa, the
                 // table is a fixed size; when it's missing or auto, Word fits to content and
                 // leaves whitespace on the right.
-                var target = (float) (availableWidth * (table.Properties.PreferredWidthFraction ?? 1.0));
+                var target = (float) (outdented * (table.Properties.PreferredWidthFraction ?? 1.0));
                 if (totalExplicitWidth < target)
                 {
                     var scale = target / totalExplicitWidth;
@@ -473,10 +480,10 @@ static class TableLayout
                 totalWidth += width;
             }
 
-            if (totalWidth > availableWidth && totalWidth > 0 && isAutoFit)
+            if (totalWidth > outdented && totalWidth > 0 && isAutoFit)
             {
                 // Autofit only, as in the explicit-widths branch above.
-                var scale = availableWidth / totalWidth;
+                var scale = outdented / totalWidth;
                 for (var i = 0; i < colCount; i++)
                 {
                     widths[i] *= scale;
@@ -491,7 +498,7 @@ static class TableLayout
                 // explicit w:tblW dxa width — that's a fixed size, not a "fill to container"
                 // hint, so growing the columns would override the user's intent.
                 var target = table.Properties.FillContainer
-                    ? (float) (availableWidth * (table.Properties.PreferredWidthFraction ?? 1.0))
+                    ? (float) (outdented * (table.Properties.PreferredWidthFraction ?? 1.0))
                     : availableWidth;
                 if (totalWidth < target)
                 {
@@ -510,7 +517,7 @@ static class TableLayout
             // w:w). Without a measurer (or with fixed layout), fall back to equal columns.
             if (isAutoFit && measurer != null)
             {
-                return CalculateContentBasedColumnWidths(table, colCount, availableWidth, measurer);
+                return CalculateContentBasedColumnWidths(table, colCount, outdented, measurer);
             }
 
             var cellWidth = availableWidth / colCount;

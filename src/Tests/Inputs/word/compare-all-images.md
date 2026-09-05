@@ -2057,7 +2057,7 @@ its header, footer and `docProps/custom.xml` was replaced with the same equal-le
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0845 · SSIM: 0.8387** | **Page 1. ErrorMetric: 0.0855 · SSIM: 0.8362** |
 | <img src="image_wrap_square/expected_0001.png" width="500"> | <img src="image_wrap_square/skia_result%23page_0001.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0864 · SSIM: 0.8212** | **Page 2. ErrorMetric: 0.0894 · SSIM: 0.8148** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0833 · SSIM: 0.8377** | **Page 2. ErrorMetric: 0.0863 · SSIM: 0.8318** |
 | <img src="image_wrap_square/expected_0002.png" width="500"> | <img src="image_wrap_square/skia_result%23page_0002.verified.png" width="500"> | <img src="image_wrap_square/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## inline_group_crop
@@ -3148,7 +3148,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0407 · SSIM: 0.9333** | **Page 1. ErrorMetric: 0.0405 · SSIM: 0.9341** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0323 · SSIM: 0.9485** | **Page 1. ErrorMetric: 0.0325 · SSIM: 0.9483** |
 | <img src="table_autofit_no_widths/expected_0001.png" width="500"> | <img src="table_autofit_no_widths/skia_result%23page_0001.verified.png" width="500"> | <img src="table_autofit_no_widths/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## table_borders
@@ -3260,7 +3260,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0300 · SSIM: 0.9398** | **Page 1. ErrorMetric: 0.0302 · SSIM: 0.9398** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0259 · SSIM: 0.9588** | **Page 1. ErrorMetric: 0.0264 · SSIM: 0.9570** |
 | <img src="table_grid_styling_padding/expected_0001.png" width="500"> | <img src="table_grid_styling_padding/skia_result%23page_0001.verified.png" width="500"> | <img src="table_grid_styling_padding/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## table_indent
