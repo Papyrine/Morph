@@ -2167,22 +2167,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
+                var borders = FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row);
                 var start = starts[cellIndex];
                 if (start == null)
                 {
                     // This cell finished on an earlier fragment; it still draws its box and sides.
-                    cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), []));
+                    cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, [], BottomEdgeInset: bottomEdge));
                     cellX += cellWidth;
                     gridColIndex += span;
                     continue;
                 }
 
+                var (insetLeft, insetRight) = SideInsets(padding, borders);
                 var budget = Math.Max(0f, available - (float) padding.Vertical - horizontalEdges);
                 var (content, continuation, height) = LayoutCellFragment(
                     cell,
-                    cellX + (float) padding.Left,
+                    cellX + insetLeft,
                     rowY + (float) padding.Top + topEdge,
-                    cellWidth - (float) padding.Horizontal,
+                    cellWidth - insetLeft - insetRight,
                     budget,
                     cell.Properties.VerticalAlignment,
                     start.Value,
@@ -2203,7 +2205,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, FragmentBorders(cell, table, rowIndex, gridColIndex, colCount, row), content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
+                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2268,6 +2270,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var gridColIndex = 0;
             var detached = table.Properties.CellSpacingPoints > 0;
 
+            // The horizontal edges TableHeightCalculator charged this row: its top edge always (an exact
+            // row excepted), its bottom edge only when it closes the table. Word hangs each edge DOWN from
+            // its grid line and starts the content under the whole declared stack — a 6pt rule puts the
+            // row's text 6pt lower than an unbordered row's, a 3pt `double` 9pt lower (_probe_cellw /
+            // _probe_cellfam, XPS) — so the reserve is spent above the content, not left under it.
+            var lastRowIndex = table.Rows.Count - 1;
+            var topEdge = TableHeightCalculator.IsPinnedExact(row) ? 0f : TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: true);
+            var bottomEdge = TableHeightCalculator.IsPinnedExact(table.Rows[lastRowIndex]) ? 0f : TableHeightCalculator.HorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
+
             // Detached-border model: the table FRAME is its own box at the row extent — left/right
             // on every row, top/bottom closing the first/last — with each cell's box inset inside
             // its slot (TableLayout.CellSpacingInsets carries the Word-probed gap law). A synthetic
@@ -2281,7 +2292,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     Left = frame.Left,
                     Right = frame.Right
                 };
-                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, []));
+                cells.Add(new(tableX, rowY, tableWidth, rowHeight, null, frameEdges, [], BottomEdgeInset: rowIndex == lastRowIndex ? bottomEdge : 0f));
             }
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
@@ -2305,6 +2316,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var cellHeight = cell.Properties.VerticalMerge == VerticalMergeType.Restart
                     ? TableLayout.CalculateVerticalMergeHeight(table, rowIndex, gridColIndex, rowHeights)
                     : rowHeight;
+                var endRowIndex = cell.Properties.VerticalMerge == VerticalMergeType.Restart
+                    ? TableLayout.VerticalMergeEndRow(table, rowIndex, gridColIndex)
+                    : rowIndex;
+                var cellBottomEdge = endRowIndex == lastRowIndex ? bottomEdge : 0f;
 
                 var boxX = cellX;
                 var boxY = rowY;
@@ -2320,8 +2335,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
-                var content = LayoutCellContent(cell, boxX + (float) padding.Left, boxY + (float) padding.Top, boxWidth - (float) padding.Horizontal, boxHeight - (float) padding.Vertical, cell.Properties.VerticalAlignment);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
+                var (insetLeft, insetRight) = SideInsets(padding, borders);
+                var content = LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
                 // before the cell's paragraphs, so prepend them to the content.
@@ -2331,7 +2347,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2339,6 +2355,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             return new(tableX, rowY, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
         }
+
+        // Word insets a cell's content by the LARGER of its margin and half its border stack on each side —
+        // the same max the autofit measure charges (TableLayout.HalfBorder carries the probe) — so a wide
+        // rule with a small margin pushes the text in, and the default 5.4pt margin swallows any rule
+        // under 10.8pt.
+        static (float Left, float Right) SideInsets(CellSpacing padding, CellBorders? borders) =>
+            ((float) Math.Max(padding.Left, TableLayout.HalfBorder(borders?.Left)),
+                (float) Math.Max(padding.Right, TableLayout.HalfBorder(borders?.Right)));
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
         // cell's top-left (Word anchors these to the cell frame). Solid, gradient, outline and image

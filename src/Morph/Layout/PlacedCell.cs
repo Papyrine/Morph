@@ -14,6 +14,12 @@
 /// widened by <see cref="ClipSpillLeft"/> / <see cref="ClipSpillRight"/>, which are the empty
 /// neighbours the ink is allowed to run over (see <see cref="TableCellProperties.ClipSpillLeftPoints"/>);
 /// both are zero unless the content spills in a direction the box itself cannot cover.
+///
+/// <see cref="BottomEdgeInset"/> is how far above the box's bottom face the bottom border's stack
+/// starts, in points: the declared stack the row reserved inside itself when it is the table's last
+/// row or a split fragment (<c>TableHeightCalculator</c> charges those), zero for an interior row
+/// whose bottom edge hangs below its face into the row under it — Word hangs every horizontal cell
+/// edge DOWN from its grid line (<c>BorderStroke.CellEdgeLines</c>).
 /// </summary>
 sealed record PlacedCell(
     float X,
@@ -25,4 +31,5 @@ sealed record PlacedCell(
     IReadOnlyList<PlacedItem> Content,
     bool ClipContent = false,
     float ClipSpillLeft = 0,
-    float ClipSpillRight = 0);
+    float ClipSpillRight = 0,
+    float BottomEdgeInset = 0);

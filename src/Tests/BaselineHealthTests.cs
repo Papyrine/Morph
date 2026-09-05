@@ -76,9 +76,14 @@ public class BaselineHealthTests
         // change (page_counts.md exp 22) shifted it back. Measured at the third flip: Skia 14
         // colours and ImageSharp 21, both inking the SAME 48 rows (72-119) against Excel's own 48
         // (73-120), and ImageSharp's page-2 SSIM moved 0.9851 -> 0.9951 — nearer Excel, not further.
-        // It is not listed, for the reason to-do-list gives below: the threshold is what keeps
-        // moving, not the render, and re-listing it only sets up the next spurious failure.
+        // It was left off the list for the reason to-do-list gives below: the threshold is what
+        // keeps moving, not the render. It crossed a fourth time on 2026-09-05, when cell rules went
+        // onto Word's 120-dpi grid (a 0.5pt rule now draws 0.6pt, 1.25px at 150 DPI, over fewer
+        // anti-aliasing levels) and the page read exactly 16 — the same one band, the same rows. It
+        // is listed on all three backends now: the page IS near-empty by design, and every flip so
+        // far has been the threshold, never the content.
         "basic-business-invoice/skia_result#page_0002.verified.png",
+        "basic-business-invoice/imagesharp_result#page_0002.verified.png",
         "basic-business-invoice/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
         // invoice-accessibility-guide's first sheet needs two landscape pages, and now gets them —
@@ -105,9 +110,10 @@ public class BaselineHealthTests
         // asks for verticalCentered, and once that landed (2026-08-14) the strip moved into the
         // middle of the page, where ImageSharp anti-aliases its edges over enough extra levels to
         // read 17 colours. Skia sees 8 and PDF 13 on the same page, and the content is unchanged in
-        // substance — still the same near-empty strip. Threshold moved, render did not.
-        "to-do-list/skia_result#page_0002.verified.png",
-        "to-do-list/pdf_result#page_0002.verified.png"
+        // substance — still the same near-empty strip. Threshold moved, render did not. PDF left the
+        // list on 2026-09-05 for the same reason in the other direction: the grid-floored cell rules
+        // took its page-2 count past 16 with the strip unchanged.
+        "to-do-list/skia_result#page_0002.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();

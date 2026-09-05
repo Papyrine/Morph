@@ -625,7 +625,43 @@ static class SkiaPainter
 
             if (cell.Borders is { } borders)
             {
-                PaintEdges(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, borders, BorderStroke.Scope.Cell);
+                PaintCellEdges(context, canvas, cell, borders);
+            }
+        }
+    }
+
+    // A cell's edges in Word's cell geometry (BorderStroke.CellEdgeLines): the horizontals hang down from
+    // their grid line, the verticals are centred on theirs, and every band is on the 120-dpi grid. Only the
+    // waves keep the paragraph path along the box edge.
+    static void PaintCellEdges(SkiaRenderContext context, SKCanvas canvas, PlacedCell cell, CellBorders borders)
+    {
+        foreach (var line in BorderStroke.CellEdgeLines(cell.X, cell.Y, cell.Width, cell.Height, borders, cell.BottomEdgeInset))
+        {
+            var pen = EdgePen(context, line.Edge, line.Thickness, BorderStroke.DashPattern(line.Edge.Style, line.Edge.WidthPoints), line.Shade);
+            var at = P(context, line.At);
+            var from = P(context, line.From);
+            var to = P(context, line.To);
+            if (line.Horizontal)
+            {
+                canvas.DrawLine(from, at, to, at, pen);
+            }
+            else
+            {
+                canvas.DrawLine(at, from, at, to, pen);
+            }
+        }
+
+        float left = P(context, cell.X), top = P(context, cell.Y), right = P(context, cell.X + cell.Width), bottom = P(context, cell.Y + cell.Height);
+        Wave(borders.Top, horizontal: true, left, right, top, outward: -1);
+        Wave(borders.Bottom, horizontal: true, left, right, bottom, outward: 1);
+        Wave(borders.Left, horizontal: false, top, bottom, left, outward: -1);
+        Wave(borders.Right, horizontal: false, top, bottom, right, outward: 1);
+
+        void Wave(BorderEdge edge, bool horizontal, float from, float to, float at, int outward)
+        {
+            if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+            {
+                StrokeWaves(context, canvas, edge, waves, horizontal, from, to, at, outward);
             }
         }
     }

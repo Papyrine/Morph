@@ -564,7 +564,41 @@ static class ImageSharpPainter
 
             if (cell.Borders is { } borders)
             {
-                PaintEdges(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, borders, BorderStroke.Scope.Cell);
+                PaintCellEdges(context, canvas, cell, borders);
+            }
+        }
+    }
+
+    // See SkiaPainter.PaintCellEdges — Word's cell geometry, waves along the box edge.
+    static void PaintCellEdges(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedCell cell, CellBorders borders)
+    {
+        foreach (var line in BorderStroke.CellEdgeLines(cell.X, cell.Y, cell.Width, cell.Height, borders, cell.BottomEdgeInset))
+        {
+            var pen = EdgePen(context, line.Edge, line.Thickness, BorderStroke.DashPattern(line.Edge.Style, line.Edge.WidthPoints), line.Shade);
+            var at = P(context, line.At);
+            var from = P(context, line.From);
+            var to = P(context, line.To);
+            if (line.Horizontal)
+            {
+                canvas.DrawLine(pen, new PointF(from, at), new PointF(to, at));
+            }
+            else
+            {
+                canvas.DrawLine(pen, new PointF(at, from), new PointF(at, to));
+            }
+        }
+
+        float left = P(context, cell.X), top = P(context, cell.Y), right = P(context, cell.X + cell.Width), bottom = P(context, cell.Y + cell.Height);
+        Wave(borders.Top, horizontal: true, left, right, top, outward: -1);
+        Wave(borders.Bottom, horizontal: true, left, right, bottom, outward: 1);
+        Wave(borders.Left, horizontal: false, top, bottom, left, outward: -1);
+        Wave(borders.Right, horizontal: false, top, bottom, right, outward: 1);
+
+        void Wave(BorderEdge edge, bool horizontal, float from, float to, float at, int outward)
+        {
+            if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+            {
+                StrokeWaves(context, canvas, edge, waves, horizontal, from, to, at, outward);
             }
         }
     }

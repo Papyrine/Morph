@@ -199,24 +199,24 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.112,
-      "Ssim": 0.7957,
+      "ErrorMetric": 0.1026,
+      "Ssim": 0.8684,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.2311,
-      "Ssim": 0.595,
+      "ErrorMetric": 0.2236,
+      "Ssim": 0.6609,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.142,
-      "Ssim": 0.6568,
+      "ErrorMetric": 0.1436,
+      "Ssim": 0.6594,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"
@@ -231,8 +231,8 @@
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.108,
-      "Ssim": 0.7672,
+      "ErrorMetric": 0.0997,
+      "Ssim": 0.8409,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "pdf_result#page_0017.verified.png",
       "ReceivedFile": "pdf_result#page_0017.received.png"

@@ -4,10 +4,11 @@
 ///
 /// <para><b>Bands.</b> A PARAGRAPH border is built on Word's 120-dpi layout grid, one 0.6pt pixel
 /// at a time, with the declared <c>w:sz</c> floored to that grid — see <see cref="ParagraphBands"/>
-/// for the per-family rules, all XPS-read. A CELL or PAGE border keeps the earlier PNG-probed
-/// model (<see cref="CellBands"/>): symmetric families repeat the declared width per line, the
-/// thin/thick family divides it. Offsets come back relative to the edge's centre, innermost band
-/// first, so a plain <c>single</c> draws one band at offset 0.</para>
+/// for the per-family rules, all XPS-read. A CELL border is the same stack on the same grid, placed
+/// by Word's cell geometry instead of outward from a box — see <see cref="CellEdgeLines"/>. A PAGE
+/// border keeps the earlier PNG-probed model (<see cref="PageBands"/>): symmetric families repeat
+/// the declared width per line, the thin/thick family divides it. Offsets come back relative to the
+/// edge's centre, innermost band first, so a plain <c>single</c> draws one band at offset 0.</para>
 ///
 /// <para><b>Dashes.</b> Patterns are multiples of the declared width, which is how Word scales
 /// them: a 3pt dashed border has visibly longer dashes than a 0.5pt one.</para>
@@ -148,7 +149,8 @@ static class BorderStroke
     /// <paramref name="totalWidth"/>. Returns empty for a style that draws nothing.
     /// <paramref name="trailingEdge"/> is true for the right and bottom edges: the asymmetric
     /// paragraph families are laid out in PAGE direction, not inside-out, so those two edges get
-    /// the mirror image of the top and left ones (see <see cref="ParagraphBands"/>).
+    /// the mirror image of the top and left ones (see <see cref="ParagraphBands"/>). A cell edge is
+    /// not stacked outward from a box at all — its painters take <see cref="CellEdgeLines"/>.
     /// </summary>
     internal static Band[] Bands(BorderLineStyle style, double totalWidth, Scope scope = Scope.Paragraph, bool trailingEdge = false)
     {
@@ -157,9 +159,9 @@ static class BorderStroke
             return [];
         }
 
-        return scope == Scope.Paragraph
-            ? ParagraphBands(style, totalWidth, trailingEdge)
-            : CellBands(style, totalWidth, scope);
+        return scope == Scope.Page
+            ? PageBands(style, totalWidth)
+            : ParagraphBands(style, totalWidth, trailingEdge);
     }
 
     // One pixel of Word's 120-dpi layout grid, the unit every paragraph border is built from.
@@ -199,7 +201,7 @@ static class BorderStroke
     /// </summary>
     static Band[] ParagraphBands(BorderLineStyle style, double totalWidth, bool trailingEdge)
     {
-        var layout = ParagraphLayout(style, totalWidth);
+        var layout = FlooredLayout(style, totalWidth);
 
         // Page order is outermost-first on the top and left edges; the right and bottom edges read
         // the same page order from the inside out.
@@ -216,8 +218,7 @@ static class BorderStroke
         var pendingGap = 0d;
         for (var i = layout.Length - 1; i >= 0; i--)
         {
-            var (points, shade, drawn) = layout[i];
-            var thickness = drawn ?? GridFloor(points);
+            var (thickness, shade) = layout[i];
             if (shade == null)
             {
                 pendingGap += thickness;
@@ -281,11 +282,119 @@ static class BorderStroke
     static double GridFloor(double points) =>
         Math.Max(1, Math.Floor(points / gridPoints + 1e-6)) * gridPoints;
 
-    // The cell and page scopes keep the model that was measured for them — a cell stack straddles its
-    // shared grid line, and both were probed on their own fixtures (_probe_celldouble / _probe_celltriple,
-    // page_borders/01) before the paragraph grid above was read. Bringing them onto the grid is a
+    // A family's stack as drawn, in page order: every point quantity floored to the grid, a null
+    // shade being a gap.
+    static (double Thickness, double? Shade)[] FlooredLayout(BorderLineStyle style, double totalWidth)
+    {
+        var layout = ParagraphLayout(style, totalWidth);
+        var result = new (double, double?)[layout.Length];
+        for (var i = 0; i < layout.Length; i++)
+        {
+            var (points, shade, drawn) = layout[i];
+            result[i] = (drawn ?? GridFloor(points), shade);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// A cell edge's drawn stack in page order — top-to-bottom for a horizontal edge, left-to-right
+    /// for a vertical one — every band floored to the grid, a null shade being a gap. The SAME
+    /// families as a paragraph edge (<see cref="ParagraphLayout"/>): XPS-read on <c>_probe_cellfam</c>
+    /// (fifteen styles at 3pt and 6pt) the stacks match band for band, the bevels shade 2A/35/7F from
+    /// an 808080 declaration the same way, and the asymmetric families keep page order on every
+    /// edge — a cell's thick line sits at the smaller coordinate on all four sides, so unlike the
+    /// paragraph painters nothing is mirrored for the right and bottom. Empty for an edge that
+    /// draws nothing and for the waves, which keep their own geometry (<see cref="Waves"/>).
+    /// </summary>
+    internal static (double Thickness, double? Shade)[] CellStack(BorderEdge edge) =>
+        Draws(edge) && Waves(edge.Style).Length == 0
+            ? FlooredLayout(edge.Style, edge.WidthPoints)
+            : [];
+
+    /// <summary>
+    /// One line of a cell border to stroke, in points on the page: its centre runs from
+    /// <paramref name="From"/> to <paramref name="To"/> along the edge, at <paramref name="At"/>
+    /// across it, <paramref name="Thickness"/> wide and shaded like a <see cref="Band"/>.
+    /// </summary>
+    internal readonly record struct EdgeLine(BorderEdge Edge, bool Horizontal, double At, double From, double To, double Thickness, double Shade);
+
+    /// <summary>
+    /// The lines that stroke a cell's four edges around its box, in Word's cell geometry — XPS-read
+    /// on <c>_probe_cellw</c> (a `single` at nine widths from 0.75pt to 12pt), <c>_probe_cellfam</c>
+    /// (fifteen families at two widths) and <c>_probe_cellmix</c> (margins, one-sided and
+    /// conflicting edges):
+    /// <list type="bullet">
+    /// <item>A HORIZONTAL edge hangs DOWN from its grid line. The top edge's first band starts on the
+    /// box's top face and the row's content sits under the whole declared stack; the bottom edge's
+    /// starts <paramref name="bottomInset"/> above the bottom face — the stack the row reserved for
+    /// it when it is the table's last row or a split fragment, and zero for an interior row, whose
+    /// bottom edge hangs into the row below's reserve where that row draws the same rectangle as its
+    /// own top edge.</item>
+    /// <item>A VERTICAL edge is CENTRED on its grid line, outer and inner alike. Word biases the
+    /// stack by up to half a 120-dpi pixel (an outer 5px rule sits 3px outside and 2px inside), which
+    /// is below anything a painter resolves at 150 DPI.</item>
+    /// <item>The horizontals run out to the vertical stacks' outer faces, and the verticals from the
+    /// top face down to the bottom band's bottom face, so the corners fill.</item>
+    /// </list>
+    /// </summary>
+    internal static List<EdgeLine> CellEdgeLines(double x, double y, double width, double height, CellBorders borders, double bottomInset)
+    {
+        var top = CellStack(borders.Top);
+        var bottom = CellStack(borders.Bottom);
+        var left = CellStack(borders.Left);
+        var right = CellStack(borders.Right);
+        var leftExtent = Sum(left);
+        var rightExtent = Sum(right);
+        var bottomExtent = Sum(bottom);
+
+        var leftAnchor = x - leftExtent / 2;
+        var rightAnchor = x + width - rightExtent / 2;
+        var bottomAnchor = y + height - bottomInset;
+
+        var horizontalFrom = leftExtent > 0 ? leftAnchor : x;
+        var horizontalTo = rightExtent > 0 ? rightAnchor + rightExtent : x + width;
+        var verticalTo = bottomExtent > 0 ? bottomAnchor + bottomExtent : y + height;
+
+        var lines = new List<EdgeLine>();
+        Add(lines, borders.Top, top, horizontal: true, y, horizontalFrom, horizontalTo);
+        Add(lines, borders.Bottom, bottom, horizontal: true, bottomAnchor, horizontalFrom, horizontalTo);
+        Add(lines, borders.Left, left, horizontal: false, leftAnchor, y, verticalTo);
+        Add(lines, borders.Right, right, horizontal: false, rightAnchor, y, verticalTo);
+        return lines;
+
+        static double Sum((double Thickness, double? Shade)[] stack)
+        {
+            var total = 0d;
+            foreach (var (thickness, _) in stack)
+            {
+                total += thickness;
+            }
+
+            return total;
+        }
+
+        static void Add(List<EdgeLine> lines, BorderEdge edge, (double Thickness, double? Shade)[] stack, bool horizontal, double anchor, double from, double to)
+        {
+            var at = anchor;
+            foreach (var (thickness, shade) in stack)
+            {
+                if (shade is { } visible)
+                {
+                    lines.Add(new(edge, horizontal, at + thickness / 2, from, to, thickness, visible));
+                }
+
+                at += thickness;
+            }
+        }
+    }
+
+    // The page scope keeps the model that was measured for it (page_borders/01) before the paragraph
+    // grid above was read. The cell scope shared it until _probe_cellw / _probe_cellfam put cells on
+    // the grid too (CellEdgeLines); the cell probes cited below were PNG-read at the declared widths,
+    // and their per-line reading survives in ParagraphLayout. Bringing page frames onto the grid is a
     // separate adjudication.
-    static Band[] CellBands(BorderLineStyle style, double totalWidth, Scope scope)
+    static Band[] PageBands(BorderLineStyle style, double totalWidth)
     {
         // The three-D bevels are not a line/gap layout at all — see bevelShade. Two touching
         // sub-bands, dark then light for the engraved groove and light then dark for the embossed
@@ -380,21 +489,6 @@ static class BorderStroke
             previousThickness = thickness;
         }
 
-        // A CELL border straddles its edge rather than growing outward from it: the edge is shared
-        // with the neighbouring cell, so there is no "outward" side to thicken into. Word-measured
-        // on labels/08, whose table declares `double` at 3pt — Word draws two thin rules ~10px
-        // apart at 150 DPI, centred on the cell boundary, where growing outward moved the pair off
-        // the boundary and added a third visible rule. Paragraph borders keep the outward stack,
-        // which is what holds a wide one clear of the text.
-        if (scope == Scope.Cell && bands.Length > 1)
-        {
-            var shift = bands[^1].Offset / 2;
-            for (var i = 0; i < bands.Length; i++)
-            {
-                bands[i] = bands[i] with {Offset = bands[i].Offset - shift};
-            }
-        }
-
         return bands;
     }
 
@@ -423,10 +517,12 @@ static class BorderStroke
     }
 
     /// <summary>
-    /// What this edge reserves in the flow. For a PARAGRAPH border that is the declared stack in
-    /// points (<see cref="ParagraphLayout"/>) — Word charges a 1pt single its full point while
-    /// drawing it as one 0.6pt pixel, and a `double` at sz=6 three 0.75s. For a cell or page edge it
-    /// is what the edge draws, which differs from <c>w:sz</c> whenever the cell floor kicks in.
+    /// What this edge reserves in the flow. For a PARAGRAPH or CELL border that is the declared
+    /// stack in points (<see cref="ParagraphLayout"/>) — Word charges a 1pt single its full point
+    /// while drawing it as one 0.6pt pixel, and a `double` at sz=6 three 0.75s; a cell row reserves
+    /// the same stack under its top edge (<c>_probe_cellfam</c>: a 3pt `double` opens 9pt above the
+    /// row's text, a 3pt `thinThickSmallGap` 4.5) and insets its content by half of it on the sides.
+    /// For a page edge it is what the edge draws.
     /// </summary>
     internal static double Extent(BorderLineStyle style, double totalWidth, Scope scope = Scope.Paragraph)
     {
@@ -447,7 +543,7 @@ static class BorderStroke
             return span + waves[0].Amplitude / 2 + waves[0].Thickness;
         }
 
-        if (scope == Scope.Paragraph)
+        if (scope != Scope.Page)
         {
             var total = 0d;
             foreach (var (points, _, _) in ParagraphLayout(style, totalWidth))

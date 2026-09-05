@@ -100,40 +100,40 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.0669,
-      "Ssim": 0.9173,
+      "ErrorMetric": 0.0555,
+      "Ssim": 0.9211,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "skia_result#page_0013.verified.png",
       "ReceivedFile": "skia_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.0338,
-      "Ssim": 0.9514,
+      "ErrorMetric": 0.0407,
+      "Ssim": 0.9404,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "skia_result#page_0014.verified.png",
       "ReceivedFile": "skia_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.1023,
-      "Ssim": 0.8293,
+      "ErrorMetric": 0.093,
+      "Ssim": 0.8443,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "skia_result#page_0015.verified.png",
       "ReceivedFile": "skia_result#page_0015.received.png"
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.0649,
-      "Ssim": 0.9094,
+      "ErrorMetric": 0.0741,
+      "Ssim": 0.8846,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "skia_result#page_0016.verified.png",
       "ReceivedFile": "skia_result#page_0016.received.png"
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.0548,
-      "Ssim": 0.9366,
+      "ErrorMetric": 0.0566,
+      "Ssim": 0.928,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "skia_result#page_0017.verified.png",
       "ReceivedFile": "skia_result#page_0017.received.png"
@@ -148,16 +148,16 @@
     },
     {
       "Page": 19,
-      "ErrorMetric": 0.0574,
-      "Ssim": 0.9469,
+      "ErrorMetric": 0.0478,
+      "Ssim": 0.9442,
       "ExpectedFile": "expected_0019.png",
       "VerifiedFile": "skia_result#page_0019.verified.png",
       "ReceivedFile": "skia_result#page_0019.received.png"
     },
     {
       "Page": 20,
-      "ErrorMetric": 0.0295,
-      "Ssim": 0.9663,
+      "ErrorMetric": 0.0371,
+      "Ssim": 0.9488,
       "ExpectedFile": "expected_0020.png",
       "VerifiedFile": "skia_result#page_0020.verified.png",
       "ReceivedFile": "skia_result#page_0020.received.png"
