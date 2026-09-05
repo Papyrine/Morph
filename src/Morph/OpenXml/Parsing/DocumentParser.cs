@@ -2582,6 +2582,35 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return tableDeclaresCellMargin ? 0 : -firstCellLeftMargin;
     }
 
+    /// <summary>
+    /// How far a table's border box may run past the text column, by compatibility mode — the
+    /// companion of <see cref="ResolveTableIndent"/>, XPS-read on <c>_probe_pct12</c> / <c>_probe_pct15</c>
+    /// (2026-09-05; 100% / 50% / dxa / auto tables under 108-twip, 720-twip and per-cell 1in margins).
+    /// In modes 12 and 14 a <c>w:tblW</c> percentage is taken of the column PLUS the first cell's left
+    /// margin and the last cell's right margin, and the border box hangs outside the column by those
+    /// margins: 100% reads 479.25 (468 + 5.4 + 5.4) with the default margins, 540.5 with 36pt ones,
+    /// 545.4 with a 1in first-cell margin against the default last; 50% is half of that box (270.3),
+    /// so the percentage scales the whole outdented box; an autofit table grows to the same box. A
+    /// dxa width is the border box itself on either mode (200 for 4000 twips). In mode 15 the column
+    /// bounds the border box: 468 at 100% whatever the margins, 234 at 50%.
+    ///
+    /// <para>The left margin joins the overhang only when the border hangs left of the margin — the
+    /// declared-indent case of <see cref="ResolveTableIndent"/>. An undeclared indent over the table's
+    /// own <c>w:tblCellMar</c> puts the border ON the margin, and the box then runs only the right
+    /// margin past the column: <c>table_autofit_no_widths</c> (no styles part, direct 108-twip
+    /// margins) reads 474pt against a 468pt column in Word, not 479.</para>
+    /// </summary>
+    internal static double ResolveTableWidthOverhang(int compatibilityMode, double? declaredIndent, bool tableDeclaresCellMargin, double firstCellLeftMargin, double lastCellRightMargin)
+    {
+        if (compatibilityMode >= 15)
+        {
+            return 0;
+        }
+
+        var leftHangs = declaredIndent != null || !tableDeclaresCellMargin;
+        return lastCellRightMargin + (leftHangs ? firstCellLeftMargin : 0);
+    }
+
     internal static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
     {
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -4878,6 +4907,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var firstCell = rows[0].Cells.Count > 0 ? rows[0].Cells[0].Properties : null;
         var firstCellLeftMargin = firstCell?.Padding?.Left ?? rows[0].OverrideCellPadding?.Left ?? effectiveCellPadding?.Left ?? 0;
         var indentPoints = ResolveTableIndent(compatibilityMode, declaredIndent, defaultCellPadding != null, firstCellLeftMargin);
+        var lastCell = rows[0].Cells.Count > 0 ? rows[0].Cells[^1].Properties : null;
+        var lastCellRightMargin = lastCell?.Padding?.Right ?? rows[0].OverrideCellPadding?.Right ?? effectiveCellPadding?.Right ?? 0;
+        var widthOverhang = ResolveTableWidthOverhang(compatibilityMode, declaredIndent, defaultCellPadding != null, firstCellLeftMargin, lastCellRightMargin);
 
         // Parse w:tblCellSpacing — non-zero switches the table to the detached-border model.
         // Falls back to the table style's tblCellSpacing when the document doesn't override.
@@ -4942,6 +4974,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 DefaultCellPadding = effectiveCellPadding ?? new CellSpacing(0),
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
+                WidthOverhangPoints = widthOverhang,
                 GridColumnWidths = gridColumnWidths,
                 PreferredWidthPoints = preferredWidthPoints,
                 FillContainer = fillContainer,

@@ -99,6 +99,15 @@ sealed record TableProperties
     public double? PreferredWidthFraction { get; init; }
 
     /// <summary>
+    /// How much wider than the text column a table's BORDER box may run, in points: in compatibility
+    /// modes 12 and 14 the column bounds the text extent, and the first cell's left margin plus the
+    /// last cell's right margin hang outside it (a 100% table is column + both margins wide, an
+    /// autofit table may grow to that too); zero in mode 15, where the column bounds the border box.
+    /// Resolved by <c>DocumentParser.ResolveTableWidthOverhang</c> — see <c>TableLayout.CalculateColumnWidths</c>.
+    /// </summary>
+    public double WidthOverhangPoints { get; init; }
+
+    /// <summary>
     /// Table-level horizontal alignment within the page content area (from w:tblPr/w:jc).
     /// Justify is not valid for tables and is treated as Left.
     /// </summary>
