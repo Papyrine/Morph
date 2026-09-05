@@ -138,15 +138,15 @@ static class TableHeightCalculator
                         currentTotalHeight += heights[r];
                     }
 
+                    // The overflow lands in the LAST spanned row, not spread across the span. XPS-read on
+                    // _probe_vmerge (a 14-line cell merged down three one-line rows): Word keeps the first
+                    // two rows at their own 15pt and grows the third to 174.7, and with atLeast floors of
+                    // 30 and 45 on the first two the third takes 129.1 - the floors hold, the remainder
+                    // still goes last. Spreading it evenly put newsletters/09 rows 4-6 each 30pt below
+                    // Word and its page-1 footer rows off the page.
                     if (contentHeight > currentTotalHeight)
                     {
-                        var extraHeight = contentHeight - currentTotalHeight;
-                        var extraPerRow = extraHeight / rowSpan;
-
-                        for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
-                        {
-                            heights[r] += extraPerRow;
-                        }
+                        heights[Math.Min(rowIndex + rowSpan, table.Rows.Count) - 1] += contentHeight - currentTotalHeight;
                     }
                 }
 
@@ -232,7 +232,29 @@ static class TableHeightCalculator
     /// row's top it is the collapsed edge shared with the row above (the resolved insideH). Used to
     /// grow rows by the border width their content is inset by.
     /// </summary>
+    /// <summary>
+    /// What the horizontal edge above (<paramref name="top"/>) or below a row charges the flow, in
+    /// points: the widest DECLARED stack among the row's cells on that side (<see cref="BorderStroke.Extent"/>,
+    /// so a 3pt `double` charges its 9pt — the same reserve law as a paragraph edge, XPS-read on
+    /// <c>_probe_cellfam</c>) and, for the edge above a row that is not the first, the wider of that and
+    /// the row above's bottom edges. Word reserves a shared line whichever row declares it
+    /// (<c>_probe_cellmix</c>: a 6pt bottom on the first row alone, or a 6pt top on the second alone,
+    /// both open the same 6pt between the rows, and 3pt against 12pt opens 12pt), so a header row's
+    /// per-cell bottom rule costs the row under it its height even though that row resolves no top
+    /// edge of its own.
+    /// </summary>
     internal static float HorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
+    {
+        var width = RowEdgeWidth(table, colCount, rowIndex, top);
+        if (top && rowIndex > 0)
+        {
+            width = Math.Max(width, RowEdgeWidth(table, colCount, rowIndex - 1, top: false));
+        }
+
+        return width;
+    }
+
+    static float RowEdgeWidth(TableElement table, int colCount, int rowIndex, bool top)
     {
         var row = table.Rows[rowIndex];
         var width = 0f;
@@ -244,7 +266,7 @@ static class TableHeightCalculator
             var edge = top ? borders?.Top : borders?.Bottom;
             if (edge is {IsVisible: true})
             {
-                width = Math.Max(width, (float) edge.WidthPoints);
+                width = Math.Max(width, (float) BorderStroke.Extent(edge.Style, edge.WidthPoints, BorderStroke.Scope.Cell));
             }
 
             gridColIndex += cell.Properties.GridSpan;

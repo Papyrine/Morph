@@ -1627,6 +1627,112 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_row_spends_its_border_reserve_above_the_content_and_the_last_row_keeps_its_bottom_edge_inside()
+    {
+        // _probe_cellw (XPS): Word hangs every horizontal cell edge DOWN from its grid line and starts the
+        // row's text under the whole declared stack — a 6pt rule puts the first line 6pt lower than in an
+        // unbordered row, and a 3pt `double` 9pt lower — while the last row reserves its bottom edge inside
+        // itself, where the painter needs it (PlacedCell.BottomEdgeInset) to put the band on the face.
+        static TableElement TwoRow(BorderEdge edge) =>
+            new()
+            {
+                Properties = new()
+                {
+                    GridColumnWidths = [120],
+                    DefaultBorders = new() {Top = edge, Bottom = edge, Left = edge, Right = edge},
+                    InsideHorizontalBorder = edge
+                },
+                Rows =
+                [
+                    new() {Cells = [new() {Content = [P("row a")], Properties = new()}]},
+                    new() {Cells = [new() {Content = [P("row b")], Properties = new()}]}
+                ]
+            };
+
+        static (PlacedTableRow Row, float FirstLineY) First(TableElement table)
+        {
+            var rows = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+            var line = rows[0].Cells[0].Content.OfType<PlacedLine>().First();
+            return (rows[0], line.Y);
+        }
+
+        var plain = First(TwoRow(BorderEdge.None));
+        var single = First(TwoRow(new() {IsVisible = true, Style = BorderLineStyle.Single, WidthPoints = 6}));
+        var stacked = First(TwoRow(new() {IsVisible = true, Style = BorderLineStyle.Double, WidthPoints = 3}));
+
+        await Assert.That(single.FirstLineY - plain.FirstLineY).IsEqualTo(6f).Within(0.01f);
+        await Assert.That(stacked.FirstLineY - plain.FirstLineY).IsEqualTo(9f).Within(0.01f);
+
+        // An interior row's bottom edge hangs below its face; the last row's sits inside its reserve.
+        var rows = fragmenter.Layout([TwoRow(new() {IsVisible = true, Style = BorderLineStyle.Single, WidthPoints = 6})], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+        await Assert.That(rows[0].Cells[0].BottomEdgeInset).IsEqualTo(0f);
+        await Assert.That(rows[1].Cells[0].BottomEdgeInset).IsEqualTo(6f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_shared_horizontal_edge_is_charged_at_the_wider_of_the_two_rows_that_declare_it()
+    {
+        // _probe_cellmix (XPS): a 6pt bottom border on the first row alone, or a 6pt top on the second
+        // alone, both open the same 6pt between the rows, and 3pt against 12pt opens 12pt — Word reserves
+        // the line whichever row declares it, so a header row's per-cell bottom rule costs the row under it.
+        static TableElement TwoRow(BorderEdge upperBottom, BorderEdge lowerTop) =>
+            new()
+            {
+                Properties = new() {GridColumnWidths = [120]},
+                Rows =
+                [
+                    new() {Cells = [new() {Content = [P("row a")], Properties = new() {Borders = new() {Bottom = upperBottom}}}]},
+                    new() {Cells = [new() {Content = [P("row b")], Properties = new() {Borders = new() {Top = lowerTop}}}]}
+                ]
+            };
+
+        static float SecondLineY(TableElement table)
+        {
+            var rows = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+            return rows[1].Cells[0].Content.OfType<PlacedLine>().First().Y;
+        }
+
+        static BorderEdge Single(double width) => new() {IsVisible = true, Style = BorderLineStyle.Single, WidthPoints = width};
+
+        var plain = SecondLineY(TwoRow(BorderEdge.None, BorderEdge.None));
+        await Assert.That(SecondLineY(TwoRow(Single(6), BorderEdge.None)) - plain).IsEqualTo(6f).Within(0.01f);
+        await Assert.That(SecondLineY(TwoRow(BorderEdge.None, Single(6))) - plain).IsEqualTo(6f).Within(0.01f);
+        await Assert.That(SecondLineY(TwoRow(Single(3), Single(12))) - plain).IsEqualTo(12f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_vertical_merge_overflow_grows_the_last_spanned_row_only()
+    {
+        // _probe_vmerge (XPS): a tall cell merged down three one-line rows leaves the first two rows at
+        // their own height and grows the third by the whole overflow (15 / 15 / 174.7 for 205pt of merged
+        // content); with atLeast floors of 30 and 45 on the first two, the third takes 129.1.
+        static TableElement Merged(double? firstFloor, double? secondFloor) =>
+            new()
+            {
+                Properties = new() {GridColumnWidths = [120, 120]},
+                Rows =
+                [
+                    new() {HeightPoints = firstFloor, Cells = [new() {Content = Enumerable.Range(1, 14).Select(_ => P("L" + _)).ToList(), Properties = new() {VerticalMerge = VerticalMergeType.Restart}}, new() {Content = [P("r1")], Properties = new()}]},
+                    new() {HeightPoints = secondFloor, Cells = [new() {Content = [P("")], Properties = new() {VerticalMerge = VerticalMergeType.Continue}}, new() {Content = [P("r2")], Properties = new()}]},
+                    new() {Cells = [new() {Content = [P("")], Properties = new() {VerticalMerge = VerticalMergeType.Continue}}, new() {Content = [P("r3")], Properties = new()}]}
+                ]
+            };
+
+        static float[] Heights(TableElement table) =>
+            fragmenter.Layout([table], Page(600)).Pages[0].Items.OfType<PlacedTableRow>().Select(_ => _.Height).ToArray();
+
+        var single = Heights(Merged(null, null));
+        var line = single[0];
+        await Assert.That(single[1]).IsEqualTo(line).Within(0.01f);
+        await Assert.That(single[2]).IsGreaterThan(line * 10);
+
+        var floored = Heights(Merged(30, 45));
+        await Assert.That(floored[0]).IsEqualTo(30f).Within(0.01f);
+        await Assert.That(floored[1]).IsEqualTo(45f).Within(0.01f);
+        await Assert.That(floored[0] + floored[1] + floored[2]).IsEqualTo(single[0] + single[1] + single[2]).Within(0.01f);
+    }
+
+    [Test]
     public async Task Interior_horizontal_borders_add_to_the_table_height()
     {
         // Word draws each collapsed interior edge on the row boundary and insets the row below it, so an

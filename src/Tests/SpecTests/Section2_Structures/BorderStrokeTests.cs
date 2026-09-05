@@ -264,17 +264,93 @@ public class BorderStrokeTests
     }
 
     [Test]
-    public async Task Cell_scope_keeps_its_own_measured_model()
+    public async Task A_cell_stack_is_the_paragraph_stack_on_the_grid_in_page_order()
     {
-        // The cell probes (_probe_celldouble / _probe_celltriple) were read from PNGs at the
-        // declared widths, and a cell stack straddles its shared edge; that model is untouched by
-        // the paragraph grid — a 1.5pt cell single still draws 1.5pt, centred.
-        var single = BorderStroke.Bands(BorderLineStyle.Single, 1.5, BorderStroke.Scope.Cell);
-        await Assert.That(single[0].Thickness).IsEqualTo(1.5).Within(0.0001);
+        // _probe_cellfam (XPS): a cell's families are the paragraph families band for band, floored
+        // to the 120-dpi grid, and laid out in page order on every edge — nothing is mirrored.
+        static BorderEdge Edge(BorderLineStyle style, double width) => new() {IsVisible = true, Style = style, WidthPoints = width};
 
-        var cellDouble = BorderStroke.Bands(BorderLineStyle.Double, 3, BorderStroke.Scope.Cell);
-        await Assert.That(cellDouble.Length).IsEqualTo(2);
-        await Assert.That(cellDouble[0].Offset).IsEqualTo(-cellDouble[1].Offset).Within(0.0001);
+        var single = BorderStroke.CellStack(Edge(BorderLineStyle.Single, 1.5));
+        await Assert.That(single.Length).IsEqualTo(1);
+        await Assert.That(single[0].Thickness).IsEqualTo(1.2).Within(0.0001);
+
+        // A 1pt rule draws one pixel; a 0.5pt one is floored UP to the pixel minimum.
+        await Assert.That(BorderStroke.CellStack(Edge(BorderLineStyle.Single, 1))[0].Thickness).IsEqualTo(0.6).Within(0.0001);
+        await Assert.That(BorderStroke.CellStack(Edge(BorderLineStyle.Single, 0.5))[0].Thickness).IsEqualTo(0.6).Within(0.0001);
+
+        // double at 3pt: 3 / gap 3 / 3, measured (0-3), (6-9) on every edge.
+        var cellDouble = BorderStroke.CellStack(Edge(BorderLineStyle.Double, 3));
+        await Assert.That(cellDouble.Select(_ => _.Thickness)).IsEquivalentTo([3.0, 3.0, 3.0]);
+        await Assert.That(cellDouble[1].Shade).IsNull();
+
+        // thinThickSmallGap at 3pt: thick 3, gap 1px, thin 1px — thick FIRST (top / left).
+        var smallGap = BorderStroke.CellStack(Edge(BorderLineStyle.ThinThickSmallGap, 3));
+        await Assert.That(smallGap.Select(_ => _.Thickness)).IsEquivalentTo([3.0, 0.6, 0.6]);
+
+        // A groove at 6pt: 2px flank at 0.33, 6pt core at 0.41, 2px flank at 1.0, measured
+        // (0.6-1.8) 2A2A2A, (1.8-7.8) 353535, (7.8-9.0) 7F7F7F.
+        var groove = BorderStroke.CellStack(Edge(BorderLineStyle.ThreeDEngrave, 6));
+        await Assert.That(groove.Select(_ => _.Thickness)).IsEquivalentTo([1.2, 6.0, 1.2]);
+        await Assert.That(groove.Select(_ => _.Shade ?? 0)).IsEquivalentTo([0.33, 0.41, 1.0]);
+
+        // The reserve is the DECLARED stack, as for a paragraph edge: a 1pt single reserves 1pt.
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.Single, 1, BorderStroke.Scope.Cell)).IsEqualTo(1).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.Double, 3, BorderStroke.Scope.Cell)).IsEqualTo(9).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Cell_edges_hang_down_from_their_grid_line_and_straddle_it_sideways()
+    {
+        // _probe_cellw (XPS, single at nine widths): the top edge's band starts ON the row's top
+        // face; an interior row's bottom edge hangs below its bottom face (into the row under it,
+        // which draws the same rectangle as its own top edge); the last row's bottom edge starts
+        // the reserved stack above its bottom face; the verticals are centred on the grid line.
+        var edge = new BorderEdge {IsVisible = true, Style = BorderLineStyle.Single, WidthPoints = 6};
+        var borders = new CellBorders {Top = edge, Bottom = edge, Left = edge, Right = edge};
+
+        var interior = BorderStroke.CellEdgeLines(x: 100, y: 200, width: 50, height: 30, borders, bottomInset: 0);
+        var top = interior.Single(_ => _.Horizontal && _.Edge == borders.Top && _.At < 215);
+        var bottom = interior.Single(_ => _.Horizontal && _.At > 215);
+        var left = interior.Single(_ => !_.Horizontal && _.At < 125);
+        var right = interior.Single(_ => !_.Horizontal && _.At > 125);
+
+        await Assert.That(top.At).IsEqualTo(203).Within(0.0001);
+        await Assert.That(top.Thickness).IsEqualTo(6).Within(0.0001);
+        await Assert.That(bottom.At).IsEqualTo(233).Within(0.0001);
+        await Assert.That(left.At).IsEqualTo(100).Within(0.0001);
+        await Assert.That(right.At).IsEqualTo(150).Within(0.0001);
+
+        // The horizontals reach the verticals' outer faces and the verticals the bottom band's bottom face.
+        await Assert.That(top.From).IsEqualTo(97).Within(0.0001);
+        await Assert.That(top.To).IsEqualTo(153).Within(0.0001);
+        await Assert.That(left.From).IsEqualTo(200).Within(0.0001);
+        await Assert.That(left.To).IsEqualTo(236).Within(0.0001);
+
+        // The last row reserved its 6pt bottom edge inside the box: the band sits on the face.
+        var last = BorderStroke.CellEdgeLines(100, 200, 50, 30, borders, bottomInset: 6);
+        await Assert.That(last.Single(_ => _.Horizontal && _.At > 215).At).IsEqualTo(227).Within(0.0001);
+        await Assert.That(last.Single(_ => !_.Horizontal && _.At < 125).To).IsEqualTo(230).Within(0.0001);
+    }
+
+    [Test]
+    public async Task Asymmetric_cell_families_keep_page_order_on_every_edge()
+    {
+        // _probe_cellfam: thinThickSmallGap draws its thick line at the smaller coordinate on all
+        // four sides — outer on the top and left, INNER on the bottom and right — unlike a paragraph
+        // box, where the painters mirror the trailing edges.
+        var edge = new BorderEdge {IsVisible = true, Style = BorderLineStyle.ThinThickSmallGap, WidthPoints = 3};
+        var borders = new CellBorders {Top = edge, Bottom = edge, Left = edge, Right = edge};
+        var lines = BorderStroke.CellEdgeLines(100, 200, 50, 30, borders, bottomInset: 4.5);
+
+        var bottomLines = lines.Where(_ => _.Horizontal && _.At > 215).OrderBy(_ => _.At).ToList();
+        await Assert.That(bottomLines.Select(_ => _.Thickness)).IsEquivalentTo([3.0, 0.6]);
+        await Assert.That(bottomLines[0].At).IsEqualTo(225.5 + 1.5).Within(0.0001);
+
+        var rightLines = lines.Where(_ => !_.Horizontal && _.At > 125).OrderBy(_ => _.At).ToList();
+        await Assert.That(rightLines.Select(_ => _.Thickness)).IsEquivalentTo([3.0, 0.6]);
+        // Stack 4.2 wide centred on x=150: thick from 147.9, thin ending at 152.1.
+        await Assert.That(rightLines[0].At).IsEqualTo(147.9 + 1.5).Within(0.0001);
+        await Assert.That(rightLines[1].At).IsEqualTo(152.1 - 0.3).Within(0.0001);
     }
 
     [Test]
@@ -351,15 +427,14 @@ public class BorderStrokeTests
     }
 
     [Test]
-    public async Task Cell_and_page_edges_do_not_shift()
+    public async Task Page_edges_do_not_shift_and_keep_their_own_model()
     {
-        // A cell edge straddles the grid line it shares with its neighbour, and a page frame
-        // arrives already centred from PageBorders.EdgeRect — shifting that one regressed
-        // page_borders/01 by +0.0096 AE before the scope existed.
-        var cell = BorderStroke.Bands(BorderLineStyle.Single, 3, BorderStroke.Scope.Cell);
-        var page = BorderStroke.Bands(BorderLineStyle.Single, 3, BorderStroke.Scope.Page);
+        // A page frame arrives already centred from PageBorders.EdgeRect — shifting it regressed
+        // page_borders/01 by +0.0096 AE before the scope existed — and keeps the PNG-probed model:
+        // a 1.5pt single draws 1.5pt, not the grid's 1.2.
+        var page = BorderStroke.Bands(BorderLineStyle.Single, 1.5, BorderStroke.Scope.Page);
 
-        await Assert.That(BorderStroke.OutwardShift(cell, BorderStroke.Scope.Cell)).IsEqualTo(0);
+        await Assert.That(page[0].Thickness).IsEqualTo(1.5).Within(0.0001);
         await Assert.That(BorderStroke.OutwardShift(page, BorderStroke.Scope.Page)).IsEqualTo(0);
         await Assert.That(BorderStroke.OutwardShift([], BorderStroke.Scope.Paragraph)).IsEqualTo(0);
     }

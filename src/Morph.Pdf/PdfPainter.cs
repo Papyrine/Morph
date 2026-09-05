@@ -672,18 +672,36 @@ static class PdfPainter
         }
     }
 
+    // See SkiaPainter.PaintCellEdges — Word's cell geometry (BorderStroke.CellEdgeLines), waves along the
+    // box edge.
     static void PaintCellBorders(PdfRenderContext context, XGraphics graphics, PlacedCell cell, CellBorders borders)
     {
-        float left = cell.X, top = cell.Y, right = cell.X + cell.Width, bottom = cell.Y + cell.Height;
+        foreach (var line in BorderStroke.CellEdgeLines(cell.X, cell.Y, cell.Width, cell.Height, borders, cell.BottomEdgeInset))
+        {
+            var pen = EdgePen(context, line.Edge, line.Thickness, BorderStroke.DashPattern(line.Edge.Style, line.Edge.WidthPoints), line.Shade);
+            if (line.Horizontal)
+            {
+                graphics.DrawLine(pen, line.From, line.At, line.To, line.At);
+            }
+            else
+            {
+                graphics.DrawLine(pen, line.At, line.From, line.At, line.To);
+            }
+        }
 
-        var cl = BorderStroke.Draws(borders.Left);
-        var cr = BorderStroke.Draws(borders.Right);
-        var ct = BorderStroke.Draws(borders.Top);
-        var cb = BorderStroke.Draws(borders.Bottom);
-        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, BorderStroke.Scope.Cell, outward: -1, extendStart: cl, extendEnd: cr);
-        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, BorderStroke.Scope.Cell, outward: 1, extendStart: ct, extendEnd: cb);
-        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, BorderStroke.Scope.Cell, outward: 1, extendStart: cl, extendEnd: cr);
-        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, BorderStroke.Scope.Cell, outward: -1, extendStart: ct, extendEnd: cb);
+        float left = cell.X, top = cell.Y, right = cell.X + cell.Width, bottom = cell.Y + cell.Height;
+        Wave(borders.Top, horizontal: true, left, right, top, outward: -1);
+        Wave(borders.Bottom, horizontal: true, left, right, bottom, outward: 1);
+        Wave(borders.Left, horizontal: false, top, bottom, left, outward: -1);
+        Wave(borders.Right, horizontal: false, top, bottom, right, outward: 1);
+
+        void Wave(BorderEdge edge, bool horizontal, double from, double to, double at, int outward)
+        {
+            if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+            {
+                StrokeWaves(context, graphics, edge, waves, horizontal, from, to, at, outward);
+            }
+        }
     }
 
     // A paragraph border box: stroke each visible edge around the box the Fragmenter already expanded by

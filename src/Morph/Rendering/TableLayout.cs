@@ -111,12 +111,16 @@ static class TableLayout
     }
 
     /// <summary>
-    /// Half a cell edge's stroke, which is how far it reaches into the cell — a cell border
-    /// straddles the grid line it shares with its neighbour (see <c>BorderStroke.Bands</c>). Zero
-    /// for an edge that draws nothing.
+    /// Half a cell edge's declared stack, which is how far it reaches into the cell — a vertical cell
+    /// border is centred on the grid line it shares with its neighbour (see
+    /// <c>BorderStroke.CellEdgeLines</c>), and the content sits at the LARGER of this and the cell
+    /// margin. XPS-read on <c>_probe_cellmix</c> against Word's 5.4pt default margin: a 6pt single
+    /// (half 3) leaves the text at 5.4, a 12pt (half 6) moves it to 6 and a 24pt (half 12) to 12 —
+    /// the max, never the sum. A stacked family counts its whole stack: <c>_probe_cellfam</c>'s 3pt
+    /// `double` insets by 4.8 for a 9pt stack. Zero for an edge that draws nothing.
     /// </summary>
-    static double HalfBorder(BorderEdge? edge) =>
-        edge != null && BorderStroke.Draws(edge) ? edge.WidthPoints / 2 : 0;
+    internal static double HalfBorder(BorderEdge? edge) =>
+        edge != null && BorderStroke.Draws(edge) ? BorderStroke.Extent(edge.Style, edge.WidthPoints, BorderStroke.Scope.Cell) / 2 : 0;
 
     internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null, IReadOnlyList<TableRow>? rows = null)
     {
@@ -820,8 +824,20 @@ static class TableLayout
 
     internal static float CalculateVerticalMergeHeight(TableElement table, int startRowIndex, int gridColIndex, float[] rowHeights)
     {
-        var continueStarts = GetVerticalMergeContinueStarts(table);
         var height = rowHeights[startRowIndex];
+        for (var r = startRowIndex + 1; r <= VerticalMergeEndRow(table, startRowIndex, gridColIndex); r++)
+        {
+            height += rowHeights[r];
+        }
+
+        return height;
+    }
+
+    /// <summary>The last row a vertical merge starting at <paramref name="startRowIndex"/> in <paramref name="gridColIndex"/> spans; the start row itself when nothing continues it.</summary>
+    internal static int VerticalMergeEndRow(TableElement table, int startRowIndex, int gridColIndex)
+    {
+        var continueStarts = GetVerticalMergeContinueStarts(table);
+        var endRow = startRowIndex;
         for (var r = startRowIndex + 1; r < table.Rows.Count; r++)
         {
             if (!continueStarts[r].Contains(gridColIndex))
@@ -829,10 +845,10 @@ static class TableLayout
                 break;
             }
 
-            height += rowHeights[r];
+            endRow = r;
         }
 
-        return height;
+        return endRow;
     }
 
     internal static int CalculateVerticalMergeRowSpan(TableElement table, int startRowIndex, int gridColIndex)
