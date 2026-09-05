@@ -1,4 +1,4 @@
-using Morph;
+﻿using Morph;
 
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
@@ -83,7 +83,23 @@ static class ImageSharpPainter
             case PlacedBorder border:
                 PaintEdges(context, canvas, border.X, border.Y, border.Width, border.Height, border.Borders);
                 break;
+            case PlacedRotatedGroup group:
+                PaintRotatedGroup(context, canvas, group);
+                break;
         }
+    }
+
+    // See SkiaPainter.PaintRotatedGroup. DrawingCanvas.Save(DrawingOptions) replaces rather than
+    // composes the transform, so a rotated group must not sit inside another transformed scope.
+    static void PaintRotatedGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedRotatedGroup group)
+    {
+        canvas.Save(ImageSharpShapeDrawing.BuildRotation((float) (group.RotationDegrees * Math.PI / 180.0), P(context, group.X + group.Width / 2), P(context, group.Y + group.Height / 2)));
+        foreach (var item in group.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        canvas.Restore();
     }
 
     static void Fill(ImageSharpRenderContext context, DrawingCanvas canvas, double x, double y, double width, double height, string? colorHex) =>

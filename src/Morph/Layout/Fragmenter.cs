@@ -2366,7 +2366,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
                 var (insetLeft, insetRight) = SideInsets(padding, borders);
-                var content = LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment);
+                var content = cell.Properties.TextDirection == CellTextDirection.LeftToRight
+                    ? LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment)
+                    : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
                 // before the cell's paragraphs, so prepend them to the content.
@@ -2507,6 +2509,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Stacks a cell's paragraphs from the top of its padded interior, wrapping each to the cell width,
         // then shifts them down for centre/bottom vertical alignment within the available height. No page
         // breaks — the row height already accommodates the content. A nested table lays out inline too.
+        // A w:textDirection cell (btLr / tbRl): the content wraps against the cell's HEIGHT and stacks
+        // across its width — laid out in an unrotated box of those swapped dimensions centred on the
+        // content box, then rotated into place by the painters (PlacedRotatedGroup). btLr reads bottom to
+        // top (−90°), tbRl top to bottom (+90°). Word wraps "Header" in feature_capture/01's 75pt-wide
+        // header cell into two vertical lines against the row's height.
+        IReadOnlyList<PlacedItem> LayoutRotatedCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float contentHeight)
+        {
+            var centreX = contentLeft + contentWidth / 2;
+            var centreY = contentTop + contentHeight / 2;
+            var unrotatedLeft = centreX - contentHeight / 2;
+            var unrotatedTop = centreY - contentWidth / 2;
+            var items = LayoutCellContent(cell, unrotatedLeft, unrotatedTop, contentHeight, contentWidth, cell.Properties.VerticalAlignment);
+            var rotation = cell.Properties.TextDirection == CellTextDirection.BottomToTop ? -90 : 90;
+            return [new PlacedRotatedGroup(unrotatedLeft, unrotatedTop, contentHeight, contentWidth, items, rotation)];
+        }
+
         IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment) =>
             LayoutCellFragment(cell, contentLeft, contentTop, contentWidth, availableHeight, verticalAlignment, default, budget: null).Items;
 

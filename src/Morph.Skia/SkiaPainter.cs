@@ -1,4 +1,4 @@
-using Morph;
+﻿using Morph;
 
 /// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the raster analogue of
@@ -100,7 +100,24 @@ static class SkiaPainter
             case PlacedBorder border:
                 PaintEdges(context, canvas, border.X, border.Y, border.Width, border.Height, border.Borders);
                 break;
+            case PlacedRotatedGroup group:
+                PaintRotatedGroup(context, canvas, group);
+                break;
         }
+    }
+
+    // Items laid out in the group's unrotated box, drawn rotated about that box's centre
+    // (PlacedRotatedGroup): a w:textDirection cell or a rotated text box.
+    static void PaintRotatedGroup(SkiaRenderContext context, SKCanvas canvas, PlacedRotatedGroup group)
+    {
+        canvas.Save();
+        canvas.RotateDegrees((float) group.RotationDegrees, P(context, group.X + group.Width / 2), P(context, group.Y + group.Height / 2));
+        foreach (var item in group.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        canvas.Restore();
     }
 
     static void Fill(SkiaRenderContext context, SKCanvas canvas, double x, double y, double width, double height, string? colorHex) =>

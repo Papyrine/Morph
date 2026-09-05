@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> onto a PDF — the layout engine's first
 /// painter (<c>docs/layout-engine.md</c>, step 5). It performs **no** measurement and **no**
 /// pagination: every page size, line and run position comes from the tree the <c>Fragmenter</c> already
@@ -118,7 +118,23 @@ static class PdfPainter
             case PlacedBorder border:
                 PaintBorder(context, graphics, border);
                 break;
+            case PlacedRotatedGroup group:
+                PaintRotatedGroup(context, graphics, group);
+                break;
         }
+    }
+
+    // See SkiaPainter.PaintRotatedGroup.
+    static void PaintRotatedGroup(PdfRenderContext context, XGraphics graphics, PlacedRotatedGroup group)
+    {
+        var state = graphics.Save();
+        graphics.RotateAtTransform(group.RotationDegrees, new(group.X + group.Width / 2, group.Y + group.Height / 2));
+        foreach (var item in group.Items)
+        {
+            PaintItem(context, graphics, item);
+        }
+
+        graphics.Restore(state);
     }
 
     // A warped WordArt figure. PdfSharp cannot draw the warp geometry, so — exactly as the deleted
