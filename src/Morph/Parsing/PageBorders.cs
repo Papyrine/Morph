@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Decorative borders drawn around each page (from w:pgBorders).
 /// </summary>
 sealed record PageBorders
@@ -30,28 +30,29 @@ sealed record PageBorders
     public bool MeasureFromText { get; init; }
 
     /// <summary>
-    /// The rectangle whose edges the painters stroke, in points — each edge line's CENTRE. In
-    /// page mode the border's OUTER edge sits exactly the declared space from the page edge
-    /// (Word-measured on page_borders/01: space=24pt, sz=3pt draws rows 50–55 at 150 DPI), so the
-    /// line centre is the space plus half the stroke, growing inward. In text mode the space is
-    /// the distance from the text boundary to the border's inner edge, growing outward.
+    /// The rectangle whose edges the painters stroke, in points — each edge's INNER face, from
+    /// which its stack grows outward (<c>BorderStroke.Scope.Page</c>). XPS-read on <c>_probe_pgbdr</c>
+    /// (2026-09-05): in text mode the inner face sits exactly the declared space outside the text
+    /// boundary (space 24pt on a 72pt margin puts it at 48.0 for 0.75, 3 and 6pt singles alike, the
+    /// stack growing outward from there); in page mode the OUTER face sits the space from the page
+    /// edge (24.0 for a 3pt single), so the inner face is the space plus the drawn stack.
     /// </summary>
     public (double X, double Y, double Width, double Height) EdgeRect(PageSettings settings)
     {
         double left, top, right, bottom;
         if (MeasureFromText)
         {
-            left = settings.MarginLeft - LeftSpacePoints - Left.WidthPoints / 2;
-            top = settings.MarginTop - TopSpacePoints - Top.WidthPoints / 2;
-            right = settings.WidthPoints - settings.MarginRight + RightSpacePoints + Right.WidthPoints / 2;
-            bottom = settings.HeightPoints - settings.MarginBottom + BottomSpacePoints + Bottom.WidthPoints / 2;
+            left = settings.MarginLeft - LeftSpacePoints;
+            top = settings.MarginTop - TopSpacePoints;
+            right = settings.WidthPoints - settings.MarginRight + RightSpacePoints;
+            bottom = settings.HeightPoints - settings.MarginBottom + BottomSpacePoints;
         }
         else
         {
-            left = LeftSpacePoints + Left.WidthPoints / 2;
-            top = TopSpacePoints + Top.WidthPoints / 2;
-            right = settings.WidthPoints - RightSpacePoints - Right.WidthPoints / 2;
-            bottom = settings.HeightPoints - BottomSpacePoints - Bottom.WidthPoints / 2;
+            left = LeftSpacePoints + BorderStroke.DrawnStack(Left);
+            top = TopSpacePoints + BorderStroke.DrawnStack(Top);
+            right = settings.WidthPoints - RightSpacePoints - BorderStroke.DrawnStack(Right);
+            bottom = settings.HeightPoints - BottomSpacePoints - BorderStroke.DrawnStack(Bottom);
         }
 
         return (left, top, right - left, bottom - top);
