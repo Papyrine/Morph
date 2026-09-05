@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Promotion-time guard against degenerate scenario baselines. The Verify comparison the
 /// scenario suite runs (<see cref="SkiaScenarioTests"/> / <see cref="ImageSharpScenarioTests"/>
 /// and the PDF export snapshots) compares each rendered page against its own committed
@@ -112,8 +112,12 @@ public class BaselineHealthTests
         // read 17 colours. Skia sees 8 and PDF 13 on the same page, and the content is unchanged in
         // substance — still the same near-empty strip. Threshold moved, render did not. PDF left the
         // list on 2026-09-05 for the same reason in the other direction: the grid-floored cell rules
-        // took its page-2 count past 16 with the strip unchanged.
-        "to-do-list/skia_result#page_0002.verified.png"
+        // took its page-2 count past 16 with the strip unchanged — and came back the same day when
+        // an over-wide centred table stopped clamping at the margin and the strip slid a few pixels
+        // (13 colours again). The page IS the missing feature; listing it on Skia and PDF and leaving
+        // ImageSharp off is the threshold talking, not the render.
+        "to-do-list/skia_result#page_0002.verified.png",
+        "to-do-list/pdf_result#page_0002.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();

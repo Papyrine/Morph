@@ -59,6 +59,24 @@ public class CanonicalFragmenterTests
             Properties = properties ?? new()
         };
 
+    [Test]
+    public async Task An_over_wide_centred_table_centres_on_the_column_and_overhangs_both_margins()
+    {
+        // _probe_wide15 table B: 630pt centred on a 468pt column spans −9 to 621 — here 300pt on the
+        // 260pt column of Page(): 20 + (260 − 300) / 2 = 0.
+        var table = new TableElement
+        {
+            Rows = [new() { Cells = [new() { Properties = new() { WidthPoints = 150 }, Content = [P("a")] }, new() { Properties = new() { WidthPoints = 150 }, Content = [P("b")] }] }],
+            Properties = new() { GridColumnWidths = [150, 150], PreferredWidthPoints = 300, IsAutoFit = true, Alignment = TextAlignment.Center }
+        };
+
+        var document = fragmenter.Layout([table], Page(200));
+        var row = document.Pages[0].Items.OfType<PlacedTableRow>().First();
+
+        await Assert.That(row.Cells[0].X).IsEqualTo(0f).Within(0.01f);
+        await Assert.That(row.Cells[1].X + row.Cells[1].Width).IsEqualTo(300f).Within(0.01f);
+    }
+
     static Run TextRun(string text) => new()
     {
         Text = text,
