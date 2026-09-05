@@ -26,4 +26,5 @@ sealed record TableStyleBorderInfo(
     Dictionary<TableStyleOverrideValues, ConditionalFormat>? Conditionals,
     CellVerticalAlignment? VerticalAlignment = null,
     CellSpacing? DefaultCellPadding = null,
-    DeclaredRunProperties? RunProperties = null);
+    DeclaredRunProperties? RunProperties = null,
+    double? IndentPoints = null);

@@ -7,5 +7,7 @@
 /// positions come from the metric model rather than the painter's own font library) are a later slice.
 /// A tab-leader filler carries an empty <see cref="Text"/> and a non-<c>None</c> <see cref="Leader"/>: the
 /// painter fills its span with the leader (tiled dots/hyphens, or a baseline rule for underscore).
+/// <see cref="BaselineShift"/> is how far ABOVE the line baseline this run's glyphs sit, in points — a
+/// superscript's raise, a subscript's (negative) drop, zero for ordinary text (<see cref="VerticalRunPosition"/>).
 /// </summary>
-readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);
+readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0);

@@ -13,4 +13,13 @@ sealed record GradientFill
 
     /// <summary>Direction in degrees. 0° = top-to-bottom (matches OOXML `a:lin/@ang` divided by 60000).</summary>
     public required double DirectionDegrees { get; init; }
+
+    /// <summary>
+    /// Opacity of the first and last stops, 0..1 (<c>a:alpha</c> on the stop colour, 1 when absent).
+    /// A soft template accent — labels/04's pale hexagons — declares its gradient stops at 20-40%
+    /// alpha over the page, and drawing them opaque saturated every one.
+    /// </summary>
+    public double StartAlpha { get; init; } = 1.0;
+
+    public double EndAlpha { get; init; } = 1.0;
 }

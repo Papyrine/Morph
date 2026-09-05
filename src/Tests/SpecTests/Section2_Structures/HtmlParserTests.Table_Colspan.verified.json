@@ -225,6 +225,7 @@
           "WidthPoints": 0.5,
           "ColorHex": "000000"
         },
+        "Declared": "All",
         "HasAnyBorder": false
       },
       "DefaultCellPadding": {},

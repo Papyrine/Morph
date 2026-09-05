@@ -123,10 +123,10 @@ sealed class SkiaRenderContext(
         var typeface = GetTypeface(props.FontFamily, props.Bold, props.Italic);
         var fontSize = (float) props.FontSizePoints;
 
-        // Subscript and superscript use reduced font size (approximately 58% per OpenXML convention)
+        // Subscript and superscript draw at Word's reduced size (VerticalRunPosition: 65%, XPS-read).
         if (reduced)
         {
-            fontSize *= 0.58f;
+            fontSize *= (float) VerticalRunPosition.ReducedScale;
         }
 
         var scaledSize = fontSize * Scale;

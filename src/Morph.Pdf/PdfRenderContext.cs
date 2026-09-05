@@ -29,9 +29,10 @@ sealed class PdfRenderContext : RenderContextBase
     public XFont GetFont(RunProperties properties)
     {
         var size = properties.FontSizePoints;
+        // Word's reduced size for a superscript or subscript (VerticalRunPosition: 65%, XPS-read).
         if (properties.VerticalAlignment != VerticalRunAlignment.Baseline)
         {
-            size *= 0.58;
+            size *= VerticalRunPosition.ReducedScale;
         }
 
         return GetFont(properties.FontFamily, properties.Bold, properties.Italic, size);

@@ -49,7 +49,7 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "Section 5: Text Decorations\nUNDERLINED TEXT\nDOUBLE UNDERLINE\nSTRIKETHROUGH\nSMALL CAPS STYLE\nALL CAPS STYLE\nSuperscript2 and Subscript2"
+        "Text": "Section 5: Text Decorations\nUNDERLINED TEXT\nDOUBLE UNDERLINE\nSTRIKETHROUGH\nSMALL CAPS STYLE\nALL CAPS STYLE\nSuperscript2\n and Subscript2"
       },
       {
         "Width": 595.2999877929688,
@@ -150,8 +150,8 @@
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0223,
-      "Ssim": 0.9715,
+      "ErrorMetric": 0.0215,
+      "Ssim": 0.9742,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "pdf_result#page_0009.verified.png",
       "ReceivedFile": "pdf_result#page_0009.received.png"

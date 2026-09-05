@@ -9,6 +9,11 @@
         ["Segoe UI Variable Text"] = "Segoe UI",
         ["Segoe UI Variable Small"] = "Segoe UI",
         // Common premium font fallbacks
+        // MS Mincho is the docDefaults East Asian face of many templates (wedding/04) and is not
+        // bundled; MS Gothic is (msgothic.ttc) and draws the same symbol range, which is all a
+        // hint-switched Latin-document run asks of it.
+        ["MS Mincho"] = "MS Gothic",
+        ["MS PMincho"] = "MS PGothic",
         ["Avenir Next LT Pro"] = "Century Gothic",
         ["AvenirNext LT Pro"] = "Century Gothic",
         ["AvenirNext LT Pro Medium"] = "Century Gothic",

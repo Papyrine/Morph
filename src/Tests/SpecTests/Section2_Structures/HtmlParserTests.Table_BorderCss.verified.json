@@ -94,6 +94,7 @@
           "WidthPoints": 1.5,
           "ColorHex": "FF0000"
         },
+        "Declared": "All",
         "HasAnyBorder": true
       },
       "DefaultCellPadding": {},

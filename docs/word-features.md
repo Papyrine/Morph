@@ -127,11 +127,14 @@ Render: `TextRenderer` in both backends.
 
 The typeface used to render text. Resolved from document, theme fonts, or system fallback.
 
-- **OOXML**: `w:rFonts` — `w:ascii`, `w:hAnsi`, `w:cs`, `w:eastAsia`
+- **OOXML**: `w:rFonts` — `w:ascii`, `w:hAnsi`, `w:cs`, `w:eastAsia`, `w:hint`
 - **Spec**: [Run Fonts](http://officeopenxml.com/WPtextFonts.php)
 - **Model**: `RunProperties.FontFamily`
-- **Render**: Font resolved via `FontHelpers` + `RenderContext.GetTypeface()`
-- **Test**: `font_families/`
+- **Parse**: `DocumentParser.ApplyEastAsiaHint` — a run whose `w:rFonts/@w:hint` is `eastAsia` and whose text is made only of script-ambiguous characters (U+2010–U+2FFF symbols, the CJK blocks, a few Latin-1 punctuation marks; ECMA-376 §17.3.2.26) takes its East Asian face: the run's own `w:eastAsia` / `w:eastAsiaTheme`, else the docDefaults one
+- **Render**: Font resolved via `FontHelpers` + `RenderContext.GetTypeface()`; `MS Mincho` falls back to the bundled `MS Gothic`
+- **Test**: `font_families/`, `EastAsiaFontHintTests`
+
+> **Contributors — the East Asian hint (2026-09-05).** wedding/10 draws 136 ☐ (U+2610) checkboxes: 134 name MS Gothic outright, the two "Candid photos" rows carry only `w:hint="eastAsia"` with `w:eastAsia="MS Gothic"` and rendered light grey from the body face's fallback until the hint was honoured. wedding/04's checkbox cells carry the bare hint and take the docDefaults `w:eastAsia="MS Mincho"` — their glyph had been glued to the text from the fallback face's advance. The switch is per run and only for a run that is entirely hint-range characters, since the model carries one face per run.
 
 See [docs/fonts.md](fonts.md) for the full font resolution model, search path, fallback behaviour, and configuration options.
 
@@ -320,7 +323,7 @@ Raises text above the baseline, typically at a smaller font size.
 - **Model**: `RunProperties.VerticalAlignment = VerticalAlignment.Superscript`
 - **Test**: `subscript_superscript/`
 
-> **Contributors**: Raised 35% of font size above baseline in `TextRenderer`.
+> **Contributors — XPS-read (2026-09-05, `_probe_subsup` / `_probe_subsup2`: Calibri 12–96pt, Times New Roman, Arial, Verdana, Georgia, Segoe UI, Cambria).** Word draws a superscript at 65% of the run size (12 → 7.8, 96 → 62.4; Cambria alone at 60%), never the 58% LibreOffice convention the backends used, and raises it a third of the run size: Times, Arial and Verdana read exactly 0.35 × size, Calibri 0.333 from 24pt up, Segoe UI 0.369, Cambria 0.381 — a per-face term no OS/2 metric fits (Georgia alone sits on its OS/2 `ySuperscriptYOffset`). `VerticalRunPosition` carries the rule; the measurer measures the run at the reduced size and puts the shift on `PlacedRun.BaselineShift`, which every painter subtracts from the line baseline. Before this the runs measured full-size, drew at 58%, and sat ON the baseline.
 
 
 #### Subscript `DONE`
@@ -332,7 +335,7 @@ Lowers text below the baseline, typically at a smaller font size.
 - **Model**: `RunProperties.VerticalAlignment = VerticalAlignment.Subscript`
 - **Test**: `subscript_superscript/`
 
-> **Contributors**: Lowered 15% of font size below baseline in `TextRenderer`.
+> **Contributors**: the same 65% size, lowered by 35% of the full-size descent — the reduced glyph's descent bottom stays on the full one (1 − 0.65): Calibri 0.094 × size against its 0.269 descent, Times 0.075 against 0.216, Segoe UI 0.088 against 0.251, each within a pixel of the XPS (`VerticalRunPosition.BaselineShiftPoints`).
 
 
 #### Kerning `DONE`
@@ -421,7 +424,11 @@ Border drawn around an individual run (per-run rectangle, not paragraph-level). 
 - **Model**: `RunProperties.Border` (a `BorderEdge`, its `w:space` on `BorderEdge.SpacePoints`)
 - **Layout**: `CanonicalParagraphMeasurer.RunBorderPad` grows the line by twice the tallest run's `BorderStroke.RunBorderReserve` (declared stack + space) and drops the baseline by it, in both the height-only and the placement paths
 - **Render**: each painter strokes the box `BorderStroke.RunBorderBox` returns — inner faces the floored `w:space` outside the font's line box, the stack growing outward — through `CellBorders.Uniform` and the shared `BorderStroke` recipe, so a run border gets the same styles and dashes as any other edge without per-backend stroke code
-- **Test**: `RunEffectsTests.RunBorder_ParsesColorAndWidth`, `border_style_variants/`
+- **Test**: `RunEffectsTests.RunBorder_ParsesColorAndWidth`, `RunBorderGlyphInsetTests`, `border_style_variants/`
+
+> **Glyph inset (2026-09-05).** The measurer reserves `BorderStroke.RunBorderGlyphInset` — the drawn stack plus the floored `w:space`, 1.2pt for 0.75pt/1pt, 6.6pt for 3pt/4pt — on BOTH sides of a bordered run (an inset piece before its first glyph and after its last), so the first glyph moves right by it, the following run moves on by twice it, and the box the painters stroke outward from the glyphs lands with its outer faces on the reserve, as `_probe_runbdr` measured (73.28 against the paragraph's 72.08). `_probe_runbdr2` confirmed the drawn stacks at three widths for `double` (w/w/w floored: 1.2/1.2/1.2 at 1.5pt, 1.8/1.8/1.8 at 2.25pt, 4.2/4.2/4.2 at 4.5pt) and `triple`.
+>
+> **One open anomaly.** `_probe_runbdr3` put the vertical reserve on a whole-line run, a whole-line run plus its mark, two bordered runs filling the line, a bordered first run and a bordered LAST run alike (a 10pt line grows to 15.6 with a 2.25pt/1pt single), and on a large mid-line box (4.5pt/8pt: 25.8); but `_probe_runbdr2`'s small mid-line boxes (2.25pt/1pt, all five families) grew nothing and drew their rules INSIDE the font's line box, top band on the line top, bottom band ending at the line bottom. The engine reserves in every case — six of seven probe shapes — so `border_style_variants` section 3's mid-line boxes stand taller than Word's; the rule that separates the seventh is unread.
 
 > **Reserve and box (2026-09-05, `_probe_runbdr`, XPS-read: Calibri 12 single-spaced paragraphs whose runs carry `single` 0.75pt/1pt, 3pt/4pt, 6pt/0 and `double` 1.5pt/2pt borders).** Word grows every line's pitch by 2 × (declared stack + `w:space`): 14.65 → 18.3, 28.5, 26.7 and 27.6 (2 × (4.5 + 2) for the double). The vertical rules span exactly the font's line box (117.7–132.1 for a 14.65pt Calibri 12 line), and the horizontal rules' outer faces sit the DRAWN stack plus the floored space outside it — 1.2pt (0.6 + 0.6) for 0.75pt/1pt, 6.6pt (3 + 3.6) for 3pt/4pt, 6.0 for 6pt/0 — leaving the unfloored remainder as a 1.2pt gap between consecutive lines' boxes. The first glyph is pushed right by the same drawn-plus-floored amount (73.28 against the paragraph's 72.08 for 0.75pt/1pt, 78.67 for 3pt/4pt), with the left rule's outer face at the paragraph edge. The engine reserves and draws the box as measured; it does NOT yet shift the glyphs, so its box grows outward from the run instead — a residual of the same few points, recorded in `src/todo.md`. Landing it put `border_style_variants` page 1 within 3px of Word on average (section 2's rules at 681/733/756/808px against Word's 680/730/755/807) from the ~75px it had drifted, −0.029 AE / +0.055 SSIM per backend on that fixture and neutral elsewhere. That offset was the whole story: its section-1 runs carry `w:bdr` alongside the paragraph borders, and the styles-less built-in Normal that had been suspected (`_probe_nostyles`: Aptos 12, ×278/240, 8pt after — the parser's built-in exactly, though the face is Aptos where the parser's flip to Calibri stands on corpus measurement) was not the cause.
 >
@@ -1088,9 +1095,12 @@ margin — and past the paper edge, which is how a template draws a full-bleed r
 
 - **OOXML**: `w:tblInd`
 - **Model**: `TableProperties.IndentPoints`
+- **Parse**: `DocumentParser.ResolveTableIndent` turns the declared indent (the table's own `w:tblInd`, else the style chain's — `ResolveStyleIndent`) into the border offset the layout uses, by compatibility mode
 - **Layout**: `Fragmenter.ComputeTableX` in the body (centred/right tables collapse the indent into the
   slack instead); `Fragmenter.LayoutBand` in a header or footer band
-- **Test**: `table_indent/` (body, positive indents); `header_full_bleed_banner/` (band, negative indent)
+- **Test**: `table_indent/` (body, positive indents); `header_full_bleed_banner/` (band, negative indent); `TableIndentCompatibilityTests`
+
+> **Where the border sits, by compatibility mode (2026-09-05, XPS-read on `_probe_compat12`/`14`/`15`, `_probe_compats12`/`15`, `_probe_compatt12`/`15` — 24 tables sweeping the indent, table-level and per-cell margins and style-declared values at 1in magnitudes).** Mode 15 puts the left BORDER at margin + `w:tblInd`; cell margins only move the text. Modes 12 and 14 put the TEXT of the first cell at margin + `w:tblInd` and hang the border left of it by the first cell's own resolved left margin — a per-cell `w:tcMar` of 0 or 1in moved the border by exactly that, the second row's margin did not. The indent counts as declared when any rung states it, and Word's built-in Normal Table states 0: every corpus table under Table Grid in a mode-12 document therefore hangs 108 twips (5.4pt) left of the margin with its text on the margin, which is where `table_grid_styling_padding`'s reference draws it (x137 against a 149px margin) and where 201 corpus documents with no `compatibilityMode` (mode 12) now draw theirs. Only a package with no styles part reaches an undeclared indent: Word then puts the border on the margin when the table declares its own `w:tblCellMar` (text at margin + margin) and 108 twips left of it otherwise. `TableProperties.IndentPoints` is that border offset.
 
 > **Contributors — the full-bleed band idiom.** A banner header is usually a one-column table far wider
 > than the text column, pulled left by a negative `w:tblInd`: `header_full_bleed_banner` is 12792 twips
@@ -1113,7 +1123,9 @@ Per-cell border control for all four edges with color, width, and visibility. Fa
 - **Spec**: [Table Cell Borders](http://officeopenxml.com/WPtableCellBorders.php)
 - **Model**: `CellBorders`, `BorderEdge` in `DocumentElements.cs`
 - **Layout**: `TableLayout.ResolveCellBorders()` — merges cell/table/inside borders
-- **Test**: `table_borders/`, `border_style_variants/`
+- **Test**: `table_borders/`, `border_style_variants/`, `TableCellBorderInheritanceTests`
+
+> **A `w:tcBorders` speaks only for the sides it names (2026-09-05).** `CellBorders.Declared` records which of the four a cell (or a table style's conditional `w:tcBorders`) actually wrote; the others keep the table-level cascade at layout, and conditional regions layer over one another side by side (`CellBorders.Over`). Word-read on business-plans/10, whose header cells declare only a 1.5pt `w:bottom` and whose first body row only a `w:top`: Word keeps the full grid around them. Reading the record as a whole box dropped the three unwritten sides AND, because an unwritten side then read as an explicit `nil`, suppressed the shared inside rules of the neighbouring cells too — the tables lost their outer box and every vertical rule on those two rows. Only a side a neighbour DECLARES invisible suppresses the rule they share.
 
 > **Contributors**: Resolution order: cell-level borders override table defaults. Outer cells use `DefaultBorders`, inner cells use `InsideHorizontalBorder`/`InsideVerticalBorder`. See `TableLayout.ResolveCellBorders()`.
 > **Consumers**: Border STYLE is shared with every other border (paragraph, cell, run) through `BorderStroke`, which turns a style plus `w:sz` into the parallel lines a painter strokes and an optional dash pattern, so the three backends cannot drift on what "double" or "dotDash" means. `HtmlExporter` maps the same enum to CSS keywords.
@@ -1310,6 +1322,8 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 
 Tables that span multiple pages with automatic page breaks between rows, splitting a row at a
 line boundary when it does not fit.
+
+> **A split cell paragraph must fit WITH its after-spacing (2026-09-05, XPS-read on `_probe_cellheight` / `_probe_cellheight2`).** The same 89 one-line paragraphs fill 28 lines of a flow page and 27 of a single-cell table under Normal spacing (line 276, 8pt after): the cell's 28th line would have ended 0.8pt inside the content bottom, but its 8pt after-spacing would not, and Word moved it overleaf — where the flow lets that spacing hang past the page bottom. With zero after-spacing both hold 48 lines, so a cell has no usable-height deficit of its own; `Fragmenter.LayoutCellFragment`'s split probe now reserves a paragraph's after-spacing behind its last line (`CellSplitAfterSpacingTests`). This closes the "42 against 41 lines" residue that had been carried under todo #25.
 
 - **Render**: `Fragmenter.PlaceTableRowByRow` / `PlaceSplitRow` / `BuildRowFragment`
 - **Test**: `table_multipage/`, `table_page_break/`, `business-plans/15`, `CanonicalFragmenterTests`
@@ -1519,9 +1533,10 @@ Diagonal lines drawn corner-to-corner inside a cell (top-left to bottom-right or
 - **Spec**: [TopLeftToBottomRightCellBorder](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.topleftatobottomrightcellborder), [TopRightToBottomLeftCellBorder](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.toprighttobottomleftcellborder)
 - **Model**: `TableCellProperties.Diagonals` (a `CellDiagonals` record with `Down` and `Up` `BorderEdge`s) — kept separate from `CellBorders` so cell-level diagonals don't break the four-side cell→table cascade
 - **Parse**: `DocumentParser` reads the two diagonal children inside `w:tcBorders`. The four-side `cellBorders` is only materialised when at least one of `w:top`/`w:right`/`w:bottom`/`w:left` is explicitly present, so a diagonals-only cell still inherits `w:tblBorders` for its sides.
-- **Render**: `PageRendererBase.RenderTableCell` invokes `DrawCellDiagonals` after `DrawCellBorders`; both Skia and ImageSharp implementations stroke a corner-to-corner line for each visible diagonal.
+- **Layout**: `PlacedCell.Diagonals` carries the record onto the placed cell
+- **Render**: each painter's `PaintCellDiagonals` strokes a corner-to-corner line for each visible diagonal after the edges, at `BorderStroke.DiagonalThickness` — the single band floored to the 120-dpi grid, one pixel for Word's 0.5pt hairlines. Restored 2026-09-05: the diagonals were an engine-flip orphan, parsed and never carried to `PlacedCell`, so `table_diagonal_borders/01` rendered none.
 - **Export**: `HtmlExporter.DiagonalGradient` — CSS has no diagonal border, so each diagonal is a corner-keyword `linear-gradient` band at the declared width and colour: the CSS spec constructs `to bottom left` so the perpendicular through the 50% stop passes exactly through the top-left and bottom-right corners (mirrored for `to bottom right`), making the coloured band the corner-to-corner line at any cell aspect ratio.
-- **Test**: `TableDiagonalBordersTests` (unit + end-to-end against `Tests/Inputs/table_diagonal_borders/01`)
+- **Test**: `TableDiagonalBordersTests` (unit + end-to-end against `Tests/Inputs/table_diagonal_borders/01`), `CellDiagonalPlacementTests`
 
 
 #### Cell Spacing (Detached Borders) `DONE`
@@ -1532,7 +1547,7 @@ Non-zero spacing between adjacent cells, producing the "detached" border layout 
 - **Spec**: [TableCellSpacing](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tablecellspacing)
 - **Model**: `TableProperties.CellSpacingPoints` (in points; non-zero switches the table to detached-border mode)
 - **Parse**: `DocumentParser.ReadTableCellSpacing` reads `w:tblCellSpacing/@w:w` (twips → points), honours only `type="dxa"`. Falls back to the table style's value when the document doesn't specify its own.
-- **Render**: `TableLayout.ResolveCellBorders` returns the table's outer borders on all four edges of every cell when spacing is set. The engine's detached geometry (`Fragmenter.BuildRow` + `TableLayout.CellSpacingInsets`, 2026-08-19) insets each cell's drawn box by `CellSpacingPoints` per inner edge and by DOUBLE that on the table-outer edges, widens the first/last row slots by one spacing each, and emits the table frame as a content-less synthetic `PlacedCell` at the row extent — so every drawn gap is `2 × spacing`, the law `_probe_cellspacing` measured at 2/6/12pt (frame-to-cell 11/27/52px at 150 DPI, cell-to-cell the same from two adjacent single insets). Residual: Word's gap runs between the rules' inner FACES, so the engine reads ~half a rule-width tight per gap — sub-pixel at hairline widths.
+- **Render**: `TableLayout.ResolveCellBorders` returns the table's outer borders on all four edges of every cell when spacing is set. The engine's detached geometry (`Fragmenter.BuildRow` + `TableLayout.CellSpacingInsets`, 2026-08-19) insets each cell's drawn box by `CellSpacingPoints` per inner edge and by DOUBLE that on the table-outer edges, widens the first/last row slots by one spacing each, and emits the table frame as a content-less synthetic `PlacedCell` at the row extent — so every drawn gap is `2 × spacing` between the facing rules plus one rule width, the law `_probe_cellspacing` measured at 2/6/12pt (frame-to-cell 11/27/52px at 150 DPI, cell-to-cell the same from two adjacent single insets). Each inset is `TableLayout.SpacingInset`: the spacing PLUS the edge's declared width, since 2026-09-05 — read as the spacing alone, `table_cell_spacing/01`'s 1pt rules faced each other across 8px against Word's 10 and its table came out 7px short of Word's 188 (four inner gaps of one width each).
 - **Export**: `HtmlExporter.WriteTable` overrides the stylesheet's `border-collapse: collapse` with `border-collapse: separate; border-spacing: 2 × CellSpacingPoints` and puts the table's own borders on the `<table>` as the outer frame — the per-cell boxes already ride on the cells, so the browser renders the same detached model.
 - **Test**: `TableCellSpacingTests` (unit + end-to-end against `Tests/Inputs/table_cell_spacing/01`)
 
@@ -1876,7 +1891,10 @@ Images embedded in the text flow, advancing with surrounding content.
 - **Spec**: [Inline Drawing](http://officeopenxml.com/WPdrawing.php)
 - **Model**: `ImageElement` with `ImageData`, `WidthPoints`, `HeightPoints`, `ContentType`
 - **Parse**: `DocumentParser.ParseParagraph()` — drawing extraction
-- **Test**: `inline_image/`, `multiple_images/`
+- **Layout**: the image's bottom sits on the baseline; `CanonicalParagraphMeasurer.ImageLineHeight` makes the line the image's height PLUS the text descent when the image is the taller
+- **Test**: `inline_image/`, `multiple_images/`, `icon_with_text/`
+
+> **Line height with an inline picture or shape (2026-09-05, XPS-read on `_probe_inline`: 6/24/48pt pictures and 4/12/30pt inline rectangles in a 10pt Calibri line).** The bottom of both sits on the baseline (a 24pt picture spans 125.7–149.7 against a 150.1 baseline, a 4pt rectangle 262.3–266.3 against 266.6), the line above sits the image height plus its own descent over the baseline (3.2 + 24 = 27.2, read 27.6), and the line below keeps the plain pitch (2.7 descent + 9.5 ascent = 12.2, read 12.0) — so a text line holding a picture is `image + descent`, not `max(pitch, image)`. Taking the max dropped the descent on every such line, which is why icon_with_text's paragraph after its inline star sat 10-13px high. The descent is the text runs' own: a paragraph holding ONLY the image keeps none under it — the first regeneration charged one to every image line and drifted the image-only stacks of cards/16, postcards/02, labels/13 and resumes/11 (card art, label icons, short inline rules) further from Word than the plain image height, so the rule is scoped to text-bearing lines.
 
 > **Contributors — PDFsharp dedups images by their PIXELS, not their palette.** `PdfImageTable.ImageSelector` keys an imported bitmap by a hash of its pixel data, so two indexed PNGs sharing pixel indices and differing only in `PLTE` — the same icon recoloured, menus/06's white icon vs red sheep — collide, and whichever draws second renders as the first everywhere. `PdfRenderContext.GetImage` detects the pair via `IndexedPngNormalizer.PixelIdentity` (hash of IHDR+IDAT+tRNS vs hash of PLTE) and re-encodes only the collider as RGBA (`ExpandPaletteToRgba`), putting its colours into the data PDFsharp hashes; every PDF without such a pair is byte-identical to before. Reproduced outside Morph with a three-image PdfSharp 6.2.4 program, ruling out everything Morph-side.
 
@@ -2072,7 +2090,7 @@ Controls whether floating elements render behind or in front of document text.
 Linear or radial gradient fills for shapes.
 
 - **OOXML**: `a:gradFill` with gradient stops and direction
-- **Model**: `GradientFill` record (start colour, end colour, angle in degrees) on `FloatingShapeElement.Gradient`. Multi-stop gradients are flattened to a 2-stop linear; radial / path gradients fall through to the start colour as a solid fill.
+- **Model**: `GradientFill` record (start colour, end colour, angle in degrees, and the two stops' `a:alpha` as `StartAlpha` / `EndAlpha`) on `FloatingShapeElement.Gradient`. Multi-stop gradients are flattened to a 2-stop linear; radial / path gradients fall through to the start colour as a solid fill. Stop alpha landed 2026-09-05: labels/04's pale hexagons declare their stops at partial alpha over the page and drew saturated without it; the SVG export emits it as `stop-opacity`.
 - **Parse**: `ShapeParser.ExtractGradientFill` reads `a:gradFill > a:gsLst` stops (sorted by position) and `a:lin/@ang` (60000ths-of-degree → degrees).
 - **Render**: Skia uses `SKShader.CreateLinearGradient` with start/end points pivoted on the bounding box; ImageSharp uses `LinearGradientBrush` with two `ColorStop`s; the PDF backend uses `XLinearGradientBrush` between the same two pivot points. All fill the shape's bounding rectangle.
 

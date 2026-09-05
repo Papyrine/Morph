@@ -66,22 +66,32 @@ static class TableHeightCalculator
                 gridColIndex += span;
             }
 
-            // w:tblCellSpacing expands the row slot by 2 × spacing — the cell box keeps its content
-            // size while the gaps land above and below it. The first and last rows carry one extra
-            // spacing each: the table FRAME sits a further 2 × spacing outside the outermost cell
+            // w:tblCellSpacing expands the row slot by the top and bottom insets — the cell box keeps
+            // its content size while the gaps land above and below it. The first and last rows carry
+            // one extra inset each: the table FRAME sits a further gap outside the outermost cell
             // rules (_probe_cellspacing at 2/6/12pt: frame-to-cell reads 11/27/52px at 150 DPI,
-            // exactly 2 × spacing plus the rules' half-widths, while cell-to-cell is 2 × spacing
-            // from the two adjacent insets).
-            var slotSpacing = 2 * (float) table.Properties.CellSpacingPoints;
-            heights[rowIndex] = maxHeight + slotSpacing;
-            if (rowIndex == 0)
+            // 2 × spacing plus the rules' half-widths, while cell-to-cell is the two adjacent insets
+            // meeting). Each inset is the spacing plus the rule's own width — see
+            // TableLayout.CellSpacingInsets for the reading that put the width in.
+            if (table.Properties.CellSpacingPoints > 0)
             {
-                heights[rowIndex] += slotSpacing / 2;
-            }
+                var frame = table.Properties.DefaultBorders;
+                var topInset = (float) TableLayout.SpacingInset(table.Properties, frame?.Top);
+                var bottomInset = (float) TableLayout.SpacingInset(table.Properties, frame?.Bottom);
+                heights[rowIndex] = maxHeight + topInset + bottomInset;
+                if (rowIndex == 0)
+                {
+                    heights[rowIndex] += topInset;
+                }
 
-            if (rowIndex == table.Rows.Count - 1)
+                if (rowIndex == table.Rows.Count - 1)
+                {
+                    heights[rowIndex] += bottomInset;
+                }
+            }
+            else
             {
-                heights[rowIndex] += slotSpacing / 2;
+                heights[rowIndex] = maxHeight;
             }
         }
 

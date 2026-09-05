@@ -79,6 +79,7 @@
                   "WidthPoints": 0.75,
                   "ColorHex": "B2B2B2"
                 },
+                "Declared": "All",
                 "HasAnyBorder": true
               },
               "GridSpan": 1,
@@ -117,6 +118,7 @@
           "WidthPoints": 1.5,
           "ColorHex": "B2B2B2"
         },
+        "Declared": "All",
         "HasAnyBorder": true
       },
       "DefaultCellPadding": {},

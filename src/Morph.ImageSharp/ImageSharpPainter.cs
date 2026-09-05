@@ -129,7 +129,9 @@ static class ImageSharpPainter
                 Fill(context, canvas, run.X, line.Y, run.Width, line.Height, properties.BackgroundColorHex);
             }
 
-            DrawTracked(context, canvas, run.Text, properties, run.X, line.Baseline);
+            // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
+            var baseline = line.Baseline - run.BaselineShift;
+            DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
 
             var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
             if (properties.Underline)
@@ -138,7 +140,7 @@ static class ImageSharpPainter
                 var underlineColor = properties.UnderlineColorHex == null
                     ? color
                     : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = P(context, line.Baseline + properties.FontSizePoints * 0.12);
+                var underlineY = P(context, baseline + properties.FontSizePoints * 0.12);
                 canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), underlineY), new PointF(P(context, run.X + run.Width), underlineY));
                 if (properties.DoubleUnderline)
                 {
@@ -149,7 +151,7 @@ static class ImageSharpPainter
 
             if (properties.Strikethrough)
             {
-                var strikeY = P(context, line.Baseline - ascent * 0.3);
+                var strikeY = P(context, baseline - ascent * 0.3);
                 canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(P(context, run.X), strikeY), new PointF(P(context, run.X + run.Width), strikeY));
             }
 
@@ -526,8 +528,8 @@ static class ImageSharpPainter
             new(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
             new(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
             GradientRepetitionMode.None,
-            new ColorStop(0f, ImageSharpRenderContext.ParseColor(gradient.StartColorHex)),
-            new ColorStop(1f, ImageSharpRenderContext.ParseColor(gradient.EndColorHex)));
+            new ColorStop(0f, ImageSharpShapeDrawing.ParseColor(gradient.StartColorHex, gradient.StartAlpha)),
+            new ColorStop(1f, ImageSharpShapeDrawing.ParseColor(gradient.EndColorHex, gradient.EndAlpha)));
     }
 
     static void PaintTableRow(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedTableRow row)
@@ -565,6 +567,27 @@ static class ImageSharpPainter
             if (cell.Borders is { } borders)
             {
                 PaintCellEdges(context, canvas, cell, borders);
+            }
+
+            if (cell.Diagonals is {HasAny: true} diagonals)
+            {
+                PaintCellDiagonals(context, canvas, cell, diagonals);
+            }
+        }
+    }
+
+    // See SkiaPainter.PaintCellDiagonals.
+    static void PaintCellDiagonals(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedCell cell, CellDiagonals diagonals)
+    {
+        float left = P(context, cell.X), top = P(context, cell.Y), right = P(context, cell.X + cell.Width), bottom = P(context, cell.Y + cell.Height);
+        Diagonal(diagonals.Down, left, top, right, bottom);
+        Diagonal(diagonals.Up, right, top, left, bottom);
+
+        void Diagonal(BorderEdge edge, float x0, float y0, float x1, float y1)
+        {
+            if (BorderStroke.DiagonalThickness(edge) is > 0 and var thickness)
+            {
+                canvas.DrawLine(EdgePen(context, edge, thickness, BorderStroke.DashPattern(edge.Style, edge.WidthPoints), 1), new PointF(x0, y0), new PointF(x1, y1));
             }
         }
     }

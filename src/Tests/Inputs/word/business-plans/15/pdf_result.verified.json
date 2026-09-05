@@ -96,12 +96,12 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "BUSINESS PLAN | APRIL 25, 20XX 18\nThis is a list of goals that your business may be striving to reach, by start and completion dates,\nand by budget. It can also be presented on a table or chart.\nBreak-even analysis\nUse this section to evaluate your business profitability. You can measure how close you are to\nachieving that break-even point when your expenses are covered by the amount of your sales\nand are on the brink of profitability.\nA break-even analysis can tell you what sales volume you are going to need to generate a\nprofit. It can also be used as a guide for setting prices.\nThere are three basic ways to increase the profits of your business: generate more sales, raise\nprices, and/or lower costs. All can affect your business: if you raise prices, you may no longer\nbe competitive; if you generate more sales, you may need added personnel to service those\nsales which would increase your costs. Lowering the fixed costs your business must pay each\nmonth will have a greater impact on the profit margin than changing variable costs.\n• Fixed costs: Rent, insurance, salaries, etc.\n• Variable costs: The cost at which you buy products, supplies, etc.\n• Contribution Margin: This is the selling price minus the variable costs. It measures the\ndollars available to pay the fixed costs and make a profit.\n• Contribution Margin Ratio: This is the number of total sales minus the variable costs,\ndivided by total sales. It measures the percentage of each sales dollar to pay fixed costs\nand make a profit.\n• Break-even Point: This is the amount when the total sales equal the total expenses. It is the\nminimum sales dollar you need to reach before you make a profit.\n• Break-even Point in Units: For applicable businesses, this is the total of fixed costs divided\nby the unit selling price minus the variable costs per unit. It tells you how many units you\nneed to sell before you make a profit.\n• Break-even Point in Dollars: This is the total amount of fixed costs divided by the\ncontribution margin ratio. It is a method of calculating the minimum sales dollar to reach\nbefore you make a profit.\n• Note: If the sales dollars are below the break-even point, your business is losing money.\nMiscellaneous documents"
+        "Text": "BUSINESS PLAN | APRIL 25, 20XX 18\nThis is a list of goals that your business may be striving to reach, by start and completion dates,\nand by budget. It can also be presented on a table or chart.\nBreak-even analysis\nUse this section to evaluate your business profitability. You can measure how close you are to\nachieving that break-even point when your expenses are covered by the amount of your sales\nand are on the brink of profitability.\nA break-even analysis can tell you what sales volume you are going to need to generate a\nprofit. It can also be used as a guide for setting prices.\nThere are three basic ways to increase the profits of your business: generate more sales, raise\nprices, and/or lower costs. All can affect your business: if you raise prices, you may no longer\nbe competitive; if you generate more sales, you may need added personnel to service those\nsales which would increase your costs. Lowering the fixed costs your business must pay each\nmonth will have a greater impact on the profit margin than changing variable costs.\n• Fixed costs: Rent, insurance, salaries, etc.\n• Variable costs: The cost at which you buy products, supplies, etc.\n• Contribution Margin: This is the selling price minus the variable costs. It measures the\ndollars available to pay the fixed costs and make a profit.\n• Contribution Margin Ratio: This is the number of total sales minus the variable costs,\ndivided by total sales. It measures the percentage of each sales dollar to pay fixed costs\nand make a profit.\n• Break-even Point: This is the amount when the total sales equal the total expenses. It is the\nminimum sales dollar you need to reach before you make a profit.\n• Break-even Point in Units: For applicable businesses, this is the total of fixed costs divided\nby the unit selling price minus the variable costs per unit. It tells you how many units you\nneed to sell before you make a profit.\n• Break-even Point in Dollars: This is the total amount of fixed costs divided by the\ncontribution margin ratio. It is a method of calculating the minimum sales dollar to reach\nbefore you make a profit.\n• Note: If the sales dollars are below the break-even point, your business is losing money.\nMiscellaneous documents\nTo back up the statements you may have made in your business plan, you may need to include\nany or all the following documents in your appendix:\n• Personal resumes\n• Personal financial statements\n• Credit reports, business and personal\n• Copies of leases\n• Letter of reference\n• Contracts"
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "BUSINESS PLAN | APRIL 25, 20XX 19\nTo back up the statements you may have made in your business plan, you may need to include\nany or all the following documents in your appendix:\n• Personal resumes\n• Personal financial statements\n• Credit reports, business and personal\n• Copies of leases\n• Letter of reference\n• Contracts\n• Legal documents\n• Personal and business tax returns\n• Miscellaneous relevant documents.\n• Photographs"
+        "Text": "BUSINESS PLAN | APRIL 25, 20XX 19\n• Legal documents\n• Personal and business tax returns\n• Miscellaneous relevant documents.\n• Photographs"
       }
     ]
   },
@@ -236,24 +236,24 @@
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.1822,
-      "Ssim": 0.7052,
+      "ErrorMetric": 0.1918,
+      "Ssim": 0.7058,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "pdf_result#page_0017.verified.png",
       "ReceivedFile": "pdf_result#page_0017.received.png"
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.1173,
-      "Ssim": 0.7263,
+      "ErrorMetric": 0.1263,
+      "Ssim": 0.7047,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "pdf_result#page_0018.verified.png",
       "ReceivedFile": "pdf_result#page_0018.received.png"
     },
     {
       "Page": 19,
-      "ErrorMetric": 0.0226,
-      "Ssim": 0.95,
+      "ErrorMetric": 0.0151,
+      "Ssim": 0.9637,
       "ExpectedFile": "expected_0019.png",
       "VerifiedFile": "pdf_result#page_0019.verified.png",
       "ReceivedFile": "pdf_result#page_0019.received.png"

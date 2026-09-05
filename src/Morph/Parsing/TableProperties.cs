@@ -68,7 +68,12 @@ sealed record TableProperties
     /// <summary>Default cell margins (used when cell doesn't specify its own).</summary>
     public CellSpacing DefaultCellMargin { get; init; } = new();
 
-    /// <summary>Table indent from left margin (can be negative).</summary>
+    /// <summary>
+    /// Offset of the table's left BORDER from the left margin (can be negative). Resolved by
+    /// <c>DocumentParser.ResolveTableIndent</c> from <c>w:tblInd</c>: the indent itself in
+    /// compatibility mode 15, the indent minus the first cell's left margin in modes 12 and 14, where
+    /// <c>w:tblInd</c> positions the text rather than the border.
+    /// </summary>
     public double IndentPoints { get; init; }
 
     /// <summary>Column widths from the table grid (w:tblGrid), in points. Null if not specified.</summary>

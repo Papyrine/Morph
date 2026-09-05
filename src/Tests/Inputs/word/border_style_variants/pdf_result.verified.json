@@ -16,12 +16,12 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "thinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap\nthinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr, sz 18)\nnil none single thick\ndouble dotted dashed dotDash\ndotDotDash triple thinThickSmallGap thickThinSmallGap"
+        "Text": "thinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap\nthinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr, sz 18)\nnil none single thick \n double dotted dashed dotDash \n dotDotDash triple thinThickSmallGap thickThinSmallGap "
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "thinThickThinSmallGap thinThickMediumGap thickThinMediumGap thinThickThinMediumGap\nthinThickLargeGap thickThinLargeGap thinThickThinLargeGap wave\ndoubleWave dashSmallGap dashDotStroked threeDEmboss\nthreeDEngrave outset inset\n4. Border width sweep (w:sz, eighths of a point)\nsingle, sz=2 (0.25pt)\nsingle, sz=4 (0.50pt)\nsingle, sz=6 (0.75pt)\nsingle, sz=8 (1.00pt)\nsingle, sz=12 (1.50pt)\nsingle, sz=18 (2.25pt)\nsingle, sz=24 (3.00pt)\nsingle, sz=36 (4.50pt)\nsingle, sz=48 (6.00pt)\nsingle, sz=96 (12.00pt)\ndouble, sz=6 (total width splits into two lines)\ndouble, sz=24\n5. Edge combinations\ntop only\nbottom only\nleft only\nright only\ntop + bottom"
+        "Text": "thinThickThinSmallGap thinThickMediumGap thickThinMediumGap thinThickThinMediumGap\n thinThickLargeGap thickThinLargeGap thinThickThinLargeGap wave \n doubleWave dashSmallGap dashDotStroked threeDEmboss \n threeDEngrave outset inset \n4. Border width sweep (w:sz, eighths of a point)\nsingle, sz=2 (0.25pt)\nsingle, sz=4 (0.50pt)\nsingle, sz=6 (0.75pt)\nsingle, sz=8 (1.00pt)\nsingle, sz=12 (1.50pt)\nsingle, sz=18 (2.25pt)\nsingle, sz=24 (3.00pt)\nsingle, sz=36 (4.50pt)\nsingle, sz=48 (6.00pt)\nsingle, sz=96 (12.00pt)\ndouble, sz=6 (total width splits into two lines)\ndouble, sz=24\n5. Edge combinations\ntop only\nbottom only\nleft only\nright only\ntop + bottom"
       },
       {
         "Width": 595.2999877929688,
@@ -38,24 +38,24 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1172,
-      "Ssim": 0.8,
+      "ErrorMetric": 0.1171,
+      "Ssim": 0.8005,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2403,
-      "Ssim": 0.5451,
+      "ErrorMetric": 0.2404,
+      "Ssim": 0.5445,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1966,
-      "Ssim": 0.6325,
+      "ErrorMetric": 0.1975,
+      "Ssim": 0.6292,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

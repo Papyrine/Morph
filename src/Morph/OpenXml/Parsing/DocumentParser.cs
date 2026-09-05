@@ -174,6 +174,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Table style borders cached during parsing (styleId -> borders + conditional formatting)
     Dictionary<string, TableStyleBorderInfo>? tableStyleBorders;
 
+    // docDefaults w:rFonts/@w:eastAsia (or its theme slot): the East Asian face a run with
+    // w:hint="eastAsia" draws its ambiguous characters in when its own w:rFonts names none.
+    string? defaultEastAsiaFontFamily;
+
+    // w:compatSetting compatibilityMode, read before the body is parsed because table placement
+    // depends on it (see ResolveTableIndent). 12 is what Word assumes for a document that declares
+    // none (ExtractCompatibilitySettings).
+    int compatibilityMode = 12;
+
     // The table-style step of the paragraph cascade: docDefaults -> table style w:pPr ->
     // paragraph style chain -> direct w:pPr (ECMA-376). A table style's own w:pPr applies to
     // every paragraph in tables that reference it, so it overrides the document defaults but
@@ -393,6 +402,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Extract table style borders
         tableStyleBorders = ExtractTableStyleBorders(mainPart);
 
+        var compatibility = ExtractCompatibilitySettings(mainPart);
+        compatibilityMode = compatibility.CompatibilityMode;
+
         var elements = ParseElements(body, mainPart);
 
         // Append floating tables that were nested inside cells. Lifting them here lets the
@@ -435,7 +447,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Even, isHeader: false)
             : null;
         var hyphenation = ExtractHyphenationSettings(mainPart);
-        var compatibility = ExtractCompatibilitySettings(mainPart);
 
         // Both bookmark and comment extraction anchor to paragraph ordinals; the map costs a
         // full body walk, so it's built at most once and only when either feature is present.
@@ -1284,6 +1295,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var defaultFonts = rPrDefault.GetFirstChild<RunFonts>();
             if (defaultFonts != null)
             {
+                defaultEastAsiaFontFamily = EastAsiaFontFamily(defaultFonts);
+
                 // Try theme font reference first
                 if (defaultFonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
                 {
@@ -2340,17 +2353,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var tcPr = tblStylePr.TableStyleConditionalFormattingTableCellProperties;
                 var tcBorders = tcPr?.GetFirstChild<TableCellBorders>();
 
-                CellBorders? condBorders = null;
-                if (tcBorders != null)
-                {
-                    condBorders = new()
-                    {
-                        Top = ParseBorderEdge(tcBorders.GetFirstChild<TopBorder>()),
-                        Right = ParseBorderEdge(tcBorders.GetFirstChild<RightBorder>()),
-                        Bottom = ParseBorderEdge(tcBorders.GetFirstChild<BottomBorder>()),
-                        Left = ParseBorderEdge(tcBorders.GetFirstChild<LeftBorder>())
-                    };
-                }
+                var condBorders = ParseDeclaredCellBorders(tcBorders);
 
                 var condShading = ReadShadingFill(tcPr?.GetFirstChild<Shading>());
 
@@ -2373,10 +2376,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // TableGrid inherits its tblCellMar from TableNormal, so a table that names
             // TableGrid would otherwise lose the 108-twip start/end padding.
             var styleCellPadding = ResolveStyleCellPadding(style, tableStylesById);
+            var styleIndent = ResolveStyleIndent(style, tableStylesById);
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null)
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleIndent != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ResolveStyleRunProperties(style, tableStylesById));
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ResolveStyleRunProperties(style, tableStylesById), styleIndent);
             }
         }
 
@@ -2503,6 +2507,79 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         return resolved;
+    }
+
+    /// <summary>
+    /// The table style chain's <c>w:tblInd</c>, from the nearest style that declares one. Word's
+    /// built-in Normal Table declares 0, and every table inherits it — which is what makes the
+    /// indent DECLARED for the compatibility rule in <see cref="ResolveTableIndent"/>.
+    /// </summary>
+    internal static double? ResolveStyleIndent(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            var tblInd = current.StyleTableProperties?.GetFirstChild<TableIndentation>();
+            if (tblInd?.Width?.HasValue == true)
+            {
+                return tblInd.Width.Value / OoxmlUnits.TwipsPerPoint;
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Where the table's left BORDER sits relative to the margin, from <c>w:tblInd</c> and the
+    /// document's compatibility mode. XPS-read on <c>_probe_compat12</c>/<c>14</c>/<c>15</c>,
+    /// <c>_probe_compats12</c>/<c>15</c> and <c>_probe_compatt12</c>/<c>15</c> (2026-09-05; 24
+    /// tables sweeping the indent, the table-level margin, per-cell margins and style-declared
+    /// values at 1in magnitudes):
+    ///
+    /// <para><b>Mode 15 (Word 2013+):</b> the border is at margin + tblInd. Cell margins do not
+    /// move it (a 1in first-cell margin only pushes the text).</para>
+    ///
+    /// <para><b>Modes 12 and 14:</b> tblInd positions the TEXT of the first cell — the border hangs
+    /// left of it by the first cell's own resolved left margin (a per-cell <c>w:tcMar</c> of 0 or
+    /// 1in moved the border by exactly that; the second row's margin did not). So the border is
+    /// at margin + tblInd − firstCellLeftMargin. The indent counts as declared when any rung
+    /// states it, and Word's built-in Normal Table states 0: a corpus table under Table Grid
+    /// therefore hangs 108 twips (5.4pt) left of the margin with its text on the margin, which is
+    /// where <c>table_grid_styling_padding</c>'s Word reference draws it (x137 against a 149px
+    /// margin). Only a package with no styles part has an undeclared indent; there Word puts the
+    /// border on the margin when the table declares its own <c>w:tblCellMar</c> (text at margin +
+    /// margin) and 108 twips left of it otherwise (the built-in margin, text on the margin).</para>
+    ///
+    /// <para>Centred and right-aligned tables ignore the indent on either mode
+    /// (<c>Fragmenter.ComputeTableX</c>).</para>
+    /// </summary>
+    internal static double ResolveTableIndent(int compatibilityMode, double? declaredIndent, bool tableDeclaresCellMargin, double firstCellLeftMargin)
+    {
+        if (compatibilityMode >= 15)
+        {
+            return declaredIndent ?? 0;
+        }
+
+        if (declaredIndent is { } indent)
+        {
+            return indent - firstCellLeftMargin;
+        }
+
+        return tableDeclaresCellMargin ? 0 : -firstCellLeftMargin;
     }
 
     internal static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
@@ -4416,20 +4493,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var tcBorders = cellProps?.GetFirstChild<TableCellBorders>();
                 if (tcBorders != null)
                 {
-                    var topChild = tcBorders.GetFirstChild<TopBorder>();
-                    var rightChild = tcBorders.GetFirstChild<RightBorder>();
-                    var bottomChild = tcBorders.GetFirstChild<BottomBorder>();
-                    var leftChild = tcBorders.GetFirstChild<LeftBorder>();
-                    if (topChild != null || rightChild != null || bottomChild != null || leftChild != null)
-                    {
-                        cellBorders = new()
-                        {
-                            Top = ParseBorderEdge(topChild),
-                            Right = ParseBorderEdge(rightChild),
-                            Bottom = ParseBorderEdge(bottomChild),
-                            Left = ParseBorderEdge(leftChild)
-                        };
-                    }
+                    cellBorders = ParseDeclaredCellBorders(tcBorders);
 
                     var tl2br = tcBorders.GetFirstChild<TopLeftToBottomRightCellBorder>();
                     var tr2bl = tcBorders.GetFirstChild<TopRightToBottomLeftCellBorder>();
@@ -4536,7 +4600,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                             if (cond.Borders != null)
                             {
-                                conditionalBorders = cond.Borders;
+                                // A region declaring only some sides (firstRow's bottom rule, say)
+                                // layers over the regions before it rather than replacing them.
+                                conditionalBorders = cond.Borders.Over(conditionalBorders);
                             }
 
                             if (cond.BackgroundColorHex != null)
@@ -4551,7 +4617,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         }
                     }
 
-                    cellBorders ??= conditionalBorders;
+                    // The cell's own sides win; what it leaves undeclared comes from the style's
+                    // conditional regions, and what THEY leave undeclared stays open for the
+                    // table-level cascade at layout (TableLayout.ResolveCellBorders).
+                    cellBorders = cellBorders?.Over(conditionalBorders) ?? conditionalBorders;
                     bgColor ??= conditionalShading;
 
                     // Cascade tblStylePr's run colour onto runs in this cell that don't carry
@@ -4750,7 +4819,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         CellBorders? defaultBorders = null;
         BorderEdge? insideHBorder = null;
         BorderEdge? insideVBorder = null;
-        double indentPoints = 0;
+        var declaredIndent = styleInfo?.IndentPoints;
 
         if (tableProps != null)
         {
@@ -4795,13 +4864,20 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 }
             }
 
-            // Parse table indent
+            // Parse table indent: the table's own w:tblInd over the style chain's.
             var tblInd = tableProps.GetFirstChild<TableIndentation>();
             if (tblInd?.Width?.HasValue == true)
             {
-                indentPoints = tblInd.Width.Value / OoxmlUnits.TwipsPerPoint;
+                declaredIndent = tblInd.Width.Value / OoxmlUnits.TwipsPerPoint;
             }
         }
+
+        // The left BORDER offset the layout uses — see ResolveTableIndent for the compatibility rule
+        // that turns the declared indent into it. The first cell's margin is its resolved left
+        // padding: w:tcMar, else the row's w:tblPrEx, else the table/style default.
+        var firstCell = rows[0].Cells.Count > 0 ? rows[0].Cells[0].Properties : null;
+        var firstCellLeftMargin = firstCell?.Padding?.Left ?? rows[0].OverrideCellPadding?.Left ?? effectiveCellPadding?.Left ?? 0;
+        var indentPoints = ResolveTableIndent(compatibilityMode, declaredIndent, defaultCellPadding != null, firstCellLeftMargin);
 
         // Parse w:tblCellSpacing — non-zero switches the table to the detached-border model.
         // Falls back to the table style's tblCellSpacing when the document doesn't override.
@@ -5109,6 +5185,42 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             Runs = rebuilt,
             Properties = paragraph.Properties
+        };
+    }
+
+    /// <summary>
+    /// The four sides of a <c>w:tcBorders</c> with <see cref="CellBorders.Declared"/> recording which
+    /// were actually written — an omitted side is NOT <c>nil</c>, it inherits (see
+    /// <see cref="CellBorders.Declared"/>). Null when none of the four side children is present, so
+    /// a cell that specifies only diagonals keeps its table-level cascade untouched.
+    /// </summary>
+    CellBorders? ParseDeclaredCellBorders(TableCellBorders? tcBorders)
+    {
+        if (tcBorders == null)
+        {
+            return null;
+        }
+
+        var topChild = tcBorders.GetFirstChild<TopBorder>();
+        var rightChild = tcBorders.GetFirstChild<RightBorder>();
+        var bottomChild = tcBorders.GetFirstChild<BottomBorder>();
+        var leftChild = tcBorders.GetFirstChild<LeftBorder>();
+        var declared = (topChild != null ? BorderSides.Top : BorderSides.None)
+                       | (rightChild != null ? BorderSides.Right : BorderSides.None)
+                       | (bottomChild != null ? BorderSides.Bottom : BorderSides.None)
+                       | (leftChild != null ? BorderSides.Left : BorderSides.None);
+        if (declared == BorderSides.None)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Top = ParseBorderEdge(topChild),
+            Right = ParseBorderEdge(rightChild),
+            Bottom = ParseBorderEdge(bottomChild),
+            Left = ParseBorderEdge(leftChild),
+            Declared = declared
         };
     }
 
@@ -10851,6 +10963,84 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             _ => properties
         };
 
+    /// <summary>
+    /// The East Asian face a <c>w:rFonts</c> names — <c>w:eastAsia</c> directly, or the theme slot
+    /// <c>w:eastAsiaTheme</c> points at. Null when it names neither.
+    /// </summary>
+    string? EastAsiaFontFamily(RunFonts? fonts)
+    {
+        if (fonts == null)
+        {
+            return null;
+        }
+
+        if (fonts.EastAsiaTheme?.HasValue == true && currentThemeFonts != null)
+        {
+            var themeValue = ((IEnumValue) fonts.EastAsiaTheme.Value).Value;
+            if (currentThemeFonts.ResolveFont(themeValue) is { } themed)
+            {
+                return themed;
+            }
+        }
+
+        return fonts.EastAsia?.HasValue == true ? fonts.EastAsia.Value : null;
+    }
+
+    /// <summary>
+    /// <c>w:rFonts/@w:hint="eastAsia"</c> (ECMA-376 §17.3.2.26): characters whose script is
+    /// ambiguous — the general punctuation, symbol, arrow, box-drawing, geometric-shape and dingbat
+    /// blocks from U+2010 to U+2FFF, the CJK blocks above U+3000, and a handful of Latin-1
+    /// punctuation — draw in the run's East Asian face rather than its ASCII/high-ANSI one. A run
+    /// made only of such characters is switched here; a run mixing them with Latin text keeps its
+    /// Latin face, since the model carries one face per run.
+    ///
+    /// Word-read on wedding/10, whose two checkbox runs carry <c>hint="eastAsia"</c> with an
+    /// <c>eastAsia="MS Gothic"</c> and no ASCII face and render Word's MS Gothic ☐ (U+2610) like
+    /// the 134 rows that name MS Gothic outright — the render drew them light grey from the body
+    /// face's fallback; and on wedding/04, whose checkbox cells carry the bare hint and take the
+    /// docDefaults <c>eastAsia="MS Mincho"</c>.
+    /// </summary>
+    RunProperties ApplyEastAsiaHint(RunProperties properties, RunFonts? fonts, string text)
+    {
+        if (fonts?.Hint?.Value != FontTypeHintValues.EastAsia || text.Length == 0)
+        {
+            return properties;
+        }
+
+        var hinted = false;
+        foreach (var ch in text)
+        {
+            if (ch == ' ')
+            {
+                continue;
+            }
+
+            if (!IsEastAsiaHinted(ch))
+            {
+                return properties;
+            }
+
+            hinted = true;
+        }
+
+        if (!hinted)
+        {
+            return properties;
+        }
+
+        var family = EastAsiaFontFamily(fonts) ?? defaultEastAsiaFontFamily;
+        return family == null || string.Equals(family, properties.FontFamily, StringComparison.OrdinalIgnoreCase)
+            ? properties
+            : properties with {FontFamily = family};
+    }
+
+    static bool IsEastAsiaHinted(char ch) =>
+        ch >= '\u3000'
+        || ch is >= '\u2010' and <= '\u2FFF'
+        || ch is '\u00A1' or '\u00A4' or '\u00A7' or '\u00A8' or '\u00AA' or '\u00AD' or '\u00AF'
+            or (>= '\u00B0' and <= '\u00B4') or (>= '\u00B6' and <= '\u00BA') or (>= '\u00BC' and <= '\u00BF')
+            or '\u00D7' or '\u00F7';
+
     List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false, RevisionMark revision = RevisionMark.None)
     {
         var result = new List<Run>();
@@ -10886,11 +11076,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 return;
             }
 
+            var text = textBuilder.ToString();
             result.Add(
                 new()
                 {
-                    Text = textBuilder.ToString(),
-                    Properties = GetProperties(),
+                    Text = text,
+                    Properties = ApplyEastAsiaHint(GetProperties(), run.RunProperties?.GetFirstChild<RunFonts>(), text),
                     HyperlinkUrl = hyperlinkUrl
                 });
             textBuilder.Clear();

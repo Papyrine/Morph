@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Wedding\nPHOTO CHECKLIST\nPRE-CEREMONY\nBRIDE\n☐ Bride hairstyling ☐ Zip or buttoning of wedding gown\n☐ Bride makeup application ☐ Bride putting on veil\n☐ Wedding dress (hanging, draped) ☐ Bride looking in mirror\n☐ Something old/new/borrowed/blue ☐ Bride with bouquet\n☐ Wedding shoes, jewelry, veil\ndisplayed\n☐ Click or tap here to enter text.\nWEDDING PARTY\n☐ Bridesmaids’ hair and makeup ☐ Flower girls or junior bridesmaids with\nbride\n☐ Bride and bridesmaids pre-wedding\noutfits\n☐ Bridesmaids with bouquets\n☐ Bride with Maid of Honor ☐ Flower girls with flower baskets\n Candid photos of bridesmaids\ndressing\n Candid photos of wedding party\nleaving for ceremony"
+        "Text": "Wedding\nPHOTO CHECKLIST\nPRE-CEREMONY\nBRIDE\n☐ Bride hairstyling ☐ Zip or buttoning of wedding gown\n☐ Bride makeup application ☐ Bride putting on veil\n☐ Wedding dress (hanging, draped) ☐ Bride looking in mirror\n☐ Something old/new/borrowed/blue ☐ Bride with bouquet\n☐ Wedding shoes, jewelry, veil\ndisplayed\n☐ Click or tap here to enter text.\nWEDDING PARTY\n☐ Bridesmaids’ hair and makeup ☐ Flower girls or junior bridesmaids with\nbride\n☐ Bride and bridesmaids pre-wedding\noutfits\n☐ Bridesmaids with bouquets\n☐ Bride with Maid of Honor ☐ Flower girls with flower baskets\n☐ Candid photos of bridesmaids\ndressing\n☐ Candid photos of wedding party\nleaving for ceremony"
       },
       {
         "Width": 612.0,
@@ -38,8 +38,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0801,
-      "Ssim": 0.9449,
+      "ErrorMetric": 0.0802,
+      "Ssim": 0.9446,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

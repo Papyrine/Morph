@@ -88,10 +88,15 @@ static class TableLayout
     /// <summary>
     /// How far a cell's drawn box sits inside its layout slot under the detached-border model
     /// (<c>w:tblCellSpacing</c> &gt; 0), per edge. Word-probed at 2/6/12pt
-    /// (<c>_probe_cellspacing</c>): every gap in the drawn result is 2 × spacing — cell-to-cell
-    /// from the two neighbours' single insets meeting, frame-to-cell from the outer cell taking a
-    /// DOUBLE inset on its table-edge sides (measured 11/27/52px at 150 DPI against predicted
-    /// 2 × spacing plus the rules' half-widths). Row extras ride on the slot heights
+    /// (<c>_probe_cellspacing</c>): every gap in the drawn result is 2 × spacing between the
+    /// FACING rules plus one rule width — cell-to-cell from the two neighbours' single insets
+    /// meeting, frame-to-cell from the outer cell taking a DOUBLE inset on its table-edge sides
+    /// (measured 11/27/52px at 150 DPI, 2 × spacing plus the rules' half-widths on either side
+    /// of the gap). So each inset is the spacing PLUS the edge's declared width
+    /// (<see cref="SpacingInset"/>): a rule's centre sits one width further from the slot edge
+    /// than the spacing alone. Read as 2 × spacing centre to centre, <c>table_cell_spacing/01</c>
+    /// drew its 1pt rules with 8px facing gaps against Word's 10 and its table 7px short of
+    /// Word's 188 (four inner gaps of one width each). Row extras ride on the slot heights
     /// (<see cref="TableHeightCalculator"/> widens the first and last slots), so the vertical
     /// insets here stay uniform; pass row context only for the box maths, not the measure.
     /// </summary>
@@ -103,12 +108,25 @@ static class TableLayout
             return new(0);
         }
 
-        var left = spacing + (gridCol == 0 ? spacing : 0);
-        var right = spacing + (gridCol + span >= totalCols ? spacing : 0);
-        var top = spacing + (rowIndex == 0 ? spacing : 0);
-        var bottom = spacing + (rowIndex >= 0 && rowIndex == totalRows - 1 ? spacing : 0);
+        var frame = tableProps.DefaultBorders;
+        var leftInset = SpacingInset(tableProps, frame?.Left);
+        var rightInset = SpacingInset(tableProps, frame?.Right);
+        var topInset = SpacingInset(tableProps, frame?.Top);
+        var bottomInset = SpacingInset(tableProps, frame?.Bottom);
+        var left = leftInset + (gridCol == 0 ? leftInset : 0);
+        var right = rightInset + (gridCol + span >= totalCols ? rightInset : 0);
+        var top = topInset + (rowIndex == 0 ? topInset : 0);
+        var bottom = bottomInset + (rowIndex >= 0 && rowIndex == totalRows - 1 ? bottomInset : 0);
         return new(top, right, bottom, left);
     }
+
+    /// <summary>
+    /// One detached-model inset: the cell spacing plus the declared width of the rule on that edge
+    /// (every cell draws the table's outer border under the model), zero width for an edge that
+    /// draws nothing. See <see cref="CellSpacingInsets"/>.
+    /// </summary>
+    internal static double SpacingInset(TableProperties tableProps, BorderEdge? edge) =>
+        tableProps.CellSpacingPoints + (edge != null && BorderStroke.Draws(edge) ? edge.WidthPoints : 0);
 
     /// <summary>
     /// Half a cell edge's declared stack, which is how far it reaches into the cell — a vertical cell
@@ -124,11 +142,20 @@ static class TableLayout
 
     internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null, IReadOnlyList<TableRow>? rows = null)
     {
-        if (cellProps.Borders != null)
+        // A cell's own w:tcBorders wins for every side it DECLARES; the sides it leaves out keep the
+        // table-level cascade below (CellBorders.Declared). A record that states all four sides is
+        // the whole answer.
+        if (cellProps.Borders is {Declared: BorderSides.All} declared)
         {
-            return cellProps.Borders;
+            return declared;
         }
 
+        var cascade = CascadeCellBorders(cellProps, tableProps, rowIndex, colIndex, totalRows, totalCols, row, rows);
+        return cellProps.Borders?.Over(cascade) ?? cascade;
+    }
+
+    static CellBorders? CascadeCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row, IReadOnlyList<TableRow>? rows)
+    {
         // w:tblPrEx row-level overrides take precedence over the table's defaults.
         var outer = row?.OverrideBorders ?? tableProps.DefaultBorders;
         var insideH = row?.OverrideInsideHBorder ?? tableProps.InsideHorizontalBorder;
@@ -170,10 +197,10 @@ static class TableLayout
         // draw the same edge, which overdraws harmlessly.
         var span = Math.Max(1, cellProps.GridSpan);
         var sameRow = row?.Cells;
-        var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex - 1)?.Borders?.Right);
-        var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex + span)?.Borders?.Left);
-        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders?.Bottom);
-        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders?.Top);
+        var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex - 1)?.Borders, BorderSides.Right);
+        var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex + span)?.Borders, BorderSides.Left);
+        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders, BorderSides.Bottom);
+        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders, BorderSides.Top);
 
         return new()
         {
@@ -184,8 +211,10 @@ static class TableLayout
         };
     }
 
-    static bool FacingEdgeExplicitlyInvisible(BorderEdge? facing) =>
-        facing is {IsVisible: false};
+    // Only a side the neighbour actually DECLARES invisible suppresses the shared rule; a side it
+    // simply does not mention inherits the same cascade this cell does and changes nothing.
+    static bool FacingEdgeExplicitlyInvisible(CellBorders? facing, BorderSides side) =>
+        facing?.DeclaresInvisible(side) == true;
 
     /// <summary>
     /// The cell whose declaration governs the given grid position, following a vertical-merge

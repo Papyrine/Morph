@@ -2172,7 +2172,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (start == null)
                 {
                     // This cell finished on an earlier fragment; it still draws its box and sides.
-                    cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, [], BottomEdgeInset: bottomEdge));
+                    cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, [], BottomEdgeInset: bottomEdge, Diagonals: cell.Properties.Diagonals));
                     cellX += cellWidth;
                     gridColIndex += span;
                     continue;
@@ -2205,7 +2205,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge));
+                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2347,7 +2347,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     content = [.. floatShapes, .. content];
                 }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2690,12 +2690,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var take = remaining;
                 if (budget != null)
                 {
+                    // A cell paragraph must fit WITH its after-spacing: in the flow Word lets a last
+                    // line's after-spacing hang past the page bottom, in a cell it does not — XPS-read
+                    // on _probe_cellheight2 (89 one-line Normal paragraphs, 8pt after, line 276): the flow
+                    // page holds 28 lines and the same cell 27, its 28th line (bottom 719.2 of 720) moved
+                    // overleaf with the 8pt it could not fit. Zero after-spacing (_probe_cellheight)
+                    // holds 48 in both. The row-height law already sizes an unsplit row with the trailing
+                    // after (TableHeightCalculator), so only the split needs the reserve.
                     take = 0;
                     var probeY = cellY;
                     for (var lineIndex = resumeLine; lineIndex < paragraphLines.Count; lineIndex++)
                     {
                         var candidate = paragraphLines[lineIndex];
-                        if ((lines.Count > 0 || take > 0) && probeY + candidate.Height > limit)
+                        var afterReserve = lineIndex == paragraphLines.Count - 1 ? (float) properties.SpacingAfterPoints : 0f;
+                        if ((lines.Count > 0 || take > 0) && probeY + candidate.Height + afterReserve > limit)
                         {
                             break;
                         }
@@ -3230,7 +3238,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
                 var run = line.Runs[runIndex];
-                runs[runIndex] = new(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader);
+                runs[runIndex] = new(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift);
             }
 
             return runs;
