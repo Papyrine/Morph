@@ -595,9 +595,11 @@ is verbatim. Exact rows are now exempt, and every backend moved closer to Word.
    `RenderViaEngine` for DOCX and HTML alike. The slice was unblocked in order by: coverage going total
    (item 2), HTML→PNG joining the engine seam (byte-identical), the WordArt rasterizers moving onto their
    own `<Backend>WordArtDrawer` (gated by a full delete-and-regenerate of all 4490 snapshots reproducing
-   byte-identically), and the footnote decision — the shared `NotesAppendix` builder feeds the engine flow
+   byte-identically), and the footnote decision — a shared `NotesAppendix` builder fed the engine flow
    at each `RenderViaEngine`, restoring the appendix the engine had silently dropped since coverage went
-   total. The keep-list statics the painters shared with the deleted classes moved to
+   total (superseded 2026-09-05: the engine now pins footnotes to the page bottom and flows endnotes after
+   the body itself — `Fragmenter.CommitFootnotes` / `PlaceEndnotes`, `docs/word-features.md` Footnotes — and
+   the builder is deleted). The keep-list statics the painters shared with the deleted classes moved to
    `SkiaShapeDrawing` / `ImageSharpShapeDrawing`; render-behaviour spec tests were rewritten onto the
    engine seam (their behavioural assertions held, exposing and fixing one real gap in the process:
    behind-text FOOTER floating art was resolved for the header band only — `ResolveBandImages` now serves
@@ -1030,9 +1032,10 @@ WordArt** (the 16 presets, only the two envelope test documents need them) are t
    anchor-page half has since landed in the float-anchor fidelity slice; the wrap exclusions remain*).
 3. Floating tables.
 4. Form fields and content controls.
-5. Footnote/endnote appendix at document end (*landed 2026-08-04: the shared `NotesAppendix` builder
-   appends the notes to the element flow at each `RenderViaEngine`; the three production
-   `RenderNotesAppendix` copies collapsed onto it*).
+5. Footnote/endnote appendix at document end (*landed 2026-08-04: a shared `NotesAppendix` builder
+   appended the notes to the element flow at each `RenderViaEngine`; the three production
+   `RenderNotesAppendix` copies collapsed onto it. Replaced 2026-09-05 by real page-bottom footnote
+   areas and document-end endnotes inside the `Fragmenter` — `docs/word-features.md`, Footnotes*).
 6. Foreground (front-text) header/footer images — any variant — and 3-way footer tab alignment (*band
    tables have since landed — business/01's footer grid. Reclassified: foreground header/footer images gate
    no document's coverage, so they belong to painter fidelity, "Remaining work" item 4; 3-way footer tab

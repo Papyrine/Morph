@@ -149,7 +149,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // Light paragraph has its baseline 14.8pt under the line top (the full 14.65 pitch), where a
             // text line's sits 11.4; resumes/12's coral rule sat 9px high on the mark ascent.
             var ascent = maxImageHeight > 0 && !hasText ? lineHeight : Math.Max(textAscent, maxImageHeight);
-            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images);
+            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images, wrapped[i].FootnoteReferenceIds, wrapped[i].EndnoteReferenceIds);
         }
 
         return result;
@@ -272,6 +272,36 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     }
 
     /// <summary>
+    /// The font's strikethrough stroke at a run's size: how far its top sits ABOVE the baseline, and its
+    /// thickness on the 120-dpi grid (at least one grid pixel). Word draws a footnote or endnote
+    /// separator as exactly this stroke of the separator paragraph's font — XPS-read 2026-09-05 on
+    /// <c>_probe_fn_l/_m/_o</c>: Calibri 20pt puts the rule 4.8pt above the baseline at 1.2pt thick, Calibri
+    /// 40pt 10.2 / 2.4, Times New Roman 40pt 10.2 / 1.8 and Aptos 12pt 4.2 / 0.6, each within a grid
+    /// pixel of <c>yStrikeoutPosition</c> / <c>yStrikeoutSize</c> (0.25 / 0.0654, 0.259 / 0.0488 and
+    /// 0.357 / 0.0498 em). A font with no <c>OS/2</c> stroke falls back to a quarter em, one pixel thick.
+    /// </summary>
+    public (float Above, float Thickness) StrikeoutBand(RunProperties fontProperties)
+    {
+        var size = fontProperties.FontSizePoints;
+        var pixel = 72.0 / CanonicalTextMeasurer.ReferenceDpi;
+        var metrics = resolveFont(fontProperties.FontFamily, fontProperties.Bold, fontProperties.Italic);
+        if (metrics is not { StrikeoutSize: > 0 })
+        {
+            return ((float) (size * 0.25), (float) pixel);
+        }
+
+        var scale = size / metrics.UnitsPerEm;
+        var thickness = Math.Max(1, Math.Round(metrics.StrikeoutSize * scale / pixel, MidpointRounding.AwayFromZero)) * pixel;
+        return ((float) (metrics.StrikeoutPosition * scale), (float) thickness);
+    }
+
+    /// <summary>
+    /// The font a paragraph's mark line takes — a note separator paragraph carries no runs, and its rule
+    /// is drawn against this font's baseline (<see cref="StrikeoutBand"/>).
+    /// </summary>
+    public static RunProperties MarkFont(ParagraphElement paragraph) => MarkProperties(paragraph);
+
+    /// <summary>
     /// The width in points of a short run of text in the given font — for placing a right-aligned list
     /// marker just before its text. Zero when the font does not resolve.
     /// </summary>
@@ -372,11 +402,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // BaselineShift: the run's super/subscript shift (VerticalRunPosition), carried onto its segment.
     // IsInset: a run border's horizontal reserve (BorderStroke.RunBorderGlyphInset) — advances the pen
     // like text, joins its neighbouring word for wrapping, but belongs to no segment.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false, float BaselineShift = 0, bool IsInset = false);
+    // A piece carries the id of the footnote / endnote its run cites (on the run's first text piece
+    // only), so the line it lands on knows which notes it brought with it.
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false, float BaselineShift = 0, bool IsInset = false, string? FootnoteReferenceId = null, string? EndnoteReferenceId = null);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0);
 
-    readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images);
+    readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images, IReadOnlyList<string>? FootnoteReferenceIds = null, IReadOnlyList<string>? EndnoteReferenceIds = null);
 
     // Wrapping is the whole cost of a measurement — Flatten resolves a font per run and measures every
     // piece, then BuildLineItems positions them — and the same (paragraph, width) pair is asked for over
@@ -492,7 +524,25 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 paragraph.Properties.DefaultTabStopPoints,
                 paragraph.Properties.LeftIndentPoints,
                 maxWidth);
-            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, segments, images));
+
+            // The notes this line cites, in order — the fragmenter opens their page-bottom area when the
+            // line lands. Null for the ordinary line, so nothing allocates.
+            List<string>? footnoteIds = null;
+            List<string>? endnoteIds = null;
+            foreach (var piece in linePieces)
+            {
+                if (piece.FootnoteReferenceId is { } footnoteId)
+                {
+                    (footnoteIds ??= []).Add(footnoteId);
+                }
+
+                if (piece.EndnoteReferenceId is { } endnoteId)
+                {
+                    (endnoteIds ??= []).Add(endnoteId);
+                }
+            }
+
+            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(linePixels), linePitch, segments, images, footnoteIds, endnoteIds));
         }
 
         var index = 0;
@@ -912,6 +962,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 continue;
             }
 
+            var noteFootnoteId = run.FootnoteReferenceId;
+            var noteEndnoteId = run.EndnoteReferenceId;
+
             // A superscript or subscript measures at its reduced size and carries its shift; the line
             // pitch stays the run's declared size, since the reduced glyphs sit inside the full box.
             var size = VerticalRunPosition.RenderSizePoints(run.Properties);
@@ -959,7 +1012,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
                     }
 
-                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false, null, breaksBefore, baselineShift));
+                    // A note reference rides on the run's first piece — the line that takes it opens the
+                    // note's page-bottom area (Fragmenter.CommitFootnotes).
+                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false, null, breaksBefore, baselineShift, FootnoteReferenceId: noteFootnoteId, EndnoteReferenceId: noteEndnoteId));
+                    noteFootnoteId = null;
+                    noteEndnoteId = null;
                 }
             }
 

@@ -89,23 +89,30 @@ sealed class ParsedDocument
     public bool PageFieldsPreEvaluated { get; init; }
 
     /// <summary>
-    /// The resolved font size of the document's <c>FootnoteText</c> / <c>EndnoteText</c> paragraph
-    /// styles, in points — what Word sets the note bodies in (its built-in styles are 10pt). Null when
-    /// the styles part declares neither, and the notes appendix falls back to Word's built-in 10pt.
-    /// </summary>
-    public double? FootnoteTextSizePoints { get; init; }
-
-    public double? EndnoteTextSizePoints { get; init; }
-
-    /// <summary>
-    /// Footnotes from word/footnotes.xml. Renderer does not yet emit them at the page bottom.
+    /// Footnotes from word/footnotes.xml. The layout engine stacks a cited note at the bottom of the
+    /// page its reference lands on (<see cref="DocumentNotes"/>).
     /// </summary>
     public IReadOnlyList<Footnote> Footnotes { get; init; } = [];
 
     /// <summary>
-    /// Endnotes from word/endnotes.xml. Renderer does not yet emit them at the document end.
+    /// Endnotes from word/endnotes.xml. The layout engine flows the cited notes after the body.
     /// </summary>
     public IReadOnlyList<Endnote> Endnotes { get; init; } = [];
+
+    /// <summary>
+    /// The separator paragraphs of the notes parts (<c>w:type="separator"</c> /
+    /// <c>"continuationSeparator"</c>), runs stripped: Word draws each as its paragraph style's mark
+    /// line carrying a rule — the font's strikethrough stroke, 2in long for a separator and the column
+    /// width for a continuation — and draws one even when the entry is empty, so the parser
+    /// synthesises a single-spaced default paragraph for a part that declares none.
+    /// </summary>
+    public ParagraphElement? FootnoteSeparator { get; init; }
+
+    public ParagraphElement? FootnoteContinuationSeparator { get; init; }
+
+    public ParagraphElement? EndnoteSeparator { get; init; }
+
+    public ParagraphElement? EndnoteContinuationSeparator { get; init; }
 
     /// <summary>
     /// The endnote counter style (settings.xml <c>w:endnotePr/w:numFmt</c>). Word's default is

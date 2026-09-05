@@ -206,6 +206,8 @@ static class FontMetricsReader
             TypoDescender = os2.TypoDescender,
             TypoLineGap = os2.TypoLineGap,
             UseTypoMetrics = os2.UseTypoMetrics,
+            StrikeoutPosition = os2.StrikeoutPosition,
+            StrikeoutSize = os2.StrikeoutSize,
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
             GlyphForCodepoint = ReadCmap(stream, tables),
@@ -279,22 +281,23 @@ static class FontMetricsReader
     /// (uint16 at offset 62, bit 7 = USE_TYPO_METRICS), the typographic trio <c>sTypoAscender</c> /
     /// <c>sTypoDescender</c> / <c>sTypoLineGap</c> (int16 at offsets 68/70/72) and the Windows pair
     /// <c>usWinAscent</c> / <c>usWinDescent</c> (uint16 at offsets 74/76) — all present from table
-    /// version 0 onwards. Which set drives the baseline is the flag's call
-    /// (<see cref="FontMetrics.BaselineAscentUnits"/>); which drives the line pitch is
-    /// <see cref="FontMetrics.LineBoxUnits"/>'s. Zeros when the font declares no <c>OS/2</c> table or a
-    /// truncated one, which the model treats as "fall back to hhea".
+    /// version 0 onwards — plus the strikethrough stroke <c>yStrikeoutSize</c> / <c>yStrikeoutPosition</c>
+    /// (int16 at offsets 26/28), which the footnote separator rule is drawn as. Which set drives the
+    /// baseline is the flag's call (<see cref="FontMetrics.BaselineAscentUnits"/>); which drives the line
+    /// pitch is <see cref="FontMetrics.LineBoxUnits"/>'s. Zeros when the font declares no <c>OS/2</c>
+    /// table or a truncated one, which the model treats as "fall back to hhea".
     /// </summary>
-    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics, int StrikeoutPosition, int StrikeoutSize) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
     {
         if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 78)
         {
-            return (0, 0, 0, 0, 0, false);
+            return (0, 0, 0, 0, 0, false, 0, 0);
         }
 
         var bytes = new byte[78];
         if (!TryReadExactAt(stream, os2.Offset, bytes))
         {
-            return (0, 0, 0, 0, 0, false);
+            return (0, 0, 0, 0, 0, false, 0, 0);
         }
 
         var fsSelection = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(62, 2));
@@ -304,7 +307,9 @@ static class FontMetricsReader
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(68, 2)),
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(70, 2)),
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(72, 2)),
-            (fsSelection & 0x80) != 0);
+            (fsSelection & 0x80) != 0,
+            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(28, 2)),
+            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(26, 2)));
     }
 
     /// <summary>

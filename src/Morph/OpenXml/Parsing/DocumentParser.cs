@@ -136,6 +136,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     readonly Dictionary<string, int> footnoteCitationNumbers = [];
     readonly Dictionary<string, int> endnoteCitationNumbers = [];
 
+    // While a note body parses: the number its w:footnoteRef / w:endnoteRef run draws (ParseNoteBody).
+    string? noteReferenceText;
+
     // Sentinel stored in a style's ColorHex when the style declares w:color w:val="auto":
     // "automatic" must RESET an inherited colour (a card template's white docDefaults must not
     // leak through Normal's explicit auto), so it can't be modelled as null — null means
@@ -472,10 +475,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var trackedChanges = ExtractTrackedChanges(body);
         var protection = ExtractDocumentProtection(mainPart);
         var fieldCodes = ExtractFieldCodes(body);
-        var footnotes = ExtractFootnotes(mainPart);
-        var endnotes = ExtractEndnotes(mainPart);
-        var footnoteTextSize = StyleFontSize("FootnoteText");
-        var endnoteTextSize = StyleFontSize("EndnoteText");
+        var (footnotes, footnoteSeparator, footnoteContinuation) = ExtractFootnotes(mainPart);
+        var (endnotes, endnoteSeparator, endnoteContinuation) = ExtractEndnotes(mainPart);
         var embeddedObjects = ExtractEmbeddedObjects(body);
         var watermarks = ExtractWatermarks(mainPart);
         var features = DetectAdvancedFeatures(body, watermarks.Count > 0);
@@ -494,8 +495,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,
             Compatibility = compatibility,
-            FootnoteTextSizePoints = footnoteTextSize,
-            EndnoteTextSizePoints = endnoteTextSize,
+            FootnoteSeparator = footnoteSeparator,
+            FootnoteContinuationSeparator = footnoteContinuation,
+            EndnoteSeparator = endnoteSeparator,
+            EndnoteContinuationSeparator = endnoteContinuation,
             Bookmarks = bookmarks,
             Comments = comments,
             TrackedChanges = trackedChanges,
@@ -871,21 +874,36 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return kern.Val.Value.HalfPointsToPoints();
     }
 
-    static IReadOnlyList<Footnote> ExtractFootnotes(MainDocumentPart mainPart)
+    // The footnotes part: each user note's body parsed as ordinary paragraphs — its w:footnoteRef run
+    // becoming the citation number (noteReferenceText) — and the separator / continuation-separator
+    // entries as paragraphs with their runs stripped. Runs after the body parse, so the citation
+    // numbers are known. Null separators when the part is absent; a part WITH the entries but no
+    // paragraph inside them (document_capture/01) still gets a paragraph, because Word draws the rule
+    // either way.
+    (IReadOnlyList<Footnote> Notes, ParagraphElement? Separator, ParagraphElement? Continuation) ExtractFootnotes(MainDocumentPart mainPart)
     {
         var part = mainPart.FootnotesPart;
         if (part?.Footnotes == null)
         {
-            return [];
+            return ([], null, null);
         }
 
         var result = new List<Footnote>();
+        ParagraphElement? separator = null;
+        ParagraphElement? continuation = null;
         foreach (var fn in part.Footnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Footnote>())
         {
-            // Skip Word's built-in separator / continuation-separator entries.
-            if (fn.Type?.HasValue == true &&
-                fn.Type.Value != FootnoteEndnoteValues.Normal)
+            if (fn.Type?.HasValue == true && fn.Type.Value != FootnoteEndnoteValues.Normal)
             {
+                if (fn.Type.Value == FootnoteEndnoteValues.Separator)
+                {
+                    separator = ParseSeparatorParagraph(fn, mainPart);
+                }
+                else if (fn.Type.Value == FootnoteEndnoteValues.ContinuationSeparator)
+                {
+                    continuation = ParseSeparatorParagraph(fn, mainPart);
+                }
+
                 continue;
             }
 
@@ -894,32 +912,44 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
+            var id = idLong.ToString();
             var text = string.Concat(fn.Descendants<Text>().Select(_ => _.Text));
             result.Add(
                 new()
                 {
-                    Id = idLong.ToString(),
-                    Text = text
+                    Id = id,
+                    Text = text,
+                    Elements = ParseNoteBody(fn, mainPart, CitationNumber(footnoteCitationNumbers, id), footnoteNumberFormat)
                 });
         }
 
-        return result;
+        return (result, separator ?? ParseSeparatorParagraph(null, mainPart), continuation ?? ParseSeparatorParagraph(null, mainPart));
     }
 
-    static List<Endnote> ExtractEndnotes(MainDocumentPart mainPart)
+    (IReadOnlyList<Endnote> Notes, ParagraphElement? Separator, ParagraphElement? Continuation) ExtractEndnotes(MainDocumentPart mainPart)
     {
         var part = mainPart.EndnotesPart;
         if (part?.Endnotes == null)
         {
-            return [];
+            return ([], null, null);
         }
 
         var result = new List<Endnote>();
+        ParagraphElement? separator = null;
+        ParagraphElement? continuation = null;
         foreach (var en in part.Endnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Endnote>())
         {
-            if (en.Type?.HasValue == true &&
-                en.Type.Value != FootnoteEndnoteValues.Normal)
+            if (en.Type?.HasValue == true && en.Type.Value != FootnoteEndnoteValues.Normal)
             {
+                if (en.Type.Value == FootnoteEndnoteValues.Separator)
+                {
+                    separator = ParseSeparatorParagraph(en, mainPart);
+                }
+                else if (en.Type.Value == FootnoteEndnoteValues.ContinuationSeparator)
+                {
+                    continuation = ParseSeparatorParagraph(en, mainPart);
+                }
+
                 continue;
             }
 
@@ -928,16 +958,67 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
+            var id = idLong.ToString();
             var text = string.Concat(en.Descendants<Text>().Select(_ => _.Text));
             result.Add(
                 new()
                 {
-                    Id = idLong.ToString(),
-                    Text = text
+                    Id = id,
+                    Text = text,
+                    Elements = ParseNoteBody(en, mainPart, CitationNumber(endnoteCitationNumbers, id), endnoteNumberFormat)
                 });
         }
 
-        return result;
+        return (result, separator ?? ParseSeparatorParagraph(null, mainPart), continuation ?? ParseSeparatorParagraph(null, mainPart));
+    }
+
+    // The display number of a note: its citation ordinal, or the next one for a note the body never
+    // cites (Word does not render such a note; the number only keeps the exporters' listing sane).
+    static int CitationNumber(Dictionary<string, int> citations, string id)
+    {
+        if (!citations.TryGetValue(id, out var number))
+        {
+            number = citations.Count + 1;
+            citations[id] = number;
+        }
+
+        return number;
+    }
+
+    // A note's paragraphs (and tables), parsed like a header's; the w:footnoteRef / w:endnoteRef run
+    // inside draws the note's own number in the document's format (see ParseRun).
+    List<DocumentElement> ParseNoteBody(OpenXmlCompositeElement note, MainDocumentPart mainPart, int number, NumberFormatValues format)
+    {
+        var elements = new List<DocumentElement>();
+        noteReferenceText = FormatNumber(number, format);
+        try
+        {
+            AppendHeaderFooterElements(note, mainPart, elements);
+        }
+        finally
+        {
+            noteReferenceText = null;
+        }
+
+        return elements;
+    }
+
+    // A separator entry's paragraph with its runs stripped. Word sizes the separator line by the
+    // paragraph's STYLE alone and ignores any run formatting the entry declares, on the run or on the
+    // paragraph mark (_probe_fn_i/_j at 30pt and 10pt marks, _probe_fn_l/_m/_n across docDefaults and
+    // Normal sizes, all XPS-read 2026-09-05: the rule and the note below it never moved with the run,
+    // and moved exactly with the style). An entry without a paragraph — or no entry at all — takes
+    // Word's own separator paragraph: empty, single-spaced, nothing after.
+    ParagraphElement ParseSeparatorParagraph(OpenXmlCompositeElement? entry, MainDocumentPart mainPart)
+    {
+        var paragraph = entry?.GetFirstChild<Paragraph>()
+                        ?? new Paragraph(new OoxmlParagraphProperties(new SpacingBetweenLines { After = "0", Line = "240", LineRule = LineSpacingRuleValues.Auto }));
+        var parsed = ParseParagraph(paragraph, mainPart).OfType<ParagraphElement>().FirstOrDefault();
+        return new()
+        {
+            Runs = [],
+            Properties = parsed?.Properties ?? new()
+        };
     }
 
     static IReadOnlyList<FieldCode> ExtractFieldCodes(Body body)
@@ -1254,12 +1335,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         return null;
     }
-
-    // The resolved font size of a paragraph style, null when the styles part does not define it.
-    double? StyleFontSize(string styleId) =>
-        styleRunProperties != null && styleRunProperties.TryGetValue(styleId, out var properties)
-            ? properties.FontSizePoints
-            : null;
 
     Dictionary<string, RunProperties> ExtractStyleRunProperties(MainDocumentPart mainPart)
     {
@@ -11226,6 +11301,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             },
                             HyperlinkUrl = hyperlinkUrl,
                             EndnoteReferenceId = endnoteKey
+                        });
+                    break;
+                // A w:footnoteRef / w:endnoteRef inside a note's own body draws the note's number — the
+                // citation ordinal in the document's format — in the run's formatting (Word's
+                // FootnoteReference style makes it superscript; nothing is forced here, and a note
+                // authored without the run shows no number, as document_capture/01's reference does).
+                case FootnoteReferenceMark when noteReferenceText != null:
+                case EndnoteReferenceMark when noteReferenceText != null:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = noteReferenceText,
+                            Properties = GetProperties(),
+                            HyperlinkUrl = hyperlinkUrl
                         });
                     break;
                 // A <w:br/> inside a run becomes a newline at its document position, so text on

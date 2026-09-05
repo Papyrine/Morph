@@ -42,8 +42,36 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         HeaderFooterContent? firstPageHeader = null,
         HeaderFooterContent? firstPageFooter = null,
         HeaderFooterContent? evenPageHeader = null,
-        HeaderFooterContent? evenPageFooter = null) =>
-        new Flow(measurer, page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter).Run(elements);
+        HeaderFooterContent? evenPageFooter = null,
+        DocumentNotes? notes = null) =>
+        new Flow(measurer, page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes).Run(elements);
+
+    // Word's footnote / endnote separator rule is two inches long, whatever the column (XPS-read on
+    // every _probe_fn_* fixture: 72.075 → 216.2pt on a 468pt column); a continuation separator spans
+    // the column.
+    const float separatorWidthPoints = 144f;
+
+    // What a footnote area stacks, top down: the separator (its paragraph's mark line carrying the 2in
+    // rule) or the continuation separator (the full-width rule), a note's text line, or a note
+    // paragraph's spacing. Heights stack from the area's top; the area's bottom is the page's content
+    // bottom.
+    enum NoteRowKind
+    {
+        Separator,
+        ContinuationSeparator,
+        Line,
+        Spacing
+    }
+
+    sealed record NoteRow(NoteRowKind Kind, float Height, ParagraphElement? Paragraph = null, LaidOutLine Line = default, int LineIndex = 0);
+
+    // One column's footnote area on the in-progress page.
+    sealed class NoteArea
+    {
+        public List<NoteRow> Rows { get; } = [];
+
+        public float Height { get; set; }
+    }
 
     // One document's flow state. A fresh instance per Layout call keeps the cursor, the in-progress page
     // and the emitted pages together without leaking between runs (the Fragmenter itself is reusable).
@@ -55,7 +83,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         HeaderFooterContent? firstPageHeader,
         HeaderFooterContent? firstPageFooter,
         HeaderFooterContent? evenPageHeader,
-        HeaderFooterContent? evenPageFooter)
+        HeaderFooterContent? evenPageFooter,
+        DocumentNotes? notes)
     {
         // The current section's geometry. Mutable: a section break with new section settings switches these
         // to the new page size, margins and column layout (ApplyGeometry). The initial values are the
@@ -65,7 +94,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // measures the header band, so it reads the caches this class owns. Three initializers used to compute
         // that one value three times over.
         float contentTop;
+        // The bottom the flow breaks against. Equal to pageContentBottom — the bottom margin — until a
+        // footnote area opens on the current column, when it rises by the area's height
+        // (RefreshContentBottom): Word's body stops where the notes begin (_probe_fn_d, 40 of 44 lines).
         float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
+        float pageContentBottom = (float) (page.HeightPoints - page.MarginBottom);
         float contentHeight;
         float fullContentLeft = (float) page.MarginLeft;
         float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
@@ -159,13 +192,470 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         {
             current = settings;
             contentTop = HeaderReservedTop(settings, header);
-            contentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
-            contentHeight = contentBottom - contentTop;
+            pageContentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
+            contentHeight = pageContentBottom - contentTop;
             fullContentLeft = (float) settings.MarginLeft;
             fullContentWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             columnCount = Math.Max(1, settings.ColumnCount);
             columnWidth = (float) settings.ColumnWidth;
             columnSpacing = (float) settings.ColumnSpacing;
+            if (noteAreas.Length < columnCount)
+            {
+                Array.Resize(ref noteAreas, columnCount);
+            }
+
+            RefreshContentBottom();
+        }
+
+        // Footnote areas of the in-progress page, one per column — Word stacks a column's notes under
+        // that column. Null until a column's first note; emitted into the page by EmitNoteAreas.
+        NoteArea?[] noteAreas = new NoteArea?[Math.Max(1, page.ColumnCount)];
+
+        // Note rows that missed their page and continue on the next, under the continuation separator.
+        readonly List<NoteRow> pendingNoteRows = [];
+
+        // Footnotes already given their area (a repeat citation places nothing more), and the endnotes
+        // cited so far in citation order — flowed after the body by PlaceEndnotes.
+        readonly HashSet<string> placedFootnotes = [];
+        readonly List<string> citedEndnotes = [];
+
+        // A note's rows, built once per column width.
+        readonly Dictionary<(string Id, float Width), IReadOnlyList<NoteRow>> noteRowsCache = [];
+
+        float NoteAreaHeight(int column) =>
+            column < noteAreas.Length && noteAreas[column] is { } area ? area.Height : 0;
+
+        void RefreshContentBottom() => contentBottom = pageContentBottom - NoteAreaHeight(currentColumn);
+
+        // The rows a footnote's body stacks into: each paragraph's spacing-before, its lines wrapped to
+        // the column, and its spacing-after (the last note's after-spacing counts too — document_capture/01's
+        // note ends 8pt above the margin). A table inside a note is not laid out — rare, unprobed.
+        IReadOnlyList<NoteRow> NoteRows(string id)
+        {
+            if (noteRowsCache.TryGetValue((id, columnWidth), out var cached))
+            {
+                return cached;
+            }
+
+            var rows = new List<NoteRow>();
+            if (notes != null && notes.Footnotes.TryGetValue(id, out var elements))
+            {
+                foreach (var element in elements)
+                {
+                    if (element is not ParagraphElement paragraph)
+                    {
+                        continue;
+                    }
+
+                    var properties = paragraph.Properties;
+                    if (properties.SpacingBeforePoints > 0)
+                    {
+                        rows.Add(new(NoteRowKind.Spacing, (float) properties.SpacingBeforePoints));
+                    }
+
+                    var lines = measurer.LayoutLineContents(paragraph, columnWidth);
+                    for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+                    {
+                        rows.Add(new(NoteRowKind.Line, lines[lineIndex].Height, paragraph, lines[lineIndex], lineIndex));
+                    }
+
+                    if (properties.SpacingAfterPoints > 0)
+                    {
+                        rows.Add(new(NoteRowKind.Spacing, (float) properties.SpacingAfterPoints));
+                    }
+                }
+            }
+
+            noteRowsCache[(id, columnWidth)] = rows;
+            return rows;
+        }
+
+        // A separator's row: its paragraph's mark line — the paragraph STYLE's line, since Word ignores
+        // any run formatting on the entry (DocumentParser.ParseSeparatorParagraph) — plus the
+        // paragraph's own spacing. The rule itself is drawn when the area is emitted.
+        NoteRow SeparatorRow(ParagraphElement paragraph, bool continuation)
+        {
+            var lines = measurer.LayoutLineContents(paragraph, columnWidth);
+            var line = lines.Count > 0 ? lines[0] : default;
+            var height = (float) (paragraph.Properties.SpacingBeforePoints + paragraph.Properties.SpacingAfterPoints) + line.Height;
+            return new(continuation ? NoteRowKind.ContinuationSeparator : NoteRowKind.Separator, height, paragraph, line);
+        }
+
+        // The footnotes a line cites that have no area yet, in citation order; null when none. Nothing
+        // is placed while earlier notes are still spilling to the next page — a later note queues
+        // behind them (CommitLineNotes) rather than jumping ahead.
+        List<string>? NewFootnotes(LaidOutLine line)
+        {
+            if (notes == null || pendingNoteRows.Count > 0 || line.FootnoteReferenceIds is not { Count: > 0 } ids)
+            {
+                return null;
+            }
+
+            List<string>? result = null;
+            foreach (var id in ids)
+            {
+                if (!placedFootnotes.Contains(id) && notes.Footnotes.ContainsKey(id) && (result == null || !result.Contains(id)))
+                {
+                    (result ??= []).Add(id);
+                }
+            }
+
+            return result;
+        }
+
+        // The least a citing line's new notes need under it: the separator when the column's area is
+        // still empty, then everything up to and including the first note line — Word keeps a
+        // reference and its note's first line together (_probe_fn_e: line 42 stays on page 1 with the
+        // separator and one line of its six-paragraph note, the other five continue on page 2).
+        float NoteMinimum(List<string> ids, bool areaOpen)
+        {
+            var total = areaOpen ? 0 : SeparatorRow(notes!.FootnoteSeparator, false).Height;
+            foreach (var row in NoteRows(ids[0]))
+            {
+                total += row.Height;
+                if (row.Kind == NoteRowKind.Line)
+                {
+                    break;
+                }
+            }
+
+            return total;
+        }
+
+        // Everything the line's new notes would take, were the page to hold it all.
+        float NoteTotal(List<string> ids, bool areaOpen)
+        {
+            var total = areaOpen ? 0 : SeparatorRow(notes!.FootnoteSeparator, false).Height;
+            foreach (var id in ids)
+            {
+                foreach (var row in NoteRows(id))
+                {
+                    total += row.Height;
+                }
+            }
+
+            return total;
+        }
+
+        // Opens the current column's area for a body item's new footnotes, at the item's bottom: as many
+        // rows as fit down to the page's content bottom, always through the first note line, the rest
+        // carried to the next page under the continuation separator. Word splits a note at a line
+        // boundary and lets the note displace the body that follows its reference (_probe_fn_f: a
+        // 70-paragraph note cited on line 3 fills page 1 from line 3 down, lines 4-10 open page 2 and
+        // the note's remainder sits at that page's bottom).
+        void CommitFootnotes(List<string> ids, float bodyBottom)
+        {
+            var area = noteAreas[currentColumn] ??= new();
+            var rows = new List<NoteRow>();
+            if (area.Rows.Count == 0)
+            {
+                rows.Add(SeparatorRow(notes!.FootnoteSeparator, false));
+            }
+
+            foreach (var id in ids)
+            {
+                placedFootnotes.Add(id);
+                rows.AddRange(NoteRows(id));
+            }
+
+            AcceptNoteRows(area, rows, pageContentBottom - bodyBottom - area.Height);
+            RefreshContentBottom();
+        }
+
+        // Takes rows into an area while they fit the room given, never stopping before the first text
+        // line (the reference is already on this page, so its note's first line must be too); the
+        // remainder queues for the next page.
+        void AcceptNoteRows(NoteArea area, List<NoteRow> rows, float available)
+        {
+            var placedLine = false;
+            var used = 0f;
+            var accepted = 0;
+            foreach (var row in rows)
+            {
+                if (placedLine && used + row.Height > available + 0.01f)
+                {
+                    break;
+                }
+
+                used += row.Height;
+                accepted++;
+                placedLine |= row.Kind == NoteRowKind.Line;
+            }
+
+            area.Rows.AddRange(rows.Take(accepted));
+            area.Height += used;
+            pendingNoteRows.AddRange(rows.Skip(accepted));
+        }
+
+        // A placed line's notes: its footnotes open the column's area (or queue behind notes already
+        // spilling), its endnotes join the document-end list.
+        void CommitLineNotes(LaidOutLine line, float bodyBottom)
+        {
+            if (line.EndnoteReferenceIds is { Count: > 0 } endnoteIds)
+            {
+                CiteEndnotes(endnoteIds);
+            }
+
+            if (line.FootnoteReferenceIds is not { Count: > 0 } || notes == null)
+            {
+                return;
+            }
+
+            if (pendingNoteRows.Count > 0)
+            {
+                foreach (var id in line.FootnoteReferenceIds)
+                {
+                    if (placedFootnotes.Add(id) && notes.Footnotes.ContainsKey(id))
+                    {
+                        pendingNoteRows.AddRange(NoteRows(id));
+                    }
+                }
+
+                return;
+            }
+
+            if (NewFootnotes(line) is { } ids)
+            {
+                CommitFootnotes(ids, bodyBottom);
+            }
+        }
+
+        void CiteEndnotes(IReadOnlyList<string> ids)
+        {
+            foreach (var id in ids)
+            {
+                if (!citedEndnotes.Contains(id))
+                {
+                    citedEndnotes.Add(id);
+                }
+            }
+        }
+
+        // A placed table row's notes, from the paragraphs in its cells: the row is already down, so its
+        // footnotes open the area under it in document order (_probe_fn_k: two cell references and one
+        // after the table stack 1, 2, 3 at the page bottom).
+        void CommitRowNotes(TableRow row, float rowBottom)
+        {
+            if (notes == null)
+            {
+                return;
+            }
+
+            List<string> footnoteIds = [];
+            List<string> endnoteIds = [];
+            foreach (var cell in row.Cells)
+            {
+                CollectNoteReferences(cell.Content, footnoteIds, endnoteIds);
+            }
+
+            CiteEndnotes(endnoteIds);
+            if (footnoteIds.Count == 0)
+            {
+                return;
+            }
+
+            if (pendingNoteRows.Count > 0)
+            {
+                foreach (var id in footnoteIds)
+                {
+                    if (placedFootnotes.Add(id) && notes.Footnotes.ContainsKey(id))
+                    {
+                        pendingNoteRows.AddRange(NoteRows(id));
+                    }
+                }
+
+                return;
+            }
+
+            var fresh = footnoteIds.Where(_ => !placedFootnotes.Contains(_) && notes.Footnotes.ContainsKey(_)).Distinct().ToList();
+            if (fresh.Count > 0)
+            {
+                CommitFootnotes(fresh, rowBottom);
+            }
+        }
+
+        static void CollectNoteReferences(IReadOnlyList<DocumentElement> elements, List<string> footnoteIds, List<string> endnoteIds)
+        {
+            foreach (var element in elements)
+            {
+                switch (element)
+                {
+                    case ParagraphElement paragraph:
+                        CollectNoteReferences(paragraph, footnoteIds, endnoteIds);
+                        break;
+                    case ContentControlElement {CellParagraph: { } controlParagraph}:
+                        CollectNoteReferences(controlParagraph, footnoteIds, endnoteIds);
+                        break;
+                    case TableElement nested:
+                        foreach (var row in nested.Rows)
+                        {
+                            foreach (var cell in row.Cells)
+                            {
+                                CollectNoteReferences(cell.Content, footnoteIds, endnoteIds);
+                            }
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        static void CollectNoteReferences(ParagraphElement paragraph, List<string> footnoteIds, List<string> endnoteIds)
+        {
+            foreach (var run in paragraph.Runs)
+            {
+                if (run.FootnoteReferenceId is { } footnoteId)
+                {
+                    footnoteIds.Add(footnoteId);
+                }
+
+                if (run.EndnoteReferenceId is { } endnoteId)
+                {
+                    endnoteIds.Add(endnoteId);
+                }
+            }
+        }
+
+        // A page opens with the rows carried from the previous page, under the continuation separator,
+        // taking as much of the page as they need; the body flows above them (_probe_fn_f page 2: seven
+        // body lines at the top, the note's last thirty at the bottom under a full-width rule).
+        void PullPendingNotes()
+        {
+            if (pendingNoteRows.Count == 0)
+            {
+                return;
+            }
+
+            var area = noteAreas[0] ??= new();
+            var rows = new List<NoteRow> {SeparatorRow(notes!.FootnoteContinuationSeparator, true)};
+            rows.AddRange(pendingNoteRows);
+            pendingNoteRows.Clear();
+            AcceptNoteRows(area, rows, pageContentBottom - contentTop);
+            RefreshContentBottom();
+        }
+
+        // Lays each column's footnote area out upward from the page's content bottom, the rows stacking
+        // from (bottom − height). A separator's rule is the mark font's strikethrough stroke on the mark
+        // line's baseline (CanonicalParagraphMeasurer.StrikeoutBand), two inches long — the column width
+        // for a continuation.
+        void EmitNoteAreas()
+        {
+            for (var column = 0; column < noteAreas.Length; column++)
+            {
+                if (noteAreas[column] is not {Rows.Count: > 0} area)
+                {
+                    continue;
+                }
+
+                var left = fullContentLeft + column * (columnWidth + columnSpacing);
+                var top = pageContentBottom - area.Height;
+                foreach (var row in area.Rows)
+                {
+                    switch (row.Kind)
+                    {
+                        case NoteRowKind.Separator:
+                        case NoteRowKind.ContinuationSeparator:
+                            var width = row.Kind == NoteRowKind.Separator ? Math.Min(separatorWidthPoints, columnWidth) : columnWidth;
+                            items.Add(SeparatorRule(row.Paragraph!, row.Line, left, top + (float) row.Paragraph!.Properties.SpacingBeforePoints, width));
+                            break;
+                        case NoteRowKind.Line:
+                            items.Add(NoteLine(row, left, top));
+                            break;
+                    }
+
+                    top += row.Height;
+                }
+            }
+        }
+
+        // The separator rule for a mark line whose top sits at lineTop: the font's strikethrough
+        // stroke, drawn as a filled band (Word's XPS draws it as a filled rectangle too).
+        PlacedShading SeparatorRule(ParagraphElement paragraph, LaidOutLine line, float left, float lineTop, float width)
+        {
+            var (above, thickness) = measurer.StrikeoutBand(CanonicalParagraphMeasurer.MarkFont(paragraph));
+            return new(left, lineTop + line.Ascent - above, width, thickness, "000000");
+        }
+
+        // A note line placed in its area, indented and aligned as LayoutBand places a band line.
+        PlacedLine NoteLine(NoteRow row, float left, float top)
+        {
+            var paragraph = row.Paragraph!;
+            var properties = paragraph.Properties;
+            var availableWidth = columnWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+            var indentLeft = left + (float) properties.LeftIndentPoints;
+            var firstLineShift = FirstLineIndentOffset(properties, row.LineIndex);
+            var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, row.Line.Width);
+            var baseline = top + row.Line.Ascent;
+            return new(lineLeft, top, row.Line.Width, row.Line.Height, baseline, paragraph, row.LineIndex, LineRuns(paragraph, row.Line, row.LineIndex, lineLeft), MapImages(row.Line, lineLeft, baseline));
+        }
+
+        // The endnotes cited anywhere in the body flow after it under their separator, as ordinary
+        // paragraphs: Word ends the document with them rather than pinning them (document_capture/01,
+        // _probe_fn_a). The separator keeps the first note line with it — when the two miss the space
+        // left, the block starts the next page (_probe_fn_h: 43 body lines, then the block on page 2 at
+        // the margin top).
+        void PlaceEndnotes()
+        {
+            if (notes == null || citedEndnotes.Count == 0)
+            {
+                return;
+            }
+
+            FlushBorderRun();
+            var separator = notes.EndnoteSeparator;
+            var separatorLines = measurer.LayoutLineContents(separator, columnWidth);
+            var separatorLine = separatorLines.Count > 0 ? separatorLines[0] : default;
+            // Strict against the bottom, not HasSpaceFor's 2% slack: _probe_fn_h's 43 lines leave 18pt,
+            // the block needs 29.3, and the slack would have kept it where Word moves it.
+            var gap = atRegionTop ? 0 : Math.Max(lastAfter, (float) separator.Properties.SpacingBeforePoints);
+            if (!atRegionTop && y + gap + separatorLine.Height + FirstEndnoteLineHeight() > contentBottom)
+            {
+                AdvanceColumnOrPage();
+                gap = 0;
+            }
+
+            y += gap;
+            items.Add(SeparatorRule(separator, separatorLine, ColumnLeft, y, Math.Min(separatorWidthPoints, columnWidth)));
+            y += separatorLine.Height;
+            atRegionTop = false;
+            lastAfter = (float) separator.Properties.SpacingAfterPoints;
+            lastContextual = false;
+            lastStyleId = null;
+
+            foreach (var id in citedEndnotes)
+            {
+                if (!notes.Endnotes.TryGetValue(id, out var elements))
+                {
+                    continue;
+                }
+
+                foreach (var element in elements)
+                {
+                    switch (element)
+                    {
+                        case ParagraphElement paragraph:
+                            PlaceParagraph(paragraph);
+                            break;
+                        case TableElement table:
+                            PlaceTable(table);
+                            break;
+                    }
+                }
+            }
+        }
+
+        float FirstEndnoteLineHeight()
+        {
+            foreach (var id in citedEndnotes)
+            {
+                if (notes!.Endnotes.TryGetValue(id, out var elements) && elements.OfType<ParagraphElement>().FirstOrDefault() is { } paragraph)
+                {
+                    var lines = measurer.LayoutLineContents(paragraph, columnWidth);
+                    return (float) paragraph.Properties.SpacingBeforePoints + (lines.Count > 0 ? lines[0].Height : 0);
+                }
+            }
+
+            return 0;
         }
 
         // Where the body starts. A positive w:top margin is a MINIMUM (ECMA-376 §17.6.11): a header whose
@@ -350,7 +840,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // than the primary-constructor `page` (the same settings at this point): taking the parameter
             // captures it into the type while a field initializer also uses it, which is CS9124.
             contentTop = HeaderReservedTop(current, SelectVariant(1, firstPageHeader, evenPageHeader, header, current));
-            contentHeight = contentBottom - contentTop;
+            contentHeight = pageContentBottom - contentTop;
             columnTop = contentTop;
             y = contentTop;
 
@@ -472,6 +962,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // belongs under them, not over them.
             FlushBorderRun();
 
+            // The cited endnotes follow the body as flow.
+            PlaceEndnotes();
+
             // A deferred anchored float whose anchor paragraph never reached PlaceParagraph (lifted into
             // a positioned frame, or suppressed) settles at the cursor — the pre-deferral behaviour.
             foreach (var orphanedFloats in anchorDeferredFloats.Values)
@@ -493,6 +986,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // while a deliberate one survives.
             FinishPage(false);
 
+            // A footnote still spilling past the last body page continues onto pages of its own.
+            while (pendingNoteRows.Count > 0 || NoteAreaHeight(0) > 0)
+            {
+                FinishPage(false);
+            }
+
             return new(AssemblePages());
         }
 
@@ -504,6 +1003,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // The page ends the open border run — and the box has to reach items before they are handed to
             // the page below.
             FlushBorderRun();
+
+            // The page's footnote areas land at its bottom, on the body's own item list.
+            EmitNoteAreas();
 
             // A page is kept when it has visible content, when it is a deliberate blank left by an explicit
             // break, or when it is the only page. Only the body is stored here; the header/footer bands are
@@ -534,6 +1036,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 lineNumberCount = 0;
             }
+
+            // Fresh footnote areas, then any note spilling from the page just finished opens the first
+            // column's area before the body flows.
+            noteAreas = new NoteArea?[Math.Max(columnCount, noteAreas.Length)];
+            contentBottom = pageContentBottom;
+            PullPendingNotes();
         }
 
         // Drops the page's content into the middle of the margin band, for a sheet that asked to be centred
@@ -1455,6 +1963,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y = columnTop;
                 atRegionTop = true;
                 lastAfter = 0;
+                RefreshContentBottom();
                 return;
             }
 
@@ -1581,16 +2090,36 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var reserveWholeBox = properties.LineSpacingRule != LineSpacingRule.Auto;
                 var fit = 0;
                 var probeY = y;
+
+                // A line citing a footnote needs its whole box plus the note's separator and first line
+                // under it, and once it is in the note takes what it can of the rest (CommitFootnotes),
+                // so the bottom the NEXT candidates see rises by the note — down to the citing line's
+                // own bottom when the note overflows, which is what carries the lines after a long
+                // note's reference to the next page (_probe_fn_f/_g).
+                var probeBottom = contentBottom;
+                var probeAreaOpen = NoteAreaHeight(currentColumn) > 0;
                 while (lineIndex + fit < paragraphLines.Count)
                 {
                     var candidate = paragraphLines[lineIndex + fit];
                     var reserved = reserveWholeBox ? candidate.Height : candidate.Ascent;
-                    if (!(atRegionTop && fit == 0) && probeY + reserved > contentBottom)
+                    var newNotes = NewFootnotes(candidate);
+                    if (newNotes != null)
+                    {
+                        reserved = candidate.Height + NoteMinimum(newNotes, probeAreaOpen);
+                    }
+
+                    if (!(atRegionTop && fit == 0) && probeY + reserved > probeBottom)
                     {
                         break;
                     }
 
                     probeY += candidate.Height;
+                    if (newNotes != null)
+                    {
+                        probeBottom = Math.Max(probeY, probeBottom - NoteTotal(newNotes, probeAreaOpen));
+                        probeAreaOpen = true;
+                    }
+
                     fit++;
                 }
 
@@ -1709,6 +2238,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                     var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, baseline));
                     items.Add(placedLine);
+
+                    // The line is down: its footnotes open the column's area under it, its endnotes
+                    // join the document-end list.
+                    if (line.FootnoteReferenceIds != null || line.EndnoteReferenceIds != null)
+                    {
+                        CommitLineNotes(line, y + line.Height);
+                    }
 
                     // A deferred float anchored above this paragraph belongs to the page this line landed on —
                     // but only once a line with real content appears, so an empty spacer paragraph at a page
@@ -1877,6 +2413,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                 ResolvePendingFloats();
+                CommitRowNotes(table.Rows[rowIndex], y + rowHeights[rowIndex]);
                 y += rowHeights[rowIndex];
                 atRegionTop = false;
             }
@@ -1930,6 +2467,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                     ResolvePendingFloats();
+                    CommitRowNotes(row, y + rowHeight);
                     y += rowHeight;
                     atRegionTop = false;
                     continue;
@@ -2006,6 +2544,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                 ResolvePendingFloats();
+                CommitRowNotes(row, y + rowHeight);
                 y += rowHeight;
                 atRegionTop = false;
             }
@@ -2146,6 +2685,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 items.Add(fragment);
                 ResolvePendingFloats();
+                CommitRowNotes(table.Rows[rowIndex], y + height);
                 y += height;
                 atRegionTop = false;
 
