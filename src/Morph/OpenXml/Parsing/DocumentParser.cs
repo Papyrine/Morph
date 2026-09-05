@@ -474,6 +474,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var fieldCodes = ExtractFieldCodes(body);
         var footnotes = ExtractFootnotes(mainPart);
         var endnotes = ExtractEndnotes(mainPart);
+        var footnoteTextSize = StyleFontSize("FootnoteText");
+        var endnoteTextSize = StyleFontSize("EndnoteText");
         var embeddedObjects = ExtractEmbeddedObjects(body);
         var watermarks = ExtractWatermarks(mainPart);
         var features = DetectAdvancedFeatures(body, watermarks.Count > 0);
@@ -492,6 +494,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ThemeColors = currentThemeColors,
             ThemeFonts = currentThemeFonts,
             Compatibility = compatibility,
+            FootnoteTextSizePoints = footnoteTextSize,
+            EndnoteTextSizePoints = endnoteTextSize,
             Bookmarks = bookmarks,
             Comments = comments,
             TrackedChanges = trackedChanges,
@@ -1250,6 +1254,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         return null;
     }
+
+    // The resolved font size of a paragraph style, null when the styles part does not define it.
+    double? StyleFontSize(string styleId) =>
+        styleRunProperties != null && styleRunProperties.TryGetValue(styleId, out var properties)
+            ? properties.FontSizePoints
+            : null;
 
     Dictionary<string, RunProperties> ExtractStyleRunProperties(MainDocumentPart mainPart)
     {

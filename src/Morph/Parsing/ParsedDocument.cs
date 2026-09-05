@@ -89,6 +89,15 @@ sealed class ParsedDocument
     public bool PageFieldsPreEvaluated { get; init; }
 
     /// <summary>
+    /// The resolved font size of the document's <c>FootnoteText</c> / <c>EndnoteText</c> paragraph
+    /// styles, in points — what Word sets the note bodies in (its built-in styles are 10pt). Null when
+    /// the styles part declares neither, and the notes appendix falls back to Word's built-in 10pt.
+    /// </summary>
+    public double? FootnoteTextSizePoints { get; init; }
+
+    public double? EndnoteTextSizePoints { get; init; }
+
+    /// <summary>
     /// Footnotes from word/footnotes.xml. Renderer does not yet emit them at the page bottom.
     /// </summary>
     public IReadOnlyList<Footnote> Footnotes { get; init; } = [];
