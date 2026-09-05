@@ -16,7 +16,7 @@
       {
         "Width": 960.0,
         "Height": 540.0,
-        "Text": "A\nG\nE\nN\nD\nA\n•\nT\no\np\ni\nc\no\nn\ne\n•\nT\no\np\ni\nc\nt\nw\no\n•\nT\no\np\ni\nc\nt\nh\nr\ne\ne\n•\nT\no\np\ni\nc\nfo\nu\nr\nP\nR\nE\nS\nE\nN\nT\nA\nT\nI\nO\nN\nT\nI\nT\nL\nE\n2"
+        "Text": "A\nG\nE\nN\nD\nA\n•\nT\no\np\ni\nc\no\nn\ne\n•\nT\no\np\ni\nc\nt\nw\no\n•\nT\no\np\ni\nc\nt\nh\nr\ne\ne\n•\nT\no\np\ni\nc\nfo\nu\nr\nP R E S E N T A T I O N T I T L E\n2"
       }
     ]
   },
@@ -31,8 +31,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1641,
-      "Ssim": 0.9539,
+      "ErrorMetric": 0.1645,
+      "Ssim": 0.952,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
