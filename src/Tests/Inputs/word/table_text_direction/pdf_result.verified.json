@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Quarterly results:\nQuarter Region\nQ1 North\nQ2 South"
+        "Text": "Quarterly results: Quarter\nRegion\nQ1 North\nQ2 South"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0183,
-      "Ssim": 0.9658,
+      "ErrorMetric": 0.0182,
+      "Ssim": 0.9664,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

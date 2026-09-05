@@ -1458,7 +1458,8 @@ Rotated text direction within cells (bottom-to-top, top-to-bottom).
 - **Spec**: [TextDirection](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textdirection)
 - **Render**: Skia's `PageRenderer.RenderVerticalCellContent` wraps the cell's content draw in `SKCanvas.Save / Translate / RotateDegrees(±90) / Restore` around the bottom-left (btLr) or top-right (tbRl) of the content rect. ImageSharp renders the unrotated text into a temp `Image<Rgba32>` and applies `Mutate(_ => _.Rotate(±90))` before blitting at the cell's content origin.
 - **Export**: `HtmlExporter.CellStyle` maps `btLr` → `writing-mode: sideways-lr` and `tbRl` → `writing-mode: vertical-rl`, so the browser lays out (and wraps) the vertical text itself
-- **Test**: `table_text_direction/`
+- **Test**: `table_text_direction/`, `RotatedCellTests`
+- **Layout**: `Fragmenter.LayoutRotatedCellContent` lays the content out in an unrotated box of the cell's height by its width, centred on the cell, and wraps it in a `PlacedRotatedGroup` (−90° for `btLr`, +90° for `tbRl`) that every painter draws rotated about that box's centre — restored 2026-09-05; the direction had been parsed and never consumed since the engine flip (feature_capture/01's "Header" ran horizontal)
 
 > **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
 

@@ -180,6 +180,13 @@ public abstract class DocumentConverter
                     }
 
                     break;
+                case PlacedRotatedGroup group:
+                    foreach (var nested in Lines(group.Items))
+                    {
+                        yield return nested;
+                    }
+
+                    break;
             }
         }
     }
