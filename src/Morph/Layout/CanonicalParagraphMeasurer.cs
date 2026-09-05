@@ -140,8 +140,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 maxImageHeight = Math.Max(maxImageHeight, image.Height);
             }
 
-            var lineHeight = maxImageHeight > 0 ? ImageLineHeight(textHeight, textAscent, maxImageHeight, props.LineSpacingRule, HasText(wrapped[i])) : textHeight;
-            result[i] = new(wrapped[i].Width, lineHeight, Math.Max(textAscent, maxImageHeight), runs, images);
+            var hasText = HasText(wrapped[i]);
+            var lineHeight = maxImageHeight > 0 ? ImageLineHeight(textHeight, textAscent, maxImageHeight, props.LineSpacingRule, hasText) : textHeight;
+
+            // A line holding only images puts its baseline on the line BOTTOM — the image sits on the
+            // bottom of a line that is max(mark pitch, image) tall, not on the mark font's baseline.
+            // XPS-read on _probe_r12 (2026-09-05): a 3.6pt inline rectangle alone in a 12pt Calibri
+            // Light paragraph has its baseline 14.8pt under the line top (the full 14.65 pitch), where a
+            // text line's sits 11.4; resumes/12's coral rule sat 9px high on the mark ascent.
+            var ascent = maxImageHeight > 0 && !hasText ? lineHeight : Math.Max(textAscent, maxImageHeight);
+            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images);
         }
 
         return result;
