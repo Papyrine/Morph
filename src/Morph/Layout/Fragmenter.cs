@@ -1840,6 +1840,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
+            // A declared row FLOOR is strict against the hard bottom on the whole-table path too, as it is
+            // on the row-by-row path: _probe_floorfit_enddoc (a 30pt atLeast floor into a 24pt remainder,
+            // whole-table path) stayed on the page through the 4% the slack fits below allow — the move's
+            // 2% off the height against HasSpaceFor's 2% past the bottom — where Word moves it, as it did
+            // in every controlled floor fixture (_probe_floorfit_single/_last/_mid). Content keeps the
+            // slack: only the sum of the rows' declared heights is tested, so a table that fits by its
+            // content and misses only by rounding still squeezes on as before. Placed AFTER the row-by-row
+            // routing, so a long floored table still flows from where it stands rather than moving whole.
+            if (!atRegionTop && DeclaredRowFloors(table) > contentBottom - y)
+            {
+                AdvanceColumnOrPage();
+            }
+
             // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a flow table may over-spill the
             // bottom by the shared rounding slack before it is pushed to the next region.
             EnsureSpaceFor(totalHeight - contentHeight * 0.02f);
@@ -1851,6 +1864,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y += rowHeights[rowIndex];
                 atRegionTop = false;
             }
+        }
+
+        // The sum of a table's declared w:trHeight values, in points — the floors (atLeast) and exact
+        // boxes Word never lets spill past the bottom margin, whatever the content inside them does.
+        static float DeclaredRowFloors(TableElement table)
+        {
+            var total = 0f;
+            foreach (var row in table.Rows)
+            {
+                if (row.HeightPoints is { } declared)
+                {
+                    total += (float) declared;
+                }
+            }
+
+            return total;
         }
 
         // A table taller than a column, placed row by row. Rows do not split: one that will not fit moves
