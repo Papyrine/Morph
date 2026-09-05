@@ -16,22 +16,22 @@
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "thinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap\nthinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr, sz 18)\nnil none single thick \n double dotted dashed dotDash \n dotDotDash triple thinThickSmallGap thickThinSmallGap "
+        "Text": "thinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap\nthinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr, sz 18)\nnil none single thick \n double dotted dashed dotDash \n dotDotDash triple thinThickSmallGap thickThinSmallGap \nthinThickThinSmallGap thinThickMediumGap thickThinMediumGap thinThickThinMediumGap"
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "thinThickThinSmallGap thinThickMediumGap thickThinMediumGap thinThickThinMediumGap\n thinThickLargeGap thickThinLargeGap thinThickThinLargeGap wave \n doubleWave dashSmallGap dashDotStroked threeDEmboss \n threeDEngrave outset inset \n4. Border width sweep (w:sz, eighths of a point)\nsingle, sz=2 (0.25pt)\nsingle, sz=4 (0.50pt)\nsingle, sz=6 (0.75pt)\nsingle, sz=8 (1.00pt)\nsingle, sz=12 (1.50pt)\nsingle, sz=18 (2.25pt)\nsingle, sz=24 (3.00pt)\nsingle, sz=36 (4.50pt)\nsingle, sz=48 (6.00pt)\nsingle, sz=96 (12.00pt)\ndouble, sz=6 (total width splits into two lines)\ndouble, sz=24\n5. Edge combinations\ntop only\nbottom only\nleft only\nright only\ntop + bottom"
+        "Text": " thinThickLargeGap thickThinLargeGap thinThickThinLargeGap wave \n doubleWave dashSmallGap dashDotStroked threeDEmboss \n threeDEngrave outset inset \n4. Border width sweep (w:sz, eighths of a point)\nsingle, sz=2 (0.25pt)\nsingle, sz=4 (0.50pt)\nsingle, sz=6 (0.75pt)\nsingle, sz=8 (1.00pt)\nsingle, sz=12 (1.50pt)\nsingle, sz=18 (2.25pt)\nsingle, sz=24 (3.00pt)\nsingle, sz=36 (4.50pt)\nsingle, sz=48 (6.00pt)\nsingle, sz=96 (12.00pt)\ndouble, sz=6 (total width splits into two lines)\ndouble, sz=24\n5. Edge combinations\ntop only\nbottom only\nleft only\nright only\ntop + bottom\nleft + right\ntop + left + bottom (open right)\nall four edges"
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "left + right\ntop + left + bottom (open right)\nall four edges\n6. Border spacing (w:space, points)\nspace=0\nspace=4\nspace=10\nspace=20\nspace=31\n7. w:between inside a border group\nGroup member 1 - identical borders, so Word draws one box with between rules inside.\nGroup member 2 - identical borders, so Word draws one box with between rules inside.\nGroup member 3 - identical borders, so Word draws one box with between rules inside.\n8. Colours\nred C00000\nblue 2E74B5\ngreen 548235\nauto\n9. Shadow and frame attributes\nw:shadow=\"true\"\nw:frame=\"true\"\nboth"
+        "Text": "6. Border spacing (w:space, points)\nspace=0\nspace=4\nspace=10\nspace=20\nspace=31\n7. w:between inside a border group\nGroup member 1 - identical borders, so Word draws one box with between rules inside.\nGroup member 2 - identical borders, so Word draws one box with between rules inside.\nGroup member 3 - identical borders, so Word draws one box with between rules inside.\n8. Colours\nred C00000\nblue 2E74B5\ngreen 548235\nauto\n9. Shadow and frame attributes\nw:shadow=\"true\"\nw:frame=\"true\"\nboth\n10. Table cell borders by style\nStyle Cell A Cell B"
       },
       {
         "Width": 595.2999877929688,
         "Height": 841.9000244140625,
-        "Text": "10. Table cell borders by style\nStyle Cell A Cell B\nsingle A B\nthick A B\ndouble A B\ndotted A B\ndashed A B\ndotDash A B\ntriple A B\nwave A B\nthreeDEmboss A B\ninset A B"
+        "Text": "single A B\nthick A B\ndouble A B\ndotted A B\ndashed A B\ndotDash A B\ntriple A B\nwave A B\nthreeDEmboss A B\ninset A B"
       }
     ]
   },
@@ -46,32 +46,32 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2404,
-      "Ssim": 0.5445,
+      "ErrorMetric": 0.2506,
+      "Ssim": 0.5298,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1975,
-      "Ssim": 0.6292,
+      "ErrorMetric": 0.0938,
+      "Ssim": 0.8568,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1014,
-      "Ssim": 0.6927,
+      "ErrorMetric": 0.0869,
+      "Ssim": 0.7784,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.038,
-      "Ssim": 0.9545,
+      "ErrorMetric": 0.0744,
+      "Ssim": 0.8569,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"

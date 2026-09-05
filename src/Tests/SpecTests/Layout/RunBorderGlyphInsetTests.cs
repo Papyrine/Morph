@@ -21,6 +21,36 @@ public class RunBorderGlyphInsetTests
         await Assert.That(BorderStroke.RunBorderGlyphInset(BorderEdge.None)).IsEqualTo(0d);
 
     [Test]
+    public async Task A_run_beginning_with_a_space_draws_its_box_inside_the_line_and_reserves_nothing()
+    {
+        static ParagraphElement Paragraph(string boxed, BorderEdge? border) => new()
+        {
+            Runs =
+            [
+                new() { Text = "before ", Properties = new() { FontFamily = "Aptos", FontSizePoints = 10 } },
+                new() { Text = boxed, Properties = new() { FontFamily = "Aptos", FontSizePoints = 10, Border = border } },
+                new() { Text = " after", Properties = new() { FontFamily = "Aptos", FontSizePoints = 10 } }
+            ],
+            Properties = new()
+        };
+
+        var border = new BorderEdge { IsVisible = true, WidthPoints = 2.25, SpacePoints = 1 };
+        var plain = LayoutTestFonts.Measurer.LayoutLineContents(Paragraph("boxed", null), 1000)[0];
+        var reserving = LayoutTestFonts.Measurer.LayoutLineContents(Paragraph("boxed", border), 1000)[0];
+        var inside = LayoutTestFonts.Measurer.LayoutLineContents(Paragraph(" boxed ", border), 1000)[0];
+
+        await Assert.That(reserving.Height).IsGreaterThan(plain.Height + 6f);
+        await Assert.That(inside.Height).IsEqualTo(plain.Height).Within(0.01f);
+        await Assert.That(BorderStroke.RunBorderReserves("boxed")).IsTrue();
+        await Assert.That(BorderStroke.RunBorderReserves(" boxed ")).IsFalse();
+
+        // The inside box: outer faces on the line box, so the inner rect starts one drawn stack (1.8) in.
+        var box = BorderStroke.RunBorderBox(border, 100, 50, 200, 12.2, 0, reserves: false);
+        await Assert.That(box.Y).IsEqualTo(201.8).Within(0.001);
+        await Assert.That(box.Height).IsEqualTo(12.2 - 3.6).Within(0.001);
+    }
+
+    [Test]
     public async Task The_measurer_starts_a_bordered_run_after_its_inset_and_ends_the_next_run_after_it_too()
     {
         static ParagraphElement Paragraph(BorderEdge? border) => new()

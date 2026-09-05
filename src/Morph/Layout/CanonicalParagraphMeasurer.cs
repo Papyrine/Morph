@@ -208,7 +208,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var pad = 0d;
         foreach (var segment in line.Segments)
         {
-            if (segment.Properties.Border is { } border)
+            // A run whose text begins with a space draws its box inside the line and reserves nothing
+            // (BorderStroke.RunBorderReserves).
+            if (segment.Properties.Border is { } border && BorderStroke.RunBorderReserves(segment.Text))
             {
                 pad = Math.Max(pad, BorderStroke.RunBorderReserve(border));
             }
