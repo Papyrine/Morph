@@ -1325,6 +1325,8 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 Tables that span multiple pages with automatic page breaks between rows, splitting a row at a
 line boundary when it does not fit.
 
+> **A whole table's declared floors are strict (2026-09-05).** `Fragmenter.PlaceTable` sums the rows' `w:trHeight` values and moves the table whole when that sum misses the remainder — content keeps the 2% rounding slack, a floor does not — which is what every controlled floor fixture showed (`_probe_floorfit_single/_last/_mid/_enddoc`: Word moves a floored row whose floor misses the space whatever its content does). Placed after the row-by-row routing, so a long floored table still flows from where it stands. It changed no corpus baseline once the over-wide table rule above had put business-plans/15's cover right; before that the same rule cost that document a page.
+>
 > **A split cell paragraph must fit WITH its after-spacing (2026-09-05, XPS-read on `_probe_cellheight` / `_probe_cellheight2`).** The same 89 one-line paragraphs fill 28 lines of a flow page and 27 of a single-cell table under Normal spacing (line 276, 8pt after): the cell's 28th line would have ended 0.8pt inside the content bottom, but its 8pt after-spacing would not, and Word moved it overleaf — where the flow lets that spacing hang past the page bottom. With zero after-spacing both hold 48 lines, so a cell has no usable-height deficit of its own; `Fragmenter.LayoutCellFragment`'s split probe now reserves a paragraph's after-spacing behind its last line (`CellSplitAfterSpacingTests`). This closes the "42 against 41 lines" residue that had been carried under todo #25.
 
 - **Render**: `Fragmenter.PlaceTableRowByRow` / `PlaceSplitRow` / `BuildRowFragment`
