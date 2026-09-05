@@ -106,6 +106,25 @@ public class TableIndentCompatibilityTests
     }
 
     [Test]
+    public async Task An_over_wide_table_with_a_declared_width_keeps_it_under_autofit()
+    {
+        // _probe_wide15 table A: a 630pt dxa autofit table on a 468pt column stays 630pt.
+        var declared = new TableElement
+        {
+            Rows = [new() { Cells = [new() { Properties = new() { WidthPoints = 315 }, Content = [] }, new() { Properties = new() { WidthPoints = 315 }, Content = [] }] }],
+            Properties = new() { GridColumnWidths = [315, 315], PreferredWidthPoints = 630, IsAutoFit = true }
+        };
+        var undeclared = new TableElement
+        {
+            Rows = [new() { Cells = [new() { Properties = new() { WidthPoints = 315 }, Content = [] }, new() { Properties = new() { WidthPoints = 315 }, Content = [] }] }],
+            Properties = new() { GridColumnWidths = [315, 315], IsAutoFit = true }
+        };
+
+        await Assert.That(TableLayout.CalculateColumnWidths(declared, 2, 468).Sum()).IsEqualTo(630f).Within(0.01f);
+        await Assert.That(TableLayout.CalculateColumnWidths(undeclared, 2, 468).Sum()).IsEqualTo(468f).Within(0.01f);
+    }
+
+    [Test]
     public async Task A_percentage_table_fills_the_outdented_box()
     {
         var table = new TableElement

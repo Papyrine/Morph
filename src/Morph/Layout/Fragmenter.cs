@@ -3117,14 +3117,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Table X within the current column, by w:jc alignment: centred and right collapse the indent into
-        // the slack, left applies w:tblInd (non-floating).
+        // the slack, left applies w:tblInd (non-floating). The slack may be NEGATIVE — a table wider than
+        // the column centres on the column's centre and right-aligns to its right edge, overhanging the
+        // margins (Word-read on _probe_wide15: a 630pt table centred on a 468pt column spans −9 to 621pt,
+        // right-aligned it ends at the column's 540).
         float ComputeTableX(TableElement table, float tableWidth)
         {
             var slack = columnWidth - tableWidth;
             return table.Properties.Alignment switch
             {
-                TextAlignment.Center => ColumnLeft + Math.Max(0, slack / 2),
-                TextAlignment.Right => ColumnLeft + Math.Max(0, slack),
+                TextAlignment.Center => ColumnLeft + slack / 2,
+                TextAlignment.Right => ColumnLeft + slack,
                 _ => ColumnLeft + (float) table.Properties.IndentPoints
             };
         }

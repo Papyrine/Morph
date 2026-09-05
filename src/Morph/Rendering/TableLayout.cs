@@ -297,6 +297,15 @@ static class TableLayout
         var gridWidths = table.Properties.GridColumnWidths;
         var isAutoFit = table.Properties.IsAutoFit;
 
+        // An over-wide table squeezes to the column only when it declares no width of its own. XPS-read
+        // on _probe_wide12 / _probe_wide15 (2026-09-05): a 630pt dxa table on a 468pt column keeps its
+        // 630pt whether autofit or fixed, left-aligned (running off the page), centred on the column's
+        // centre (−9 to 621) or right-aligned to the column's right edge; a 120% pct table is 561.6
+        // (mode 15) and 575.4 (mode 12, the outdented box). business-plans/15's cover is such a table —
+        // 630pt centred, its title set in two lines — and squeezing it to the column wrapped the title
+        // to three. A table with no w:tblW (or w:tblW auto) still squeezes, as before.
+        var squeezes = isAutoFit && table.Properties.PreferredWidthPoints == null && !table.Properties.FillContainer;
+
         // w:tblGrid defines the columns and the per-cell w:tcW is advisory, so the grid wins when they
         // disagree. labels/13 is the proof: its grid is 11376 twips, exactly the text column, while its
         // cells declare 11724 (+17.4pt). Word lays the sheet out at the grid. Reading the tcW sum
@@ -419,10 +428,11 @@ static class TableLayout
                 totalExplicitWidth = fillTarget;
             }
 
-            if (totalExplicitWidth > outdented && isAutoFit)
+            if (totalExplicitWidth > outdented && squeezes)
             {
-                // Autofit only: a FIXED-layout table keeps its declared widths even when they
-                // overflow the text column — see OverflowsTextColumn below.
+                // Autofit with no declared width only: a FIXED-layout table, or one with a w:tblW of
+                // its own, keeps its widths even when they overflow the text column — see
+                // OverflowsTextColumn below and the probe note above.
                 var scale = outdented / totalExplicitWidth;
                 for (var i = 0; i < colCount; i++)
                 {
@@ -480,9 +490,9 @@ static class TableLayout
                 totalWidth += width;
             }
 
-            if (totalWidth > outdented && totalWidth > 0 && isAutoFit)
+            if (totalWidth > outdented && totalWidth > 0 && squeezes)
             {
-                // Autofit only, as in the explicit-widths branch above.
+                // Autofit with no declared width only, as in the explicit-widths branch above.
                 var scale = outdented / totalWidth;
                 for (var i = 0; i < colCount; i++)
                 {
