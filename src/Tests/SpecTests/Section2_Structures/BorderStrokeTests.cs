@@ -427,15 +427,37 @@ public class BorderStrokeTests
     }
 
     [Test]
-    public async Task Page_edges_do_not_shift_and_keep_their_own_model()
+    public async Task Page_edges_are_paragraph_edges_on_the_grid_from_their_inner_face()
     {
-        // A page frame arrives already centred from PageBorders.EdgeRect — shifting it regressed
-        // page_borders/01 by +0.0096 AE before the scope existed — and keeps the PNG-probed model:
-        // a 1.5pt single draws 1.5pt, not the grid's 1.2.
-        var page = BorderStroke.Bands(BorderLineStyle.Single, 1.5, BorderStroke.Scope.Page);
+        // _probe_pgbdr: a 1.5pt double draws 1.2/1.2/1.2 and the thin/thick family keeps page order —
+        // the thick line innermost on the bottom edge — stacking outward from the inner face.
+        var page = BorderStroke.Bands(BorderLineStyle.Double, 1.5, BorderStroke.Scope.Page);
+        var paragraph = BorderStroke.Bands(BorderLineStyle.Double, 1.5, BorderStroke.Scope.Paragraph);
 
-        await Assert.That(page[0].Thickness).IsEqualTo(1.5).Within(0.0001);
-        await Assert.That(BorderStroke.OutwardShift(page, BorderStroke.Scope.Page)).IsEqualTo(0);
+        await Assert.That(page.Select(_ => (_.Offset, _.Thickness))).IsEquivalentTo(paragraph.Select(_ => (_.Offset, _.Thickness)));
+        await Assert.That(page[0].Thickness).IsEqualTo(1.2).Within(0.0001);
+        await Assert.That(BorderStroke.OutwardShift(page, BorderStroke.Scope.Page)).IsEqualTo(0.6).Within(0.0001);
         await Assert.That(BorderStroke.OutwardShift([], BorderStroke.Scope.Paragraph)).IsEqualTo(0);
+
+        var bottom = BorderStroke.Bands(BorderLineStyle.ThinThickSmallGap, 3, BorderStroke.Scope.Page, trailingEdge: true);
+        var top = BorderStroke.Bands(BorderLineStyle.ThinThickSmallGap, 3, BorderStroke.Scope.Page);
+        await Assert.That(bottom[0].Thickness).IsEqualTo(3).Within(0.0001);
+        await Assert.That(top[0].Thickness).IsEqualTo(0.6).Within(0.0001);
+
+        // Text-offset frame: the inner face sits the space outside the margin; page-offset: the
+        // outer face sits the space from the edge, so the inner face is one drawn stack further in.
+        var edge = new BorderEdge { IsVisible = true, WidthPoints = 3 };
+        var settings = new PageSettings { WidthPoints = 612, HeightPoints = 792, MarginTop = 72, MarginBottom = 72, MarginLeft = 72, MarginRight = 72 };
+        var text = new PageBorders { Top = edge, Bottom = edge, Left = edge, Right = edge, TopSpacePoints = 24, BottomSpacePoints = 24, LeftSpacePoints = 24, RightSpacePoints = 24, MeasureFromText = true };
+        var (textX, textY, textWidth, textHeight) = text.EdgeRect(settings);
+        await Assert.That(textX).IsEqualTo(48).Within(0.001);
+        await Assert.That(textY).IsEqualTo(48).Within(0.001);
+        await Assert.That(textX + textWidth).IsEqualTo(564).Within(0.001);
+        await Assert.That(textY + textHeight).IsEqualTo(744).Within(0.001);
+
+        var fromPage = text with { MeasureFromText = false };
+        var (pageX, _, pageWidth, _) = fromPage.EdgeRect(settings);
+        await Assert.That(pageX).IsEqualTo(27).Within(0.001);
+        await Assert.That(pageX + pageWidth).IsEqualTo(585).Within(0.001);
     }
 }

@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Turns a <see cref="BorderEdge"/> into the concrete lines a painter strokes, so Skia, ImageSharp
 /// and PDF cannot drift apart on what "double" or "dotDash" means.
 ///
@@ -6,9 +6,10 @@
 /// at a time, with the declared <c>w:sz</c> floored to that grid — see <see cref="ParagraphBands"/>
 /// for the per-family rules, all XPS-read. A CELL border is the same stack on the same grid, placed
 /// by Word's cell geometry instead of outward from a box — see <see cref="CellEdgeLines"/>. A PAGE
-/// border keeps the earlier PNG-probed model (<see cref="PageBands"/>): symmetric families repeat
-/// the declared width per line, the thin/thick family divides it. Offsets come back relative to the
-/// edge's centre, innermost band first, so a plain <c>single</c> draws one band at offset 0.</para>
+/// border is the paragraph stack again, grown outward from the inner face
+/// <see cref="PageBorders.EdgeRect"/> returns (XPS-read on <c>_probe_pgbdr</c>, 2026-09-05). Offsets
+/// come back relative to the edge's box line, innermost band first, so a plain <c>single</c> draws
+/// one band at offset 0.</para>
 ///
 /// <para><b>Dashes.</b> Patterns are multiples of the declared width, which is how Word scales
 /// them: a 3pt dashed border has visibly longer dashes than a 0.5pt one.</para>
@@ -42,27 +43,6 @@ static class BorderStroke
     /// text (a `triple` box rendered its label as "riple").</para>
     /// </summary>
     internal readonly record struct Band(double Offset, double Thickness, double Shade = 1);
-
-    // The dark half of a three-D bevel. Word draws threeDEngrave/threeDEmboss as a CONTIGUOUS block
-    // — not two separated lines — one part darkened and one part at the declared colour. Measured
-    // off _probe_bevel at sz=48 (6pt), where antialiasing is negligible: an 808080 (grey 128) groove
-    // comes out grey 53 across ~12px with a grey 127 strip of ~3px beside it, and a ridge is the
-    // same two parts in the opposite order. 53/128 = 0.41.
-    const double bevelShade = 0.41;
-
-    // A declared width too small to resolve is floored per unit rather than divided into slivers,
-    // which is what Word does — its own `double` at sz=6 spans ~5px against the 1.6px the declared
-    // width allows. 0.75pt rather than the 0.5pt (1px at 150 DPI) Word uses, because Word draws
-    // these pixel-aligned and unantialiased while Morph antialiases: at 0.5pt the gap is ~1px and
-    // the neighbouring lines' antialiasing closes it, unpredictably by pixel phase (rendering the
-    // fixture at 0.5pt merged the double box's TOP edge into one 4px run while its bottom edge
-    // still split). Trades ~0.5px of gap for reproducing the structure a reader sees.
-    const double minUnitPoints = 0.75;
-
-    // Word's bevel block is wider than the declared width: that 6pt groove spans 19px = 9.1pt,
-    // about 1.5x. Split 1.2 dark to 0.3 light, matching the ~12px/~3px measured.
-    const double bevelDarkUnits = 1.2;
-    const double bevelLightUnits = 0.3;
 
     static readonly Band[] singleBand = [new(0, 1)];
 
@@ -136,10 +116,10 @@ static class BorderStroke
         Cell,
 
         /// <summary>
-        /// A <c>w:pgBorders</c> page frame. Its rectangle already arrives as the line's CENTRE —
-        /// <see cref="PageBorders.EdgeRect"/> adds half the stroke on purpose, Word-measured on
-        /// page_borders/01 — so unlike a paragraph border it must not be shifted outward again.
-        /// Band layout is otherwise identical to <see cref="Paragraph"/>.
+        /// A <c>w:pgBorders</c> page frame: the same grid-floored, page-ordered stack as a
+        /// paragraph edge, stacked outward from the inner face <see cref="PageBorders.EdgeRect"/>
+        /// returns (2026-09-05, <c>_probe_pgbdr</c>). Kept distinct so the reserve helpers can still
+        /// tell the two apart.
         /// </summary>
         Page
     }
@@ -159,9 +139,14 @@ static class BorderStroke
             return [];
         }
 
-        return scope == Scope.Page
-            ? PageBands(style, totalWidth)
-            : ParagraphBands(style, totalWidth, trailingEdge);
+        // A page frame is built exactly like a paragraph edge since 2026-09-05 — the grid-floored
+        // stack in page order, growing outward from the inner face (PageBorders.EdgeRect gives that
+        // face). XPS-read on _probe_pgbdr (single at 0.75/3/6pt, double 1.5pt, thinThickSmallGap 3pt,
+        // text and page offsets): a 0.75pt single draws 0.6, a 1.5pt double 1.2/1.2/1.2, and the
+        // thin/thick family keeps page order on every edge — the thick line outermost on the top and
+        // left, INNERMOST on the bottom and right — where the PNG-probed page model it replaces drew
+        // the declared width unfloored and the thin line outside.
+        return ParagraphBands(style, totalWidth, trailingEdge);
     }
 
     // One pixel of Word's 120-dpi layout grid, the unit every paragraph border is built from.
@@ -412,109 +397,6 @@ static class BorderStroke
         }
     }
 
-    // The page scope keeps the model that was measured for it (page_borders/01) before the paragraph
-    // grid above was read. The cell scope shared it until _probe_cellw / _probe_cellfam put cells on
-    // the grid too (CellEdgeLines); the cell probes cited below were PNG-read at the declared widths,
-    // and their per-line reading survives in ParagraphLayout. Bringing page frames onto the grid is a
-    // separate adjudication.
-    static Band[] PageBands(BorderLineStyle style, double totalWidth)
-    {
-        // The three-D bevels are not a line/gap layout at all — see bevelShade. Two touching
-        // sub-bands, dark then light for the engraved groove and light then dark for the embossed
-        // ridge, with no gap between them.
-        if (style is BorderLineStyle.ThreeDEngrave or BorderLineStyle.ThreeDEmboss)
-        {
-            var bevelUnit = Math.Max(totalWidth, minUnitPoints);
-            var dark = bevelUnit * bevelDarkUnits;
-            var light = bevelUnit * bevelLightUnits;
-            // Touching sub-bands, innermost first. A groove is dark on the OUTSIDE (its top edge
-            // reads dark then light going inward); a ridge is the other way round.
-            return style == BorderLineStyle.ThreeDEngrave
-                ? [new(0, light), new(light / 2 + dark / 2, dark, bevelShade)]
-                : [new(0, dark, bevelShade), new(dark / 2 + light / 2, light)];
-        }
-
-        // Line/gap layout in units, outermost first. Odd entries are gaps.
-        int[]? layout = style switch
-        {
-            BorderLineStyle.Double or BorderLineStyle.DoubleWave => [1, 1, 1],
-            BorderLineStyle.Triple => [1, 1, 1, 1, 1],
-            BorderLineStyle.ThinThickSmallGap => [1, 1, 2],
-            BorderLineStyle.ThickThinSmallGap => [2, 1, 1],
-            BorderLineStyle.ThinThickThinSmallGap => [1, 1, 2, 1, 1],
-            BorderLineStyle.ThinThickMediumGap => [1, 2, 2],
-            BorderLineStyle.ThickThinMediumGap => [2, 2, 1],
-            BorderLineStyle.ThinThickThinMediumGap => [1, 2, 2, 2, 1],
-            BorderLineStyle.ThinThickLargeGap => [1, 3, 2],
-            BorderLineStyle.ThickThinLargeGap => [2, 3, 1],
-            BorderLineStyle.ThinThickThinLargeGap => [1, 3, 2, 3, 1],
-            _ => null
-        };
-
-        if (layout == null)
-        {
-            return [new(0, totalWidth)];
-        }
-
-        var units = 0;
-        foreach (var segment in layout)
-        {
-            units += segment;
-        }
-
-
-        // For the symmetric families w:sz is the width of EACH LINE, not of the whole stack —
-        // Word-probed with _probe_bordersp (an unbordered mark above and below each bordered
-        // paragraph, so the mark-to-mark distance isolates exactly what the border reserves, A4,
-        // 150 DPI). A `single` at sz=24 measured 109px mark-to-mark and a `double` at the same
-        // sz=24 measured 134px: 25px = 12pt more, which is 6pt per edge on top of the 3pt a single
-        // draws, i.e. two 3pt lines with a 3pt gap. Dividing sz between the lines instead gave 108px
-        // and left that border 26px short of Word's. `double` at sz=6 measured 105px against
-        // single's 100px, again the 1-1-1 stack at the declared width, and `triple` at sz=6 measured
-        // 111px against a predicted 3.75pt stack.
-        //
-        // The thin/thick family does NOT follow that rule — thinThickLargeGap at sz=24 measured
-        // 118px, a ~5pt stack rather than the 18pt six units of 3pt would give — so it keeps
-        // dividing the declared width, which lands within 3px of Word. What Word actually does
-        // there is unresolved; this is fitted to the measurement, not derived.
-        //
-        // A TABLE CELL double follows the same per-line rule as a paragraph's. An earlier reading
-        // off table_default_style at sz=12 ("the declared width as a total") was settled at a size
-        // where the hypotheses are 2px apart; `_probe_celldouble` re-measured the cell scope at
-        // sz=6/12/24/48 and every magnitude draws line = w:sz, gap = w:sz (150 DPI: 13px lines with
-        // a 12px gap at 6pt, 6/6 at 3pt, 3/2 at 1.5pt, 1/2 at 0.75pt — centre-to-centre exactly
-        // 2 x w:sz throughout), and `_probe_celltriple` measured `triple` the same way at
-        // sz=12/24/48. The scopes still differ in PLACEMENT (a cell stack straddles its shared
-        // edge, below), which is why the parameter stays.
-        var perLine = style is BorderLineStyle.Double or BorderLineStyle.Triple or BorderLineStyle.DoubleWave;
-
-        var unit = Math.Max(perLine ? totalWidth : totalWidth / units, minUnitPoints);
-        var bands = new Band[(layout.Length + 1) / 2];
-
-        // The layout reads outermost-first, so walk it BACKWARDS: the innermost line sits on the
-        // border box at offset 0 (which is where a single line draws, so single borders do not
-        // move) and each further line stacks outward by half of itself, the gap, and half of its
-        // neighbour. Growing outward is what keeps the stack off the text — Word anchors a
-        // border's inner edge and thickens away from the content.
-        var index = 0;
-        var offset = 0d;
-        var previousThickness = 0d;
-        for (var i = layout.Length - 1; i >= 0; i -= 2)
-        {
-            var thickness = layout[i] * unit;
-            if (index > 0)
-            {
-                var gap = layout[i + 1] * unit;
-                offset += previousThickness / 2 + gap + thickness / 2;
-            }
-
-            bands[index++] = new(offset, thickness);
-            previousThickness = thickness;
-        }
-
-        return bands;
-    }
-
     /// <summary>
     /// The dash pattern for this style as alternating on/off lengths in points, or null for a
     /// solid stroke.
@@ -613,7 +495,7 @@ static class BorderStroke
     /// <see cref="Bands"/>), and zero when nothing draws.</para>
     /// </summary>
     internal static double OutwardShift(Band[] bands, Scope scope) =>
-        scope != Scope.Paragraph || bands.Length == 0
+        scope == Scope.Cell || bands.Length == 0
             ? 0
             : bands[0].Thickness / 2;
 
