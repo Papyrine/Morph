@@ -2581,7 +2581,9 @@ static class HtmlExporter
             var start = DocumentExportHelpers.NormalizeColor(gradient.StartColorHex) ?? "#000000";
             var end = DocumentExportHelpers.NormalizeColor(gradient.EndColorHex) ?? "#000000";
 
-            builder.Append($"""<linearGradient id="shape-grad-{shapeId}" x1="{Number(0.5 - directionX / 2)}" y1="{Number(0.5 - directionY / 2)}" x2="{Number(0.5 + directionX / 2)}" y2="{Number(0.5 + directionY / 2)}"><stop offset="0" stop-color="{start}" /><stop offset="1" stop-color="{end}" /></linearGradient>""");
+            var startOpacity = gradient.StartAlpha < 1 ? $" stop-opacity=\"{Number(gradient.StartAlpha)}\"" : "";
+            var endOpacity = gradient.EndAlpha < 1 ? $" stop-opacity=\"{Number(gradient.EndAlpha)}\"" : "";
+            builder.Append($"""<linearGradient id="shape-grad-{shapeId}" x1="{Number(0.5 - directionX / 2)}" y1="{Number(0.5 - directionY / 2)}" x2="{Number(0.5 + directionX / 2)}" y2="{Number(0.5 + directionY / 2)}"><stop offset="0" stop-color="{start}"{startOpacity} /><stop offset="1" stop-color="{end}"{endOpacity} /></linearGradient>""");
         }
 
         static string ShapeTransformAttribute(FloatingShapeElement shape, double width, double height)

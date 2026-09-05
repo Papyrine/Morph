@@ -27,6 +27,19 @@ public class GradientFillParseTests
     }
 
     [Test]
+    public async Task ReadsTheStopAlphaAndDefaultsItToOpaque()
+    {
+        var gradFill = BuildGradient(90, (0, "FF0000"), (100000, "0000FF"));
+        var stops = gradFill.GetFirstChild<A.GradientStopList>()!.Elements<A.GradientStop>().ToList();
+        stops[0].RgbColorModelHex!.AppendChild(new A.Alpha { Val = 30000 });
+
+        var result = ShapeParser.ExtractGradientFill(gradFill, null);
+
+        await Assert.That(result!.StartAlpha).IsEqualTo(0.3).Within(0.0001);
+        await Assert.That(result.EndAlpha).IsEqualTo(1.0);
+    }
+
+    [Test]
     public async Task ExtractsTwoStopLinearGradient()
     {
         var gradFill = BuildGradient(90, (0, "FF0000"), (100000, "0000FF"));

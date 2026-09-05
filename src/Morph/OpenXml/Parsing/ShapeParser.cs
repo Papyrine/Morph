@@ -1048,6 +1048,9 @@ static class ShapeParser
             return null;
         }
 
+        var firstAlpha = ExtractGradientStopAlpha(stops[0]);
+        var lastAlpha = ExtractGradientStopAlpha(stops[^1]);
+
         // a:lin/@ang is in 60000ths of a degree, measured clockwise from horizontal-X-axis.
         // Linear gradient is the only type we model; path/radial fall through to null.
         var lin = gradFill.GetFirstChild<A.LinearGradientFill>();
@@ -1057,8 +1060,17 @@ static class ShapeParser
         {
             StartColorHex = first,
             EndColorHex = last,
-            DirectionDegrees = angle
+            DirectionDegrees = angle,
+            StartAlpha = firstAlpha,
+            EndAlpha = lastAlpha
         };
+    }
+
+    // a:alpha under the stop colour, in 1/1000 of a percent (100000 = opaque); absent means opaque.
+    static double ExtractGradientStopAlpha(A.GradientStop stop)
+    {
+        var alpha = stop.Descendants<A.Alpha>().FirstOrDefault();
+        return alpha?.Val?.HasValue == true ? Math.Clamp(alpha.Val.Value / 100000.0, 0, 1) : 1;
     }
 
     static string? ExtractGradientStopColor(A.GradientStop stop, ThemeColors? themeColors)

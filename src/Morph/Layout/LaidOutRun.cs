@@ -7,4 +7,4 @@
 /// A tab-leader filler carries an empty <see cref="Text"/> and a non-<c>None</c> <see cref="Leader"/>: a
 /// painter fills its span with the leader (tiled dots/hyphens, or a baseline rule for underscore).
 /// </summary>
-readonly record struct LaidOutRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);
+readonly record struct LaidOutRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0);

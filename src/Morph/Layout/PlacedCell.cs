@@ -20,6 +20,11 @@
 /// row or a split fragment (<c>TableHeightCalculator</c> charges those), zero for an interior row
 /// whose bottom edge hangs below its face into the row under it — Word hangs every horizontal cell
 /// edge DOWN from its grid line (<c>BorderStroke.CellEdgeLines</c>).
+///
+/// <see cref="Diagonals"/> are the cell's <c>w:tl2br</c> / <c>w:tr2bl</c> rules, drawn corner to
+/// corner across the box at their grid-floored width after the edges. They were an engine-flip
+/// orphan: parsed onto <see cref="TableCellProperties.Diagonals"/> and drawn by the deleted
+/// production renderers, but never carried here, so <c>table_diagonal_borders/01</c> rendered none.
 /// </summary>
 sealed record PlacedCell(
     float X,
@@ -32,4 +37,5 @@ sealed record PlacedCell(
     bool ClipContent = false,
     float ClipSpillLeft = 0,
     float ClipSpillRight = 0,
-    float BottomEdgeInset = 0);
+    float BottomEdgeInset = 0,
+    CellDiagonals? Diagonals = null);

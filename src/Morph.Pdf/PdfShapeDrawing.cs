@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Shape-drawing primitives shared by <see cref="PdfPainter"/>: group-shape contours, pictures, pens
 /// and alpha, plus custGeom polygon paths and linear-gradient brushes. These lived on the production
 /// <c>PdfTextEngine</c>/<c>PdfPageRenderer</c> (internal statics the painter reused so the two paths
@@ -164,6 +164,9 @@ static class PdfShapeDrawing
         var halfDiagonal = Math.Sqrt(width * width + height * height) / 2;
         var start = new XPoint(centerX - directionX * halfDiagonal, centerY - directionY * halfDiagonal);
         var end = new XPoint(centerX + directionX * halfDiagonal, centerY + directionY * halfDiagonal);
-        return new(start, end, PdfRenderContext.ParseColor(gradient.StartColorHex), PdfRenderContext.ParseColor(gradient.EndColorHex));
+        return new(start, end, WithAlpha(PdfRenderContext.ParseColor(gradient.StartColorHex), gradient.StartAlpha), WithAlpha(PdfRenderContext.ParseColor(gradient.EndColorHex), gradient.EndAlpha));
     }
+
+    static XColor WithAlpha(XColor color, double alpha) =>
+        alpha >= 1 ? color : XColor.FromArgb((int) Math.Round(alpha * 255), color.R, color.G, color.B);
 }

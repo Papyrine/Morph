@@ -54,10 +54,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // An inline image grows the line exactly as LayoutLineContents places it — measure and
             // placement must agree or a cell's row height omits its image: newsletters/05's school
             // photo (213pt, alone in a cell paragraph) measured as a 12pt mark line, and every row
-            // below overlapped it by the difference.
+            // below overlapped it by the difference. The image sits on the baseline, so the line
+            // keeps the text descent under it (ImageLineHeight).
+            var tallestImage = 0f;
             foreach (var image in wrapped[i].Images)
             {
-                height = Math.Max(height, image.Height);
+                tallestImage = Math.Max(tallestImage, image.Height);
+            }
+
+            if (tallestImage > 0)
+            {
+                var ascent = (float) CanonicalTextMeasurer.LineAscentPoints(
+                    NaturalAscent(paragraph, wrapped[i]), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch);
+                height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]));
             }
 
             result[i] = new(wrapped[i].Width, height);
@@ -91,7 +100,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var textAscent = 0f;
             for (var segment = 0; segment < segments.Count; segment++)
             {
-                runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties, segments[segment].Leader);
+                runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties, segments[segment].Leader, segments[segment].BaselineShift);
                 textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
@@ -122,7 +131,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             textAscent += runBorderPad;
 
             // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
-            // grow the line: ascent and height take the max of the text metrics and the tallest image.
+            // grow the line: the ascent takes the max of the text metrics and the tallest image, and the
+            // line keeps the text DESCENT under the baseline (ImageLineHeight).
             var images = wrapped[i].Images;
             var maxImageHeight = 0f;
             foreach (var image in images)
@@ -130,10 +140,66 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 maxImageHeight = Math.Max(maxImageHeight, image.Height);
             }
 
-            result[i] = new(wrapped[i].Width, Math.Max(textHeight, maxImageHeight), Math.Max(textAscent, maxImageHeight), runs, images);
+            var lineHeight = maxImageHeight > 0 ? ImageLineHeight(textHeight, textAscent, maxImageHeight, props.LineSpacingRule, HasText(wrapped[i])) : textHeight;
+            result[i] = new(wrapped[i].Width, lineHeight, Math.Max(textAscent, maxImageHeight), runs, images);
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// The height of a line carrying an inline image or shape: the image's bottom sits on the
+    /// baseline, its height becomes the line's ascent when it is the taller, and the text's descent
+    /// stays under the baseline — XPS-read on <c>_probe_inline</c> (2026-09-05; 6/24/48pt pictures
+    /// and 4/12/30pt inline rectangles in a 10pt Calibri line): the line above a 24pt picture sits
+    /// 24pt + its own descent over the baseline (27.6 from a 12pt line, 3.2 + 24), and the line
+    /// below keeps the plain 12.2 pitch (2.7 descent + 9.5 ascent) — so the picture line is 24 + 2.7,
+    /// not 24. Taking the max of pitch and image height dropped that descent on every image-bearing
+    /// line (icon_with_text's paragraph after its inline star sat 10-13px high). An exact rule pins
+    /// the line whatever it holds.
+    ///
+    /// <para>The descent is the TEXT runs' descent, so a line holding only the image keeps no
+    /// descent under it: the corpus refuted adding one — cards/16, postcards/02, labels/13 and
+    /// resumes/11 each stack image-only paragraphs (card art, label icons, short inline rules), and
+    /// charging a descent to every one drifted them further from Word than the plain image height
+    /// did (skia +0.03 AE on cards/16), while icon_with_text's text-bearing line still needs it.</para>
+    /// </summary>
+    static float ImageLineHeight(float textHeight, float textAscent, float tallestImage, LineSpacingRule rule, bool hasText)
+    {
+        if (rule == LineSpacingRule.Exactly)
+        {
+            return textHeight;
+        }
+
+        var descent = hasText ? Math.Max(0f, textHeight - textAscent) : 0f;
+        return Math.Max(textHeight, tallestImage + descent);
+    }
+
+    // Whether a wrapped line carries any text glyphs beside its images.
+    static bool HasText(WrapLine line)
+    {
+        foreach (var segment in line.Segments)
+        {
+            if (!string.IsNullOrWhiteSpace(segment.Text))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The natural baseline ascent of a wrapped line: the tallest of its segments, or the mark font for a
+    // line with no text (or measured widths-only, with no segments built).
+    float NaturalAscent(ParagraphElement paragraph, WrapLine line)
+    {
+        var ascent = 0f;
+        foreach (var segment in line.Segments)
+        {
+            ascent = Math.Max(ascent, AscentPoints(segment.Properties));
+        }
+
+        return ascent > 0 ? ascent : AscentPoints(MarkProperties(paragraph));
     }
 
     // The tallest run-border reserve on a line, in points — zero when no run on it carries a w:bdr.
@@ -293,9 +359,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // BreaksBefore marks a piece that may start a line even though the piece before it is not a space —
     // the hyphen break opportunity (see TokenizeText). The word-gathering loop stops there instead of
     // gluing every adjacent non-space piece into one unbreakable word.
-    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false);
+    // BaselineShift: the run's super/subscript shift (VerticalRunPosition), carried onto its segment.
+    // IsInset: a run border's horizontal reserve (BorderStroke.RunBorderGlyphInset) — advances the pen
+    // like text, joins its neighbouring word for wrapping, but belongs to no segment.
+    readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false, float BaselineShift = 0, bool IsInset = false);
 
-    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None);
+    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0);
 
     readonly record struct WrapLine(float Width, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images);
 
@@ -634,6 +703,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         double cursor = 0, segmentStart = 0;
         var segmentText = new StringBuilder();
         RunProperties? segmentFont = null;
+        var segmentShift = 0f;
 
         void FlushSegment()
         {
@@ -644,7 +714,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
             var x = (float) CanonicalTextMeasurer.PixelsToPoints(segmentStart);
             var width = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) - x;
-            segments.Add(new(x, width, segmentText.ToString(), segmentFont));
+            segments.Add(new(x, width, segmentText.ToString(), segmentFont, BaselineShift: segmentShift));
             segmentText.Clear();
             segmentFont = null;
         }
@@ -652,6 +722,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         for (var pieceIndex = 0; pieceIndex < linePieces.Count; pieceIndex++)
         {
             var piece = linePieces[pieceIndex];
+
+            // A run border's side reserve: the pen moves, no segment grows — the glyph run starts after
+            // it and ends before it, and the painters stroke the box outward from the glyphs into it.
+            if (piece.IsInset)
+            {
+                FlushSegment();
+                cursor += piece.Pixels;
+                continue;
+            }
 
             // A tab advances the pen to its resolved stop — the shared resolver handles left / centre /
             // right / decimal by measuring the text up to the next tab (or line end), and clamps a stop
@@ -735,12 +814,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 segmentFont = piece.Properties;
                 segmentStart = cursor;
+                segmentShift = piece.BaselineShift;
             }
             else if (!ReferenceEquals(piece.Properties, segmentFont))
             {
                 FlushSegment();
                 segmentFont = piece.Properties;
                 segmentStart = cursor;
+                segmentShift = piece.BaselineShift;
             }
 
             segmentText.Append(piece.Text);
@@ -821,8 +902,22 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 continue;
             }
 
-            var size = run.Properties.FontSizePoints;
-            var pitch = (float) metrics.LinePitchPoints(size);
+            // A superscript or subscript measures at its reduced size and carries its shift; the line
+            // pitch stays the run's declared size, since the reduced glyphs sit inside the full box.
+            var size = VerticalRunPosition.RenderSizePoints(run.Properties);
+            var pitch = (float) metrics.LinePitchPoints(run.Properties.FontSizePoints);
+            var baselineShift = VerticalRunPosition.BaselineShiftPoints(
+                run.Properties,
+                (double) metrics.DescentUnits / metrics.UnitsPerEm * run.Properties.FontSizePoints);
+
+            // A run border reserves its glyph inset on both sides of the run (BorderStroke.RunBorderGlyphInset).
+            var insetPixels = run.Properties.Border is { } runBorder
+                ? CanonicalTextMeasurer.PixelsFromPoints((float) BorderStroke.RunBorderGlyphInset(runBorder))
+                : 0;
+            if (insetPixels > 0)
+            {
+                pieces.Add(new(false, insetPixels, pitch, "", run.Properties, null, false, false, IsInset: true));
+            }
 
             // w:spacing tracking widens every character's advance (letter-spacing), so it enters the wrap
             // and alignment maths through each token's pixel width — matching PdfTextEngine, which adds
@@ -854,8 +949,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
                     }
 
-                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false, null, breaksBefore));
+                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false, null, breaksBefore, baselineShift));
                 }
+            }
+
+            if (insetPixels > 0)
+            {
+                pieces.Add(new(false, insetPixels, pitch, "", run.Properties, null, false, false, IsInset: true));
             }
         }
 

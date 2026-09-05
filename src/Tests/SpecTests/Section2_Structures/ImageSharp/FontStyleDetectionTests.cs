@@ -1,4 +1,4 @@
-extern alias ImageSharp;
+﻿extern alias ImageSharp;
 
 /// <summary>
 /// Tests for ImageSharp font style detection: italic verification,
@@ -121,7 +121,7 @@ public class ImageSharpFontStyleDetectionTests
             VerticalAlignment = VerticalRunAlignment.Subscript
         };
         var font = context.GetFont(props);
-        await Assert.That(font.Size).IsEqualTo(20f * 0.58f);
+        await Assert.That(font.Size).IsEqualTo(20f * (float) VerticalRunPosition.ReducedScale);
     }
 
     [Test]
@@ -135,7 +135,7 @@ public class ImageSharpFontStyleDetectionTests
             VerticalAlignment = VerticalRunAlignment.Superscript
         };
         var font = context.GetFont(props);
-        await Assert.That(font.Size).IsEqualTo(20f * 0.58f);
+        await Assert.That(font.Size).IsEqualTo(20f * (float) VerticalRunPosition.ReducedScale);
     }
 
     // === ImpliesBold from font name ===

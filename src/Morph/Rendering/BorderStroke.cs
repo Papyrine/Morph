@@ -313,6 +313,29 @@ static class BorderStroke
             : [];
 
     /// <summary>
+    /// The whole drawn stack of an edge on the grid — every band and gap of <see cref="CellStack"/>
+    /// summed, so a `single` is its floored width and a 3pt `double` is 9pt. Zero for an edge that
+    /// draws nothing or waves.
+    /// </summary>
+    internal static double DrawnStack(BorderEdge edge)
+    {
+        var total = 0d;
+        foreach (var (thickness, _) in CellStack(edge))
+        {
+            total += thickness;
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// A diagonal cell rule's stroke width: its single band floored to the grid, like any other cell
+    /// edge (Word draws <c>table_diagonal_borders/01</c>'s 0.5pt diagonals as one-pixel hairlines).
+    /// </summary>
+    internal static double DiagonalThickness(BorderEdge edge) =>
+        DrawnStack(edge);
+
+    /// <summary>
     /// One line of a cell border to stroke, in points on the page: its centre runs from
     /// <paramref name="From"/> to <paramref name="To"/> along the edge, at <paramref name="At"/>
     /// across it, <paramref name="Thickness"/> wide and shaded like a <see cref="Band"/>.
@@ -615,6 +638,18 @@ static class BorderStroke
     internal static double RunBorderInset(BorderEdge edge) =>
         Math.Floor(edge.SpacePoints / gridPoints + 1e-6) * gridPoints;
 
+    /// <summary>
+    /// How far a run border pushes the run's first glyph right of where the run would otherwise
+    /// start, and holds its last glyph short of where the next run starts: the drawn stack plus the
+    /// floored <c>w:space</c> — the outer-face offset of <see cref="RunBorderInset"/>. XPS-read on
+    /// <c>_probe_runbdr</c>: 1.2pt for a 0.75pt `single` with 1pt space (73.28 against the
+    /// paragraph's 72.08), 6.6pt for 3pt / 4pt (78.67). The measurer reserves it on both sides of
+    /// a bordered run (<c>CanonicalParagraphMeasurer.Flatten</c>), so the box the painters stroke
+    /// from the glyph run outward lands with its outer faces on the reserve.
+    /// </summary>
+    internal static double RunBorderGlyphInset(BorderEdge edge) =>
+        Draws(edge) ? DrawnStack(edge) + RunBorderInset(edge) : 0;
+
     /// <summary>The tallest <see cref="RunBorderReserve"/> among a line's runs — what the measurer grew the line by on each side.</summary>
     internal static double LinePad(IReadOnlyList<PlacedRun> runs)
     {
@@ -634,8 +669,10 @@ static class BorderStroke
     /// The rectangle a painter strokes a run border from (inner faces), so that with the outward
     /// stroke the rules' OUTER faces land the drawn stack plus the floored space outside the font's
     /// line box — the line box being the placed line shrunk by <paramref name="linePad"/> on each
-    /// side. Horizontally the box grows outward from the run by the same inset; Word instead pushes
-    /// the glyphs right by it, which the engine does not yet reproduce.
+    /// side. Horizontally the box grows outward from the glyph run by the same inset, into the
+    /// reserve the measurer holds open on each side of a bordered run
+    /// (<see cref="RunBorderGlyphInset"/>) — Word pushes the glyphs right by it, and so does the
+    /// engine since 2026-09-05.
     /// </summary>
     internal static (double X, double Y, double Width, double Height) RunBorderBox(BorderEdge edge, double runX, double runWidth, double lineY, double lineHeight, double linePad)
     {

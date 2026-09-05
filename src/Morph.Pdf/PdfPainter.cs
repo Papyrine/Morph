@@ -212,7 +212,9 @@ static class PdfPainter
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(properties.BackgroundColorHex)), run.X, line.Y, run.Width, line.Height);
             }
 
-            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, line.Baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties));
+            // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
+            var baseline = line.Baseline - run.BaselineShift;
+            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties));
 
             // Underline below the baseline, strike through the x-height — geometry carried over from the
             // deleted PdfTextEngine.
@@ -223,7 +225,7 @@ static class PdfPainter
                 var underlineColor = properties.UnderlineColorHex == null
                     ? color
                     : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = line.Baseline + properties.FontSizePoints * 0.12;
+                var underlineY = baseline + properties.FontSizePoints * 0.12;
                 graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, underlineY, run.X + run.Width, underlineY);
                 if (properties.DoubleUnderline)
                 {
@@ -234,7 +236,7 @@ static class PdfPainter
 
             if (properties.Strikethrough)
             {
-                var strikeY = line.Baseline - ascent * 0.3;
+                var strikeY = baseline - ascent * 0.3;
                 graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
             }
 
@@ -668,6 +670,27 @@ static class PdfPainter
             if (cell.Borders is { } borders)
             {
                 PaintCellBorders(context, graphics, cell, borders);
+            }
+
+            if (cell.Diagonals is {HasAny: true} diagonals)
+            {
+                PaintCellDiagonals(context, graphics, cell, diagonals);
+            }
+        }
+    }
+
+    // See SkiaPainter.PaintCellDiagonals.
+    static void PaintCellDiagonals(PdfRenderContext context, XGraphics graphics, PlacedCell cell, CellDiagonals diagonals)
+    {
+        double left = cell.X, top = cell.Y, right = cell.X + cell.Width, bottom = cell.Y + cell.Height;
+        Diagonal(diagonals.Down, left, top, right, bottom);
+        Diagonal(diagonals.Up, right, top, left, bottom);
+
+        void Diagonal(BorderEdge edge, double x0, double y0, double x1, double y1)
+        {
+            if (BorderStroke.DiagonalThickness(edge) is > 0 and var thickness)
+            {
+                graphics.DrawLine(EdgePen(context, edge, thickness, BorderStroke.DashPattern(edge.Style, edge.WidthPoints), 1), x0, y0, x1, y1);
             }
         }
     }
