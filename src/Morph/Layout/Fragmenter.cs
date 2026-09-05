@@ -110,7 +110,30 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         List<PlacedItem> items = [];
         // Each finished page's body items with the section geometry it was laid out at, kept until the flow
         // ends so the bands can resolve NUMPAGES and each page renders at its own section's size and margins.
-        readonly List<(IReadOnlyList<PlacedItem> Items, PageSettings Settings)> bodies = [];
+        // SectionFirst marks the first page of a section (it takes the w:titlePg variant and a w:pgNumType
+        // restart); Filler marks a parity blank Word inserts bare — no header, no footer, not counted in
+        // its section's pages (_probe_sect_b's page 4).
+        readonly List<(IReadOnlyList<PlacedItem> Items, PageSettings Settings, bool SectionFirst, bool Filler)> bodies = [];
+
+        // True while the in-progress page is the first of its section; the filler flag is raised only
+        // for the parity blanks ApplySectionBreak emits.
+        bool pageStartsSection = true;
+        bool currentPageFiller;
+
+        // The band set for a section that carries none (an HTML document, hand-built settings): the
+        // document-level parts this flow was given, which for a parsed DOCX are section 1's.
+        readonly SectionBands defaultBands = new()
+        {
+            Header = header,
+            Footer = footer,
+            FirstPageHeader = firstPageHeader,
+            FirstPageFooter = firstPageFooter,
+            EvenPageHeader = evenPageHeader,
+            EvenPageFooter = evenPageFooter,
+            EvenAndOddHeaders = evenPageHeader != null || evenPageFooter != null
+        };
+
+        SectionBands Bands(PageSettings settings) => settings.Bands ?? defaultBands;
         // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
         // behind the text; assembled into their page's items once the flow ends.
         readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
@@ -191,7 +214,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         void ApplyGeometry(PageSettings settings)
         {
             current = settings;
-            contentTop = HeaderReservedTop(settings, header);
+            contentTop = HeaderReservedTop(settings, Bands(settings).Header);
             pageContentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
             contentHeight = pageContentBottom - contentTop;
             fullContentLeft = (float) settings.MarginLeft;
@@ -750,6 +773,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             if (sectionBreak.NewSectionSettings is { } settings)
             {
+                // A section restarting its page numbers at a parity the next physical page does not have
+                // gets a bare filler page first, when the document keeps separate even and odd bands —
+                // Word's duplex rule (_probe_sect_b: a start=1 section reached on page 4 opens on page 5
+                // behind a page with no band at all; _probe_sect_c, the same document without
+                // w:evenAndOddHeaders, has no filler).
+                if (Bands(settings).EvenAndOddHeaders && settings.PageNumberStart is { } start && start % 2 != (bodies.Count + 1) % 2)
+                {
+                    currentPageExplicit = true;
+                    currentPageFiller = true;
+                    FinishPage(false);
+                }
+
                 ApplyGeometry(settings);
                 y = contentTop;
                 columnTop = contentTop;
@@ -764,6 +799,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             // The page this break started keeps a leading paragraph's spacing-before (see the field).
             currentPageSectionStart = true;
+            pageStartsSection = true;
         }
 
         // Redistributes the current page's multi-column content into equal-height columns, the way Word
@@ -839,7 +875,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // from ApplyGeometry's, which adopts a later section's plain header. Read off `current` rather
             // than the primary-constructor `page` (the same settings at this point): taking the parameter
             // captures it into the type while a field initializer also uses it, which is CS9124.
-            contentTop = HeaderReservedTop(current, SelectVariant(1, firstPageHeader, evenPageHeader, header, current));
+            contentTop = HeaderReservedTop(current, SelectVariant(current, sectionFirst: true, pageNumber: 1, isHeader: true));
             contentHeight = pageContentBottom - contentTop;
             columnTop = contentTop;
             y = contentTop;
@@ -1016,9 +1052,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             if (HasVisibleContent(items) || currentPageExplicit || bodies.Count == 0)
             {
-                bodies.Add((items, current));
+                bodies.Add((items, current, pageStartsSection && !currentPageFiller, currentPageFiller));
+                pageStartsSection = false;
             }
 
+            currentPageFiller = false;
             items = [];
             currentColumn = 0;
             y = contentTop;
@@ -1148,17 +1186,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         List<LaidOutPage> AssemblePages()
         {
             var total = bodies.Count;
+            var numbering = PageNumbers();
             for (var index = 0; index < bodies.Count; index++)
             {
                 var pageNumber = index + 1;
-                var settings = bodies[index].Settings;
+                var (body, settings, sectionFirst, filler) = bodies[index];
+
+                // A parity filler is bare: Word draws no band on it.
+                if (filler)
+                {
+                    pages.Add(new(pageNumber, settings, body));
+                    continue;
+                }
+
                 // The behind-text header/footer images follow the same first/even-page variant as the band
                 // text, so a title page's decorative frame or illustration comes from its first-page header.
-                var backgroundImages = ResolveBandImages(SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings), settings, isFooter: false);
-                var footerImages = ResolveBandImages(SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer, settings), settings, isFooter: true);
-                var headerBand = HeaderBand(pageNumber, total, settings);
-                var footerBand = FooterBand(pageNumber, total, settings);
-                var body = bodies[index].Items;
+                var backgroundImages = ResolveBandImages(SelectVariant(settings, sectionFirst, pageNumber, isHeader: true), settings, isFooter: false);
+                var footerImages = ResolveBandImages(SelectVariant(settings, sectionFirst, pageNumber, isHeader: false), settings, isFooter: true);
+                var headerBand = HeaderBand(pageNumber, sectionFirst, numbering[index], settings);
+                var footerBand = FooterBand(pageNumber, sectionFirst, numbering[index], settings);
 
                 // Body floats: behind-text ones paint under the body (over the header background), in-front
                 // ones over it. Anchored on the page they were reached on.
@@ -3554,35 +3600,93 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return result;
         }
 
-        // The header's text band for one page, at the header distance across the full content width. Page 1
-        // takes the first-page header when the document has one (a "different first page" title header, which
-        // may be empty); an even page its even variant when the document opts in; other pages the default.
-        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, int totalPages, PageSettings settings)
+        // What a page's PAGE / NUMPAGES / SECTIONPAGES fields read: the displayed number (a section's
+        // w:pgNumType/@w:start restarts it on the section's first page, else it runs on — a filler counts
+        // a number silently), the document total, and the pages of the page's section (fillers excluded).
+        // _probe_sect_b: v, vi, vii | filler | 1, 2, 3 | 4, 5 with NUMPAGES 9 and SECTIONPAGES 3 / 3 / 2.
+        readonly record struct PageNumbering(int Displayed, int Total, int SectionPages);
+
+        PageNumbering[] PageNumbers()
         {
-            var content = SelectVariant(pageNumber, firstPageHeader, evenPageHeader, header, settings);
+            var displayed = new int[bodies.Count];
+            var sectionOf = new int[bodies.Count];
+            var sectionPages = new List<int>();
+            var number = 0;
+            for (var index = 0; index < bodies.Count; index++)
+            {
+                var (_, settings, sectionFirst, filler) = bodies[index];
+                if (index == 0 || sectionFirst)
+                {
+                    sectionPages.Add(0);
+                    number = settings.PageNumberStart ?? (index == 0 ? 1 : number + 1);
+                }
+                else
+                {
+                    number++;
+                }
+
+                displayed[index] = number;
+                sectionOf[index] = sectionPages.Count - 1;
+                if (!filler)
+                {
+                    sectionPages[^1]++;
+                }
+            }
+
+            var result = new PageNumbering[bodies.Count];
+            for (var index = 0; index < bodies.Count; index++)
+            {
+                result[index] = new(displayed[index], bodies.Count, sectionPages[sectionOf[index]]);
+            }
+
+            return result;
+        }
+
+        // The header's text band for one page, at the header distance across the full content width. A
+        // section's first page takes the first-page header when the section has one (a "different first
+        // page" title header, which may be empty); an even page its even variant when the document opts
+        // in; other pages the default.
+        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings)
+        {
+            var content = SelectVariant(settings, sectionFirst, pageNumber, isHeader: true);
             var bandLeft = (float) settings.MarginLeft;
             var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             return content == null
                 ? []
-                : LayoutBand(SubstitutePageFields(content.Elements, pageNumber, totalPages), bandLeft, (float) settings.HeaderDistance, bandWidth);
+                : LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float) settings.HeaderDistance, bandWidth);
         }
 
-        // Picks the header/footer for a page: page 1 of a title-page document takes the first-page variant
-        // (which may be null — Word shows none on a title page, so no fall-back to the default); an
-        // even-numbered page takes the even variant when the document opts into even/odd, else the default.
-        static HeaderFooterContent? SelectVariant(int pageNumber, HeaderFooterContent? first, HeaderFooterContent? even, HeaderFooterContent? standard, PageSettings settings) =>
-            pageNumber == 1 && settings.DifferentFirstPage ? first
-            : pageNumber % 2 == 0 ? even ?? standard
-            : standard;
+        // Picks the header or footer for a page from its section's set: the section's first page takes
+        // the first-page variant when the section sets w:titlePg (which may be null — Word shows none on
+        // a title page, so no fall-back to the default); an even-numbered page takes the even variant
+        // when the document sets w:evenAndOddHeaders — or nothing, when the section has no even part
+        // (_probe_sect_b's even pages carry no footer where only a default footer exists); every other
+        // page the default. Parity is the physical page's: a numbering restart that would break it gets
+        // a filler page first (ApplySectionBreak), so the two never disagree.
+        HeaderFooterContent? SelectVariant(PageSettings settings, bool sectionFirst, int pageNumber, bool isHeader)
+        {
+            var bands = Bands(settings);
+            if (sectionFirst && settings.DifferentFirstPage)
+            {
+                return isHeader ? bands.FirstPageHeader : bands.FirstPageFooter;
+            }
+
+            if (pageNumber % 2 == 0 && bands.EvenAndOddHeaders)
+            {
+                return isHeader ? bands.EvenPageHeader : bands.EvenPageFooter;
+            }
+
+            return isHeader ? bands.Header : bands.Footer;
+        }
 
         // The footer's text band for one page, anchored so its bottom sits the footer distance above the
         // page's bottom edge, with PAGE/NUMPAGES fields resolved for this page (the bands assemble in a
         // post-pass once the total is known). Page 1 takes the first-page footer when present (often empty —
         // Word shows no footer on a title page); an even page its even variant when the document opts in.
         // 3-way footer tab alignment is a later slice.
-        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, int totalPages, PageSettings settings)
+        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings)
         {
-            var content = SelectVariant(pageNumber, firstPageFooter, evenPageFooter, footer, settings);
+            var content = SelectVariant(settings, sectionFirst, pageNumber, isHeader: false);
             if (content == null)
             {
                 return [];
@@ -3590,7 +3694,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             var bandLeft = (float) settings.MarginLeft;
             var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
-            var elements = SubstitutePageFields(content.Elements, pageNumber, totalPages);
+            var elements = SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat);
             var height = 0f;
             foreach (var element in elements)
             {
@@ -3608,10 +3712,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return LayoutBand(elements, bandLeft, footerTop, bandWidth);
         }
 
-        // Replaces each page-field run's cached text with this page's number (PAGE) or the document total
-        // (NUMPAGES / SECTIONPAGES — no section support yet, so both resolve to the whole-document total),
-        // cloning only the paragraphs that carry a field. A "Page N of M" footer now reads correctly.
-        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, int pageNumber, int totalPages)
+        // Replaces each page-field run's cached text with this page's displayed number (PAGE, in the
+        // field's own \* switch format or else the section's w:pgNumType/@w:fmt), the document total
+        // (NUMPAGES) or the section's pages (SECTIONPAGES), cloning only the paragraphs that carry a
+        // field. A "Page N of M" footer reads correctly across sections.
+        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, PageNumbering numbering, string? sectionFormat)
         {
             var result = new List<DocumentElement>(elements.Count);
             foreach (var element in elements)
@@ -3622,8 +3727,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     var runs = paragraph.Runs
                         .Select(_ => _.PageField switch
                         {
-                            PageFieldKind.Page => _.WithText(pageNumber.ToString(CultureInfo.InvariantCulture)),
-                            PageFieldKind.NumberOfPages or PageFieldKind.SectionPages => _.WithText(totalPages.ToString(CultureInfo.InvariantCulture)),
+                            PageFieldKind.Page => _.WithText(PageNumberFormatting.Format(numbering.Displayed, _.PageFieldNumberFormat ?? sectionFormat)),
+                            PageFieldKind.NumberOfPages => _.WithText(PageNumberFormatting.Format(numbering.Total, _.PageFieldNumberFormat)),
+                            PageFieldKind.SectionPages => _.WithText(PageNumberFormatting.Format(numbering.SectionPages, _.PageFieldNumberFormat)),
                             _ => _
                         })
                         .ToList();

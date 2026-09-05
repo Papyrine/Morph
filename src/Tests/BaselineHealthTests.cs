@@ -64,6 +64,12 @@ public class BaselineHealthTests
         "explicit_break_blank_page/skia_result#page_0002.verified.png",
         "explicit_break_blank_page/imagesharp_result#page_0002.verified.png",
         "explicit_break_blank_page/pdf_result#page_0002.verified.png",
+        // section_numbering_even_odd's fourth page is Word's parity filler: a section restarting its
+        // numbering at 1 on an even page gets a bare page first under w:evenAndOddHeaders, with no
+        // header or footer (its expected_0004.png is blank too).
+        "section_numbering_even_odd/skia_result#page_0004.verified.png",
+        "section_numbering_even_odd/imagesharp_result#page_0004.verified.png",
+        "section_numbering_even_odd/pdf_result#page_0004.verified.png",
         // basic-business-invoice spills a single banded row onto a second page, and Excel does the
         // same: its own expected_0002.png has 14 unique colours and one 5px ink band at rows
         // 116-120, against the render's 13-15 colours and a band at 116-119. A near-empty page is

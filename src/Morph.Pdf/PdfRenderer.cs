@@ -10,8 +10,8 @@ static class PdfRenderer
     // TrimPages / Normalize) is unchanged from the deleted production path — PdfPainter builds its own
     // PdfDocument, so it applies as before. The engine knows its own page total
     // (LaidOutDocument.Pages.Count), so no NUMPAGES pre-count pass runs here (the deleted
-    // CountPagesIfRequired laid the whole document out a second time); per-section NUMPAGES restart is a
-    // later slice.
+    // CountPagesIfRequired laid the whole document out a second time); PAGE restarts and SECTIONPAGES resolve
+    // per section inside the engine (Fragmenter.PageNumbers).
     public static byte[] Render(ParsedDocument document, PdfExportOptions? optionsOrNull)
     {
         var options = optionsOrNull ?? new PdfExportOptions();

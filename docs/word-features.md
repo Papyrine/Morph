@@ -940,7 +940,8 @@ Override the page numbering format (decimal, lowerRoman, etc.) and starting valu
 
 - **OOXML**: `w:pgNumType` within `w:sectPr` — `@w:fmt`, `@w:start`, `@w:chapStyle`, `@w:chapSep`
 - **Spec**: [PageNumberType](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagenumbertype)
-- **Render**: `PAGE` fields evaluate per page with the section's `w:pgNumType` applied: `@w:start` restarts the displayed number at the section's first page (`PageSettings.PageNumberStart` → a display offset the render context consumes at the section's page turn; the first section applies from page 1, covering the cover-page start=0 pattern), and `@w:fmt` supplies the number format when the field carries no `\*` switch of its own (lowerRoman/upperRoman/lowerLetter/upperLetter map onto the field-switch vocabulary). `@w:chapStyle`/`@w:chapSep` chapter numbering remains unread.
+- **Render**: `PAGE` fields evaluate per page with the section's `w:pgNumType` applied (`Fragmenter.PageNumbers`, restored to the engine 2026-09-06 — the deleted production render context had carried the restart, and the engine had numbered every page physically since the flip): `@w:start` restarts the displayed number on the section's first page (`PageSettings.PageNumberStart`; the first section applies from page 1, covering the cover-page start=0 pattern — business-plans/15's page 2 reads 1), a section without one runs on from the previous page, and `@w:fmt` supplies the number format when the field carries no `\*` switch of its own (lowerRoman/upperRoman/lowerLetter/upperLetter map onto the field-switch vocabulary, `PageNumberFormatting`). `NUMPAGES` is the physical page total (a parity filler counts) and `SECTIONPAGES` the page's own section's count (fillers excluded) — `section_numbering_even_odd` reads v, vi, vii | filler | 1, 2, 3 | 4, 5 with 9 and 3 / 3 / 2. `@w:chapStyle`/`@w:chapSep` chapter numbering remains unread.
+- **Test**: `section_numbering/`, `section_numbering_even_odd/`, `SectionBandTests`
 
 ---
 
@@ -1775,10 +1776,14 @@ Starts a new section on the next even or odd page, inserting a blank page if nee
 
 Content repeated at the top/bottom of every page.
 
-- **OOXML**: `w:headerReference` / `w:footerReference` with `w:type="default"`
+- **OOXML**: `w:headerReference` / `w:footerReference` with `w:type="default"`, one set per `w:sectPr`
 - **Spec**: [Headers & Footers](http://officeopenxml.com/WPheaders.php)
-- **Model**: `ParsedDocument.Header`, `ParsedDocument.Footer` → `HeaderFooterContent`
-- **Test**: `header/`, `footer/`, `header_footer/`, `header_banner_table/` (a shaded banner table at text width), `header_full_bleed_banner/` (the same shape bleeding off both edges, and tall enough that the body has to clear it), `header_float_image/` (front- and behind-text anchored pictures in the header and the footer)
+- **Model**: `PageSettings.Bands` → `SectionBands` (the six variants of one section, inheritance applied); `ParsedDocument.Header` / `Footer` hold section 1's for the text exporters
+- **Parse**: `DocumentParser.ExtractSectionBands` walks the `w:sectPr` list in order, each section taking the previous section's part of any type it declares no reference for (a reference to an empty part is an explicit "nothing" that later sections inherit); the sets ride on the section settings the section breaks carry
+- **Render**: `Fragmenter.SelectVariant` picks a page's band from ITS section's set — the first-page variant on a section's first page under `w:titlePg`, the even variant on an even page under `w:evenAndOddHeaders`, else the default
+- **Test**: `header/`, `footer/`, `header_footer/`, `header_banner_table/` (a shaded banner table at text width), `header_full_bleed_banner/` (the same shape bleeding off both edges, and tall enough that the body has to clear it), `header_float_image/` (front- and behind-text anchored pictures in the header and the footer), `section_header_inheritance/` (three sections, XPS-read 2026-09-06), `SectionBandTests`
+
+> **Contributors — per-section sets and inheritance (2026-09-06).** Before this the parser took the FIRST matching reference across every section and applied it document-wide, so business-plans/12's fourteen body sections rendered the cover's footer (no page numbers) and business-plans/13's section footers never changed. Word's rule, read off `section_header_inheritance` — section 1 declares all six parts and `w:titlePg`, section 2 declares only a default header, section 3 declares nothing but `w:titlePg`: section 2's pages show its own default header over section 1's default footer, its even page section 1's even header and footer; section 3's first page shows section 1's FIRST header and footer (through section 2, which never declared them) and its second page section 1's even pair. So inheritance is per TYPE and unconditional on `w:titlePg` — the first-page parts pass down through a section that does not use them. The engine's `HeaderReservedTop` reserves each section's own default header, and a section's first page is the page a non-continuous break opens (or page 1); a continuous break's page keeps the settings in force when it ends, as the geometry already did.
 
 > **Contributors**: Header/footer content supports paragraphs, tables, inline images, and anchored (floating) images — including full-page `behindDoc` background images used by many Word templates. Rendered at fixed positions based on `HeaderDistance`/`FooterDistance` from page edge. Image relationships (`r:embed`) inside header/footer parts are resolved against the host part, not the main document part.
 
@@ -1800,7 +1805,8 @@ Content repeated at the top/bottom of every page.
 Different header/footer content for the first page of a section.
 
 - **OOXML**: `w:titlePg` flag, `w:headerReference` with `w:type="first"`
-- **Model**: `ParsedDocument.FirstPageHeader`, `FirstPageFooter`, `PageSettings.DifferentFirstPage`
+- **Model**: `SectionBands.FirstPageHeader` / `FirstPageFooter` (inherited like every other part), `PageSettings.DifferentFirstPage` per section
+- **Render**: the first page of each section whose settings set `w:titlePg` takes the first-page variant — null when no section up the chain declares one, and Word shows nothing there rather than the default (`section_header_inheritance` page 5 shows section 1's first-page pair three sections on)
 
 
 #### Even / Odd Page Headers `DONE`
@@ -1808,11 +1814,14 @@ Different header/footer content for the first page of a section.
 Different header/footer content for even vs. odd pages.
 
 - **OOXML**: `w:evenAndOddHeaders` in document settings, `w:type="even"` references
-- **Model**: `ParsedDocument.EvenPageHeader`, `ParsedDocument.EvenPageFooter`
-- **Parse**: `DocumentParser.ParseDocument` checks `w:settings/w:evenAndOddHeaders` and pulls the matching `HeaderFooterValues.Even` parts when set
-- **Render**: `PageRenderer.RenderHeader` / `RenderFooter` (both backends) pick first-page → even-page → default in that order based on `CurrentPageNumber`
+- **Model**: `SectionBands.EvenPageHeader` / `EvenPageFooter`, `SectionBands.EvenAndOddHeaders`
+- **Parse**: `DocumentParser.ExtractSectionBands` reads `w:settings/w:evenAndOddHeaders` and keeps the `HeaderFooterValues.Even` parts only when it is set — Word ignores them otherwise (`section_numbering`: every page shows the odd header)
+- **Render**: `Fragmenter.SelectVariant` picks first-page → even-page → default in that order by the physical page number
+- **Test**: `even_odd_headers/01`, `even_odd_headers/02`, `section_numbering_even_odd/`, `section_numbering/`, `SectionBandTests`
 
-> **Contributors**: When `w:evenAndOddHeaders` isn't set, even pages fall back to the default header/footer (which is what consumers expect). The first-page selector still wins on page 1.
+> **Contributors**: When `w:evenAndOddHeaders` isn't set, even pages take the default header/footer. When it IS set, an even page takes its section's even part or NOTHING — Word does not fall back to the default: `section_numbering_even_odd` declares only a default footer and its even pages carry no footer at all (XPS-read 2026-09-06). The first-page selector still wins on a section's first page.
+
+> **Contributors — the parity filler page.** Under `w:evenAndOddHeaders`, a section whose `w:pgNumType/@w:start` has the opposite parity to the physical page it would open on gets a bare filler page first — no header, no footer, uncounted in `SECTIONPAGES`, counted in `NUMPAGES` — so the odd/even bands keep agreeing with the printed numbers: `section_numbering_even_odd`'s start=1 section reached on page 4 opens on page 5 behind a blank page 4 (nine pages), while the same document without the setting (`section_numbering`) opens it on page 4 with no filler (eight pages). `Fragmenter.ApplySectionBreak` emits the filler beside the even/odd-break fillers; `AssemblePages` gives it no band.
 
 
 #### Page Numbers in Headers `DONE`
