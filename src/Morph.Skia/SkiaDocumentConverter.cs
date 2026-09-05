@@ -18,14 +18,15 @@ public sealed class SkiaDocumentConverter : DocumentConverter
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
         var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
         var laidOut = new Fragmenter(measurer).Layout(
-            NotesAppendix.AppendTo(document),
+            document.Elements,
             document.PageSettings,
             document.Header,
             document.Footer,
             document.FirstPageHeader,
             document.FirstPageFooter,
             document.EvenPageHeader,
-            document.EvenPageFooter)
+            document.EvenPageFooter,
+            DocumentNotes.From(document))
             .Restrict(options.Pages);
 
         using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);

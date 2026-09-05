@@ -79,6 +79,16 @@ sealed record FontMetrics
     public bool UseTypoMetrics { get; init; }
 
     /// <summary>
+    /// The strikethrough stroke (<c>OS/2</c> <c>yStrikeoutPosition</c> / <c>yStrikeoutSize</c>), in
+    /// font units: how far the stroke's top sits above the baseline, and its thickness. Zero when the
+    /// font declares no <c>OS/2</c> table. Word draws a footnote separator as exactly this stroke of the
+    /// separator paragraph's font (<c>_probe_fn_l/_m/_o</c>, 2026-09-05).
+    /// </summary>
+    public int StrikeoutPosition { get; init; }
+
+    public int StrikeoutSize { get; init; }
+
+    /// <summary>
     /// The descent below the baseline that Word reserves at the bottom of the line box — the same
     /// family <see cref="LineBoxUnits"/> is built from: <c>−sTypoDescender</c> for a font that sets
     /// USE_TYPO_METRICS, <c>usWinDescent</c> for any other OS/2-bearing font, the hhea descender

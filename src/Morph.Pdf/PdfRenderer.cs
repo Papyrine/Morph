@@ -18,14 +18,15 @@ static class PdfRenderer
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
         var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
         var laidOut = new Fragmenter(measurer).Layout(
-            NotesAppendix.AppendTo(document),
+            document.Elements,
             document.PageSettings,
             document.Header,
             document.Footer,
             document.FirstPageHeader,
             document.FirstPageFooter,
             document.EvenPageHeader,
-            document.EvenPageFooter);
+            document.EvenPageFooter,
+            DocumentNotes.From(document));
 
         // The painter's context resolves fonts with the conversion's own width scale, fallback and
         // compatibility settings — the same values LayoutFonts gave the measurer above. They have to agree:
