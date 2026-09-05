@@ -610,6 +610,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         Content = [.. cell.Content.Select(inner => ShiftItem(inner, dy))]
                     })]
                 },
+                // A rotated group's items sit in its unrotated box, so they move with it.
+                PlacedRotatedGroup group => group with
+                {
+                    Y = group.Y + dy,
+                    Items = [.. group.Items.Select(inner => ShiftItem(inner, dy))]
+                },
                 _ => item with {Y = item.Y + dy}
             };
 
@@ -1048,16 +1054,26 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 AddBodyFloat(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText, absoluteY);
             }
 
-            foreach (var item in LayoutCellContent(
-                         new()
-                         {
-                             Content = textBox.Content
-                         },
-                         boxX,
-                         boxY,
-                         boxWidth,
-                         boxHeight,
-                         CellVerticalAlignment.Top))
+            var content = LayoutCellContent(
+                new()
+                {
+                    Content = textBox.Content
+                },
+                boxX,
+                boxY,
+                boxWidth,
+                boxHeight,
+                CellVerticalAlignment.Top);
+
+            // A rotated text box turns its content with its chrome, about the box centre — the a:xfrm
+            // rotation reached only the PlacedShape before, leaving labels/06's "ADMIT ONE" stubs flat.
+            if (textBox.RotationDegrees != 0)
+            {
+                AddBodyFloat(new PlacedRotatedGroup(boxX, boxY, boxWidth, boxHeight, content, textBox.RotationDegrees), textBox.BehindText, absoluteY);
+                return;
+            }
+
+            foreach (var item in content)
             {
                 AddBodyFloat(item, textBox.BehindText, absoluteY);
             }
