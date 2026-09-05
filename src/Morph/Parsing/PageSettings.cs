@@ -105,6 +105,13 @@ sealed record PageSettings
     /// </summary>
     public bool GutterAtTop { get; init; }
 
+    /// <summary>
+    /// This section's header and footer set, inheritance applied (<see cref="SectionBands"/>). Null for
+    /// a document that carries none per section (HTML input, hand-built settings), when the layout
+    /// engine falls back to the document-level parts it was given.
+    /// </summary>
+    public SectionBands? Bands { get; init; }
+
     public double ContentWidth => WidthPoints - MarginLeft - MarginRight;
 
     /// <summary>Width of a single column in points.</summary>

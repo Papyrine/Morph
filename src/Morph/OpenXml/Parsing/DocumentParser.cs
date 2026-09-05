@@ -408,6 +408,26 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var compatibility = ExtractCompatibilitySettings(mainPart);
         compatibilityMode = compatibility.CompatibilityMode;
 
+        // Each section's header/footer set, inheritance applied, folded into the section settings the
+        // section breaks will carry — so it has to exist before the body parses (ParseSectionBreak reads
+        // nextSectionSettings), and after the styles the band paragraphs resolve against.
+        // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
+        var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<EvenAndOddHeaders>().IsOn() ?? false;
+        var sectionBands = ExtractSectionBands(sectionPropsList, mainPart, evenAndOddHeaders);
+        for (var i = 0; i + 1 < sectionPropsList.Count; i++)
+        {
+            if (nextSectionSettings[sectionPropsList[i]] is { } nextSettings)
+            {
+                nextSectionSettings[sectionPropsList[i]] = nextSettings with { Bands = sectionBands[i + 1] };
+            }
+        }
+
+        if (sectionBands.Count > 0)
+        {
+            pageSettings = pageSettings with { Bands = sectionBands[0] };
+        }
+
         var elements = ParseElements(body, mainPart);
 
         // Append floating tables that were nested inside cells. Lifting them here lets the
@@ -431,24 +451,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // anchor's value so the stable sort preserves their intra-group order.
         SortFloatingBatchesByZ(elements);
 
-        var header = ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Default, isHeader: true);
-        var footer = ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Default, isHeader: false);
-        var firstPageHeader = pageSettings.DifferentFirstPage
-            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.First, isHeader: true)
-            : null;
-        var firstPageFooter = pageSettings.DifferentFirstPage
-            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.First, isHeader: false)
-            : null;
-
-        // w:settings/w:evenAndOddHeaders opts the document into separate even-page parts.
-        var evenAndOddHeaders = mainPart.DocumentSettingsPart?.Settings?
-            .GetFirstChild<EvenAndOddHeaders>().IsOn() ?? false;
-        var evenPageHeader = evenAndOddHeaders
-            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Even, isHeader: true)
-            : null;
-        var evenPageFooter = evenAndOddHeaders
-            ? ExtractHeaderFooter(sectionPropsList, mainPart, HeaderFooterValues.Even, isHeader: false)
-            : null;
+        // The document-level parts are section 1's — what the text exporters (which do not paginate)
+        // and a caller without section settings see; the engine reads each page's own section.
+        var firstSection = sectionBands.Count > 0 ? sectionBands[0] : new SectionBands();
+        var header = firstSection.Header;
+        var footer = firstSection.Footer;
+        var firstPageHeader = pageSettings.DifferentFirstPage ? firstSection.FirstPageHeader : null;
+        var firstPageFooter = pageSettings.DifferentFirstPage ? firstSection.FirstPageFooter : null;
+        var evenPageHeader = firstSection.EvenPageHeader;
+        var evenPageFooter = firstSection.EvenPageFooter;
         var hyphenation = ExtractHyphenationSettings(mainPart);
 
         // Both bookmark and comment extraction anchor to paragraph ordinals; the map costs a
@@ -4020,40 +4031,79 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
-    HeaderFooterContent? ExtractHeaderFooter(IReadOnlyList<SectionProperties> sectionPropsList, MainDocumentPart mainPart, HeaderFooterValues type, bool isHeader)
+    // Each section's header/footer set with Word's inheritance applied (ECMA-376 §17.10.5 and
+    // _probe_sect_a): a section that declares no reference of a type takes the previous section's part
+    // of that type — declared or itself inherited — whatever else it declares, and the chain is per
+    // TYPE: section 2 overriding only its default header left section 3 (w:titlePg, nothing declared)
+    // showing section 1's first-page header and even header. A declared reference to an EMPTY part is
+    // an explicit "nothing" (null) that later sections inherit. Even parts are dropped when the document
+    // does not set w:evenAndOddHeaders — Word ignores them then (_probe_sect_c). A part shared by
+    // several sections is parsed once, so the engine's paragraph-keyed caches see one instance.
+    List<SectionBands> ExtractSectionBands(IReadOnlyList<SectionProperties> sectionPropsList, MainDocumentPart mainPart, bool evenAndOddHeaders)
     {
-        // Search every section's properties for a matching reference, not just the last sectPr.
-        // The last sectPr is the trailing/document-level one and often has no header refs; earlier
-        // sectPrs (e.g. section 0/1) carry the actual references for cover-page and body sections.
-        // Picking up MainPart.HeaderParts.FirstOrDefault as a blind fallback risks landing on the
-        // wrong header (e.g. an unreferenced cover-page header that paints a coloured background).
-        // The caller passes the body's already-materialized sectPr list — this runs 2–6× per parse.
-        OpenXmlPart? part = null;
-        foreach (var sectionProps in sectionPropsList)
+        var parsedParts = new Dictionary<string, HeaderFooterContent?>();
+
+        HeaderFooterContent? Part(string relationshipId)
         {
-            if (isHeader)
+            if (!parsedParts.TryGetValue(relationshipId, out var content))
             {
-                var headerRef = sectionProps.Descendants<HeaderReference>()
-                    .FirstOrDefault(_ => _.Type?.Value == type);
-                if (headerRef?.Id?.Value != null)
+                OpenXmlPart? part;
+                try
                 {
-                    part = mainPart.GetPartById(headerRef.Id.Value);
-                    break;
+                    part = mainPart.GetPartById(relationshipId);
                 }
-            }
-            else
-            {
-                var footerRef = sectionProps.Descendants<FooterReference>()
-                    .FirstOrDefault(_ => _.Type?.Value == type);
-                if (footerRef?.Id?.Value != null)
+                catch (ArgumentOutOfRangeException)
                 {
-                    part = mainPart.GetPartById(footerRef.Id.Value);
-                    break;
+                    part = null;
                 }
+
+                content = ParseBandPart(part, mainPart);
+                parsedParts[relationshipId] = content;
             }
+
+            return content;
         }
 
-        // Get the root element from the part
+        var result = new List<SectionBands>(sectionPropsList.Count);
+        var previous = new SectionBands { EvenAndOddHeaders = evenAndOddHeaders };
+        foreach (var sectionProps in sectionPropsList)
+        {
+            HeaderFooterContent? Header(HeaderFooterValues type, HeaderFooterContent? inherited)
+            {
+                var reference = sectionProps.Elements<HeaderReference>().FirstOrDefault(_ => _.Type?.Value == type);
+                return reference?.Id?.Value is { } id ? Part(id) : inherited;
+            }
+
+            HeaderFooterContent? Footer(HeaderFooterValues type, HeaderFooterContent? inherited)
+            {
+                var reference = sectionProps.Elements<FooterReference>().FirstOrDefault(_ => _.Type?.Value == type);
+                return reference?.Id?.Value is { } id ? Part(id) : inherited;
+            }
+
+            var bands = new SectionBands
+            {
+                Header = Header(HeaderFooterValues.Default, previous.Header),
+                Footer = Footer(HeaderFooterValues.Default, previous.Footer),
+                FirstPageHeader = Header(HeaderFooterValues.First, previous.FirstPageHeader),
+                FirstPageFooter = Footer(HeaderFooterValues.First, previous.FirstPageFooter),
+                EvenPageHeader = evenAndOddHeaders ? Header(HeaderFooterValues.Even, previous.EvenPageHeader) : null,
+                EvenPageFooter = evenAndOddHeaders ? Footer(HeaderFooterValues.Even, previous.EvenPageFooter) : null,
+                EvenAndOddHeaders = evenAndOddHeaders
+            };
+            result.Add(bands);
+            previous = bands;
+        }
+
+        // A band's lifted floating tables are not body content; parsing the bands ahead of the body
+        // must not hand them to it.
+        pendingLiftedFloatingTables = null;
+        return result;
+    }
+
+    // A header or footer part's content, null when the part is missing or empty (a blank first-page
+    // header is Word's way of showing none on a title page, and must stay "nothing").
+    HeaderFooterContent? ParseBandPart(OpenXmlPart? part, MainDocumentPart mainPart)
+    {
         OpenXmlCompositeElement? rootElement = part switch
         {
             HeaderPart hp => hp.Header,

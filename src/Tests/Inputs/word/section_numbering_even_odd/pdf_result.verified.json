@@ -1,0 +1,130 @@
+﻿{
+  "target": {
+    "PageCount": 9,
+    "Properties": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "Pages": [
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER ODD\nFOOTER page=v numpages=9 sectionpages= 3\nSection 1 page 1"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER EVEN\nSection 1 page 2"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER ODD\nFOOTER page=vii numpages=9 sectionpages= 3\nSection 1 page 3"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER ODD\nFOOTER page=1 numpages=9 sectionpages= 3\nSection 2 page 1"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER EVEN\nSection 2 page 2"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER ODD\nFOOTER page=3 numpages=9 sectionpages= 3\nSection 2 page 3"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER EVEN\nSection 3 page 1"
+      },
+      {
+        "Width": 612.0,
+        "Height": 792.0,
+        "Text": "HEADER ODD\nFOOTER page=5 numpages=9 sectionpages= 2\nSection 3 page 2"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0039,
+      "Ssim": 0.9946,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0016,
+      "Ssim": 0.9979,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0039,
+      "Ssim": 0.9945,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "Ssim": 1.0,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    },
+    {
+      "Page": 5,
+      "ErrorMetric": 0.0039,
+      "Ssim": 0.9942,
+      "ExpectedFile": "expected_0005.png",
+      "VerifiedFile": "pdf_result#page_0005.verified.png",
+      "ReceivedFile": "pdf_result#page_0005.received.png"
+    },
+    {
+      "Page": 6,
+      "ErrorMetric": 0.0016,
+      "Ssim": 0.9979,
+      "ExpectedFile": "expected_0006.png",
+      "VerifiedFile": "pdf_result#page_0006.verified.png",
+      "ReceivedFile": "pdf_result#page_0006.received.png"
+    },
+    {
+      "Page": 7,
+      "ErrorMetric": 0.004,
+      "Ssim": 0.9942,
+      "ExpectedFile": "expected_0007.png",
+      "VerifiedFile": "pdf_result#page_0007.verified.png",
+      "ReceivedFile": "pdf_result#page_0007.received.png"
+    },
+    {
+      "Page": 8,
+      "ErrorMetric": 0.0016,
+      "Ssim": 0.9979,
+      "ExpectedFile": "expected_0008.png",
+      "VerifiedFile": "pdf_result#page_0008.verified.png",
+      "ReceivedFile": "pdf_result#page_0008.received.png"
+    },
+    {
+      "Page": 9,
+      "ErrorMetric": 0.0039,
+      "Ssim": 0.9942,
+      "ExpectedFile": "expected_0009.png",
+      "VerifiedFile": "pdf_result#page_0009.verified.png",
+      "ReceivedFile": "pdf_result#page_0009.received.png"
+    }
+  ]
+}

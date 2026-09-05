@@ -1,4 +1,4 @@
-# All HTML export scenarios (331)
+# All HTML export scenarios (334)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -282,6 +282,9 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [section_break_even_page](#section_break_even_page)
 - [section_break_next_page](#section_break_next_page)
 - [section_break_odd_page](#section_break_odd_page)
+- [section_header_inheritance](#section_header_inheritance)
+- [section_numbering](#section_numbering)
+- [section_numbering_even_odd](#section_numbering_even_odd)
 - [simple_paragraph](#simple_paragraph)
 - [simple_table](#simple_table)
 - [small_caps](#small_caps)
@@ -2000,6 +2003,24 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="section_break_odd_page/expected_0001.png" width="500"><br><img src="section_break_odd_page/expected_0002.png" width="500"><br><img src="section_break_odd_page/expected_0003.png" width="500"> | <img src="section_break_odd_page/html_result.verified.png" width="500"> |
+
+## section_header_inheritance
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="section_header_inheritance/expected_0001.png" width="500"><br><img src="section_header_inheritance/expected_0002.png" width="500"><br><img src="section_header_inheritance/expected_0003.png" width="500"><br><img src="section_header_inheritance/expected_0004.png" width="500"><br><img src="section_header_inheritance/expected_0005.png" width="500"><br><img src="section_header_inheritance/expected_0006.png" width="500"> | <img src="section_header_inheritance/html_result.verified.png" width="500"> |
+
+## section_numbering
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="section_numbering/expected_0001.png" width="500"><br><img src="section_numbering/expected_0002.png" width="500"><br><img src="section_numbering/expected_0003.png" width="500"><br><img src="section_numbering/expected_0004.png" width="500"><br><img src="section_numbering/expected_0005.png" width="500"><br><img src="section_numbering/expected_0006.png" width="500"><br><img src="section_numbering/expected_0007.png" width="500"><br><img src="section_numbering/expected_0008.png" width="500"> | <img src="section_numbering/html_result.verified.png" width="500"> |
+
+## section_numbering_even_odd
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="section_numbering_even_odd/expected_0001.png" width="500"><br><img src="section_numbering_even_odd/expected_0002.png" width="500"><br><img src="section_numbering_even_odd/expected_0003.png" width="500"><br><img src="section_numbering_even_odd/expected_0004.png" width="500"><br><img src="section_numbering_even_odd/expected_0005.png" width="500"><br><img src="section_numbering_even_odd/expected_0006.png" width="500"><br><img src="section_numbering_even_odd/expected_0007.png" width="500"><br><img src="section_numbering_even_odd/expected_0008.png" width="500"><br><img src="section_numbering_even_odd/expected_0009.png" width="500"> | <img src="section_numbering_even_odd/html_result.verified.png" width="500"> |
 
 ## simple_paragraph
 
