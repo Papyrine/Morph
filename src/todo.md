@@ -956,7 +956,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### resumes/12
 
-- MINOR | all | p1 | the coral rule below "Manager" sits 23px high — Morph draws it at y=477-483, Word at y=500-506. Geometry is otherwise exact (123x7px at x=132-254, 861 coral pixels in both), so this is purely the inline shape's vertical placement in its paragraph
+- MINOR | all | p1 | the coral rule below "Manager" sits 13px high (re-measured 2026-09-05, from 23px). Geometry is otherwise exact, and `_probe_inline2` puts an inline rectangle's bottom on its baseline with no descent in both renders — so this is the spacing ABOVE the rule's paragraph (the Subtitle after-spacing or the mark line), not the shape's placement
 - MINOR | pdf | p1 | "VICTORIA BURKE" name block sits ~20px lower than Word
 
 ### resumes/14
