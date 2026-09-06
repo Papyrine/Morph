@@ -4,8 +4,13 @@ Windows-only, like every reference-generation path: it drives Word through Rende
 (build src/RenderHelper/RenderHelper.csproj first) and reads Word's per-glyph advances out
 of the XPS it exports. Run per face, e.g.:
 
-    python scripts/generate-word-advances.py 400     # Calibri regular
+    python scripts/generate-word-advances.py 400     # Calibri regular, compatibility mode 12
     python scripts/generate-word-advances.py 700 400i 300 700i
+    python scripts/generate-word-advances.py aptos400@15   # the same face, compatibility mode 15
+
+Every face has TWO sidecars, one per compatibility-mode family: .wordadvances for documents in
+mode 14 and below (Word's GDI-compatible whole-pixel glyph widths) and .wordadvances15 for mode 15
+(DirectWrite's fractional widths, ~3% narrower on Segoe UI). See build_docx.
 
 Why the sidecars exist (evidence in docs/word-features.md, Fonts): Word does not lay text
 out on the font's linear hmtx advances. It rounds the em to whole pixels on its 120-dpi
@@ -24,7 +29,10 @@ import zipfile, re, os, subprocess, shutil
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INPUTS = os.path.join(REPO, r'src\Tests\Inputs\word')
-VSTEST = r'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
+VSTEST = next(p for p in [
+    r'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe',
+    r'C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe',
+] if os.path.exists(p))
 RH_DLL = os.path.join(REPO, r'src\RenderHelper\bin\Debug\net481\RenderHelper.dll')
 
 SIZES = list(range(12, 61)) + [64, 72, 80, 88, 96, 108, 120, 144]  # half-points: 6..30pt + display
@@ -48,19 +56,36 @@ def esc(c):
     return c.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
 
 
-def build_docx(out, family, bold, italic):
+MODE15_SETTINGS = ('<?xml version="1.0" encoding="utf-8"?>'
+                   '<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:compat>'
+                   '<w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/>'
+                   '</w:compat></w:settings>')
+
+
+def build_docx(out, family, bold, italic, mode15=False):
+    """The probe package. Cloned from table_borders (a settings-less package, so Word lays it out in
+    compatibility mode 12 - GDI-compatible whole-pixel glyph widths); mode15 adds a settings part
+    declaring compatibilityMode 15, where Word lays text out on DirectWrite's fractional widths
+    instead. The two disagree by up to a pixel per glyph (Segoe UI 12pt 's': a constant 9px in mode
+    12, 8/8/8/9 in mode 15 - _probe_seg_m15, 2026-09-06), so each mode gets its own sidecar."""
     flags = ('<w:b/>' if bold else '') + ('<w:i/>' if italic else '')
+    # Mode 15 shapes with OpenType ligatures: a run of twenty f's became ten ff ligature glyphs,
+    # ten advances against twenty authored characters, and every later pair slid out of step.
+    # Switch ligatures off so the probe measures the bare glyph.
+    ligatures = '<w14:ligatures w14:val="none"/>' if mode15 else ''
     body = []
     for sz in SIZES:
-        rpr = ('<w:rPr><w:rFonts w:ascii="%s" w:hAnsi="%s"/>%s<w:sz w:val="%d"/></w:rPr>'
-               % (family, family, flags, sz))
+        rpr = ('<w:rPr><w:rFonts w:ascii="%s" w:hAnsi="%s"/>%s<w:sz w:val="%d"/>%s</w:rPr>'
+               % (family, family, flags, sz, ligatures))
         for c in chars():
             # bracket spaces with 'n' so the run keeps leading/trailing advances honest
             text = ('n' + c * REPS + 'n') if c == ' ' else c * REPS
             body.append('<w:p><w:pPr>%s</w:pPr><w:r>%s'
                         '<w:t xml:space="preserve">%s</w:t></w:r></w:p>' % (rpr, rpr, esc(text)))
     doc = ('<?xml version="1.0" encoding="utf-8"?>'
-           '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
+           '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+           ' xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"'
+           ' xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="w14"><w:body>'
            + ''.join(body) +
            '<w:sectPr><w:pgSz w:w="12240" w:h="15840" w:orient="portrait" />'
            '<w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" /></w:sectPr>'
@@ -69,7 +94,19 @@ def build_docx(out, family, bold, italic):
     zin = zipfile.ZipFile(base)
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as zout:
         for name in zin.namelist():
-            zout.writestr(name, doc.encode('utf-8') if name == 'word/document.xml' else zin.read(name))
+            data = doc.encode('utf-8') if name == 'word/document.xml' else zin.read(name)
+            if mode15 and name == '[Content_Types].xml':
+                data = data.replace(b'</Types>', b'<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>')
+            if mode15 and name == 'word/_rels/document.xml.rels':
+                data = data.replace(b'</Relationships>', b'<Relationship Id="rIdSettings" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>')
+            zout.writestr(name, data)
+        if mode15:
+            assert 'word/settings.xml' not in zin.namelist(), 'base package already carries settings'
+            zout.writestr('word/settings.xml', MODE15_SETTINGS)
+            if 'word/_rels/document.xml.rels' not in zin.namelist():
+                zout.writestr('word/_rels/document.xml.rels',
+                              '<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                              '<Relationship Id="rIdSettings" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>')
 
 
 def unescape(s):
@@ -137,6 +174,37 @@ def run_word(scenario):
         raise RuntimeError('word render failed')
 
 
+def xps_font_families(xps_path):
+    """The family names of the fonts Word embedded in the XPS - the check that the probe really
+    rendered in the requested face and not a substitute (a sidecar measured off a fallback face
+    would poison every wrap on the real one). XPS obfuscates each font by XORing its first 32
+    bytes with the GUID in the file name."""
+    import struct
+    z = zipfile.ZipFile(xps_path)
+    families = set()
+    for name in z.namelist():
+        if not name.endswith('.odttf'):
+            continue
+        guid = re.search(r'([0-9A-Fa-f-]{36})\.odttf', name).group(1).replace('-', '')
+        key = bytes.fromhex(guid)[::-1]
+        data = bytearray(z.read(name))
+        for i in range(32):
+            data[i] ^= key[i % 16]
+        num_tables = struct.unpack('>H', data[4:6])[0]
+        for i in range(num_tables):
+            tag, _, offset, length = struct.unpack('>4sIII', data[12 + 16 * i:28 + 16 * i])
+            if tag != b'name':
+                continue
+            table = data[offset:offset + length]
+            count, string_offset = struct.unpack('>HH', table[2:6])
+            for record in range(count):
+                platform, _, _, name_id, slen, soff = struct.unpack('>HHHHHH', table[6 + 12 * record:18 + 12 * record])
+                if name_id == 1 and platform == 3:
+                    families.add(bytes(table[string_offset + soff:string_offset + soff + slen]).decode('utf-16-be', errors='replace'))
+    z.close()
+    return families
+
+
 def design_units(font_path):
     """read upm + per-codepoint advances from the ttf (head/hhea/hmtx/cmap fmt4)"""
     import struct
@@ -189,13 +257,17 @@ def design_units(font_path):
     return upm, adv
 
 
-def generate(font_file, family, bold, italic):
+def generate(font_file, family, bold, italic, mode15=False):
     scenario = '_probe_advgen'
     outdir = os.path.join(INPUTS, scenario)
     if not os.path.exists(os.path.join(outdir, 'word_output.xps')):
         os.makedirs(outdir, exist_ok=True)
-        build_docx(os.path.join(outdir, 'input.docx'), family, bold, italic)
+        build_docx(os.path.join(outdir, 'input.docx'), family, bold, italic, mode15)
         run_word(scenario)
+    embedded = xps_font_families(os.path.join(outdir, 'word_output.xps'))
+    if not any(family.lower() in f.lower() or f.lower() in family.lower() for f in embedded):
+        shutil.rmtree(outdir)
+        raise RuntimeError('Word rendered %r with %s, not the requested face - is it installed?' % (family, sorted(embedded)))
     upm, dadv = design_units(os.path.join(REPO, 'src', 'Fonts', font_file))
 
     # consume glyph runs in reading order, matching the authored (size, char) sequence;
@@ -233,7 +305,7 @@ def generate(font_file, family, bold, italic):
     assert ei == len(expected), (ei, len(expected))
 
     kept = 0
-    sidecar = os.path.join(REPO, 'src', 'Fonts', os.path.splitext(font_file)[0] + '.wordadvances')
+    sidecar = os.path.join(REPO, 'src', 'Fonts', os.path.splitext(font_file)[0] + ('.wordadvances15' if mode15 else '.wordadvances'))
     with open(sidecar, 'w', newline='\n') as f:
         f.write('# Word-measured advances, px on the 120-dpi layout grid, keyed by half-point size.\n')
         f.write('# Generated from Word XPS output via RenderHelper (scripts context: see todo/docs).\n')
@@ -259,12 +331,32 @@ def generate(font_file, family, bold, italic):
 
 if __name__ == '__main__':
     import sys
+    # Keyed by face: the Calibri five keep their original short keys; every other family is
+    # <family><weight>[i]. Add a face here, then run the script with its key (Word must have the
+    # face installed - the XPS font check above refuses a substitute).
     faces = {
         '400': ('Calibri_400.ttf', 'Calibri', False, False),
         '700': ('Calibri_700.ttf', 'Calibri', True, False),
         '400i': ('Calibri_400_Italic.ttf', 'Calibri', False, True),
         '300': ('Calibri_300.ttf', 'Calibri Light', False, False),
         '700i': ('Calibri_700_Italic.ttf', 'Calibri', True, True),
+        'aptos400': ('Aptos_400.ttf', 'Aptos', False, False),
+        'aptos700': ('Aptos_700.ttf', 'Aptos', True, False),
+        'aptos400i': ('Aptos_400_Italic.ttf', 'Aptos', False, True),
+        'aptos700i': ('Aptos_700_Italic.ttf', 'Aptos', True, True),
+        'avenir400': ('Avenir_Next_LT_Pro_400.ttf', 'Avenir Next LT Pro', False, False),
+        'avenir700': ('Avenir_Next_LT_Pro_700.ttf', 'Avenir Next LT Pro', True, False),
+        'century400': ('Century_Gothic_400.ttf', 'Century Gothic', False, False),
+        'century700': ('Century_Gothic_700.ttf', 'Century Gothic', True, False),
+        'arial400': ('Arial_400.ttf', 'Arial', False, False),
+        'arial700': ('Arial_700.ttf', 'Arial', True, False),
+        'arial400i': ('Arial_400_Italic.ttf', 'Arial', False, True),
+        'arial700i': ('Arial_700_Italic.ttf', 'Arial', True, True),
+        'franklin400': ('Franklin_Gothic_Book_400.ttf', 'Franklin Gothic Book', False, False),
+        'segoe400': ('Segoe_UI_400.ttf', 'Segoe UI', False, False),
+        'segoe700': ('Segoe_UI_700.ttf', 'Segoe UI', True, False),
     }
+    # A key suffixed @15 generates the compatibility-mode-15 sidecar (.wordadvances15) for that face.
     for which in sys.argv[1:] or ['400']:
-        generate(*faces[which])
+        key, _, mode = which.partition('@')
+        generate(*faces[key], mode15=mode == '15')

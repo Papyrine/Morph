@@ -49,7 +49,10 @@ static class FontMetricsReader
         }
 
         var wordAdvances = ReadWordAdvances(Path.ChangeExtension(path, ".wordadvances"));
-        return wordAdvances == null ? metrics : metrics with { WordAdvances = wordAdvances };
+        var wordAdvancesMode15 = ReadWordAdvances(Path.ChangeExtension(path, ".wordadvances15"));
+        return wordAdvances == null && wordAdvancesMode15 == null
+            ? metrics
+            : metrics with { WordAdvances = wordAdvances, WordAdvancesMode15 = wordAdvancesMode15 };
     }
 
     /// <summary>
@@ -57,17 +60,29 @@ static class FontMetricsReader
     /// size → codepoint → pixel-advance map. Returns null when the sidecar does not exist; a
     /// malformed line fails loudly rather than silently mis-measuring every document set in the face.
     /// </summary>
-    static IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? ReadWordAdvances(string sidecarPath)
-    {
-        if (!File.Exists(sidecarPath))
-        {
-            return null;
-        }
+    static IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? ReadWordAdvances(string sidecarPath) =>
+        File.Exists(sidecarPath) ? ParseWordAdvances(File.ReadLines(sidecarPath), sidecarPath) : null;
 
+    /// <summary>
+    /// Attaches sidecars supplied as text — the embedded Aptos faces' (<see cref="EmbeddedFonts.WordAdvances"/>),
+    /// which have no file beside them. A null text leaves that track absent, as a missing file does.
+    /// </summary>
+    public static FontMetrics WithWordAdvances(FontMetrics metrics, string? wordAdvancesText, string? wordAdvancesMode15Text, string faceName) =>
+        wordAdvancesText == null && wordAdvancesMode15Text == null
+            ? metrics
+            : metrics with
+            {
+                WordAdvances = wordAdvancesText == null ? null : ParseWordAdvances(wordAdvancesText.Split('\n'), $"{faceName}.wordadvances"),
+                WordAdvancesMode15 = wordAdvancesMode15Text == null ? null : ParseWordAdvances(wordAdvancesMode15Text.Split('\n'), $"{faceName}.wordadvances15")
+            };
+
+    static IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> ParseWordAdvances(IEnumerable<string> lines, string sidecarPath)
+    {
         var result = new Dictionary<int, IReadOnlyDictionary<int, float>>();
         Dictionary<int, float>? current = null;
-        foreach (var line in File.ReadLines(sidecarPath))
+        foreach (var rawLine in lines)
         {
+            var line = rawLine.TrimEnd('\r');
             if (line.Length == 0 || line[0] == '#')
             {
                 continue;

@@ -43,6 +43,23 @@ public class SpaceCompressionTests
     }
 
     [Test]
+    public async Task A_justified_paragraph_never_wedges()
+    {
+        // The same 0.8pt overhang that the first test wedges: under jc=both Word wraps the word
+        // instead (letters/04's XPS — "and" overhangs the 780px column by 6.9px across fifteen
+        // spaces and still starts the second line), since justification stretches every gap after
+        // the break and a compressed line would show nothing for it.
+        var paragraph = new ParagraphElement
+        {
+            Runs = [new() {Text = "wwww wwww wwww", Properties = new() {FontFamily = "Courier New", FontSizePoints = 12}}],
+            Properties = new() {Alignment = TextAlignment.Justify}
+        };
+        var lines = Measurer().LayoutLines(paragraph, 100f);
+
+        await Assert.That(lines.Count).IsEqualTo(2);
+    }
+
+    [Test]
     public async Task Word_overflowing_by_more_than_the_spaces_give_wraps()
     {
         // The same text at a 99.5pt measure overflows by 1.3pt = three quanta — past what two

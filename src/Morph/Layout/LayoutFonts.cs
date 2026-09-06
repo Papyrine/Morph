@@ -17,7 +17,18 @@ static class LayoutFonts
             releaseFont: null,
             fontDirectory: fontDirectory,
             fontFallback: fontFallback,
-            seed: FontResolver<FontMetrics>.BuildBundledSeed(bytes => FontMetricsReader.Read(new MemoryStream(bytes))!));
+            seed: FontResolver<FontMetrics>.BuildBundledSeed(LoadEmbeddedFace));
+
+    // An embedded face has no path to find its .wordadvances sidecars beside, so they come from the
+    // assembly too. The seed answers before the FontDirectory does, so without this every document
+    // set in Aptos — the modern Word default — measured on the linear fallback even with the
+    // directory copy of the face carrying Word's advances.
+    static FontMetrics LoadEmbeddedFace(string faceName, byte[] bytes) =>
+        FontMetricsReader.WithWordAdvances(
+            FontMetricsReader.Read(new MemoryStream(bytes))!,
+            EmbeddedFonts.WordAdvances(faceName, ".wordadvances"),
+            EmbeddedFonts.WordAdvances(faceName, ".wordadvances15"),
+            faceName);
 
     /// <summary>
     /// Adapts <see cref="FontResolver{TFont}.Resolve"/> to the measurer's contract. A family the resolver

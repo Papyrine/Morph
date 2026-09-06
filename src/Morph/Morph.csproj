@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="EmbeddedFonts\*.ttf" />
+    <EmbeddedResource Include="EmbeddedFonts\*.ttf;EmbeddedFonts\*.wordadvances;EmbeddedFonts\*.wordadvances15" />
   </ItemGroup>
 
   <ItemGroup>

@@ -134,10 +134,13 @@ public class CanonicalMetricsTests
         // The distinction that matters: 10.5pt must measure narrower than 11pt, in the nominal ratio. A long
         // line, so the one pen-position rounding (0.6pt at 120dpi) is a small fraction of the total — on a
         // short string that single rounding is ~1% on its own and would swamp the ratio being asserted.
-        var aptos = Read("Aptos_400.ttf");
+        // On a face WITHOUT a .wordadvances sidecar: this pins the linear fallback model. A sidecar-backed
+        // face measures with Word's own per-size advances, and Word does collapse Aptos 10.5pt onto the
+        // 11pt em (its sidecar reads 0.996 for this ratio) — the fallback is the rule under test, not Word.
+        var face = Read("Times_New_Roman_400.ttf");
         const string line = "The quick brown fox jumps over the lazy dog again and again and again";
-        var narrow = CanonicalTextMeasurer.MeasureWidthPoints(aptos, line, 10.5);
-        var wide = CanonicalTextMeasurer.MeasureWidthPoints(aptos, line, 11);
+        var narrow = CanonicalTextMeasurer.MeasureWidthPoints(face, line, 10.5);
+        var wide = CanonicalTextMeasurer.MeasureWidthPoints(face, line, 11);
         await Assert.That(narrow).IsLessThan(wide);
         await Assert.That(narrow / wide).IsEqualTo(10.5 / 11.0).Within(0.005);
     }
@@ -145,15 +148,17 @@ public class CanonicalMetricsTests
     [Test]
     public async Task Pen_position_width_bounds_the_whole_line_rounding_error()
     {
-        var aptos = Read("Aptos_400.ttf");
+        // A face without a .wordadvances sidecar, so the linear fallback is what is measured (see
+        // The_em_is_not_quantized).
+        var face = Read("Times_New_Roman_400.ttf");
         const string text = "The quick brown fox jumps over the lazy dog again and again and again";
 
         // The pen-position measurement sits within half a device pixel (0.5px @120dpi = 0.3pt) of the
         // unrounded ideal at the same size, no matter how long the line — because the whole-line total is
         // rounded once. Per-glyph rounding over this many glyphs would drift several points and over-wrap.
         // Now that the em is unquantized the ideal is simply the nominal width at 11pt.
-        var ideal = CanonicalTextMeasurer.MeasureWidthRawPoints(aptos, text, 11);
-        var measured = CanonicalTextMeasurer.MeasureWidthPoints(aptos, text, 11);
+        var ideal = CanonicalTextMeasurer.MeasureWidthRawPoints(face, text, 11);
+        var measured = CanonicalTextMeasurer.MeasureWidthPoints(face, text, 11);
         await Assert.That(Math.Abs(measured - ideal) < 0.31).IsTrue();
     }
 
