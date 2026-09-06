@@ -110,6 +110,9 @@ sealed class FloatingImageElement : DocumentElement
     /// <summary>Constant transparency; see <see cref="ImageElement.Opacity"/>.</summary>
     public double Opacity { get; init; } = 1;
 
+    /// <summary>The picture's <c>a:ln</c> outline, null when it has none (<see cref="ImageOutline"/>).</summary>
+    public ImageOutline? Outline { get; init; }
+
     /// <summary>
     /// Width as a fraction (0..1) of <see cref="WidthRelativeFrom"/>, parsed from
     /// <c>wp14:sizeRelH/wp14:pctWidth</c>. Null when no percentage sizing is present.

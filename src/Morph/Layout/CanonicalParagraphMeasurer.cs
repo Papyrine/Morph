@@ -63,7 +63,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var tallestImage = 0f;
             foreach (var image in wrapped[i].Images)
             {
-                tallestImage = Math.Max(tallestImage, image.Height);
+                tallestImage = Math.Max(tallestImage, image.BoxHeight);
             }
 
             if (tallestImage > 0)
@@ -141,7 +141,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var maxImageHeight = 0f;
             foreach (var image in images)
             {
-                maxImageHeight = Math.Max(maxImageHeight, image.Height);
+                maxImageHeight = Math.Max(maxImageHeight, image.BoxHeight);
             }
 
             var hasText = HasText(wrapped[i]);
@@ -938,7 +938,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 {
                     var imageWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
                     var imageHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
-                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(imageWidth), 0, "", run.Properties, new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity), false, false));
+
+                    // The line reserves the picture's layout box — the extent plus its wp:effectExtent on
+                    // every side (ImageEffectExtent) — and the picture draws inside it.
+                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent);
+                    pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(image.BoxWidth), 0, "", run.Properties, image, false, false));
                 }
 
                 continue;

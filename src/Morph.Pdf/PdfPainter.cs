@@ -400,6 +400,7 @@ static class PdfPainter
                 }
 
                 DrawIntoBox(graphics, decoded, image);
+                PaintImageOutline(graphics, image);
                 graphics.Restore(state);
             }
             else if (image.ClipToEllipse || image.ClipSubpaths != null)
@@ -428,16 +429,32 @@ static class PdfPainter
                 graphics.IntersectClip(clipPath);
                 DrawIntoBox(graphics, decoded, image);
                 graphics.Restore(state);
+                PaintImageOutline(graphics, image);
             }
             else
             {
                 DrawIntoBox(graphics, decoded, image);
+                PaintImageOutline(graphics, image);
             }
         }
         catch
         {
             // Undecodable image bytes: skip this image rather than fail the whole paint.
         }
+    }
+
+    // The picture's a:ln (see SkiaPainter.PaintImageOutline).
+    static void PaintImageOutline(XGraphics graphics, PlacedImage image)
+    {
+        if (image.Outline is not { } outline)
+        {
+            return;
+        }
+
+        var half = outline.WidthPoints / 2;
+        var rgb = PdfRenderContext.ParseColor(outline.ColorHex);
+        var pen = new XPen(XColor.FromArgb(PdfShapeDrawing.AlphaByte(outline.Alpha), rgb.R, rgb.G, rgb.B), outline.WidthPoints);
+        graphics.DrawRectangle(pen, image.X - half, image.Y - half, image.Width + outline.WidthPoints, image.Height + outline.WidthPoints);
     }
 
     // Draws the decoded image into its box, honouring a source-rectangle crop by enlarging the image so its
