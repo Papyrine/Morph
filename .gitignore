@@ -24,3 +24,4 @@ src/Tests/Inputs/**/input/
 /.nuget-cache/
 
 /src/TestResults
+*.lnk
