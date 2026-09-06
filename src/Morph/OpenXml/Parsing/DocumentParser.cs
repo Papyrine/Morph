@@ -154,6 +154,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Style paragraph properties cached during parsing (styleId -> paragraph properties)
     Dictionary<string, ParagraphProperties>? styleParagraphProperties;
 
+    // Styles whose resolved indentation belongs to their numbering — declared beside an active
+    // w:numPr, or inherited from such a style unchanged — and, for every style, the indentation that
+    // survives when numbering is switched off (w:numPr/w:numId="0"): Word drops the numbering's
+    // indent with the numbering. business-plans/08's Title is basedOn a numbered Heading 1 whose
+    // w:ind left=720 hanging=720 is the level's; Title sets numId=0 and Word sets both title lines
+    // flush at the margin (XPS: x=60.05 on the cell's 60.05 edge), not the second at 36pt.
+    readonly HashSet<string> styleIndentBound = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, (double Left, double FirstLine, double Hanging, double Right)> styleUnboundIndents = new(StringComparer.OrdinalIgnoreCase);
+
     // Numbering definitions: numId -> ilvl -> NumberingLevelDefinition
     Dictionary<int, Dictionary<int, NumberingLevelDefinition>>? numberingDefinitions;
 
@@ -1757,6 +1766,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     Dictionary<string, ParagraphProperties> ExtractStyleParagraphProperties(MainDocumentPart mainPart)
     {
         var styleProps = new Dictionary<string, ParagraphProperties>(StringComparer.OrdinalIgnoreCase);
+        styleIndentBound.Clear();
+        styleUnboundIndents.Clear();
 
         var stylesPart = mainPart.StyleDefinitionsPart;
         if (stylesPart?.Styles == null)
@@ -1817,6 +1828,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     styleProps.TryGetValue(basedOnId, out baseProps);
                 }
 
+                // Whether the base's indentation is its numbering's, and what it falls back to without
+                // the numbering (see styleIndentBound).
+                var baseIndentBound = basedOnId != null && styleIndentBound.Contains(basedOnId);
+                var baseUnboundIndent = basedOnId != null && styleUnboundIndents.TryGetValue(basedOnId, out var inheritedUnbound)
+                    ? inheritedUnbound
+                    : (defaultLeftIndentPoints, 0d, 0d, defaultRightIndentPoints);
+
                 // Check for paragraph properties in the style
                 var paraProps = style.StyleParagraphProperties;
 
@@ -1859,6 +1877,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // If no paragraph properties, still save inherited properties
                 if (paraProps == null)
                 {
+                    if (baseIndentBound)
+                    {
+                        styleIndentBound.Add(styleId);
+                    }
+
+                    styleUnboundIndents[styleId] = baseUnboundIndent;
                     styleProps[styleId] = new()
                     {
                         Alignment = alignment,
@@ -1953,14 +1977,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // Parse indentation — but skip when the style has numPr without a numId.
                 // In Word, indentation in a style that has numPr is numbering-level indentation
                 // and only applies when the numbering is active. Without a numId the numbering
-                // is dormant, so the indent should fall back to the base style's value.
+                // is dormant, so the indent should fall back to the base style's value — and the
+                // BASE's own numbering indent goes with it (styleIndentBound): business-plans/08's
+                // Title, basedOn the numbered Heading 1, sets numId=0 and Word puts both its lines
+                // at the margin where the inherited left=720/hanging=720 would have put the second
+                // at 36pt.
                 var styleNumPr = paraProps.GetFirstChild<NumberingProperties>();
                 var hasOrphanedNumPr = styleNumPr != null && (styleNumPr.NumberingId?.Val?.Value ?? 0) == 0;
+                var activeNumbering = styleNumPr != null && !hasOrphanedNumPr;
+                if (hasOrphanedNumPr && baseIndentBound)
+                {
+                    (leftIndent, firstLineIndent, hangingIndent, rightIndent) = baseUnboundIndent;
+                }
 
                 var indentation = paraProps.GetFirstChild<Indentation>();
-                if (indentation != null && !hasOrphanedNumPr)
+                var ownIndentation = indentation != null && !hasOrphanedNumPr;
+                if (ownIndentation)
                 {
-                    firstLineIndent = indentation.FirstLine.TwipsToPoints() ?? firstLineIndent;
+                    firstLineIndent = indentation!.FirstLine.TwipsToPoints() ?? firstLineIndent;
 
                     leftIndent = indentation.Left.TwipsToPoints() ?? leftIndent;
 
@@ -1968,6 +2002,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                     hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
                 }
+
+                if (activeNumbering || (baseIndentBound && !hasOrphanedNumPr && !ownIndentation))
+                {
+                    styleIndentBound.Add(styleId);
+                }
+
+                styleUnboundIndents[styleId] = activeNumbering || !ownIndentation
+                    ? baseUnboundIndent
+                    : (leftIndent, firstLineIndent, hangingIndent, rightIndent);
 
                 // Parse contextual spacing
                 if (paraProps.GetFirstChild<ContextualSpacing>() != null)
@@ -10493,6 +10536,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var hangingIndent = styleDefaults?.HangingIndentPoints ?? 0;
         var contextualSpacing = styleDefaults?.ContextualSpacing ?? false;
         var suppressLineNumbers = false;
+
+        // A direct w:numPr/w:numId="0" switches the style's numbering off, and the style's numbering
+        // indent goes with it (styleIndentBound) — a paragraph's own w:ind below still overrides.
+        var directNumbering = props?.GetFirstChild<NumberingProperties>();
+        if (directNumbering != null &&
+            (directNumbering.NumberingId?.Val?.Value ?? 0) == 0 &&
+            effectiveStyleId != null &&
+            styleIndentBound.Contains(effectiveStyleId) &&
+            styleUnboundIndents.TryGetValue(effectiveStyleId, out var unboundIndent))
+        {
+            (leftIndent, firstLineIndent, hangingIndent, rightIndent) = unboundIndent;
+        }
         var suppressAutoHyphens = false;
 
         // Table-style step of the cascade. The values above resolved the paragraph style chain

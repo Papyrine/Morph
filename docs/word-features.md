@@ -717,7 +717,9 @@ All lines except the first are indented. Used for list items and bibliography en
 
 - **OOXML**: `w:ind` with `w:hanging`
 - **Model**: `ParagraphProperties.HangingIndentPoints`
-- **Test**: `hanging_indent/`
+- **Test**: `hanging_indent/`, `NumberingIndentTests`
+
+> **Contributors — numbering off sheds the numbering's indent (2026-09-06).** A style declaring `w:numPr` beside a `w:ind` carries LIST indentation, and a style (or a paragraph) that switches that numbering off with `w:numPr/w:numId="0"` drops the indent with it, falling back to the nearest unnumbered ancestor's. business-plans/08's Title is `basedOn` its numbered Heading 1 (`w:ind w:left="720" w:hanging="720"`, `w:numId="9"`) and sets `numId=0`; Word's XPS puts both title lines — "Business" and, after a `w:br`, "proposal" — at x=60.05, the cell's own edge, where the inherited hanging indent had put the second line 36pt in. `DocumentParser.ExtractStyleParagraphProperties` tracks which styles' indents are numbering-bound (`styleIndentBound`: declared beside active numbering, or inherited from such a style unchanged) and each style's unbound fallback (`styleUnboundIndents`); the orphaned-numPr rule that already skipped a style's OWN indent now also resets the inherited one, and `ParseParagraphProperties` applies the same reset for a direct `numId=0`. A paragraph's own `w:ind` still overrides.
 
 
 #### Left / Right Indent `DONE`
