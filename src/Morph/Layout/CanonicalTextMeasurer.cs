@@ -152,11 +152,11 @@ sealed class CanonicalTextMeasurer
     /// model and its evidence. The reference grid here is 120 dpi, the same grid Word's measured
     /// pixels are on, so sidecar values add into this accumulator directly.</para>
     /// </summary>
-    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false)
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false, int compatibilityMode = 12)
     {
-        if (metrics.WordAdvances is { } wordAdvances)
+        if (metrics.WordAdvancesFor(compatibilityMode) is { } wordAdvances)
         {
-            return WordPixels(metrics, wordAdvances, text, sizePoints, kerning) * fontWidthScale;
+            return WordPixels(metrics, wordAdvances, text, sizePoints, kerning, compatibilityMode) * fontWidthScale;
         }
 
         if (kerning && metrics.KernPairs != null)
@@ -213,7 +213,7 @@ sealed class CanonicalTextMeasurer
     // Word's measured advance track: per-glyph sidecar pixels where measured, else linear at the
     // em rounded to whole reference pixels plus Word's half-twip bias (FontMetrics.WordAdvances).
     // Kerning, when enabled, applies Word's pair rule (KernPairDelta) on the same em.
-    static double WordPixels(FontMetrics metrics, IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> wordAdvances, string text, double sizePoints, bool kerning)
+    static double WordPixels(FontMetrics metrics, IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> wordAdvances, string text, double sizePoints, bool kerning, int compatibilityMode)
     {
         var halfPoints = (int) Math.Round(sizePoints * 2, MidpointRounding.AwayFromZero);
         wordAdvances.TryGetValue(halfPoints, out var table);
@@ -257,7 +257,15 @@ sealed class CanonicalTextMeasurer
                 // every comfortable line), 5px at 12pt. Carrying the fractional 4.52px here left
                 // lines ~half a pixel per space narrower than Word's, enough to fit an extra
                 // word and merge lines Word keeps (complex_spacing's band-count drift).
-                if (rune.Value == ' ')
+                //
+                // That snap is the GDI track's (compatibility mode 14 and older). A mode 15 document
+                // keeps the space fractional: agendas-minutes/15's XPS (Segoe UI 12pt, kerned) sums its
+                // first list line to 717px, which the fractional DirectWrite sidecar reproduces only
+                // with the 5.48px linear space (723.6 unkerned, against 716.2 with a 5px space); the
+                // XPS shows the glyph origins pixel-snapped with the accumulated fraction landing on
+                // the spaces (5, 6 and 7px gaps on one line). Rounding the space there fitted one
+                // more word per line and re-wrapped every list item away from Word's.
+                if (rune.Value == ' ' && compatibilityMode < 15)
                 {
                     advance = Math.Round(advance, MidpointRounding.AwayFromZero);
                 }
@@ -299,8 +307,8 @@ sealed class CanonicalTextMeasurer
     /// spaces only, a regression applied whole-advance (<c>src/page_counts.md</c>) — so it stays
     /// unmodelled by choice.
     /// </summary>
-    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false) =>
-        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning));
+    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false, int compatibilityMode = 12) =>
+        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning, compatibilityMode));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within

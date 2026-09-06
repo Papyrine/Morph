@@ -21,44 +21,44 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document, just click\non the block of text you want to update! The\nformatting has already been programmed for ease\nof formatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell the\naudience why you are the best! Don’t be shy!\nShare, explain, and tell us what makes your\ncompany so great!\nPlenty of text will fit in any of these panels. Simply\nclick on the placeholders and add your own text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has already been\nprogrammed for ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image you wish to change.\nOnce the image you wish to replace is selected, select Insert > Picture."
+        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document, just\nclick on the block of text you want to update! The\nformatting has already been programmed for ease\nof formatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell the\naudience why you are the best! Don’t be shy!\nShare, explain, and tell us what makes your\ncompany so great!\nPlenty of text will fit in any of these panels. Simply\nclick on the placeholders and add your own text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has already been\nprogrammed for ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image you wish to change.\nOnce the image you wish to replace is selected, select Insert > Picture."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "RISING STARS IN\nARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting again.\nFor example, this is the Normal style."
+        "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting\nagain. For example, this is the Normal style."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4398,
-      "Ssim": 0.6323,
+      "ErrorMetric": 0.4397,
+      "Ssim": 0.6333,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.3816,
-      "Ssim": 0.6793,
+      "ErrorMetric": 0.381,
+      "Ssim": 0.6827,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3372,
-      "Ssim": 0.7151,
+      "ErrorMetric": 0.3375,
+      "Ssim": 0.7148,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.5993,
-      "Ssim": 0.5274,
+      "ErrorMetric": 0.5614,
+      "Ssim": 0.5564,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

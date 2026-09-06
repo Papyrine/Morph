@@ -56,17 +56,26 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     /// read out of each face's <c>name</c>/<c>OS/2</c> tables.
     /// </summary>
     public static IEnumerable<((string Name, int Weight, bool Italic) Key, TFont Font)> BuildBundledSeed(
-        Func<byte[], TFont> loadFromBytes)
+        Func<byte[], TFont> loadFromBytes) =>
+        BuildBundledSeed((_, bytes) => loadFromBytes(bytes));
+
+    /// <summary>
+    /// The seed with each face's embedded file name (<c>Aptos_400</c>, <c>Bullets</c>, …) handed to
+    /// the loader alongside its bytes, for a loader that wants the face's sidecars
+    /// (<see cref="EmbeddedFonts.WordAdvances"/>) as well as its outline data.
+    /// </summary>
+    public static IEnumerable<((string Name, int Weight, bool Italic) Key, TFont Font)> BuildBundledSeed(
+        Func<string, byte[], TFont> loadFace)
     {
-        yield return (("Aptos", 400, false), loadFromBytes(EmbeddedFonts.Aptos400));
+        yield return (("Aptos", 400, false), loadFace("Aptos_400", EmbeddedFonts.Aptos400));
 
-        yield return (("Aptos", 400, true), loadFromBytes(EmbeddedFonts.Aptos400Italic));
+        yield return (("Aptos", 400, true), loadFace("Aptos_400_Italic", EmbeddedFonts.Aptos400Italic));
 
-        yield return (("Aptos", 700, false), loadFromBytes(EmbeddedFonts.Aptos700));
+        yield return (("Aptos", 700, false), loadFace("Aptos_700", EmbeddedFonts.Aptos700));
 
-        yield return (("Aptos", 700, true), loadFromBytes(EmbeddedFonts.Aptos700Italic));
+        yield return (("Aptos", 700, true), loadFace("Aptos_700_Italic", EmbeddedFonts.Aptos700Italic));
 
-        yield return (("Morph Bullets", 400, false), loadFromBytes(EmbeddedFonts.Bullets));
+        yield return (("Morph Bullets", 400, false), loadFace("Bullets", EmbeddedFonts.Bullets));
     }
 
     static readonly FontFileCache allFontsCache =

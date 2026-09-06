@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Contoso Ltd.\nApril 4, 20XX\nONE PAGE BUSINESS\nPROPOSAL\nPrepared for:\nAvery Howard\nContoso, Ltd.\navery@contoso.com\nwww.contoso.com\n898-555-0111\n987 6th Ave,\nSanta Fe, NM 11121\nPrepared by:\nCasey Jensen\nFabrikam, Inc.\ncasey@fabrikam.com\nwww.fabrikam.com\n573-555-0172\n333 3rd Avenue,\nSeattle, WA 89101\nSUMMARY\nThis proposal outlines a streamlined solution designed to address key business\nchallenges and drive growth. Our approach leverages industry expertise, innovative\nstrategies, and data-driven insights to create a tailored plan that delivers measurable\nresults.\nPROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and evolving\nmarket demands. Addressing these issues requires a well-structured, strategic\napproach that ensures long-term success.\nSOLUTION\nOur solution is designed to enhance operations, increase efficiency, and improve\noverall performance. By implementing best practices and modern technology, we\nhelp businesses optimize workflows, reduce costs, and drive innovation.\nMARKET OPPORTUNITY\nWith industry trends shifting rapidly, adopting a flexible and forward-thinking model\nis essential. Our approach provides businesses with scalable, adaptable solutions that\nalign with market demands and ensure long-term sustainability.\nFINANCIAL SUMMARY\nBased on market analysis, businesses that implement our strategies see an average\n20% reduction in operational costs and a 35% improvement in workflow efficiency\nwithin the first year. Clients can expect a strong return on investment through\nimproved productivity and streamlined operations."
+        "Text": "Contoso Ltd.\nApril 4, 20XX\nONE PAGE BUSINESS\nPROPOSAL\nPrepared for:\nAvery Howard\nContoso, Ltd.\navery@contoso.com\nwww.contoso.com\n898-555-0111\n987 6th Ave,\nSanta Fe, NM 11121\nPrepared by:\nCasey Jensen\nFabrikam, Inc.\ncasey@fabrikam.com\nwww.fabrikam.com\n573-555-0172\n333 3rd Avenue,\nSeattle, WA 89101\nSUMMARY\nThis proposal outlines a streamlined solution designed to address key business\nchallenges and drive growth. Our approach leverages industry expertise, innovative\nstrategies, and data-driven insights to create a tailored plan that delivers measurable\nresults.\nPROBLEM STATEMENT\nBusinesses today face challenges such as inefficiencies, rising costs, and evolving\nmarket demands. Addressing these issues requires a well-structured, strategic\napproach that ensures long-term success.\nSOLUTION\nOur solution is designed to enhance operations, increase efficiency, and improve\noverall performance. By implementing best practices and modern technology, wehelp\nbusinesses optimize workflows, reduce costs, and drive innovation.\nMARKET OPPORTUNITY\nWith industry trends shifting rapidly, adopting a flexible and forward-thinking model is\nessential. Our approach provides businesses with scalable, adaptable solutions that\nalign with market demands and ensure long-term sustainability.\nFINANCIAL SUMMARY\nBased on market analysis, businesses that implement our strategies see an average\n20% reduction in operational costs and a 35% improvement in workflow efficiency\nwithin the first year. Clients can expect a strong return on investment through\nimproved productivity and streamlined operations."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0981,
-      "Ssim": 0.8744,
+      "ErrorMetric": 0.0979,
+      "Ssim": 0.8758,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

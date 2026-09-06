@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "VICTORIA\nBURKE\nManager\nCONTACT\nManhattan, NY\ninterestingsite.com\n617.555.0123\nvictoria@example.com\nDEAR RECIPIENT:\nI am excited to apply for the Restaurant Manager position\nat Larkspur West. As a seasoned restaurant professional\nwith over 11+ years of experience in the industry, I am\nconfident that I have the skills and expertise necessary to\nlead your team to success.\nThroughout my career, I have gained extensive\nexperience in all aspects of restaurant management,\nincluding staff supervision, inventory control, cost\nanalysis, menu development, and customer service. I am\na skilled communicator and leader, with a proven ability\nto motivate and inspire teams to achieve their goals.\nAdditionally, I have a strong track record of maximizing\nprofits through effective cost management and sales\nstrategies, and I am committed to delivering exceptional\ndining experiences to every customer.\nThank you for considering my application. I look forward\nto discussing my qualifications with you further and\nlearning more about the exciting opportunities available\nat Larkspur West.\nSincerely,\nVictoria Burke"
+        "Text": "VICTORIA\nBURKE\nManager\nCONTACT\nManhattan, NY\ninterestingsite.com\n617.555.0123\nvictoria@example.com\nDEAR RECIPIENT:\nI am excited to apply for the Restaurant Manager position\nat Larkspur West. As a seasoned restaurant professional\nwith over 11+ years of experience in the industry, I am\nconfident that I have the skills and expertise necessary to\nlead your team to success.\nThroughout my career, I have gained extensive experience\nin all aspects of restaurant management, including staff\nsupervision, inventory control, cost analysis, menu\ndevelopment, and customer service. I am a skilled\ncommunicator and leader, with a proven ability to\nmotivate and inspire teams to achieve their goals.\nAdditionally, I have a strong track record of maximizing\nprofits through effective cost management and sales\nstrategies, and I am committed to delivering exceptional\ndining experiences to every customer.\nThank you for considering my application.I look forward to\ndiscussing my qualifications with you further and learning\nmore aboutthe exciting opportunitiesavailable at Larkspur\nWest.\nSincerely,\nVictoria Burke"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0658,
-      "Ssim": 0.8819,
+      "ErrorMetric": 0.0669,
+      "Ssim": 0.8767,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

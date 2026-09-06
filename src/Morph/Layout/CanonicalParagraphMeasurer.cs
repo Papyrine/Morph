@@ -16,7 +16,11 @@
 /// and the wrap narrows the first line by the first-line or hanging indent (lists exempt — their
 /// hanging indent is the marker gutter).</para>
 /// </summary>
-sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0) : IParagraphMeasurer
+// compatibilityMode selects the advance sidecar (FontMetrics.WordAdvancesFor): a mode 15 document
+// measures on Word's DirectWrite widths, everything older on its GDI-compatible pixel widths. The
+// space-compression wedge fires on either track — resumes/16, its founding evidence, is a mode 15
+// document (a gate keeping it off in mode 15 put that résumé back on two pages).
+sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0, int compatibilityMode = 12) : IParagraphMeasurer
 {
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
@@ -308,7 +312,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureRunWidth(string text, RunProperties properties)
     {
         var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
-        return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties));
+        return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties), compatibilityMode);
     }
 
     /// <summary>
@@ -441,7 +445,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     bool HasWordAdvances(RunProperties properties) =>
         wordAdvancesByProperties.GetOrAdd(
             properties,
-            _ => resolveFont(_.FontFamily, _.Bold, _.Italic) is {WordAdvances: not null});
+            _ => resolveFont(_.FontFamily, _.Bold, _.Italic)?.WordAdvancesFor(compatibilityMode) != null);
 
     IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth) =>
         wrapCache.GetOrAdd(
@@ -650,6 +654,17 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         bool TryCompress(double wordPixels)
         {
             if (lineCompressed)
+            {
+                return false;
+            }
+
+            // A justified paragraph never compresses: letters/04's XPS (Calibri 11, mode 15, Normal
+            // `jc=both`) ends its first line at "targeted" although "and" overhangs the 780px column
+            // by 6.9px across fifteen spaces — well inside the wedge's give — and firing it there
+            // pulled that paragraph a line short of Word (17 bands against 19). Justification is
+            // decided after the break and stretches every gap to the measure, so a compressed line
+            // would have nothing to show for it.
+            if (paragraph.Properties.Alignment == TextAlignment.Justify)
             {
                 return false;
             }
@@ -1006,7 +1021,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // resolved it to .notdef's wide advance, so "to improve" drew with a
                     // double-width gap where Word shows a single space (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
-                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale, KerningEnabled(run.Properties));
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale, KerningEnabled(run.Properties), compatibilityMode);
                     if (trackingPerChar != 0)
                     {
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));

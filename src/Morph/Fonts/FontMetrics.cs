@@ -170,14 +170,30 @@ sealed record FontMetrics
     /// size, and sizes absent entirely, fall back to linear at the rounded em plus the measured
     /// half-twip bias: <c>design/upm * (round(pt*5/3) + 1/24)</c>.
     ///
-    /// <para>The generated Calibri sidecars currently ship PARKED as
-    /// <c>src/Fonts/*.wordadvances.pending</c>: even with pair kerning landed
-    /// (<see cref="KernPairs"/>), activating them measured worse against Word — the residual is
-    /// the table/autofit interplay under changed advances, not the advances themselves (they match
-    /// Word's XPS glyph-for-glyph). Rename to <c>.wordadvances</c> to activate once the autofit
-    /// slack model is rooted — <c>src/todo.md</c> #43.</para>
+    /// <para>Live since 2026-08-30 (the Calibri five) and 2026-09-06 (twenty faces). These are the
+    /// COMPATIBILITY MODE 14-and-below values — Word's GDI-compatible whole-pixel glyph widths, which
+    /// every settings-less package and 204 corpus documents take. A mode 15 document lays text out
+    /// on DirectWrite's fractional widths instead, up to a pixel narrower per glyph (Segoe UI 12pt
+    /// 's': a constant 9px in mode 12, 8/8/8/9 in mode 15 — <c>_probe_seg_m15</c>), so mode 15 reads
+    /// <see cref="WordAdvancesMode15"/>; <see cref="WordAdvancesFor"/> picks. Measuring a mode 15
+    /// document with the mode 12 table wrapped agendas-minutes/15 a line short per paragraph.</para>
     /// </summary>
     public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvances { get; init; }
+
+    /// <summary>
+    /// The compatibility-mode-15 sidecar (<c>*.wordadvances15</c>, generated with a probe package
+    /// declaring <c>compatibilityMode 15</c>): Word's fractional DirectWrite widths, in the same
+    /// per-size, per-codepoint pixel form as <see cref="WordAdvances"/> — a hinted integer where the
+    /// font grid-fits at that pixel size, fractional where it does not. Null when not generated, and
+    /// the face measures linearly in mode 15. Shipped for the Calibri five; the tables generated for
+    /// the other faces are held back until Word's mode-15 kerning (a kerned pair's first glyph floors)
+    /// is modelled — see <c>docs/word-features.md</c>, Fonts.
+    /// </summary>
+    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesMode15 { get; init; }
+
+    /// <summary>The sidecar a document in the given compatibility mode measures with, or null.</summary>
+    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesFor(int compatibilityMode) =>
+        compatibilityMode >= 15 ? WordAdvancesMode15 : WordAdvances;
 
     /// <summary>
     /// GPOS <c>kern</c>-feature pair kerning, or null for a font without usable pair data. Word

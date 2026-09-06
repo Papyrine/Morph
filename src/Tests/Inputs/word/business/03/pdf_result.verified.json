@@ -11,28 +11,28 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Page 1\nCompany Name\nDate\nReport Title\nSubtitle\nLorem ipsumdolorsit amet, harum patrioque cu vim. Debitisfastidii democritum ne vel, et ignota voluptua mel. Ne\neuripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque exerci ne.\nOblique adipisci vituperatoribus eu ius, ut mei omnes affert mandamus. Mel prima nobis\nullamcorper an, nec vitae scaevola ei. Nihil noster nec eu, est amet virtute an, ne has tollit\nhendrerit. Numquam deterruisset ex pro, errem viris prodesset ea sed. Nec te laoreet urbanitas\nquaerendum. Ei eum prodesset forensibus.\nIus te tempor aperiri mandamus, et est munere numquam partiendo. Vix an probo ludus adipisci, duo ea nominavi\nperfecto iudicabit. In ius appellantur signiferumque, illud postulant te his, at eam adhuc quodsi docendi. Ex eos\naliquid verterem moderatius, justo elaboraret at mel. Eam falli insolens in, soleat oportere has te. Malis iisque\nsaperet ut nam.\nViman iudico forensibus,ut purto clita civibus qui. Visin adhuc maiorum voluptua, in epicurei facilisis patrioque ius.\nAgam dictas blandit ad cum. Illud dicta mediocrem no mei, pro at eius mediocritatem. Ubique corpora at quo, cum\nmagna impetus ne. Pri no conceptam voluptaria, dicat scripta intellegebat ei pro. Etiam alterum assentior mei ut,\nefficiendi reformidans sea cu, eos modo nibh ei."
+        "Text": "Page 1\nCompany Name\nDate\nReport Title\nSubtitle\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel. Ne\neuripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque exerci ne.\nOblique adipisci vituperatoribus eu ius, ut mei omnes affert mandamus. Mel prima nobis\nullamcorper an, nec vitae scaevola ei. Nihil noster nec eu, est amet virtute an, ne has tollit\nhendrerit. Numquam deterruisset ex pro, errem viris prodesset ea sed. Nec te laoreet urbanitas\nquaerendum. Ei eum prodesset forensibus.\nIus te tempor aperiri mandamus, et est munere numquam partiendo. Vix an probo ludus adipisci, duo ea nominavi\nperfecto iudicabit. In ius appellantur signiferumque, illud postulant te his, at eam adhuc quodsi docendi. Ex eos\naliquidverteremmoderatius,justo elaboraretat mel. Eam falliinsolensin,soleat oporterehaste. Malisiisque saperet\nut nam.\nVim an iudico forensibus, ut purto clita civibus qui. Vis in adhuc maiorum voluptua, in epicurei facilisis patrioque ius.\nAgam dictas blandit ad cum. Illud dicta mediocrem no mei, pro at eius mediocritatem. Ubique corpora at quo, cum\nmagna impetus ne. Pri no conceptam voluptaria, dicat scripta intellegebat ei pro. Etiam alterum assentior mei ut,\nefficiendi reformidans sea cu, eos modo nibh ei."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Page 1\nReport Title\nSubtitle\nSome of the sample text in this document indicates the\nname of the style applied, so that you can easily apply the\nsame formatting again. To get started right away, just tap\nany placeholder text (such as this) and start typing.\n01\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n02\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n03\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\nHeading 1\nYou can easily change the formatting of selected text in the document text by\nchoosing a look for the selectedtextfromthe Stylesgallery on the Home tab. You\ncan also format text directly by using the other controls on the Home tab.\nHeading 2\nView and edit this document in Word on your computer, tablet, or phone. You\ncan edit text; easily insert content such as pictures, shapes, or tables; and\nseamlessly save the document to the cloud from Word on your Windows, Mac,\nAndroid, or iOS device.\nHeading 3\nWantto insert a picturefrom yourfiles or add a shape, text box, or table? You got\nit! On the Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or\ninsert a comment.\nLorem ipsumdolorsit amet, harum patrioque cu vim. Debitisfastidii democritum ne vel, et ignota voluptua mel. Ne\neuripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque exerci ne."
+        "Text": "Page 1\nReport Title\nSubtitle\nSome of the sample text in this document indicates the\nname of the style applied, so that you can easily apply the\nsame formatting again. To get started right away, just tap\nany placeholder text (such as this) and start typing.\n01\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n02\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\n03\nLorem ipsum dolor sit\namet, harum patrioque\ncu vim.\nHeading 1\nYou can easily change the formatting of selected text in the document text by\nchoosing a look fortheselected text fromthe Styles gallery on the Home tab. You\ncan also format text directly by using the other controls on the Home tab.\nHeading 2\nViewand editthisdocumentin Wordon your computer,tablet, or phone. You can\nedit text; easily insert content such as pictures, shapes, or tables; and seamlessly\nsave the document to the cloud from Word on your Windows, Mac, Android, or\niOS device.\nHeading 3\nWant toinsert a picturefromyourfiles or add a shape, text box, ortable? You got\nit! On the Insert tab of the ribbon, just tap the option you need.\nFind even more easy-to-use tools on the Insert tab, such as to add a hyperlink or\ninsert a comment.\nLorem ipsum dolor sit amet, harum patrioque cu vim. Debitis fastidii democritum ne vel, et ignota voluptua mel. Ne\neuripidis appellantur pro, oratio utamur scripserit id nam. Indoctum scripserit no nam, eum rebum reque exerci ne."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2581,
-      "Ssim": 0.833,
+      "ErrorMetric": 0.2573,
+      "Ssim": 0.8367,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0655,
-      "Ssim": 0.8985,
+      "ErrorMetric": 0.0663,
+      "Ssim": 0.8951,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

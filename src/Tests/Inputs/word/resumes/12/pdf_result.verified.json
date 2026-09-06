@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "VICTORIA\nBURKE\nManager\nObjective\nTo secure a challenging\nand rewarding position\nas a restaurant manager, where\nmy leadership skills, industry\nexperience, and customer\nservice expertise can be utilized\nto ensure exceptional dining\nexperiences for customers and\nmaximize profits for the\nestablishment.\nEducation\nBellows College, NYC\nBusiness Management\nBusiness Administration\nContact\nManhattan, NY\ninterestingsite.com\n617.555.0123\nvictoria@example.com\nExperience\nTitle, Company\nMonth 20XX – Month 20XX\nLorem ipsum dolor sit amet, consectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut aliquip ex ea\nconsequat.\nTitle, Company\nMonth 20XX – Month 20XX\nLorem ipsum dolor sit amet, consectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut aliquip ex ea\nconsequat.\nTitle, Company\nMonth 20XX – Month 20XX\nLorem ipsum dolor sit amet, consectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitation ullamco laboris nisi ut aliquip ex ea\nconsequat."
+        "Text": "VICTORIA\nBURKE\nManager\nObjective\nTo secure a challenging\nand rewarding position\nas a restaurant manager, where\nmy leadership skills, industry\nexperience, and customer\nservice expertise can be utilized\nto ensure exceptional dining\nexperiences for customers and\nmaximize profits for the\nestablishment.\nEducation\nBellows College, NYC\nBusiness Management\nBusiness Administration\nContact\nManhattan, NY\ninterestingsite.com\n617.555.0123\nvictoria@example.com\nExperience\nTitle, Company\nMonth 20XX – Month 20XX\nLorem ipsum dolor sit amet, consectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitationullamco laborisnisi ut aliquip ex ea consequat.\nTitle, Company\nMonth 20XX – Month 20XX\nLorem ipsum dolor sit amet, consectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitationullamco laborisnisi ut aliquip ex ea consequat.\nTitle, Company\nMonth 20XX – Month 20XX\nLorem ipsum dolor sit amet, consectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore\nmagna aliqua. Ut enim ad minim veniam, quis nostrud\nexercitationullamco laborisnisi ut aliquip ex ea consequat."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0723,
-      "Ssim": 0.8678,
+      "ErrorMetric": 0.0754,
+      "Ssim": 0.8486,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

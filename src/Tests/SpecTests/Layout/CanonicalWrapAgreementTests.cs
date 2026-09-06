@@ -102,7 +102,7 @@ public class CanonicalWrapAgreementTests
                 // disagreement on those faces is the sidecar doing its job, and they have a stronger
                 // oracle than this proxy (the sidecar values are read off Word's XPS directly). Keep
                 // the gate for every face whose only reference is the backend.
-                if (metrics.WordAdvances != null)
+                if (metrics.WordAdvances != null || metrics.WordAdvancesMode15 != null)
                 {
                     continue;
                 }
@@ -130,15 +130,17 @@ public class CanonicalWrapAgreementTests
             Console.WriteLine("  DIFF " + line);
         }
 
-        await Assert.That(compared).IsGreaterThan(100);
+        await Assert.That(compared).IsGreaterThan(25);
         // Measured at ~99.3% over the whole corpus when every face was in the population. Activating
         // the Calibri .wordadvances sidecars removed the sidecar-backed faces from this gate (they
         // deliberately part from SkiaSharp wherever Skia parts from Word, and their oracle is Word's
         // XPS itself), which more than halved the compared count — 132 paragraphs against 415 — while
         // keeping the same eight long-standing residuals (Century Gothic, Trebuchet, Arial 12pt,
-        // Avenir Next), so the RATE fell to 93.9% with nothing about the measurer changed. The gate
-        // is recalibrated to the new population; the residuals are each a sub-pixel from their wrap
-        // boundary under fonts whose only reference is the backend.
+        // Avenir Next), so the RATE fell to 93.9% with nothing about the measurer changed. The
+        // 2026-09-06 sidecars (Aptos, Arial, Avenir Next, Century Gothic, Franklin Gothic Book, Segoe
+        // UI) took the population down again, to 37 paragraphs at 97.3%, with Trebuchet MS the one
+        // residual left. The gate is recalibrated to the new population; the residual is a sub-pixel
+        // from its wrap boundary under a font whose only reference is the backend.
         await Assert.That(rate > 0.92).IsTrue();
     }
 
