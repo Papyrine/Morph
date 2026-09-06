@@ -10646,12 +10646,20 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var pageBreakBefore = styleDefaults?.PageBreakBefore ?? false;
         var backgroundColor = styleDefaults?.BackgroundColorHex;
 
-        // If no inline properties, return style defaults
+        // If no inline properties, return style defaults. The mark still sizes its line by the run
+        // chain (see the paragraphMarkFontSize block below): a bare <w:p/> spacer in a table cell has no
+        // resolved mark (the cell path omits it) and no run, so without the chain it measured at the
+        // record's default face — letters/13's Posterama 11 spacers came out 1.2pt short each and the
+        // letter drifted a line up the page by its signature.
         if (props == null)
         {
+            RunProperties? bareMarkChain = null;
+            styleRunProperties?.TryGetValue(styleId ?? "Normal", out bareMarkChain);
             return new()
             {
                 Alignment = alignment,
+                ParagraphMarkFontSizePoints = bareMarkChain?.FontSizePoints,
+                ParagraphMarkFontFamily = bareMarkChain?.FontFamily,
                 SpacingBeforePoints = spacingBefore,
                 SpacingAfterPoints = spacingAfter,
                 LineSpacingMultiplier = lineSpacingMultiplier,
@@ -10941,11 +10949,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // w:rFonts at all, so in both groups the ascii face has to come from the chain.
         string? paragraphMarkFontFamily = null;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
+        RunProperties? markChain = null;
+        styleRunProperties?.TryGetValue(styleId ?? "Normal", out markChain);
         if (paragraphMarkRunProps != null)
         {
-            RunProperties? markChain = null;
-            styleRunProperties?.TryGetValue(styleId ?? "Normal", out markChain);
-
             var fontSize = paragraphMarkRunProps.GetFirstChild<FontSize>();
             if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSize?.Val?.Value) is { } declaredMarkSize)
             {
@@ -10958,6 +10965,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
             var markFonts = paragraphMarkRunProps.GetFirstChild<RunFonts>();
             paragraphMarkFontFamily = ResolveRunFontFamily(markFonts) ?? markChain?.FontFamily;
+        }
+        else if (markChain != null)
+        {
+            // A mark with no rPr at all — the bare <w:p/> spacer — still sizes its line by the chain:
+            // letters/13's empty paragraphs sit under a Posterama 11 docDefaults, whose 14.63pt pitch the
+            // record's default face fell 1.2pt short of, and the body drifted a line up the page by the
+            // signature (Word's paragraph gaps 61px against the engine's 58.5).
+            paragraphMarkFontSize = markChain.FontSizePoints;
+            paragraphMarkFontFamily = markChain.FontFamily;
         }
 
         // RTL paragraph (w:bidi)
