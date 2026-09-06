@@ -665,12 +665,19 @@ static class PdfPainter
                 graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(cell.BackgroundColorHex)), cell.X, cell.Y, cell.Width, cell.Height);
             }
 
+            foreach (var floating in cell.Floats)
+            {
+                PaintItem(context, graphics, floating);
+            }
+
             // See SkiaPainter.PaintTableRow — the clip bounds the content only, never the shading or
             // the borders.
             var clipState = cell.ClipContent ? graphics.Save() : null;
             if (clipState != null)
             {
-                graphics.IntersectClip(new XRect(cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height));
+                graphics.IntersectClip(cell.ClipHorizontally
+                    ? new XRect(cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height)
+                    : new XRect(-100000, cell.Y, 200000, cell.Height));
             }
 
             foreach (var content in cell.Content)

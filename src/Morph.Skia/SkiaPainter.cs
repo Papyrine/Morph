@@ -619,6 +619,12 @@ static class SkiaPainter
                 Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex);
             }
 
+            // Cell-anchored art overhangs the box freely (PlacedCell.Floats).
+            foreach (var floating in cell.Floats)
+            {
+                PaintItem(context, canvas, floating);
+            }
+
             // A clipping cell bounds only its CONTENT — the shading above and the borders below draw
             // in full, exactly as Excel draws a gridline over text it has cut off.
             var clipped = cell.ClipContent;
@@ -626,9 +632,9 @@ static class SkiaPainter
             {
                 canvas.Save();
                 canvas.ClipRect(new(
-                    P(context, cell.X - cell.ClipSpillLeft),
+                    cell.ClipHorizontally ? P(context, cell.X - cell.ClipSpillLeft) : float.MinValue / 2,
                     P(context, cell.Y),
-                    P(context, cell.X + cell.Width + cell.ClipSpillRight),
+                    cell.ClipHorizontally ? P(context, cell.X + cell.Width + cell.ClipSpillRight) : float.MaxValue / 2,
                     P(context, cell.Y + cell.Height)));
             }
 

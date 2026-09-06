@@ -1985,10 +1985,11 @@ public class CanonicalFragmenterTests
 
         var cell = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
 
-        // The shape is emitted ahead of the text line so a painter draws it behind the content.
-        var contentList = cell.Content.ToList();
-        var placed = contentList.OfType<PlacedShape>().Single();
-        await Assert.That(contentList.FindIndex(_ => _ is PlacedShape) < contentList.FindIndex(_ => _ is PlacedLine)).IsTrue();
+        // The shape rides on the cell's Floats, which a painter draws before the content — and outside
+        // any exact-row clip, since Word lets cell-anchored art overhang the box (business/05).
+        var placed = cell.Floats.OfType<PlacedShape>().Single();
+        await Assert.That(cell.Content.OfType<PlacedShape>().Any()).IsFalse();
+        await Assert.That(cell.Content.OfType<PlacedLine>().Any()).IsTrue();
         await Assert.That(placed.Shape.FillColorHex).IsEqualTo("0F3344");
         // Offset is measured from the cell's top-left, not the page.
         await Assert.That(placed.X).IsEqualTo(cell.X + 6f).Within(0.01f);
