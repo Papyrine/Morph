@@ -4,32 +4,32 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2682,
-      "Ssim": 0.6338,
+      "ErrorMetric": 0.2533,
+      "Ssim": 0.7186,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "skia_result#page_0001.verified.png",
       "ReceivedFile": "skia_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.2396,
-      "Ssim": 0.7681,
+      "ErrorMetric": 0.2331,
+      "Ssim": 0.8129,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "skia_result#page_0002.verified.png",
       "ReceivedFile": "skia_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.2874,
-      "Ssim": 0.7827,
+      "ErrorMetric": 0.2951,
+      "Ssim": 0.7406,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "skia_result#page_0003.verified.png",
       "ReceivedFile": "skia_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.3701,
-      "Ssim": 0.7199,
+      "ErrorMetric": 0.3652,
+      "Ssim": 0.7533,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "skia_result#page_0004.verified.png",
       "ReceivedFile": "skia_result#page_0004.received.png"
