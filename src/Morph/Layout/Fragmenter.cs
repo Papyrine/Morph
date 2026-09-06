@@ -1153,7 +1153,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     Cells = [.. row.Cells.Select(cell => cell with
                     {
                         Y = cell.Y + dy,
-                        Content = [.. cell.Content.Select(inner => ShiftItem(inner, dy))]
+                        Content = [.. cell.Content.Select(inner => ShiftItem(inner, dy))],
+                        Floats = [.. cell.Floats.Select(inner => ShiftItem(inner, dy))]
                     })]
                 },
                 // A rotated group's items sit in its unrotated box, so they move with it.
@@ -2410,16 +2411,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
-            // Narrow pre-advance for the fixed-height-row letter layouts: lift the whole table onto the
-            // next region when it would otherwise clip its exact row, ahead of the softer whole-table move.
-            // Deliberately ahead of the fit routing below, so an exact-row table keeps its whole-table lift.
-            if (!atRegionTop && totalHeight > 0)
+            // An exact-height row is a verbatim box Word never lets cross the margin — and it never lifts
+            // the rows BEFORE it either: a table carrying one that misses the hard remainder flows row by
+            // row, keeping the rows that fit and moving the exact row that does not, whole
+            // (table_layout_tall_row, Word's reference: the 80pt company row stays on page 1 and the 530pt
+            // letter row opens page 2; the whole-table lift this replaces carried both, and the
+            // recipient block landed four lines low). Ahead of the slack-tolerant routing below, since
+            // the 2% slack is exactly what let a 610pt table into a 600pt remainder.
+            if (!atRegionTop && HasExactRow(table) && totalHeight > contentBottom - y)
             {
-                var remaining = Math.Max(0f, contentBottom - y);
-                if (totalHeight > remaining + 5f && HasExactRow(table))
-                {
-                    AdvanceColumnOrPage();
-                }
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
+                return;
             }
 
             // A table that merely does not fit the space left ALSO flows row by row — Word's own behaviour
@@ -2827,16 +2829,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 // Cell-anchored behind-text art belongs to the row's first fragment; repeating it on every
                 // continuation would stamp it down the document.
-                if (isFirstFragment)
-                {
-                    var floatShapes = ResolveCellFloatShapes(cell, cellX, rowY);
-                    if (floatShapes.Count > 0)
-                    {
-                        content = [.. floatShapes, .. content];
-                    }
-                }
+                var floatShapes = isFirstFragment ? ResolveCellFloatShapes(cell, cellX, rowY) : [];
 
-                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals));
+                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals, floatShapes));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -2973,14 +2968,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
-                // before the cell's paragraphs, so prepend them to the content.
+                // before the cell's paragraphs, and outside any clip (PlacedCell.Floats).
                 var floatShapes = ResolveCellFloatShapes(cell, cellX, rowY);
-                if (floatShapes.Count > 0)
-                {
-                    content = [.. floatShapes, .. content];
-                }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals));
+                // A w:hRule="exact" row clips what its cells cannot hold — Word's reference for
+                // table_layout_tall_row shows two of the company cell's three lines in its 80pt row, the
+                // third hidden. The engine had drawn the overflow (ClipContent was Excel's alone).
+                var clip = cell.Properties.ClipOverflow || row.IsExactHeight;
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, clip, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipHorizontally: cell.Properties.ClipOverflow));
 
                 cellX += cellWidth;
                 gridColIndex += span;

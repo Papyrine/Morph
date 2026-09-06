@@ -9,8 +9,11 @@
 ///
 /// <see cref="ClipContent"/> asks the painter to bound the content — and only the content, not the
 /// shading or the borders — to the box, which is Excel's rule for a cell whose text outgrows its
-/// column or its pinned row height (<see cref="TableCellProperties.ClipOverflow"/>). It is false for
-/// every DOCX and HTML cell, which keep drawing their overflow as Word does. The clip is the box
+/// column or its pinned row height (<see cref="TableCellProperties.ClipOverflow"/>), and Word's for a
+/// cell in a <c>w:hRule="exact"</c> row (table_layout_tall_row's reference hides the company cell's
+/// third line) — vertically only there (<see cref="ClipHorizontally"/> false): Word lets a glyph's ink
+/// overhang the cell sideways, as labels/15's "from" swash reaches into the neighbouring label.
+/// Every other DOCX and HTML cell keeps drawing its overflow as Word does. The clip is the box
 /// widened by <see cref="ClipSpillLeft"/> / <see cref="ClipSpillRight"/>, which are the empty
 /// neighbours the ink is allowed to run over (see <see cref="TableCellProperties.ClipSpillLeftPoints"/>);
 /// both are zero unless the content spills in a direction the box itself cannot cover.
@@ -38,4 +41,15 @@ sealed record PlacedCell(
     float ClipSpillLeft = 0,
     float ClipSpillRight = 0,
     float BottomEdgeInset = 0,
-    CellDiagonals? Diagonals = null);
+    CellDiagonals? Diagonals = null,
+    IReadOnlyList<PlacedItem>? Floats = null,
+    bool ClipHorizontally = true)
+{
+    /// <summary>
+    /// The cell's anchored behind-text art (a label template's coloured blob, a memo's corner
+    /// ornament), painted after the shading and before the content — and never clipped: Word lets a
+    /// cell's float overhang an exact row it is anchored in (business/05's corner shapes reach well
+    /// past their 5pt rows), where the flow content of that row is cut at the box.
+    /// </summary>
+    public IReadOnlyList<PlacedItem> Floats { get; init; } = Floats ?? [];
+}
