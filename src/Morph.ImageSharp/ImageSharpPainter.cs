@@ -357,6 +357,16 @@ static class ImageSharpPainter
         }
 
         canvas.DrawImage(processed, new((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
+
+        // The picture's a:ln (see SkiaPainter.PaintImageOutline): a band outside the unrotated box.
+        if (image.Outline is { } outline)
+        {
+            var strokeWidth = P(context, (float) outline.WidthPoints);
+            var half = strokeWidth / 2;
+            canvas.Draw(
+                context.GetPen(ImageSharpShapeDrawing.ParseColor(outline.ColorHex, outline.Alpha), strokeWidth),
+                new RectanglePolygon(P(context, image.X) - half, P(context, image.Y) - half, P(context, image.Width) + strokeWidth, P(context, image.Height) + strokeWidth));
+        }
     }
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's

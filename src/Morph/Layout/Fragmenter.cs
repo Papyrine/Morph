@@ -1373,7 +1373,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 {
                     var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
                     var imageY = AnchoredY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
-                    AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
                     RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
                     break;
                 }
@@ -3795,7 +3795,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     DecodableImageBytes(image) is { Length: > 0 } data)
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
-                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity));
+                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -3965,7 +3965,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
             {
                 var image = line.Images[imageIndex];
-                images[imageIndex] = new(lineLeft + image.X, baseline - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity);
+
+                // The layout box (extent + effectExtent) sits with its bottom on the baseline; the
+                // picture draws inside it, offset by the left and top effect edges (ImageEffectExtent).
+                var effectLeft = (float) (image.EffectExtent?.Left ?? 0);
+                var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0);
+                images[imageIndex] = new(lineLeft + image.X + effectLeft, baseline - effectBottom - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline);
             }
 
             return images;

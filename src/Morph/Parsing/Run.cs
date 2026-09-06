@@ -54,6 +54,12 @@ sealed class Run
     /// <summary>Constant transparency for the inline image; see <see cref="ImageElement.Opacity"/>.</summary>
     public double InlineImageOpacity { get; init; } = 1;
 
+    /// <summary>The inline picture's <c>a:ln</c> outline, null when it has none (<see cref="ImageOutline"/>).</summary>
+    public ImageOutline? InlineImageOutline { get; init; }
+
+    /// <summary>The inline picture's <c>wp:effectExtent</c> — the room reserved around the extent (<see cref="ImageEffectExtent"/>); null when none.</summary>
+    public ImageEffectExtent? InlineImageEffectExtent { get; init; }
+
     /// <summary>
     /// True when this run represents a single w:tab character.
     /// When true, <see cref="Text"/> is "\t" and the renderer snaps the cursor to the next tab stop.
@@ -130,6 +136,8 @@ sealed class Run
             InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
             InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
             InlineImageOpacity = InlineImageOpacity,
+            InlineImageOutline = InlineImageOutline,
+            InlineImageEffectExtent = InlineImageEffectExtent,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,
@@ -160,6 +168,8 @@ sealed class Run
             InlineImageDuotoneColorHex = InlineImageDuotoneColorHex,
             InlineImageDuotoneLightColorHex = InlineImageDuotoneLightColorHex,
             InlineImageOpacity = InlineImageOpacity,
+            InlineImageOutline = InlineImageOutline,
+            InlineImageEffectExtent = InlineImageEffectExtent,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,

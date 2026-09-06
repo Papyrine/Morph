@@ -362,11 +362,33 @@ static class SkiaPainter
             }
 
             SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            PaintImageOutline(context, canvas, image, box);
             canvas.Restore();
             return;
         }
 
         SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+        PaintImageOutline(context, canvas, image, box);
+    }
+
+    // The picture's a:ln, stroked after the bitmap (PlacedImage.Outline) as a band lying entirely
+    // outside the picture's box — from its edge to the line width beyond it (ImageOutline).
+    static void PaintImageOutline(SkiaRenderContext context, SKCanvas canvas, PlacedImage image, SKRect box)
+    {
+        if (image.Outline is not { } outline)
+        {
+            return;
+        }
+
+        var strokeWidth = P(context, (float) outline.WidthPoints);
+        using var strokePaint = new SKPaint
+        {
+            Color = SkiaShapeDrawing.ParseColor(outline.ColorHex, outline.Alpha),
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = strokeWidth,
+            IsAntialias = true
+        };
+        canvas.DrawRect(SKRect.Inflate(box, strokeWidth / 2, strokeWidth / 2), strokePaint);
     }
 
     // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is

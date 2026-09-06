@@ -6997,8 +6997,48 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             InlineImageColorEffect = inlineColorEffect,
             InlineImageDuotoneColorHex = inlineDuotoneColorHex,
             InlineImageDuotoneLightColorHex = inlineDuotoneLightColorHex,
-            InlineImageOpacity = inlineOpacity
+            InlineImageOpacity = inlineOpacity,
+            InlineImageOutline = ReadPictureOutline(spPr),
+            InlineImageEffectExtent = ReadEffectExtent(drawing)
         };
+    }
+
+    // wp:effectExtent — the room Word reserves around an inline picture's extent for its outline and
+    // effects (ImageEffectExtent). Absent or all-zero reads as null.
+    static ImageEffectExtent? ReadEffectExtent(Drawing drawing)
+    {
+        var effectExtent = drawing.Descendants<DW.EffectExtent>().FirstOrDefault();
+        if (effectExtent == null)
+        {
+            return null;
+        }
+
+        var left = (effectExtent.LeftEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
+        var top = (effectExtent.TopEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
+        var right = (effectExtent.RightEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
+        var bottom = (effectExtent.BottomEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
+        return left == 0 && top == 0 && right == 0 && bottom == 0 ? null : new(left, top, right, bottom);
+    }
+
+    // A picture's own a:ln: the solid line Word's picture styles stroke on the picture edge (see
+    // ImageOutline). Null without an a:ln, with a:noFill, or without a width — a theme line
+    // reference never applies to a picture, so nothing is inferred.
+    ImageOutline? ReadPictureOutline(OpenXmlElement? shapeProperties)
+    {
+        var outline = shapeProperties?.GetFirstChild<A.Outline>();
+        if (outline == null || outline.GetFirstChild<A.NoFill>() != null || outline.GetFirstChild<A.SolidFill>() is not { } solidFill || outline.Width?.Value is not { } widthEmu || widthEmu <= 0)
+        {
+            return null;
+        }
+
+        var colorHex = ExtractFirstFillColor(solidFill);
+        if (colorHex == null)
+        {
+            return null;
+        }
+
+        // a:ln/@algn is not read: Word strokes a picture's line outside its extent for ctr and in alike.
+        return new(widthEmu / OoxmlUnits.EmusPerPoint, colorHex, ShapeParser.ExtractSolidFillAlpha(solidFill));
     }
 
     // The a:blip extension that carries the vector original of an Office icon. When present the
@@ -8093,7 +8133,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
             else
             {
-                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, duotoneLightColorHex, clipToEllipse, clipSubpaths, opacity);
+                var floatingImage = ParseAnchoredImageWithOffset(anchor, imageData, widthPoints, heightPoints, contentType, offsetXPoints, offsetYPoints, rotationDegrees, flipHorizontal, flipVertical, crop, rasterFallbackData, rasterFallbackContentType, description, colorEffect, duotoneColorHex, duotoneLightColorHex, clipToEllipse, clipSubpaths, opacity, ReadPictureOutline(spPr));
                 result.Add(floatingImage);
                 childSources?[floatingImage] = pic;
             }
@@ -8105,13 +8145,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
-    FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null, double opacity = 1)
+    FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null, double opacity = 1, ImageOutline? outline = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints, anchorAlignmentPage);
         var wrap = ParseWrap(anchor);
 
         return new()
         {
+            Outline = outline,
             ImageData = imageData,
             WidthPoints = widthPoints,
             HeightPoints = heightPoints,

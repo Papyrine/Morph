@@ -28,4 +28,5 @@ sealed record PlacedImage(
     ImageCrop? Crop = null,
     InlineShapeGroup? ShapeGroup = null,
     ImageRecolor? Recolor = null,
-    double Opacity = 1) : PlacedItem(X, Y, Width, Height);
+    double Opacity = 1,
+    ImageOutline? Outline = null) : PlacedItem(X, Y, Width, Height);
