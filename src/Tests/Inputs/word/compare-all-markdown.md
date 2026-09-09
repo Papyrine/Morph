@@ -1,4 +1,4 @@
-# All Markdown export scenarios (334)
+# All Markdown export scenarios (335)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -338,6 +338,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [wedding/11](#wedding11)
 - [wide_table](#wide_table)
 - [wordart](#wordart)
+- [wordart-astral](#wordart-astral)
 - [wordart-envelope](#wordart-envelope)
 
 </details>
@@ -2339,6 +2340,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="wordart/expected_0001.png" width="500"><br><img src="wordart/expected_0002.png" width="500"><br><img src="wordart/expected_0003.png" width="500"><br><img src="wordart/expected_0004.png" width="500"><br><img src="wordart/expected_0005.png" width="500"><br><img src="wordart/expected_0006.png" width="500"><br><img src="wordart/expected_0007.png" width="500"><br><img src="wordart/expected_0008.png" width="500"><br><img src="wordart/expected_0009.png" width="500"><br><img src="wordart/expected_0010.png" width="500"><br><img src="wordart/expected_0011.png" width="500"><br><img src="wordart/expected_0012.png" width="500"><br><img src="wordart/expected_0013.png" width="500"><br><img src="wordart/expected_0014.png" width="500"><br><img src="wordart/expected_0015.png" width="500"> | <img src="wordart/md_result.verified.png" width="500"> |
+
+## wordart-astral
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="wordart-astral/expected_0001.png" width="500"> | <img src="wordart-astral/md_result.verified.png" width="500"> |
 
 ## wordart-envelope
 

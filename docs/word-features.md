@@ -2188,8 +2188,19 @@ Decorative text with fill, outline, shadow, reflection, and glow effects.
 - **Model**: `WordArtElement`, `FloatingWordArtElement` (both implement `IWordArtVisual`)
 - **Parse**: `DocumentParser` — WordArt extraction
 - **Render**: `SkiaPageRenderer` / `ImageSharpPageRenderer` — `RenderWordArt` (warps + effect layers). The PDF backend has no vector WordArt path: it embeds the shape as a transparent PNG produced by an optional raster backend, so a PDF gets the same warps/effects as the PNG output.
-- **Test**: `wordart/`, `wordart-envelope/`
+- **Test**: `wordart/`, `wordart-envelope/`, `wordart-astral/`
 
+> **Contributors — the envelope warps step per rune, not per UTF-16 code unit.** Fade and Triangle
+> are the only warps that reach the per-glyph loop in `TryRenderWordArtEnvelope`; Inflate / Deflate /
+> CanUp / CanDown are claimed earlier by `TryRenderWordArtPathWarp`, which outlines the whole string
+> at once and is surrogate-safe by construction. That loop used to split with `text[i].ToString()`,
+> which cleaves a supplementary-plane character into two lone surrogates: neither backend draws
+> anything for those (measured — no tofu box), yet both still consumed an iteration, so a 5-glyph
+> label counted 6 and `t = i / (glyphCount - 1)` scaled every glyph against the wrong denominator.
+> `wordart-astral` pins it with U+10780 at each position against an all-BMP control; see its
+> `notes.md` for the measured per-row bands and for why a fixture built on `textInflate` proves
+> nothing.
+>
 > **Contributors — inline WordArt is placed by its paragraph's alignment.** `ParseWordArt` emits the
 > element as a SIBLING of its paragraph rather than a run inside it, so the paragraph's `w:jc` does
 > not reach it on its own. `WordArtElement.Alignment` carries it, and every backend offsets the box
