@@ -520,16 +520,21 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
             }
         }
 
-        var charCount = text.Length;
+        // Split per rune, not per UTF-16 unit: a supplementary-plane character is one glyph.
+        // Splitting per char hands the backend two lone surrogates, which draw nothing at all,
+        // yet each still consumes an iteration — so a 5-glyph label counted 6 and scaled every
+        // glyph against the wrong denominator in the t interpolation below. Mirrors SkiaWordArtDrawer.
+        var glyphs = text.EnumerateRunes().Select(_ => _.ToString()).ToArray();
+        var glyphCount = glyphs.Length;
         var cursorX = startX;
-        for (var i = 0; i < charCount; i++)
+        for (var i = 0; i < glyphCount; i++)
         {
-            var ch = text[i].ToString();
+            var ch = glyphs[i];
             var charAdvance = TextMeasurer.MeasureAdvance(ch, measureOptions).Width;
-            // For 1-character labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
+            // For 1-glyph labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
             // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
             // Triangle a single glyph at the start (t=0) is intentional.
-            var t = charCount > 1 ? (float) i / (charCount - 1) : fillsBox ? 0.5f : 0f;
+            var t = glyphCount > 1 ? (float) i / (glyphCount - 1) : fillsBox ? 0.5f : 0f;
             var sy = scaleY(t) * baseScaleY;
 
             // Scale anchored at (cursorX, anchorY): the X scale stretches each glyph

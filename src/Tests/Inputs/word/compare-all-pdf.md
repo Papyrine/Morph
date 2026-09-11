@@ -1,4 +1,4 @@
-# All PDF export scenarios (334)
+# All PDF export scenarios (335)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -338,6 +338,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [wedding/11](#wedding11)
 - [wide_table](#wide_table)
 - [wordart](#wordart)
+- [wordart-astral](#wordart-astral)
 - [wordart-envelope](#wordart-envelope)
 
 </details>
@@ -4164,6 +4165,16 @@ PDF: [Morph PDF](wide_table/pdf_result.verified.pdf)
 | <img src="wordart/expected_0015.png" width="500"> | <img src="wordart/pdf_result%23page_0015.verified.png" width="500"> |
 
 PDF: [Morph PDF](wordart/pdf_result.verified.pdf)
+
+
+## wordart-astral
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1152 · SSIM: 0.8765** |
+| <img src="wordart-astral/expected_0001.png" width="500"> | <img src="wordart-astral/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](wordart-astral/pdf_result.verified.pdf)
 
 
 ## wordart-envelope
