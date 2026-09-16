@@ -1,8 +1,0 @@
-﻿{
-  Instance: {
-    Image: {
-      Dpi: 150
-    }
-  },
-  NodeCount: 27
-}

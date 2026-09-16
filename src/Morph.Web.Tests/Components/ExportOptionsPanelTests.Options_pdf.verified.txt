@@ -1,9 +1,0 @@
-﻿{
-  Instance: {
-    Target: Pdf,
-    Image: {
-      Dpi: 150
-    }
-  },
-  NodeCount: 2
-}
