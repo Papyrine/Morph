@@ -1,4 +1,4 @@
-name: Deploy Blazor WASM to GitHub Pages
+name: Deploy GH Pages
 
 # Builds, tests and deploys the Morph.Web app (src/Morph.Web) to GitHub Pages. This is independent of
 # the container-based rendering suite in test.yml. Morph.Web and Morph.Web.Tests are in Morph.slnx but
