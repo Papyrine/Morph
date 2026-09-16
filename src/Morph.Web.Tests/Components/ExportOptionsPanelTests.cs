@@ -4,23 +4,82 @@ public class ExportOptionsPanelTests : BunitTestContext
 {
     [Test]
     public Task Options_png() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Png)));
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Png)))
+            .Snapshot(
+                """
+                {
+                  Instance: {
+                    Image: {
+                      Dpi: 150
+                    }
+                  },
+                  NodeCount: 27
+                }
+                """);
 
     [Test]
     public Task Options_pdf() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Pdf)));
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Pdf)))
+            .Snapshot(
+                """
+                {
+                  Instance: {
+                    Target: Pdf,
+                    Image: {
+                      Dpi: 150
+                    }
+                  },
+                  NodeCount: 2
+                }
+                """);
 
     [Test]
     public Task Options_html() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Html)));
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Html)))
+            .Snapshot(
+                """
+                {
+                  Instance: {
+                    Target: Html,
+                    Image: {
+                      Dpi: 150
+                    }
+                  },
+                  NodeCount: 2
+                }
+                """);
 
     [Test]
     public Task Options_markdown() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Markdown)));
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Markdown)))
+            .Snapshot(
+                """
+                {
+                  Instance: {
+                    Target: Markdown,
+                    Image: {
+                      Dpi: 150
+                    }
+                  },
+                  NodeCount: 2
+                }
+                """);
 
     [Test]
     public Task Options_text() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Text)));
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Text)))
+            .Snapshot(
+                """
+                {
+                  Instance: {
+                    Target: Text,
+                    Image: {
+                      Dpi: 150
+                    }
+                  },
+                  NodeCount: 2
+                }
+                """);
 
     [Test]
     public async Task Png_ShowsResolutionSelector()
