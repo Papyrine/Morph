@@ -12,7 +12,7 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0668,
+      "ErrorMetric": 0.0669,
       "Ssim": 0.8555,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
@@ -20,7 +20,7 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0642,
+      "ErrorMetric": 0.0644,
       "Ssim": 0.8843,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "imagesharp_result#page_0003.verified.png",
@@ -28,15 +28,15 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1221,
-      "Ssim": 0.6756,
+      "ErrorMetric": 0.1228,
+      "Ssim": 0.6755,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "imagesharp_result#page_0004.verified.png",
       "ReceivedFile": "imagesharp_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0968,
+      "ErrorMetric": 0.0972,
       "Ssim": 0.7494,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "imagesharp_result#page_0005.verified.png",
@@ -44,15 +44,15 @@
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.1196,
-      "Ssim": 0.7007,
+      "ErrorMetric": 0.1202,
+      "Ssim": 0.7006,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "imagesharp_result#page_0006.verified.png",
       "ReceivedFile": "imagesharp_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.1008,
+      "ErrorMetric": 0.1012,
       "Ssim": 0.7393,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "imagesharp_result#page_0007.verified.png",
@@ -60,7 +60,7 @@
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.1121,
+      "ErrorMetric": 0.1127,
       "Ssim": 0.7058,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "imagesharp_result#page_0008.verified.png",
@@ -68,7 +68,7 @@
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.0622,
+      "ErrorMetric": 0.0623,
       "Ssim": 0.8243,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "imagesharp_result#page_0009.verified.png",
@@ -76,7 +76,7 @@
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.0761,
+      "ErrorMetric": 0.0762,
       "Ssim": 0.875,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "imagesharp_result#page_0010.verified.png",
@@ -100,7 +100,7 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.1176,
+      "ErrorMetric": 0.118,
       "Ssim": 0.7918,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "imagesharp_result#page_0013.verified.png",
@@ -116,7 +116,7 @@
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.0715,
+      "ErrorMetric": 0.0716,
       "Ssim": 0.887,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "imagesharp_result#page_0015.verified.png",
@@ -124,7 +124,7 @@
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.1043,
+      "ErrorMetric": 0.1047,
       "Ssim": 0.7926,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "imagesharp_result#page_0016.verified.png",
@@ -132,7 +132,7 @@
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.1845,
+      "ErrorMetric": 0.1848,
       "Ssim": 0.7056,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "imagesharp_result#page_0017.verified.png",
@@ -140,7 +140,7 @@
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.114,
+      "ErrorMetric": 0.1146,
       "Ssim": 0.7091,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "imagesharp_result#page_0018.verified.png",

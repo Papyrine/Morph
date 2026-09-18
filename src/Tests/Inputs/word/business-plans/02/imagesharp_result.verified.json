@@ -4,7 +4,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0317,
+      "ErrorMetric": 0.0318,
       "Ssim": 0.9383,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
@@ -28,7 +28,7 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.0794,
+      "ErrorMetric": 0.0793,
       "Ssim": 0.8593,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "imagesharp_result#page_0004.verified.png",

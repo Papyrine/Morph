@@ -4,7 +4,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4987,
+      "ErrorMetric": 0.4986,
       "Ssim": 0.906,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
@@ -20,15 +20,15 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1287,
-      "Ssim": 0.6811,
+      "ErrorMetric": 0.1289,
+      "Ssim": 0.681,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "imagesharp_result#page_0003.verified.png",
       "ReceivedFile": "imagesharp_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1159,
+      "ErrorMetric": 0.1161,
       "Ssim": 0.7319,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "imagesharp_result#page_0004.verified.png",
@@ -36,15 +36,15 @@
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.1672,
-      "Ssim": 0.6096,
+      "ErrorMetric": 0.1674,
+      "Ssim": 0.6095,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "imagesharp_result#page_0005.verified.png",
       "ReceivedFile": "imagesharp_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.2025,
+      "ErrorMetric": 0.2028,
       "Ssim": 0.5253,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "imagesharp_result#page_0006.verified.png",
@@ -60,7 +60,7 @@
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.2045,
+      "ErrorMetric": 0.2049,
       "Ssim": 0.5351,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "imagesharp_result#page_0008.verified.png",
@@ -68,7 +68,7 @@
     },
     {
       "Page": 9,
-      "ErrorMetric": 0.166,
+      "ErrorMetric": 0.1661,
       "Ssim": 0.7664,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "imagesharp_result#page_0009.verified.png",
@@ -76,7 +76,7 @@
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.1735,
+      "ErrorMetric": 0.1738,
       "Ssim": 0.5922,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "imagesharp_result#page_0010.verified.png",
@@ -84,15 +84,15 @@
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.1661,
-      "Ssim": 0.609,
+      "ErrorMetric": 0.1664,
+      "Ssim": 0.6089,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "imagesharp_result#page_0011.verified.png",
       "ReceivedFile": "imagesharp_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.1152,
+      "ErrorMetric": 0.1153,
       "Ssim": 0.7419,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "imagesharp_result#page_0012.verified.png",
@@ -100,7 +100,7 @@
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.0975,
+      "ErrorMetric": 0.0976,
       "Ssim": 0.8591,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "imagesharp_result#page_0013.verified.png",
@@ -108,15 +108,15 @@
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.1889,
-      "Ssim": 0.7372,
+      "ErrorMetric": 0.1891,
+      "Ssim": 0.7373,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "imagesharp_result#page_0014.verified.png",
       "ReceivedFile": "imagesharp_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.1394,
+      "ErrorMetric": 0.1395,
       "Ssim": 0.6587,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "imagesharp_result#page_0015.verified.png",
@@ -124,8 +124,8 @@
     },
     {
       "Page": 16,
-      "ErrorMetric": 0.0799,
-      "Ssim": 0.8251,
+      "ErrorMetric": 0.08,
+      "Ssim": 0.825,
       "ExpectedFile": "expected_0016.png",
       "VerifiedFile": "imagesharp_result#page_0016.verified.png",
       "ReceivedFile": "imagesharp_result#page_0016.received.png"
@@ -140,8 +140,8 @@
     },
     {
       "Page": 18,
-      "ErrorMetric": 0.1094,
-      "Ssim": 0.7592,
+      "ErrorMetric": 0.1095,
+      "Ssim": 0.7591,
       "ExpectedFile": "expected_0018.png",
       "VerifiedFile": "imagesharp_result#page_0018.verified.png",
       "ReceivedFile": "imagesharp_result#page_0018.received.png"
