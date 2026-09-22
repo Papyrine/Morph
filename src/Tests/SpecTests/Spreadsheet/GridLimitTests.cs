@@ -1,4 +1,4 @@
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using S = DocumentFormat.OpenXml.Spreadsheet;
 
@@ -8,6 +8,11 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// every <c>&lt;= range.LastRow</c> walk overflowed its increment past the bound and never
 /// terminated — an infinite-loop DoS on opening the workbook (#174). Out-of-grid references are
 /// rejected at the CellReference seam instead, like any other unreadable reference.
+///
+/// Bounding the index is only half of it. An extent that stays INSIDE the grid still names up to
+/// 16,384 x 1,048,576 cells, and a sheet's <c>dimension</c> and print area are strings no cell has
+/// to substantiate — so the same 1.6KB file could still ask SheetGridBuilder for 17 billion cells.
+/// ResolveRange caps a range nothing substantiates at <see cref="SpreadsheetParser.MaxDeclaredCells"/>.
 /// </summary>
 public class GridLimitTests
 {
@@ -81,6 +86,73 @@ public class GridLimitTests
         await Assert.That(texts).IsEquivalentTo(["kept"]);
     }
 
+    /// <summary>
+    /// A print area overlapping none of the sheet's cells is not clipped by them, so it reached the
+    /// grid builder at whatever extent it declared. Measured before the cap: this shape at 1,600
+    /// rows allocated 25GB and took 52s, and the full grid it declares here is 655x that again.
+    /// </summary>
+    [Test]
+    public async Task PrintAreaOutsideTheCells_IsBounded()
+    {
+        using var stream = Workbook(
+            dimension: null,
+            printArea: "Sheet1!$B$1:$XFD$1048576",
+            new S.Row(Cell("A1", "kept")) { RowIndex = 1 });
+
+        var table = Table(stream);
+
+        await Assert.That(Cells(table)).IsLessThanOrEqualTo(SpreadsheetParser.MaxDeclaredCells);
+    }
+
+    /// <summary>
+    /// The other unsubstantiated extent: a sheet with no cells at all, where <c>dimension</c> is
+    /// the only thing that states one and there is nothing to intersect it with.
+    /// </summary>
+    [Test]
+    public async Task DimensionWithoutCells_IsBounded()
+    {
+        using var stream = Workbook("A1:XFD1048576");
+
+        var table = Table(stream);
+
+        await Assert.That(Cells(table)).IsLessThanOrEqualTo(SpreadsheetParser.MaxDeclaredCells);
+    }
+
+    /// <summary>The cap narrows only what it must: a sheet's real extent is untouched by it.</summary>
+    [Test]
+    public async Task DimensionWithinTheCap_IsKeptWhole()
+    {
+        using var stream = Workbook("A1:C40");
+
+        var table = Table(stream);
+
+        await Assert.That(table.Rows.Count).IsEqualTo(40);
+        await Assert.That(table.Rows[0].Cells.Count).IsEqualTo(3);
+    }
+
+    /// <summary>A print area the cells DO substantiate keeps clipping to them, cap or no cap.</summary>
+    [Test]
+    public async Task PrintAreaOverlappingTheCells_StillClips()
+    {
+        using var stream = Workbook(
+            dimension: null,
+            printArea: "Sheet1!$A$1:$B$1",
+            new S.Row(Cell("A1", "kept"), Cell("B1", "kept too"), Cell("C1", "outside")) { RowIndex = 1 });
+
+        var texts = CellTexts(stream);
+
+        await Assert.That(texts).IsEquivalentTo(["kept", "kept too"]);
+    }
+
+    static long Cells(TableElement table) =>
+        table.Rows.Sum(_ => (long) _.Cells.Count);
+
+    static TableElement Table(Stream stream) =>
+        ExcelConverter.Parse(stream, new ImageExportOptions())
+            .Elements
+            .OfType<TableElement>()
+            .Single();
+
     static string[] CellTexts(Stream stream)
     {
         var document = ExcelConverter.Parse(stream, new ImageExportOptions());
@@ -105,7 +177,10 @@ public class GridLimitTests
 
     static MemoryStream Workbook(params S.Row[] rows) => Workbook(null, rows);
 
-    static MemoryStream Workbook(string? dimension, params S.Row[] rows)
+    static MemoryStream Workbook(string? dimension, params S.Row[] rows) =>
+        Workbook(dimension, null, rows);
+
+    static MemoryStream Workbook(string? dimension, string? printArea, params S.Row[] rows)
     {
         var stream = new MemoryStream();
         using (var document = SpreadsheetDocument.Create(stream, SpreadsheetDocumentType.Workbook))
@@ -133,6 +208,19 @@ public class GridLimitTests
                         Name = "Sheet1"
                     }))
             ];
+
+            // The print area lives on the workbook as a built-in defined name, scoped to the sheet
+            // by its index — sheet-level markup carries no such thing.
+            if (printArea != null)
+            {
+                workbookPart.Workbook.Append(
+                    new S.DefinedNames(
+                        new S.DefinedName(printArea)
+                        {
+                            Name = "_xlnm.Print_Area",
+                            LocalSheetId = 0
+                        }));
+            }
         }
 
         stream.Position = 0;

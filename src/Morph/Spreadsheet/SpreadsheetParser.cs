@@ -199,7 +199,9 @@ sealed class SpreadsheetParser(
         var populated = UsedRange(worksheet);
         var used = declaredRange is { } dr && populated is { } pr
             ? dr.Intersect(pr) is { IsEmpty: false } both ? both : populated
-            : declaredRange ?? populated;
+            // A sheet carrying no cells at all leaves dimension as the ONLY statement of extent,
+            // with nothing to clip it against — so it is capped instead.
+            : declaredRange is { } sole ? Bounded(sole) : populated;
         if (used is not { } bounds)
         {
             return null;
@@ -208,10 +210,50 @@ sealed class SpreadsheetParser(
         if (CellReference.ParseRange(printArea) is { } area)
         {
             var clipped = area.Intersect(bounds);
-            return clipped.IsEmpty ? area : clipped;
+            // A print area overlapping none of the cells is honoured as declared, since it is the
+            // only statement of what to print — but nothing has bounded it, so it too is capped.
+            return clipped.IsEmpty ? Bounded(area) : clipped;
         }
 
         return ExtendForOverflow(worksheet, bounds);
+    }
+
+    /// <summary>
+    /// The largest grid a range that no cell substantiates may produce, in cells.
+    ///
+    /// <c>dimension</c> and the print-area defined name are STRINGS, and nothing ties either to the
+    /// size of the package: both stay inside Excel's grid while naming its full 16,384 x 1,048,576
+    /// extent. <see cref="SheetGridBuilder"/> materialises a cell per position — measured at ~1KB
+    /// and ~2us each — so a 1.6KB workbook declaring the whole grid asks for terabytes and hours.
+    /// That is #174's denial of service by a second route: bounding the INDEX stopped the loop
+    /// counter overflowing, but not the extent it counts to.
+    ///
+    /// The cap can be this small because only an UNSUBSTANTIATED range reaches it. A real sheet's
+    /// extent comes from the cells it carries and is therefore bounded by the file; the two paths
+    /// guarded here carry no such bound, and both are stale or crafted in practice — no workbook in
+    /// the corpus has either shape, and its largest real sheet is 43,736 cells.
+    /// </summary>
+    public const long MaxDeclaredCells = 100_000;
+
+    /// <summary>
+    /// <paramref name="declared"/> with its last row pulled in until the grid fits
+    /// <see cref="MaxDeclaredCells"/>. The row axis is what gives: a range is at most 16,384 columns
+    /// wide, so clamping rows alone always brings the product under.
+    /// </summary>
+    static SheetRange Bounded(SheetRange declared)
+    {
+        var columns = declared.ColumnCount;
+        if (columns == 0 ||
+            (long) declared.RowCount * columns <= MaxDeclaredCells)
+        {
+            return declared;
+        }
+
+        var rows = Math.Max(1, (int) (MaxDeclaredCells / columns));
+        return declared with
+        {
+            LastRow = declared.FirstRow + rows - 1
+        };
     }
 
     /// <summary>
