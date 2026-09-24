@@ -52,10 +52,7 @@ public class HtmlParserTests
     [Test]
     public Task EmptyParagraph() =>
         Verify(HtmlParser.Parse("<p></p>"))
-            .Snapshot(
-                """
-                []
-                """);
+            .Snapshot("[]");
 
     [Test]
     public Task Bold_B() =>

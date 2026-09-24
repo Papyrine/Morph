@@ -88,6 +88,32 @@ public class ConversionServiceTests
         }
     }
 
+    // The preview's render: one layout pass yields the same images as the one-shot converter, plus each
+    // page's size and selectable text.
+    [Test]
+    [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
+    public async Task RenderPages_MatchesRenderPngPages_AndCarriesText(InputFormat source)
+    {
+        var expected = ConversionService.RenderPngPages(
+            Sample.BytesFor(source),
+            source,
+            new()
+            {
+                Dpi = 96
+            },
+            Sample.FontDirectory);
+
+        var pages = ConversionService.RenderPages(Sample.BytesFor(source), source, 96, Sample.FontDirectory);
+
+        await Assert.That(pages.Count).IsEqualTo(expected.Count);
+        for (var index = 0; index < pages.Count; index++)
+        {
+            await Assert.That(pages[index].Png.AsSpan().SequenceEqual(expected[index])).IsTrue();
+            await Assert.That(pages[index].WidthPoints).IsGreaterThan(0);
+            await Assert.That(pages[index].TextLayer.Text.Trim()).IsNotEmpty();
+        }
+    }
+
     [Test]
     public async Task RenderPngPages_HigherDpi_ProducesWiderImage()
     {

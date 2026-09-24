@@ -125,6 +125,45 @@ header p {
     right: 1rem;
 }
 
+/* Convert | View: the two components the app shows, one per page. */
+.app-nav {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+    padding: 0.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.app-nav a {
+    padding: 0.3rem 0.9rem;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.app-nav a:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.app-nav a.active {
+    background: white;
+    color: var(--primary-color);
+}
+
+/* The viewer wants the width of the window and the height left between the header and the footer. */
+.container:has(.viewer) {
+    max-width: none;
+}
+
+.container .viewer {
+    height: calc(100vh - 16rem);
+    min-height: 420px;
+}
+
 .theme-toggle-btn {
     padding: 0.5rem 1rem;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -191,6 +230,10 @@ footer a:hover {
 
     header p {
         display: none;
+    }
+
+    .app-nav {
+        margin: 0 0.5rem 0 0;
     }
 
     .theme-toggle {

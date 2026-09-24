@@ -818,7 +818,7 @@ public class CanonicalFragmenterTests
             Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
 
         await Assert.That(boxed.Height - plain.Height).IsEqualTo(14f).Within(0.01f);
-        await Assert.That((boxed.Baseline - boxed.Y) - (plain.Baseline - plain.Y)).IsEqualTo(7f).Within(0.01f);
+        await Assert.That(boxed.Baseline - boxed.Y - (plain.Baseline - plain.Y)).IsEqualTo(7f).Within(0.01f);
         // The box the painters stroke: inner faces the floored space (4pt is six grid pixels, 3.6pt)
         // outside the font's line box, which sits the full 7pt reserve inside the placed line.
         var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(boxed.Runs[0].Properties.Border!, boxed.Runs[0].X, boxed.Runs[0].Width, boxed.Y, boxed.Height, BorderStroke.LinePad(boxed.Runs));

@@ -18,4 +18,10 @@ public static class MorphAssets
 
     /// <summary>The JavaScript module the components import for downloads, blob URLs and viewport width.</summary>
     internal const string Script = ContentRoot + "/morph.js";
+
+    /// <summary>The module that builds a page's selectable text layer, shared by the preview and the viewer.</summary>
+    internal const string TextScript = ContentRoot + "/morph-text.js";
+
+    /// <summary>The viewer's controller: pages, zoom, scrolling, presentation mode, printing and find highlights.</summary>
+    internal const string ViewerScript = ContentRoot + "/morph-viewer.js";
 }

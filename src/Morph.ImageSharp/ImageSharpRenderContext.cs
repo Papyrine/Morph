@@ -547,7 +547,14 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             ? Color.FromPixel(new Rgba32(r, g, b, a))
             : Color.Black;
 
-    public void Dispose()
+    /// <summary>
+    /// Frees every decoded, resized picture the context has cached. A one-shot conversion never needs
+    /// this — the context dies with the conversion — but the Blazor viewer keeps one alive for the whole
+    /// session and paints a page at a time, so without a release each page's pictures would stay
+    /// resident in WebAssembly memory, which never shrinks. Safe between pages: the painter flushes a
+    /// page's canvas before handing the finished image on, so nothing still references these.
+    /// </summary>
+    public void ReleaseImages()
     {
         foreach (var image in processedImageCache.Values)
         {
@@ -559,6 +566,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             image?.Dispose();
         }
         ellipseClippedCache.Clear();
+    }
+
+    public void Dispose()
+    {
+        ReleaseImages();
         resolver.Dispose();
     }
 }

@@ -1,17 +1,14 @@
 // The JavaScript half of Morph's Blazor components, loaded as an ES module by MorphInterop — so a
-// consuming app needs no <script> tag and nothing lands in the global scope.
+// consuming app needs no <script> tag and nothing lands in the global scope. The selectable text layer and
+// the viewer live in their own modules (morph-text.js, morph-viewer.js), fetched only when used.
 
-function toBlob(contentType, base64Content) {
-    const characters = atob(base64Content);
-    const bytes = new Uint8Array(characters.length);
-    for (let i = 0; i < characters.length; i++) {
-        bytes[i] = characters.charCodeAt(i);
-    }
+// Bytes arrive as a Uint8Array: Blazor marshals a byte[] argument natively, with no base64 round trip.
+function toBlob(contentType, bytes) {
     return new Blob([bytes], { type: contentType });
 }
 
-export function download(fileName, contentType, base64Content) {
-    const url = URL.createObjectURL(toBlob(contentType, base64Content));
+export function download(fileName, contentType, bytes) {
+    const url = URL.createObjectURL(toBlob(contentType, bytes));
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
@@ -23,8 +20,8 @@ export function download(fileName, contentType, base64Content) {
 
 // Wraps conversion output in a blob URL an <iframe> can load (the browser's PDF viewer needs a real URL,
 // and an HTML result needs a document of its own). The caller revokes it when done.
-export function createObjectUrl(contentType, base64Content) {
-    return URL.createObjectURL(toBlob(contentType, base64Content));
+export function createObjectUrl(contentType, bytes) {
+    return URL.createObjectURL(toBlob(contentType, bytes));
 }
 
 export function revokeObjectUrl(url) {

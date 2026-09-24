@@ -692,9 +692,10 @@ static class PdfPainter
             var clipState = cell.ClipContent ? graphics.Save() : null;
             if (clipState != null)
             {
-                graphics.IntersectClip(cell.ClipHorizontally
-                    ? new XRect(cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height)
-                    : new XRect(-100000, cell.Y, 200000, cell.Height));
+                XRect rect = cell.ClipHorizontally
+                    ? new(cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height)
+                    : new(-100000, cell.Y, 200000, cell.Height);
+                graphics.IntersectClip(rect);
             }
 
             foreach (var content in cell.Content)

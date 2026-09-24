@@ -67,6 +67,7 @@ public partial class MorphConverter : IDisposable
     byte[]? sourceBytes;
     int pageCount;
     List<string>? previewPages;
+    List<PageTextLayer>? previewLayers;
     string? errorMessage;
     string? issueUrl;
     string? userAgent;
@@ -225,6 +226,7 @@ public partial class MorphConverter : IDisposable
             sourceInfo is not { } info)
         {
             previewPages = null;
+            previewLayers = null;
             return;
         }
 
@@ -235,8 +237,9 @@ public partial class MorphConverter : IDisposable
             // Rendering needs the bundled fonts materialised into the in-memory filesystem first.
             var fontDirectory = await FontStore.EnsureAsync(Http);
             var dpi = PreviewDpi;
-            var pages = await Task.Run(() => RenderPreview(bytes, info.Format, dpi, fontDirectory));
+            var (pages, layers) = await Task.Run(() => RenderPreview(bytes, info.Format, dpi, fontDirectory));
             previewPages = pages;
+            previewLayers = layers;
             pageCount = pages.Count;
             progressDetail = null;
         }
@@ -247,23 +250,20 @@ public partial class MorphConverter : IDisposable
         }
     }
 
-    static List<string> RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
+    // Each page comes with its selectable text, from the same single layout pass the images are painted
+    // from, so the overlay sits exactly on the drawn text.
+    static (List<string> Pages, List<PageTextLayer> Layers) RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
     {
-        var pages = ConversionService.RenderPngPages(
-            bytes,
-            source,
-            new()
-            {
-                Dpi = dpi
-            },
-            fontDirectory);
+        var pages = ConversionService.RenderPages(bytes, source, dpi, fontDirectory);
         var urls = new List<string>(pages.Count);
+        var layers = new List<PageTextLayer>(pages.Count);
         foreach (var page in pages)
         {
-            urls.Add($"data:image/png;base64,{Convert.ToBase64String(page)}");
+            urls.Add($"data:image/png;base64,{Convert.ToBase64String(page.Png)}");
+            layers.Add(page.TextLayer);
         }
 
-        return urls;
+        return (urls, layers);
     }
 
     Task OnTargetChanged(OutputFormat format)
@@ -434,6 +434,7 @@ public partial class MorphConverter : IDisposable
         sourceBytes = null;
         pageCount = 0;
         previewPages = null;
+        previewLayers = null;
         isBusy = false;
         isRendering = false;
         isConvertingResult = false;

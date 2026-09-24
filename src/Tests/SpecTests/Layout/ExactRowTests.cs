@@ -12,7 +12,7 @@ public class ExactRowTests
     public async Task The_rows_before_an_unfitting_exact_row_stay_and_the_exact_row_moves_whole()
     {
         // Five 13.43pt lines leave ~193pt; a 40pt exact row fits, the 200pt exact row after it does not.
-        var fill = Enumerable.Range(1, 5).Select(_ => (DocumentElement) Paragraph($"line {_}")).ToList();
+        var fill = Enumerable.Range(1, 5).Select(DocumentElement (_) => Paragraph($"line {_}")).ToList();
         var table = new TableElement
         {
             Rows = [ExactRow(40, "first"), ExactRow(200, "second")],

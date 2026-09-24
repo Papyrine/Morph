@@ -14,6 +14,7 @@
          match the .NET 10 runtime the web SDK ships. See Morph.Web/README.md. -->
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.12" />
     <PackageVersion Include="bunit" Version="2.11.3" />
     <PackageVersion Include="Verify.Bunit" Version="14.1.0" />

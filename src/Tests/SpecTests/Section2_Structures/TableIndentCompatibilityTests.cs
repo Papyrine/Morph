@@ -96,8 +96,30 @@ public class TableIndentCompatibilityTests
     {
         var table = new TableElement
         {
-            Rows = [new() { Cells = [new() { Properties = new(), Content = [] }, new() { Properties = new(), Content = [] }] }],
-            Properties = new() { GridColumnWidths = [234, 234], WidthOverhangPoints = 10.8 }
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Properties = new(),
+                            Content = []
+                        },
+                        new()
+                        {
+                            Properties = new(),
+                            Content = []
+                        }
+                    ]
+                }
+            ],
+            Properties = new()
+            {
+                GridColumnWidths = [234, 234],
+                WidthOverhangPoints = 10.8
+            }
         };
 
         var widths = TableLayout.CalculateColumnWidths(table, 2, 468);
@@ -111,13 +133,70 @@ public class TableIndentCompatibilityTests
         // _probe_wide15 table A: a 630pt dxa autofit table on a 468pt column stays 630pt.
         var declared = new TableElement
         {
-            Rows = [new() { Cells = [new() { Properties = new() { WidthPoints = 315 }, Content = [] }, new() { Properties = new() { WidthPoints = 315 }, Content = [] }] }],
-            Properties = new() { GridColumnWidths = [315, 315], PreferredWidthPoints = 630, IsAutoFit = true }
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Properties = new()
+                            {
+                                WidthPoints = 315
+                            },
+                            Content = []
+                        },
+                        new()
+                        {
+                            Properties = new()
+                            {
+                                WidthPoints = 315
+                            },
+                            Content = []
+                        }
+                    ]
+                }
+            ],
+            Properties = new()
+            {
+                GridColumnWidths = [315, 315],
+                PreferredWidthPoints = 630,
+                IsAutoFit = true
+            }
         };
         var undeclared = new TableElement
         {
-            Rows = [new() { Cells = [new() { Properties = new() { WidthPoints = 315 }, Content = [] }, new() { Properties = new() { WidthPoints = 315 }, Content = [] }] }],
-            Properties = new() { GridColumnWidths = [315, 315], IsAutoFit = true }
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Properties = new()
+                            {
+                                WidthPoints = 315
+                            },
+                            Content = []
+                        },
+                        new()
+                        {
+                            Properties = new()
+                            {
+                                WidthPoints = 315
+                            },
+                            Content = []
+                        }
+                    ]
+                }
+            ],
+            Properties = new()
+            {
+                GridColumnWidths = [315, 315],
+                IsAutoFit = true
+            }
         };
 
         await Assert.That(TableLayout.CalculateColumnWidths(declared, 2, 468).Sum()).IsEqualTo(630f).Within(0.01f);
@@ -129,8 +208,32 @@ public class TableIndentCompatibilityTests
     {
         var table = new TableElement
         {
-            Rows = [new() { Cells = [new() { Properties = new(), Content = [] }, new() { Properties = new(), Content = [] }] }],
-            Properties = new() { GridColumnWidths = [100, 100], FillContainer = true, PreferredWidthFraction = 1.0, WidthOverhangPoints = 10.8 }
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Properties = new(),
+                            Content = []
+                        },
+                        new()
+                        {
+                            Properties = new(),
+                            Content = []
+                        }
+                    ]
+                }
+            ],
+            Properties = new()
+            {
+                GridColumnWidths = [100, 100],
+                FillContainer = true,
+                PreferredWidthFraction = 1.0,
+                WidthOverhangPoints = 10.8
+            }
         };
 
         var widths = TableLayout.CalculateColumnWidths(table, 2, 468);
@@ -160,21 +263,37 @@ public class TableIndentCompatibilityTests
         var tableProperties = new W.TableProperties();
         if (indentTwips is { } indent)
         {
-            tableProperties.Append(new TableIndentation { Width = indent, Type = TableWidthUnitValues.Dxa });
+            tableProperties.Append(new TableIndentation
+            {
+                Width = indent,
+                Type = TableWidthUnitValues.Dxa
+            });
         }
 
         if (tableMarginTwips is { } tableMargin)
         {
             tableProperties.Append(new TableCellMarginDefault(
-                new TableCellLeftMargin { Width = (short) tableMargin, Type = TableWidthValues.Dxa },
-                new TableCellRightMargin { Width = (short) tableMargin, Type = TableWidthValues.Dxa }));
+                new TableCellLeftMargin
+                {
+                    Width = (short) tableMargin,
+                    Type = TableWidthValues.Dxa
+                },
+                new TableCellRightMargin
+                {
+                    Width = (short) tableMargin,
+                    Type = TableWidthValues.Dxa
+                }));
         }
 
         var firstCellProperties = new W.TableCellProperties();
         if (firstCellMarginTwips is { } cellMargin)
         {
             firstCellProperties.Append(new TableCellMargin(
-                new LeftMargin { Width = cellMargin.ToString(), Type = TableWidthUnitValues.Dxa }));
+                new LeftMargin
+                {
+                    Width = cellMargin.ToString(),
+                    Type = TableWidthUnitValues.Dxa
+                }));
         }
 
         var table = new Table(
@@ -191,29 +310,47 @@ public class TableIndentCompatibilityTests
             mainPart.Document = [with(body)];
 
             var settings = mainPart.AddNewPart<DocumentSettingsPart>();
-            settings.Settings = new Settings(new Compatibility(new CompatibilitySetting
-            {
-                Name = CompatSettingNameValues.CompatibilityMode,
-                Uri = "http://schemas.microsoft.com/office/word",
-                Val = mode.ToString()
-            }));
+            settings.Settings = new(
+                new Compatibility(
+                    new CompatibilitySetting
+                    {
+                        Name = CompatSettingNameValues.CompatibilityMode,
+                        Uri = "http://schemas.microsoft.com/office/word",
+                        Val = mode.ToString()
+                    }));
 
             if (styles)
             {
                 // Word's built-in Normal Table: tblInd 0 and 108-twip start/end margins.
                 var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
-                stylesPart.Styles = new Styles(new Style
-                {
-                    Type = StyleValues.Table,
-                    StyleId = "TableNormal",
-                    Default = true,
-                    StyleName = new StyleName { Val = "Normal Table" },
-                    StyleTableProperties = new StyleTableProperties(
-                        new TableIndentation { Width = 0, Type = TableWidthUnitValues.Dxa },
-                        new TableCellMarginDefault(
-                            new TableCellLeftMargin { Width = 108, Type = TableWidthValues.Dxa },
-                            new TableCellRightMargin { Width = 108, Type = TableWidthValues.Dxa }))
-                });
+                stylesPart.Styles = new(
+                    new Style
+                    {
+                        Type = StyleValues.Table,
+                        StyleId = "TableNormal",
+                        Default = true,
+                        StyleName = new()
+                        {
+                            Val = "Normal Table"
+                        },
+                        StyleTableProperties = new(
+                            new TableIndentation
+                            {
+                                Width = 0,
+                                Type = TableWidthUnitValues.Dxa
+                            },
+                            new TableCellMarginDefault(
+                                new TableCellLeftMargin
+                                {
+                                    Width = 108,
+                                    Type = TableWidthValues.Dxa
+                                },
+                                new TableCellRightMargin
+                                {
+                                    Width = 108,
+                                    Type = TableWidthValues.Dxa
+                                }))
+                    });
             }
         }
 

@@ -7,7 +7,15 @@
 /// </summary>
 public class FootnoteLayoutTests
 {
-    static readonly PageSettings page = new() { WidthPoints = 300, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
+    static PageSettings page = new()
+    {
+        WidthPoints = 300,
+        HeightPoints = 300,
+        MarginTop = 20,
+        MarginBottom = 20,
+        MarginLeft = 20,
+        MarginRight = 20
+    };
 
     [Test]
     public async Task A_cited_note_sits_at_the_page_bottom_under_a_two_inch_rule()
@@ -59,7 +67,7 @@ public class FootnoteLayoutTests
     {
         // Twenty 13.43pt lines overfill the 260pt band on their own (19 fit); the note under line 1
         // takes the separator and one line, so two fewer body lines fit page 1.
-        var fill = Enumerable.Range(1, 20).Select(_ => (DocumentElement) Paragraph($"line {_}", footnote: _ == 1 ? "1" : null)).ToList();
+        var fill = Enumerable.Range(1, 20).Select(DocumentElement (_) => Paragraph($"line {_}", footnote: _ == 1 ? "1" : null)).ToList();
         var plain = new Fragmenter(LayoutTestFonts.Measurer).Layout(fill, page);
         var noted = new Fragmenter(LayoutTestFonts.Measurer).Layout(fill, page, notes: Notes(("1", ["Note one."])));
 
@@ -79,7 +87,7 @@ public class FootnoteLayoutTests
         // A twenty-line note cited on line 2 of a ten-line body (13.43pt Aptos lines in a 260pt band):
         // page 1 keeps lines 1-2 and the sixteen note lines that fit under them; lines 3-10 open page 2
         // with the note's last four at the bottom under a full-width continuation rule.
-        var body = Enumerable.Range(1, 10).Select(_ => (DocumentElement) Paragraph($"line {_}", footnote: _ == 2 ? "1" : null)).ToList();
+        var body = Enumerable.Range(1, 10).Select(DocumentElement (_) => Paragraph($"line {_}", footnote: _ == 2 ? "1" : null)).ToList();
         var noteText = Enumerable.Range(1, 20).Select(_ => $"note {_}").ToArray();
         var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(body, page, notes: Notes(("1", noteText)));
 
@@ -108,7 +116,7 @@ public class FootnoteLayoutTests
     {
         // Nineteen 13.43pt lines fill the 260pt band; a note cited on line 19 needs the separator and a
         // line under it, so line 19 moves to page 2 with its note.
-        var body = Enumerable.Range(1, 20).Select(_ => (DocumentElement) Paragraph($"line {_}", footnote: _ == 19 ? "1" : null)).ToList();
+        var body = Enumerable.Range(1, 20).Select(DocumentElement (_) => Paragraph($"line {_}", footnote: _ == 19 ? "1" : null)).ToList();
         var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(body, page, notes: Notes(("1", ["Note one."])));
 
         var firstBody = laidOut.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Paragraph.Runs[0].Text.StartsWith("line")).Select(_ => _.Paragraph.Runs[0].Text).ToList();
@@ -150,7 +158,7 @@ public class FootnoteLayoutTests
 
         // Eighteen lines leave one line of room: the separator and first note line do not both fit, so
         // the block opens page 2 at the margin top.
-        var fill = Enumerable.Range(1, 18).Select(_ => (DocumentElement) Paragraph($"line {_}", endnote: _ == 1 ? "1" : null)).ToList();
+        var fill = Enumerable.Range(1, 18).Select(DocumentElement (_) => Paragraph($"line {_}", endnote: _ == 1 ? "1" : null)).ToList();
         var moved = new Fragmenter(LayoutTestFonts.Measurer).Layout(fill, page, notes: notes);
         await Assert.That(moved.Pages.Count).IsEqualTo(2);
         await Assert.That(moved.Pages[0].Items.OfType<PlacedShading>().Count()).IsEqualTo(0);
@@ -163,7 +171,7 @@ public class FootnoteLayoutTests
         var bodies = new Dictionary<string, IReadOnlyList<DocumentElement>>();
         foreach (var (id, lines) in footnotes)
         {
-            bodies[id] = lines.Select(_ => (DocumentElement) Paragraph(_)).ToList();
+            bodies[id] = lines.Select(DocumentElement (_) => Paragraph(_)).ToList();
         }
 
         return new(

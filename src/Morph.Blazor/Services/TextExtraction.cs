@@ -19,7 +19,9 @@ public static class TextExtraction
     /// <summary>Flattens an HTML fragment or document into plain text.</summary>
     public static string FromHtml(string html)
     {
-        var parser = new HtmlParser();
+        // Fully qualified: Morph grants this assembly its internals, and its own global-namespace
+        // HtmlParser (the HTML-input parser) would otherwise win name lookup over the AngleSharp using.
+        var parser = new AngleSharp.Html.Parser.HtmlParser();
         using var document = parser.ParseDocument($"<!doctype html><html><body>{html}</body></html>");
         var builder = new StringBuilder();
         WalkChildren(document.Body!, builder);

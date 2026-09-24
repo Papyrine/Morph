@@ -12,15 +12,24 @@ The converter itself is **not** in this project. It is the `MorphConverter` comp
 page preview, format picker, options, result pane and download, plus the conversion services, fonts,
 samples, stylesheet and JavaScript behind them, all shipped as static web assets.
 
-This project is the **shell** around it: the header, the light/dark theme toggle
-([`ThemePreferenceService`](Services/ThemePreferenceService.cs)), the footer's version / payload-size /
-RAM readouts, the routing, and the app-level stylesheet in `wwwroot/css/app.css`. The home page is three
-lines:
+This project is the **shell** around it: the header with its Convert | View links, the light/dark theme
+toggle ([`ThemePreferenceService`](Services/ThemePreferenceService.cs)), the footer's version /
+payload-size / RAM readouts, the routing, and the app-level stylesheet in `wwwroot/css/app.css`. Each page
+is three lines — the home page hosts the converter:
 
 ```razor
 @page "/"
 <PageTitle>Morph — Office Converter</PageTitle>
 <MorphConverter />
+```
+
+and `/view` the package's `MorphViewer`, which shows a file the way a browser shows a PDF — pages rendered
+on demand with selectable text, a thumbnail sidebar, zoom, find, presentation mode and printing:
+
+```razor
+@page "/view"
+<PageTitle>Morph — Office Viewer</PageTitle>
+<MorphViewer ShowSamples="true" />
 ```
 
 The two stylesheets divide the same way: `_content/Morph.Blazor/morph.css` draws the converter,
@@ -126,9 +135,11 @@ dotnet publish src/Morph.Web -c Release -o publish
 # then serve publish/wwwroot with any static file server
 ```
 
-(`dotnet run --project src/Morph.Web` also works once the
-`Microsoft.AspNetCore.Components.WebAssembly.DevServer` package is added.) The snapshot tests below spin
-up a host and drive the app, so they're the easiest way to see it exercised end-to-end.
+For development, `dotnet run --project src/Morph.Web` (or an IDE's Run) serves the app through the
+`Microsoft.AspNetCore.Components.WebAssembly.DevServer` package the project references. Without that
+package the SDK falls back to `WasmAppHost`, which answers every request, `/` included, with a 404. The
+snapshot tests below spin up a host and drive the app, so they're the easiest way to see it exercised
+end-to-end.
 
 ## Test
 
@@ -154,6 +165,11 @@ they also drive the published app end to end.
   `SampleRendersPreview` runs for all three inputs, because each routes through a different Morph parser
   and the published build is trimmed — a parser that lost a reflected-on type fails only there. Page
   screenshots compare via SSIM, so sub-pixel platform drift is tolerated.
+- **Playwright** viewer and text-layer tests (`SnapshotTests.Viewer.cs`): a copied preview page equals
+  the builder's text; each format opens in `/view`; zoom re-renders at a higher DPI; navigation,
+  rotation and thumbnails; find across a line break; download returns the original bytes; print lays out
+  every page and cleans up (the dialog stubbed); and every line of the layer sits on its drawn position at
+  100% and 200%.
 
 To reset a snapshot after an intentional change, review then rename the `*.received.*` to `*.verified.*`.
 

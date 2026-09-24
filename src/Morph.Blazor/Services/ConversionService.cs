@@ -75,13 +75,7 @@ public static class ConversionService
     public static IReadOnlyList<byte[]> RenderPngPages(byte[] bytes, InputFormat source, ImageSettings settings, string fontDirectory)
     {
         using var stream = new MemoryStream(bytes);
-        ImageExportOptions options = new()
-        {
-            Dpi = settings.Dpi,
-            Crop = settings.Crop,
-            FontDirectory = fontDirectory,
-            FontFallback = _ => fallbackFont,
-        };
+        var options = ImageOptions(settings.Dpi, fontDirectory, settings.Crop);
         return source switch
         {
             InputFormat.Docx => new ImageSharpDocumentConverter().ConvertToImageData(stream, options),
@@ -90,6 +84,35 @@ public static class ConversionService
             _ => throw UnknownSource(source),
         };
     }
+
+    /// <summary>
+    /// Renders every page of the source for display: the PNG at <paramref name="dpi"/>, the page size, and
+    /// the page's selectable text (<see cref="RenderedPage.TextLayer"/>). The source is parsed and laid out
+    /// once for all of it. Always the whole sheet — a text layer cannot line up with a cropped image — so
+    /// <see cref="RenderPngPages"/> remains the call for a cropped download.
+    /// </summary>
+    public static IReadOnlyList<RenderedPage> RenderPages(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
+    {
+        using var document = PagedDocument.Open(bytes, source, fontDirectory);
+        var pages = new List<RenderedPage>(document.PageCount);
+        for (var index = 0; index < document.PageCount; index++)
+        {
+            pages.Add(new(document.RenderPage(index, dpi), document.WidthPoints(index), document.HeightPoints(index), document.TextLayer(index)));
+        }
+
+        return pages;
+    }
+
+    // The raster options every render in this package shares — the PNG download, the preview and the
+    // viewer — so they resolve fonts identically and a page renders the same whichever path drew it.
+    internal static ImageExportOptions ImageOptions(int dpi, string fontDirectory, PageCrop crop = PageCrop.FullPage) =>
+        new()
+        {
+            Dpi = dpi,
+            Crop = crop,
+            FontDirectory = fontDirectory,
+            FontFallback = _ => fallbackFont,
+        };
 
     /// <summary>
     /// Exports the source as Markdown. <paramref name="fontDirectory"/> pins font resolution for the

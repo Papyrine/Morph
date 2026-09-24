@@ -32,6 +32,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <!-- The host `dotnet run` (and an IDE's Run) launches. Without it the SDK falls back to WasmAppHost,
+         which answers every request, index.html included, with a 404. Development only: it is not part
+         of the published site. -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <!-- The converter itself: components, conversion services, and the fonts / samples / stylesheet /
          script they need, all as static web assets. Drags in Morph.ImageSharp (PNG — pure-managed, so it
