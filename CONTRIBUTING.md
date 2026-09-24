@@ -126,15 +126,15 @@ characters; use the body for the rationale. Examples in `git log`.
 ## Continuous integration
 
 GitHub Actions runs the full container suite on every pull request and
-every push to `main` (`.github/workflows/test.yml`). On success, NuGet
-packages (built incidentally via `IsPackable=true`) are uploaded as a
-workflow artifact named `nupkgs`. On failure, any `*.received.*` files
-are uploaded as `verify-received-files` so reviewers can inspect
-rendering divergence.
+every push to `main` (`.github/workflows/build.yml`). A separate `pack`
+job in the same workflow builds the NuGet packages on a plain runner and
+uploads them as a workflow artifact named `nupkgs`. On failure, any
+`*.received.*` files are uploaded as `verify-received-files` so reviewers
+can inspect rendering divergence.
 
-There is no other CI provider. NuGet.org publishing is not currently
-automated; the workflow artifact is the canonical source of release
-candidates.
+There is no other CI provider. Pushing a tag builds packages versioned
+from the tag, and once the suite passes the `publish` job pushes them to
+nuget.org via trusted publishing (OIDC).
 
 ## Known papercuts
 
