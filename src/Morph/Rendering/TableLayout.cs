@@ -29,44 +29,6 @@ static class TableLayout
     }
 
     /// <summary>
-    /// Whether a row draws anything: a shaded cell, a run with text or an inline image, or any
-    /// non-paragraph cell content. A trailing run of rows for which this is false is absorbed into the
-    /// bottom margin rather than forcing a continuation page (a letter template's empty spacer row).
-    /// </summary>
-    internal static bool RowHasVisibleContent(TableRow row)
-    {
-        foreach (var cell in row.Cells)
-        {
-            if (!string.IsNullOrEmpty(cell.Properties.BackgroundColorHex))
-            {
-                return true;
-            }
-
-            foreach (var element in cell.Content)
-            {
-                if (element is ParagraphElement paragraph)
-                {
-                    foreach (var run in paragraph.Runs)
-                    {
-                        if (run.InlineImageData != null || !string.IsNullOrWhiteSpace(run.Text))
-                        {
-                            return true;
-                        }
-                    }
-                }
-                else
-                {
-                    // Nested tables, images, content controls, form fields — all draw something.
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-
-    /// <summary>
     /// Resolves the effective cell padding ("cell margin" in Word's UI). OOXML's
     /// <c>w:tblCellMar</c> appears at three scopes: table-level default
     /// (<see cref="TableProperties.DefaultCellPadding"/>), row-level override via

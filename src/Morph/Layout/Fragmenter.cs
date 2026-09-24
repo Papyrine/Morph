@@ -1017,10 +1017,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // page before that page is emitted.
             ResolvePendingFloats();
 
-            // Emit the trailing page. FinishPage keeps it only when it carries content, is an
-            // explicit-break blank, or is the first page — so a natural trailing-overflow blank is dropped
-            // while a deliberate one survives.
-            FinishPage(false);
+            // Emit the trailing page. At the document end anything placed keeps it — Word renders the page a
+            // final empty paragraph overflows onto (see FinishPage).
+            FinishPage(false, documentEnd: true);
 
             // A footnote still spilling past the last body page continues onto pages of its own.
             while (pendingNoteRows.Count > 0 || NoteAreaHeight(0) > 0)
@@ -1034,7 +1033,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Emits the in-progress page and starts a fresh one at its first column. A page is kept when it
         // has content, when it is a deliberate blank left by an explicit break (Word does not absorb
         // those), or when it is the only page; a natural trailing-overflow blank is dropped.
-        void FinishPage(bool nextPageExplicit)
+        void FinishPage(bool nextPageExplicit, bool documentEnd = false)
         {
             // The page ends the open border run — and the box has to reach items before they are handed to
             // the page below.
@@ -1046,11 +1045,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // A page is kept when it has visible content, when it is a deliberate blank left by an explicit
             // break, or when it is the only page. Only the body is stored here; the header/footer bands are
             // assembled once the flow finishes and the total page count is known, so a NUMPAGES field can
-            // resolve. A page carrying only empty spacer lines — a document-final empty paragraph pushed off
-            // the previous page — is a natural overflow blank Word does not render, so it drops.
+            // resolve.
+            //
+            // The DOCUMENT-FINAL page is kept when anything at all was placed on it: Word renders the page a
+            // final empty paragraph overflows onto (_probe_trail2_flowblank: 54 exact lines plus a trailing
+            // empty paragraph is two pages, the second blank; LibreOffice's RemoveSuperfluous likewise trims
+            // only pages with no content frame). A MID-document page carrying only empty spacer lines still
+            // drops: keeping those added a page to 14 corpus documents whose Word references have none — an
+            // empty paragraph ahead of an explicit break that overflows here only through upstream height
+            // drift.
             CentreVertically();
 
-            if (HasVisibleContent(items) || currentPageExplicit || bodies.Count == 0)
+            if ((documentEnd ? items.Count > 0 : HasVisibleContent(items)) || currentPageExplicit || bodies.Count == 0)
             {
                 bodies.Add((items, current, pageStartsSection && !currentPageFiller, currentPageFiller));
                 pageStartsSection = false;
@@ -1167,8 +1173,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             };
 
         // A page carries visible content if it has anything beyond empty spacer lines — a table row, an image,
-        // a shape, or a line with real text or an inline image. A blank paragraph's whitespace-only line does
-        // not count, so a trailing page left with only such lines is dropped as a natural overflow blank.
+        // a shape, or a line with real text or an inline image.
         static bool HasVisibleContent(IReadOnlyList<PlacedItem> pageItems)
         {
             foreach (var item in pageItems)
@@ -2486,20 +2491,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // A table taller than a column, placed row by row. Rows do not split: one that will not fit moves
-        // whole to the next region. w:tblHeader rows are re-emitted after each break, and a trailing run of
-        // empty rows is absorbed rather than starting a region for them.
+        // whole to the next region. w:tblHeader rows are re-emitted after each break. A trailing run of empty
+        // rows is carried like any other row, not absorbed: Word moves a 100pt row holding only an empty
+        // paragraph onto the next page with its height honoured (_probe_trail2_para: the paragraph after the
+        // table starts at 174.72pt, where absorption predicts 75.36), and LibreOffice has no absorption rule.
         void PlaceTableRowByRow(TableElement table, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth)
         {
             var headerCount = 0;
             while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
             {
                 headerCount++;
-            }
-
-            var lastVisibleRow = table.Rows.Count - 1;
-            while (lastVisibleRow >= 0 && !TableLayout.RowHasVisibleContent(table.Rows[lastVisibleRow]))
-            {
-                lastVisibleRow--;
             }
 
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
@@ -2569,7 +2570,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // A fit-triggered split may be rejected (the fragment placed in the remainder must
                 // genuinely split — see PlaceSplitRow), falling through to the move-whole path below. An
                 // oversize row has no such escape: moving it cannot rescue it, so its split always stands.
-                if (rowIndex <= lastVisibleRow && (oversize || doesNotFitHere) && CanSplitRow(row) &&
+                if ((oversize || doesNotFitHere) && CanSplitRow(row) &&
                     PlaceSplitRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, headerCount, allowReject: !oversize))
                 {
                     continue;
@@ -2577,7 +2578,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                 // The move mirrors EnsureSpaceFor with the same floor-strict fit as the trigger above.
                 var broke = false;
-                if (rowIndex <= lastVisibleRow && !atRegionTop && !oversize && overflows)
+                if (!atRegionTop && !oversize && overflows)
                 {
                     AdvanceColumnOrPage();
                     broke = true;

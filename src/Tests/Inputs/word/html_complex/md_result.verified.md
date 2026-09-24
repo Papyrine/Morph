@@ -12,9 +12,9 @@ superscript and subscript content.
 
 | **Product** | **Category** | **Price** | **In Stock** |
 | --- | --- | --- | --- |
-| Widget A | Electronics | $29.99 | Yes |
-| Gadget B | Accessories | $49.99 | No |
-| Device C | Hardware | $199.99 | Yes |
+| **Widget A** | Electronics | $29.99 | Yes |
+| **Gadget B** | Accessories | $49.99 | No |
+| **Device C** | Hardware | $199.99 | Yes |
 
 ## 3. Lists
 
