@@ -1564,20 +1564,23 @@ sealed class HtmlParser
                 }
 
                 var cellElements = new List<DocumentElement>();
-                if (cell.TextContent.TryTrim(out var text))
+                var cellRunProperties = ContainerRunProps() with
                 {
-                    var cellRunProperties = ContainerRunProps() with
+                    Bold = isHeader
+                };
+                if (cellTextColor != null)
+                {
+                    cellRunProperties = cellRunProperties with
                     {
-                        Bold = isHeader
+                        ColorHex = cellTextColor
                     };
-                    if (cellTextColor != null)
-                    {
-                        cellRunProperties = cellRunProperties with
-                        {
-                            ColorHex = cellTextColor
-                        };
-                    }
+                }
 
+                // The cell's inline content keeps its own formatting (<b>, <i>, <span style>...)
+                // layered over the cell's run properties, rather than flattening to one run.
+                var cellRuns = ParseInlineElements(cell, cellRunProperties);
+                if (cellRuns.Any(_ => _.InlineImageData != null || _.InlineShapeGroup != null || !string.IsNullOrWhiteSpace(_.Text)))
+                {
                     cellElements.Add(
                         new ParagraphElement
                         {
@@ -1587,14 +1590,7 @@ sealed class HtmlParser
                                     Alignment = alignment
                                 }
                                 : new(),
-                            Runs =
-                            [
-                                new()
-                                {
-                                    Text = text,
-                                    Properties = cellRunProperties
-                                }
-                            ]
+                            Runs = cellRuns
                         });
                 }
 

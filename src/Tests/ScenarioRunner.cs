@@ -50,7 +50,10 @@ static class ScenarioRunner
         await Verify(result, targets)
             .UseDirectory(directory)
             .UseFileName(fileName)
-            .IgnoreParameters();
+            .IgnoreParameters()
+            // A page-count mismatch drops PageDiffs, and the short result would otherwise fall under the
+            // inline-snapshot line limit and be demanded inline at this shared, parameterised call site.
+            .NotInline();
 
         ScenarioMarkdownGenerator.Regenerate(directory);
     }
