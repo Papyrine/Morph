@@ -55,6 +55,7 @@
             @if (isRendering || previewPages is { Count: > 0 })
             {
                 <DocumentPreview Pages="previewPages ?? []"
+                                 TextLayers="previewLayers"
                                  Busy="isRendering"
                                  Label="@progressLabel"
                                  Detail="@progressDetail" />

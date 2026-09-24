@@ -1,0 +1,100 @@
+﻿<div class="viewer" blazor:elementreference="scrubbed">
+  <div class="viewer-toolbar" role="toolbar" aria-label="Document viewer">
+    <div class="viewer-group viewer-group-start">
+      <button type="button" class="viewer-button" title="Toggle sidebar" aria-label="Toggle sidebar" aria-pressed="false" disabled="" blazor:onclick="1">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 4h18v16H3z M9 4v16"></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer-button" title="Find in document (Ctrl+F)" aria-label="Find in document" aria-keyshortcuts="Control+F" aria-pressed="false" disabled="" blazor:onclick="2">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M21 21l-5.2-5.2"></path>
+        </svg>
+      </button>
+      <span class="viewer-title"></span>
+    </div>
+    <div class="viewer-group viewer-group-middle">
+      <button type="button" class="viewer-button" title="Previous page" aria-label="Previous page" disabled="" blazor:onclick="3">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 15l6-6 6 6"></path>
+        </svg>
+      </button>
+      <input class="viewer-page-input" type="text" inputmode="numeric" aria-label="Page number" disabled="" value="1" blazor:onchange="4">
+      <span class="viewer-page-count">of 0</span>
+      <button type="button" class="viewer-button" title="Next page" aria-label="Next page" disabled="" blazor:onclick="5">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 9l6 6 6-6"></path>
+        </svg>
+      </button>
+      <span class="viewer-divider" aria-hidden="true"></span>
+      <button type="button" class="viewer-button" title="Zoom out (Ctrl+-)" aria-label="Zoom out" aria-keyshortcuts="Control+-" disabled="" blazor:onclick="6">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 12h14"></path>
+        </svg>
+      </button>
+      <select class="viewer-zoom" aria-label="Zoom" disabled="" value="auto" blazor:onchange="7">
+        <option value="auto" selected="">Automatic zoom</option>
+        <option value="page-actual">Actual size</option>
+        <option value="page-fit">Page fit</option>
+        <option value="page-width">Page width</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1">100%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+        <option value="2">200%</option>
+        <option value="3">300%</option>
+        <option value="4">400%</option>
+      </select>
+      <button type="button" class="viewer-button" title="Zoom in (Ctrl++)" aria-label="Zoom in" aria-keyshortcuts="Control++" disabled="" blazor:onclick="8">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 5v14 M5 12h14"></path>
+        </svg>
+      </button>
+      <span class="viewer-divider" aria-hidden="true"></span>
+      <button type="button" class="viewer-button" title="Rotate clockwise" aria-label="Rotate clockwise" disabled="" blazor:onclick="9">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20 12a8 8 0 1 1-2.34-5.66 M20 4v5h-5"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="viewer-group viewer-group-end">
+      <label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        <span class="viewer-hidden-label">Open file</span>
+        <input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open file" type="file" blazor:elementreference="scrubbed">
+      </label>
+      <button type="button" class="viewer-button" data-viewer-action="presentation" title="Presentation mode" aria-label="Presentation mode" aria-pressed="false" disabled="">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3"></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer-button" title="Print (Ctrl+P)" aria-label="Print" aria-keyshortcuts="Control+P" disabled="" blazor:onclick="10">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 9V3h12v6 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v7H6z"></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S" disabled="" blazor:onclick="11">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="viewer-body">
+    <div class="viewer-sidebar" role="navigation" aria-label="Page thumbnails">
+      <div class="viewer-thumbs"></div>
+    </div>
+    <div class="viewer-main">
+      <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
+      <div class="viewer-empty">
+        <p class="viewer-empty-title">Open a Word, Excel or PowerPoint file</p>
+        <p class="viewer-empty-note">.docx, .xlsx or .pptx — shown right here, with selectable text. Nothing leaves this device.</p>
+        <button type="button" class="viewer-empty-open" data-viewer-action="open">Choose a file</button>
+        <p class="viewer-empty-note">or drop one anywhere on the viewer</p>
+      </div>
+    </div>
+  </div>
+</div>

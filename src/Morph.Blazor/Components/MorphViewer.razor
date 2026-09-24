@@ -1,0 +1,176 @@
+@inject HttpClient Http
+@inject MorphInterop Interop
+@implements IAsyncDisposable
+
+@* A document viewer in the image of a browser's PDF viewer: a toolbar, a thumbnail sidebar, and the pages
+   stacked in a scrolling column with selectable text. The page column and the thumbnail list are
+   rendered EMPTY — morph-viewer.js owns their contents, because page geometry has to change in the same
+   frame as a zoom or a resize. Blazor owns the chrome around them and the document itself. *@
+
+<div class="@RootClass" @ref="root" @attributes="AdditionalAttributes">
+    <div class="viewer-toolbar" role="toolbar" aria-label="Document viewer">
+        <div class="viewer-group viewer-group-start">
+            <button type="button" class="viewer-button" title="Toggle sidebar" aria-label="Toggle sidebar"
+                    aria-pressed="@(sidebarOpen ? "true" : "false")" disabled="@(!HasDocument)" @onclick="ToggleSidebarAsync">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Sidebar" /></svg>
+            </button>
+            <button type="button" class="viewer-button" title="Find in document (Ctrl+F)" aria-label="Find in document"
+                    aria-keyshortcuts="Control+F" aria-pressed="@(findOpen ? "true" : "false")" disabled="@(!HasDocument)" @onclick="ToggleFindAsync">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Search" /></svg>
+            </button>
+            <span class="viewer-title" title="@fileName">@fileName</span>
+        </div>
+
+        <div class="viewer-group viewer-group-middle">
+            <button type="button" class="viewer-button" title="@($"Previous {PageNoun}")" aria-label="@($"Previous {PageNoun}")"
+                    disabled="@(!HasDocument || currentPage <= 1)" @onclick="() => StepAsync(-1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Up" /></svg>
+            </button>
+            <input class="viewer-page-input" type="text" inputmode="numeric" aria-label="@($"{PageNounTitle} number")"
+                   disabled="@(!HasDocument)" @bind="pageInput" @bind:after="OnPageInputAsync" />
+            <span class="viewer-page-count">of @pageCount</span>
+            <button type="button" class="viewer-button" title="@($"Next {PageNoun}")" aria-label="@($"Next {PageNoun}")"
+                    disabled="@(!HasDocument || currentPage >= pageCount)" @onclick="() => StepAsync(1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Down" /></svg>
+            </button>
+
+            <span class="viewer-divider" aria-hidden="true"></span>
+
+            <button type="button" class="viewer-button" title="Zoom out (Ctrl+-)" aria-label="Zoom out" aria-keyshortcuts="Control+-"
+                    disabled="@(!HasDocument)" @onclick="() => ZoomByAsync(-1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Minus" /></svg>
+            </button>
+            <select class="viewer-zoom" aria-label="Zoom" disabled="@(!HasDocument)" value="@ZoomValue" @onchange="OnZoomSelectedAsync">
+                @if (ZoomValue == "custom")
+                {
+                    <option value="custom">@($"{Math.Round(scale * 100)}%")</option>
+                }
+                <option value="auto">Automatic zoom</option>
+                <option value="page-actual">Actual size</option>
+                <option value="page-fit">Page fit</option>
+                <option value="page-width">Page width</option>
+                @foreach (var preset in zoomPresets)
+                {
+                    <option value="@preset.ToString(CultureInfo.InvariantCulture)">@($"{preset * 100}%")</option>
+                }
+            </select>
+            <button type="button" class="viewer-button" title="Zoom in (Ctrl++)" aria-label="Zoom in" aria-keyshortcuts="Control++"
+                    disabled="@(!HasDocument)" @onclick="() => ZoomByAsync(1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Plus" /></svg>
+            </button>
+
+            <span class="viewer-divider" aria-hidden="true"></span>
+
+            <button type="button" class="viewer-button" title="Rotate clockwise" aria-label="Rotate clockwise"
+                    disabled="@(!HasDocument)" @onclick="RotateAsync">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Rotate" /></svg>
+            </button>
+        </div>
+
+        <div class="viewer-group viewer-group-end">
+            @if (ShowOpenFile)
+            {
+                @* The input sits inside its label, so a click anywhere on the button opens the picker with no id
+                   to collide with another component's. Ctrl+O and a dropped file go through the same input. *@
+                <label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Open" /></svg>
+                    <span class="viewer-hidden-label">Open file</span>
+                    <InputFile OnChange="OnFileSelectedAsync" class="file-input" accept="@ConversionService.ReadableAccept" aria-label="Open file" />
+                </label>
+            }
+            @* Handled by the script, inside the click itself: fullscreen is only granted to a user gesture. *@
+            <button type="button" class="viewer-button" data-viewer-action="presentation" title="Presentation mode"
+                    aria-label="Presentation mode" aria-pressed="@(presenting ? "true" : "false")" disabled="@(!HasDocument)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Presentation" /></svg>
+            </button>
+            @if (ShowPrint)
+            {
+                <button type="button" class="viewer-button" title="Print (Ctrl+P)" aria-label="Print" aria-keyshortcuts="Control+P"
+                        disabled="@(!HasDocument || printing)" @onclick="PrintAsync">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Print" /></svg>
+                </button>
+            }
+            @if (ShowDownload)
+            {
+                <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S"
+                        disabled="@(!HasDocument)" @onclick="DownloadAsync">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Download" /></svg>
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (findOpen)
+    {
+        <div class="viewer-findbar" role="search">
+            <input @ref="findInput" class="viewer-find-input" type="search" placeholder="Find in document" aria-label="Find in document"
+                   value="@findQuery" @oninput="OnFindInput" @onkeydown="OnFindKeyDownAsync" />
+            <button type="button" class="viewer-button" title="Previous match (Shift+Enter)" aria-label="Previous match"
+                    disabled="@(matches.Count == 0)" @onclick="() => StepMatchAsync(-1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Up" /></svg>
+            </button>
+            <button type="button" class="viewer-button" title="Next match (Enter)" aria-label="Next match"
+                    disabled="@(matches.Count == 0)" @onclick="() => StepMatchAsync(1)">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Down" /></svg>
+            </button>
+            <label class="viewer-find-option">
+                <input type="checkbox" checked="@matchCase" @onchange="OnMatchCaseAsync" />
+                Match case
+            </label>
+            <span class="viewer-find-status" role="status" aria-live="polite">@FindStatus</span>
+            <button type="button" class="viewer-button viewer-find-close" title="Close find bar (Esc)" aria-label="Close find bar"
+                    @onclick="CloseFindAsync">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Close" /></svg>
+            </button>
+        </div>
+    }
+
+    @if (errorMessage is not null)
+    {
+        <ErrorPanel Message="@errorMessage" IssueUrl="@issueUrl" />
+    }
+
+    <div class="viewer-body">
+        <div class="viewer-sidebar" role="navigation" aria-label="@($"{PageNounTitle} thumbnails")">
+            <div class="viewer-thumbs"></div>
+        </div>
+        <div class="viewer-main">
+            <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
+
+            @if (!HasDocument && !busy)
+            {
+                <div class="viewer-empty">
+                    <p class="viewer-empty-title">Open a Word, Excel or PowerPoint file</p>
+                    <p class="viewer-empty-note">.docx, .xlsx or .pptx — shown right here, with selectable text. Nothing leaves this device.</p>
+                    @if (ShowOpenFile)
+                    {
+                        <button type="button" class="viewer-empty-open" data-viewer-action="open">Choose a file</button>
+                        <p class="viewer-empty-note">or drop one anywhere on the viewer</p>
+                    }
+                    @if (ShowSamples)
+                    {
+                        <div class="sample-row">
+                            @foreach (var sample in ConversionService.ReadableFormats)
+                            {
+                                <button type="button" class="sample-btn" @onclick="() => LoadSampleAsync(sample)">
+                                    @sample.Icon Sample @sample.ShortName
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (busy)
+            {
+                <div class="viewer-overlay">
+                    <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+                    @if (printing)
+                    {
+                        <button type="button" class="viewer-overlay-cancel" @onclick="CancelPrint">Cancel</button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
