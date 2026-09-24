@@ -1398,6 +1398,22 @@ line boundary when it does not fit.
 > 7. **`w:cantSplit` is honoured until the row exceeds a full region's height**, at which point
 >    the row overflows and clips rather than splitting (`_probe_cantsplit_tall_on`) — and a
 >    cantSplit row that fits a fresh page moves whole (`_probe_cantsplit_fit_on`).
+> 8. **Trailing empty rows are carried, never absorbed** (`_probe_trail2_*`: 108 borderless
+>    12pt exact-line rows filling two bands, then a 100pt trailing row, then a text paragraph
+>    whose position on the continuation page reads the row's fate). A trailing row holding an
+>    empty paragraph, an empty nested table or a bordered nested table all move overleaf with
+>    their height honoured — the paragraph after the table starts at 174.72pt (72pt margin +
+>    100pt row + the first-line ink offset), where absorption predicts ~74.4. LibreOffice has no
+>    absorption rule either. The engine's old `lastVisibleRow` absorption was removed 2026-09-24
+>    with no corpus page changing.
+> 9. **The page a document-final empty paragraph overflows onto is rendered**
+>    (`_probe_trail2_flowblank`: 54 exact lines plus a trailing empty paragraph is two pages,
+>    page 2 blank). The engine keeps that final page since 2026-09-24; a MID-document page holding
+>    only empty spacer lines still drops, because keeping those added a page to 14 corpus
+>    documents whose Word references have none (each an empty paragraph ahead of an explicit
+>    break, overflowing only through upstream height drift). `resumes/06` pays the final-page
+>    rule: its rows run ~13.6pt over Word's (`src/todo.md` #25), its final empty paragraph
+>    overflows, and it renders 4 pages to Word's 3.
 
 
 ### 4.4 Advanced Table Features

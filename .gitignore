@@ -25,3 +25,6 @@ src/Tests/Inputs/**/input/
 
 /src/TestResults
 *.lnk
+
+# Pre-regeneration PNG snapshot (scripts/regenerate-baselines.sh; only lands here under MORPH_DIRECT=1)
+/.regen-previous/

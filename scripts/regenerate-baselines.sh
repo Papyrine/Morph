@@ -11,7 +11,9 @@
 #      infix).
 #   2. Runs the test suite via scripts/test.sh — every scenario fails because
 #      .verified.* is missing, producing .received.* files.
-#   3. Promotes every *.received.* to *.verified.* in place.
+#   3. Promotes every *.received.* to *.verified.* in place, then restores the previous bytes of
+#      every PNG whose decoded pixels did not change (scripts/png-identical), so an encoder change
+#      alone churns nothing. The previous PNGs are snapshotted in the container before step 1.
 #   4. Runs the suite a second time to confirm everything now passes.
 #
 # Use this only when a rendering change is intentional and the diff has
@@ -68,6 +70,16 @@ run_suite() {  # $1 = description
     return "$status"
 }
 
+# Snapshot the current verified PNGs so the promotion can be checked for re-encoding-only churn
+# (step 3b). Taken inside the container, on its local disk: .regen-previous is excluded from both
+# directions of container-run.sh's sync, so ~680MB never crosses the mount. `env sh -c` rather than
+# `sh -c` because scripts/test.sh sends a bare `sh`/`bash` to the mounted tree.
+PREVIOUS_DIR=".regen-previous"
+echo ">>> Snapshotting current PNG baselines for the pixel-identity check"
+./scripts/test.sh env sh -c "rm -rf ${PREVIOUS_DIR} && mkdir -p ${PREVIOUS_DIR} && \
+    find ${TESTS_DIR} -type f -name '*.verified.png' -not -path '*/bin/*' -not -path '*/obj/*' -print0 | \
+    xargs -0 -r cp --parents -t ${PREVIOUS_DIR}"
+
 echo ">>> Removing existing Verify baselines under ${TESTS_DIR}"
 snapshots '*.verified.*' | while IFS= read -r verified; do
     rm -f "$verified"
@@ -104,6 +116,14 @@ snapshots '*.received.*' | while IFS= read -r received; do
     mv "$received" "$verified"
 done
 
+# A promoted PNG whose decoded pixels match the old baseline is an ENCODING change only (a new
+# ImageSharp/Skia/PDFium build, a different zlib level) — keep the old bytes so a package update does
+# not rewrite hundreds of baselines that show nothing. Compared on decoded RGBA with the same vendored
+# decoder the scenario comparer uses; the restored files are written inside the run, so the sync-back
+# sweep carries them to the host.
+echo ">>> Restoring PNG baselines whose pixels did not change"
+./scripts/test.sh dotnet run --project scripts/png-identical --configuration Release -- "${PREVIOUS_DIR}" .
+
 echo ">>> Re-running test suite to confirm baselines are stable"
 if ! run_suite; then
     CONFIRM_LOG="$RUN_LOG"
@@ -118,6 +138,8 @@ if ! run_suite; then
     exit 1
 fi
 rm -f "$RUN_LOG"
+
+./scripts/test.sh env rm -rf "${PREVIOUS_DIR}"
 
 echo
 echo "Baselines regenerated. Review with:"

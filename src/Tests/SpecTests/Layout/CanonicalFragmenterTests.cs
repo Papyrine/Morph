@@ -587,6 +587,46 @@ public class CanonicalFragmenterTests
     }
 
     /// <summary>
+    /// A trailing row holding only an empty paragraph is carried to the next page like any other row, not
+    /// absorbed past the bottom margin. Word-probed (<c>_probe_trail2_para</c>): a 100pt trailing empty row
+    /// moves overleaf with its height honoured, putting the paragraph after the table at 174.72pt.
+    /// </summary>
+    [Test]
+    public async Task A_trailing_empty_row_is_carried_rather_than_absorbed()
+    {
+        var rows = Enumerable.Range(0, 30)
+            .Select(index => new TableRow
+            {
+                // The trailing empty row carries a 100pt floor, as in the probe, so it cannot fit the
+                // remainder of the page the rows above it leave.
+                HeightPoints = index == 29 ? 100 : null,
+                Cells =
+                [
+                    new()
+                    {
+                        Content = [index == 29 ? P("") : P($"Row {index}")],
+                        Properties = new()
+                    }
+                ]
+            })
+            .ToList();
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows = rows
+        };
+
+        var document = fragmenter.Layout([table], Page(200));
+
+        var placed = document.Pages.SelectMany(_ => _.Items).OfType<PlacedTableRow>().ToList();
+        await Assert.That(placed.Count).IsEqualTo(30);
+        foreach (var row in placed)
+        {
+            await Assert.That(row.Y + row.Height).IsLessThanOrEqualTo(181f);
+        }
+    }
+
+    /// <summary>
     /// <c>w:cantSplit</c> forbids the split even when splitting is the only way to show the content: Word
     /// lets such a row overflow the content area and clip at the paper edge instead. Word-probed
     /// (<c>_probe_cantsplit_tall_on</c>): the flagged row ran to 791.5pt on a 792pt page with the
@@ -2599,14 +2639,26 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
-    public async Task A_trailing_empty_paragraph_that_overflows_does_not_add_a_page()
+    public async Task A_trailing_empty_paragraph_that_overflows_adds_a_page()
     {
         var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
         var document = fragmenter.Layout([.. fillers, P("")], Page(200));
 
-        // The 11 fillers fill page 1; the trailing empty paragraph would overflow to page 2, but a page with
-        // only a blank spacer line is a natural overflow blank Word drops — so the document stays one page.
-        await Assert.That(document.Pages.Count).IsEqualTo(1);
+        // The 11 fillers fill page 1 and the document-final empty paragraph overflows onto page 2, which Word
+        // renders blank (_probe_trail2_flowblank).
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task A_mid_document_page_of_only_empty_paragraphs_is_dropped()
+    {
+        var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
+        var document = fragmenter.Layout([.. fillers, P(""), new PageBreakElement(), P("after")], Page(200));
+
+        // The empty paragraph overflows onto a page of its own ahead of the explicit break; mid-document that
+        // spacer-only page still drops, so "after" lands on page 2.
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == "after")).IsTrue();
     }
 
     [Test]

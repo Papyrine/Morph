@@ -2480,36 +2480,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             // Parse conditional formatting (tblStylePr) for border + shading overrides
-            Dictionary<TableStyleOverrideValues, ConditionalFormat>? conditionals = null;
-            foreach (var tblStylePr in style.Elements<TableStyleProperties>())
-            {
-                var type = tblStylePr.Type?.Value;
-                if (type == null)
-                {
-                    continue;
-                }
-
-                var tcPr = tblStylePr.TableStyleConditionalFormattingTableCellProperties;
-                var tcBorders = tcPr?.GetFirstChild<TableCellBorders>();
-
-                var condBorders = ParseDeclaredCellBorders(tcBorders);
-
-                var condShading = ReadShadingFill(tcPr?.GetFirstChild<Shading>());
-
-                // Run-level rPr inside the tblStylePr: font, size, colour and the toggles. Captured as
-                // DECLARED values rather than resolved ones, because this rung sits above the document
-                // defaults but below any paragraph style (ECMA-376 §17.7.2) and only what it actually
-                // says may be layered in.
-                var condRun = ReadDeclaredRunProperties(tblStylePr.GetFirstChild<RunPropertiesBaseStyle>());
-
-                if (condBorders == null && condShading == null && condRun == null)
-                {
-                    continue;
-                }
-
-                conditionals ??= new();
-                conditionals[type.Value] = new(condBorders, condShading, condRun?.ColorHex, condRun);
-            }
+            var conditionals = ResolveStyleConditionals(style, tableStylesById);
 
             // Resolve default cell padding by walking the w:basedOn chain — Word's built-in
             // TableGrid inherits its tblCellMar from TableNormal, so a table that names
@@ -2524,6 +2495,117 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Resolves a table style's <c>w:tblStylePr</c> conditional regions through the <c>w:basedOn</c>
+    /// chain, merging each region PER PROPERTY like <see cref="ResolveStyleBorders"/> and
+    /// <see cref="ResolveStyleRunProperties"/>: every border side, the cell shading and each run property
+    /// comes from the nearest style whose block for that region declares it. Taking the leaf's block
+    /// whole let a derived style that only recoloured its header row drop the base's header rules and bold.
+    /// </summary>
+    internal Dictionary<TableStyleOverrideValues, ConditionalFormat>? ResolveStyleConditionals(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        // Leaf-first: the first declaration seen for a region/property is the nearest one.
+        var blocks = new Dictionary<TableStyleOverrideValues, List<TableStyleProperties>>();
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            foreach (var tblStylePr in current.Elements<TableStyleProperties>())
+            {
+                if (tblStylePr.Type?.Value is not { } type)
+                {
+                    continue;
+                }
+
+                if (!blocks.TryGetValue(type, out var list))
+                {
+                    list = [];
+                    blocks[type] = list;
+                }
+
+                list.Add(tblStylePr);
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        Dictionary<TableStyleOverrideValues, ConditionalFormat>? conditionals = null;
+        foreach (var (type, chain) in blocks)
+        {
+            BorderType? top = null, right = null, bottom = null, left = null;
+            string? shading = null;
+            var runs = new List<DeclaredRunProperties>();
+            foreach (var tblStylePr in chain)
+            {
+                var tcPr = tblStylePr.TableStyleConditionalFormattingTableCellProperties;
+                if (tcPr?.GetFirstChild<TableCellBorders>() is { } tcBorders)
+                {
+                    top ??= tcBorders.GetFirstChild<TopBorder>();
+                    right ??= tcBorders.GetFirstChild<RightBorder>();
+                    bottom ??= tcBorders.GetFirstChild<BottomBorder>();
+                    left ??= tcBorders.GetFirstChild<LeftBorder>();
+                }
+
+                shading ??= ReadShadingFill(tcPr?.GetFirstChild<Shading>());
+
+                // Run-level rPr inside the tblStylePr: font, size, colour and the toggles. Captured as
+                // DECLARED values rather than resolved ones, because this rung sits above the document
+                // defaults but below any paragraph style (ECMA-376 §17.7.2) and only what it actually
+                // says may be layered in.
+                if (ReadDeclaredRunProperties(tblStylePr.GetFirstChild<RunPropertiesBaseStyle>()) is { } declared)
+                {
+                    runs.Add(declared);
+                }
+            }
+
+            var declaredSides = (top != null ? BorderSides.Top : BorderSides.None)
+                                | (right != null ? BorderSides.Right : BorderSides.None)
+                                | (bottom != null ? BorderSides.Bottom : BorderSides.None)
+                                | (left != null ? BorderSides.Left : BorderSides.None);
+            CellBorders? borders = declaredSides == BorderSides.None
+                ? null
+                : new()
+                {
+                    Top = ParseBorderEdge(top),
+                    Right = ParseBorderEdge(right),
+                    Bottom = ParseBorderEdge(bottom),
+                    Left = ParseBorderEdge(left),
+                    Declared = declaredSides
+                };
+
+            DeclaredRunProperties? run = null;
+            if (runs.Count > 0)
+            {
+                run = runs[^1];
+                for (var i = runs.Count - 2; i >= 0; i--)
+                {
+                    run = run.Layer(runs[i]);
+                }
+            }
+
+            if (borders == null && shading == null && run == null)
+            {
+                continue;
+            }
+
+            conditionals ??= new();
+            conditionals[type] = new(borders, shading, run?.ColorHex, run);
+        }
+
+        return conditionals;
     }
 
     /// <summary>

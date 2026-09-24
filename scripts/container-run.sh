@@ -67,9 +67,15 @@ mkdir -p "$work"
 # what keeps the previous run's bin/obj alive for an incremental build. The corollary: deleting a
 # project on the host strands its bin/obj here, and rsync then reports "cannot delete non-empty
 # directory" for the parent on every run. Harmless, and MORPH_CLEAN=1 clears it.
+#
+# /.regen-previous/ exists only here, never on the host: scripts/regenerate-baselines.sh snapshots the
+# old verified PNGs into it on container disk, then compares the promoted ones against it. Being
+# excluded is what protects it from --delete between those runs, and it is excluded from the
+# sync-back below so ~680MB of scratch never crosses the mount.
 rsync -a --delete \
     --exclude='/.git/' \
     --exclude='/.nuget-cache/' \
+    --exclude='/.regen-previous/' \
     --exclude='bin/' \
     --exclude='obj/' \
     "$src/" "$work/"
@@ -97,6 +103,7 @@ find "$src/src/Tests" -type f -name '*.received.*' \
 changed=/tmp/changed.txt
 find . -type f -newer "$marker" \
     -not -path './.git/*' \
+    -not -path './.regen-previous/*' \
     -not -path '*/bin/*' \
     -not -path '*/obj/*' \
     > "$changed"

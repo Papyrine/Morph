@@ -428,6 +428,19 @@ public class HtmlParserTests
     public Task Table_Rowspan() =>
         Verify(HtmlParser.Parse("<table><tr><td rowspan=\"2\">tall</td><td>right1</td></tr><tr><td>right2</td></tr></table>"));
 
+    // A cell's inline markup keeps its formatting instead of flattening to one plain run.
+    [Test]
+    public async Task Table_CellInlineFormatting()
+    {
+        var table = (TableElement) HtmlParser.Parse("<table><tr><td>plain <b>bold</b> <span style=\"color: red\">red</span></td></tr></table>")[0];
+        var runs = ((ParagraphElement) table.Rows[0].Cells[0].Content[0]).Runs;
+
+        await Assert.That(string.Concat(runs.Select(_ => _.Text))).IsEqualTo("plain bold red");
+        await Assert.That(runs.Single(_ => _.Text == "bold").Properties.Bold).IsTrue();
+        await Assert.That(runs.Single(_ => _.Text == "plain ").Properties.Bold).IsFalse();
+        await Assert.That(runs.Single(_ => _.Text == "red").Properties.ColorHex).IsEqualTo("FF0000");
+    }
+
     [Test]
     public Task Table_TheadTbodyTfoot() =>
         Verify(HtmlParser.Parse("<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>B</td></tr></tbody><tfoot><tr><td>F</td></tr></tfoot></table>"));
