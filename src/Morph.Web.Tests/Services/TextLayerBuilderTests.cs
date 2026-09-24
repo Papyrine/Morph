@@ -282,9 +282,8 @@ public class TextLayerBuilderTests
             .ToList();
 
         await Assert.That(kinds).IsEquivalentTo(
-            new[]
-            {
-                "PlacedBorder",
+        [
+            "PlacedBorder",
                 "PlacedImage",
                 "PlacedLine",
                 "PlacedRotatedGroup",
@@ -292,7 +291,7 @@ public class TextLayerBuilderTests
                 "PlacedShape",
                 "PlacedTableRow",
                 "PlacedWordArt"
-            });
+        ]);
     }
 
     // The contract with morph-text.js, indented so a change reads as a diff.

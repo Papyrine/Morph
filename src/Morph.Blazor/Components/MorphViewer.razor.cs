@@ -126,7 +126,7 @@ public partial class MorphViewer : IAsyncDisposable
     bool searchPending;
     IReadOnlyList<TextMatch> matches = [];
     int currentMatch = -1;
-    CancellationTokenSource? searchDelay;
+    CancelSource? searchDelay;
 
     int[] renderQueue = [];
     bool rendering;
@@ -135,7 +135,7 @@ public partial class MorphViewer : IAsyncDisposable
     string? progressLabel;
     string? progressDetail;
     bool printing;
-    CancellationTokenSource? printCancel;
+    CancelSource? printCancel;
 
     string? errorMessage;
     string? issueUrl;
@@ -143,6 +143,9 @@ public partial class MorphViewer : IAsyncDisposable
     byte[]? openedSource;
     string? openedUrl;
     bool disposed;
+
+    // Cancelled on dispose, so a render loop parked between pages stops at once.
+    readonly CancelSource lifetime = new();
 
     bool HasDocument => document is not null;
 
@@ -334,7 +337,7 @@ public partial class MorphViewer : IAsyncDisposable
         try
         {
             // Parse, lay out and read every page's text in one go; the pages themselves paint later, on demand.
-            var opened = await Task.Run(() => Open(bytes, info.Format, fontDirectory));
+            var opened = await Task.Run(() => Open(bytes, info.Format, fontDirectory), lifetime.Token);
             if (opening != generation || disposed)
             {
                 opened.Document.Dispose();
@@ -361,7 +364,8 @@ public partial class MorphViewer : IAsyncDisposable
         }
         catch (Exception exception)
         {
-            if (opening == generation)
+            // Disposal cancels the open; that is not a failure to report.
+            if (opening == generation && !disposed)
             {
                 ReportError($"Could not open the {info.DisplayName}", exception);
             }
@@ -482,7 +486,7 @@ public partial class MorphViewer : IAsyncDisposable
             {
                 // A real macrotask, not Task.Yield: the browser paints and delivers scroll and input events
                 // between two pages — which is also what brings the script's next wish list in.
-                await Task.Delay(1);
+                await Task.Delay(1, lifetime.Token);
                 if (disposed || printing || renderQueue.Length < 3 || !ReferenceEquals(current, document))
                 {
                     continue;
@@ -501,7 +505,7 @@ public partial class MorphViewer : IAsyncDisposable
                 byte[] png;
                 try
                 {
-                    png = await Task.Run(() => current.RenderPage(page, dpi));
+                    png = await Task.Run(() => current.RenderPage(page, dpi), lifetime.Token);
                 }
                 catch (ObjectDisposedException)
                 {
@@ -532,6 +536,10 @@ public partial class MorphViewer : IAsyncDisposable
                     await viewer.SetThumbnailAsync(stamp, page, png);
                 }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Disposed.
         }
         catch (JSDisconnectedException)
         {
@@ -592,35 +600,33 @@ public partial class MorphViewer : IAsyncDisposable
     Task RotateAsync() =>
         Call(_ => _.RotateAsync(90));
 
-    async Task OnPageInputAsync()
+    Task OnPageInputAsync()
     {
         if (int.TryParse(pageInput, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) &&
             number >= 1 &&
             number <= pageCount)
         {
-            await Call(_ => _.GoToPageAsync(number - 1));
+            return Call(_ => _.GoToPageAsync(number - 1));
         }
-        else
-        {
-            pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
-        }
+
+        pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
+
+        return Task.CompletedTask;
     }
 
-    async Task OnZoomSelectedAsync(ChangeEventArgs args)
+    Task OnZoomSelectedAsync(ChangeEventArgs args)
     {
         if (args.Value is not string value || value == "custom")
         {
-            return;
+            return Task.CompletedTask;
         }
 
         if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
         {
-            await Call(_ => _.SetZoomAsync(number));
+            return Call(_ => _.SetZoomAsync(number));
         }
-        else
-        {
-            await Call(_ => _.SetZoomAsync(value));
-        }
+
+        return Call(_ => _.SetZoomAsync(value));
     }
 
     async Task DownloadAsync()
@@ -653,7 +659,7 @@ public partial class MorphViewer : IAsyncDisposable
         }
 
         printing = true;
-        var cancel = new CancellationTokenSource();
+        var cancel = new CancelSource();
         printCancel = cancel;
         BeginBusy("Preparing to print…");
         try
@@ -665,14 +671,14 @@ public partial class MorphViewer : IAsyncDisposable
                 var pageIndex = index;
                 progressDetail = $"{index + 1} of {current.PageCount}";
                 StateHasChanged();
-                await Task.Delay(1);
-                var png = await Task.Run(() => current.RenderPage(pageIndex, dpi));
+                await Task.Delay(1, cancel.Token);
+                var png = await Task.Run(() => current.RenderPage(pageIndex, dpi), cancel.Token);
                 await viewer.AddPrintPageAsync(pageIndex, png);
             }
 
             if (cancel.IsCancellationRequested)
             {
-                await viewer.CancelPrintAsync();
+                await CancelScriptPrintAsync(viewer);
             }
             else
             {
@@ -681,6 +687,10 @@ public partial class MorphViewer : IAsyncDisposable
                 await viewer.FinishPrintAsync();
             }
         }
+        catch (OperationCanceledException)
+        {
+            await CancelScriptPrintAsync(viewer);
+        }
         catch (JSDisconnectedException)
         {
             // The page is gone.
@@ -688,14 +698,7 @@ public partial class MorphViewer : IAsyncDisposable
         catch (Exception exception)
         {
             ReportError("Could not print the document", exception);
-            try
-            {
-                await viewer.CancelPrintAsync();
-            }
-            catch (JSDisconnectedException)
-            {
-                // The page is gone.
-            }
+            await CancelScriptPrintAsync(viewer);
         }
         finally
         {
@@ -725,25 +728,42 @@ public partial class MorphViewer : IAsyncDisposable
     void CancelPrint() =>
         printCancel?.Cancel();
 
-    // Find
-
-    async Task ToggleFindAsync()
+    // Tears down the script's print container. Once the component is disposed the controller has already
+    // done that itself, and its handle is no longer callable.
+    async Task CancelScriptPrintAsync(ViewerHandle viewer)
     {
-        if (findOpen)
+        if (disposed)
         {
-            await CloseFindAsync();
+            return;
         }
-        else
+
+        try
         {
-            await OpenFindAsync();
+            await viewer.CancelPrintAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is gone.
         }
     }
 
-    async Task OpenFindAsync()
+    // Find
+
+    Task ToggleFindAsync()
+    {
+        if (findOpen)
+        {
+            return CloseFindAsync();
+        }
+
+        return OpenFindAsync();
+    }
+
+    Task OpenFindAsync()
     {
         if (!HasDocument)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var wasOpen = findOpen;
@@ -752,8 +772,10 @@ public partial class MorphViewer : IAsyncDisposable
         StateHasChanged();
         if (!wasOpen && findQuery.Trim().Length > 0)
         {
-            await RunSearchAsync();
+            return RunSearchAsync();
         }
+
+        return Task.CompletedTask;
     }
 
     async Task CloseFindAsync()
@@ -773,14 +795,14 @@ public partial class MorphViewer : IAsyncDisposable
     {
         findQuery = args.Value as string ?? "";
         searchDelay?.Cancel();
-        var delay = new CancellationTokenSource();
+        var delay = new CancelSource();
         searchDelay = delay;
         searchPending = true;
         _ = SearchAfterDelayAsync(delay.Token);
     }
 
     // Search as the user types, once they pause.
-    async Task SearchAfterDelayAsync(CancellationToken cancel)
+    async Task SearchAfterDelayAsync(Cancel cancel)
     {
         try
         {
@@ -848,7 +870,7 @@ public partial class MorphViewer : IAsyncDisposable
         return viewer.SetFindResultsAsync(documentId, triples, currentMatch);
     }
 
-    async Task OnFindKeyDownAsync(KeyboardEventArgs args)
+    Task OnFindKeyDownAsync(KeyboardEventArgs args)
     {
         switch (args.Key)
         {
@@ -856,24 +878,22 @@ public partial class MorphViewer : IAsyncDisposable
                 if (searchPending || matches.Count == 0)
                 {
                     searchDelay?.Cancel();
-                    await RunSearchAsync();
-                }
-                else
-                {
-                    await StepMatchAsync(args.ShiftKey ? -1 : 1);
+                    return RunSearchAsync();
                 }
 
-                break;
+                return StepMatchAsync(args.ShiftKey ? -1 : 1);
+
             case "Escape":
-                await CloseFindAsync();
-                break;
+                return CloseFindAsync();
         }
+
+        return Task.CompletedTask;
     }
 
-    async Task OnMatchCaseAsync(ChangeEventArgs args)
+    Task OnMatchCaseAsync(ChangeEventArgs args)
     {
         matchCase = args.Value is true;
-        await RunSearchAsync();
+        return RunSearchAsync();
     }
 
     void BeginBusy(string label)
@@ -901,6 +921,7 @@ public partial class MorphViewer : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         disposed = true;
+        await lifetime.CancelAsync();
         renderQueue = [];
         searchDelay?.Cancel();
         printCancel?.Cancel();

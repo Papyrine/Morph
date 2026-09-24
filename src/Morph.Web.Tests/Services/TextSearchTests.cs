@@ -9,7 +9,7 @@ public class TextSearchTests
 
         var matches = search.Find("budget", matchCase: false);
 
-        await Assert.That(matches).IsEquivalentTo(new[] { new TextMatch(0, 0, 6), new TextMatch(2, 4, 6), new TextMatch(2, 19, 6) });
+        await Assert.That(matches).IsEquivalentTo(new TextMatch[] { new(0, 0, 6), new(2, 4, 6), new(2, 19, 6) });
     }
 
     [Test]
@@ -19,7 +19,7 @@ public class TextSearchTests
 
         var matches = search.Find("budget", matchCase: true);
 
-        await Assert.That(matches).IsEquivalentTo(new[] { new TextMatch(0, 7, 6) });
+        await Assert.That(matches).IsEquivalentTo([new TextMatch(0, 7, 6)]);
     }
 
     // A phrase matches across a soft wrap, a paragraph break or a cell tab — any whitespace run matches any
@@ -52,7 +52,7 @@ public class TextSearchTests
 
         var matches = search.Find("aa", matchCase: false);
 
-        await Assert.That(matches).IsEquivalentTo(new[] { new TextMatch(0, 0, 2), new TextMatch(0, 2, 2) });
+        await Assert.That(matches).IsEquivalentTo(new TextMatch[] { new(0, 0, 2), new(0, 2, 2) });
     }
 
     [Test]

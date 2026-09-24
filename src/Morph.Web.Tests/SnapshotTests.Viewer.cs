@@ -118,7 +118,7 @@ public partial class SnapshotTests
             });
 
         await Assert.That(download.SuggestedFilename).IsEqualTo("sample.docx");
-        var saved = await File.ReadAllBytesAsync((await download.PathAsync())!);
+        var saved = await File.ReadAllBytesAsync(await download.PathAsync());
         await Assert.That(saved.AsSpan().SequenceEqual(Sample.DocxBytes)).IsTrue();
     }
 

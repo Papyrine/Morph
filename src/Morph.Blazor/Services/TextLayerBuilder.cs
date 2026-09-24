@@ -105,7 +105,7 @@ static class TextLayerBuilder
                 case PlacedRotatedGroup group:
                     nodes.Add(new FrameNode('r', group.X, group.Y, group.Width, group.Height, group.RotationDegrees, true, Container(group.Items)));
                     break;
-                case PlacedWordArt wordArt when wordArt.Visual.Text.Length > 0:
+                case PlacedWordArt {Visual.Text.Length: > 0} wordArt:
                     // A warp draws as one figure with no line geometry; the whole box stands in for its text.
                     nodes.Add(new BoxNode(wordArt.X, wordArt.Y, wordArt.Width, wordArt.Height, wordArt.Visual.Text));
                     break;
