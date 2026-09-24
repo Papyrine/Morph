@@ -1,0 +1,194 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+  workflow_dispatch:
+
+# Read only by default. The publish job asks for the OIDC token it needs itself.
+permissions:
+  contents: read
+
+# Cancel in-progress runs if a new push lands on the same branch.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  test:
+    name: linux/amd64 container suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    # No GitHubToken is needed: SponsorCheck is gated off inside the container
+    # (the csproj references are conditioned on MORPH_TEST_CONTAINER, set in the
+    # image), so the in-container build only compiles and tests. The publishable
+    # packages come from the pack job below.
+
+    env:
+      # scripts/test.sh defaults to copying the working tree into the container and
+      # syncing changes back, because a Windows host serves the bind mount over 9p and
+      # that halves the suite's speed. A Linux runner's bind mount is already native, so
+      # here the copy is pure overhead — and the copy-back would be too, since the
+      # artifacts the steps below upload (.received.*) are written straight into the
+      # workspace in direct mode.
+      MORPH_DIRECT: '1'
+
+      # The "Build test image" step below builds morph-test:latest itself, so that the GHA
+      # layer cache does the work. Tell the wrapper the image is already good: otherwise it
+      # compares Dockerfile.test against the recipe label it stamps on its own builds, finds
+      # none on this one, and rebuilds it a second time.
+      MORPH_IMAGE_READY: '1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # The image's Playwright browser layer is keyed on this version alone, so bumping an
+      # unrelated package doesn't invalidate the GHA cache entry and re-download Chromium.
+      # src/Directory.Packages.props stays the single source of truth (see Dockerfile.test).
+      - name: Read Playwright version
+        id: playwright
+        run: |
+          version="$(sed -n 's/.*Microsoft\.Playwright" Version="\([^"]*\)".*/\1/p' src/Directory.Packages.props)"
+          if [[ -z "$version" ]]; then
+            echo "Could not read the Microsoft.Playwright version from src/Directory.Packages.props" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build test image (with GHA cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.test
+          platforms: linux/amd64
+          tags: morph-test:latest
+          load: true
+          build-args: |
+            PLAYWRIGHT_VERSION=${{ steps.playwright.outputs.version }}
+          cache-from: type=gha,scope=morph-test
+          cache-to: type=gha,scope=morph-test,mode=max
+
+      - name: Run scenario + spec tests
+        run: ./scripts/test.sh
+        # MORPH_IMAGE_READY (above) stops the wrapper rebuilding the image built here.
+
+      - name: Run static-setting tests
+        run: ./scripts/test.sh dotnet run --project src/StaticSettingTests --configuration Release
+
+      - name: Upload received on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verify-received-files
+          path: |
+            src/Tests/Inputs/**/*.received.*
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # Packs the Morph.* packages on a plain runner (packaging doesn't touch rendering, so it
+  # doesn't need the linux/amd64 test container), with SponsorCheck enabled.
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # SponsorCheck bundles the current GitHub Sponsors list into each nupkg during
+    # pack. That fetch hits the GitHub Sponsors GraphQL API, which the default
+    # Actions GITHUB_TOKEN *cannot* access — it returns FORBIDDEN ("Resource not
+    # accessible by integration") and fails the build with SC100. It needs a
+    # *classic* PAT with read:user + read:org scopes, owned by an admin of the
+    # Papyrine org; store it as the SPONSOR_CHECK_TOKEN repo/org secret.
+    env:
+      GitHubToken: ${{ secrets.SPONSOR_CHECK_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # Keyed on everything that decides the package graph. restore-keys lets a changed graph start
+      # from the previous cache rather than empty.
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', '**/Directory.Packages.props', '**/Directory.Build.props', '**/*.csproj', '**/*.fsproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # The tag is the version: tag 1.2.3 (or v1.2.3) builds 1.2.3. Other builds use the
+      # Version in Directory.Build.props.
+      - name: Resolve the version from the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: echo "VERSION_ARGUMENT=-p:Version=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Build & pack
+        # A plain build *is* the pack step here: ProjectDefaults sets
+        # GeneratePackageOnBuild=true for every Release package project, so each
+        # Morph.* library is packed as the final step of its *own* build, in
+        # project-dependency order, into ./nugets (RepoDir/nugets).
+        #
+        # We deliberately do NOT use `dotnet pack`: on a solution it races with
+        # GeneratePackageOnBuild (NU5026 — the solution-level Pack fans out to the
+        # dependent projects before their build, gated behind Morph, has produced
+        # their DLLs), and disabling GeneratePackageOnBuild to dodge that would skip
+        # ProjectDefaults' GenerateNuspec hook, stripping PackageProjectUrl/Icon/
+        # Authors metadata. A clean CI checkout starts with an empty ./nugets, so
+        # there are no stale packages to exclude.
+        run: dotnet build src/Morph.slnx --configuration Release ${{ env.VERSION_ARGUMENT }}
+
+      - name: Upload packages
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nupkgs
+          path: nugets/*.nupkg
+          if-no-files-found: error
+          retention-days: 30
+
+  # Trusted publishing: no stored API key. nuget.org validates GitHub's OIDC token against the
+  # policy naming this repository and this workflow file, and returns a key good for an hour.
+  # Waits on the test suite too, so a package only ships once it has passed.
+  publish:
+    needs: [test, pack]
+    environment: nuget
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v8
+        with:
+          name: nupkgs
+          path: packages
+
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: SimonCropp
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push "packages/**/*.nupkg"
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate

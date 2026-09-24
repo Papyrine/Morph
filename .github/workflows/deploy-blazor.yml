@@ -1,7 +1,7 @@
 name: Deploy GH Pages
 
 # Builds, tests and deploys the Morph.Web app (src/Morph.Web) to GitHub Pages. This is independent of
-# the container-based rendering suite in test.yml. Morph.Web and Morph.Web.Tests are in Morph.slnx but
+# the container-based rendering suite in build.yml. Morph.Web and Morph.Web.Tests are in Morph.slnx but
 # excluded from Release solution builds (a Blazor WASM project can't build in the linux/amd64 test
 # image, which has no wasm-tools workload), so they're built here by path instead. The converter itself
 # lives in src/Morph.Blazor, a plain Razor class library that has no such restriction — it builds and
@@ -34,10 +34,10 @@ jobs:
       MORPH_TEST_CONTAINER: '1'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
