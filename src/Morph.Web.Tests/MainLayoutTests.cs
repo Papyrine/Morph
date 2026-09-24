@@ -23,6 +23,23 @@ public class MainLayoutTests : BunitTestContext
         await Assert.That(link.GetAttribute("href")).StartsWith("https://github.com/Papyrine/Morph/issues/new?");
     }
 
+    // The app shows one component per page: the converter at the root, the viewer at /view.
+    [Test]
+    public async Task Header_LinksConvertAndView()
+    {
+        RenderFragment body = builder => builder.AddContent(0, "page");
+
+        var cut = Render<MainLayout>(_ => _
+            .Add(_ => _.Body, body));
+
+        var links = cut.FindAll(".app-nav a");
+        await Assert.That(links.Count).IsEqualTo(2);
+        await Assert.That(links[0].TextContent).IsEqualTo("Convert");
+        await Assert.That(links[0].GetAttribute("href")).IsEqualTo("");
+        await Assert.That(links[1].TextContent).IsEqualTo("View");
+        await Assert.That(links[1].GetAttribute("href")).IsEqualTo("view");
+    }
+
     [Test]
     public async Task NoError_RendersBodyWithoutPrompt()
     {

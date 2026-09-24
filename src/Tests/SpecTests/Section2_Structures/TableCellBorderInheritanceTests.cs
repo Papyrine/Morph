@@ -74,8 +74,16 @@ public class TableCellBorderInheritanceTests
         {
             Cells =
             [
-                new() { Properties = partial, Content = [] },
-                new() { Properties = plain, Content = [] }
+                new()
+                {
+                    Properties = partial,
+                    Content = []
+                },
+                new()
+                {
+                    Properties = plain,
+                    Content = []
+                }
             ]
         };
 
@@ -102,8 +110,16 @@ public class TableCellBorderInheritanceTests
         {
             Cells =
             [
-                new() { Properties = nilled, Content = [] },
-                new() { Properties = plain, Content = [] }
+                new()
+                {
+                    Properties = nilled,
+                    Content = []
+                },
+                new()
+                {
+                    Properties = plain,
+                    Content = []
+                }
             ]
         };
 
@@ -115,8 +131,17 @@ public class TableCellBorderInheritanceTests
     [Test]
     public async Task Over_takes_declared_sides_from_the_upper_record_and_the_rest_from_the_lower()
     {
-        var upper = new CellBorders { Top = Edge("111111", 3), Declared = BorderSides.Top };
-        var lower = new CellBorders { Top = Edge("222222", 1), Left = Edge("333333", 1), Declared = BorderSides.Top | BorderSides.Left };
+        var upper = new CellBorders
+        {
+            Top = Edge("111111", 3),
+            Declared = BorderSides.Top
+        };
+        var lower = new CellBorders
+        {
+            Top = Edge("222222", 1),
+            Left = Edge("333333", 1),
+            Declared = BorderSides.Top | BorderSides.Left
+        };
 
         var merged = upper.Over(lower);
 
@@ -182,20 +207,67 @@ public class TableCellBorderInheritanceTests
 
         var table = new Table(
             new W.TableProperties(new TableBorders(
-                new TopBorder { Val = BorderValues.Single, Size = 4 },
-                new LeftBorder { Val = BorderValues.Single, Size = 4 },
-                new BottomBorder { Val = BorderValues.Single, Size = 4 },
-                new RightBorder { Val = BorderValues.Single, Size = 4 },
-                new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4 },
-                new InsideVerticalBorder { Val = BorderValues.Single, Size = 4 })),
+                new TopBorder
+                {
+                    Val = BorderValues.Single,
+                    Size = 4
+                },
+                new LeftBorder
+                {
+                    Val = BorderValues.Single,
+                    Size = 4
+                },
+                new BottomBorder
+                {
+                    Val = BorderValues.Single,
+                    Size = 4
+                },
+                new RightBorder
+                {
+                    Val = BorderValues.Single,
+                    Size = 4
+                },
+                new InsideHorizontalBorder
+                {
+                    Val = BorderValues.Single,
+                    Size = 4
+                },
+                new InsideVerticalBorder
+                {
+                    Val = BorderValues.Single,
+                    Size = 4
+                })),
             new W.TableRow(
-                Cell("h1", new TableCellBorders(new BottomBorder { Val = BorderValues.Single, Size = 12 })),
+                Cell(
+                    "h1",
+                    new(
+                        new BottomBorder
+                        {
+                            Val = BorderValues.Single,
+                            Size = 12
+                        })),
                 Cell("h2", null)),
             new W.TableRow(
-                Cell("b1", new TableCellBorders(
-                    new TopBorder { Val = BorderValues.Single, Size = 12 },
-                    new LeftBorder { Val = BorderValues.Nil })),
-                Cell("b2", new TableCellBorders(new TopLeftToBottomRightCellBorder { Val = BorderValues.Single, Size = 4 }))));
+                Cell(
+                    "b1",
+                    new(
+                        new TopBorder
+                        {
+                            Val = BorderValues.Single,
+                            Size = 12
+                        },
+                        new LeftBorder
+                        {
+                            Val = BorderValues.Nil
+                        })),
+                Cell(
+                    "b2",
+                    new(
+                        new TopLeftToBottomRightCellBorder
+                        {
+                            Val = BorderValues.Single,
+                            Size = 4
+                        }))));
 
         var body = new Body(table, new Paragraph(new W.Run(new Text("after"))));
         var stream = new MemoryStream();

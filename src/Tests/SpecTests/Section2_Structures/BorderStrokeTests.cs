@@ -310,9 +310,9 @@ public class BorderStrokeTests
 
         var interior = BorderStroke.CellEdgeLines(x: 100, y: 200, width: 50, height: 30, borders, bottomInset: 0);
         var top = interior.Single(_ => _.Horizontal && _.Edge == borders.Top && _.At < 215);
-        var bottom = interior.Single(_ => _.Horizontal && _.At > 215);
-        var left = interior.Single(_ => !_.Horizontal && _.At < 125);
-        var right = interior.Single(_ => !_.Horizontal && _.At > 125);
+        var bottom = interior.Single(_ => _ is {Horizontal: true, At: > 215});
+        var left = interior.Single(_ => _ is {Horizontal: false, At: < 125});
+        var right = interior.Single(_ => _ is {Horizontal: false, At: > 125});
 
         await Assert.That(top.At).IsEqualTo(203).Within(0.0001);
         await Assert.That(top.Thickness).IsEqualTo(6).Within(0.0001);
@@ -328,8 +328,8 @@ public class BorderStrokeTests
 
         // The last row reserved its 6pt bottom edge inside the box: the band sits on the face.
         var last = BorderStroke.CellEdgeLines(100, 200, 50, 30, borders, bottomInset: 6);
-        await Assert.That(last.Single(_ => _.Horizontal && _.At > 215).At).IsEqualTo(227).Within(0.0001);
-        await Assert.That(last.Single(_ => !_.Horizontal && _.At < 125).To).IsEqualTo(230).Within(0.0001);
+        await Assert.That(last.Single(_ => _ is {Horizontal: true, At: > 215}).At).IsEqualTo(227).Within(0.0001);
+        await Assert.That(last.Single(_ => _ is {Horizontal: false, At: < 125}).To).IsEqualTo(230).Within(0.0001);
     }
 
     [Test]
@@ -342,11 +342,11 @@ public class BorderStrokeTests
         var borders = new CellBorders {Top = edge, Bottom = edge, Left = edge, Right = edge};
         var lines = BorderStroke.CellEdgeLines(100, 200, 50, 30, borders, bottomInset: 4.5);
 
-        var bottomLines = lines.Where(_ => _.Horizontal && _.At > 215).OrderBy(_ => _.At).ToList();
+        var bottomLines = lines.Where(_ => _ is {Horizontal: true, At: > 215}).OrderBy(_ => _.At).ToList();
         await Assert.That(bottomLines.Select(_ => _.Thickness)).IsEquivalentTo([3.0, 0.6]);
         await Assert.That(bottomLines[0].At).IsEqualTo(225.5 + 1.5).Within(0.0001);
 
-        var rightLines = lines.Where(_ => !_.Horizontal && _.At > 125).OrderBy(_ => _.At).ToList();
+        var rightLines = lines.Where(_ => _ is {Horizontal: false, At: > 125}).OrderBy(_ => _.At).ToList();
         await Assert.That(rightLines.Select(_ => _.Thickness)).IsEquivalentTo([3.0, 0.6]);
         // Stack 4.2 wide centred on x=150: thick from 147.9, thin ending at 152.1.
         await Assert.That(rightLines[0].At).IsEqualTo(147.9 + 1.5).Within(0.0001);

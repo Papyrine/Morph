@@ -231,9 +231,23 @@ types stay in the single `Morph` namespace like every other assembly, which is w
 component is `ExportOptionsPanel`: `ExportOptions` is already Morph's own record. See
 `src/Morph.Blazor/README.md`.
 
+`MorphViewer` is the package's second widget: a browser-PDF-viewer-style view of a `.docx`/`.xlsx`/`.pptx`
+(thumbnails, zoom and fit modes, rotation, find, presentation mode, print, download). It rests on
+`PagedDocument`, which parses and runs the `Fragmenter` once and paints any page at any DPI through
+`ImageSharpPainter`, and on `TextLayerBuilder`, which reads each page's runs off the laid-out tree into the
+selectable text layer (`wwwroot/morph-text.js`) that the converter's preview carries too. Both use Morph
+internals: `Morph` and `Morph.ImageSharp` grant `Morph.Blazor` `InternalsVisibleTo`, so a change to the
+layout tree (`PlacedItem` kinds, `PlacedRun`) can break the Blazor build — and
+`TextLayerBuilderTests.EveryPlacedItemKind_IsAccountedFor` fails on a new item kind, so the layer never
+silently drops its text. The same grant makes Morph's global-namespace internals visible there, which is
+why `TextExtraction` names `AngleSharp.Html.Parser.HtmlParser` in full (core's own `HtmlParser` would
+otherwise win lookup). The viewer's page geometry, zoom and render queue live in `wwwroot/morph-viewer.js`;
+.NET renders the pages the script asks for.
+
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
-extracted into `Morph.Blazor` this project is only the shell — header, theme toggle, footer — around
-`<MorphConverter />`. See `src/Morph.Web/README.md`.
+extracted into `Morph.Blazor` this project is only the shell — header with Convert | View links, theme
+toggle, footer — around `<MorphConverter />` at `/` and `<MorphViewer />` at `/view`. See
+`src/Morph.Web/README.md`.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render
 locations that name the deleted production raster code describe history; the engine painters are the only

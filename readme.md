@@ -516,11 +516,17 @@ No `<script>` tag is needed — the JavaScript ships as an ES module the compone
 
 That is the whole widget: an upload panel (or one of three bundled samples), a live page-image preview, an output-format picker with per-format options, and a download button. On a viewport wider than 1200px it also shows the selected format's real output beside the preview — Markdown and plain text inline, PDF and HTML in an iframe. Parameters (`Formats`, `InitialTarget`, `PreviewDpi`, `MaxFileSize`, `ShowSamples`, `ShowResultPane`, …) are listed in [the package readme](/src/Morph.Blazor/README.md#morphconverter-parameters).
 
+The preview's text is selectable: every page image carries a transparent text layer — the technique PDF.js uses — so text can be selected, copied and found in the browser. The package also ships a viewer, which shows a file the way a browser shows a PDF rather than converting it — pages rendered on demand and sharpened when zoomed, a thumbnail sidebar, page navigation, zoom presets and fit modes, rotation, find, presentation mode, printing and download. morph.papyrine.org hosts it at [/view](https://morph.papyrine.org/view):
+
+```razor
+<MorphViewer Source="bytes" FileName="report.docx" />
+```
+
 The component declares no colours of its own: every rule reads a `--morph-*` custom property with a literal fallback, so it looks right unconfigured and a host that sets those properties always wins. `MorphConverter` is also only the batteries-included option — `ConversionService` (`byte[]` in, `byte[]` out), `FontStore`, `MorphInterop` and the individual panels are all public, for a custom UI over the same pipeline.
 
 Two constraints are worth knowing up front. The package renders through **ImageSharp** and **PdfSharp**, both pure-managed; `Morph.Skia` is deliberately avoided because SkiaSharp needs a native `browser-wasm` build its NuGet packages don't ship. And a browser has no fonts of its own, so four **Aptos** faces ship as static web assets and are materialised into the WASM in-memory filesystem, with every unresolved family mapped onto Aptos — any file renders, with its own fonts substituted. Layout and structure are preserved; exact glyph shapes are not.
 
-See [the package readme](/src/Morph.Blazor/README.md) for the full parameter and theming tables, the font preload hint, and how trimmed publishes are handled.
+See [the package readme](/src/Morph.Blazor/README.md) for the full parameter and theming tables, the viewer's controls and keyboard shortcuts, the font preload hint, and how trimmed publishes are handled.
 
 
 ## Shrinking a DOCX

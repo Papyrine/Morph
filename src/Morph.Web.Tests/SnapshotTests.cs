@@ -1,7 +1,7 @@
 // Each test boots the WASM runtime in a fresh browser page, which is CPU-heavy; run them one at a time
 // so several runtime boots don't contend and time out under load.
 [NotInParallel]
-public class SnapshotTests
+public partial class SnapshotTests
 {
     static WebApplication? app;
     static int port;

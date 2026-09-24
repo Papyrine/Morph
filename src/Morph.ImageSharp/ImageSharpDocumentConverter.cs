@@ -15,9 +15,21 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
     // for the callers that need it. Internal so tests can drive it with a synthesized ParsedDocument.
     internal static int RenderPagesCounted(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
+        var laidOut = Layout(document, options);
+        using var context = CreateContext(document, options);
+        ImageSharpPainter.Paint(laidOut, context, options.Crop, pageCallback);
+        return laidOut.Pages.Count;
+    }
+
+    // The two halves of RenderPagesCounted, split so a caller that paints pages on demand (the Blazor
+    // viewer: lay out once, paint whichever page scrolls into view at whatever resolution the zoom asks
+    // for) runs the one canonical layout recipe rather than a copy of it. Layout is DPI-independent —
+    // the tree is in points — so the same LaidOutDocument serves every context CreateContext makes.
+    internal static LaidOutDocument Layout(ParsedDocument document, ImageExportOptions options)
+    {
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
         var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.CompatibilityMode);
-        var laidOut = new Fragmenter(measurer).Layout(
+        return new Fragmenter(measurer).Layout(
             document.Elements,
             document.PageSettings,
             document.Header,
@@ -28,9 +40,8 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
             document.EvenPageFooter,
             DocumentNotes.From(document))
             .Restrict(options.Pages);
-
-        using var context = new ImageSharpRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
-        ImageSharpPainter.Paint(laidOut, context, options.Crop, pageCallback);
-        return laidOut.Pages.Count;
     }
+
+    internal static ImageSharpRenderContext CreateContext(ParsedDocument document, ImageExportOptions options) =>
+        new(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
 }

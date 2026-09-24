@@ -9,7 +9,7 @@ public class TableFloorFitTests
     public async Task A_floored_table_that_misses_the_remainder_moves_whole()
     {
         var page = new PageSettings { WidthPoints = 300, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
-        var fill = Enumerable.Range(1, 16).Select(_ => (DocumentElement) Paragraph($"line {_}")).ToList();
+        var fill = Enumerable.Range(1, 16).Select(DocumentElement (_) => Paragraph($"line {_}")).ToList();
 
         // Sixteen 14.5pt Aptos lines leave a remainder of roughly 28pt in the 260pt band; a 40pt floor
         // does not fit it, and its single 10pt line would fit with room to spare.
@@ -25,7 +25,7 @@ public class TableFloorFitTests
     public async Task A_content_only_table_of_that_height_keeps_its_slack()
     {
         var page = new PageSettings { WidthPoints = 300, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
-        var fill = Enumerable.Range(1, 16).Select(_ => (DocumentElement) Paragraph($"line {_}")).ToList();
+        var fill = Enumerable.Range(1, 16).Select(DocumentElement (_) => Paragraph($"line {_}")).ToList();
 
         var plain = Table(null, exact: false);
         var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([.. fill, plain], page);

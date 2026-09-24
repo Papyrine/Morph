@@ -21,10 +21,13 @@
     | --morph-text       | body text                                          | #333    |
     | --morph-muted      | secondary text (captions, notes, progress labels)  | #6c757d |
     | --morph-border     | every border and divider                           | #dee2e6 |
+    | --morph-selection  | selected text on a rendered page                   | rgb(0 96 223 / 0.3)   |
+    | --morph-find       | the viewer's find matches                          | rgb(255 200 0 / 0.45) |
+    | --morph-find-current | the viewer's current find match                  | rgb(255 110 0 / 0.55) |
 */
 
 /* Scoped to this library's own subtrees so the package never imposes a global reset on the host. */
-:where(.converter, .converter *, .preview, .preview *, .progress, .progress *, .error, .error *) {
+:where(.converter, .converter *, .preview, .preview *, .progress, .progress *, .error, .error *, .viewer, .viewer *) {
     box-sizing: border-box;
 }
 
@@ -151,13 +154,138 @@
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-.preview-page {
+/* One page: the image and, over it, the selectable text layer. The sheet carries the paper look so the
+   overlay's box is exactly the image's — no border between the two to offset the text. */
+.preview-sheet {
+    position: relative;
     max-width: 100%;
-    height: auto;
     border: 1px solid var(--morph-border, #dee2e6);
     border-radius: 2px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
     background: #ffffff;
+}
+
+.preview-page {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/*
+    The selectable text layer (morph-text.js): transparent text over a rendered page image, where the page
+    drew it. The overlay is a size container and every length inside is in cqw, so the text tracks the
+    image's displayed size at any width or zoom with no script. Nothing here is visible — only a
+    selection or a find highlight paints.
+*/
+.text-layer {
+    position: absolute;
+    inset: 0;
+    overflow: clip;
+    container-type: inline-size;
+    /* 0px: a stray <br>'s line has no height, so there is nothing to hit between the positioned lines. */
+    font: 400 0/1 "Morph Text", sans-serif;
+    font-kerning: normal;
+    font-synthesis: none;
+    text-rendering: geometricPrecision;
+    letter-spacing: 0;
+    word-spacing: 0;
+    text-transform: none;
+    text-indent: 0;
+    text-align: left;
+    white-space: pre;
+    direction: ltr;
+    forced-color-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* A correctness guard rather than theming: the raster below already shows the text. */
+.text-layer,
+.text-layer * {
+    color: transparent !important;
+}
+
+.text-line,
+.text-frame,
+.text-end,
+.text-layer br {
+    position: absolute;
+}
+
+.text-line {
+    cursor: text;
+    z-index: 1;
+}
+
+.text-layer .b {
+    font-weight: 700;
+}
+
+.text-layer .i {
+    font-style: italic;
+}
+
+/* Rotated text boxes and cells turn about their centre, as the painter turns them. */
+.text-frame {
+    transform-origin: 50% 50%;
+}
+
+.text-clip {
+    overflow: clip;
+}
+
+/* A Word exact-height row clips vertically only: ink may overhang the cell sideways. */
+.text-clip-y {
+    overflow-x: visible;
+    overflow-y: clip;
+}
+
+/* Without an explicit rule the browser repaints selected text in a visible colour; this keeps it
+   transparent and paints only the band. */
+.text-layer ::selection {
+    color: transparent;
+    background: var(--morph-selection, rgb(0 96 223 / 0.3));
+}
+
+.text-layer br::selection {
+    background: transparent;
+}
+
+/* A rule of its own: a selector list with a pseudo-element the browser does not know drops the whole rule. */
+.text-layer ::search-text {
+    color: transparent;
+}
+
+::highlight(morph-find) {
+    color: transparent;
+    background-color: var(--morph-find, rgb(255 200 0 / 0.45));
+}
+
+::highlight(morph-find-current) {
+    color: transparent;
+    background-color: var(--morph-find-current, rgb(255 110 0 / 0.55));
+}
+
+/* The end-of-content element: covers the layer while a selection is dragged, so crossing empty space
+   between lines extends the selection rather than jumping it to the page's start. */
+.text-end {
+    inset: 100% 0 0;
+    z-index: 0;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.text-layer.selecting .text-end {
+    top: 0;
+}
+
+@media print {
+    .text-layer {
+        display: none;
+    }
 }
 
 .preview-busy {
@@ -426,6 +554,571 @@
 .error-report a {
     color: #842029;
     font-weight: 600;
+}
+
+/*
+    The document viewer (MorphViewer): a toolbar, a thumbnail sidebar and a scrolling column of pages. It
+    fills its box — give it a height; 80vh is only a default. The script sizes pages through two custom
+    properties per page (--pw, --ph: the page in points) and one on the column (--z: the zoom), so a zoom
+    is one property change and the layout follows without Blazor re-rendering anything.
+*/
+.viewer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    min-height: 320px;
+    overflow: hidden;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+}
+
+.viewer[data-rotation="90"] {
+    --viewer-rotation: 90deg;
+}
+
+.viewer[data-rotation="180"] {
+    --viewer-rotation: 180deg;
+}
+
+.viewer[data-rotation="270"] {
+    --viewer-rotation: 270deg;
+}
+
+.viewer-toolbar,
+.viewer-findbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.5rem;
+    background: var(--morph-surface, #ffffff);
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+}
+
+.viewer-toolbar {
+    justify-content: space-between;
+}
+
+.viewer-group {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.viewer-group-start,
+.viewer-group-end {
+    flex: 1 1 0;
+}
+
+.viewer-group-end {
+    justify-content: flex-end;
+}
+
+.viewer-button {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--morph-text, #333);
+    cursor: pointer;
+}
+
+.viewer-button svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.viewer-button:hover:not(:disabled),
+.viewer-button[aria-pressed="true"] {
+    border-color: var(--morph-border, #dee2e6);
+    background: var(--morph-background, #f8f9fa);
+}
+
+.viewer-button[aria-pressed="true"] {
+    color: var(--morph-primary, #2b579a);
+}
+
+.viewer-button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.viewer-button:focus-visible,
+.viewer-thumb:focus-visible,
+.viewer-pages:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: -2px;
+}
+
+.viewer-hidden-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.viewer-title {
+    min-width: 0;
+    margin-left: 0.25rem;
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.viewer-page-input,
+.viewer-zoom,
+.viewer-find-input {
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.viewer-page-input {
+    width: 3.25rem;
+    text-align: right;
+}
+
+.viewer-page-count,
+.viewer-find-status {
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.viewer-page-count {
+    margin-right: 0.25rem;
+}
+
+.viewer-zoom {
+    max-width: 9.5rem;
+}
+
+.viewer-divider {
+    width: 1px;
+    height: 1.25rem;
+    margin: 0 0.25rem;
+    background: var(--morph-border, #dee2e6);
+}
+
+.viewer-find-input {
+    flex: 0 1 16rem;
+    min-width: 8rem;
+}
+
+.viewer-find-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0 0.5rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.viewer-find-status {
+    min-width: 5rem;
+}
+
+.viewer-find-close {
+    margin-left: auto;
+}
+
+.viewer > .error {
+    margin: 0.5rem;
+}
+
+.viewer-body {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.viewer-sidebar {
+    display: none;
+    flex: none;
+    width: 172px;
+    overflow-y: auto;
+    background: var(--morph-surface, #ffffff);
+    border-right: 1px solid var(--morph-border, #dee2e6);
+}
+
+.viewer[data-sidebar] .viewer-sidebar {
+    display: block;
+}
+
+.viewer-thumbs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+}
+
+.viewer-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: none;
+    color: var(--morph-muted, #6c757d);
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.viewer-thumb[aria-current="page"] {
+    border-color: var(--morph-primary, #2b579a);
+    color: var(--morph-primary, #2b579a);
+}
+
+/* 120px wide, the page's shape — turned with the pages. */
+.viewer-thumb-sheet {
+    position: relative;
+    display: block;
+    width: 120px;
+    aspect-ratio: var(--pw) / var(--ph);
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.viewer[data-rotation="90"] .viewer-thumb-sheet,
+.viewer[data-rotation="270"] .viewer-thumb-sheet {
+    aspect-ratio: var(--ph) / var(--pw);
+}
+
+.viewer-thumb-sheet img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120px;
+    aspect-ratio: var(--pw) / var(--ph);
+    transform: translate(-50%, -50%) rotate(var(--viewer-rotation, 0deg));
+}
+
+.viewer[data-rotation="90"] .viewer-thumb-sheet img,
+.viewer[data-rotation="270"] .viewer-thumb-sheet img {
+    width: calc(120px * var(--pw) / var(--ph));
+}
+
+.viewer-thumb-sheet img:not([src]),
+.viewer-image:not([src]) {
+    visibility: hidden;
+}
+
+.viewer-main {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Pages centre with auto margins rather than align-items: centring, a page zoomed wider than the view
+   would overflow to the left, out of reach of the scrollbar. */
+.viewer-pages {
+    --z: 1;
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    overflow: auto;
+    overflow-anchor: none;
+    scrollbar-gutter: stable;
+}
+
+/* content-visibility skips the layout and paint of off-screen pages; their text stays findable. */
+.viewer-page {
+    position: relative;
+    flex: none;
+    width: calc(var(--pw) * var(--z) * 1pt);
+    height: calc(var(--ph) * var(--z) * 1pt);
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    content-visibility: auto;
+}
+
+.viewer[data-rotation="90"] .viewer-page,
+.viewer[data-rotation="270"] .viewer-page {
+    width: calc(var(--ph) * var(--z) * 1pt);
+    height: calc(var(--pw) * var(--z) * 1pt);
+}
+
+/* The page at its own orientation, turned into place — its text layer turns with it. */
+.viewer-sheet {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(var(--pw) * var(--z) * 1pt);
+    height: calc(var(--ph) * var(--z) * 1pt);
+    overflow: hidden;
+    background: #ffffff;
+    transform: translate(-50%, -50%) rotate(var(--viewer-rotation, 0deg));
+}
+
+.viewer-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.viewer-page-message {
+    position: absolute;
+    top: 45%;
+    right: 0;
+    left: 0;
+    padding: 0 1rem;
+    color: #842029;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.viewer-empty,
+.viewer-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.viewer-overlay {
+    z-index: 5;
+    background: color-mix(in srgb, var(--morph-background, #f8f9fa) 85%, transparent);
+}
+
+.viewer-overlay .progress {
+    max-width: 24rem;
+}
+
+.viewer-empty-title {
+    margin: 0;
+    color: var(--morph-primary, #2b579a);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.viewer-empty-note {
+    margin: 0;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+}
+
+.viewer-empty .sample-row {
+    width: min(100%, 36rem);
+    margin-top: 0.5rem;
+}
+
+.viewer-empty-open,
+.viewer-overlay-cancel,
+.viewer-print-ready button {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--morph-primary, #2b579a);
+    border-radius: 4px;
+    background: var(--morph-primary, #2b579a);
+    color: white;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.viewer-overlay-cancel {
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-primary, #2b579a);
+}
+
+.viewer-dragging .viewer-main::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 2px dashed var(--morph-primary, #2b579a);
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+/* Shown only when Safari needs a fresh click before it will print. */
+.viewer-print-ready {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    transform: translateX(-50%);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    background: var(--morph-surface, #ffffff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Presentation mode: the current page alone on black, fitted to the screen. */
+.viewer[data-presenting] {
+    border: 0;
+    border-radius: 0;
+    background: #000000;
+}
+
+/* The stand-in for fullscreen where the browser has none (an iPhone) or refuses it (an embedded frame).
+   !important because the host sizes the viewer itself (80vh is only a default) and its rule would
+   otherwise keep the overlay at that size. */
+.viewer[data-presenting="overlay"] {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483000;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+}
+
+.viewer[data-presenting] .viewer-toolbar,
+.viewer[data-presenting] .viewer-findbar,
+.viewer[data-presenting] .viewer-sidebar,
+.viewer[data-presenting] > .error {
+    display: none;
+}
+
+.viewer[data-presenting] .viewer-pages {
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+    background: #000000;
+    scrollbar-gutter: auto;
+}
+
+.viewer[data-presenting] .viewer-page {
+    display: none;
+    margin: auto;
+    box-shadow: none;
+}
+
+.viewer[data-presenting] .viewer-page[data-current] {
+    display: block;
+}
+
+/* A click advances the presentation, so it must not start a text selection. */
+.viewer[data-presenting] .text-layer {
+    pointer-events: none;
+}
+
+/* Printing: the pages .NET rendered for the purpose, alone. */
+.print-container {
+    display: none;
+}
+
+@media print {
+    html[data-morph-printing] body > :not(.print-container) {
+        display: none !important;
+    }
+
+    html[data-morph-printing],
+    html[data-morph-printing] body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    html[data-morph-printing] .print-container {
+        display: block;
+    }
+
+    .print-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        break-after: page;
+        break-inside: avoid;
+    }
+
+    .print-page:last-child {
+        break-after: auto;
+    }
+
+    .print-page img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .viewer-title,
+    .viewer-divider {
+        display: none;
+    }
+
+    /* A phone's toolbar: the side buttons share the first row, navigation and zoom take the next, wrapping
+       rather than pushing a button out of the viewer's box. */
+    .viewer-group-start,
+    .viewer-group-end {
+        flex: 1 1 auto;
+    }
+
+    .viewer-group-middle {
+        order: 3;
+        flex: 1 0 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .viewer-page-input {
+        width: 2.75rem;
+    }
+
+    .viewer-zoom {
+        max-width: 7.5rem;
+    }
+
+    /* On a phone the sidebar overlays the pages rather than squeezing them. */
+    .viewer-sidebar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        z-index: 4;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+    }
 }
 
 @media (max-width: 768px) {

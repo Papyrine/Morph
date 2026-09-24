@@ -40,4 +40,16 @@
     <Content Include="..\Morph.Blazor\wwwroot\fonts\*.ttf" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Corpus fixtures for the text-layer snapshots (TextLayerCorpusTests), each picked for one thing the
+       layer has to get right: justified lines, tab leaders, rotated cells, header and footer bands,
+       warped WordArt, a worksheet grid. -->
+  <ItemGroup>
+    <Content Include="..\Tests\Inputs\word\align_justified\input.docx" Link="corpus\align_justified.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\word\table_of_contents\01\input.docx" Link="corpus\table_of_contents.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\word\table_text_direction\input.docx" Link="corpus\table_text_direction.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\word\header_footer\input.docx" Link="corpus\header_footer.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\word\wordart-envelope\input.docx" Link="corpus\wordart-envelope.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\excel\inventory-list\input.xlsx" Link="corpus\inventory-list.xlsx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

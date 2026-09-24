@@ -598,7 +598,7 @@ sealed class HtmlParser
     /// docs/html-import.md.</summary>
     static void TrimEdgeWhitespace(List<Run> runs)
     {
-        while (runs.Count > 0 && runs[0] is { InlineImageData: null, InlineShapeGroup: null } first && !first.IsTab)
+        while (runs.Count > 0 && runs[0] is { InlineImageData: null, InlineShapeGroup: null, IsTab: false} first)
         {
             var trimmed = first.Text.TrimStart(' ', '\t', '\r', '\n');
             if (trimmed.Length == first.Text.Length)
@@ -616,7 +616,7 @@ sealed class HtmlParser
             break;
         }
 
-        while (runs.Count > 0 && runs[^1] is { InlineImageData: null, InlineShapeGroup: null } last && !last.IsTab)
+        while (runs.Count > 0 && runs[^1] is { InlineImageData: null, InlineShapeGroup: null, IsTab: false} last)
         {
             var trimmed = last.Text.TrimEnd(' ', '\t', '\r', '\n');
             if (trimmed.Length == last.Text.Length)
