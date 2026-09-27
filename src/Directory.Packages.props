@@ -24,7 +24,7 @@
     <PackageVersion Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" Pinned="true" />
     <PackageVersion Include="Microsoft.Office.Interop.PowerPoint" Version="15.0.4420.1018" Pinned="true" />
     <PackageVersion Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1001" Pinned="true" />
-    <PackageVersion Include="NUnit" Version="4.6.1" />
+    <PackageVersion Include="NUnit" Version="5.0.0" />
     <PackageVersion Include="Markdig" Version="1.4.0" />
     <PackageVersion Include="MarkdownSnippets.MsBuild" Version="28.5.0" />
     <PackageVersion Include="Microsoft.Playwright" Version="1.63.0" />
