@@ -107,6 +107,24 @@ sealed class PagedDocument : IDisposable
         }
     }
 
+    /// <summary>
+    /// Where the document's paragraphs are on the pages, for editing them in place.
+    /// <paramref name="outline"/> is the same file read for editing.
+    /// </summary>
+    public EditMap Edits(DocumentOutline outline)
+    {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            var body = document.Elements
+                .OfType<ParagraphElement>()
+                .Select(_ => _.Source)
+                .OfType<int>()
+                .ToHashSet();
+            return EditMap.Build(laidOut, SourcesLocked(), _ => outline.ParagraphOf(_)?.Ordinal, body);
+        }
+    }
+
     SourceIndex? SourcesLocked()
     {
         if (!sourcesBuilt)

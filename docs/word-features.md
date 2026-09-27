@@ -2789,7 +2789,8 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 - **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. `ParseRun` reads each run's `RevisionMark` off the markup around it (`RevisionOf`: the nearest `w:ins` / `w:del` / `w:moveTo` / `w:moveFrom` between the run and its paragraph) and layers it onto the resolved run properties, so a revision is drawn wherever the run was reached from — the paragraph, a content control, a hyperlink.
 - **Render**: **markup view**, which is what Word PRINTS — an insertion underlined, a deletion struck through, both in the revision colour. `w:delText` is read alongside `w:t` (it is a sibling type, not a subclass, so a deleted run yielded no text at all before it was handled). Moved text is drawn as a deletion where it was and an insertion where it went.
 - **Review**: the Blazor viewer lists tracked changes and accepts or rejects them, singly or all at once. `DocumentReview` gathers the elements of one edit into one `ReviewChange` (adjacent revisions of one kind by one author, the paragraph marks between them included), and `ReviewEditor` settles them — both in `src/Morph/OpenXml/Review/`.
-- **Test**: `tracked_changes/`, spec tests `TrackedChangesTests`, `RevisionMarkTests`, `DocumentReviewTests`, `ReviewEditorTests`
+- **Editing**: the Blazor viewer also WRITES tracked changes. With the document's `w:trackRevisions` on (the viewer's Track changes button sets it), or its protection enforcing tracked changes, text typed into a paragraph is a `w:ins`, text deleted a `w:del`, a paragraph split an inserted mark, a join a deleted one, and a formatting or alignment change a `w:rPrChange` / `w:pPrChange` holding what was there. `DocumentEditor` in `src/Morph/OpenXml/Editing/`.
+- **Test**: `tracked_changes/`, spec tests `TrackedChangesTests`, `RevisionMarkTests`, `DocumentReviewTests`, `ReviewEditorTests`, `DocumentEditorTests`, `EditCorpusTests`
 
 > **Contributors**: Rendering "as accepted" (dropping deletions) was the original choice and it is **wrong against Word**: Word's own render of `tracked_changes/01` shows "removed." struck through in red on the page, so accepting the change silently deleted ink Word draws. The revision colour is `D13438`, sampled from that render at 150 DPI; Word cycles a palette per author and only the first entry is modelled, which covers the whole corpus (exactly one document carries tracked changes). The model record on `ParsedDocument.TrackedChanges` is unaffected either way, so a consumer that wants the accepted text still has it.
 >
@@ -2869,6 +2870,55 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 >
 > A comment whose reference mark goes with rejected or deleted text is deleted with it. One that
 > only starts or ends in that text keeps the rest of its range.
+>
+> **Editing text** (`DocumentEditor`, `DocumentOutline`, `TextDiff` — the viewer's in-place editor
+> is `morph-edit.js`). The editor hands back a paragraph as it NOW READS, in stretches each said to
+> be formatted like one of the paragraph's runs; what changed is worked out against the markup, and
+> only that is written. Three things follow from doing it that way:
+>
+> - **What is not text stays where it is.** A paragraph is read as units: text, and between the
+>   stretches of it a field (from its `begin` to its `end`, however many runs and paragraphs that
+>   takes), a drawing, a note's reference, a page or column break, and the runs of a tracked
+>   deletion. Each stretch of text between two of those is compared on its own, so they cannot be
+>   moved, reordered or lost, and an edit that leaves one out is refused.
+> - **A character is only the same character in the run it was in.** Compared by character alone,
+>   two spaces are one space and which was typed is a toss-up; compared with the run each belongs
+>   to, it is not. Text replaced WITHIN a word is the whole word replaced (`lazy` made `sleepy`
+>   keeps its `y`, but nobody rewrote three letters of four); text only typed or only deleted is
+>   left as it is.
+> - **Tracked, a space retyped is not a change.** A paragraph often ends in a space that is a run
+>   of its own; selected with the rest and typed over, it comes back as part of the run before it.
+>   Where the two runs are formatted alike it is left where it was — a reviewer has no use for
+>   "deleted a space, inserted a space". Untracked there is nothing to report, and it goes where
+>   the editor said, which may be inside a link or a comment's range.
+>
+> Line by line what the editor writes was checked against Word (**probed 2026-09-27**, Word 16 over
+> COM, interactive edits made with `Selection.Delete`, `TypeBackspace` and `TypeParagraph`):
+>
+> | edit in Word | result |
+> | --- | --- |
+> | centred `first ` joined to right-aligned `second` | one centred paragraph |
+> | `Heading 1` joined to right-aligned body text | one `Heading 1`, not right-aligned |
+> | EMPTY centred paragraph joined to right-aligned `second` | right-aligned `second` |
+> | `first`, then an empty right-aligned paragraph, joined | `first`, centred as it was |
+> | Enter at the END of a centred `Heading 1` (style names `Normal` next) | an empty `Normal` paragraph, left-aligned |
+> | Enter in the MIDDLE of it, or at its START | two centred `Heading 1` paragraphs |
+>
+> Delete at the end of the first paragraph, Backspace at the start of the second, and the mark
+> selected and deleted all gave the same. **The first paragraph keeps its formatting unless it is
+> empty** — and that is the OPPOSITE of what settling a tracked deletion of the same mark gives
+> (above: the FOLLOWING paragraph's formatting stands). Both are Word's, both are measured, and
+> `DocumentEditor.Merge` and `ReviewEditor.MergeWithNext` each do their own.
+>
+> Word opens what `DocumentEditor` writes with no repair prompt — tracked and untracked, a split, a
+> join, formatting, an insertion inside another author's insertion — and its own `AcceptAll` and
+> `RejectAll` on the tracked file leave the same paragraphs, text and alignment as `ReviewEditor`'s.
+>
+> `EditCorpusTests` makes two edits to a sample of the paragraphs of every corpus document: one
+> that changes nothing, which has to leave every paragraph's text as it was, and one that types at
+> a paragraph's end, which has to change that paragraph and no other. It found the one bug the
+> fixtures had not: U+2028, which a document can hold as a character, was being taken for a line's
+> end on its way back in.
 
 
 ### 11.3 Footnotes & Endnotes
@@ -2985,7 +3035,8 @@ Read-only mode, form protection, and editing restrictions.
 - **Model**: `DocumentProtectionSettings` (`IsProtected`, `EditingMode`); `ParsedDocument.Protection`
 - **Parse**: `DocumentParser.ExtractDocumentProtection()` reads the `Edit` attribute (ReadOnly / Comments / TrackedChanges / Forms)
 - **Render**: no rendering effect — protection is an editing concern, not a visual one
-- **Test**: `document_protection/`, spec test `DocumentProtectionTests`
+- **Editing**: the Blazor viewer honours it while enforced (`DocumentOutline`, `DocumentReview`): read-only and forms protection allow no edit, comments protection allows comments alone, and tracked-changes protection allows any edit and has it tracked whatever `w:trackRevisions` says.
+- **Test**: `document_protection/`, spec tests `DocumentProtectionTests`, `DocumentOutlineTests`
 
 > **Contributors**: Password / hash details and `w:formatting` / `w:enforcement` are intentionally not surfaced; consumers that need them can read settings.xml directly.
 

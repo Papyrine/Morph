@@ -20,4 +20,14 @@ static class ViewerIcons
     public const string Undo = "M9 14L4 9l5-5 M4 9h11a5 5 0 0 1 0 10h-3";
     public const string Redo = "M15 14l5-5-5-5 M20 9H9a5 5 0 0 0 0 10h3";
     public const string Accept = "M20 6L9 17l-5-5";
+    public const string Edit = "M12 20h9 M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z";
+    public const string Bold = "M7 5h6a3.5 3.5 0 0 1 0 7H7z M7 12h7a3.5 3.5 0 0 1 0 7H7z";
+    public const string Italic = "M19 5h-8 M13 19H5 M15 5L9 19";
+    public const string Underline = "M7 4v6a5 5 0 0 0 10 0V4 M5 20h14";
+    public const string Strike = "M16.5 7A4 4 0 0 0 13 5h-2a3.5 3.5 0 0 0-2.6 5.8 M4 12h16 M7.5 17a4 4 0 0 0 3.5 2h2a3.5 3.5 0 0 0 3-5.3";
+    public const string AlignLeft = "M3 6h18 M3 10h12 M3 14h18 M3 18h12";
+    public const string AlignCenter = "M3 6h18 M6 10h12 M3 14h18 M6 18h12";
+    public const string AlignRight = "M3 6h18 M9 10h12 M3 14h18 M9 18h12";
+    public const string AlignJustify = "M3 6h18 M3 10h18 M3 14h18 M3 18h18";
+    public const string Track = "M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M14 3v6h6 M9 13h6 M12 10v6 M9 18h6";
 }

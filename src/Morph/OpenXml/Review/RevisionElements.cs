@@ -108,6 +108,13 @@ static class RevisionElements
         return DateTime.SpecifyKind(date.UtcDateTime, DateTimeKind.Unspecified);
     }
 
+    /// <summary>
+    /// A moment as Word writes a revision's or a comment's <c>w:date</c>: the author's own clock,
+    /// stamped <c>Z</c> though it is not UTC — which is how Word reads it back.
+    /// </summary>
+    public static string Stamp(DateTimeOffset date) =>
+        date.DateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+
     public static string? Attribute(OpenXmlElement element, string localName)
     {
         foreach (var attribute in element.GetAttributes())

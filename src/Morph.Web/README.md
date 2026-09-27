@@ -24,8 +24,8 @@ is three lines — the home page hosts the converter:
 ```
 
 and `/view` the package's `MorphViewer`, which shows a file the way a browser shows a PDF — pages rendered
-on demand with selectable text, a thumbnail sidebar, zoom, find, presentation mode and printing, and a
-review pane for a Word document's comments and tracked changes:
+on demand with selectable text, a thumbnail sidebar, zoom, find, presentation mode and printing, and,
+for a Word document, editing of its text in place and a review pane for its comments and tracked changes:
 
 ```razor
 @page "/view"
@@ -175,6 +175,11 @@ they also drive the published app end to end.
   accepting every change redraws the page and downloads the edited file, and undo brings the changes
   back; text selected on a page becomes a comment on exactly that text; a click on revised text chooses
   its card. These are the only tests the viewer script's review code runs under.
+- **Playwright** editing tests (`SnapshotTests.Edit.cs`): a click opens the paragraph it is in with the
+  caret where the click was; what is typed changes the page and the downloaded file; Enter splits a
+  paragraph and Backspace at its start joins it back; the toolbar formats what is selected in the editor
+  and what is selected on the pages; typing under Track changes is a change in the review pane; an arrow
+  key at a paragraph's edge goes on to the next. These are the only tests `morph-edit.js` runs under.
 
 To reset a snapshot after an intentional change, review then rename the `*.received.*` to `*.verified.*`.
 

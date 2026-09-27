@@ -8,12 +8,33 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 ///
 /// A run's ordinal is its index among the part's <c>w:r</c> elements in document order. A position
 /// within a run counts only what the parser turns into text, in child order: each character of a
-/// <c>w:t</c> or <c>w:delText</c> (after the whitespace the parser trims), and one each for a tab, a soft
-/// or no-break hyphen and a note reference. Everything else in a run — its properties, a break, a
-/// drawing, field plumbing — takes no position, so the count does not depend on where the run sits.
+/// <c>w:t</c> or <c>w:delText</c> (after the whitespace the parser trims), and one each for a tab, a line
+/// break, a soft or no-break hyphen and a note reference. Everything else in a run — its properties, a
+/// page or column break, a drawing, field plumbing — takes no position, so the count does not depend on
+/// where the run sits.
 /// </summary>
 static class SourceRuns
 {
+    /// <summary>Every <c>w:p</c> under <paramref name="root"/>, numbered in document order.</summary>
+    public static Dictionary<Paragraph, int> IndexParagraphs(OpenXmlElement root)
+    {
+        var ordinals = new Dictionary<Paragraph, int>(ReferenceEqualityComparer.Instance);
+        foreach (var paragraph in root.Descendants<Paragraph>())
+        {
+            ordinals[paragraph] = ordinals.Count;
+        }
+
+        return ordinals;
+    }
+
+    /// <summary>
+    /// Whether a <c>w:br</c> breaks a line within its paragraph, which is text: a page or a column
+    /// break ends what the paragraph is laid out in, and is structure.
+    /// </summary>
+    public static bool IsLineBreak(Break element) =>
+        element.Type?.Value is not { } type ||
+        type == BreakValues.TextWrapping;
+
     /// <summary>Every <c>w:r</c> under <paramref name="root"/>, numbered in document order.</summary>
     public static Dictionary<OoxmlRun, int> Index(OpenXmlElement root)
     {
@@ -33,6 +54,7 @@ static class SourceRuns
             Text text => EffectiveText(text.Text, text.Space?.Value).Length,
             DeletedText text => EffectiveText(text.Text, text.Space?.Value).Length,
             SoftHyphen or NoBreakHyphen or TabChar or DocumentFormat.OpenXml.Wordprocessing.PositionalTab => 1,
+            Break lineBreak when IsLineBreak(lineBreak) => 1,
             FootnoteReference {Id: not null} => 1,
             EndnoteReference {Id: not null} => 1,
             _ => 0
@@ -63,6 +85,9 @@ static class SourceRuns
                     break;
                 case TabChar or DocumentFormat.OpenXml.Wordprocessing.PositionalTab:
                     builder.Append('\t');
+                    break;
+                case Break lineBreak when IsLineBreak(lineBreak):
+                    builder.Append('\n');
                     break;
                 case FootnoteReference {Id: not null} or EndnoteReference {Id: not null}:
                     builder.Append('￼');

@@ -45,16 +45,15 @@ public class RunSourceTests
         await Assert.That(Stamps(runs)).IsEqualTo("'ab'@0+0 '\t'@0+2 'c'@0+3");
     }
 
-    // A line break is a run of its own in the model and no position in the source: the text either side
-    // of it stays consecutive.
+    // A line break is text: it is typed and deleted like any character, so it is a position.
     [Test]
-    public async Task Capture_ABreakTakesNoPosition()
+    public async Task Capture_ALineBreakIsAPosition()
     {
         var docx = Build(P("<w:r><w:t>ab</w:t><w:br/><w:t>cd</w:t></w:r>"));
 
         var runs = Runs(docx, captureSources: true);
 
-        await Assert.That(Stamps(runs)).IsEqualTo("'ab'@0+0 '\n' 'cd'@0+2");
+        await Assert.That(Stamps(runs)).IsEqualTo("'ab'@0+0 '\n'@0+2 'cd'@0+3");
     }
 
     // Runs inside a revision are numbered with the rest: the ordinal counts w:r elements wherever they sit.
@@ -95,10 +94,12 @@ public class RunSourceTests
         }
     }
 
+    // A page break is where the paragraph is laid out rather than part of what it says, and takes
+    // no position.
     [Test]
     public async Task SourceRuns_LengthAndText_Agree()
     {
-        var docx = Build(P("<w:r><w:rPr><w:b/></w:rPr><w:t> ab </w:t><w:tab/><w:softHyphen/><w:br/><w:t xml:space=\"preserve\"> c</w:t></w:r>"));
+        var docx = Build(P("<w:r><w:rPr><w:b/></w:rPr><w:t> ab </w:t><w:tab/><w:softHyphen/><w:br/><w:br w:type=\"page\"/><w:t xml:space=\"preserve\"> c</w:t></w:r>"));
 
         var (length, text) = Read(
             docx,
@@ -108,7 +109,7 @@ public class RunSourceTests
                 return (SourceRuns.Length(run), SourceRuns.Text(run));
             });
 
-        await Assert.That(text).IsEqualTo("ab\t­ c");
+        await Assert.That(text).IsEqualTo("ab\t\u00AD\n c");
         await Assert.That(length).IsEqualTo(text.Length);
     }
 

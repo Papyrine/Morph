@@ -124,6 +124,28 @@ sealed class ReviewMap
         return null;
     }
 
+    /// <summary>The runs a stretch of the pages' text was drawn from, from one page's offset to another's.</summary>
+    public IReadOnlyList<int> Runs(int firstPage, int start, int lastPage, int end)
+    {
+        var found = new List<int>();
+        for (var page = Math.Max(firstPage, 0); page <= lastPage && page < pages.Length; page++)
+        {
+            var from = page == firstPage ? start : 0;
+            var to = page == lastPage ? end : int.MaxValue;
+            foreach (var source in pages[page])
+            {
+                if (source.Start < to &&
+                    source.End > from &&
+                    !found.Contains(source.Run))
+                {
+                    found.Add(source.Run);
+                }
+            }
+        }
+
+        return found;
+    }
+
     /// <summary>
     /// The place in the document just before a character of a page's text. An untraced character — a
     /// list marker, a header — stands for the next traced one, on this page or a later one.

@@ -400,6 +400,10 @@ public partial class MorphViewer : IAsyncDisposable
             BuildEntries();
             await viewer.SetReviewModeAsync(reviewOpen);
             await PushReviewAsync(false);
+
+            // Editing stays on from one Word document to the next that allows it.
+            editOpen = editOpen && ShowEdit && CanWrite;
+            await viewer.SetEditModeAsync(editOpen);
         }
         catch (Exception exception)
         {
@@ -443,7 +447,8 @@ public partial class MorphViewer : IAsyncDisposable
                 sources[index] = layer.Sources;
             }
 
-            return new(document, sizes, json, texts, Review(bytes, format), new(sources));
+            var outline = Outline(bytes, format);
+            return new(document, sizes, json, texts, Review(bytes, format), new(sources), outline, Edits(document, outline));
         }
         catch
         {
@@ -470,6 +475,34 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
+    // A document that cannot be read for editing is still a document that can be shown.
+    static DocumentOutline Outline(byte[] bytes, InputFormat format)
+    {
+        if (format != InputFormat.Docx)
+        {
+            return DocumentOutline.Empty;
+        }
+
+        try
+        {
+            return DocumentOutline.Read(bytes);
+        }
+        catch (Exception)
+        {
+            return DocumentOutline.Empty;
+        }
+    }
+
+    static EditMap Edits(PagedDocument document, DocumentOutline outline)
+    {
+        if (outline.Paragraphs.Count == 0)
+        {
+            return EditMap.Empty;
+        }
+
+        return document.Edits(outline);
+    }
+
     void Adopt(OpenedDocument opened)
     {
         document = opened.Document;
@@ -479,6 +512,9 @@ public partial class MorphViewer : IAsyncDisposable
         pageSizes = opened.Sizes;
         review = opened.Review;
         reviewMap = opened.Map;
+        outline = opened.Outline;
+        editMap = opened.Edits;
+        session = null;
     }
 
     async Task CloseDocumentAsync()
@@ -513,6 +549,7 @@ public partial class MorphViewer : IAsyncDisposable
         pageSizes = [];
         documentId = 0;
         ResetReview();
+        ResetEdit();
     }
 
     static string ZoomName(ViewerZoom zoom) =>
@@ -1007,5 +1044,5 @@ public partial class MorphViewer : IAsyncDisposable
         document = null;
     }
 
-    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map);
+    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map, DocumentOutline Outline, EditMap Edits);
 }

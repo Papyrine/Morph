@@ -81,6 +81,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // of the whole body, and only the viewer's review features read the stamps.
     Dictionary<OoxmlRun, int>? runOrdinals;
 
+    // The main part's paragraphs numbered the same way and on the same condition, for
+    // ParagraphElement.Source: what lets the viewer's editor find the w:p a paragraph on a page is.
+    Dictionary<Paragraph, int>? paragraphSources;
+
     // Floating tables (w:tblpPr) discovered while parsing nested cells.
     // Lifted to body-level after the body is parsed so they participate in normal page-flow,
     // pagination, and rendering logic instead of being rendered inside a cell that may
@@ -338,6 +342,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         lastRenderedPageBreakCount = body.Descendants<LastRenderedPageBreak>().Count();
         runOrdinals = captureSources ? SourceRuns.Index(mainPart.Document) : null;
+        paragraphSources = captureSources ? SourceRuns.IndexParagraphs(mainPart.Document) : null;
 
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
         currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
@@ -6749,6 +6754,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
+        // Last, once every paragraph this call builds has its final form: a w:p split around a break
+        // is several paragraphs here and one in the file.
+        if (paragraphSources?.TryGetValue(para, out var source) == true)
+        {
+            foreach (var element in result)
+            {
+                if (element is ParagraphElement built)
+                {
+                    built.Source = source;
+                }
+            }
+        }
+
         return result;
     }
 
@@ -11648,7 +11666,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         {
                             Text = "\n",
                             Properties = GetProperties(),
-                            HyperlinkUrl = hyperlinkUrl
+                            HyperlinkUrl = hyperlinkUrl,
+                            Source = SourceAt(position)
                         });
                     break;
             }

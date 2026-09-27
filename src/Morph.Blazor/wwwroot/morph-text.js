@@ -96,6 +96,16 @@ function widthOf(face, text) {
 
 const metricsByFace = [];
 
+/** The width a face gives text left to itself, in ems. */
+export function naturalWidth(face, text) {
+    return widthOf(face, text);
+}
+
+/** A face's ascent and descent in ems (bit 1 bold, bit 2 italic), for setting text on a drawn baseline. */
+export function faceMetrics(face) {
+    return metricsOf(face);
+}
+
 function metricsOf(face) {
     let metrics = metricsByFace[face];
     if (!metrics) {
