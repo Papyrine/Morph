@@ -16,4 +16,8 @@ static class ViewerIcons
     public const string Print = "M6 9V3h12v6 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v7H6z";
     public const string Download = "M12 3v12 M7 10l5 5 5-5 M5 21h14";
     public const string Close = "M6 6l12 12 M18 6L6 18";
+    public const string Review = "M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z";
+    public const string Undo = "M9 14L4 9l5-5 M4 9h11a5 5 0 0 1 0 10h-3";
+    public const string Redo = "M15 14l5-5-5-5 M20 9H9a5 5 0 0 0 0 10h3";
+    public const string Accept = "M20 6L9 17l-5-5";
 }

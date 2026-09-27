@@ -1,0 +1,221 @@
+﻿<div class="viewer" blazor:elementreference="scrubbed">
+  <div class="viewer-toolbar" role="toolbar" aria-label="Document viewer">
+    <div class="viewer-group viewer-group-start">
+      <button type="button" class="viewer-button" title="Toggle sidebar" aria-label="Toggle sidebar" aria-pressed="false" blazor:onclick="1">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 4h18v16H3z M9 4v16"></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer-button" title="Find in document (Ctrl+F)" aria-label="Find in document" aria-keyshortcuts="Control+F" aria-pressed="false" blazor:onclick="2">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M21 21l-5.2-5.2"></path>
+        </svg>
+      </button>
+      <span class="viewer-title" title="review.docx">review.docx</span>
+    </div>
+    <div class="viewer-group viewer-group-middle">
+      <button type="button" class="viewer-button" title="Previous page" aria-label="Previous page" disabled="" blazor:onclick="3">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 15l6-6 6 6"></path>
+        </svg>
+      </button>
+      <input class="viewer-page-input" type="text" inputmode="numeric" aria-label="Page number" value="1" blazor:onchange="13">
+      <span class="viewer-page-count">of 1</span>
+      <button type="button" class="viewer-button" title="Next page" aria-label="Next page" disabled="" blazor:onclick="5">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 9l6 6 6-6"></path>
+        </svg>
+      </button>
+      <span class="viewer-divider" aria-hidden="true"></span>
+      <button type="button" class="viewer-button" title="Zoom out (Ctrl+-)" aria-label="Zoom out" aria-keyshortcuts="Control+-" blazor:onclick="6">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 12h14"></path>
+        </svg>
+      </button>
+      <select class="viewer-zoom" aria-label="Zoom" value="auto" blazor:onchange="7">
+        <option value="auto" selected="">Automatic zoom</option>
+        <option value="page-actual">Actual size</option>
+        <option value="page-fit">Page fit</option>
+        <option value="page-width">Page width</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1">100%</option>
+        <option value="1.25">125%</option>
+        <option value="1.5">150%</option>
+        <option value="2">200%</option>
+        <option value="3">300%</option>
+        <option value="4">400%</option>
+      </select>
+      <button type="button" class="viewer-button" title="Zoom in (Ctrl++)" aria-label="Zoom in" aria-keyshortcuts="Control++" blazor:onclick="8">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 5v14 M5 12h14"></path>
+        </svg>
+      </button>
+      <span class="viewer-divider" aria-hidden="true"></span>
+      <button type="button" class="viewer-button" title="Rotate clockwise" aria-label="Rotate clockwise" blazor:onclick="9">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20 12a8 8 0 1 1-2.34-5.66 M20 4v5h-5"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="viewer-group viewer-group-end">
+      <button type="button" class="viewer-button viewer-review-toggle" title="Comments and changes" aria-label="Comments and changes" aria-pressed="true" blazor:onclick="14">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="viewer-badge" title="3 to review">3</span>
+      </button>
+      <label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        </svg>
+        <span class="viewer-hidden-label">Open file</span>
+        <input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open file" type="file" blazor:elementreference="scrubbed">
+      </label>
+      <button type="button" class="viewer-button" data-viewer-action="presentation" title="Presentation mode" aria-label="Presentation mode" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3"></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer-button" title="Print (Ctrl+P)" aria-label="Print" aria-keyshortcuts="Control+P" blazor:onclick="10">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 9V3h12v6 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v7H6z"></path>
+        </svg>
+      </button>
+      <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S" blazor:onclick="11">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3v12 M7 10l5 5 5-5 M5 21h14"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="viewer-body">
+    <div class="viewer-sidebar" role="navigation" aria-label="Page thumbnails">
+      <div class="viewer-thumbs"></div>
+    </div>
+    <div class="viewer-main">
+      <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
+    </div>
+    <div class="viewer-review" role="complementary" aria-label="Comments and changes" aria-busy="false">
+      <div class="review-head">
+        <span class="review-title">Review</span>
+        <select class="review-filter" aria-label="Show" value="All" blazor:onchange="15">
+          <option value="All" selected="">Comments and changes</option>
+          <option value="Comments">Comments</option>
+          <option value="Changes">Changes</option>
+        </select>
+        <button type="button" class="viewer-button" title="Undo" aria-label="Undo" disabled="" blazor:onclick="16">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 14L4 9l5-5 M4 9h11a5 5 0 0 1 0 10h-3"></path>
+          </svg>
+        </button>
+        <button type="button" class="viewer-button" title="Redo" aria-label="Redo" disabled="" blazor:onclick="17">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M15 14l5-5-5-5 M20 9H9a5 5 0 0 0 0 10h3"></path>
+          </svg>
+        </button>
+        <button type="button" class="viewer-button review-close" title="Close" aria-label="Close review pane" blazor:onclick="18">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 6l12 12 M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="review-actions">
+        <button type="button" class="review-action review-action-primary" disabled="" title="Comment on the selected text" blazor:onmousedown:preventdefault="" blazor:onclick="19">
+          New comment
+        </button>
+        <button type="button" class="review-action" blazor:onclick="20">Accept all</button>
+        <button type="button" class="review-action" blazor:onclick="21">Reject all</button>
+      </div>
+      <label class="review-signature">
+        Commenting as
+        <input type="text" class="review-signature-input" placeholder="Guest" autocomplete="name" value="" blazor:oninput="22">
+      </label>
+      <div class="review-list" role="list">
+        <div class="review-card review-comment" role="listitem" tabindex="0" data-review-key="comment:0" blazor:onclick="23" blazor:onkeydown="24">
+          <p class="review-quote">Hello</p>
+          <div class="review-entry" data-comment-id="0">
+            <div class="review-meta">
+              <span class="review-avatar" aria-hidden="true">AL</span>
+              <span class="review-name">Ann Lee</span>
+              <span class="review-date">27 Sep 2026, 14:30</span>
+              <span class="review-tools" blazor:onkeydown:stoppropagation="">
+                <button type="button" class="review-tool" title="Edit" aria-label="Edit comment" blazor:onclick:stoppropagation="" blazor:onclick="25">Edit</button>
+                <button type="button" class="review-tool" title="Delete" aria-label="Delete comment" blazor:onclick:stoppropagation="" blazor:onclick="26">Delete</button>
+              </span>
+            </div>
+            <p class="review-body review-comment-text">A greeting. Is it needed?</p>
+          </div>
+          <div class="review-reply">
+            <div class="review-entry" data-comment-id="1">
+              <div class="review-meta">
+                <span class="review-avatar" aria-hidden="true">B</span>
+                <span class="review-name">Bob</span>
+                <span class="review-date">27 Sep 2026, 15:00</span>
+                <span class="review-tools" blazor:onkeydown:stoppropagation="">
+                  <button type="button" class="review-tool" title="Edit" aria-label="Edit comment" blazor:onclick:stoppropagation="" blazor:onclick="27">Edit</button>
+                  <button type="button" class="review-tool" title="Delete" aria-label="Delete comment" blazor:onclick:stoppropagation="" blazor:onclick="28">Delete</button>
+                </span>
+              </div>
+              <p class="review-body review-comment-text">It is.</p>
+            </div>
+          </div>
+          <div class="review-buttons" blazor:onkeydown:stoppropagation="">
+            <button type="button" class="review-button" blazor:onclick:stoppropagation="" blazor:onclick="29">Reply</button>
+            <button type="button" class="review-button" blazor:onclick:stoppropagation="" blazor:onclick="30">Resolve</button>
+          </div>
+        </div>
+        <div class="review-card review-change" role="listitem" tabindex="0" data-review-key="change:0:0" data-kind="Insertion" blazor:onclick="31" blazor:onkeydown="32">
+          <div class="review-meta">
+            <span class="review-avatar" aria-hidden="true">R</span>
+            <span class="review-name">Reviewer</span>
+            <span class="review-date">25 Apr 2025, 10:00</span>
+          </div>
+          <p class="review-body">
+            <span class="review-kind">Inserted</span>
+            <span class="review-text">inserted</span>
+          </p>
+          <div class="review-buttons" blazor:onkeydown:stoppropagation="">
+            <button type="button" class="review-button" blazor:onclick:stoppropagation="" blazor:onclick="33">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              Accept
+            </button>
+            <button type="button" class="review-button" blazor:onclick:stoppropagation="" blazor:onclick="34">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 6l12 12 M18 6L6 18"></path>
+              </svg>
+              Reject
+            </button>
+          </div>
+        </div>
+        <div class="review-card review-change" role="listitem" tabindex="0" data-review-key="change:0:1" data-kind="Deletion" blazor:onclick="35" blazor:onkeydown="36">
+          <div class="review-meta">
+            <span class="review-avatar" aria-hidden="true">R</span>
+            <span class="review-name">Reviewer</span>
+            <span class="review-date">25 Apr 2025, 10:01</span>
+          </div>
+          <p class="review-body">
+            <span class="review-kind">Deleted</span>
+            <span class="review-text">removed.</span>
+          </p>
+          <div class="review-buttons" blazor:onkeydown:stoppropagation="">
+            <button type="button" class="review-button" blazor:onclick:stoppropagation="" blazor:onclick="37">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              Accept
+            </button>
+            <button type="button" class="review-button" blazor:onclick:stoppropagation="" blazor:onclick="38">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 6l12 12 M18 6L6 18"></path>
+              </svg>
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -52,4 +52,10 @@
     <Content Include="..\Tests\Inputs\excel\inventory-list\input.xlsx" Link="corpus\inventory-list.xlsx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- What the viewer's review pane reads and edits: a document with tracked changes, one with a comment. -->
+  <ItemGroup>
+    <Content Include="..\Tests\Inputs\word\tracked_changes\01\input.docx" Link="corpus\tracked_changes.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\word\comments\01\input.docx" Link="corpus\comments.docx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

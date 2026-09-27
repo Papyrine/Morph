@@ -250,8 +250,10 @@ public abstract class DocumentConverter
     public static string ConvertToMarkdown(Stream docxStream, MarkdownExportOptions? options = null) =>
         MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize), options);
 
-    internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null) =>
-        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize).Parse(docxStream);
+    // captureSources stamps every run with where its text came from in the package (Run.Source). Only
+    // the viewer asks for it, to tie a place on a page back to the markup a comment is anchored in.
+    internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
+        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(docxStream);
 
     /// <summary>
     /// Renders a parsed document, invoking <paramref name="pageCallback"/> for each page (the

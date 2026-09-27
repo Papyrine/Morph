@@ -172,6 +172,61 @@ export function isBuilt(element) {
     return layers.has(element);
 }
 
+/** How many characters the layer's text has. */
+export function textLength(element) {
+    return layers.get(element)?.length ?? 0;
+}
+
+/**
+ * The offset into the layer's text of a DOM position inside it — the inverse of textRange, for turning a
+ * selection's ends into the offsets .NET knows the page's text by. -1 when the position is not in a built
+ * layer. A position between elements is that of the first text at or after it.
+ */
+export function textOffset(element, container, offset) {
+    const state = layers.get(element);
+    if (!state || !element.contains(container)) {
+        return -1;
+    }
+
+    if (!state.starts) {
+        state.starts = new Map(state.index.map(_ => [_.node, _.start]));
+    }
+
+    const own = state.starts.get(container);
+    if (own !== undefined) {
+        // A text node, or a <br> addressed by itself.
+        return container.nodeType === Node.TEXT_NODE ? own + Math.min(offset, container.data.length) : own;
+    }
+
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
+        acceptNode: node => state.starts.has(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+    });
+    const child = container.childNodes[offset];
+    if (child) {
+        if (state.starts.has(child)) {
+            return state.starts.get(child);
+        }
+
+        walker.currentNode = child;
+    } else {
+        // Past the container's last child: step over everything inside it.
+        let last = container;
+        while (last.lastChild) {
+            last = last.lastChild;
+        }
+
+        // Ending in text, the position is the end of that text.
+        if (state.starts.has(last)) {
+            return state.starts.get(last) + (last.nodeType === Node.TEXT_NODE ? last.data.length : 1);
+        }
+
+        walker.currentNode = last;
+    }
+
+    const next = walker.nextNode();
+    return next ? state.starts.get(next) : state.length;
+}
+
 function locate(state, offset, isEnd) {
     const index = state.index;
     let low = 0;

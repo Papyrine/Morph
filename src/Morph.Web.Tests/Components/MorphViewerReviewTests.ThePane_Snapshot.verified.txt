@@ -10,8 +10,8 @@
     MaxFileSize: 26214400,
     ShowIssueLink: true,
     ShowReview: true,
-    OpenReview: false,
+    OpenReview: true,
     ReadOnly: false
   },
-  NodeCount: 107
+  NodeCount: 238
 }

@@ -268,6 +268,17 @@
     background-color: var(--morph-find-current, rgb(255 110 0 / 0.55));
 }
 
+/* What a comment is on, and the comment or tracked change chosen in the review pane. */
+::highlight(morph-comment) {
+    color: transparent;
+    background-color: var(--morph-comment, rgb(255 214 102 / 0.4));
+}
+
+::highlight(morph-review-current) {
+    color: transparent;
+    background-color: var(--morph-review-current, rgb(124 92 255 / 0.35));
+}
+
 /* The end-of-content element: covers the layer while a selection is dragged, so crossing empty space
    between lines extends the selection rather than jumping it to the page's start. */
 .text-end {
@@ -992,6 +1003,337 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
+/* How many comments and changes are waiting, on the toolbar button that opens them. */
+.viewer-badge {
+    position: absolute;
+    top: -0.2rem;
+    right: -0.3rem;
+    min-width: 1rem;
+    padding: 0 0.25rem;
+    border-radius: 0.5rem;
+    background: var(--morph-primary, #2b579a);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+    line-height: 1rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+/*
+    The review pane: a Word document's comments and tracked changes, one card each, down the document.
+    It takes its width from the pages, which refit themselves (the script watches the column's size).
+*/
+.viewer-review {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    width: min(22rem, 45%);
+    min-height: 0;
+    background: var(--morph-surface, #ffffff);
+    border-left: 1px solid var(--morph-border, #dee2e6);
+    font-size: 0.85rem;
+}
+
+.viewer-review[aria-busy="true"] {
+    cursor: progress;
+}
+
+.review-head,
+.review-actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+}
+
+.review-title {
+    margin-right: 0.25rem;
+    font-weight: 600;
+}
+
+.review-filter,
+.review-signature-input,
+.review-input {
+    min-width: 0;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+    font: inherit;
+}
+
+.review-filter {
+    flex: 1 1 6rem;
+}
+
+.review-close {
+    margin-left: auto;
+}
+
+.review-action,
+.review-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333);
+    font: inherit;
+    cursor: pointer;
+}
+
+.review-action:hover:not(:disabled),
+.review-button:hover:not(:disabled) {
+    background: var(--morph-background, #f8f9fa);
+}
+
+.review-action-primary,
+.review-button-primary {
+    border-color: var(--morph-primary, #2b579a);
+    background: var(--morph-primary, #2b579a);
+    color: white;
+}
+
+.review-action-primary:hover:not(:disabled),
+.review-button-primary:hover:not(:disabled) {
+    background: var(--morph-primary, #2b579a);
+    filter: brightness(1.1);
+}
+
+.review-action:disabled,
+.review-button:disabled,
+.review-tool:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.review-button svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.review-signature {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+    color: var(--morph-muted, #6c757d);
+    white-space: nowrap;
+}
+
+.review-signature-input {
+    flex: 1;
+}
+
+.review-note,
+.review-empty {
+    flex: none;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    color: var(--morph-muted, #6c757d);
+}
+
+.review-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.5rem;
+    overflow-y: auto;
+}
+
+.review-list:empty {
+    display: none;
+}
+
+.review-card {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-left: 3px solid var(--morph-comment-accent, #d9a400);
+    border-radius: 4px;
+    background: var(--morph-surface, #ffffff);
+    cursor: pointer;
+}
+
+/* A tracked change wears the colour it is drawn in on the page. */
+.review-change {
+    border-left-color: var(--morph-change-accent, #d13438);
+}
+
+.review-card:hover {
+    background: var(--morph-background, #f8f9fa);
+}
+
+.review-card:focus-visible,
+.review-tool:focus-visible,
+.review-action:focus-visible,
+.review-button:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: 1px;
+}
+
+.review-active {
+    border-color: var(--morph-primary, #2b579a);
+    border-left-color: var(--morph-primary, #2b579a);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+}
+
+.review-resolved:not(.review-active) {
+    opacity: 0.65;
+}
+
+.review-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.review-reply {
+    margin-left: 0.5rem;
+    padding-left: 0.6rem;
+    border-left: 2px solid var(--morph-border, #dee2e6);
+}
+
+.review-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.review-avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--morph-primary, #2b579a);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.review-name {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.review-date,
+.review-where {
+    margin: 0;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.review-tools {
+    display: none;
+    gap: 0.1rem;
+    margin-left: auto;
+}
+
+/* A comment's own tools stay out of the way until its card is the one in hand. */
+.review-card:hover .review-tools,
+.review-card:focus-within .review-tools,
+.review-active .review-tools {
+    display: inline-flex;
+}
+
+.review-tool {
+    padding: 0 0.3rem;
+    border: 0;
+    border-radius: 3px;
+    background: none;
+    color: var(--morph-primary, #2b579a);
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.review-tool:hover:not(:disabled) {
+    text-decoration: underline;
+}
+
+.review-body,
+.review-quote {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.review-comment-text {
+    white-space: pre-line;
+}
+
+.review-quote {
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--morph-comment-accent, #d9a400);
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.8rem;
+}
+
+.review-kind {
+    margin-right: 0.3rem;
+    font-weight: 600;
+}
+
+.review-change[data-kind="Insertion"] .review-text,
+.review-change[data-kind="RowInsertion"] .review-text,
+.review-change[data-kind="CellInsertion"] .review-text {
+    color: var(--morph-change-accent, #d13438);
+    text-decoration: underline;
+}
+
+.review-change[data-kind="Deletion"] .review-text,
+.review-change[data-kind="RowDeletion"] .review-text,
+.review-change[data-kind="CellDeletion"] .review-text {
+    color: var(--morph-change-accent, #d13438);
+    text-decoration: line-through;
+}
+
+.review-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.review-draft {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    cursor: default;
+}
+
+.review-input {
+    width: 100%;
+    min-height: 3.5rem;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
 /* Presentation mode: the current page alone on black, fitted to the screen. */
 .viewer[data-presenting] {
     border: 0;
@@ -1016,6 +1358,7 @@
 .viewer[data-presenting] .viewer-toolbar,
 .viewer[data-presenting] .viewer-findbar,
 .viewer[data-presenting] .viewer-sidebar,
+.viewer[data-presenting] .viewer-review,
 .viewer[data-presenting] > .error {
     display: none;
 }
@@ -1118,6 +1461,15 @@
         inset: 0 auto 0 0;
         z-index: 4;
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* So does the review pane, from the other side. */
+    .viewer-review {
+        position: absolute;
+        inset: 0 0 0 auto;
+        z-index: 4;
+        width: min(22rem, 88%);
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
     }
 }
 

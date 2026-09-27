@@ -244,6 +244,28 @@ why `TextExtraction` names `AngleSharp.Html.Parser.HtmlParser` in full (core's o
 otherwise win lookup). The viewer's page geometry, zoom and render queue live in `wwwroot/morph-viewer.js`;
 .NET renders the pages the script asks for.
 
+The viewer also **reviews** a Word document: a pane lists its comments and tracked changes, and edits them
+(accept/reject, add/reply/reword/resolve/delete). Three pieces, and the split between them is deliberate:
+
+- **`src/Morph/OpenXml/Review/`** (core, internal) works on the markup and knows nothing of pages.
+  `DocumentReview` reads comments and gathers revision elements into changes; `ReviewEditor` takes a
+  file's bytes and returns the edited file's. Its tests are spec tests (`src/Tests/SpecTests/Review/`)
+  and run on the host.
+- **`Run.Source`** is the join between markup and model: under `captureSources` (which only
+  `PagedDocument` asks for) the parser stamps each run with the ordinal of its `w:r` and the position in
+  it. `SourceRuns` defines those coordinates and is used by BOTH the parser and `ReviewEditor.Split`, so
+  what counts as a position cannot drift between them.
+- **`SourceIndex` / `ReviewMap`** (`Morph.Blazor`) tie runs to pages. The layout engine carries no
+  source link and must not grow one for the viewer's sake — it measures for every converter. Instead
+  `SourceIndex` follows each paragraph's placed lines back through its runs, which works because placed
+  text is the paragraph's text less the whitespace a wrap or a justified line dropped. It follows every
+  line of the corpus; a paragraph it cannot follow is left unmapped, never guessed at.
+
+An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
+pages cannot disagree with what Download saves. **A change to `CanonicalParagraphMeasurer.Flatten` — what
+text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`
+fails if the two part ways.
+
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
 extracted into `Morph.Blazor` this project is only the shell — header with Convert | View links, theme
 toggle, footer — around `<MorphConverter />` at `/` and `<MorphViewer />` at `/view`. See

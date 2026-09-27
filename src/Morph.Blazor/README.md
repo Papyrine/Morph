@@ -91,7 +91,8 @@ Warped WordArt is one figure with no line geometry, so its whole box stands in f
 ```
 
 `MorphViewer` shows a `.docx`, `.xlsx` or `.pptx` without converting it, with the toolbar of a browser PDF
-viewer. The file is parsed and laid out once; after that only the pages in view are painted, one at a
+viewer — and, for a Word document, a pane to read and settle its comments and tracked changes in. The file
+is parsed and laid out once; after that only the pages in view are painted, one at a
 time, at the resolution the zoom and the screen's pixel density call for — so a long document opens fast
 and stays responsive on the single-threaded WebAssembly runtime, and zooming in sharpens the page rather
 than stretching it.
@@ -109,10 +110,54 @@ converter's — `AddMorph()`, a base-addressed `HttpClient` and the stylesheet.
 | Open (Ctrl+O) | Picks a file; a file dropped anywhere on the viewer opens too. |
 | Presentation mode | Fullscreen, one page at a time, fitted to the screen. Arrow keys, Space, Page Down, a click or a swipe advance; Escape leaves. Where the browser refuses fullscreen (an iPhone, an embedded frame) a full-window overlay stands in. |
 | Print (Ctrl+P) | Renders every page at `PrintDpi` and hands them to the browser's print dialog, each on its own sheet at the page's size. |
-| Download (Ctrl+S) | Saves the original file. |
+| Download (Ctrl+S) | Saves the file — as it was opened, or as edited in the review pane. |
+| Comments and changes | Word documents only. Opens the review pane; the badge counts the tracked changes and the comment threads not yet resolved. See [Review](#review). |
 
 Keyboard, with focus in the viewer: ←/→ page when the page does not scroll sideways, Home/End go to the
 first/last page, Ctrl+`+`/`-`/`0` zoom in/out/back to automatic, Ctrl+A selects the pages' text.
+
+### Review
+
+A Word document's **comments** and **tracked changes** open in a pane beside the pages, one card each, in
+the order they occur in the document. The page itself shows what Word prints: an insertion underlined and
+a deletion struck through in the revision colour, with a change bar in the margin. While the pane is open
+the text each unresolved comment is attached to is highlighted on the page.
+
+| in the pane | what it does |
+| --- | --- |
+| A card | Choosing one scrolls to its text and highlights it. Clicking revised or commented text on a page chooses its card. |
+| Accept / Reject | Settles one tracked change and moves to the next. A change is everything Word recorded for one edit: an insertion running across a bold word and into the next paragraph is three elements and a paragraph mark in the file, and one card here. |
+| Accept all / Reject all | Settles every tracked change, the ones in headers, footers and notes included. |
+| New comment | Attaches a comment to the text selected on the pages. The selection can start and end anywhere, and run across paragraphs and pages. |
+| Reply, Resolve / Reopen | Adds to a thread, or marks it resolved — a resolved thread stays listed, dimmed, and is no longer highlighted. |
+| Edit, Delete | Rewords or removes a comment. Deleting the comment that started a thread removes its replies with it. |
+| Undo / Redo | Steps back and forward through the edits made since the file was opened. |
+| Show | Lists comments, changes, or both. |
+
+Every edit is made to the file itself and the result laid out again, so the pages always show exactly
+what Download will save; `OnDocumentChanged` hands the host the same bytes after each edit. Comments are
+written the way Word writes them — range marks in the document, `comments.xml`, and the thread and
+resolved state in `commentsExtended.xml` — so an edited file opens in Word with its threads intact.
+
+A comment is dated by the **reader's** clock, which the viewer asks the browser for. .NET's own would be
+the server's under Blazor Server, and UTC in a WebAssembly app built without time zone data — and Word
+reads a comment's date at face value, so one dated in UTC shows there as made hours ago. The UTC time is
+written beside it (`commentsExtensible.xml`), as Word does.
+
+What is recognised as a tracked change: inserted, deleted and moved text (paragraph marks included);
+character, paragraph, table and page-setup formatting changes; inserted and deleted table rows and cells,
+and merged cells. Rejecting a formatting change puts back the formatting it replaced.
+
+Limits worth knowing:
+
+- Editing is limited to comments and tracked changes. Text cannot be typed into the document.
+- A document's own protection is honoured: one restricted to comments accepts comments and leaves its
+  tracked changes alone, and a read-only one lists both and changes neither. `ReadOnly` does the same for
+  any document.
+- An ISO 29500 *Strict* document is listed but not edited: saving it would change its conformance class.
+- Comments are anchored in the document body. A tracked change in a header, a footer or a note is listed
+  and can be settled, but has no place on a page to scroll to.
+- Moved text is drawn as a deletion where it was and an insertion where it went, not in Word's own green.
 
 ### `MorphViewer` parameters
 
@@ -125,6 +170,11 @@ first/last page, Ctrl+`+`/`-`/`0` zoom in/out/back to automatic, Ctrl+A selects 
 | `ShowSamples` | `false` | Offers the bundled sample document, workbook and deck while nothing is open. |
 | `ShowDownload` | `true` | Offers Download. |
 | `ShowPrint` | `true` | Offers Print. |
+| `ShowReview` | `true` | Offers the review pane for a Word document. |
+| `OpenReview` | `false` | Opens the review pane with a document that has comments or tracked changes. |
+| `ReadOnly` | `false` | Lists comments and tracked changes without offering to change them. |
+| `Author` | — | The name new comments are signed with. Left unset, the pane asks the reader for one and signs "Guest" until it has it. |
+| `OnDocumentChanged` | — | Called with the file's bytes after every edit, undo and redo. Handing them back as `Source` does not reopen the file. |
 | `InitialZoom` | `ViewerZoom.Auto` | The zoom a file opens at: `Auto`, `PageFit`, `PageWidth` or `ActualSize`. |
 | `InitialPage` | `1` | The page (or slide) a file opens at. |
 | `PrintDpi` | `150` | Print resolution, lowered automatically for a very long document. |
@@ -154,6 +204,10 @@ wins, whatever the stylesheet link order:
 | `--morph-selection` | selected text on a rendered page | `rgb(0 96 223 / 0.3)` |
 | `--morph-find` | the viewer's find matches | `rgb(255 200 0 / 0.45)` |
 | `--morph-find-current` | the viewer's current find match | `rgb(255 110 0 / 0.55)` |
+| `--morph-comment` | the text a comment is attached to, on the page | `rgb(255 214 102 / 0.4)` |
+| `--morph-review-current` | the text of the comment or change chosen in the review pane | `rgb(124 92 255 / 0.35)` |
+| `--morph-comment-accent` | the edge of a comment's card, and of the text it quotes | `#d9a400` |
+| `--morph-change-accent` | the edge of a tracked change's card, and its text | `#d13438` |
 
 To follow a palette the host already has, map them once — including through a light/dark switch, since both
 blocks land on the same element:
