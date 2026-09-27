@@ -67,6 +67,13 @@
         </div>
 
         <div class="viewer-group viewer-group-end">
+            @if (ShowEdit && IsWord && (CanWrite || editOpen))
+            {
+                <button type="button" class="viewer-button viewer-edit-toggle" title="Edit text" aria-label="Edit text"
+                        aria-pressed="@(editOpen ? "true" : "false")" disabled="@revising" @onclick="ToggleEditAsync">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Edit" /></svg>
+                </button>
+            }
             @if (ShowReview && IsWord)
             {
                 <button type="button" class="viewer-button viewer-review-toggle" title="Comments and changes" aria-label="Comments and changes"
@@ -109,6 +116,69 @@
             }
         </div>
     </div>
+
+    @* The editing bar. Its buttons are the script's to handle (data-edit-command): while a paragraph is
+       open they act on what is selected in it, without a round trip, and otherwise on what is selected
+       on the pages. The script also sets which of them are pressed. *@
+    @if (editOpen && IsWord)
+    {
+        <div class="viewer-editbar" role="toolbar" aria-label="Editing" aria-busy="@(revising ? "true" : "false")">
+            <button type="button" class="viewer-button" data-edit-command="bold" title="Bold (Ctrl+B)" aria-label="Bold" aria-keyshortcuts="Control+B">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Bold" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="italic" title="Italic (Ctrl+I)" aria-label="Italic" aria-keyshortcuts="Control+I">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Italic" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="underline" title="Underline (Ctrl+U)" aria-label="Underline" aria-keyshortcuts="Control+U">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Underline" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="strike" title="Strikethrough" aria-label="Strikethrough">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Strike" /></svg>
+            </button>
+
+            <span class="viewer-divider" aria-hidden="true"></span>
+
+            <button type="button" class="viewer-button" data-edit-command="align-left" title="Align left" aria-label="Align left">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignLeft" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="align-center" title="Centre" aria-label="Centre">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignCenter" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="align-right" title="Align right" aria-label="Align right">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignRight" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="align-justify" title="Justify" aria-label="Justify">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignJustify" /></svg>
+            </button>
+
+            <span class="viewer-divider" aria-hidden="true"></span>
+
+            <button type="button" class="viewer-button" data-edit-command="undo" title="Undo (Ctrl+Z)" aria-label="Undo" aria-keyshortcuts="Control+Z">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Undo" /></svg>
+            </button>
+            <button type="button" class="viewer-button" data-edit-command="redo" title="Redo (Ctrl+Y)" aria-label="Redo" aria-keyshortcuts="Control+Y">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Redo" /></svg>
+            </button>
+
+            <span class="viewer-divider" aria-hidden="true"></span>
+
+            <button type="button" class="viewer-button viewer-edit-track" data-edit-command="track" title="@TrackTitle" aria-label="Track changes"
+                    aria-pressed="@(Tracking ? "true" : "false")" disabled="@outline.ForcesTracking">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Track" /></svg>
+                <span class="viewer-edit-label">Track changes</span>
+            </button>
+            @if (Tracking && Author is not { Length: > 0 })
+            {
+                <label class="viewer-edit-signature">
+                    as
+                    <input type="text" class="review-signature-input" placeholder="@guest" autocomplete="name"
+                           aria-label="Your name" value="@authorName" @oninput="OnAuthorInput" />
+                </label>
+            }
+
+            <span class="viewer-edit-status" role="status" aria-live="polite">@(editNote ?? "Click a paragraph to type in it")</span>
+        </div>
+    }
 
     @if (findOpen)
     {

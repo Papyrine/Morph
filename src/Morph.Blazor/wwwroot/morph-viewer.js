@@ -12,8 +12,13 @@
 // in; this paints them, reports what the reader has selected in those same offsets, and says which
 // character a click landed on. An edit lays the document out afresh, and reload() swaps the new pages in
 // under the reader without moving them.
+//
+// Editing a Word document's text is the third of the kind. The typing itself is the script's
+// (morph-edit.js lays an editor over the paragraph, and nothing crosses to .NET while the reader types);
+// which paragraph a click is in, what it holds and what becomes of it afterwards are .NET's.
 
 import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt } from './morph-text.js';
+import { ParagraphEditor } from './morph-edit.js';
 
 // PDF.js's zoom steps.
 const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
@@ -54,6 +59,8 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setReviewMode: on => viewer.setReviewMode(on),
         setReview: (documentId, comments, current, scroll) => viewer.setReview(documentId, comments, current, scroll),
         revealReviewCard: key => viewer.revealReviewCard(key),
+        setEditMode: on => viewer.setEditMode(on),
+        beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         // Minutes east of UTC, which is the sign .NET's offsets take and the opposite of the browser's.
         zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
@@ -152,6 +159,9 @@ class Viewer {
         this.print = null;
         this.review = null;
         this.reviewMode = false;
+        this.editMode = false;
+        this.editor = null;
+        this.leaving = [];
         this.selectionTimer = 0;
         this.lastSelection = '';
 
@@ -199,6 +209,13 @@ class Viewer {
 
         this.root.addEventListener('keydown', event => this.onKeyDown(event), { signal });
         this.root.addEventListener('click', event => this.onClick(event), { signal });
+        // A press on an editing button must not take the focus, and with it the selection the
+        // button is for.
+        this.root.addEventListener('mousedown', event => {
+            if (event.target instanceof Element && event.target.closest('[data-edit-command]')) {
+                event.preventDefault();
+            }
+        }, { signal });
         document.addEventListener('keydown', event => this.onDocumentKeyDown(event), { capture: true, signal });
         document.addEventListener('keyup', event => {
             if (event.key === 'Control' || event.key === 'Meta') {
@@ -390,6 +407,12 @@ class Viewer {
         this.clearFind();
         this.clearReview();
         this.cancelText();
+
+        // A paragraph still open is no longer the paragraph it was opened on.
+        if (this.editor && !this.editor.closed && !this.editor.pending) {
+            this.editor.cancel();
+        }
+
         this.documentId = documentId;
         this.texts = texts;
         this.textCharacters = 0;
@@ -482,6 +505,7 @@ class Viewer {
     unload() {
         this.clearFind();
         this.clearReview();
+        this.dropEditors();
         this.lastSelection = '';
         this.visibleObserver.disconnect();
         this.nearObserver.disconnect();
@@ -558,6 +582,7 @@ class Viewer {
         page.failed = false;
         page.element.dataset.renderedDpi = String(dpi);
         page.element.classList.remove('viewer-page-failed');
+        this.settle(page);
         this.evict();
         this.scheduleQueue(0);
     }
@@ -1251,6 +1276,21 @@ class Viewer {
             return;
         }
 
+        const command = target.closest('[data-edit-command]');
+        if (command && !command.disabled) {
+            this.editCommand(command.dataset.editCommand);
+            return;
+        }
+
+        if (this.editMode && !this.presenting && this.scroller.contains(target)) {
+            // A click in the editor is the editor's; one anywhere else on a page opens what is there.
+            if (!target.closest('.edit-box') && target.closest('.viewer-page')) {
+                this.onEditClick(event);
+            }
+
+            return;
+        }
+
         if (this.reviewMode && !this.presenting) {
             const layer = target.closest('.text-layer');
             if (layer && isBuilt(layer)) {
@@ -1279,6 +1319,10 @@ class Viewer {
         }
 
         const typing = isTyping(event.target);
+        if (this.editMode && !typing && !this.presenting && this.onEditKey(event)) {
+            return;
+        }
+
         if ((event.ctrlKey || event.metaKey) && !event.altKey) {
             switch (event.key.toLowerCase()) {
                 case 'f':
@@ -1287,7 +1331,8 @@ class Viewer {
                     return;
                 case 's':
                     event.preventDefault();
-                    this.call('OnSaveRequested');
+                    // What is being typed is part of what is saved.
+                    this.closeEditor().then(() => this.call('OnSaveRequested'));
                     return;
                 case 'o':
                     event.preventDefault();
@@ -1695,7 +1740,7 @@ class Viewer {
     }
 
     onSelectionChange() {
-        if (!this.reviewMode) {
+        if (!this.reviewMode && !this.editMode) {
             return;
         }
 
@@ -1704,7 +1749,7 @@ class Viewer {
     }
 
     sendSelection() {
-        if (!this.reviewMode || this.abort.signal.aborted) {
+        if ((!this.reviewMode && !this.editMode) || this.abort.signal.aborted) {
             return;
         }
 
@@ -1784,6 +1829,266 @@ class Viewer {
                     this.dotNet.invokeMethodAsync('OnReviewHit', page.index, candidate).catch(() => {});
                     return;
                 }
+            }
+        }
+    }
+
+    // Editing: a click on a page, while editing is on, is sent to .NET as the point it landed on and
+    // the text it selected; .NET answers with the paragraph there (beginEdit), and an editor is laid
+    // over it. What is typed is handed in when the reader moves on (OnEditCommit), and the editor
+    // stays up until the page has been drawn again.
+
+    async setEditMode(on) {
+        if (!on) {
+            await this.closeEditor();
+        }
+
+        this.editMode = on;
+        this.lastSelection = '';
+        if (on) {
+            this.root.dataset.edit = 'on';
+            this.onSelectionChange();
+        } else {
+            delete this.root.dataset.edit;
+            this.showEditState(null);
+        }
+
+        // The editing bar takes its height from the pages.
+        this.onResize();
+    }
+
+    // Hands in what is being typed, if anything is, and resolves once .NET has dealt with it.
+    async closeEditor() {
+        const editor = this.editor;
+        if (editor && !editor.closed) {
+            await editor.commit(0);
+        }
+    }
+
+    dropEditors() {
+        for (const editor of [this.editor, ...this.leaving]) {
+            editor?.dispose();
+        }
+
+        this.editor = null;
+        this.leaving = [];
+        this.showEditState(null);
+    }
+
+    beginEdit(documentId, json) {
+        if (documentId !== this.documentId || !this.editMode) {
+            return;
+        }
+
+        const session = JSON.parse(json);
+        const page = this.pages[session.page];
+        if (!page) {
+            return;
+        }
+
+        if (this.editor && !this.editor.closed && !this.editor.pending) {
+            this.editor.cancel();
+        }
+
+        getSelection()?.removeAllRanges();
+        this.editor = new ParagraphEditor(page.element.querySelector('.viewer-sheet'), page, session, {
+            commit: (editor, payload, then) => this.handIn(editor, payload, then),
+            cancel: id => {
+                this.dotNet.invokeMethodAsync('OnEditCancel', id).catch(() => {});
+            },
+            state: state => this.showEditState(state),
+            leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
+        });
+    }
+
+    // The editor stays where it is, showing what was typed, until the page under it shows the same.
+    async handIn(editor, payload, then) {
+        const before = this.documentId;
+        this.leaving.push(editor);
+        try {
+            await this.dotNet.invokeMethodAsync('OnEditCommit', editor.session.id, payload, then);
+        } catch {
+            // The component is gone.
+        }
+
+        if (this.documentId === before) {
+            // Nothing was laid out again: the edit was not made, and there is nothing to wait for.
+            this.release(editor);
+            return;
+        }
+
+        editor.replaced = true;
+        setTimeout(() => this.release(editor), 20000);
+        if (this.pages[editor.page.index]?.dpi > 0) {
+            this.release(editor);
+        }
+    }
+
+    release(editor) {
+        editor.dispose();
+        this.leaving = this.leaving.filter(_ => _ !== editor);
+        if (this.editor === editor) {
+            this.editor = null;
+        }
+    }
+
+    // A page has been drawn: what was typed on it is now part of the picture.
+    settle(page) {
+        for (const editor of this.leaving) {
+            if (editor.replaced && editor.page.index === page.index) {
+                this.release(editor);
+            }
+        }
+    }
+
+    // Which of the editing bar's buttons are pressed: null when no paragraph is open.
+    showEditState(state) {
+        for (const button of this.root.querySelectorAll('[data-edit-command]')) {
+            const name = button.dataset.editCommand;
+            if (name === 'track' || name === 'undo' || name === 'redo') {
+                continue;
+            }
+
+            if (!state) {
+                button.removeAttribute('aria-pressed');
+            } else if (name.startsWith('align-')) {
+                button.setAttribute('aria-pressed', String(['left', 'center', 'right', 'justify'][state.align] === name.slice(6)));
+            } else {
+                button.setAttribute('aria-pressed', String(state[name] === true));
+            }
+        }
+    }
+
+    // A button of the editing bar, or its key. With a paragraph open it is the editor's, if the
+    // editor knows it; otherwise it is for what is selected on the pages, which is .NET's.
+    async editCommand(name) {
+        const editor = this.editor;
+        if (editor && !editor.closed && !editor.pending) {
+            if (editor.command(name)) {
+                return;
+            }
+
+            await editor.commit(0);
+        }
+
+        this.dotNet.invokeMethodAsync('OnEditCommand', name).catch(() => {});
+    }
+
+    // Keys while editing is on and no paragraph is open. Says whether the key was one of them.
+    onEditKey(event) {
+        const command = (event.ctrlKey || event.metaKey) && !event.altKey;
+        const key = event.key.toLowerCase();
+        let name = null;
+        if (command) {
+            name = { b: 'bold', i: 'italic', u: 'underline', y: 'redo', z: event.shiftKey ? 'redo' : 'undo' }[key] ?? null;
+        } else if ((event.key === 'Delete' || event.key === 'Backspace') && this.selectedText()) {
+            name = 'delete';
+        }
+
+        if (!name) {
+            return false;
+        }
+
+        event.preventDefault();
+        this.editCommand(name);
+        return true;
+    }
+
+    pageOf(target) {
+        const element = target instanceof Element ? target.closest('.viewer-page') : null;
+        return element ? this.pages[Number(element.dataset.pageNumber) - 1] : null;
+    }
+
+    // A point of the window as a point of a page, in points from its top left as it was laid out.
+    pagePoint(page, clientX, clientY) {
+        const box = page.element.getBoundingClientRect();
+        const [u, v] = toPage(
+            (clientX - box.left) / Math.max(1, box.width),
+            (clientY - box.top) / Math.max(1, box.height),
+            this.rotation);
+        return [u * page.width, v * page.height];
+    }
+
+    // The offset into a page's text of the character nearest a point; -1 where there is none to find.
+    caretOffset(page, clientX, clientY) {
+        if (!isBuilt(page.layer)) {
+            return -1;
+        }
+
+        let node = null;
+        let offset = 0;
+        if (document.caretPositionFromPoint) {
+            const position = document.caretPositionFromPoint(clientX, clientY);
+            node = position?.offsetNode ?? null;
+            offset = position?.offset ?? 0;
+        } else if (document.caretRangeFromPoint) {
+            const range = document.caretRangeFromPoint(clientX, clientY);
+            node = range?.startContainer ?? null;
+            offset = range?.startOffset ?? 0;
+        }
+
+        return node && page.layer.contains(node) ? textOffset(page.layer, node, offset) : -1;
+    }
+
+    async onEditClick(event) {
+        const page = this.pageOf(event.target);
+        if (!page) {
+            return;
+        }
+
+        // What the click selected, read before anything is awaited: a click puts the caret at the
+        // nearest character, and a drag or a double click selects.
+        let start = -1;
+        let end = -1;
+        const selection = getSelection();
+        if (selection && selection.rangeCount > 0 && isBuilt(page.layer)) {
+            const range = selection.getRangeAt(0);
+            if (page.layer.contains(range.startContainer) && page.layer.contains(range.endContainer)) {
+                start = textOffset(page.layer, range.startContainer, range.startOffset);
+                end = textOffset(page.layer, range.endContainer, range.endOffset);
+            } else if (!selection.isCollapsed) {
+                // Text selected across pages, or out of them: for the toolbar, not for typing.
+                return;
+            }
+        }
+
+        const before = this.documentId;
+        await this.closeEditor();
+        if (this.documentId !== before) {
+            // The pages were laid out again, and their text with them.
+            this.ensureText(page);
+            start = end = this.caretOffset(page, event.clientX, event.clientY);
+        }
+
+        await this.sendHit(page, event.clientX, event.clientY, start, end);
+    }
+
+    async sendHit(page, clientX, clientY, start, end) {
+        const [x, y] = this.pagePoint(page, clientX, clientY);
+        try {
+            return await this.dotNet.invokeMethodAsync('OnEditHit', page.index, x, y, start, end);
+        } catch {
+            return false;
+        }
+    }
+
+    // An arrow key took the caret out of the top or the bottom of a paragraph: the paragraph that way
+    // is the first text a point moved that way, half a line at a time, comes to.
+    async leaveEditor(direction, clientX, clientY, line) {
+        await this.closeEditor();
+        const step = Math.max(4, line / 2);
+        for (let tries = 1; tries <= 16; tries++) {
+            const y = clientY + direction * step * tries;
+            const element = document.elementFromPoint(clientX, y);
+            const page = element ? this.pageOf(element) : null;
+            if (!page || element.closest('.edit-box')) {
+                continue;
+            }
+
+            this.ensureText(page);
+            const offset = this.caretOffset(page, clientX, y);
+            if (await this.sendHit(page, clientX, y, offset, offset)) {
+                return;
             }
         }
     }

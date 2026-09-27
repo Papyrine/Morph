@@ -261,6 +261,36 @@ The viewer also **reviews** a Word document: a pane lists its comments and track
   text is the paragraph's text less the whitespace a wrap or a justified line dropped. It follows every
   line of the corpus; a paragraph it cannot follow is left unmapped, never guessed at.
 
+The viewer also **edits** a Word document's text, on the same footing and with the same split:
+
+- **`src/Morph/OpenXml/Editing/`** (core, internal) works on the markup. `DocumentOutline` reads every
+  paragraph of the main part as units — text that can be edited, and the things between it that are
+  left as they are (a field, a picture, a note's reference, text a tracked change deleted) — and
+  `DocumentEditor` takes a file's bytes and returns the edited file's. A paragraph is rewritten from
+  what it NOW READS AS, not from the keys pressed: `TextDiff` works out what differs, per character and
+  per run, and only that is changed — so what the editor never showed (bookmarks, comment anchors, a
+  run's own spelling of its properties) stays, and a paragraph handed in unchanged changes nothing.
+  With `EditOptions.Track` the same differences are written as `w:ins` / `w:del` / `w:rPrChange` /
+  `w:pPrChange`. Its tests are spec tests (`src/Tests/SpecTests/Editing/`); `EditCorpusTests` runs it
+  over every document of the corpus.
+- **`ParagraphElement.Source`** is `Run.Source`'s counterpart for paragraphs: under `captureSources`
+  the parser stamps each paragraph with the ordinal of its `w:p`, which is what finds a paragraph with
+  no text in it.
+- **`EditMap` / `EditSession`** (`Morph.Blazor`) tie paragraphs to pages. `EditMap` reads each
+  paragraph's box off the laid-out tree — the engine keeps where a line starts and how wide its text
+  is, not the measure it was set in, so the box is worked out from the lines and from the cell or the
+  margins they stand in. `EditSession` is one paragraph open: the JSON the script shows, and the
+  reading of what it hands back.
+- **`wwwroot/morph-edit.js`** is the editor itself: a box laid over the paragraph, set in the face and
+  to the width the page drew it, holding a MODEL of the paragraph that every input is applied to
+  (`beforeinput` is taken from the browser before it touches the DOM; only an input method's
+  composition is read back out of the DOM afterwards). Nothing crosses to .NET while the reader
+  types. The box stays up, no longer editable, until the page has been drawn again, so the text never
+  flickers back to what it was.
+
+A line break (`w:br`) is a position in `SourceRuns`' coordinates, like a tab: it is typed and deleted
+like any character. A page or column break is not.
+
 An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
 pages cannot disagree with what Download saves. **A change to `CanonicalParagraphMeasurer.Flatten` — what
 text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`

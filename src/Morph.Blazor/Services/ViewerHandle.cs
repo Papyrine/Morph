@@ -72,6 +72,15 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask RevealReviewCardAsync(string key) =>
         controller.InvokeVoidAsync("revealReviewCard", key);
 
+    // While editing is on, a click on a page reports where it landed (OnEditHit) rather than
+    // choosing a review card. Turning it off hands in whatever is being typed first.
+    public ValueTask SetEditModeAsync(bool on) =>
+        controller.InvokeVoidAsync("setEditMode", on);
+
+    // Lays an editor over a paragraph: session is EditSession's JSON.
+    public ValueTask BeginEditAsync(int documentId, string session) =>
+        controller.InvokeVoidAsync("beginEdit", documentId, session);
+
     // The reader's time zone, in minutes east of UTC.
     public ValueTask<int> ZoneOffsetAsync() =>
         controller.InvokeAsync<int>("zoneOffset");

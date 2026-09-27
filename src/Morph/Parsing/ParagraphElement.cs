@@ -29,4 +29,12 @@ sealed class ParagraphElement : DocumentElement
     /// its empty line.
     /// </summary>
     public bool IsCollapsedCellMark { get; init; }
+
+    /// <summary>
+    /// The ordinal of the <c>w:p</c> this paragraph was read from, among the main document part's
+    /// paragraphs in document order, when the parser was asked to record it (<c>captureSources</c>);
+    /// null otherwise. One <c>w:p</c> split around a break is several paragraphs with one ordinal.
+    /// Settable because the parser stamps it once the paragraph is built; layout never reads it.
+    /// </summary>
+    public int? Source { get; set; }
 }

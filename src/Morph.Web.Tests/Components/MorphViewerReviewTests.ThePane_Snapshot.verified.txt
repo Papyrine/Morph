@@ -1,5 +1,6 @@
 ﻿{
   Instance: {
+    ShowEdit: true,
     ShowOpenFile: true,
     ShowSamples: false,
     ShowDownload: true,
@@ -13,5 +14,5 @@
     OpenReview: true,
     ReadOnly: false
   },
-  NodeCount: 238
+  NodeCount: 241
 }

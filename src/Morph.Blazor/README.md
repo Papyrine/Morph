@@ -91,7 +91,8 @@ Warped WordArt is one figure with no line geometry, so its whole box stands in f
 ```
 
 `MorphViewer` shows a `.docx`, `.xlsx` or `.pptx` without converting it, with the toolbar of a browser PDF
-viewer — and, for a Word document, a pane to read and settle its comments and tracked changes in. The file
+viewer — and, for a Word document, lets its text be edited where it stands and its comments and tracked
+changes be read and settled in a pane beside it. The file
 is parsed and laid out once; after that only the pages in view are painted, one at a
 time, at the resolution the zoom and the screen's pixel density call for — so a long document opens fast
 and stays responsive on the single-threaded WebAssembly runtime, and zooming in sharpens the page rather
@@ -110,11 +111,43 @@ converter's — `AddMorph()`, a base-addressed `HttpClient` and the stylesheet.
 | Open (Ctrl+O) | Picks a file; a file dropped anywhere on the viewer opens too. |
 | Presentation mode | Fullscreen, one page at a time, fitted to the screen. Arrow keys, Space, Page Down, a click or a swipe advance; Escape leaves. Where the browser refuses fullscreen (an iPhone, an embedded frame) a full-window overlay stands in. |
 | Print (Ctrl+P) | Renders every page at `PrintDpi` and hands them to the browser's print dialog, each on its own sheet at the page's size. |
-| Download (Ctrl+S) | Saves the file — as it was opened, or as edited in the review pane. |
+| Download (Ctrl+S) | Saves the file — as it was opened, or as since edited. |
+| Edit text | Word documents only. Turns editing on, and shows the editing bar. See [Editing](#editing). |
 | Comments and changes | Word documents only. Opens the review pane; the badge counts the tracked changes and the comment threads not yet resolved. See [Review](#review). |
 
 Keyboard, with focus in the viewer: ←/→ page when the page does not scroll sideways, Home/End go to the
 first/last page, Ctrl+`+`/`-`/`0` zoom in/out/back to automatic, Ctrl+A selects the pages' text.
+
+### Editing
+
+With editing on, a click on a paragraph opens it for typing **where it stands on the page**: the same
+text in the same face, set to the same measure, so it sits on the picture of itself. Typing happens in
+the browser, at the browser's speed; nothing is converted until the reader moves on — to another
+paragraph, or with Ctrl+Enter — and then the paragraph is written into the file, the file is laid out
+again, and the page redrawn.
+
+| while editing | what it does |
+| --- | --- |
+| A click on a paragraph | Opens it with the caret where the click was. Text selected within one paragraph — a double click, a drag — opens it with that selected, so typing replaces it. |
+| Typing, Backspace, Delete, paste | Edit the text. What is pasted is pasted as plain text, a line to a paragraph. |
+| Enter, Shift+Enter, Tab | A new paragraph, formatted as the one it was split from; a line break; a tab. Enter at the end of a heading starts the style the heading names as its next, as Word does. |
+| Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
+| ↑ ↓ ← → at the paragraph's edge | Goes on to the paragraph that way. |
+| Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. |
+| Bold, Italic, Underline, Strikethrough (Ctrl+B / I / U) | Applies to what is selected in the open paragraph — or, with none open, to text selected across the pages. With nothing selected it applies to what is typed next. |
+| Align left, centre, right, justify | Aligns the open paragraph, or the paragraphs of the text selected on the pages. |
+| Delete with text selected on the pages | Deletes it, across paragraphs if need be, and joins what is left. |
+| Undo, Redo (Ctrl+Z / Y) | Within an open paragraph, what was typed there. Otherwise the last edit made to the file, whatever made it — typing, the toolbar, the review pane. |
+| Track changes | Turns the document's own tracking on and off (the same setting Word's button changes). While it is on, what is typed, deleted, formatted or split is recorded as a tracked change under the reader's name, shows in the revision colour, and is listed in the review pane to accept or reject. |
+
+The edit is worked out from the paragraph as it reads before and after, not from the keys that were
+pressed, and only what differs is changed in the file. Everything the editor does not show — bookmarks,
+the anchors of comments, a run's own spelling of its properties — stays exactly as it was, and a
+paragraph handed in unchanged leaves the file unchanged.
+
+What is not text is shown and **left in place**: a picture, a field (a date, a page number, a
+cross-reference), a footnote's reference, and text a tracked change has deleted. The text around them
+is edited; they cannot be typed into or deleted here.
 
 ### Review
 
@@ -150,10 +183,16 @@ and merged cells. Rejecting a formatting change puts back the formatting it repl
 
 Limits worth knowing:
 
-- Editing is limited to comments and tracked changes. Text cannot be typed into the document.
+- Text is edited in the document's body — its paragraphs, table cells and text boxes. Headers, footers
+  and notes are other parts of the file, and are read only.
+- Editing changes text, character formatting and alignment. It does not add or remove pictures, fields,
+  tables or notes, change styles or fonts, or edit a workbook or a deck.
+- The editor is set in the face the page was drawn in, to the width the page set it, so its lines break
+  where the page's do. Justified text is set ragged while it is open, and text turned on its side is not
+  opened in place.
 - A document's own protection is honoured: one restricted to comments accepts comments and leaves its
-  tracked changes alone, and a read-only one lists both and changes neither. `ReadOnly` does the same for
-  any document.
+  text and its tracked changes alone, one that has every change tracked has them tracked, and a
+  read-only one lists everything and changes nothing. `ReadOnly` does the same for any document.
 - An ISO 29500 *Strict* document is listed but not edited: saving it would change its conformance class.
 - Comments are anchored in the document body. A tracked change in a header, a footer or a note is listed
   and can be settled, but has no place on a page to scroll to.
@@ -170,10 +209,11 @@ Limits worth knowing:
 | `ShowSamples` | `false` | Offers the bundled sample document, workbook and deck while nothing is open. |
 | `ShowDownload` | `true` | Offers Download. |
 | `ShowPrint` | `true` | Offers Print. |
+| `ShowEdit` | `true` | Offers editing for a Word document. |
 | `ShowReview` | `true` | Offers the review pane for a Word document. |
 | `OpenReview` | `false` | Opens the review pane with a document that has comments or tracked changes. |
-| `ReadOnly` | `false` | Lists comments and tracked changes without offering to change them. |
-| `Author` | — | The name new comments are signed with. Left unset, the pane asks the reader for one and signs "Guest" until it has it. |
+| `ReadOnly` | `false` | Shows the document, its comments and its tracked changes without offering to change any of them. |
+| `Author` | — | The name new comments and tracked changes are signed with. Left unset, the reader is asked for one, and is "Guest" until they give it. |
 | `OnDocumentChanged` | — | Called with the file's bytes after every edit, undo and redo. Handing them back as `Source` does not reopen the file. |
 | `InitialZoom` | `ViewerZoom.Auto` | The zoom a file opens at: `Auto`, `PageFit`, `PageWidth` or `ActualSize`. |
 | `InitialPage` | `1` | The page (or slide) a file opens at. |

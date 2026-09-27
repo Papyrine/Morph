@@ -551,12 +551,12 @@ public partial class MorphViewer
 
     // Every edit ends here. select names the card to leave chosen, asked once the edited document has
     // been read, since an edit renumbers what it did not touch.
-    async Task ReviseAsync(Func<byte[], byte[]> edit, bool relayout, Func<string?> select, bool scroll = false)
+    async Task<bool> ReviseAsync(Func<byte[], byte[]> edit, bool relayout, Func<string?> select, bool scroll = false)
     {
         if (sourceBytes is not { } bytes ||
             revising)
         {
-            return;
+            return false;
         }
 
         var edited = await ShowAsync(() => edit(bytes), relayout, select, scroll);
@@ -565,6 +565,8 @@ public partial class MorphViewer
             Keep(undo, bytes);
             redo.Clear();
         }
+
+        return edited;
     }
 
     async Task<bool> ShowAsync(Func<byte[]> produce, bool relayout, Func<string?> select, bool scroll)
@@ -577,6 +579,7 @@ public partial class MorphViewer
 
         revising = true;
         reviewNote = null;
+        editNote = null;
         errorMessage = null;
         issueUrl = null;
         StateHasChanged();
@@ -609,6 +612,7 @@ public partial class MorphViewer
             else
             {
                 review = await Task.Run(() => DocumentReview.Read(bytes), lifetime.Token);
+                outline = await Task.Run(() => Outline(bytes, InputFormat.Docx), lifetime.Token);
             }
 
             sourceBytes = bytes;
@@ -631,6 +635,14 @@ public partial class MorphViewer
         catch (JSDisconnectedException)
         {
             // The page is gone.
+            return false;
+        }
+        catch (InvalidOperationException exception)
+        {
+            // An edit the document does not allow, which is for the reader to know and not a fault
+            // to report.
+            reviewNote = exception.Message;
+            editNote = exception.Message;
             return false;
         }
         catch (Exception exception)

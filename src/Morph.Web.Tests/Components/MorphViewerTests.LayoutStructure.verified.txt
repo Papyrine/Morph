@@ -1,5 +1,6 @@
 ﻿{
   Instance: {
+    ShowEdit: true,
     ShowOpenFile: true,
     ShowSamples: false,
     ShowDownload: true,

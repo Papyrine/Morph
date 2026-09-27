@@ -599,7 +599,8 @@
 }
 
 .viewer-toolbar,
-.viewer-findbar {
+.viewer-findbar,
+.viewer-editbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -756,6 +757,137 @@
 
 .viewer-find-close {
     margin-left: auto;
+}
+
+/* The editing bar. Which of its buttons are pressed is the script's to say, as the caret moves. */
+.viewer-button.viewer-edit-track {
+    gap: 0.35rem;
+    width: auto;
+    padding: 0 0.5rem;
+}
+
+.viewer-edit-label {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.viewer-edit-signature {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+}
+
+.viewer-edit-signature .review-signature-input {
+    width: 8rem;
+}
+
+.viewer-edit-status {
+    min-width: 0;
+    margin-left: auto;
+    overflow: hidden;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+    The editor laid over a paragraph (morph-edit.js). Like the text layer it is a size container the
+    size of the page with every length in cqw, so it keeps its place and its size through any zoom; unlike
+    the text layer it is there to be seen. The box is opaque — the paragraph's own picture is under it,
+    and the two are never quite the same line for line.
+*/
+.edit-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    container-type: inline-size;
+    pointer-events: none;
+}
+
+.edit-box {
+    position: absolute;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 1px solid var(--morph-primary, #2b579a);
+    outline-offset: 1px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+    background-color: #ffffff;
+    color: #000000;
+    font-family: "Morph Text", sans-serif;
+    font-kerning: normal;
+    font-synthesis: none;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-rendering: geometricPrecision;
+    text-transform: none;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    direction: ltr;
+    cursor: text;
+    pointer-events: auto;
+    user-select: text;
+    -webkit-user-select: text;
+    forced-color-adjust: none;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+}
+
+.edit-box:focus-visible {
+    outline-width: 2px;
+}
+
+.edit-box ::selection {
+    background: var(--morph-selection, rgb(0 96 223 / 0.3));
+}
+
+/* Handed in: what was typed stays on show until the page is drawn again with it. */
+.edit-box.edit-pending {
+    outline-style: dashed;
+    box-shadow: none;
+    cursor: progress;
+}
+
+.edit-p {
+    margin: 0;
+    padding: 0;
+}
+
+.edit-atom {
+    user-select: all;
+    -webkit-user-select: all;
+}
+
+.edit-hidden {
+    display: none;
+}
+
+.edit-field {
+    background-color: rgb(0 0 0 / 0.08);
+}
+
+.edit-drawing {
+    display: inline-block;
+    vertical-align: baseline;
+    border: 1px dashed var(--morph-muted, #6c757d);
+    background-color: rgb(0 0 0 / 0.05);
+}
+
+.edit-break {
+    padding: 0 0.4em;
+    border: 1px dashed var(--morph-muted, #6c757d);
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.7em;
+    white-space: nowrap;
+}
+
+@media print {
+    .edit-layer {
+        display: none;
+    }
 }
 
 .viewer > .error {
@@ -1357,6 +1489,8 @@
 
 .viewer[data-presenting] .viewer-toolbar,
 .viewer[data-presenting] .viewer-findbar,
+.viewer[data-presenting] .viewer-editbar,
+.viewer[data-presenting] .edit-layer,
 .viewer[data-presenting] .viewer-sidebar,
 .viewer[data-presenting] .viewer-review,
 .viewer[data-presenting] > .error {
@@ -1429,7 +1563,9 @@
 
 @media (max-width: 640px) {
     .viewer-title,
-    .viewer-divider {
+    .viewer-divider,
+    .viewer-edit-label,
+    .viewer-edit-status {
         display: none;
     }
 
