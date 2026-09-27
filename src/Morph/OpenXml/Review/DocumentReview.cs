@@ -457,7 +457,7 @@ sealed class DocumentReview
                     Flow.Marks.Clear();
                     Flow.HasRun = false;
                     VisitChildren(paragraph);
-                    EndParagraph(paragraph);
+                    EndParagraph();
                     return;
 
                 case OoxmlRun run:
@@ -763,7 +763,7 @@ sealed class DocumentReview
             run.ChildElements.Any(_ => _ is Break or Drawing or Picture or DocumentFormat.OpenXml.Wordprocessing.EmbeddedObject or SymbolChar);
 
         // The revisions on the paragraph's mark take their place here, after its runs.
-        void EndParagraph(Paragraph paragraph)
+        void EndParagraph()
         {
             if (fallbackDepth > 0)
             {
@@ -777,7 +777,7 @@ sealed class DocumentReview
                 switch (mark)
                 {
                     case ParagraphMarkRunPropertiesChange:
-                        MarkFormatting(mark, paragraph);
+                        MarkFormatting(mark);
                         break;
 
                     case MoveFrom or MoveTo:
@@ -839,7 +839,7 @@ sealed class DocumentReview
             formatting.Text.Append(SourceRuns.Text(run));
         }
 
-        void MarkFormatting(OpenXmlElement element, Paragraph paragraph)
+        void MarkFormatting(OpenXmlElement element)
         {
             var flow = Flow;
             if (flow.Formatting is not { } formatting ||

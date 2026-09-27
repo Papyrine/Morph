@@ -173,7 +173,7 @@ public class MorphViewerTests : BunitTestContext
         await cut.Find("button[aria-label='Find in document']").ClickAsync(new());
         await cut.Find(".viewer-find-input").InputAsync(new() { Value = "the new Secretary" });
 
-        cut.WaitForAssertion(() => cut.Find(".viewer-find-status").TextContent.MarkupMatches("1 of 2"), TimeSpan.FromSeconds(10));
+        await cut.WaitForAssertionAsync(() => cut.Find(".viewer-find-status").TextContent.MarkupMatches("1 of 2"), TimeSpan.FromSeconds(10));
         var sent = controller.Invocations["setFindResults"][^1];
         var triples = (int[]) sent.Arguments[1]!;
         await Assert.That(triples.Length).IsEqualTo(6);
@@ -196,7 +196,7 @@ public class MorphViewerTests : BunitTestContext
         await cut.InvokeAsync(() => cut.Instance.OnFindRequested());
         await cut.Find(".viewer-find-input").InputAsync(new() { Value = "zebra crossing" });
 
-        cut.WaitForAssertion(() => cut.Find(".viewer-find-status").TextContent.MarkupMatches("No results"), TimeSpan.FromSeconds(10));
+        await cut.WaitForAssertionAsync(() => cut.Find(".viewer-find-status").TextContent.MarkupMatches("No results"), TimeSpan.FromSeconds(10));
     }
 
     // Print renders every page at the print resolution and streams it to the script, then opens the dialog.

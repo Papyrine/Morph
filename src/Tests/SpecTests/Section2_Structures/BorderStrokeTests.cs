@@ -432,7 +432,7 @@ public class BorderStrokeTests
         // _probe_pgbdr: a 1.5pt double draws 1.2/1.2/1.2 and the thin/thick family keeps page order —
         // the thick line innermost on the bottom edge — stacking outward from the inner face.
         var page = BorderStroke.Bands(BorderLineStyle.Double, 1.5, BorderStroke.Scope.Page);
-        var paragraph = BorderStroke.Bands(BorderLineStyle.Double, 1.5, BorderStroke.Scope.Paragraph);
+        var paragraph = BorderStroke.Bands(BorderLineStyle.Double, 1.5);
 
         await Assert.That(page.Select(_ => (_.Offset, _.Thickness))).IsEquivalentTo(paragraph.Select(_ => (_.Offset, _.Thickness)));
         await Assert.That(page[0].Thickness).IsEqualTo(1.2).Within(0.0001);

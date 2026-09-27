@@ -88,8 +88,9 @@ public class EastAsiaFontHintTests
             mainPart.Document = [with(body)];
 
             var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
-            stylesPart.Styles = new(
-                new DocDefaults(
+            stylesPart.Styles =
+            [
+                with(new DocDefaults(
                     new RunPropertiesDefault(
                         new RunPropertiesBaseStyle(
                             new RunFonts
@@ -101,7 +102,8 @@ public class EastAsiaFontHintTests
                             new FontSize
                             {
                                 Val = "22"
-                            }))));
+                            }))))
+            ];
         }
 
         stream.Position = 0;

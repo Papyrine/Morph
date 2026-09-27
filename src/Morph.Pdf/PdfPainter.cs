@@ -350,8 +350,7 @@ static class PdfPainter
         // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
         // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
         // number, where the doubled stride tiled half as many dots and stopped ~14px short.
-        var spacing = glyphWidth;
-        if (!LeaderTiling.TryGetRange(run.X, run.Width, glyphWidth, spacing, context.PageSettings.WidthPoints, out var startX, out var count))
+        if (!LeaderTiling.TryGetRange(run.X, run.Width, glyphWidth, glyphWidth, context.PageSettings.WidthPoints, out var startX, out var count))
         {
             return;
         }
@@ -360,7 +359,7 @@ static class PdfPainter
         var glyph = leaderChar.ToString();
         for (var index = 0; index < count; index++)
         {
-            graphics.DrawString(glyph, font, brush, new XPoint(startX + index * spacing, baseline), baselineFormat);
+            graphics.DrawString(glyph, font, brush, new XPoint(startX + index * glyphWidth, baseline), baselineFormat);
         }
     }
 
@@ -819,11 +818,11 @@ static class PdfPainter
 
     static void PaintRunBorder(PdfRenderContext context, XGraphics graphics, double x, double y, double width, double height, BorderEdge edge)
     {
-        double left = x, top = y, right = x + width, bottom = y + height;
-        StrokeEdge(context, graphics, edge, horizontal: true, left, right, top, outward: -1, extendStart: true, extendEnd: true);
-        StrokeEdge(context, graphics, edge, horizontal: true, left, right, bottom, outward: 1, extendStart: true, extendEnd: true);
-        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, left, outward: -1, extendStart: true, extendEnd: true);
-        StrokeEdge(context, graphics, edge, horizontal: false, top, bottom, right, outward: 1, extendStart: true, extendEnd: true);
+        double right = x + width, bottom = y + height;
+        StrokeEdge(context, graphics, edge, horizontal: true, x, right, y, outward: -1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, graphics, edge, horizontal: true, x, right, bottom, outward: 1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, graphics, edge, horizontal: false, y, bottom, x, outward: -1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, graphics, edge, horizontal: false, y, bottom, right, outward: 1, extendStart: true, extendEnd: true);
     }
 
     // See SkiaPainter.StrokeEdge: outward is -1 for top/left and +1 for bottom/right, and the span

@@ -271,7 +271,7 @@ public class SourceIndexTests
     [Arguments("header_footer.docx")]
     public async Task Corpus_IsFollowedThroughout(string file)
     {
-        var bytes = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "corpus", file));
+        var bytes = await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "corpus", file));
         using var document = PagedDocument.Open(bytes, InputFormat.Docx, Sample.FontDirectory, traceSources: true);
         var runs = ReadRuns(bytes);
 
