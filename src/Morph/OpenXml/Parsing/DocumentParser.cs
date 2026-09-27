@@ -18,7 +18,7 @@ using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 [SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
-sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize = null)
+sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize = null, bool captureSources = false)
 {
     // Conversion constants
 
@@ -75,6 +75,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     // Theme colors for the current document being parsed
     ThemeColors? currentThemeColors;
+
+    // The main part's runs numbered in document order, when captureSources asks for every model run
+    // to be stamped with where its text came from (Run.Source). Null otherwise: the index costs a walk
+    // of the whole body, and only the viewer's review features read the stamps.
+    Dictionary<OoxmlRun, int>? runOrdinals;
 
     // Floating tables (w:tblpPr) discovered while parsing nested cells.
     // Lifted to body-level after the body is parsed so they participate in normal page-flow,
@@ -332,6 +337,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                    ?? throw new InvalidOperationException("Document has no body");
 
         lastRenderedPageBreakCount = body.Descendants<LastRenderedPageBreak>().Count();
+        runOrdinals = captureSources ? SourceRuns.Index(mainPart.Document) : null;
 
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
         currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
@@ -6161,7 +6167,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // visible content is the inner runs; the link target is captured on each run so
                     // the HTML/Markdown exporters can emit links (raster rendering ignores it).
                     var hyperlinkUrl = ResolveHyperlinkUrl(hyperlink, mainPart);
-                    foreach (var hlRun in hyperlink.Elements<OoxmlRun>())
+                    foreach (var hlRun in RunsWithin(hyperlink))
                     {
                         runs.AddRange(ParseRun(hlRun, mainPart, paragraphStyleId, hyperlinkUrl));
                     }
@@ -6174,18 +6180,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // red underlined and "removed." red struck through — dropping the deletion lost
                 // text that is on the page. The revision metadata stays on
                 // ParsedDocument.TrackedChanges either way.
-                case InsertedRun insertedRun:
-                    foreach (var insRun in insertedRun.Elements<OoxmlRun>())
+                //
+                // A move is a deletion where the text was and an insertion where it went, and is
+                // drawn as the two. (Word's own markup sets a move apart in green with doubled
+                // rules; that distinction is not modelled.) Which mark a run takes is read off the
+                // markup around it — see RevisionOf.
+                case InsertedRun or DeletedRun or MoveToRun or MoveFromRun:
+                    foreach (var revisedRun in RunsWithin(child))
                     {
-                        runs.AddRange(ParseRun(insRun, mainPart, paragraphStyleId, revision: RevisionMark.Inserted));
-                    }
-
-                    break;
-
-                case DeletedRun deletedRun:
-                    foreach (var delRun in deletedRun.Elements<OoxmlRun>())
-                    {
-                        runs.AddRange(ParseRun(delRun, mainPart, paragraphStyleId, revision: RevisionMark.Deleted));
+                        runs.AddRange(ParseRun(revisedRun, mainPart, paragraphStyleId));
                     }
 
                     break;
@@ -11221,10 +11224,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     // Unicode characters for hyphenation
     // Soft hyphen (optional break point)
-    const char softHyphenChar = '\u00AD';
+    const string softHyphen = "\u00AD";
 
     // Non-breaking hyphen
-    const char nonBreakingHyphenChar = '\u2011';
+    const string nonBreakingHyphen = "\u2011";
 
     string? ResolveHyperlinkUrl(Hyperlink hyperlink, MainDocumentPart mainPart)
     {
@@ -11303,6 +11306,49 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         None,
         Inserted,
         Deleted
+    }
+
+    // The mark a run takes is read off the markup around it, not off how the parser came to it: runs are
+    // reached through a content control, a hyperlink or a field as often as through the paragraph, and
+    // a revision wraps them just the same inside any of those. The nearest revision is the one that
+    // counts — text one reviewer inserted and another deleted is drawn deleted. A text box's runs stop
+    // at their own paragraph, so a box anchored in revised text is not itself revised.
+    static RevisionMark RevisionOf(OoxmlRun run)
+    {
+        for (var parent = run.Parent; parent != null && parent is not Paragraph; parent = parent.Parent)
+        {
+            switch (parent)
+            {
+                case DeletedRun or MoveFromRun:
+                    return RevisionMark.Deleted;
+                case InsertedRun or MoveToRun:
+                    return RevisionMark.Inserted;
+            }
+        }
+
+        return RevisionMark.None;
+    }
+
+    // The runs inside a revision or a hyperlink, through any revisions nested in it: a deletion inside
+    // an insertion, either inside a link. (The schema puts a revision inside a link, never around one.)
+    static IEnumerable<OoxmlRun> RunsWithin(OpenXmlElement container)
+    {
+        foreach (var child in container.ChildElements)
+        {
+            switch (child)
+            {
+                case OoxmlRun run:
+                    yield return run;
+                    break;
+                case InsertedRun or DeletedRun or MoveToRun or MoveFromRun:
+                    foreach (var nested in RunsWithin(child))
+                    {
+                        yield return nested;
+                    }
+
+                    break;
+            }
+        }
     }
 
     // An insertion is underlined and a deletion struck through, both recoloured. Layered over the
@@ -11403,7 +11449,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             or (>= '\u00B0' and <= '\u00B4') or (>= '\u00B6' and <= '\u00BA') or (>= '\u00BC' and <= '\u00BF')
             or '\u00D7' or '\u00F7';
 
-    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false, RevisionMark revision = RevisionMark.None)
+    List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false)
     {
         var result = new List<Run>();
         RunProperties? properties = null;
@@ -11411,7 +11457,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         RunProperties GetProperties() =>
             properties ??= ApplyRevisionMark(
                 ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
-                revision);
+                RevisionOf(run));
 
         // w:vanish / w:specVanish — drop hidden runs at parse time so they don't enter
         // measurement or rendering. Cheaper than filtering at every render call site.
@@ -11423,13 +11469,35 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Walk children in order so w:tab splits the run into separate model Runs (text, tab, text, ...)
         var textBuilder = new StringBuilder();
 
-        // ECMA-376 whitespace handling: a w:t (or w:delText) without xml:space="preserve" sheds its
-        // XML edge whitespace — space, tab, CR, LF, but NOT the no-break space, which is content.
-        // document_capture/01 authors "Footnote ref " unpreserved and Word sets the reference mark
-        // flush after "ref". Word's own writer stamps preserve wherever an edge space is real, so
-        // for Word-authored packages this is a no-op; only hand-authored XML hits it.
-        static string EffectiveText(string text, SpaceProcessingModeValues? space) =>
-            space == SpaceProcessingModeValues.Preserve ? text : text.Trim(' ', '\t', '\r', '\n');
+        // Where each model run's text sits in this w:r, for Run.Source. position counts what the
+        // children walked so far took (SourceRuns.Length, the count the review code splits a run by),
+        // and textStart is where the text being gathered began. Everything that takes a position
+        // either joins the gathered text or flushes it first, so a model run's characters are always
+        // consecutive positions.
+        var sourceRun = 0;
+        var stamped = runOrdinals?.TryGetValue(run, out sourceRun) == true;
+        var position = 0;
+        var textStart = 0;
+
+        RunSource? SourceAt(int start, bool atomic = false)
+        {
+            if (!stamped)
+            {
+                return null;
+            }
+
+            return new RunSource(sourceRun, start, atomic);
+        }
+
+        void GatherText(string text)
+        {
+            if (textBuilder.Length == 0)
+            {
+                textStart = position;
+            }
+
+            textBuilder.Append(text);
+        }
 
         void FlushText()
         {
@@ -11444,7 +11512,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     Text = text,
                     Properties = ApplyEastAsiaHint(GetProperties(), run.RunProperties?.GetFirstChild<RunFonts>(), text),
-                    HyperlinkUrl = hyperlinkUrl
+                    HyperlinkUrl = hyperlinkUrl,
+                    Source = SourceAt(textStart)
                 });
             textBuilder.Clear();
         }
@@ -11454,18 +11523,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             switch (child)
             {
                 case Text textElement:
-                    textBuilder.Append(EffectiveText(textElement.Text, textElement.Space?.Value).ReplaceSeparatorsWithSpace());
+                    GatherText(SourceRuns.EffectiveText(textElement.Text, textElement.Space?.Value).ReplaceSeparatorsWithSpace());
                     break;
                 // w:delText carries the text of a tracked deletion. It is a sibling type of w:t
                 // rather than a subclass, so without this a deleted run contributes nothing.
                 case DeletedText deletedText:
-                    textBuilder.Append(EffectiveText(deletedText.Text, deletedText.Space?.Value).ReplaceSeparatorsWithSpace());
+                    GatherText(SourceRuns.EffectiveText(deletedText.Text, deletedText.Space?.Value).ReplaceSeparatorsWithSpace());
                     break;
                 case SoftHyphen:
-                    textBuilder.Append(softHyphenChar);
+                    GatherText(softHyphen);
                     break;
                 case NoBreakHyphen:
-                    textBuilder.Append(nonBreakingHyphenChar);
+                    GatherText(nonBreakingHyphen);
                     break;
                 case TabChar:
                     FlushText();
@@ -11475,7 +11544,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             Text = "\t",
                             Properties = GetProperties(),
                             IsTab = true,
-                            HyperlinkUrl = hyperlinkUrl
+                            HyperlinkUrl = hyperlinkUrl,
+                            Source = SourceAt(position)
                         });
                     break;
                 // w:ptab — an absolute position tab. Carried through as a tab run with the position
@@ -11494,7 +11564,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 Leader = MapTabLeader(positionalTab.Leader?.InnerText),
                                 RelativeTo = MapPositionalTabBase(positionalTab.RelativeTo?.InnerText)
                             },
-                            HyperlinkUrl = hyperlinkUrl
+                            HyperlinkUrl = hyperlinkUrl,
+                            Source = SourceAt(position)
                         });
                     break;
                 // A w:footnoteReference / w:endnoteReference marks where a note is cited. The note
@@ -11523,7 +11594,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 VerticalAlignment = VerticalRunAlignment.Superscript
                             },
                             HyperlinkUrl = hyperlinkUrl,
-                            FootnoteReferenceId = footnoteKey
+                            FootnoteReferenceId = footnoteKey,
+                            Source = SourceAt(position, atomic: true)
                         });
                     break;
                 case EndnoteReference endnoteReference when endnoteReference.Id?.Value is { } endnoteId:
@@ -11544,7 +11616,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 VerticalAlignment = VerticalRunAlignment.Superscript
                             },
                             HyperlinkUrl = hyperlinkUrl,
-                            EndnoteReferenceId = endnoteKey
+                            EndnoteReferenceId = endnoteKey,
+                            Source = SourceAt(position, atomic: true)
                         });
                     break;
                 // A w:footnoteRef / w:endnoteRef inside a note's own body draws the note's number — the
@@ -11579,6 +11652,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         });
                     break;
             }
+
+            position += SourceRuns.Length(child);
         }
 
         FlushText();

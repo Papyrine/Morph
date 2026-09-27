@@ -2769,10 +2769,13 @@ Reviewer comments attached to document ranges.
 - **Spec**: [Comments](http://officeopenxml.com/WPcomments.php)
 - **Model**: `Comment` record (id, author, text, date, optional AnchorParagraphIndex); `ParsedDocument.Comments`
 - **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart` and matches each comment to the body paragraph that contains its `w:commentRangeStart`
-- **Render**: not drawn inline today — comment range markers pass through silently. The `AnchorParagraphIndex` on each `Comment` is enough for consumers to surface a margin indicator next to the right paragraph.
-- **Test**: `comments/`, spec test `CommentsTests`
+- **Render**: not drawn on the page — comment range markers pass through silently, as they do when Word prints without markup. The `AnchorParagraphIndex` on each `Comment` is enough for consumers to surface a margin indicator next to the right paragraph.
+- **Review**: the Blazor viewer lists comments as threads and highlights the text each is on; it adds, answers, rewords, resolves and deletes them. `DocumentReview` reads them (`ReviewComment`: thread, resolved state from `commentsExtended.xml`, the quoted text, the runs covered) and `ReviewEditor` writes them, both in `src/Morph/OpenXml/Review/`. A new comment is dated twice, as Word dates its own: the author's clock in `w:date`, and the UTC time in `commentsExtensible.xml` (see the probe notes under Tracked Changes).
+- **Test**: `comments/`, spec tests `CommentsTests`, `DocumentReviewTests`, `ReviewEditorTests`
 
-> **Contributors**: Range END isn't tracked separately because the visual gap between START and END is what consumers usually need (e.g. highlighting a span); for that the next step is recording per-run offsets, not just paragraph-level anchors.
+> **Contributors**: `Comment` keeps only the paragraph its range starts in, which is all an exporter needs. A range's exact extent is `ReviewComment.Runs`: the ordinals of the main-part `w:r` elements between its marks. A range always starts and ends between runs in the file — Word splits a run where a comment begins — so run ordinals say exactly what is covered, and `ReviewEditor.AddComment` splits a run the same way (`Split`) when a new comment starts mid-run.
+>
+> Tying a range to the PAGE is the viewer's business, not the layout engine's. The parser stamps each model run with the `w:r` it came from and the position within it (`Run.Source`, only under `captureSources`; `SourceRuns` defines the coordinates), and `SourceIndex` in `Morph.Blazor` follows each laid-out paragraph's lines back through its runs. The engine itself carries no source link, so none of this can move a pixel: the corpus renders byte-identically with and without it.
 
 
 #### Tracked Changes (Revisions) `DONE`
@@ -2782,9 +2785,11 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 - **OOXML**: `w:ins` (insertions), `w:del` (deletions), `w:rPrChange` (formatting changes)
 - **Spec**: [Revisions](http://officeopenxml.com/WPrevisions.php)
 - **Model**: `TrackedChange` record (id, author, date, type, text); `ParsedDocument.TrackedChanges`
-- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. The paragraph child switch recurses into both `InsertedRun` and `DeletedRun`, tagging their runs with a `RevisionMark` that `ParseRun` layers onto the resolved run properties.
-- **Render**: **markup view**, which is what Word PRINTS — an insertion underlined, a deletion struck through, both in the revision colour. `w:delText` is read alongside `w:t` (it is a sibling type, not a subclass, so a deleted run yielded no text at all before it was handled).
-- **Test**: `tracked_changes/`, spec test `TrackedChangesTests`
+- **OOXML (moves)**: `w:moveFrom` / `w:moveTo`, tied by the `w:name` of the `w:moveFromRangeStart` / `w:moveToRangeStart` each sits in
+- **Parse**: `DocumentParser.ExtractTrackedChanges()` walks `w:ins` and `w:del` descendants for the model record. `ParseRun` reads each run's `RevisionMark` off the markup around it (`RevisionOf`: the nearest `w:ins` / `w:del` / `w:moveTo` / `w:moveFrom` between the run and its paragraph) and layers it onto the resolved run properties, so a revision is drawn wherever the run was reached from — the paragraph, a content control, a hyperlink.
+- **Render**: **markup view**, which is what Word PRINTS — an insertion underlined, a deletion struck through, both in the revision colour. `w:delText` is read alongside `w:t` (it is a sibling type, not a subclass, so a deleted run yielded no text at all before it was handled). Moved text is drawn as a deletion where it was and an insertion where it went.
+- **Review**: the Blazor viewer lists tracked changes and accepts or rejects them, singly or all at once. `DocumentReview` gathers the elements of one edit into one `ReviewChange` (adjacent revisions of one kind by one author, the paragraph marks between them included), and `ReviewEditor` settles them — both in `src/Morph/OpenXml/Review/`.
+- **Test**: `tracked_changes/`, spec tests `TrackedChangesTests`, `RevisionMarkTests`, `DocumentReviewTests`, `ReviewEditorTests`
 
 > **Contributors**: Rendering "as accepted" (dropping deletions) was the original choice and it is **wrong against Word**: Word's own render of `tracked_changes/01` shows "removed." struck through in red on the page, so accepting the change silently deleted ink Word draws. The revision colour is `D13438`, sampled from that render at 150 DPI; Word cycles a palette per author and only the first entry is modelled, which covers the whole corpus (exactly one document carries tracked changes). The model record on `ParsedDocument.TrackedChanges` is unaffected either way, so a consumer that wants the accepted text still has it.
 >
@@ -2793,7 +2798,77 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 > line box, in all three painters — Word-measured on `tracked_changes/01` (a ~1px column at
 > x=75 = 36pt inside the 72pt margin at 150 DPI, spanning the revised lines).
 >
-> Not yet rendered: `w:rPrChange` (run-property revision history).
+> Not yet rendered: `w:rPrChange` (run-property revision history). Word sets a move apart from an
+> insertion and a deletion — green, with doubled rules — and that distinction is not modelled either.
+>
+> The mark used to come from HOW the parser reached a run: the paragraph's `w:ins` and `w:del` cases
+> passed it down, and every other path passed nothing. So a revision inside a content control was
+> drawn as plain text, one inside a hyperlink was dropped (the link read only its direct `w:r`
+> children), and moved text was not drawn at either end (no case matched `w:moveFrom` / `w:moveTo`).
+> The bundled sample keeps its body text in content controls, which is how it surfaced: the viewer's
+> review pane listed a deletion the page showed as ordinary text. No corpus document was affected —
+> `tracked_changes/01` is the only one with revisions, and its are direct children of the paragraph.
+>
+> **What accepting and rejecting do**, where it is not obvious (`ReviewEditor`):
+>
+> | revision | accepted | rejected |
+> | --- | --- | --- |
+> | insertion, move destination | the wrapper goes, the text stays | the text goes |
+> | deletion, move source | the text goes | the wrapper goes, and `w:delText` becomes `w:t` again |
+> | a paragraph mark inserted | the mark stays | the paragraph joins the next |
+> | a paragraph mark deleted | the paragraph joins the next | the mark stays |
+> | formatting (`w:rPrChange`, `w:pPrChange`, `w:sectPrChange`, table properties) | the record of the old formatting goes | the old formatting is put back |
+> | a table row or cell inserted | the mark goes | the row or cell goes, and a table left without rows with it |
+> | a table row or cell deleted | the row or cell goes | the mark goes |
+>
+> **Word-probed 2026-09-27** (Word 16 over COM — `Documents.Open` read-only, then the object model;
+> the fixtures are the documents `ReviewEditorTests` builds):
+>
+> - **Joined paragraphs keep the FOLLOWING paragraph's formatting.** A centred `first ` whose mark is
+>   a tracked deletion, followed by a right-aligned `second`: after `Revisions.AcceptAll()` Word has
+>   one paragraph `first second`, `Alignment = 2` (right). The same pair with the mark a tracked
+>   INSERTION, after `RejectAll()`: the same paragraph, right-aligned again. Formatting lives in the
+>   paragraph mark, and the mark left standing is the second one's. The first implementation kept
+>   the first paragraph's formatting — reasoned, not measured, and wrong.
+> - **A paragraph deleted whole leaves its neighbours as they were** — `keep` / (deleted, centred) /
+>   `after` (right) accepts to `keep` and a right-aligned `after`. This follows from the rule above
+>   and needs no case of its own.
+> - **Word counts the same changes.** Insertions `one ` and a bold `two` with an inserted paragraph
+>   mark and `three` in the next paragraph, then `alone`, then another author's `bob` and their
+>   deleted `gone`: `Revisions.Count` is 4 — `one two¶three`, `alone`, `bob`, `gone` — which is what
+>   `DocumentReview` reads. Adjacent revisions of one kind by one author are one change, across
+>   formatting and across a revised paragraph mark; unrevised text, another author, or a change of
+>   kind ends it.
+> - **Word reads back what `ReviewEditor` writes**, with no repair prompt: a comment across a
+>   revision boundary, a two-paragraph reply, a resolved thread (`Comment.Done`), authors, initials
+>   and dates, before and after the document's changes are accepted or rejected.
+> - **`w:date` is the author's wall clock, whatever it is stamped.** A comment Word made at 21:43
+>   in a UTC+10 zone is written `w:date="2026-09-27T21:43:00Z"` — local time, with a `Z` that is
+>   not true — and the moment itself goes in `commentsExtensible.xml` as
+>   `w16cex:dateUtc="2026-09-27T11:43:00Z"`, tied to the comment through the `durableId` that
+>   `commentsIds.xml` gives its last paragraph's `w14:paraId`. Read back (`Comment.Date`):
+>
+>   | `w:date` | Word reads |
+>   | --- | --- |
+>   | `2026-01-15T12:00:00Z` | 12:00 |
+>   | `2026-01-15T12:00:00` | 12:00 |
+>   | `2026-01-15T12:00:00+02:00` | 10:00 — its UTC time, at face value |
+>   | `12:00:00Z` beside a `dateUtc` of 02:00 or of 05:00 | 12:00 either way |
+>
+>   So `ReviewEditor` takes a `DateTimeOffset` and writes both, and `RevisionElements.ParseDate`
+>   reads a date the way the table does. The first implementation wrote the right form from the
+>   wrong clock: the viewer asked .NET for the time, which in a WebAssembly app built without
+>   time zone data (`BlazorEnableTimeZoneSupport` off, as in `Morph.Web`) is UTC, and Word showed
+>   a comment just made as made ten hours ago. The viewer now asks the browser for its offset.
+>   Word keeps minutes only — seconds written are read, and dropped when it saves.
+> - **Word keeps the UTC date only where every comment has one to keep.** Given a document whose
+>   one older comment had no `w14:paraId` and no entry in `commentsIds.xml`, Word read the new
+>   comment correctly but, on saving, gave every comment new ids and wrote no
+>   `commentsExtensible.xml` at all. Where the comment parts were Word's own, or there were none
+>   before, the ids and the dates `ReviewEditor` wrote came back out of Word unchanged.
+>
+> A comment whose reference mark goes with rejected or deleted text is deleted with it. One that
+> only starts or ends in that text keeps the rest of its range.
 
 
 ### 11.3 Footnotes & Endnotes

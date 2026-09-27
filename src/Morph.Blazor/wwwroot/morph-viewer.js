@@ -6,8 +6,14 @@
 //
 // Every push from .NET carries the document id load() was given; anything stamped with an older id is
 // dropped, so a render finishing after a new file opened never lands on the new document.
+//
+// Review (a Word document's comments and tracked changes) follows the same split. .NET knows what the
+// comments are and which text each covers, as offsets into a page's text — the offsets find results come
+// in; this paints them, reports what the reader has selected in those same offsets, and says which
+// character a click landed on. An edit lays the document out afresh, and reload() swaps the new pages in
+// under the reader without moving them.
 
-import { ensureFonts, buildTextLayer, clearTextLayer, textRange, isBuilt } from './morph-text.js';
+import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt } from './morph-text.js';
 
 // PDF.js's zoom steps.
 const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
@@ -32,6 +38,7 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
     // Plain closures, so the calls work however the interop layer binds `this`.
     return {
         load: (documentId, sizes, texts, pageIndex, zoom, pageNoun) => viewer.load(documentId, sizes, texts, pageIndex, zoom, pageNoun),
+        reload: (documentId, sizes, texts) => viewer.reload(documentId, sizes, texts),
         unload: () => viewer.unload(),
         setPageImage: (documentId, pageIndex, png, dpi) => viewer.setPageImage(documentId, pageIndex, png, dpi),
         setThumbnail: (documentId, pageIndex, png) => viewer.setThumbnail(documentId, pageIndex, png),
@@ -44,6 +51,11 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         toggleSidebar: open => viewer.toggleSidebar(open),
         setFindResults: (documentId, matches, current) => viewer.setFindResults(documentId, matches, current),
         clearFind: () => viewer.clearFind(),
+        setReviewMode: on => viewer.setReviewMode(on),
+        setReview: (documentId, comments, current, scroll) => viewer.setReview(documentId, comments, current, scroll),
+        revealReviewCard: key => viewer.revealReviewCard(key),
+        // Minutes east of UTC, which is the sign .NET's offsets take and the opposite of the browser's.
+        zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
         addPrintPage: (pageIndex, png) => viewer.addPrintPage(pageIndex, png),
         finishPrint: () => viewer.finishPrint(),
@@ -138,6 +150,10 @@ class Viewer {
         this.visibleThumbs = new Set();
         this.find = null;
         this.print = null;
+        this.review = null;
+        this.reviewMode = false;
+        this.selectionTimer = 0;
+        this.lastSelection = '';
 
         this.controlDown = false;
         this.wheelSteps = 0;
@@ -193,6 +209,7 @@ class Viewer {
             this.controlDown = false;
         }, { signal });
         document.addEventListener('fullscreenchange', () => this.onFullscreenChange(), { signal });
+        document.addEventListener('selectionchange', () => this.onSelectionChange(), { signal });
 
         // Dropping a file anywhere on the viewer opens it, through the same file input the Open button uses.
         this.root.addEventListener('dragover', event => {
@@ -253,70 +270,19 @@ class Viewer {
         this.textCharacters = 0;
 
         const count = sizes.length / 2;
-        const noun = capitalise(this.pageNoun);
         const pages = document.createDocumentFragment();
         const thumbs = document.createDocumentFragment();
         for (let index = 0; index < count; index++) {
-            const width = sizes[2 * index];
-            const height = sizes[2 * index + 1];
-
-            const element = document.createElement('div');
-            element.className = 'viewer-page';
-            element.dataset.pageNumber = String(index + 1);
-            element.setAttribute('role', 'group');
-            element.setAttribute('aria-label', `${noun} ${index + 1} of ${count}`);
-            element.style.cssText = `--pw:${width};--ph:${height}`;
-            const sheet = document.createElement('div');
-            sheet.className = 'viewer-sheet';
-            const image = document.createElement('img');
-            image.className = 'viewer-image';
-            image.alt = '';
-            image.draggable = false;
-            const layer = document.createElement('div');
-            layer.className = 'text-layer';
-            sheet.append(image, layer);
-            element.append(sheet);
-            pages.append(element);
-
-            const thumb = document.createElement('button');
-            thumb.type = 'button';
-            thumb.className = 'viewer-thumb';
-            thumb.dataset.pageIndex = String(index);
-            thumb.setAttribute('aria-label', `${noun} ${index + 1}`);
-            const thumbSheet = document.createElement('span');
-            thumbSheet.className = 'viewer-thumb-sheet';
-            thumbSheet.style.cssText = `--pw:${width};--ph:${height}`;
-            const thumbImage = document.createElement('img');
-            thumbImage.alt = '';
-            thumbImage.draggable = false;
-            thumbSheet.append(thumbImage);
-            const label = document.createElement('span');
-            label.className = 'viewer-thumb-label';
-            label.textContent = String(index + 1);
-            thumb.append(thumbSheet, label);
-            thumbs.append(thumb);
-
-            this.pages.push({
-                index,
-                width,
-                height,
-                element,
-                image,
-                layer,
-                url: null,
-                dpi: 0,
-                failed: false,
-                textBuilt: false,
-                thumb: { element: thumb, image: thumbImage, url: null, failed: false }
-            });
+            const page = this.createPage(index, sizes[2 * index], sizes[2 * index + 1], count);
+            pages.append(page.element);
+            thumbs.append(page.thumb.element);
+            this.pages.push(page);
         }
 
         this.scroller.replaceChildren(pages);
         this.thumbList.replaceChildren(thumbs);
         for (const page of this.pages) {
-            this.visibleObserver.observe(page.element);
-            this.nearObserver.observe(page.element);
-            this.thumbObserver.observe(page.thumb.element);
+            this.observe(page);
         }
 
         this.root.dataset.pageCount = String(count);
@@ -328,23 +294,195 @@ class Viewer {
         this.markCurrent();
         this.notifyState();
         this.scheduleQueue(0);
+        this.startText(documentId);
+    }
 
+    createPage(index, width, height, count) {
+        const noun = capitalise(this.pageNoun);
+        const element = document.createElement('div');
+        element.className = 'viewer-page';
+        element.dataset.pageNumber = String(index + 1);
+        element.setAttribute('role', 'group');
+        element.setAttribute('aria-label', `${noun} ${index + 1} of ${count}`);
+        element.style.cssText = `--pw:${width};--ph:${height}`;
+        const sheet = document.createElement('div');
+        sheet.className = 'viewer-sheet';
+        const image = document.createElement('img');
+        image.className = 'viewer-image';
+        image.alt = '';
+        image.draggable = false;
+        const layer = document.createElement('div');
+        layer.className = 'text-layer';
+        sheet.append(image, layer);
+        element.append(sheet);
+
+        const thumb = document.createElement('button');
+        thumb.type = 'button';
+        thumb.className = 'viewer-thumb';
+        thumb.dataset.pageIndex = String(index);
+        thumb.setAttribute('aria-label', `${noun} ${index + 1}`);
+        const thumbSheet = document.createElement('span');
+        thumbSheet.className = 'viewer-thumb-sheet';
+        thumbSheet.style.cssText = `--pw:${width};--ph:${height}`;
+        const thumbImage = document.createElement('img');
+        thumbImage.alt = '';
+        thumbImage.draggable = false;
+        thumbSheet.append(thumbImage);
+        const label = document.createElement('span');
+        label.className = 'viewer-thumb-label';
+        label.textContent = String(index + 1);
+        thumb.append(thumbSheet, label);
+
+        return {
+            index,
+            width,
+            height,
+            element,
+            image,
+            layer,
+            url: null,
+            dpi: 0,
+            failed: false,
+            textBuilt: false,
+            thumb: { element: thumb, sheet: thumbSheet, image: thumbImage, url: null, failed: false, stale: false }
+        };
+    }
+
+    observe(page) {
+        this.visibleObserver.observe(page.element);
+        this.nearObserver.observe(page.element);
+        this.thumbObserver.observe(page.thumb.element);
+    }
+
+    // Text layers wait for the fonts they are measured in.
+    startText(documentId) {
         ensureFonts().then(() => {
             if (this.documentId !== documentId) {
                 return;
             }
 
             this.fontsLoaded = true;
+            let built = false;
             for (const index of this.near) {
-                this.ensureText(this.pages[index]);
+                built = this.ensureText(this.pages[index]) || built;
+            }
+
+            if (built) {
+                this.repaint();
             }
 
             this.scheduleText();
         });
     }
 
+    // The document changed under the reader — a comment added, a change accepted — and was laid out
+    // again. The pages that are still there keep their elements and, until the new render arrives, the
+    // image they show: an edit rarely moves more than a line, so swapping in place reads as the page
+    // updating rather than the document reopening. The view stays where it was.
+    reload(documentId, sizes, texts) {
+        if (!this.pages.length) {
+            this.load(documentId, sizes, texts, 0, this.zoomMode, this.pageNoun);
+            return;
+        }
+
+        const anchor = this.centre();
+        const saved = this.capture(anchor);
+        this.clearFind();
+        this.clearReview();
+        this.cancelText();
+        this.documentId = documentId;
+        this.texts = texts;
+        this.textCharacters = 0;
+
+        const count = sizes.length / 2;
+        const noun = capitalise(this.pageNoun);
+        for (let index = 0; index < count; index++) {
+            const width = sizes[2 * index];
+            const height = sizes[2 * index + 1];
+            const page = this.pages[index];
+            if (!page) {
+                const added = this.createPage(index, width, height, count);
+                this.pages.push(added);
+                this.scroller.append(added.element);
+                this.thumbList.append(added.thumb.element);
+                this.observe(added);
+                continue;
+            }
+
+            page.width = width;
+            page.height = height;
+            page.element.style.cssText = `--pw:${width};--ph:${height}`;
+            page.element.setAttribute('aria-label', `${noun} ${index + 1} of ${count}`);
+            page.thumb.sheet.style.cssText = `--pw:${width};--ph:${height}`;
+
+            // Shown until it is replaced, and first in line to be.
+            page.dpi = 0;
+            page.failed = false;
+            page.thumb.stale = page.thumb.url !== null;
+            page.element.classList.remove('viewer-page-failed');
+            page.element.querySelector('.viewer-page-message')?.remove();
+            delete page.element.dataset.renderedDpi;
+            if (page.textBuilt) {
+                clearTextLayer(page.layer);
+                page.textBuilt = false;
+            }
+
+            delete page.element.dataset.textState;
+        }
+
+        for (const page of this.pages.splice(count)) {
+            this.visibleObserver.unobserve(page.element);
+            this.nearObserver.unobserve(page.element);
+            this.thumbObserver.unobserve(page.thumb.element);
+            this.visible.delete(page.index);
+            this.near.delete(page.index);
+            this.visibleThumbs.delete(page.index);
+            if (page.textBuilt) {
+                clearTextLayer(page.layer);
+            }
+
+            if (page.url) {
+                URL.revokeObjectURL(page.url);
+            }
+
+            if (page.thumb.url) {
+                URL.revokeObjectURL(page.thumb.url);
+            }
+
+            page.element.remove();
+            page.thumb.element.remove();
+        }
+
+        this.root.dataset.pageCount = String(count);
+        this.current = clamp(this.current, 0, Math.max(0, count - 1));
+        if (this.zoomMode !== 'custom') {
+            this.scale = this.fitScale(this.zoomMode);
+        }
+
+        this.applyGeometry();
+        if (saved && saved.index < count) {
+            this.restore(saved, anchor);
+        } else {
+            this.scrollToPage(this.current);
+        }
+
+        this.markCurrent();
+        this.notifyState();
+        this.scheduleQueue(0);
+        this.startText(documentId);
+    }
+
+    cancelText() {
+        if (this.textHandle) {
+            ('cancelIdleCallback' in window ? cancelIdleCallback : clearTimeout)(this.textHandle);
+            this.textHandle = 0;
+        }
+    }
+
     unload() {
         this.clearFind();
+        this.clearReview();
+        this.lastSelection = '';
         this.visibleObserver.disconnect();
         this.nearObserver.disconnect();
         this.thumbObserver.disconnect();
@@ -362,11 +500,7 @@ class Viewer {
             }
         }
 
-        if (this.textHandle) {
-            ('cancelIdleCallback' in window ? cancelIdleCallback : clearTimeout)(this.textHandle);
-            this.textHandle = 0;
-        }
-
+        this.cancelText();
         this.pages = [];
         this.texts = [];
         this.visible.clear();
@@ -390,6 +524,7 @@ class Viewer {
         this.abort.abort();
         this.resizeObserver.disconnect();
         clearTimeout(this.queueTimer);
+        clearTimeout(this.selectionTimer);
     }
 
     // Images pushed from .NET
@@ -440,6 +575,7 @@ class Viewer {
         }
 
         page.thumb.url = url;
+        page.thumb.stale = false;
 
         // A page whose full image was evicted shows the thumbnail meanwhile.
         if (!page.url) {
@@ -548,7 +684,7 @@ class Viewer {
         if (this.sidebarOpen && !this.presenting) {
             for (const index of [...this.visibleThumbs].sort((first, second) => first - second)) {
                 const page = this.pages[index];
-                if (page && !page.thumb.url && !page.failed) {
+                if (page && (!page.thumb.url || page.thumb.stale) && !page.failed) {
                     jobs.push(1, index, this.thumbnailDpi(page));
                 }
             }
@@ -646,8 +782,8 @@ class Viewer {
                 }
             }
 
-            if (built && this.find) {
-                this.paintFind(false);
+            if (built) {
+                this.repaint();
             }
 
             this.updateBusy();
@@ -881,15 +1017,26 @@ class Viewer {
     }
 
     onNear(entries) {
+        let built = false;
         for (const entry of entries) {
             const index = Number(entry.target.dataset.pageNumber) - 1;
             if (entry.isIntersecting) {
                 this.near.add(index);
-                this.ensureText(this.pages[index]);
+                built = this.ensureText(this.pages[index]) || built;
             } else {
                 this.near.delete(index);
             }
         }
+
+        if (built) {
+            this.repaint();
+        }
+    }
+
+    // A highlight can only be painted in a layer that is built; each one that gets built may hold some.
+    repaint() {
+        this.paintFind(false);
+        this.paintReview(false);
     }
 
     onThumbs(entries) {
@@ -1102,6 +1249,13 @@ class Viewer {
         if (thumb && this.thumbList.contains(thumb)) {
             this.goToPage(Number(thumb.dataset.pageIndex));
             return;
+        }
+
+        if (this.reviewMode && !this.presenting) {
+            const layer = target.closest('.text-layer');
+            if (layer && isBuilt(layer)) {
+                this.hitTest(event, layer);
+            }
         }
 
         // A click or tap advances a presentation — unless it ended a swipe, which already moved.
@@ -1435,6 +1589,203 @@ class Viewer {
         }
 
         this.scheduleQueue(0);
+    }
+
+    // Review: .NET sends the comments' ranges and the chosen item's as (page, start, length) triples,
+    // like find results, and this paints them. While review is on it also reports what the reader has
+    // selected, as [first page, start, last page, end] in the same offsets, and the character a click
+    // landed on.
+
+    setReviewMode(on) {
+        this.reviewMode = on;
+        this.lastSelection = '';
+        if (on) {
+            this.root.dataset.review = 'open';
+            this.onSelectionChange();
+        } else {
+            delete this.root.dataset.review;
+            this.clearReview();
+        }
+
+        // The pane takes its width from the pages.
+        this.onResize();
+    }
+
+    setReview(documentId, comments, current, scroll) {
+        if (documentId !== this.documentId) {
+            return;
+        }
+
+        this.review = { comments, current };
+        if (current.length) {
+            this.ensureText(this.pages[current[0]]);
+        }
+
+        this.paintReview(scroll);
+    }
+
+    clearReview() {
+        this.review = null;
+        if (typeof CSS !== 'undefined' && CSS.highlights) {
+            CSS.highlights.delete('morph-comment');
+            CSS.highlights.delete('morph-review-current');
+        }
+    }
+
+    reviewRanges(triples) {
+        const ranges = [];
+        for (let index = 0; index + 2 < triples.length; index += 3) {
+            const page = this.pages[triples[index]];
+            if (!page || !isBuilt(page.layer)) {
+                continue;
+            }
+
+            const range = textRange(page.layer, triples[index + 1], triples[index + 2]);
+            if (range) {
+                ranges.push(range);
+            }
+        }
+
+        return ranges;
+    }
+
+    paintReview(scroll) {
+        const review = this.review;
+        if (!review) {
+            return;
+        }
+
+        if (typeof CSS !== 'undefined' && CSS.highlights && typeof Highlight !== 'undefined') {
+            // Under find's highlights, which say what the reader is looking for right now.
+            const comments = new Highlight(...this.reviewRanges(review.comments));
+            comments.priority = -2;
+            const current = new Highlight(...this.reviewRanges(review.current));
+            current.priority = -1;
+            CSS.highlights.set('morph-comment', comments);
+            CSS.highlights.set('morph-review-current', current);
+        }
+
+        if (!scroll || review.current.length < 3) {
+            return;
+        }
+
+        const page = this.pages[review.current[0]];
+        if (!page) {
+            return;
+        }
+
+        // A place rather than a stretch — a comment on a point — still needs a box to scroll to.
+        const range = isBuilt(page.layer)
+            ? textRange(page.layer, review.current[1], Math.max(1, review.current[2]))
+            : null;
+        if (range) {
+            this.revealMatch(range, page);
+        } else {
+            this.goToPage(page.index);
+        }
+    }
+
+    revealReviewCard(key) {
+        for (const card of this.root.querySelectorAll('.review-card[data-review-key]')) {
+            if (card.dataset.reviewKey === key) {
+                card.scrollIntoView({ block: 'nearest' });
+                return;
+            }
+        }
+    }
+
+    onSelectionChange() {
+        if (!this.reviewMode) {
+            return;
+        }
+
+        clearTimeout(this.selectionTimer);
+        this.selectionTimer = setTimeout(() => this.sendSelection(), 120);
+    }
+
+    sendSelection() {
+        if (!this.reviewMode || this.abort.signal.aborted) {
+            return;
+        }
+
+        const selected = this.selectedText();
+        const key = selected ? selected.join(',') : '';
+        if (key === this.lastSelection) {
+            return;
+        }
+
+        this.lastSelection = key;
+        this.dotNet.invokeMethodAsync('OnReviewSelection', selected ?? []).catch(() => {});
+    }
+
+    // The selection as [first page, start, last page, end], or null when none of it is page text.
+    selectedText() {
+        const selection = getSelection();
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+            return null;
+        }
+
+        const range = selection.getRangeAt(0);
+        if (!range.intersectsNode(this.scroller)) {
+            return null;
+        }
+
+        let first = null;
+        let last = null;
+        for (const page of this.pages) {
+            if (isBuilt(page.layer) && range.intersectsNode(page.layer)) {
+                first ??= page;
+                last = page;
+            }
+        }
+
+        if (!first) {
+            return null;
+        }
+
+        // An end outside the layers — a selection dragged past the last page, or made by Ctrl+A — takes
+        // in the whole of the page it reaches.
+        const start = first.layer.contains(range.startContainer)
+            ? textOffset(first.layer, range.startContainer, range.startOffset)
+            : 0;
+        const end = last.layer.contains(range.endContainer)
+            ? textOffset(last.layer, range.endContainer, range.endOffset)
+            : textLength(last.layer);
+        if (start < 0 || end < 0 || (first === last && end <= start)) {
+            return null;
+        }
+
+        return [first.index, start, last.index, end];
+    }
+
+    // A click puts the caret beside the nearest character even when it lands on blank paper, so the
+    // character counts only if the click was on it.
+    hitTest(event, layer) {
+        const selection = getSelection();
+        const page = this.pages.find(_ => _.layer === layer);
+        if (!page || !selection || selection.rangeCount === 0 || !selection.isCollapsed) {
+            return;
+        }
+
+        const offset = textOffset(layer, selection.anchorNode, selection.anchorOffset);
+        if (offset < 0) {
+            return;
+        }
+
+        for (const candidate of [offset, offset - 1]) {
+            if (candidate < 0 || candidate >= textLength(layer)) {
+                continue;
+            }
+
+            const range = textRange(layer, candidate, 1);
+            for (const box of range?.getClientRects() ?? []) {
+                if (event.clientX >= box.left - 1 && event.clientX <= box.right + 1 &&
+                    event.clientY >= box.top - 1 && event.clientY <= box.bottom + 1) {
+                    this.dotNet.invokeMethodAsync('OnReviewHit', page.index, candidate).catch(() => {});
+                    return;
+                }
+            }
+        }
     }
 
     // Printing: .NET renders every page at the print resolution and streams them here; the pages go into

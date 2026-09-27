@@ -11,14 +11,19 @@ namespace Morph;
 /// </summary>
 public sealed class PageTextLayer
 {
-    internal PageTextLayer(string json, string text)
+    internal PageTextLayer(string json, string text, IReadOnlyList<LayerSource>? sources = null)
     {
         Json = json;
         Text = text;
+        Sources = sources ?? [];
     }
 
     // The positioned runs, in points, for morph-text.js. See TextLayerBuilder for the format.
     internal string Json { get; }
+
+    // Where in the document each stretch of Text came from, in the order it appears in Text. Empty
+    // unless the page was laid out from a parse that recorded it, which only the viewer asks for.
+    internal IReadOnlyList<LayerSource> Sources { get; }
 
     /// <summary>
     /// The page's text in reading order, exactly as selecting all of the layer and copying it yields:

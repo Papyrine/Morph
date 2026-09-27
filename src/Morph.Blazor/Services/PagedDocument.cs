@@ -25,6 +25,11 @@ sealed class PagedDocument : IDisposable
     readonly ImageExportOptions options;
     readonly PageTextLayer?[] textLayers;
 
+    // Where the placed text came from, read off the whole layout on the first text layer asked for: a
+    // paragraph that runs over a page break is followed from the page it starts on.
+    SourceIndex? sources;
+    bool sourcesBuilt;
+
     // Most recently used last.
     readonly List<(int Dpi, ImageSharpRenderContext Context)> contexts = [];
 
@@ -44,8 +49,12 @@ sealed class PagedDocument : IDisposable
     /// Parses and paginates <paramref name="bytes"/>, resolving fonts against
     /// <paramref name="fontDirectory"/> with every unknown family mapped to Aptos — the same options every
     /// other conversion in this package uses (<see cref="ConversionService.ImageOptions"/>).
+    ///
+    /// <paramref name="traceSources"/> has a Word document's text layers say where in the file their text
+    /// came from (<see cref="PageTextLayer.Sources"/>), which ties the viewer's comments and tracked
+    /// changes to the page. It changes nothing that is drawn, and a preview has no use for it.
     /// </summary>
-    public static PagedDocument Open(byte[] bytes, InputFormat source, string fontDirectory)
+    public static PagedDocument Open(byte[] bytes, InputFormat source, string fontDirectory, bool traceSources = false)
     {
         // The DPI is irrelevant to parsing and layout; each render supplies its own.
         var options = ConversionService.ImageOptions(96, fontDirectory);
@@ -56,7 +65,7 @@ sealed class PagedDocument : IDisposable
         using var stream = new MemoryStream(bytes);
         var document = source switch
         {
-            InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize),
+            InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources),
             InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
             InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont),
             _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown input format.")
@@ -78,8 +87,35 @@ sealed class PagedDocument : IDisposable
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            return textLayers[index] ??= TextLayerBuilder.Build(laidOut.Pages[index]);
+            return textLayers[index] ??= TextLayerBuilder.Build(laidOut.Pages[index], SourcesLocked());
         }
+    }
+
+    /// <summary>
+    /// Where the pages' text came from in the file; null for a workbook or a deck, and for a document
+    /// with nothing on its pages to trace.
+    /// </summary>
+    public SourceIndex? Sources
+    {
+        get
+        {
+            lock (gate)
+            {
+                ObjectDisposedException.ThrowIf(disposed, this);
+                return SourcesLocked();
+            }
+        }
+    }
+
+    SourceIndex? SourcesLocked()
+    {
+        if (!sourcesBuilt)
+        {
+            sources = SourceIndex.Build(laidOut);
+            sourcesBuilt = true;
+        }
+
+        return sources;
     }
 
     /// <summary>Paints one page (zero-based <paramref name="index"/>) at <paramref name="dpi"/> to a PNG.</summary>

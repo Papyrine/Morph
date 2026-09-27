@@ -13,6 +13,11 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask LoadAsync(int documentId, double[] sizesPoints, string[] textLayers, int pageIndex, string zoom, string pageNoun) =>
         controller.InvokeVoidAsync("load", documentId, sizesPoints, textLayers, pageIndex, zoom, pageNoun);
 
+    // The same document after an edit, laid out again: the pages are swapped in place and the view stays
+    // where it was.
+    public ValueTask ReloadAsync(int documentId, double[] sizesPoints, string[] textLayers) =>
+        controller.InvokeVoidAsync("reload", documentId, sizesPoints, textLayers);
+
     public ValueTask UnloadAsync() =>
         controller.InvokeVoidAsync("unload");
 
@@ -53,6 +58,23 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
 
     public ValueTask ClearFindAsync() =>
         controller.InvokeVoidAsync("clearFind");
+
+    // While review is on, the script paints what SetReviewAsync sends and reports the reader's selection
+    // (OnReviewSelection) and the character a click lands on (OnReviewHit).
+    public ValueTask SetReviewModeAsync(bool on) =>
+        controller.InvokeVoidAsync("setReviewMode", on);
+
+    // Flattened (page, start, length) triples, as find results are: every comment's range, and the
+    // ranges of the item the reader has chosen, which scroll brings into view.
+    public ValueTask SetReviewAsync(int documentId, int[] comments, int[] current, bool scroll) =>
+        controller.InvokeVoidAsync("setReview", documentId, comments, current, scroll);
+
+    public ValueTask RevealReviewCardAsync(string key) =>
+        controller.InvokeVoidAsync("revealReviewCard", key);
+
+    // The reader's time zone, in minutes east of UTC.
+    public ValueTask<int> ZoneOffsetAsync() =>
+        controller.InvokeAsync<int>("zoneOffset");
 
     public ValueTask BeginPrintAsync(double[] sizesPoints) =>
         controller.InvokeVoidAsync("beginPrint", sizesPoints);

@@ -107,6 +107,13 @@ sealed class Run
     public string? PageFieldNumberFormat { get; init; }
 
     /// <summary>
+    /// The position in the main document part this run's text was read from, when the parser was asked
+    /// to record it; null otherwise, and for a run the parser synthesised (a line break, a field result,
+    /// a checkbox glyph). Layout never reads it.
+    /// </summary>
+    public RunSource? Source { get; init; }
+
+    /// <summary>
     /// Returns a copy of this run with <see cref="Text"/> replaced and the page-field marker
     /// cleared (the text is now the resolved literal value). Used by the renderers to substitute
     /// a live page number in place of a <see cref="PageField"/> run's cached text.
@@ -145,7 +152,8 @@ sealed class Run
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
             PageField = PageField,
-            PageFieldNumberFormat = PageFieldNumberFormat
+            PageFieldNumberFormat = PageFieldNumberFormat,
+            Source = Source
         };
 
     public Run WithText(string text) =>
@@ -175,6 +183,7 @@ sealed class Run
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,
-            InlineShapeGroup = InlineShapeGroup
+            InlineShapeGroup = InlineShapeGroup,
+            Source = Source
         };
 }

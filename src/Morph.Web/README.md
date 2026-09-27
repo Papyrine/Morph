@@ -24,7 +24,8 @@ is three lines — the home page hosts the converter:
 ```
 
 and `/view` the package's `MorphViewer`, which shows a file the way a browser shows a PDF — pages rendered
-on demand with selectable text, a thumbnail sidebar, zoom, find, presentation mode and printing:
+on demand with selectable text, a thumbnail sidebar, zoom, find, presentation mode and printing, and a
+review pane for a Word document's comments and tracked changes:
 
 ```razor
 @page "/view"
@@ -170,6 +171,10 @@ they also drive the published app end to end.
   rotation and thumbnails; find across a line break; download returns the original bytes; print lays out
   every page and cleans up (the dialog stubbed); and every line of the layer sits on its drawn position at
   100% and 200%.
+- **Playwright** review tests (`SnapshotTests.Review.cs`): a comment's range is highlighted on the page;
+  accepting every change redraws the page and downloads the edited file, and undo brings the changes
+  back; text selected on a page becomes a comment on exactly that text; a click on revised text chooses
+  its card. These are the only tests the viewer script's review code runs under.
 
 To reset a snapshot after an intentional change, review then rename the `*.received.*` to `*.verified.*`.
 

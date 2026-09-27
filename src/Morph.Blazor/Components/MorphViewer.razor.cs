@@ -5,6 +5,8 @@ namespace Morph;
 /// Pages render on demand as they scroll into view, sharpening when zoomed, and every word on them is
 /// selectable, copyable and findable. The toolbar mirrors a browser PDF viewer: a thumbnail sidebar, page
 /// navigation, zoom presets and fit modes, rotation, find, presentation mode, printing, download and open.
+/// A Word document's comments and tracked changes open in a review pane beside the pages, where they can
+/// be answered, resolved, accepted and rejected; Download then saves the document as edited.
 ///
 /// The file comes from <see cref="Source"/> (with <see cref="FileName"/>), from <see cref="Url"/>, or from
 /// the user — the Open button, a file dropped on the viewer, or a bundled sample. It is parsed and laid out
@@ -40,7 +42,10 @@ public partial class MorphViewer : IAsyncDisposable
     [Parameter]
     public bool ShowSamples { get; set; }
 
-    /// <summary>Whether the toolbar offers Download, which saves the original file. Default true.</summary>
+    /// <summary>
+    /// Whether the toolbar offers Download, which saves the file — as it was opened, or as the reader
+    /// has since edited it in the review pane. Default true.
+    /// </summary>
     [Parameter]
     public bool ShowDownload { get; set; } = true;
 
@@ -192,7 +197,12 @@ public partial class MorphViewer : IAsyncDisposable
     {
         if (Source is { } bytes)
         {
-            if (!ReferenceEquals(bytes, openedSource))
+            if (ReferenceEquals(bytes, emitted))
+            {
+                // The file as the reader last edited it, handed back by the host: it is already open.
+                openedSource = bytes;
+            }
+            else if (!ReferenceEquals(bytes, openedSource))
             {
                 openedSource = bytes;
                 _ = OpenSourceAsync(bytes, FileName);
@@ -229,6 +239,29 @@ public partial class MorphViewer : IAsyncDisposable
         {
             focusFind = false;
             await findInput.FocusAsync();
+        }
+
+        if (focusDraft)
+        {
+            focusDraft = false;
+            if (draft != null)
+            {
+                await draftInput.FocusAsync();
+            }
+        }
+
+        if (revealKey is { } key &&
+            handle is { } viewer)
+        {
+            revealKey = null;
+            try
+            {
+                await viewer.RevealReviewCardAsync(key);
+            }
+            catch (JSDisconnectedException)
+            {
+                // The page is gone.
+            }
         }
     }
 
@@ -344,13 +377,11 @@ public partial class MorphViewer : IAsyncDisposable
                 return;
             }
 
-            document = opened.Document;
-            search = new(opened.Texts);
+            Adopt(opened);
             sourceBytes = bytes;
             fileName = name;
             sourceInfo = info;
-            pageCount = opened.Document.PageCount;
-            pageSizes = opened.Sizes;
+            this.fontDirectory = fontDirectory;
             currentPage = Math.Clamp(InitialPage, 1, Math.Max(1, pageCount));
             pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
 
@@ -361,6 +392,14 @@ public partial class MorphViewer : IAsyncDisposable
             {
                 await RunSearchAsync();
             }
+
+            // The pane stays open from one Word document to the next, and opens by itself only where
+            // the host asked and there is something in it.
+            var hasReview = review.Comments.Count > 0 || review.Changes.Count > 0;
+            reviewOpen = ShowReview && IsWord && (reviewOpen || (OpenReview && hasReview));
+            BuildEntries();
+            await viewer.SetReviewModeAsync(reviewOpen);
+            await PushReviewAsync(false);
         }
         catch (Exception exception)
         {
@@ -386,13 +425,14 @@ public partial class MorphViewer : IAsyncDisposable
 
     static OpenedDocument Open(byte[] bytes, InputFormat format, string fontDirectory)
     {
-        var document = PagedDocument.Open(bytes, format, fontDirectory);
+        var document = PagedDocument.Open(bytes, format, fontDirectory, traceSources: true);
         try
         {
             var count = document.PageCount;
             var sizes = new double[count * 2];
             var json = new string[count];
             var texts = new string[count];
+            var sources = new IReadOnlyList<LayerSource>[count];
             for (var index = 0; index < count; index++)
             {
                 sizes[2 * index] = document.WidthPoints(index);
@@ -400,15 +440,45 @@ public partial class MorphViewer : IAsyncDisposable
                 var layer = document.TextLayer(index);
                 json[index] = layer.Json;
                 texts[index] = layer.Text;
+                sources[index] = layer.Sources;
             }
 
-            return new(document, sizes, json, texts);
+            return new(document, sizes, json, texts, Review(bytes, format), new(sources));
         }
         catch
         {
             document.Dispose();
             throw;
         }
+    }
+
+    // A document whose comments or revisions cannot be read is still a document that can be shown.
+    static DocumentReview Review(byte[] bytes, InputFormat format)
+    {
+        if (format != InputFormat.Docx)
+        {
+            return DocumentReview.Empty;
+        }
+
+        try
+        {
+            return DocumentReview.Read(bytes);
+        }
+        catch (Exception)
+        {
+            return DocumentReview.Empty;
+        }
+    }
+
+    void Adopt(OpenedDocument opened)
+    {
+        document = opened.Document;
+        search = new(opened.Texts);
+        pageTexts = opened.Texts;
+        pageCount = opened.Document.PageCount;
+        pageSizes = opened.Sizes;
+        review = opened.Review;
+        reviewMap = opened.Map;
     }
 
     async Task CloseDocumentAsync()
@@ -442,6 +512,7 @@ public partial class MorphViewer : IAsyncDisposable
         pageCount = 0;
         pageSizes = [];
         documentId = 0;
+        ResetReview();
     }
 
     static string ZoomName(ViewerZoom zoom) =>
@@ -936,5 +1007,5 @@ public partial class MorphViewer : IAsyncDisposable
         document = null;
     }
 
-    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts);
+    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map);
 }

@@ -25,6 +25,10 @@ using Morph;
 /// <c>x</c>, width <c>w</c>, text <c>t</c>, drawn size <c>z</c>, flags <c>f</c> (1 bold, 2 italic, 4 a
 /// separator synthesised here rather than drawn) and, for a superscript or subscript, the baseline shift
 /// <c>d</c>. <c>e</c> is what follows the line when copied: 0 nothing, 1 a space, 2 a line break, 3 a tab.
+///
+/// <para>Given a <see cref="SourceIndex"/>, the same walk also records where in the document each
+/// stretch of the plain text came from (<see cref="PageTextLayer.Sources"/>), in offsets into that text
+/// — which is what ties a selection, or a comment's range, to the page.</para>
 /// </summary>
 static class TextLayerBuilder
 {
@@ -39,9 +43,9 @@ static class TextLayerBuilder
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    public static PageTextLayer Build(LaidOutPage page)
+    public static PageTextLayer Build(LaidOutPage page, SourceIndex? sources = null)
     {
-        var nodes = Container(ReadingOrder(page));
+        var nodes = Container(ReadingOrder(page), sources);
 
         var buffer = new ArrayBufferWriter<byte>();
         using (var json = new Utf8JsonWriter(buffer, writerOptions))
@@ -61,12 +65,13 @@ static class TextLayerBuilder
         }
 
         var text = new StringBuilder();
+        var origins = new List<LayerSource>();
         foreach (var node in nodes)
         {
-            AppendText(text, node);
+            AppendText(text, node, origins);
         }
 
-        return new(Encoding.UTF8.GetString(buffer.WrittenSpan), text.ToString());
+        return new(Encoding.UTF8.GetString(buffer.WrittenSpan), text.ToString(), origins);
     }
 
     // Paint order puts the footer band BEFORE the body (Fragmenter assembles background, footer images,
@@ -89,7 +94,7 @@ static class TextLayerBuilder
 
     // One container's items (the page, a cell, a rotated group), with each line's ending assigned from
     // paragraph continuity. Lines that came out of table cells arrive with their ending already set.
-    static List<Node> Container(IEnumerable<PlacedItem> items)
+    static List<Node> Container(IEnumerable<PlacedItem> items, SourceIndex? sources)
     {
         var nodes = new List<Node>();
         foreach (var item in items)
@@ -97,13 +102,13 @@ static class TextLayerBuilder
             switch (item)
             {
                 case PlacedLine line:
-                    nodes.Add(Line(line));
+                    nodes.Add(Line(line, sources));
                     break;
                 case PlacedTableRow row:
-                    Row(row, nodes);
+                    Row(row, nodes, sources);
                     break;
                 case PlacedRotatedGroup group:
-                    nodes.Add(new FrameNode('r', group.X, group.Y, group.Width, group.Height, group.RotationDegrees, true, Container(group.Items)));
+                    nodes.Add(new FrameNode('r', group.X, group.Y, group.Width, group.Height, group.RotationDegrees, true, Container(group.Items, sources)));
                     break;
                 case PlacedWordArt {Visual.Text.Length: > 0} wordArt:
                     // A warp draws as one figure with no line geometry; the whole box stands in for its text.
@@ -117,7 +122,7 @@ static class TextLayerBuilder
         return nodes;
     }
 
-    static LineNode Line(PlacedLine line)
+    static LineNode Line(PlacedLine line, SourceIndex? sources)
     {
         var node = new LineNode(line.X, line.Y, line.Height, line.Baseline, line.Paragraph, line.LineIndex);
 
@@ -129,8 +134,10 @@ static class TextLayerBuilder
 
         SpanNode? previous = null;
         var leaderPending = false;
-        foreach (var run in line.Runs)
+        for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
         {
+            var run = line.Runs[runIndex];
+
             // A tab leader is dots (or a rule) filling a tab's gap: the gap reads as the tab it is.
             if (run.Leader != TabLeader.None)
             {
@@ -155,7 +162,7 @@ static class TextLayerBuilder
                      !ImageCovers(line.Images, gapStart, run.X)))
                 {
                     var tab = leaderPending || (tabsPossible && gap > before.Size / 2);
-                    node.Spans.Add(new(tab ? "\t" : " ", gapStart, Math.Max(gap, 0), before.Size, before.Bold, before.Italic, true, 0));
+                    node.Spans.Add(new(tab ? "\t" : " ", gapStart, Math.Max(gap, 0), before.Size, before.Bold, before.Italic, true, 0, null));
                 }
             }
 
@@ -169,7 +176,8 @@ static class TextLayerBuilder
                 properties.Bold,
                 properties.Italic,
                 false,
-                run.BaselineShift);
+                run.BaselineShift,
+                sources?.Pieces(line, runIndex));
             node.Spans.Add(span);
             previous = span;
         }
@@ -180,7 +188,7 @@ static class TextLayerBuilder
     // A row's cells in order. Each cell's text ends with a tab — the last one with a line break — so a
     // copied table pastes into a spreadsheet as cells. An empty cell still contributes its tab, or every
     // later column would shift left by one.
-    static void Row(PlacedTableRow row, List<Node> nodes)
+    static void Row(PlacedTableRow row, List<Node> nodes, SourceIndex? sources)
     {
         for (var index = 0; index < row.Cells.Count; index++)
         {
@@ -188,9 +196,9 @@ static class TextLayerBuilder
             var end = index == row.Cells.Count - 1 ? LineEnd.Break : LineEnd.Tab;
 
             // A cell's floats are painted outside its clip, so they stay outside the clip frame too.
-            nodes.AddRange(Container(cell.Floats));
+            nodes.AddRange(Container(cell.Floats, sources));
 
-            var content = Container(cell.Content);
+            var content = Container(cell.Content, sources);
             if (LastEnded(content) is { } last)
             {
                 last.End = end;
@@ -400,14 +408,20 @@ static class TextLayerBuilder
 
     // The text the layer's DOM will hold, in DOM order: each span's text (a synthesised separator
     // included), then the line's ending. morph-text.js renders a tab separator as a space glyph but copies
-    // it as a tab, so the two agree in both content and length.
-    static void AppendText(StringBuilder text, Node node)
+    // it as a tab, so the two agree in both content and length. Where each span's text came from is
+    // recorded as it is appended, which is what puts the origins in offsets of this very text.
+    static void AppendText(StringBuilder text, Node node, List<LayerSource> origins)
     {
         switch (node)
         {
             case LineNode line:
                 foreach (var span in line.Spans)
                 {
+                    foreach (var piece in span.Sources ?? [])
+                    {
+                        origins.Add(new(text.Length + piece.Start, piece.Length, piece.Source.Run, piece.Source.Start, piece.Source.Atomic));
+                    }
+
                     text.Append(span.Text);
                 }
 
@@ -420,7 +434,7 @@ static class TextLayerBuilder
             case FrameNode frame:
                 foreach (var child in frame.Children)
                 {
-                    AppendText(text, child);
+                    AppendText(text, child, origins);
                 }
 
                 break;
@@ -492,5 +506,5 @@ static class TextLayerBuilder
         public List<Node> Children { get; } = children;
     }
 
-    readonly record struct SpanNode(string Text, float X, float Width, float Size, bool Bold, bool Italic, bool Separator, float Shift);
+    readonly record struct SpanNode(string Text, float X, float Width, float Size, bool Bold, bool Italic, bool Separator, float Shift, IReadOnlyList<RunPiece>? Sources);
 }

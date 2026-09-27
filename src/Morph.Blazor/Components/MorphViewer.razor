@@ -67,6 +67,17 @@
         </div>
 
         <div class="viewer-group viewer-group-end">
+            @if (ShowReview && IsWord)
+            {
+                <button type="button" class="viewer-button viewer-review-toggle" title="Comments and changes" aria-label="Comments and changes"
+                        aria-pressed="@(reviewOpen ? "true" : "false")" @onclick="ToggleReviewAsync">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Review" /></svg>
+                    @if (OpenItems > 0)
+                    {
+                        <span class="viewer-badge" title="@($"{OpenItems} to review")">@OpenItemsLabel</span>
+                    }
+                </button>
+            }
             @if (ShowOpenFile)
             {
                 @* The input sits inside its label, so a click anywhere on the button opens the picker with no id
@@ -171,5 +182,221 @@
                 </div>
             }
         </div>
+
+        @* The review pane: a Word document's comments and tracked changes, down the document. Blazor owns
+           all of it; the script only paints the ranges on the pages and scrolls a card into view. *@
+        @if (reviewOpen && IsWord)
+        {
+            <div class="viewer-review" role="complementary" aria-label="Comments and changes" aria-busy="@(revising ? "true" : "false")">
+                <div class="review-head">
+                    <span class="review-title">Review</span>
+                    <select class="review-filter" aria-label="Show" value="@reviewFilter.ToString()" @onchange="OnReviewFilterAsync">
+                        <option value="@nameof(ReviewFilter.All)">Comments and changes</option>
+                        <option value="@nameof(ReviewFilter.Comments)">Comments</option>
+                        <option value="@nameof(ReviewFilter.Changes)">Changes</option>
+                    </select>
+                    @if (CanEdit)
+                    {
+                        <button type="button" class="viewer-button" title="Undo" aria-label="Undo"
+                                disabled="@(undo.Count == 0 || revising)" @onclick="UndoAsync">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Undo" /></svg>
+                        </button>
+                        <button type="button" class="viewer-button" title="Redo" aria-label="Redo"
+                                disabled="@(redo.Count == 0 || revising)" @onclick="RedoAsync">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Redo" /></svg>
+                        </button>
+                    }
+                    <button type="button" class="viewer-button review-close" title="Close" aria-label="Close review pane" @onclick="ToggleReviewAsync">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Close" /></svg>
+                    </button>
+                </div>
+
+                @if (CanEdit)
+                {
+                    <div class="review-actions">
+                        @if (CanComment)
+                        {
+                            @* Keeping the press from moving focus keeps the selection the comment is for. *@
+                            <button type="button" class="review-action review-action-primary"
+                                    disabled="@(selection.Length != 4 || revising || draft is not null)"
+                                    title="Comment on the selected text"
+                                    @onmousedown:preventDefault @onclick="BeginCommentAsync">
+                                New comment
+                            </button>
+                        }
+                        @if (CanResolve && review.Changes.Count > 0)
+                        {
+                            <button type="button" class="review-action" disabled="@revising" @onclick="() => ResolveAllAsync(true)">Accept all</button>
+                            <button type="button" class="review-action" disabled="@revising" @onclick="() => ResolveAllAsync(false)">Reject all</button>
+                        }
+                    </div>
+                    @if (CanComment && Author is not { Length: > 0 })
+                    {
+                        <label class="review-signature">
+                            Commenting as
+                            <input type="text" class="review-signature-input" placeholder="@guest" autocomplete="name"
+                                   value="@authorName" @oninput="OnAuthorInput" />
+                        </label>
+                    }
+                }
+                else if (review.Comments.Count > 0 || review.Changes.Count > 0)
+                {
+                    <p class="review-note">@(review.Editable ? "This document is read-only." : "This document's format can be read but not edited here.")</p>
+                }
+
+                @if (reviewNote is not null)
+                {
+                    <p class="review-note" role="status">@reviewNote</p>
+                }
+
+                <div class="review-list" role="list">
+                    @if (draft is { Kind: ReviewDraftKind.Comment })
+                    {
+                        <div class="review-card review-comment review-active review-new" role="listitem">
+                            <div class="review-meta">
+                                <span class="review-avatar" aria-hidden="true">@Initials(Signature)</span>
+                                <span class="review-name">@Signature</span>
+                            </div>
+                            @if (draft.Quote.Length > 0)
+                            {
+                                <p class="review-quote">@draft.Quote</p>
+                            }
+                            @DraftForm("Comment", "Post")
+                        </div>
+                    }
+
+                    @foreach (var entry in entries)
+                    {
+                        var item = entry;
+                        if (item.Change is { } change)
+                        {
+                            <div class="@CardClass(item, "review-change")" role="listitem" tabindex="0" data-review-key="@item.Key" data-kind="@change.Kind"
+                                 aria-current="@(item.Key == activeKey ? "true" : null)"
+                                 @key="item.Key" @onclick="() => SelectEntryAsync(item)" @onkeydown="_ => OnCardKeyDownAsync(_, item)">
+                                <div class="review-meta">
+                                    <span class="review-avatar" aria-hidden="true">@Initials(change.Author)</span>
+                                    <span class="review-name">@(change.Author ?? "Unknown")</span>
+                                    <span class="review-date">@When(change.Date)</span>
+                                </div>
+                                <p class="review-body">
+                                    <span class="review-kind">@KindLabel(change)</span>
+                                    @if (ChangeText(change) is { Length: > 0 } text)
+                                    {
+                                        @* Two inline elements: without a space between them a screen reader runs the words together. *@
+                                        @(" ")
+                                        <span class="review-text">@text</span>
+                                    }
+                                </p>
+                                @if (PartLabel(change) is { } where)
+                                {
+                                    <p class="review-where">@where</p>
+                                }
+                                @if (CanResolve)
+                                {
+                                    <div class="review-buttons" @onkeydown:stopPropagation>
+                                        <button type="button" class="review-button" disabled="@revising"
+                                                @onclick:stopPropagation @onclick="() => ResolveAsync(item, true)">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Accept" /></svg>
+                                            Accept
+                                        </button>
+                                        <button type="button" class="review-button" disabled="@revising"
+                                                @onclick:stopPropagation @onclick="() => ResolveAsync(item, false)">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Close" /></svg>
+                                            Reject
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else if (item.Comment is { } thread)
+                        {
+                            <div class="@CardClass(item, "review-comment")" role="listitem" tabindex="0" data-review-key="@item.Key"
+                                 aria-current="@(item.Key == activeKey ? "true" : null)"
+                                 @key="item.Key" @onclick="() => SelectEntryAsync(item)" @onkeydown="_ => OnCardKeyDownAsync(_, item)">
+                                @if (thread.Quote.Length > 0)
+                                {
+                                    <p class="review-quote">@Excerpt(thread.Quote)</p>
+                                }
+                                @CommentView(thread, thread)
+                                @foreach (var reply in thread.Replies)
+                                {
+                                    <div class="review-reply" @key="reply.Id">
+                                        @CommentView(thread, reply)
+                                    </div>
+                                }
+                                @if (draft is { Kind: ReviewDraftKind.Reply } && draft.ThreadId == thread.Id)
+                                {
+                                    <div class="review-reply">
+                                        @DraftForm("Reply", "Reply")
+                                    </div>
+                                }
+                                else if (CanComment && draft is null)
+                                {
+                                    <div class="review-buttons" @onkeydown:stopPropagation>
+                                        <button type="button" class="review-button" disabled="@revising"
+                                                @onclick:stopPropagation @onclick="() => BeginReply(thread)">Reply</button>
+                                        <button type="button" class="review-button" disabled="@revising"
+                                                @onclick:stopPropagation @onclick="() => SetResolvedAsync(thread, !thread.Resolved)">
+                                            @(thread.Resolved ? "Reopen" : "Resolve")
+                                        </button>
+                                    </div>
+                                }
+                                @if (thread.Resolved)
+                                {
+                                    <p class="review-where">Resolved</p>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+
+                @if (entries.Count == 0 && draft is null)
+                {
+                    <p class="review-empty">@EmptyReviewText</p>
+                }
+            </div>
+        }
     </div>
 </div>
+
+@code {
+    // One comment of a thread: who and when, the text — or the form that edits it — and what can be done.
+    RenderFragment CommentView(ReviewComment thread, ReviewComment comment) =>
+        @<div class="review-entry" data-comment-id="@comment.Id">
+            <div class="review-meta">
+                <span class="review-avatar" aria-hidden="true">@(comment.Initials is { Length: > 0 } initials ? initials : Initials(comment.Author))</span>
+                <span class="review-name">@(comment.Author ?? "Unknown")</span>
+                <span class="review-date">@When(comment.Date)</span>
+                @if (CanComment && draft is null)
+                {
+                    <span class="review-tools" @onkeydown:stopPropagation>
+                        <button type="button" class="review-tool" title="Edit" aria-label="Edit comment" disabled="@revising"
+                                @onclick:stopPropagation @onclick="() => BeginEdit(thread, comment)">Edit</button>
+                        <button type="button" class="review-tool" title="Delete" aria-label="Delete comment" disabled="@revising"
+                                @onclick:stopPropagation @onclick="() => DeleteCommentAsync(comment)">Delete</button>
+                    </span>
+                }
+            </div>
+            @if (draft is { Kind: ReviewDraftKind.Edit } && draft.CommentId == comment.Id)
+            {
+                @DraftForm("Comment", "Save")
+            }
+            else
+            {
+                <p class="review-body review-comment-text">@comment.Text</p>
+            }
+        </div>;
+
+    // Where a comment is written. Ctrl+Enter posts it and Escape abandons it.
+    RenderFragment DraftForm(string label, string action) =>
+        @<div class="review-draft" @onclick:stopPropagation>
+            <textarea @ref="draftInput" class="review-input" rows="3" aria-label="@label" placeholder="@label"
+                      value="@draft!.Text" disabled="@revising"
+                      @oninput="OnDraftInput" @onkeydown="OnDraftKeyDownAsync" @onkeydown:stopPropagation></textarea>
+            <div class="review-buttons" @onkeydown:stopPropagation>
+                <button type="button" class="review-button review-button-primary"
+                        disabled="@(revising || draft.Text.Trim().Length == 0)" @onclick="PostDraftAsync">@action</button>
+                <button type="button" class="review-button" disabled="@revising" @onclick="CancelDraftAsync">Cancel</button>
+            </div>
+        </div>;
+}
