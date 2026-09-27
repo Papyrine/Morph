@@ -12,7 +12,7 @@ public class TableStyleConditionalInheritanceTests
     static Style TableStyle(string styleId, string? basedOn, string blocks)
     {
         var basedOnXml = basedOn == null ? "" : $"""<w:basedOn w:val="{basedOn}"/>""";
-        return new($"""<w:style {wNs} w:type="table" w:styleId="{styleId}">{basedOnXml}<w:tblPr/>{blocks}</w:style>""");
+        return [with($"""<w:style {wNs} w:type="table" w:styleId="{styleId}">{basedOnXml}<w:tblPr/>{blocks}</w:style>""")];
     }
 
     static DocumentParser Parser() => new("Arial");

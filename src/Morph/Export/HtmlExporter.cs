@@ -2981,9 +2981,9 @@ static class HtmlExporter
             // back to the frame: a hidden-overflow box the frame's size, the full image inside it
             // offset by the cropped-away edges. The transform (and any float/absolute placement
             // style) rides on the box, since it is the frame that Word rotates and positions.
-            if (crop is {IsCropped: true} sourceRect && widthPoints > 0 && heightPoints > 0)
+            if (crop is {IsCropped: true} && widthPoints > 0 && heightPoints > 0)
             {
-                var (offsetX, offsetY, fullWidth, fullHeight) = sourceRect.Expand(0, 0, widthPoints, heightPoints);
+                var (offsetX, offsetY, fullWidth, fullHeight) = crop.Expand(0, 0, widthPoints, heightPoints);
                 if (Math.Abs(fullWidth - widthPoints) > 0.01 || Math.Abs(fullHeight - heightPoints) > 0.01 ||
                     Math.Abs(offsetX) > 0.01 || Math.Abs(offsetY) > 0.01)
                 {

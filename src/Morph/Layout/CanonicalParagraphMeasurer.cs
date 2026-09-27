@@ -826,11 +826,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // margin and page coincide with the measure the paragraph is laid out in here,
                     // while indent starts at the paragraph's own left indent.
                     var basePosition = positional.RelativeTo == PositionalTabBase.Indent ? leftIndentPoints : 0;
-                    var edge = columnWidthPoints;
                     destinationFromMargin = positional.Alignment switch
                     {
-                        TabAlignment.Right => edge - MeasureFollowing(linePieces, afterTab),
-                        TabAlignment.Center => basePosition + (edge - basePosition - MeasureFollowing(linePieces, afterTab)) / 2,
+                        TabAlignment.Right => columnWidthPoints - MeasureFollowing(linePieces, afterTab),
+                        TabAlignment.Center => basePosition + (columnWidthPoints - basePosition - MeasureFollowing(linePieces, afterTab)) / 2,
                         _ => basePosition
                     };
 

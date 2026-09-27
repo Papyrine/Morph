@@ -270,9 +270,8 @@ static class SkiaPainter
         // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
         // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
         // number, where the doubled stride tiled half as many dots and stopped ~14px short.
-        var spacing = glyphWidth;
         var runWidth = P(context, run.Width);
-        if (!LeaderTiling.TryGetRange(P(context, run.X), runWidth, glyphWidth, spacing, P(context, context.PageSettings.WidthPoints), out var startX, out var count))
+        if (!LeaderTiling.TryGetRange(P(context, run.X), runWidth, glyphWidth, glyphWidth, P(context, context.PageSettings.WidthPoints), out var startX, out var count))
         {
             return;
         }
@@ -281,7 +280,7 @@ static class SkiaPainter
         var y = P(context, baseline);
         for (var index = 0; index < count; index++)
         {
-            canvas.DrawText(leaderChar, (float) startX + index * spacing, y, font, paint);
+            canvas.DrawText(leaderChar, (float) startX + index * glyphWidth, y, font, paint);
         }
     }
 

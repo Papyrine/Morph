@@ -310,21 +310,24 @@ public class TableIndentCompatibilityTests
             mainPart.Document = [with(body)];
 
             var settings = mainPart.AddNewPart<DocumentSettingsPart>();
-            settings.Settings = new(
-                new Compatibility(
+            settings.Settings =
+            [
+                with(new Compatibility(
                     new CompatibilitySetting
                     {
                         Name = CompatSettingNameValues.CompatibilityMode,
                         Uri = "http://schemas.microsoft.com/office/word",
                         Val = mode.ToString()
-                    }));
+                    }))
+            ];
 
             if (styles)
             {
                 // Word's built-in Normal Table: tblInd 0 and 108-twip start/end margins.
                 var stylesPart = mainPart.AddNewPart<StyleDefinitionsPart>();
-                stylesPart.Styles = new(
-                    new Style
+                stylesPart.Styles =
+                [
+                    with(new Style
                     {
                         Type = StyleValues.Table,
                         StyleId = "TableNormal",
@@ -333,24 +336,27 @@ public class TableIndentCompatibilityTests
                         {
                             Val = "Normal Table"
                         },
-                        StyleTableProperties = new(
-                            new TableIndentation
-                            {
-                                Width = 0,
-                                Type = TableWidthUnitValues.Dxa
-                            },
-                            new TableCellMarginDefault(
-                                new TableCellLeftMargin
+                        StyleTableProperties =
+                        [
+                            with(new TableIndentation
                                 {
-                                    Width = 108,
-                                    Type = TableWidthValues.Dxa
+                                    Width = 0,
+                                    Type = TableWidthUnitValues.Dxa
                                 },
-                                new TableCellRightMargin
-                                {
-                                    Width = 108,
-                                    Type = TableWidthValues.Dxa
-                                }))
-                    });
+                                new TableCellMarginDefault(
+                                    new TableCellLeftMargin
+                                    {
+                                        Width = 108,
+                                        Type = TableWidthValues.Dxa
+                                    },
+                                    new TableCellRightMargin
+                                    {
+                                        Width = 108,
+                                        Type = TableWidthValues.Dxa
+                                    }))
+                        ]
+                    })
+                ];
             }
         }
 

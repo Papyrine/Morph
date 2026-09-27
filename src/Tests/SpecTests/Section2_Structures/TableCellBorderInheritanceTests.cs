@@ -202,7 +202,7 @@ public class TableCellBorderInheritanceTests
                 properties.Append(borders);
             }
 
-            return new(properties, new Paragraph(new W.Run(new Text(text))));
+            return [with(properties, new Paragraph(new W.Run(new Text(text))))];
         }
 
         var table = new Table(

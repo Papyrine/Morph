@@ -68,30 +68,30 @@ static class ReviewDocuments
         using (var package = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
         {
             var main = package.AddMainDocumentPart();
-            main.Document = new($"<w:document {namespaces}><w:body>{body}</w:body></w:document>");
+            main.Document = [with($"<w:document {namespaces}><w:body>{body}</w:body></w:document>")];
             if (comments != null)
             {
-                main.AddNewPart<WordprocessingCommentsPart>().Comments = new($"<w:comments {namespaces}>{comments}</w:comments>");
+                main.AddNewPart<WordprocessingCommentsPart>().Comments = [with($"<w:comments {namespaces}>{comments}</w:comments>")];
             }
 
             if (commentsExtended != null)
             {
-                main.AddNewPart<WordprocessingCommentsExPart>().CommentsEx = new($"<w15:commentsEx {namespaces}>{commentsExtended}</w15:commentsEx>");
+                main.AddNewPart<WordprocessingCommentsExPart>().CommentsEx = [with($"<w15:commentsEx {namespaces}>{commentsExtended}</w15:commentsEx>")];
             }
 
             if (settings != null)
             {
-                main.AddNewPart<DocumentSettingsPart>().Settings = new($"<w:settings {namespaces}>{settings}</w:settings>");
+                main.AddNewPart<DocumentSettingsPart>().Settings = [with($"<w:settings {namespaces}>{settings}</w:settings>")];
             }
 
             if (styles != null)
             {
-                main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {namespaces}>{styles}</w:styles>");
+                main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {namespaces}>{styles}</w:styles>")];
             }
 
             if (header != null)
             {
-                main.AddNewPart<HeaderPart>().Header = new($"<w:hdr {namespaces}>{header}</w:hdr>");
+                main.AddNewPart<HeaderPart>().Header = [with($"<w:hdr {namespaces}>{header}</w:hdr>")];
             }
         }
 

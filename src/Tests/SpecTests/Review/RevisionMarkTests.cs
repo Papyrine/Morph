@@ -56,7 +56,7 @@ public class RevisionMarkTests
     public async Task AMove_IsDrawnAtBothEnds()
     {
         var runs = Runs(
-            P($"<w:moveFrom {By("Ann", 1)}>{R("moved")}</w:moveFrom>", R(" rest")) +
+            P($"<w:moveFrom {By("Ann")}>{R("moved")}</w:moveFrom>", R(" rest")) +
             P(R("before "), $"<w:moveTo {By("Ann", 2)}>{R("moved")}</w:moveTo>"));
 
         await Assert.That(Marks(runs)).IsEqualTo("-moved| rest|before |+moved");

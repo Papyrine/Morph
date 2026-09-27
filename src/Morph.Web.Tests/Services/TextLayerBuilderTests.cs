@@ -47,7 +47,7 @@ public class TextLayerBuilderTests
     [Test]
     public async Task Line_CarriesItsBoxBaselineAndSpans()
     {
-        var layer = Build(Line(Paragraph(), 0, 100, Text(72, 30, "Hello", Font(10, bold: true))));
+        var layer = Build(Line(Paragraph(), 0, 100, Text(72, 30, "Hello", Font(bold: true))));
 
         await Assert.That(layer.Text).IsEqualTo("Hello\n");
         var line = Items(layer)[0];

@@ -28,13 +28,13 @@ static class PresetShapeGeometry
 
         var contours = preset switch
         {
-            var value when value == A.ShapeTypeValues.Hexagon => Hexagon(width, height, adjustments),
-            var value when value == A.ShapeTypeValues.RoundRectangle => RoundRect(width, height, adjustments),
-            var value when value == A.ShapeTypeValues.Plaque => Plaque(width, height, adjustments),
-            var value when value == A.ShapeTypeValues.Octagon => Octagon(width, height, adjustments),
-            var value when value == A.ShapeTypeValues.Star5 => Star5(width, height, adjustments),
-            var value when value == A.ShapeTypeValues.Frame => Frame(width, height, adjustments),
-            var value when value == A.ShapeTypeValues.Round2SameRectangle => Round2SameRect(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Hexagon => Hexagon(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.RoundRectangle => RoundRect(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Plaque => Plaque(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Octagon => Octagon(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Star5 => Star5(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Frame => Frame(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Round2SameRectangle => Round2SameRect(width, height, adjustments),
             _ => null
         };
 

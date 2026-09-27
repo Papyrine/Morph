@@ -90,8 +90,8 @@ static class SkiaShapeDrawing
             // Padding (negative srcRect) shrinks the picture into Expand's sub-rectangle; the SVG
             // rasterizer's own crop math only handles positive source cropping.
             var svgCrop = crop is {HasPadding: true} ? null : crop;
-            var svgBox = crop is {HasPadding: true} paddingCrop
-                ? paddingCrop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height)
+            var svgBox = crop is {HasPadding: true}
+                ? crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height)
                 : (destRect.Left, destRect.Top, destRect.Width, destRect.Height);
 
             // A crop moves the source origin off the picture's CullRect corner, so the rasterizer
