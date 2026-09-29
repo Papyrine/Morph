@@ -1205,5 +1205,4 @@ static class ShapeParser
                 Operations = operations
             };
     }
-
 }

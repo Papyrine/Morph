@@ -440,5 +440,4 @@ sealed class SpreadsheetParser(
             VerticallyCentered = worksheet.GetFirstChild<S.PrintOptions>()?.VerticalCentered?.Value == true
         };
     }
-
 }
