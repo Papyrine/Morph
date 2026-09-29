@@ -766,10 +766,15 @@ static class MarkdownExporter
             return escaped.ToString();
         }
 
-        static string SelectedItem(DropDownFormFieldElement dropDown) =>
-            dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
-                ? dropDown.Items[dropDown.SelectedIndex]
-                : "";
+        static string SelectedItem(DropDownFormFieldElement dropDown)
+        {
+            if (dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count)
+            {
+                return dropDown.Items[dropDown.SelectedIndex];
+            }
+
+            return "";
+        }
 
         static int LeadingWhitespaceLength(string text)
         {
@@ -909,7 +914,12 @@ static class MarkdownExporter
                         equalsCount++;
                     }
 
-                    return equalsCount == line.TrimEnd().Length ? $"\\{line}" : line;
+                    if (equalsCount == line.TrimEnd().Length)
+                    {
+                        return $"\\{line}";
+                    }
+
+                    return line;
                 }
                 case '~' when line.StartsWith("~~~", StringComparison.Ordinal):
                     return $"\\{line}";

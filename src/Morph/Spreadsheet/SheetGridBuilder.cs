@@ -403,11 +403,16 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     }
 
     /// <summary>The cell's numeric value, for the conditional rules that compare against one.</summary>
-    static double? Number(S.Cell? cell) =>
-        cell?.DataType?.Value == null &&
-        double.TryParse(cell?.CellValue?.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var value)
-            ? value
-            : null;
+    static double? Number(S.Cell? cell)
+    {
+        if (cell?.DataType?.Value == null &&
+                double.TryParse(cell?.CellValue?.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
+        {
+            return value;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// The cell's display text, plus any colour the number format's own section demands (the
@@ -460,13 +465,21 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         return (formatted.Text, formatted.ColorHex);
     }
 
-    static TextAlignment DefaultAlignment(S.Cell? cell) =>
-        cell?.DataType?.Value is { } type &&
-        (type == S.CellValues.SharedString || type == S.CellValues.InlineString || type == S.CellValues.String)
-            ? TextAlignment.Left
-            : cell?.CellValue == null
-                ? TextAlignment.Left
-                : TextAlignment.Right;
+    static TextAlignment DefaultAlignment(S.Cell? cell)
+    {
+        if (cell?.DataType?.Value is { } type &&
+                (type == S.CellValues.SharedString || type == S.CellValues.InlineString || type == S.CellValues.String))
+        {
+            return TextAlignment.Left;
+        }
+
+        if (cell?.CellValue == null)
+        {
+            return TextAlignment.Left;
+        }
+
+        return TextAlignment.Right;
+    }
 
     /// <summary>
     /// Column widths in points, from the <c>cols</c> runs. Each <c>col</c> covers an inclusive
@@ -532,10 +545,15 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// at A4 across six faces with printed gridlines (see MaxDigitWidth): the fitted padding
     /// measures −0.22 to +0.22px, i.e. zero.
     /// </summary>
-    double ToPoints(double characters) =>
-        characters <= 0
-            ? 0
-            : characters * maxDigitWidthPixels * pointsPerPixel;
+    double ToPoints(double characters)
+    {
+        if (characters <= 0)
+        {
+            return 0;
+        }
+
+        return characters * maxDigitWidthPixels * pointsPerPixel;
+    }
 
     /// <summary>
     /// Excel's column-width unit: the widest of the digits 0-9 in the workbook's body font, at
@@ -571,8 +589,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             units = Math.Max(units, metrics.AdvanceUnits(digit));
         }
 
-        return units <= 0
-            ? calibriFallback
-            : (double) units / metrics.UnitsPerEm * sizePoints / pointsPerPixel;
+        if (units <= 0)
+        {
+            return calibriFallback;
+        }
+
+        return (double) units / metrics.UnitsPerEm * sizePoints / pointsPerPixel;
     }
 }

@@ -99,8 +99,15 @@ static class TableLayout
     /// the max, never the sum. A stacked family counts its whole stack: <c>_probe_cellfam</c>'s 3pt
     /// `double` insets by 4.8 for a 9pt stack. Zero for an edge that draws nothing.
     /// </summary>
-    internal static double HalfBorder(BorderEdge? edge) =>
-        edge != null && BorderStroke.Draws(edge) ? BorderStroke.Extent(edge.Style, edge.WidthPoints, BorderStroke.Scope.Cell) / 2 : 0;
+    internal static double HalfBorder(BorderEdge? edge)
+    {
+        if (edge != null && BorderStroke.Draws(edge))
+        {
+            return BorderStroke.Extent(edge.Style, edge.WidthPoints, BorderStroke.Scope.Cell) / 2;
+        }
+
+        return 0;
+    }
 
     internal static CellBorders? ResolveCellBorders(TableCellProperties cellProps, TableProperties tableProps, int rowIndex, int colIndex, int totalRows, int totalCols, TableRow? row = null, IReadOnlyList<TableRow>? rows = null)
     {
@@ -208,8 +215,15 @@ static class TableLayout
         return facing;
     }
 
-    static IReadOnlyList<TableCell>? RowCells(IReadOnlyList<TableRow>? rows, int rowIndex) =>
-        rows != null && rowIndex >= 0 && rowIndex < rows.Count ? rows[rowIndex].Cells : null;
+    static IReadOnlyList<TableCell>? RowCells(IReadOnlyList<TableRow>? rows, int rowIndex)
+    {
+        if (rows != null && rowIndex >= 0 && rowIndex < rows.Count)
+        {
+            return rows[rowIndex].Cells;
+        }
+
+        return null;
+    }
 
     /// <summary>The cell whose grid span covers <paramref name="gridColumn"/>, or null.</summary>
     static TableCellProperties? CellCovering(IReadOnlyList<TableCell>? cells, int gridColumn)

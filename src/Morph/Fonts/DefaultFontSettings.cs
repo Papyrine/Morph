@@ -75,8 +75,18 @@ static class DefaultFontSettings
     /// explicitly setting the factory value is indistinguishable from not setting it, which is
     /// benign: they asked for the resolver default that already backs the built-in.
     /// </summary>
-    internal static string? CustomizedDefaultFont =>
-        defaultFont == builtInDefaultFont ? null : defaultFont;
+    internal static string? CustomizedDefaultFont
+    {
+        get
+        {
+            if (defaultFont == builtInDefaultFont)
+            {
+                return null;
+            }
+
+            return defaultFont;
+        }
+    }
 
     /// <summary>
     /// When <c>true</c>, backends disable font hinting and sub-pixel positioning

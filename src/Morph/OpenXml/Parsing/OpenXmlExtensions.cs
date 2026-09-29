@@ -302,7 +302,12 @@ static class OpenXmlExtensions
             if (child.LocalName == "align")
             {
                 var value = child.InnerText;
-                return value.Length > 0 ? value : null;
+                if (value.Length > 0)
+                {
+                    return value;
+                }
+
+                return null;
             }
         }
         return null;
@@ -379,8 +384,15 @@ static class OpenXmlExtensions
         return (emuOffset, pctOffset);
     }
 
-    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel) =>
-        sizeRel.AttributeValue("relativeFrom") == "page" ? SizeRelativeFrom.Page : SizeRelativeFrom.Margin;
+    static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
+    {
+        if (sizeRel.AttributeValue("relativeFrom") == "page")
+        {
+            return SizeRelativeFrom.Page;
+        }
+
+        return SizeRelativeFrom.Margin;
+    }
 
     /// <summary>
     /// Returns the value of the attribute matching <paramref name="localName"/>, or null if absent.

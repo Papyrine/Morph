@@ -90,7 +90,12 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             return null;
         }
 
-        return sharedFontCollection.TryGet(bestFace.Family, out var family) ? new(family) : null;
+        if (sharedFontCollection.TryGet(bestFace.Family, out var family))
+        {
+            return new(family);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -542,10 +547,15 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return clipped;
     }
 
-    public static Color ParseColor(string? hexColor) =>
-        hexColor.TryParseArgb(out var a, out var r, out var g, out var b)
-            ? Color.FromPixel(new Rgba32(r, g, b, a))
-            : Color.Black;
+    public static Color ParseColor(string? hexColor)
+    {
+        if (hexColor.TryParseArgb(out var a, out var r, out var g, out var b))
+        {
+            return Color.FromPixel(new Rgba32(r, g, b, a));
+        }
+
+        return Color.Black;
+    }
 
     /// <summary>
     /// Frees every decoded, resized picture the context has cached. A one-shot conversion never needs

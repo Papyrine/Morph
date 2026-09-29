@@ -38,8 +38,15 @@ static class ScenarioInputs
     /// Whatever this returns, the reference-image generator must cap identically: a page-count
     /// mismatch makes the scenario tests record no per-page metric at all.
     /// </summary>
-    public static PageRange? Pages(ScenarioFormat format) =>
-        format == ScenarioFormat.Word ? null : new PageRange(1, 2);
+    public static PageRange? Pages(ScenarioFormat format)
+    {
+        if (format == ScenarioFormat.Word)
+        {
+            return null;
+        }
+
+        return new PageRange(1, 2);
+    }
 
     /// <summary>
     /// The DPI a scenario's pages are rendered and compared at.
@@ -54,8 +61,15 @@ static class ScenarioInputs
     /// A mismatch does not fail loudly — it silently suppresses SSIM and skews the error metric,
     /// because the two images are no longer the same size.
     /// </summary>
-    public static int Dpi(ScenarioFormat format) =>
-        format == ScenarioFormat.Word ? 150 : 96;
+    public static int Dpi(ScenarioFormat format)
+    {
+        if (format == ScenarioFormat.Word)
+        {
+            return 150;
+        }
+
+        return 96;
+    }
 
     /// <summary>
     /// Device pixels per CSS pixel for the HTML and Markdown export screenshots.
@@ -67,8 +81,15 @@ static class ScenarioInputs
     /// placement. Documents stay at 1: their exports are text, where halving the sampling density
     /// costs real legibility in the comparison gallery.
     /// </summary>
-    public static double ScreenshotScale(ScenarioFormat format) =>
-        format == ScenarioFormat.Word ? 1 : 0.5;
+    public static double ScreenshotScale(ScenarioFormat format)
+    {
+        if (format == ScenarioFormat.Word)
+        {
+            return 1;
+        }
+
+        return 0.5;
+    }
 
     /// <summary>Every scenario directory for <paramref name="format"/>.</summary>
     public static IEnumerable<string> Directories(ScenarioFormat format) =>
@@ -113,7 +134,12 @@ static class ScenarioInputs
 
         // Drop the leading format segment so names stay stable across the corpus split.
         var segments = relative.Replace('\\', '/').Split('/');
-        return segments.Length > 1 ? string.Join('/', segments.Skip(1)) : segments[0];
+        if (segments.Length > 1)
+        {
+            return string.Join('/', segments.Skip(1));
+        }
+
+        return segments[0];
     }
 
     static string DirectoryName(ScenarioFormat format) =>

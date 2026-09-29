@@ -811,10 +811,15 @@ static class PdfPainter
     }
 
     // See SkiaPainter.Shaded.
-    static XColor Shaded(XColor color, double shade) =>
-        shade >= 1
-            ? color
-            : XColor.FromArgb((int) (color.A * 255), (int) (color.R * shade), (int) (color.G * shade), (int) (color.B * shade));
+    static XColor Shaded(XColor color, double shade)
+    {
+        if (shade >= 1)
+        {
+            return color;
+        }
+
+        return XColor.FromArgb((int) (color.A * 255), (int) (color.R * shade), (int) (color.G * shade), (int) (color.B * shade));
+    }
 
     static void PaintRunBorder(PdfRenderContext context, XGraphics graphics, double x, double y, double width, double height, BorderEdge edge)
     {

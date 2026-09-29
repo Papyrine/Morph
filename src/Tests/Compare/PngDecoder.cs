@@ -335,7 +335,12 @@ static class PngDecoder
             return a;
         }
 
-        return pb <= pc ? b : c;
+        if (pb <= pc)
+        {
+            return b;
+        }
+
+        return c;
     }
 
     static void ReadExact(Stream stream, Span<byte> buffer)

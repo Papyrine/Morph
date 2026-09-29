@@ -62,17 +62,22 @@ public sealed class ImageSharpImageCodec : ImageCodec
         }
     }
 
-    static IImageEncoder Encoder(ImageEncodeRequest request) =>
-        ImageMediaTypes.Matches(request.ContentType, ImageMediaTypes.Jpeg)
-            ? new JpegEncoder
+    static IImageEncoder Encoder(ImageEncodeRequest request)
+    {
+        if (ImageMediaTypes.Matches(request.ContentType, ImageMediaTypes.Jpeg))
+        {
+            return new JpegEncoder
             {
                 Quality = request.Quality
-            }
-            : new PngEncoder
-            {
-                CompressionLevel = PngCompressionLevel.BestCompression,
-                FilterMethod = PngFilterMethod.Adaptive
             };
+        }
+
+        return new PngEncoder
+        {
+            CompressionLevel = PngCompressionLevel.BestCompression,
+            FilterMethod = PngFilterMethod.Adaptive
+        };
+    }
 
     static bool HasTranslucency(Image<Rgba32> image)
     {

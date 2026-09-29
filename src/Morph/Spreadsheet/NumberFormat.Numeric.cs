@@ -38,7 +38,12 @@ static partial class NumberFormat
         // The sign goes in front of everything the code emitted, including a leading currency
         // symbol: Excel renders -1234.5 through "$"#,##0.00 as -$1,234.50, not $-1,234.50. A code
         // that writes its own sign or parentheses suppresses this entirely.
-        return negative && !HasExplicitSign(body) ? "-" + text : text;
+        if (negative && !HasExplicitSign(body))
+        {
+            return "-" + text;
+        }
+
+        return text;
     }
 
     /// <summary>

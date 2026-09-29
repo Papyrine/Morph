@@ -401,7 +401,12 @@ static class DocumentExportHelpers
             matched++;
         }
 
-        return matched > 0 ? value : null;
+        if (matched > 0)
+        {
+            return value;
+        }
+
+        return null;
     }
 
     // Converts the leading run of letters as a bijective base-26 ordinal ("a" → 1, "z" → 26,
@@ -423,7 +428,12 @@ static class DocumentExportHelpers
             }
         }
 
-        return matched > 0 ? value : null;
+        if (matched > 0)
+        {
+            return value;
+        }
+
+        return null;
     }
 
     /// <summary>

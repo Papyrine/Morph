@@ -245,8 +245,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // A note's rows, built once per column width.
         readonly Dictionary<(string Id, float Width), IReadOnlyList<NoteRow>> noteRowsCache = [];
 
-        float NoteAreaHeight(int column) =>
-            column < noteAreas.Length && noteAreas[column] is { } area ? area.Height : 0;
+        float NoteAreaHeight(int column)
+        {
+            if (column < noteAreas.Length && noteAreas[column] is { } area)
+            {
+                return area.Height;
+            }
+
+            return 0;
+        }
 
         void RefreshContentBottom() => contentBottom = pageContentBottom - NoteAreaHeight(currentColumn);
 
@@ -1369,9 +1376,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     VerticalAnchor.Margin => contentTop,
                     _ => anchorTop
                 };
-                return percent is { } fraction
-                    ? baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight))
-                    : baseY + (float) offset;
+                if (percent is { } fraction)
+                {
+                    return baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight));
+                }
+
+                return baseY + (float) offset;
             }
 
             switch (element)
@@ -1402,9 +1412,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         float FloatX(HorizontalAnchor anchor, double offset, double? percent)
         {
             var baseX = anchor == HorizontalAnchor.Page ? 0f : fullContentLeft;
-            return percent is { } fraction
-                ? baseX + (float) (fraction * (anchor == HorizontalAnchor.Page ? current.WidthPoints : fullContentWidth))
-                : baseX + (float) offset;
+            if (percent is { } fraction)
+            {
+                return baseX + (float) (fraction * (anchor == HorizontalAnchor.Page ? current.WidthPoints : fullContentWidth));
+            }
+
+            return baseX + (float) offset;
         }
 
         // Absolute Y of a body float: page-anchored from the top edge, margin-anchored from the top margin,
@@ -1419,9 +1432,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 VerticalAnchor.Margin => contentTop,
                 _ => y
             };
-            return percent is { } fraction
-                ? baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight))
-                : baseY + (float) offset;
+            if (percent is { } fraction)
+            {
+                return baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight));
+            }
+
+            return baseY + (float) offset;
         }
 
         // A page/margin anchor gives the float an absolute Y independent of the flow cursor, so it belongs to
@@ -1738,9 +1754,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 default:
                     if (frame.VerticalAnchor is VerticalAnchor.Page or VerticalAnchor.Margin)
                     {
-                        return frame.YPoints >= bottomAnchorYThresholdPoints
-                            ? anchorTop + (float) frame.YPoints
-                            : anchorBottom - height;
+                        if (frame.YPoints >= bottomAnchorYThresholdPoints)
+                        {
+                            return anchorTop + (float) frame.YPoints;
+                        }
+
+                        return anchorBottom - height;
                     }
 
                     return y + (float) frame.YPoints;
@@ -1932,8 +1951,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         const float borderBoxLeftOutset = 1.0f;
         const float borderBoxRightOutset = 1.5f;
 
-        static float EdgeReserve(BorderEdge edge, double spacePoints) =>
-            BorderStroke.Draws(edge) ? (float) (BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints) : 0f;
+        static float EdgeReserve(BorderEdge edge, double spacePoints)
+        {
+            if (BorderStroke.Draws(edge))
+            {
+                return (float) (BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints);
+            }
+
+            return 0f;
+        }
 
         // Strokes the open border run's box and closes the run. Idempotent — a closed run flushes to nothing,
         // so the region-boundary and element-boundary callers can both fire without coordinating.
@@ -3649,9 +3675,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var content = SelectVariant(settings, sectionFirst, pageNumber, isHeader: true);
             var bandLeft = (float) settings.MarginLeft;
             var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
-            return content == null
-                ? []
-                : LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float) settings.HeaderDistance, bandWidth);
+            if (content == null)
+            {
+                return [];
+            }
+
+            return LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float) settings.HeaderDistance, bandWidth);
         }
 
         // Picks the header or footer for a page from its section's set: the section's first page takes
@@ -3666,15 +3695,30 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var bands = Bands(settings);
             if (sectionFirst && settings.DifferentFirstPage)
             {
-                return isHeader ? bands.FirstPageHeader : bands.FirstPageFooter;
+                if (isHeader)
+                {
+                    return bands.FirstPageHeader;
+                }
+
+                return bands.FirstPageFooter;
             }
 
             if (pageNumber % 2 == 0 && bands.EvenAndOddHeaders)
             {
-                return isHeader ? bands.EvenPageHeader : bands.EvenPageFooter;
+                if (isHeader)
+                {
+                    return bands.EvenPageHeader;
+                }
+
+                return bands.EvenPageFooter;
             }
 
-            return isHeader ? bands.Header : bands.Footer;
+            if (isHeader)
+            {
+                return bands.Header;
+            }
+
+            return bands.Footer;
         }
 
         // The footer's text band for one page, anchored so its bottom sits the footer distance above the
@@ -3897,10 +3941,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // indents are zero for a plain paragraph. The measurer re-sizes the first line by the same amount so
         // the wrap and the paint agree. A LIST paragraph is exempt: its hanging indent positions the marker
         // (see MarkerRun) while the text stays at the LeftIndent on every line, so the text must not shift.
-        static float FirstLineIndentOffset(ParagraphProperties properties, int lineIndex) =>
-            lineIndex == 0 && properties.Numbering is not { Text.Length: > 0 }
-                ? (float) (properties.FirstLineIndentPoints - properties.HangingIndentPoints)
-                : 0f;
+        static float FirstLineIndentOffset(ParagraphProperties properties, int lineIndex)
+        {
+            if (lineIndex == 0 && properties.Numbering is not { Text.Length: > 0 })
+            {
+                return (float) (properties.FirstLineIndentPoints - properties.HangingIndentPoints);
+            }
+
+            return 0f;
+        }
 
         // The runs to paint for a line: its text run segments, plus — on the first line of a list
         // paragraph — the list marker positioned in the hanging-indent gutter to the left of the text.

@@ -177,7 +177,12 @@ static class DrawingExtents
             ?.Elements()
             .FirstOrDefault(_ => _.Name.LocalName == "ext");
 
-        return extent is null ? null : Emus(extent, "cx");
+        if (extent is null)
+        {
+            return null;
+        }
+
+        return Emus(extent, "cx");
     }
 
     /// <summary>
@@ -230,19 +235,34 @@ static class DrawingExtents
         var right = Percentage(crop, "r");
         var visible = 1 - left - right;
 
-        return visible <= 0 ? 1 : visible;
+        if (visible <= 0)
+        {
+            return 1;
+        }
+
+        return visible;
     }
 
-    static double Percentage(XElement element, string name) =>
-        double.TryParse(element.Attribute(name)?.Value, CultureInfo.InvariantCulture, out var value)
-            ? value / 100000d
-            : 0;
+    static double Percentage(XElement element, string name)
+    {
+        if (double.TryParse(element.Attribute(name)?.Value, CultureInfo.InvariantCulture, out var value))
+        {
+            return value / 100000d;
+        }
 
-    static double? Emus(XElement element, string name) =>
-        double.TryParse(element.Attribute(name)?.Value, CultureInfo.InvariantCulture, out var value) &&
-        value > 0
-            ? value
-            : null;
+        return 0;
+    }
+
+    static double? Emus(XElement element, string name)
+    {
+        if (double.TryParse(element.Attribute(name)?.Value, CultureInfo.InvariantCulture, out var value) &&
+                value > 0)
+        {
+            return value;
+        }
+
+        return null;
+    }
 
     /// <summary>The width in inches from a VML shape's CSS <c>style</c>, e.g. <c>width:120.5pt</c>.</summary>
     static double? VmlWidth(XElement? shape)
@@ -284,9 +304,12 @@ static class DrawingExtents
             }
         }
 
-        return double.TryParse(value[..^unit], CultureInfo.InvariantCulture, out var parsed) && parsed > 0
-            ? parsed / perInch
-            : null;
+        if (double.TryParse(value[..^unit], CultureInfo.InvariantCulture, out var parsed) && parsed > 0)
+        {
+            return parsed / perInch;
+        }
+
+        return null;
     }
 
     static readonly (string Suffix, double PerInch)[] units =

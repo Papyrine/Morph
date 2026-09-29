@@ -23,6 +23,13 @@ static class IndexedPalette
     /// 65 = background) and anything out of range. Null means "no explicit colour", which lets the
     /// caller fall back rather than painting a wrong black.
     /// </summary>
-    public static string? Resolve(uint index) =>
-        index < entries.Length ? entries[index] : null;
+    public static string? Resolve(uint index)
+    {
+        if (index < entries.Length)
+        {
+            return entries[index];
+        }
+
+        return null;
+    }
 }

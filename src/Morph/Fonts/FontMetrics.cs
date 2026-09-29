@@ -103,7 +103,12 @@ sealed record FontMetrics
                 return -TypoDescender;
             }
 
-            return WinAscent > 0 ? WinDescent : -Descender;
+            if (WinAscent > 0)
+            {
+                return WinDescent;
+            }
+
+            return -Descender;
         }
     }
 
@@ -192,8 +197,15 @@ sealed record FontMetrics
     public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesMode15 { get; init; }
 
     /// <summary>The sidecar a document in the given compatibility mode measures with, or null.</summary>
-    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesFor(int compatibilityMode) =>
-        compatibilityMode >= 15 ? WordAdvancesMode15 : WordAdvances;
+    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesFor(int compatibilityMode)
+    {
+        if (compatibilityMode >= 15)
+        {
+            return WordAdvancesMode15;
+        }
+
+        return WordAdvances;
+    }
 
     /// <summary>
     /// GPOS <c>kern</c>-feature pair kerning, or null for a font without usable pair data. Word
@@ -219,6 +231,11 @@ sealed record FontMetrics
         }
 
         var glyph = GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0);
-        return glyph < AdvanceWidths.Count ? AdvanceWidths[glyph] : AdvanceWidths[^1];
+        if (glyph < AdvanceWidths.Count)
+        {
+            return AdvanceWidths[glyph];
+        }
+
+        return AdvanceWidths[^1];
     }
 }

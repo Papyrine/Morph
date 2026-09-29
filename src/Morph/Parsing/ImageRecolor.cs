@@ -16,8 +16,15 @@ sealed record ImageRecolor(BlipColorEffect Effect, string? DarkHex, string? Ligh
     /// <summary>
     /// The recolour for an effect and its duotone endpoints, or null when there is nothing to apply.
     /// </summary>
-    public static ImageRecolor? For(BlipColorEffect effect, string? darkHex, string? lightHex) =>
-        effect == BlipColorEffect.None ? null : new(effect, darkHex, lightHex);
+    public static ImageRecolor? For(BlipColorEffect effect, string? darkHex, string? lightHex)
+    {
+        if (effect == BlipColorEffect.None)
+        {
+            return null;
+        }
+
+        return new(effect, darkHex, lightHex);
+    }
 
     /// <summary>
     /// One output channel: the weights applied to the source red, green and blue, plus a constant.
@@ -73,8 +80,13 @@ sealed record ImageRecolor(BlipColorEffect Effect, string? DarkHex, string? Ligh
     // A duotone endpoint in 0-1 channels. An unresolved or unparseable colour falls back to the
     // ramp's natural end — black for the dark end, white for the light — so a half-resolved duotone
     // still renders as a ramp rather than collapsing to a flat fill.
-    static (float Red, float Green, float Blue) Channels(string? hex, float fallback) =>
-        hex != null && hex.TryParse(out var red, out var green, out var blue)
-            ? (red / 255f, green / 255f, blue / 255f)
-            : (fallback, fallback, fallback);
+    static (float Red, float Green, float Blue) Channels(string? hex, float fallback)
+    {
+        if (hex != null && hex.TryParse(out var red, out var green, out var blue))
+        {
+            return (red / 255f, green / 255f, blue / 255f);
+        }
+
+        return (fallback, fallback, fallback);
+    }
 }

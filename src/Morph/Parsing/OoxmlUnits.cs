@@ -55,18 +55,37 @@ static class OoxmlUnits
     /// <c>double.Parse</c> calls this replaces, kept deliberately. The invariant culture is
     /// explicit here where those relied on the ambient one.
     /// </remarks>
-    public static double? TwipsToPoints(this StringValue? value) =>
-        value?.HasValue == true
-            ? double.Parse(value.Value!, CultureInfo.InvariantCulture) / TwipsPerPoint
-            : null;
+    public static double? TwipsToPoints(this StringValue? value)
+    {
+        if (value?.HasValue == true)
+        {
+            return double.Parse(value.Value!, CultureInfo.InvariantCulture) / TwipsPerPoint;
+        }
+
+        return null;
+    }
 
     /// <summary>Converts a twip-valued attribute to points, or null when absent.</summary>
-    public static double? TwipsToPoints(this Int32Value? value) =>
-        value?.HasValue == true ? value.Value / TwipsPerPoint : null;
+    public static double? TwipsToPoints(this Int32Value? value)
+    {
+        if (value?.HasValue == true)
+        {
+            return value.Value / TwipsPerPoint;
+        }
+
+        return null;
+    }
 
     /// <summary>Converts a twip-valued attribute to points, or null when absent.</summary>
-    public static double? TwipsToPoints(this UInt32Value? value) =>
-        value?.HasValue == true ? value.Value / TwipsPerPoint : null;
+    public static double? TwipsToPoints(this UInt32Value? value)
+    {
+        if (value?.HasValue == true)
+        {
+            return value.Value / TwipsPerPoint;
+        }
+
+        return null;
+    }
 
     /// <summary>Converts half-points (used by w:sz, w:kern, w:position) to points.</summary>
     public static double HalfPointsToPoints(this double halfPoints) => halfPoints / 2.0;

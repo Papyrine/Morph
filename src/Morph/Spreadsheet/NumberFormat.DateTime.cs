@@ -234,7 +234,12 @@ static partial class NumberFormat
     static int ToTwelveHour(int hour)
     {
         var wrapped = hour % 12;
-        return wrapped == 0 ? 12 : wrapped;
+        if (wrapped == 0)
+        {
+            return 12;
+        }
+
+        return wrapped;
     }
 
     /// <summary>

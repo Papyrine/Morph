@@ -29,7 +29,15 @@ public class SectionBandTests
     static string Bands(LaidOutPage page, bool header)
     {
         var lines = page.Items.OfType<PlacedLine>().ToList();
-        var band = lines.Where(_ => header ? _.Y < 60 : _.Y > 700);
+        var band = lines.Where(_ =>
+        {
+            if (header)
+            {
+                return _.Y < 60;
+            }
+
+            return _.Y > 700;
+        });
         return string.Concat(band.SelectMany(_ => _.Runs).Select(_ => _.Text)).Trim();
     }
 

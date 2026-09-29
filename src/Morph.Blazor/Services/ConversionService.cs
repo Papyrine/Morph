@@ -231,10 +231,15 @@ public static class ConversionService
     static ArgumentOutOfRangeException UnknownSource(InputFormat source) =>
         new(nameof(source), source, "Unknown input format.");
 
-    static DownloadPayload PngDownload(IReadOnlyList<byte[]> pages) =>
-        pages.Count == 1
-            ? new(pages[0], ".png", "image/png")
-            : new(ZipPages(pages), ".zip", "application/zip");
+    static DownloadPayload PngDownload(IReadOnlyList<byte[]> pages)
+    {
+        if (pages.Count == 1)
+        {
+            return new(pages[0], ".png", "image/png");
+        }
+
+        return new(ZipPages(pages), ".zip", "application/zip");
+    }
 
     static byte[] ZipPages(IReadOnlyList<byte[]> pages)
     {

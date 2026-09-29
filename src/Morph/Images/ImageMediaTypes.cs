@@ -35,6 +35,13 @@ static class ImageMediaTypes
     }
 
     /// <summary>The extension a part holding <paramref name="contentType"/> should be named with.</summary>
-    public static string ExtensionFor(string contentType) =>
-        Matches(contentType, Jpeg) ? "jpeg" : "png";
+    public static string ExtensionFor(string contentType)
+    {
+        if (Matches(contentType, Jpeg))
+        {
+            return "jpeg";
+        }
+
+        return "png";
+    }
 }

@@ -60,8 +60,13 @@ sealed class ContentTypeMap
     }
 
     /// <summary>The media type declared for <paramref name="partName"/>, or null when it has none.</summary>
-    public string? For(string partName) =>
-        byPartName.TryGetValue(partName, out var contentType)
-            ? contentType
-            : byExtension.GetValueOrDefault(PackagePaths.Extension(partName));
+    public string? For(string partName)
+    {
+        if (byPartName.TryGetValue(partName, out var contentType))
+        {
+            return contentType;
+        }
+
+        return byExtension.GetValueOrDefault(PackagePaths.Extension(partName));
+    }
 }

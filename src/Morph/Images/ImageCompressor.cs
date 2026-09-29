@@ -227,12 +227,17 @@ public static class ImageCompressor
         return Math.Clamp((int) Math.Round(inches * targetDpi), 1, probe.Width);
     }
 
-    static string TargetContentType(string contentType, ImageProbe probe, ImageCompressionOptions options) =>
-        options.ConvertOpaquePngToJpeg &&
-        !probe.HasTranslucency &&
-        ImageMediaTypes.Matches(contentType, ImageMediaTypes.Png)
-            ? ImageMediaTypes.Jpeg
-            : contentType;
+    static string TargetContentType(string contentType, ImageProbe probe, ImageCompressionOptions options)
+    {
+        if (options.ConvertOpaquePngToJpeg &&
+                !probe.HasTranslucency &&
+                ImageMediaTypes.Matches(contentType, ImageMediaTypes.Png))
+        {
+            return ImageMediaTypes.Jpeg;
+        }
+
+        return contentType;
+    }
 
     /// <summary>
     /// The part's name under its new extension, avoiding any name the package already uses.

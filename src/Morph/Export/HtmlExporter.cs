@@ -181,10 +181,20 @@ static class HtmlExporter
     /// way of suppressing the header on page 1), so an empty one must not mask the default —
     /// hence the content test rather than a plain null check.
     /// </summary>
-    static HeaderFooterContent? PickHeaderFooter(HeaderFooterContent? standard, HeaderFooterContent? firstPage) =>
-        HasContent(standard) ? standard :
-        HasContent(firstPage) ? firstPage :
-        null;
+    static HeaderFooterContent? PickHeaderFooter(HeaderFooterContent? standard, HeaderFooterContent? firstPage)
+    {
+        if (HasContent(standard))
+        {
+            return standard;
+        }
+
+        if (HasContent(firstPage))
+        {
+            return firstPage;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Blankness as HTML sees it: an explicit line break renders as a &lt;br /&gt; and occupies a
@@ -285,7 +295,15 @@ static class HtmlExporter
 
     // CSS font-family values containing whitespace must be quoted (e.g. 'Calibri Light'); single
     // identifiers (Calibri) are left bare. Family names never contain quotes in practice.
-    static string CssFontFamily(string font) => font.Contains(' ') ? $"'{font}'" : font;
+    static string CssFontFamily(string font)
+    {
+        if (font.Contains(' '))
+        {
+            return $"'{font}'";
+        }
+
+        return font;
+    }
 
     static string Number(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 
@@ -2959,7 +2977,12 @@ static class HtmlExporter
                 transforms.Add($"scale({(flipHorizontal ? "-1" : "1")}, {(flipVertical ? "-1" : "1")})");
             }
 
-            return transforms.Count == 0 ? null : $"transform: {string.Join(" ", transforms)}";
+            if (transforms.Count == 0)
+            {
+                return null;
+            }
+
+            return $"transform: {string.Join(" ", transforms)}";
         }
 
         void AppendImageTag(
@@ -3066,10 +3089,15 @@ static class HtmlExporter
             return candidate;
         }
 
-        static string SelectedItem(DropDownFormFieldElement dropDown) =>
-            dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count
-                ? dropDown.Items[dropDown.SelectedIndex]
-                : "";
+        static string SelectedItem(DropDownFormFieldElement dropDown)
+        {
+            if (dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count)
+            {
+                return dropDown.Items[dropDown.SelectedIndex];
+            }
+
+            return "";
+        }
 
         StringBuilder Indent(int depth)
         {

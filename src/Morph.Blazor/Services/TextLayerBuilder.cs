@@ -271,9 +271,12 @@ static class TextLayerBuilder
 
         var text = line.Spans[^1].Text;
         var last = text[^1];
-        return char.IsWhiteSpace(last) || last is '-' or '‐' or '­'
-            ? LineEnd.None
-            : LineEnd.Space;
+        if (char.IsWhiteSpace(last) || last is '-' or '‐' or '­')
+        {
+            return LineEnd.None;
+        }
+
+        return LineEnd.Space;
     }
 
     static EndedNode? LastEnded(List<Node> nodes)

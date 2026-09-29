@@ -85,7 +85,18 @@ public partial class MorphConverter : IDisposable
 
     FormatInfo? TargetInfo => ConversionService.Find(target);
 
-    string RootClass => Class is {Length: > 0} extra ? $"converter {extra}" : "converter";
+    string RootClass
+    {
+        get
+        {
+            if (Class is {Length: > 0} extra)
+            {
+                return $"converter {extra}";
+            }
+
+            return "converter";
+        }
+    }
 
     bool ResultPaneVisible => ShowResultPane && wideViewport && target != OutputFormat.Png;
 

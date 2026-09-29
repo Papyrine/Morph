@@ -242,8 +242,13 @@ sealed class PdfRenderContext : RenderContextBase
         imageCache.Clear();
     }
 
-    public static XColor ParseColor(string? hex) =>
-        hex.TryParseArgb(out var a, out var r, out var g, out var b)
-            ? XColor.FromArgb(a, r, g, b)
-            : XColors.Black;
+    public static XColor ParseColor(string? hex)
+    {
+        if (hex.TryParseArgb(out var a, out var r, out var g, out var b))
+        {
+            return XColor.FromArgb(a, r, g, b);
+        }
+
+        return XColors.Black;
+    }
 }
