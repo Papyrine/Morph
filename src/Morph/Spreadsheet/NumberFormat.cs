@@ -228,9 +228,12 @@ static partial class NumberFormat
 
         // Excel's General shows up to 11 significant digits, trimming trailing zeros.
         var text = value.ToString("G11", CultureInfo.InvariantCulture);
-        return text.Contains('E', StringComparison.Ordinal)
-            ? value.ToString("G6", CultureInfo.InvariantCulture).Replace("E+", "E+", StringComparison.Ordinal)
-            : text;
+        if (text.Contains('E', StringComparison.Ordinal))
+        {
+            return value.ToString("G6", CultureInfo.InvariantCulture).Replace("E+", "E+", StringComparison.Ordinal);
+        }
+
+        return text;
     }
 
     static string ApplyTextSection(string body, string text)

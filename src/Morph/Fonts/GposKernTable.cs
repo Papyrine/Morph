@@ -144,7 +144,12 @@ sealed class GposKernTable
             }
         }
 
-        return pairs.Count == 0 && classSubtables.Count == 0 ? null : new(pairs, classSubtables);
+        if (pairs.Count == 0 && classSubtables.Count == 0)
+        {
+            return null;
+        }
+
+        return new(pairs, classSubtables);
     }
 
     static void ParsePairPos(ReadOnlySpan<byte> gpos, int subtable, Dictionary<uint, short> pairs, List<ClassSubtable> classSubtables)

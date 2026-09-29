@@ -800,6 +800,11 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
             path.Close();
         }
 
-        return path.IsEmpty ? null : path;
+        if (path.IsEmpty)
+        {
+            return null;
+        }
+
+        return path;
     }
 }

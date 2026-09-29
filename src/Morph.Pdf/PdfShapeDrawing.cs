@@ -167,6 +167,13 @@ static class PdfShapeDrawing
         return new(start, end, WithAlpha(PdfRenderContext.ParseColor(gradient.StartColorHex), gradient.StartAlpha), WithAlpha(PdfRenderContext.ParseColor(gradient.EndColorHex), gradient.EndAlpha));
     }
 
-    static XColor WithAlpha(XColor color, double alpha) =>
-        alpha >= 1 ? color : XColor.FromArgb((int) Math.Round(alpha * 255), color.R, color.G, color.B);
+    static XColor WithAlpha(XColor color, double alpha)
+    {
+        if (alpha >= 1)
+        {
+            return color;
+        }
+
+        return XColor.FromArgb((int) Math.Round(alpha * 255), color.R, color.G, color.B);
+    }
 }

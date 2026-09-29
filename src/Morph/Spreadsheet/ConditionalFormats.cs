@@ -207,10 +207,23 @@ sealed class ConditionalFormats
 
         var colors = scale.Elements<S.Color>().Select(Resolve).ToArray();
         var values = scale.Elements<S.ConditionalFormatValueObject>()
-            .Select(_ => double.TryParse(_.Val?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : (double?) null)
+            .Select(_ =>
+            {
+                if (double.TryParse(_.Val?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
+                {
+                    return v;
+                }
+
+                return (double?) null;
+            })
             .ToArray();
 
-        return colors.Length >= 2 ? new ColorScale(colors, values) : null;
+        if (colors.Length >= 2)
+        {
+            return new ColorScale(colors, values);
+        }
+
+        return null;
     }
 
     string? Resolve(S.ColorType? color)
@@ -222,7 +235,12 @@ sealed class ConditionalFormats
 
         if (color.Rgb?.Value is { Length: >= 6 } argb)
         {
-            return argb.Length == 8 ? argb[2..] : argb;
+            if (argb.Length == 8)
+            {
+                return argb[2..];
+            }
+
+            return argb;
         }
 
         if (color.Theme?.Value is { } theme && themeColors != null)
@@ -237,7 +255,12 @@ sealed class ConditionalFormats
             });
         }
 
-        return color.Indexed?.Value is { } indexed ? IndexedPalette.Resolve(indexed) : null;
+        if (color.Indexed?.Value is { } indexed)
+        {
+            return IndexedPalette.Resolve(indexed);
+        }
+
+        return null;
     }
 
     sealed record Rule(

@@ -227,8 +227,15 @@ static class ScenarioMarkdownGenerator
         }
     }
 
-    static string? FileNameIfExists(string directory, string fileName) =>
-        File.Exists(Path.Combine(directory, fileName)) ? fileName : null;
+    static string? FileNameIfExists(string directory, string fileName)
+    {
+        if (File.Exists(Path.Combine(directory, fileName)))
+        {
+            return fileName;
+        }
+
+        return null;
+    }
 
     static void AppendNotes(StringBuilder sb, string directory)
     {

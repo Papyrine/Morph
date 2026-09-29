@@ -94,9 +94,12 @@ sealed class CanonicalTextMeasurer
             return naturalAscentPoints + (explicitPoints - naturalPitchPoints);
         }
 
-        return rule == LineSpacingRule.Auto && multiplier < 1
-            ? naturalAscentPoints * multiplier
-            : naturalAscentPoints;
+        if (rule == LineSpacingRule.Auto && multiplier < 1)
+        {
+            return naturalAscentPoints * multiplier;
+        }
+
+        return naturalAscentPoints;
     }
 
     // The reference rasterizer runs at 120 dpi — the 125%-scaled display the XPS baselines were

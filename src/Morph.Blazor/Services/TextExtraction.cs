@@ -172,6 +172,11 @@ public static class TextExtraction
             output.Add(line);
         }
 
-        return output.Count == 0 ? string.Empty : string.Join('\n', output) + '\n';
+        if (output.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        return string.Join('\n', output) + '\n';
     }
 }

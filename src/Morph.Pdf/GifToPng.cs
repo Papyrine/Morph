@@ -154,7 +154,12 @@ static class GifToPng
             {
                 if (position >= input.Length)
                 {
-                    return written == pixelCount ? output : null;
+                    if (written == pixelCount)
+                    {
+                        return output;
+                    }
+
+                    return null;
                 }
 
                 bitBuffer |= input[position++] << bitCount;
@@ -229,7 +234,12 @@ static class GifToPng
             previous = code;
         }
 
-        return written == pixelCount ? output : null;
+        if (written == pixelCount)
+        {
+            return output;
+        }
+
+        return null;
     }
 
     static byte FirstByte(int code, int[] prefix, byte[] suffix, int clear)
@@ -339,7 +349,15 @@ static class GifToPng
 
         public void Skip(int count) => offset += count;
 
-        public int Byte() => offset < data.Length ? data[offset++] : -1;
+        public int Byte()
+        {
+            if (offset < data.Length)
+            {
+                return data[offset++];
+            }
+
+            return -1;
+        }
 
         public int UInt16()
         {

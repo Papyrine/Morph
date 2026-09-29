@@ -751,10 +751,15 @@ sealed class SlideShapeParser(
         return (null, null);
     }
 
-    static PresetShape ResolvePreset(OpenXmlElement? properties) =>
-        properties?.GetFirstChild<A.PresetGeometry>()?.Preset?.Value == A.ShapeTypeValues.Ellipse
-            ? PresetShape.Ellipse
-            : PresetShape.Rect;
+    static PresetShape ResolvePreset(OpenXmlElement? properties)
+    {
+        if (properties?.GetFirstChild<A.PresetGeometry>()?.Preset?.Value == A.ShapeTypeValues.Ellipse)
+        {
+            return PresetShape.Ellipse;
+        }
+
+        return PresetShape.Rect;
+    }
 
     static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ResolveSubpaths(OpenXmlElement? properties, double width, double height)
     {
@@ -786,7 +791,12 @@ sealed class SlideShapeParser(
             Bottom = (rectangle.Bottom?.Value ?? 0) / scale
         };
 
-        return crop.IsCropped ? crop : null;
+        if (crop.IsCropped)
+        {
+            return crop;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -840,7 +850,12 @@ sealed class SlideShapeParser(
     {
         var scale = textBody?.GetFirstChild<A.BodyProperties>()?
             .GetFirstChild<A.NormalAutoFit>()?.FontScale?.Value;
-        return scale is > 0 ? scale.Value / 100000.0 : 1;
+        if (scale is > 0)
+        {
+            return scale.Value / 100000.0;
+        }
+
+        return 1;
     }
 
     static bool HasVisibleText(OpenXmlElement? textBody) =>

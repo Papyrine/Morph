@@ -221,7 +221,12 @@ sealed class PdfFontResolver : IFontResolver
                 return new(fallbackFace);
             }
 
-            return defaultFace == null ? null : new FontResolverInfo(defaultFace);
+            if (defaultFace == null)
+            {
+                return null;
+            }
+
+            return new FontResolverInfo(defaultFace);
         }
     }
 
@@ -355,7 +360,12 @@ sealed class PdfFontResolver : IFontResolver
 
         lock (gate)
         {
-            return faceToPath.TryGetValue(faceName, out var path) ? File.ReadAllBytes(path) : null;
+            if (faceToPath.TryGetValue(faceName, out var path))
+            {
+                return File.ReadAllBytes(path);
+            }
+
+            return null;
         }
     }
 }

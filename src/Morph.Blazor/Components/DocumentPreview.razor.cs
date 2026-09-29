@@ -46,8 +46,15 @@ public partial class DocumentPreview
     // parent repainting for an unrelated reason) doesn't rebuild its layer.
     PageTextLayer?[] builtLayers = [];
 
-    PageTextLayer? LayerAt(int index) =>
-        TextLayers is { } layers && index < layers.Count ? layers[index] : null;
+    PageTextLayer? LayerAt(int index)
+    {
+        if (TextLayers is { } layers && index < layers.Count)
+        {
+            return layers[index];
+        }
+
+        return null;
+    }
 
     protected override void OnParametersSet()
     {

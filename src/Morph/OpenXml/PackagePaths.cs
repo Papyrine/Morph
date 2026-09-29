@@ -25,7 +25,12 @@ static class PackagePaths
     public static string Extension(string partName)
     {
         var dot = partName.LastIndexOf('.');
-        return dot < 0 ? "" : partName[(dot + 1)..];
+        if (dot < 0)
+        {
+            return "";
+        }
+
+        return partName[(dot + 1)..];
     }
 
     /// <summary>
@@ -52,7 +57,12 @@ static class PackagePaths
     public static string OwningDirectory(string relsPartName)
     {
         var marker = relsPartName.LastIndexOf("_rels/", StringComparison.OrdinalIgnoreCase);
-        return marker < 0 ? "" : relsPartName[..marker];
+        if (marker < 0)
+        {
+            return "";
+        }
+
+        return relsPartName[..marker];
     }
 
     public static string NormalizePartName(string partName)

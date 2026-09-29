@@ -68,7 +68,12 @@ static class CellReference
         }
 
         var digits = new string(reference.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit).ToArray());
-        return int.TryParse(digits, out var row) && row <= MaxRow ? row : 0;
+        if (int.TryParse(digits, out var row) && row <= MaxRow)
+        {
+            return row;
+        }
+
+        return 0;
     }
 
     /// <summary>Parses an <c>A1:F19</c> range, or a single <c>A1</c>, into inclusive bounds.</summary>

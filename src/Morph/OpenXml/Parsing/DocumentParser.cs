@@ -854,7 +854,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        return fonts.Ascii?.HasValue == true ? fonts.Ascii.Value : null;
+        if (fonts.Ascii?.HasValue == true)
+        {
+            return fonts.Ascii.Value;
+        }
+
+        return null;
     }
 
     string? ResolveDocDefaultFont(MainDocumentPart mainPart)
@@ -1312,11 +1317,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Reads a <c>w:themeShade</c>-style hex byte, or null when absent or malformed.
     /// </summary>
-    static byte? ThemeByte(StringValue? value) =>
-        value?.HasValue == true &&
-        byte.TryParse(value.Value, NumberStyles.HexNumber, null, out var parsed)
-            ? parsed
-            : null;
+    static byte? ThemeByte(StringValue? value)
+    {
+        if (value?.HasValue == true &&
+                byte.TryParse(value.Value, NumberStyles.HexNumber, null, out var parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Resolves a <c>w:shd</c>'s <c>w:themeFill</c> against the document theme, honouring the
@@ -2811,7 +2821,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return indent - firstCellLeftMargin;
         }
 
-        return tableDeclaresCellMargin ? 0 : -firstCellLeftMargin;
+        if (tableDeclaresCellMargin)
+        {
+            return 0;
+        }
+
+        return -firstCellLeftMargin;
     }
 
     /// <summary>
@@ -2895,7 +2910,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var fill = shading.Fill.Value;
-        return fill is null or "auto" ? null : fill;
+        if (fill is null or "auto")
+        {
+            return null;
+        }
+
+        return fill;
     }
 
     // Maps the named-colour palette of <w:highlight w:val="..."/> to RGB hex strings.
@@ -3264,12 +3284,30 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // The five counter styles CSS list-style-type can name directly; everything else (ordinal,
     // cardinal text, hex, decimal-enclosed variants) has no faithful CSS equivalent and falls
     // through to Decimal, which is also the browser default.
-    static ListNumberFormat MapNumberFormat(NumberFormatValues format) =>
-        format == NumberFormatValues.UpperRoman ? ListNumberFormat.UpperRoman :
-        format == NumberFormatValues.LowerRoman ? ListNumberFormat.LowerRoman :
-        format == NumberFormatValues.UpperLetter ? ListNumberFormat.UpperLetter :
-        format == NumberFormatValues.LowerLetter ? ListNumberFormat.LowerLetter :
-        ListNumberFormat.Decimal;
+    static ListNumberFormat MapNumberFormat(NumberFormatValues format)
+    {
+        if (format == NumberFormatValues.UpperRoman)
+        {
+            return ListNumberFormat.UpperRoman;
+        }
+
+        if (format == NumberFormatValues.LowerRoman)
+        {
+            return ListNumberFormat.LowerRoman;
+        }
+
+        if (format == NumberFormatValues.UpperLetter)
+        {
+            return ListNumberFormat.UpperLetter;
+        }
+
+        if (format == NumberFormatValues.LowerLetter)
+        {
+            return ListNumberFormat.LowerLetter;
+        }
+
+        return ListNumberFormat.Decimal;
+    }
 
     void ResetDeeperCounters(int abstractId, int incrementedIlvl, Dictionary<int, NumberingLevelDefinition> levels)
     {
@@ -3928,7 +3966,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        return brightness < 128 ? "FFFFFF" : null;
+        if (brightness < 128)
+        {
+            return "FFFFFF";
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -3963,8 +4006,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // A toggle element PRESENT with no w:val means on; w:val="0"/"false" means off. Absent stays
         // null so it contributes nothing to the XOR.
         static bool? Toggle<T>(OpenXmlElement rPr)
-            where T : OnOffType =>
-            rPr.GetFirstChild<T>() is { } element ? element.Val?.Value ?? true : null;
+            where T : OnOffType
+        {
+            if (rPr.GetFirstChild<T>() is { } element)
+            {
+                return element.Val?.Value ?? true;
+            }
+
+            return null;
+        }
 
         var declared = new DeclaredRunProperties
         {
@@ -3981,7 +4031,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 : null
         };
 
-        return declared.HasAny ? declared : null;
+        if (declared.HasAny)
+        {
+            return declared;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -4207,13 +4262,23 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             HeaderFooterContent? Header(HeaderFooterValues type, HeaderFooterContent? inherited)
             {
                 var reference = sectionProps.Elements<HeaderReference>().FirstOrDefault(_ => _.Type?.Value == type);
-                return reference?.Id?.Value is { } id ? Part(id) : inherited;
+                if (reference?.Id?.Value is { } id)
+                {
+                    return Part(id);
+                }
+
+                return inherited;
             }
 
             HeaderFooterContent? Footer(HeaderFooterValues type, HeaderFooterContent? inherited)
             {
                 var reference = sectionProps.Elements<FooterReference>().FirstOrDefault(_ => _.Type?.Value == type);
-                return reference?.Id?.Value is { } id ? Part(id) : inherited;
+                if (reference?.Id?.Value is { } id)
+                {
+                    return Part(id);
+                }
+
+                return inherited;
             }
 
             var bands = new SectionBands
@@ -4260,12 +4325,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // painting them in document order whited out the whole letterhead.
         SortFloatingBatchesByZ(elements);
 
-        return elements.Count > 0
-            ? new HeaderFooterContent
+        if (elements.Count > 0)
+        {
+            return new HeaderFooterContent
             {
                 Elements = elements
-            }
-            : null;
+            };
+        }
+
+        return null;
     }
 
     void AppendHeaderFooterElements(OpenXmlElement container, MainDocumentPart mainPart, List<DocumentElement> elements)
@@ -5441,11 +5509,23 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             hasAny = true;
         }
 
-        return hasAny ? new CellSpacing(top, right, bottom, left) : null;
+        if (hasAny)
+        {
+            return new CellSpacing(top, right, bottom, left);
+        }
+
+        return null;
     }
 
-    static double ParseBorderSpace(BorderType? border) =>
-        border?.Space?.HasValue == true ? border.Space.Value : 0;
+    static double ParseBorderSpace(BorderType? border)
+    {
+        if (border?.Space?.HasValue == true)
+        {
+            return border.Space.Value;
+        }
+
+        return 0;
+    }
 
     /// <summary>
     /// Cascades a tblStylePr-derived run colour onto the runs in a freshly-parsed cell.
@@ -6428,10 +6508,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                     .Select((node, index) => (Node: node, Index: index))
                                     .ToDictionary(_ => _.Node, _ => _.Index);
                                 groupChildren = groupChildren.OrderBy(_ =>
-                                    childSources.TryGetValue(_, out var source) &&
-                                    documentOrder.TryGetValue(source, out var ordinal)
-                                        ? ordinal
-                                        : int.MaxValue);
+                                {
+                                    if (childSources.TryGetValue(_, out var source) &&
+                                            documentOrder.TryGetValue(source, out var ordinal))
+                                    {
+                                        return ordinal;
+                                    }
+
+                                    return int.MaxValue;
+                                });
                             }
 
                             result.AddRange(groupChildren);
@@ -7120,7 +7205,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var top = (effectExtent.TopEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
         var right = (effectExtent.RightEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
         var bottom = (effectExtent.BottomEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
-        return left == 0 && top == 0 && right == 0 && bottom == 0 ? null : new(left, top, right, bottom);
+        if (left == 0 && top == 0 && right == 0 && bottom == 0)
+        {
+            return null;
+        }
+
+        return new(left, top, right, bottom);
     }
 
     // A picture's own a:ln: the solid line Word's picture styles stroke on the picture edge (see
@@ -7462,7 +7552,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var widths = (currentThemeColors ?? new()).LineStyleWidthsEmu;
-        return index < widths.Count ? widths[(int) index] : 0;
+        if (index < widths.Count)
+        {
+            return widths[(int) index];
+        }
+
+        return 0;
     }
 
     /// <summary>
@@ -7478,9 +7573,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return GroupShapeGeometry.Line;
         }
 
-        return preset == A.ShapeTypeValues.Ellipse
-            ? GroupShapeGeometry.Ellipse
-            : GroupShapeGeometry.Rectangle;
+        if (preset == A.ShapeTypeValues.Ellipse)
+        {
+            return GroupShapeGeometry.Ellipse;
+        }
+
+        return GroupShapeGeometry.Rectangle;
     }
 
     /// <summary>
@@ -7945,7 +8043,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Bottom = ReadFraction(srcRect, "b")
         };
 
-        return crop.IsCropped ? crop : null;
+        if (crop.IsCropped)
+        {
+            return crop;
+        }
+
+        return null;
 
         static double ReadFraction(OpenXmlElement element, string attributeName)
         {
@@ -8001,9 +8104,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 return descr.Trim();
             }
 
-            return properties.AttributeValue("title") is {Length: > 0} title && !string.IsNullOrWhiteSpace(title)
-                ? title.Trim()
-                : null;
+            if (properties.AttributeValue("title") is {Length: > 0} title && !string.IsNullOrWhiteSpace(title))
+            {
+                return title.Trim();
+            }
+
+            return null;
         }
     }
 
@@ -11270,7 +11376,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (hyperlink.Anchor?.Value is {Length: > 0} anchor)
         {
-            return target == null ? $"#{anchor}" : $"{target}#{anchor}";
+            if (target == null)
+            {
+                return $"#{anchor}";
+            }
+
+            return $"{target}#{anchor}";
         }
 
         return target;
@@ -11310,7 +11421,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        return stylesById.TryGetValue(styleId, out var match) ? match : null;
+        if (stylesById.TryGetValue(styleId, out var match))
+        {
+            return match;
+        }
+
+        return null;
     }
 
     // Word's revision colour for a single author, sampled from its own render of
@@ -11409,7 +11525,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        return fonts.EastAsia?.HasValue == true ? fonts.EastAsia.Value : null;
+        if (fonts.EastAsia?.HasValue == true)
+        {
+            return fonts.EastAsia.Value;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -11455,9 +11576,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var family = EastAsiaFontFamily(fonts) ?? defaultEastAsiaFontFamily;
-        return family == null || string.Equals(family, properties.FontFamily, StringComparison.OrdinalIgnoreCase)
-            ? properties
-            : properties with {FontFamily = family};
+        if (family == null || string.Equals(family, properties.FontFamily, StringComparison.OrdinalIgnoreCase))
+        {
+            return properties;
+        }
+
+        return properties with {FontFamily = family};
     }
 
     static bool IsEastAsiaHinted(char ch) =>
@@ -11709,9 +11833,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var styleColor = styleDefaults.ColorHex == automaticColorSentinel
                     ? automaticRunColorHex
                     : styleDefaults.ColorHex ?? automaticRunColorHex;
-                return styleColor == styleDefaults.ColorHex
-                    ? styleDefaults
-                    : styleDefaults with {ColorHex = styleColor};
+                if (styleColor == styleDefaults.ColorHex)
+                {
+                    return styleDefaults;
+                }
+
+                return styleDefaults with {ColorHex = styleColor};
             }
 
             return new()

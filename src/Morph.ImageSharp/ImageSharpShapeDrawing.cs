@@ -126,10 +126,15 @@ static class ImageSharpShapeDrawing
 
     /// <summary>The preset rect/ellipse as an unrotated path (rotation applies via
     /// <see cref="BuildRotation"/> around the box centre at the call sites).</summary>
-    internal static IPath BuildPresetPath(FloatingShapeElement shape, float x, float y, float width, float height) =>
-        shape.Preset == PresetShape.Ellipse
-            ? new EllipsePolygon(x + width / 2, y + height / 2, width, height)
-            : new RectanglePolygon(x, y, width, height);
+    internal static IPath BuildPresetPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    {
+        if (shape.Preset == PresetShape.Ellipse)
+        {
+            return new EllipsePolygon(x + width / 2, y + height / 2, width, height);
+        }
+
+        return new RectanglePolygon(x, y, width, height);
+    }
 
     // custGeom fills use nonzero winding to match SkiaSharp's default and DrawingML — without
     // this ImageSharp's default even-odd rule would punch holes wherever contours overlap.

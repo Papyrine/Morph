@@ -332,7 +332,12 @@ public class RenderExpectedTests
     static int SlideNumber(string path)
     {
         var digits = new string(Path.GetFileNameWithoutExtension(path).Where(char.IsDigit).ToArray());
-        return digits.Length > 0 ? int.Parse(digits) : 0;
+        if (digits.Length > 0)
+        {
+            return int.Parse(digits);
+        }
+
+        return 0;
     }
 
     /// <summary>

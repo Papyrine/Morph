@@ -55,8 +55,15 @@ sealed class MergeMap
     }
 
     /// <summary>The merge state of the cell at a position; a plain 1x1 when it is not merged.</summary>
-    public MergeInfo At(int row, int column) =>
-        anchors.TryGetValue((row, column), out var info) ? info : MergeInfo.None;
+    public MergeInfo At(int row, int column)
+    {
+        if (anchors.TryGetValue((row, column), out var info))
+        {
+            return info;
+        }
+
+        return MergeInfo.None;
+    }
 
     /// <summary>
     /// Whether a position is swallowed by a merge starting to its left, and so must not be emitted

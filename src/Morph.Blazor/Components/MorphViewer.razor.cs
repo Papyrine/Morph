@@ -154,25 +154,58 @@ public partial class MorphViewer : IAsyncDisposable
 
     bool HasDocument => document is not null;
 
-    string RootClass => Class is {Length: > 0} extra ? $"viewer {extra}" : "viewer";
+    string RootClass
+    {
+        get
+        {
+            if (Class is {Length: > 0} extra)
+            {
+                return $"viewer {extra}";
+            }
+
+            return "viewer";
+        }
+    }
 
     string PageNoun => sourceInfo?.PageNoun ?? "page";
 
     string PageNounTitle => char.ToUpperInvariant(PageNoun[0]) + PageNoun[1..];
 
-    string ZoomValue =>
-        zoomMode != "custom"
-            ? zoomMode
-            : zoomPresets.FirstOrDefault(_ => Math.Abs(_ - scale) < 0.001) is > 0 and var preset
-                ? preset.ToString(CultureInfo.InvariantCulture)
-                : "custom";
+    string ZoomValue
+    {
+        get
+        {
+            if (zoomMode != "custom")
+            {
+                return zoomMode;
+            }
 
-    string FindStatus =>
-        findQuery.Trim().Length == 0 || searchPending
-            ? ""
-            : matches.Count == 0
-                ? "No results"
-                : $"{currentMatch + 1} of {matches.Count}{(matches.Count == TextSearch.MaxMatches ? "+" : "")}";
+            if (zoomPresets.FirstOrDefault(_ => Math.Abs(_ - scale) < 0.001) is > 0 and var preset)
+            {
+                return preset.ToString(CultureInfo.InvariantCulture);
+            }
+
+            return "custom";
+        }
+    }
+
+    string FindStatus
+    {
+        get
+        {
+            if (findQuery.Trim().Length == 0 || searchPending)
+            {
+                return "";
+            }
+
+            if (matches.Count == 0)
+            {
+                return "No results";
+            }
+
+            return $"{currentMatch + 1} of {matches.Count}{(matches.Count == TextSearch.MaxMatches ? "+" : "")}";
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

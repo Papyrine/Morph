@@ -397,8 +397,15 @@ public class ImageCompressorTests
         public override ImageProbe Probe(byte[] data) =>
             new(width, height, translucent);
 
-        public override byte[]? Encode(byte[] data, ImageEncodeRequest request) =>
-            Encoder is null ? new byte[data.Length + 1] : Encoder(data, request);
+        public override byte[]? Encode(byte[] data, ImageEncodeRequest request)
+        {
+            if (Encoder is null)
+            {
+                return new byte[data.Length + 1];
+            }
+
+            return Encoder(data, request);
+        }
     }
 
     /// <summary>A file on disk that deletes itself.</summary>

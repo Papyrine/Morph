@@ -759,10 +759,15 @@ static class SkiaPainter
 
     // Darkens a bevel band's colour. Shade is 1 for every ordinary border, so this is identity
     // except on threeDEngrave/threeDEmboss.
-    static SKColor Shaded(SKColor color, double shade) =>
-        shade >= 1
-            ? color
-            : new((byte) (color.Red * shade), (byte) (color.Green * shade), (byte) (color.Blue * shade), color.Alpha);
+    static SKColor Shaded(SKColor color, double shade)
+    {
+        if (shade >= 1)
+        {
+            return color;
+        }
+
+        return new((byte) (color.Red * shade), (byte) (color.Green * shade), (byte) (color.Blue * shade), color.Alpha);
+    }
 
     // A wave edge is a triangular zigzag of fixed geometry rather than a straight band — see
     // BorderStroke.Waves. Each zigzag is one polyline; the shared vertex list keeps the three

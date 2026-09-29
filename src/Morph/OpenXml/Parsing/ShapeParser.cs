@@ -319,7 +319,12 @@ static class ShapeParser
         }
 
         var rgb = fillRef.GetFirstChild<A.RgbColorModelHex>();
-        return rgb?.Val?.HasValue == true ? ApplyLiteralColorTransforms(rgb.Val.Value!, rgb) : null;
+        if (rgb?.Val?.HasValue == true)
+        {
+            return ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -565,7 +570,12 @@ static class ShapeParser
             AppendPathContours(path, subpaths, minContourPoints);
         }
 
-        return subpaths.Count > 0 ? subpaths : null;
+        if (subpaths.Count > 0)
+        {
+            return subpaths;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -1070,7 +1080,12 @@ static class ShapeParser
     static double ExtractGradientStopAlpha(A.GradientStop stop)
     {
         var alpha = stop.Descendants<A.Alpha>().FirstOrDefault();
-        return alpha?.Val?.HasValue == true ? Math.Clamp(alpha.Val.Value / 100000.0, 0, 1) : 1;
+        if (alpha?.Val?.HasValue == true)
+        {
+            return Math.Clamp(alpha.Val.Value / 100000.0, 0, 1);
+        }
+
+        return 1;
     }
 
     static string? ExtractGradientStopColor(A.GradientStop stop, ThemeColors? themeColors)
@@ -1198,11 +1213,14 @@ static class ShapeParser
             operations.Add(ColorTransform.FromOoxml(kind, value));
         }
 
-        return operations == null
-            ? new()
-            : new()
-            {
-                Operations = operations
-            };
+        if (operations == null)
+        {
+            return new();
+        }
+
+        return new()
+        {
+            Operations = operations
+        };
     }
 }

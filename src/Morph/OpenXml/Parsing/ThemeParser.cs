@@ -96,7 +96,12 @@ static class ThemeParser
         {
             widths.Add(ln.Width?.Value ?? 0);
         }
-        return widths.Count > 1 ? widths : defaults;
+        if (widths.Count > 1)
+        {
+            return widths;
+        }
+
+        return defaults;
     }
 
     /// <summary>

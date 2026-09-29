@@ -46,9 +46,12 @@ sealed class SkiaRenderContext(
     {
         try
         {
-            return face.Index == 0
-                ? SKTypeface.FromFile(face.Path)
-                : SKTypeface.FromFile(face.Path, face.Index);
+            if (face.Index == 0)
+            {
+                return SKTypeface.FromFile(face.Path);
+            }
+
+            return SKTypeface.FromFile(face.Path, face.Index);
         }
         catch
         {
@@ -322,7 +325,12 @@ sealed class SkiaRenderContext(
     {
         using var skData = SKData.CreateCopy(data);
         using var codec = SKCodec.Create(skData);
-        return codec != null ? SKBitmap.Decode(codec) : null;
+        if (codec != null)
+        {
+            return SKBitmap.Decode(codec);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -429,10 +437,15 @@ sealed class SkiaRenderContext(
         return bitmap;
     }
 
-    public static SKColor ParseColor(string? hexColor) =>
-        hexColor.TryParseArgb(out var a, out var r, out var g, out var b)
-            ? new(r, g, b, a)
-            : SKColors.Black;
+    public static SKColor ParseColor(string? hexColor)
+    {
+        if (hexColor.TryParseArgb(out var a, out var r, out var g, out var b))
+        {
+            return new(r, g, b, a);
+        }
+
+        return SKColors.Black;
+    }
 
     public void Dispose()
     {

@@ -208,7 +208,12 @@ sealed class SpreadsheetParser(
         if (CellReference.ParseRange(printArea) is { } area)
         {
             var clipped = area.Intersect(bounds);
-            return clipped.IsEmpty ? area : clipped;
+            if (clipped.IsEmpty)
+            {
+                return area;
+            }
+
+            return clipped;
         }
 
         return ExtendForOverflow(worksheet, bounds);
@@ -245,9 +250,12 @@ sealed class SpreadsheetParser(
             .DefaultIfEmpty(0)
             .Max() ?? 0;
 
-        return shaped > bounds.LastColumn
-            ? bounds with { LastColumn = shaped }
-            : bounds;
+        if (shaped > bounds.LastColumn)
+        {
+            return bounds with { LastColumn = shaped };
+        }
+
+        return bounds;
     }
 
     /// <summary>
@@ -332,7 +340,12 @@ sealed class SpreadsheetParser(
             }
         }
 
-        return lastRow == 0 ? null : new SheetRange(firstRow, firstColumn, lastRow, lastColumn);
+        if (lastRow == 0)
+        {
+            return null;
+        }
+
+        return new SheetRange(firstRow, firstColumn, lastRow, lastColumn);
     }
 
     /// <summary>
@@ -349,7 +362,12 @@ sealed class SpreadsheetParser(
         // instead collapses those pages into one and reports the wrong page count.
         if (worksheet.SheetProperties?.PageSetupProperties?.FitToPage?.Value != true)
         {
-            return setup?.Scale?.Value is { } zoom and not 100 ? zoom / 100.0 : 1;
+            if (setup?.Scale?.Value is { } zoom and not 100)
+            {
+                return zoom / 100.0;
+            }
+
+            return 1;
         }
 
         // fitToWidth and fitToHeight both default to 1, so plain fitToPage means "one page each way"

@@ -25,10 +25,15 @@ static class VerticalRunPosition
     internal const double ReducedScale = 0.65;
 
     /// <summary>The size a run draws and measures at.</summary>
-    internal static double RenderSizePoints(RunProperties properties) =>
-        properties.VerticalAlignment == VerticalRunAlignment.Baseline
-            ? properties.FontSizePoints
-            : properties.FontSizePoints * ReducedScale;
+    internal static double RenderSizePoints(RunProperties properties)
+    {
+        if (properties.VerticalAlignment == VerticalRunAlignment.Baseline)
+        {
+            return properties.FontSizePoints;
+        }
+
+        return properties.FontSizePoints * ReducedScale;
+    }
 
     /// <summary>
     /// How far above the line baseline the run's own baseline sits, in points — positive for a

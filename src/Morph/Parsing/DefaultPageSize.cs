@@ -55,19 +55,46 @@ static class DefaultPageSize
     public static void ResetToAutoDetect() => useLetterSize = null;
 
     /// <summary>Default page width in points.</summary>
-    public static double WidthPoints => UseLetterSize ? letterWidthPoints : a4WidthPoints;
+    public static double WidthPoints
+    {
+        get
+        {
+            if (UseLetterSize)
+            {
+                return letterWidthPoints;
+            }
+
+            return a4WidthPoints;
+        }
+    }
 
     /// <summary>Default page height in points.</summary>
-    public static double HeightPoints => UseLetterSize ? letterHeightPoints : a4HeightPoints;
+    public static double HeightPoints
+    {
+        get
+        {
+            if (UseLetterSize)
+            {
+                return letterHeightPoints;
+            }
+
+            return a4HeightPoints;
+        }
+    }
 
     /// <summary>
     /// Dimensions for a caller that states which paper it wants, falling back to
     /// <see cref="UseLetterSize"/> — and so to the machine's region — when it does not.
     /// </summary>
-    public static (double Width, double Height) Resolve(bool? useLetter) =>
-        useLetter ?? UseLetterSize
-            ? (letterWidthPoints, letterHeightPoints)
-            : (a4WidthPoints, a4HeightPoints);
+    public static (double Width, double Height) Resolve(bool? useLetter)
+    {
+        if (useLetter ?? UseLetterSize)
+        {
+            return (letterWidthPoints, letterHeightPoints);
+        }
+
+        return (a4WidthPoints, a4HeightPoints);
+    }
 
     static bool IsLetterRegion()
     {

@@ -292,10 +292,15 @@ static class BorderStroke
     /// paragraph painters nothing is mirrored for the right and bottom. Empty for an edge that
     /// draws nothing and for the waves, which keep their own geometry (<see cref="Waves"/>).
     /// </summary>
-    internal static (double Thickness, double? Shade)[] CellStack(BorderEdge edge) =>
-        Draws(edge) && Waves(edge.Style).Length == 0
-            ? FlooredLayout(edge.Style, edge.WidthPoints)
-            : [];
+    internal static (double Thickness, double? Shade)[] CellStack(BorderEdge edge)
+    {
+        if (Draws(edge) && Waves(edge.Style).Length == 0)
+        {
+            return FlooredLayout(edge.Style, edge.WidthPoints);
+        }
+
+        return [];
+    }
 
     /// <summary>
     /// The whole drawn stack of an edge on the grid — every band and gap of <see cref="CellStack"/>
@@ -494,10 +499,15 @@ static class BorderStroke
     /// <para>Zero for a CELL edge, which straddles its shared grid line by design (see
     /// <see cref="Bands"/>), and zero when nothing draws.</para>
     /// </summary>
-    internal static double OutwardShift(Band[] bands, Scope scope) =>
-        scope == Scope.Cell || bands.Length == 0
-            ? 0
-            : bands[0].Thickness / 2;
+    internal static double OutwardShift(Band[] bands, Scope scope)
+    {
+        if (scope == Scope.Cell || bands.Length == 0)
+        {
+            return 0;
+        }
+
+        return bands[0].Thickness / 2;
+    }
 
     /// <summary>
     /// What a RUN border (<c>w:bdr</c>) reserves on each side of the font's line box: the declared
@@ -507,8 +517,15 @@ static class BorderStroke
     /// (2 × 7), 6pt / 0 to 26.7 (2 × 6), and a 1.5pt `double` with 2pt space to 27.6
     /// (2 × (4.5 + 2)). The line box itself — the vertical rules' extent — stays the font box.
     /// </summary>
-    internal static double RunBorderReserve(BorderEdge edge) =>
-        Draws(edge) ? Extent(edge.Style, edge.WidthPoints) + edge.SpacePoints : 0;
+    internal static double RunBorderReserve(BorderEdge edge)
+    {
+        if (Draws(edge))
+        {
+            return Extent(edge.Style, edge.WidthPoints) + edge.SpacePoints;
+        }
+
+        return 0;
+    }
 
     /// <summary>
     /// How far outside the font's line box a run border's INNER face sits: <c>w:space</c> floored to
@@ -529,8 +546,15 @@ static class BorderStroke
     /// a bordered run (<c>CanonicalParagraphMeasurer.Flatten</c>), so the box the painters stroke
     /// from the glyph run outward lands with its outer faces on the reserve.
     /// </summary>
-    internal static double RunBorderGlyphInset(BorderEdge edge) =>
-        Draws(edge) ? DrawnStack(edge) + RunBorderInset(edge) : 0;
+    internal static double RunBorderGlyphInset(BorderEdge edge)
+    {
+        if (Draws(edge))
+        {
+            return DrawnStack(edge) + RunBorderInset(edge);
+        }
+
+        return 0;
+    }
 
     /// <summary>
     /// Whether a bordered run grows its line and draws its rules outside the font's line box, or

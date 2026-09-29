@@ -15,8 +15,13 @@ sealed record LaidOutDocument(IReadOnlyList<LaidOutPage> Pages)
     /// so dropping pages here changes which are painted and nothing else. A range extending past the
     /// last page simply keeps everything from its start.
     /// </summary>
-    public LaidOutDocument Restrict(PageRange? range) =>
-        range is { } bounds
-            ? new(Pages.Where(_ => bounds.Contains(_.Number)).ToArray())
-            : this;
+    public LaidOutDocument Restrict(PageRange? range)
+    {
+        if (range is { } bounds)
+        {
+            return new(Pages.Where(_ => bounds.Contains(_.Number)).ToArray());
+        }
+
+        return this;
+    }
 }

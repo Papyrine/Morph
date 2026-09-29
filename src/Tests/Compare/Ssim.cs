@@ -32,7 +32,12 @@ static class Ssim
             }
         }
 
-        return count == 0 ? 1 : sum / count;
+        if (count == 0)
+        {
+            return 1;
+        }
+
+        return sum / count;
     }
 
     static float WindowSsim(byte[] rgbaA, byte[] rgbaB, int x0, int y0, int w, int h, int stride)

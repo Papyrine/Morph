@@ -2142,9 +2142,12 @@ sealed class HtmlParser
         }
 
         var edge = ParseCssBorderEdge(value);
-        return edge == null
-            ? new()
-            : CellBorders.Uniform(edge);
+        if (edge == null)
+        {
+            return new();
+        }
+
+        return CellBorders.Uniform(edge);
     }
 
     // A CSS border declaration, mapped onto the OOXML border Word's own HTML import produces.
@@ -2293,9 +2296,14 @@ sealed class HtmlParser
 
         return (top, right, bottom, left);
 
-        static double? ParseEdge(string? value) =>
-            value != null && TryParseCssLengthToPoints(value, out var points)
-                ? points
-                : null;
+        static double? ParseEdge(string? value)
+        {
+            if (value != null && TryParseCssLengthToPoints(value, out var points))
+            {
+                return points;
+            }
+
+            return null;
+        }
     }
 }

@@ -106,7 +106,12 @@ sealed class CellStyles
         if (color.Rgb?.Value is { Length: >= 6 } argb)
         {
             // Stored ARGB; the model wants RGB.
-            return argb.Length == 8 ? argb[2..] : argb;
+            if (argb.Length == 8)
+            {
+                return argb[2..];
+            }
+
+            return argb;
         }
 
         if (color.Theme?.Value is { } theme && themeColors != null)
@@ -114,7 +119,12 @@ sealed class CellStyles
             var name = ThemeColorName(theme);
             var tint = color.Tint?.Value ?? 0;
             var resolved = themeColors.ResolveColor(name);
-            return tint == 0 ? resolved : ApplyTint(resolved, tint);
+            if (tint == 0)
+            {
+                return resolved;
+            }
+
+            return ApplyTint(resolved, tint);
         }
 
         if (color.Indexed?.Value is { } indexed)
@@ -161,10 +171,15 @@ sealed class CellStyles
         var g = Convert.ToInt32(hex[2..4], 16);
         var b = Convert.ToInt32(hex[4..], 16);
 
-        int Apply(int channel) =>
-            tint < 0
-                ? (int) Math.Round(channel * (1 + tint))
-                : (int) Math.Round(channel * (1 - tint) + 255 * tint);
+        int Apply(int channel)
+        {
+            if (tint < 0)
+            {
+                return (int) Math.Round(channel * (1 + tint));
+            }
+
+            return (int) Math.Round(channel * (1 - tint) + 255 * tint);
+        }
 
         return $"{Apply(r):X2}{Apply(g):X2}{Apply(b):X2}";
     }

@@ -18,8 +18,15 @@ sealed class SharedStrings
             .Select(Flatten)
             .ToArray() ?? [];
 
-    public string Get(int index) =>
-        index >= 0 && index < entries.Length ? entries[index] : string.Empty;
+    public string Get(int index)
+    {
+        if (index >= 0 && index < entries.Length)
+        {
+            return entries[index];
+        }
+
+        return string.Empty;
+    }
 
     /// <summary>
     /// The text of a rich string: either one text node or a sequence of formatted runs. The runs'

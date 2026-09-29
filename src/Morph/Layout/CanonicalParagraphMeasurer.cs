@@ -211,7 +211,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             ascent = Math.Max(ascent, AscentPoints(segment.Properties));
         }
 
-        return ascent > 0 ? ascent : AscentPoints(MarkProperties(paragraph));
+        if (ascent > 0)
+        {
+            return ascent;
+        }
+
+        return AscentPoints(MarkProperties(paragraph));
     }
 
     // The tallest run-border reserve on a line, in points — zero when no run on it carries a w:bdr.
@@ -272,7 +277,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     float AscentPoints(RunProperties fontProperties)
     {
         var metrics = resolveFont(fontProperties.FontFamily, fontProperties.Bold, fontProperties.Italic);
-        return metrics == null ? 0 : (float) metrics.BaselineAscentPoints(fontProperties.FontSizePoints);
+        if (metrics == null)
+        {
+            return 0;
+        }
+
+        return (float) metrics.BaselineAscentPoints(fontProperties.FontSizePoints);
     }
 
     /// <summary>
@@ -312,7 +322,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureRunWidth(string text, RunProperties properties)
     {
         var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
-        return metrics == null ? 0 : (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties), compatibilityMode);
+        if (metrics == null)
+        {
+            return 0;
+        }
+
+        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties), compatibilityMode);
     }
 
     /// <summary>
@@ -479,7 +494,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
               + (float) paragraph.Properties.HangingIndentPoints;
 
         var lines = new List<WrapLine>();
-        float LineWrapWidth() => lines.Count == 0 ? firstLineWidth : wrapWidth;
+        float LineWrapWidth()
+        {
+            if (lines.Count == 0)
+            {
+                return firstLineWidth;
+            }
+
+            return wrapWidth;
+        }
         double linePixels = 0, gapPixels = 0;
         float linePitch = 0, gapPitch = 0;
         var lineHasWord = false;
@@ -1101,12 +1124,20 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var markFamily = paragraph.Properties.ParagraphMarkFontFamily;
         if (markSize is { } size)
         {
-            return markFamily == null
-                ? new() {FontSizePoints = size}
-                : new() {FontSizePoints = size, FontFamily = markFamily};
+            if (markFamily == null)
+            {
+                return new() {FontSizePoints = size};
+            }
+
+            return new() {FontSizePoints = size, FontFamily = markFamily};
         }
 
-        return markFamily == null ? new() : new() {FontFamily = markFamily};
+        if (markFamily == null)
+        {
+            return new();
+        }
+
+        return new() {FontFamily = markFamily};
     }
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),

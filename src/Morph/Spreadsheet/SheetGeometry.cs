@@ -92,6 +92,13 @@ sealed class SheetGeometry
 
     // Mirrors SheetGridBuilder.ToPoints exactly: the stored width already contains the cell
     // padding, so it is a plain multiple of the max digit width.
-    double ToPoints(double characters) =>
-        characters <= 0 ? 0 : characters * maxDigitWidthPixels * pointsPerPixel;
+    double ToPoints(double characters)
+    {
+        if (characters <= 0)
+        {
+            return 0;
+        }
+
+        return characters * maxDigitWidthPixels * pointsPerPixel;
+    }
 }

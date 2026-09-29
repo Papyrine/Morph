@@ -345,7 +345,12 @@ static class IndexedPngNormalizer
             return a;
         }
 
-        return pb <= pc ? b : c;
+        if (pb <= pc)
+        {
+            return b;
+        }
+
+        return c;
     }
 
     static byte[] Rebuild(List<Chunk> chunks, byte[] expanded)

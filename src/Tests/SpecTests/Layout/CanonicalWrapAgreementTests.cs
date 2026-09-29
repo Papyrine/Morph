@@ -47,12 +47,26 @@ public class CanonicalWrapAgreementTests
             .ToList();
 
         var typefaces = new Dictionary<string, SKTypeface?>();
-        SKTypeface? Typeface(string path) =>
-            typefaces.TryGetValue(path, out var cached) ? cached : typefaces[path] = SKTypeface.FromFile(path);
+        SKTypeface? Typeface(string path)
+        {
+            if (typefaces.TryGetValue(path, out var cached))
+            {
+                return cached;
+            }
+
+            return typefaces[path] = SKTypeface.FromFile(path);
+        }
 
         var metricsByPath = new Dictionary<string, FontMetrics?>();
-        FontMetrics? Metrics(string path) =>
-            metricsByPath.TryGetValue(path, out var cached) ? cached : metricsByPath[path] = FontMetricsReader.Read(path);
+        FontMetrics? Metrics(string path)
+        {
+            if (metricsByPath.TryGetValue(path, out var cached))
+            {
+                return cached;
+            }
+
+            return metricsByPath[path] = FontMetricsReader.Read(path);
+        }
 
         var compared = 0;
         var agree = 0;
@@ -214,5 +228,13 @@ public class CanonicalWrapAgreementTests
         return lines;
     }
 
-    static string Trim(string text) => text.Length <= 50 ? text : text[..50] + "…";
+    static string Trim(string text)
+    {
+        if (text.Length <= 50)
+        {
+            return text;
+        }
+
+        return text[..50] + "…";
+    }
 }

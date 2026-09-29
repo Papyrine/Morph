@@ -183,9 +183,12 @@ static class HexColor
     public static double ToLinear(byte channel)
     {
         var value = channel / 255.0;
-        return value <= 0.04045
-            ? value / 12.92
-            : Math.Pow((value + 0.055) / 1.055, 2.4);
+        if (value <= 0.04045)
+        {
+            return value / 12.92;
+        }
+
+        return Math.Pow((value + 0.055) / 1.055, 2.4);
     }
 
     /// <summary>Encodes a linear-light value back to an sRGB channel byte.</summary>
