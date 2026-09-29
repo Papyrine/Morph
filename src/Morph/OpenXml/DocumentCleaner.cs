@@ -251,5 +251,4 @@ public static class DocumentCleaner
         extensions.ExceptWith(survivors.Select(PackagePaths.Extension));
         return extensions;
     }
-
 }

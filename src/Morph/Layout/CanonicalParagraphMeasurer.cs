@@ -1142,5 +1142,4 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             start = i;
         }
     }
-
 }
