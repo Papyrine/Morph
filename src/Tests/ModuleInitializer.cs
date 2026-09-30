@@ -32,7 +32,6 @@ public static class ModuleInitializer
         DefaultFontSettings.DeterministicRendering = true;
 
         VerifierSettings.UseSsimForPng();
-        VerifyDiffPlex.Initialize(OutputType.Compact);
         // Expands pdf snapshots (ExportScenarioTests.PdfOutput) into info + the pdf +
         // per-page PNGs rendered by PDFium. Render at 150 DPI to match the Skia/ImageSharp
         // scenario renders (ImageExportOptions.Dpi) and the Word reference PNGs — at the
