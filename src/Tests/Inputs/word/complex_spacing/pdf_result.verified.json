@@ -11,12 +11,12 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1. Left and Right Indentation\nNo indentation - This paragraph has no left or right indentation applied.\nLeft indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.\nRight indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.\nBoth left (1440) and right (1440) indent - This paragraph is\nindented from both margins, creating a narrower text column.\n2. First Line Indentation\nFirst line indent 720 twips - This paragraph has its first line indented further than\nsubsequent lines. This is commonly used in traditional book formatting and formal\ndocuments.\nFirst line indent 1440 twips - A larger first line indent. The first line starts further\nin, while all subsequent lines in this paragraph begin at the normal left margin.\n3. Hanging Indentation\nHanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the\nmargin but all subsequent lines are indented. This is commonly used for bibliographies and\nlists.\nHanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines are\nindented an additional 1440 twips from there, creating a pronounced hanging effect.\n4. Mirror Indents\nMirror indents enabled with left 1440 - In a two-sided document, this becomes\nthe inside margin indent, mirroring on odd/even pages.\n5. Spacing Before\nNo spacing before - This paragraph has the default spacing.\nSpacing before 240 twips (12pt) - This paragraph has additional space above it.\nSpacing before 480 twips (24pt) - Even more space above this paragraph.\n6. Spacing After\nSpacing after 240 twips (12pt) - This paragraph has space below it.\nFollowing paragraph to show the effect."
+        "Text": "1. Left and Right Indentation\nNo indentation - This paragraph has no left or right indentation applied.\nLeft indent 720 twips (0.5 inch) - This paragraph is indented from the left margin.\nRight indent 720 twips (0.5 inch) - This paragraph is indented from the right margin.\nBoth left (1440) and right (1440) indent - This paragraph is\nindented from both margins, creating a narrower text column.\n2. First Line Indentation\nFirst line indent 720 twips - This paragraph has its first line indented further than\nsubsequent lines. This is commonly used in traditional book formatting and formal\ndocuments.\nFirst line indent 1440 twips - A larger first line indent. The first line starts further\nin, while all subsequent lines in this paragraph begin at the normal left margin.\n3. Hanging Indentation\nHanging indent 720 twips - This paragraph has a hanging indent where the first line starts at the\nmargin but all subsequent lines are indented. This is commonly used for bibliographies and\nlists.\nHanging indent 1440 twips with left indent 720 - The first line is at 720 twips, but subsequent lines are\nindented an additional 1440 twips from there, creating a pronounced hanging effect.\n4. Mirror Indents\nMirror indents enabled with left 1440 - In a two-sided document, this becomes\nthe inside margin indent, mirroring on odd/even pages.\n5. Spacing Before\nNo spacing before - This paragraph has the default spacing.\nSpacing before 240 twips (12pt) - This paragraph has additional space above it.\nSpacing before 480 twips (24pt) - Even more space above this paragraph.\n6. Spacing After\nSpacing after 240 twips (12pt) - This paragraph has space below it."
       },
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Spacing after 480 twips (24pt) - Larger space below.\nFollowing paragraph to show the effect.\n7. Combined Before and After Spacing\nBefore 360, After 360 - This paragraph has space both above and below.\nBefore 120, After 480 - Asymmetric spacing.\n8. Line Spacing: Single\nSingle line spacing - This paragraph uses single line spacing. The lines are spaced at the normal\nsingle-space interval. This is the default spacing for most documents and provides compact\ntext layout.\n9. Line Spacing: 1.5 Lines\n1.5 line spacing - This paragraph uses 1.5 line spacing. The lines have half again as much space\nbetween them compared to single spacing. This is often used for drafts and documents that\nneed more breathing room.\n10. Line Spacing: Double\nDouble line spacing - This paragraph uses double line spacing. The lines have twice the normal\namount of space between them. This is commonly required for academic papers and\nmanuscripts under review.\n11. Line Spacing: At Least\nAt least 300 twips - This paragraph uses 'at least' line spacing of 300 twips. Word will use at\nleast this spacing, but may expand if the content requires it.\nAt least 480 twips - A larger 'at least' value of 480 twips (24pt).\n12. Line Spacing: Exactly\nExactly 200 twips - This paragraph uses exactly 200 twips of line spacing. The spacing is fixed\nand will not expand even if content requires it. Text may overlap if too tight."
+        "Text": "Following paragraph to show the effect.\nSpacing after 480 twips (24pt) - Larger space below.\nFollowing paragraph to show the effect.\n7. Combined Before and After Spacing\nBefore 360, After 360 - This paragraph has space both above and below.\nBefore 120, After 480 - Asymmetric spacing.\n8. Line Spacing: Single\nSingle line spacing - This paragraph uses single line spacing. The lines are spaced at the normal\nsingle-space interval. This is the default spacing for most documents and provides compact\ntext layout.\n9. Line Spacing: 1.5 Lines\n1.5 line spacing - This paragraph uses 1.5 line spacing. The lines have half again as much space\nbetween them compared to single spacing. This is often used for drafts and documents that\nneed more breathing room.\n10. Line Spacing: Double\nDouble line spacing - This paragraph uses double line spacing. The lines have twice the normal\namount of space between them. This is commonly required for academic papers and\nmanuscripts under review.\n11. Line Spacing: At Least\nAt least 300 twips - This paragraph uses 'at least' line spacing of 300 twips. Word will use at\nleast this spacing, but may expand if the content requires it.\nAt least 480 twips - A larger 'at least' value of 480 twips (24pt).\n12. Line Spacing: Exactly\nExactly 200 twips - This paragraph uses exactly 200 twips of line spacing. The spacing is fixed\nand will not expand even if content requires it. Text may overlap if too tight."
       },
       {
         "Width": 612.0,
@@ -48,16 +48,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0997,
-      "Ssim": 0.7944,
+      "ErrorMetric": 0.098,
+      "Ssim": 0.798,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0972,
-      "Ssim": 0.7619,
+      "ErrorMetric": 0.0794,
+      "Ssim": 0.8596,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

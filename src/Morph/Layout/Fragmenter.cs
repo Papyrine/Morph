@@ -193,6 +193,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // True while a paragraph is part-placed, so a page it overflows closes without the paragraph's
         // space-after (lastAfter is still the previous paragraph's then).
         bool paragraphOpen;
+        // A continuous break's section settings, adopted in full when the page it landed on ends — until
+        // then that page keeps the margins it started with (see ApplySectionBreak).
+        PageSettings? pendingSettings;
 
         // Lines counted so far for w:lnNumType numbering — body flow lines of non-suppressed
         // paragraphs. Reset per page (restart="newPage") in FinishPage and per section
@@ -767,20 +770,34 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     verticalAlignment = next.VerticalAlignment;
                 }
 
-                // A same-column continuous break is a flow no-op. A new column count (the masthead → columns
-                // case) adopts the new geometry and anchors the columns at the break point: column 0 flows
-                // from here to the bottom, each later column tops out here too, and an overflow to the next
-                // page resets the columns to its top (FinishPage). Page size stays — Word forces a page-size
-                // change to be a next-page break, never continuous.
-                if (sectionBreak.NewSectionSettings is { } continuous && Math.Max(1, continuous.ColumnCount) != columnCount)
+                // The page the break lands on keeps the top and bottom margins it started with; the new
+                // section's page setup governs from the NEXT page (FinishPage adopts it). Word-probed
+                // (_probe_contmargin, a 1in-bottom section continued by a 4in-bottom one and the reverse,
+                // with and without a column change): the first page fills to the FIRST section's bottom
+                // and the next opens at the second's top and stops at its bottom — so image_wrap_square's
+                // two-column tail runs to its opening section's 0.5in margin, not its own 1in.
+                //
+                // A same-column continuous break is otherwise a flow no-op. A new column count (the masthead
+                // → columns case) adopts the new columns now and anchors them at the break point: column 0
+                // flows from here to the bottom, each later column tops out here too, and an overflow to the
+                // next page resets the columns to its top (FinishPage). Page size stays — Word forces a
+                // page-size change to be a next-page break, never continuous.
+                if (sectionBreak.NewSectionSettings is { } continuous)
                 {
-                    var breakY = y;
-                    ApplyGeometry(continuous);
-                    columnTop = breakY;
-                    y = breakY;
-                    currentColumn = 0;
-                    atRegionTop = true;
-                    lastAfter = 0;
+                    pendingSettings = continuous;
+                    if (Math.Max(1, continuous.ColumnCount) != columnCount)
+                    {
+                        var breakY = y;
+                        var (pageTop, pageBottom, pageHeight) = (contentTop, pageContentBottom, contentHeight);
+                        ApplyGeometry(continuous);
+                        (contentTop, pageContentBottom, contentHeight) = (pageTop, pageBottom, pageHeight);
+                        RefreshContentBottom();
+                        columnTop = breakY;
+                        y = breakY;
+                        currentColumn = 0;
+                        atRegionTop = true;
+                        lastAfter = 0;
+                    }
                 }
 
                 return;
@@ -818,6 +835,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 ApplyGeometry(settings);
+                pendingSettings = null;
                 verticalAlignment = settings.VerticalAlignment;
                 y = contentTop;
                 columnTop = contentTop;
@@ -1109,6 +1127,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             currentPageFiller = false;
+
+            // A continuous break on the page just finished hands the next page its section's margins.
+            if (pendingSettings != null)
+            {
+                ApplyGeometry(pendingSettings);
+                pendingSettings = null;
+            }
+
             items = [];
             currentColumn = 0;
             y = contentTop;
@@ -2421,25 +2447,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             while (lineIndex < paragraphLines.Count)
             {
                 // How many of the remaining lines fit in the current region. What the line has to get inside
-                // the bottom margin depends on w:lineRule, which three Word renders pin down (all against a
-                // content bottom of exactly 720pt, box/ink/ascent bottoms measured):
+                // the bottom margin depends on w:lineRule.
                 //
-                //   exact flow, line 50           REJECTED   722.00 / 722.43 / 719.47
-                //   auto flow, line 42            KEPT       720.56 / 718.55 / 715.59
-                //   image_wrap_square col, line 6 KEPT       724.36 / 722.35 / 719.39
+                // AUTO has to fit its NATURAL box — the font's single-spaced pitch — and lets only the leading
+                // an expanding multiple adds under the baseline (LaidOutLine.Overhang) hang past the margin; a
+                // compressing multiple, whose box is smaller than the natural one, fits its whole box. Word-
+                // probed 2026-09-30 by sweeping the band across a page's second line in 0.1-2pt steps
+                // (_probe_fit*, 25 configurations: Aptos, Times New Roman, Tahoma and Calibri; 11/22/24/48pt;
+                // multiples 0.5, 0.8, 1.0, 1.08, 1.15, 1.5, 2.0; separate paragraphs and w:br lines alike;
+                // compatibility modes 14, 15 and none, identically). Every threshold lands within 0.4pt of
+                // min(box, natural box): at 2.0 the 48pt Aptos line needs 58.6pt of its 117.2pt box, at 0.5
+                // the 24pt one its whole 14.6pt, and at 1.0 the box and the natural box coincide. The earlier
+                // reading — the baseline clearing the margin — kept a 24pt 1.15 line whose natural box ran
+                // 0.9pt past it, where Word moves it (_probe_valign E: 15 lines against Word's 14).
                 //
-                // No single quantity survives that: the full box is refuted by rows 2-3, the ink box by row 3,
-                // the ascent by row 1 — and no threshold separates rows 1 and 3 either, since they straddle by
-                // 0.08pt in ascent bottom while disagreeing, and the box overhang runs non-monotone across the
-                // three (0.56 kept, 2.00 rejected, 4.36 kept). The discriminator is the spacing rule itself.
-                //
-                // Only AUTO tolerates an overhang: the baseline has to clear the margin, and Word lets the
-                // last line's descent and trailing gap encroach it rather than pushing the line to the next
-                // page, drawing the overhang and clipping it at the text area — visible in image_wrap_square,
-                // whose last column line has a full-width ink band ending dead on the content bottom where the
-                // line above it trails descenders 1.92pt past its own band. Every other rule reserves the
-                // whole box. For exact that is what "exact" means, the declared height being an absolute
-                // reservation; atLeast was assumed to follow auto and does NOT — Word-probed three ways
+                // Every other rule reserves the whole box. For exact that is what "exact" means, the declared
+                // height being an absolute reservation; atLeast was assumed to follow auto and does NOT — Word-probed three ways
                 // (_probe_lastline_atleast_a/b/c), it is strict at 15.5pt (Word 41, the lenient reading 42),
                 // at 21pt (30 against 31), and — the case that makes this categorical rather than a
                 // declared-value rule — ALSO strict at a declared 10pt that LOSES to Calibri's natural
@@ -2462,7 +2485,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 while (lineIndex + fit < paragraphLines.Count)
                 {
                     var candidate = paragraphLines[lineIndex + fit];
-                    var reserved = reserveWholeBox ? candidate.Height : candidate.Ascent;
+                    var reserved = reserveWholeBox ? candidate.Height : candidate.Height - candidate.Overhang;
                     var newNotes = NewFootnotes(candidate);
                     if (newNotes != null)
                     {
@@ -4333,7 +4356,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var previousStyle = previous?.StyleId;
 
             // Measured down from the element's end: the bottom of the last line or row counted, and how
-            // much of that last line may overhang the margin (the descent of an auto-spaced line).
+            // much of that last line may overhang the margin (an auto multiple's added leading).
             var bottom = 0f;
             var overhang = 0f;
             for (var next = index + 1; next < elements.Count; next++)
@@ -4378,9 +4401,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         bottom += lines[line].Height;
                     }
 
-                    if (held > 0 && properties.LineSpacingRule == LineSpacingRule.Auto)
+                    if (held > 0)
                     {
-                        overhang = lines[held - 1].Height - lines[held - 1].Ascent;
+                        overhang = lines[held - 1].Overhang;
                     }
 
                     if (splits || !properties.KeepNext)
