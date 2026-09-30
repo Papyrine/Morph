@@ -321,8 +321,10 @@ through the render context's own primitives rather than a common `ILayoutPainter
       cell; floating tables; header/footer band height. *All but one of these landed — per-section geometry,
       widow/orphan + keep-lines, cell images and nested tables, floating tables, float wrap exclusions and
       the header/footer bands are in the cutover logs below, and both misses named above closed too
-      (`business-plans/15` by row splitting, `resumes/13` by the measurer fixes). Keep-next is approximated
-      rather than modelled, and inline images inside a nested table are unmeasured.*
+      (`business-plans/15` by row splitting, `resumes/13` by the measurer fixes). Keep-next landed
+      2026-09-30 as a placement rule — paragraphs, chains of them and table rows, from Word probes (see
+      `docs/word-features.md`, Keep With Next); until then the engine ignored it outright. Inline images
+      inside a nested table are unmeasured.*
 - [~] **4. `DocumentLayoutEngine`** — the section walk, per-page region chains and header/footer bands all
       landed, folded into the `Fragmenter` rather than a separate class (per-section geometry, even/odd parity
       pages, the Continuous mid-page column switch and header/footer band layout are in the raster-cutover log

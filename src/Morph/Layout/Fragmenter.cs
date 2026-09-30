@@ -27,10 +27,12 @@
 /// items across three columns become two, two, two). Deferred to later slices, and noted so a document using
 /// them is not yet expected to paginate: minimal-tallest-column balancing (the greedy fill targets the
 /// average height, so uneven-height columns are approximate) and balancing a region that carries a table,
-/// shading or a border; a margin-only continuous change; keep-next (widow/orphan and keep-lines are
-/// handled); float wrap exclusions (square/tight — floats themselves and floating tables lay out); and
-/// inline images inside a nested table (nested tables themselves lay out). Other non-paragraph,
-/// non-table elements are skipped for now.</para>
+/// shading or a border; a margin-only continuous change; float wrap exclusions (square/tight — floats
+/// themselves and floating tables lay out); and inline images inside a nested table (nested tables
+/// themselves lay out). Other non-paragraph, non-table elements are skipped for now.</para>
+///
+/// <para>Widow/orphan control, keep-lines and keep-with-next — paragraphs, chains of them, and table
+/// rows — are placement rules; see <c>KeepsWithNext</c> for the Word-probed keep model.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 {
@@ -164,6 +166,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // runs. A table breaks the run and clears these.
         bool lastContextual;
         string? lastStyleId;
+        // Whether the flow element just placed keeps with the one being placed (w:keepNext — see
+        // KeepsWithNext). Keep never breaks across that boundary, so it is no place to push the element to
+        // the next region: once a chain has had its one chance to move — at its first element — its
+        // later elements may split inside themselves but not move whole away from the element before.
+        bool keptBefore;
         bool currentPageExplicit;
         // True while the current page was started by a non-continuous section break — Word KEEPS a
         // paragraph's spacing-before at the top of such a page (a new page setup), unlike a page
@@ -651,6 +658,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastAfter = (float) separator.Properties.SpacingAfterPoints;
             lastContextual = false;
             lastStyleId = null;
+            // The separator parts the notes from the body, so nothing is kept across it.
+            keptBefore = false;
 
             foreach (var id in citedEndnotes)
             {
@@ -887,8 +896,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             columnTop = contentTop;
             y = contentTop;
 
-            foreach (var element in elements)
+            for (var index = 0; index < elements.Count; index++)
             {
+                var element = elements[index];
+
                 // Anything but another flow paragraph ends an open border run — a table, a rule, a break.
                 // Out-of-flow floats are exempt: they take no flow space, so they cannot come between two
                 // members of a run the way a table can.
@@ -923,13 +934,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case ParagraphElement paragraph:
-                        PlaceParagraph(paragraph);
+                        PlaceParagraph(paragraph, KeepAfter(elements, index));
                         break;
 
                     // A block-level content control renders as its synthetic paragraph (the parser resolved
                     // its value — checkbox glyph, dropdown selection, formatted date, plain text — into runs).
                     case ContentControlElement {CellParagraph: { } controlParagraph}:
-                        PlaceParagraph(controlParagraph);
+                        PlaceParagraph(controlParagraph, KeepAfter(elements, index));
                         break;
 
                     case TableElement {Properties.IsFloating: true} table:
@@ -937,7 +948,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case TableElement table:
-                        PlaceTable(table);
+                        PlaceTable(table, KeepAfter(elements, index));
                         break;
 
                     case FloatingImageElement image when DecodableImageBytes(image) is {Length: > 0}:
@@ -998,6 +1009,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     // Float wrap is a later slice.
+                }
+
+                // Content that takes no flow space sits between two elements without parting them, so it
+                // leaves the keep across the boundary as it found it.
+                if (TakesFlowSpace(element))
+                {
+                    keptBefore = KeepsWithNext(element);
                 }
             }
 
@@ -2050,7 +2068,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             FinishPage(false);
         }
 
-        void PlaceParagraph(ParagraphElement paragraph)
+        // keepAfter is how far past this paragraph's last line the page has to reach for it to keep with
+        // what follows (w:keepNext) — see KeepAfter. Zero when it does not keep with next.
+        void PlaceParagraph(ParagraphElement paragraph, float keepAfter = 0)
         {
             var properties = paragraph.Properties;
 
@@ -2218,6 +2238,26 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // business-plans/15's "Long-term Liabilities" bullet, where the ordered form reproduces
                 // Word's break (0/3) and the alternative form gives 1/2.
                 var remaining = paragraphLines.Count - lineIndex;
+
+                // Keep with next: every remaining line fits, but what has to share the last line's page
+                // does not. The break Word would take falls after this paragraph, where keep forbids it,
+                // so it walks back into the paragraph: a break before the tail that keep-lines and the
+                // widow/orphan rules allow — the last two lines carried over (one without widow
+                // control), or the whole paragraph moved when splitting would orphan it. Moving it whole
+                // needs a legal break before it: not a region top, where it has nowhere better to go, and
+                // not the boundary with an element that keeps with it. Without one only a split that
+                // leaves lines here is taken, and otherwise the keep is abandoned, as Word abandons a
+                // chain it cannot rescue.
+                if (keepAfter > 0 && fit == remaining && probeY + keepAfter > probeBottom)
+                {
+                    var kept = KeptLines(properties, remaining);
+                    var canMove = !atRegionTop && !(lineIndex == 0 && keptBefore);
+                    if (kept > 0 || canMove)
+                    {
+                        fit = kept;
+                    }
+                }
+
                 if (!atRegionTop && fit < remaining)
                 {
                     if (properties.KeepLines)
@@ -2383,7 +2423,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastStyleId = properties.StyleId;
         }
 
-        void PlaceTable(TableElement table)
+        // keepAfter is how far past the table the page has to reach for its last row to keep with what
+        // follows — see KeepAfter. Zero when that row does not keep with next.
+        void PlaceTable(TableElement table, float keepAfter = 0)
         {
             // Floating tables take no flow space (their own slice); an empty table places nothing.
             if (table.Properties.IsFloating || table.Rows.Count == 0)
@@ -2440,7 +2482,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (totalHeight > contentHeight * 1.10f ||
                 (atRegionTop && !HasSpaceFor(totalHeight)))
             {
-                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
             }
 
@@ -2453,7 +2495,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // the 2% slack is exactly what let a 610pt table into a 600pt remainder.
             if (!atRegionTop && HasExactRow(table) && totalHeight > contentBottom - y)
             {
-                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
             }
 
@@ -2469,7 +2511,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // clears it by 0.24pt) is not routed into a split the old path never made.
             if (!atRegionTop && !HasSpaceFor(totalHeight - contentHeight * 0.02f))
             {
-                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth);
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
             }
 
@@ -2484,6 +2526,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (!atRegionTop && DeclaredRowFloors(table) > contentBottom - y)
             {
                 AdvanceColumnOrPage();
+            }
+
+            // Keep with next on rows (see KeepAfter): a table that fits where it stands still breaks when a
+            // kept run of its rows — the last one taking what follows the table with it — does not, so it
+            // is placed row by row, where each run is settled at the break Word walks back to.
+            if (!KeptRowsFit(table, rowHeights, keepAfter))
+            {
+                PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
+                return;
             }
 
             // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a flow table may over-spill the
@@ -2521,7 +2572,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // rows is carried like any other row, not absorbed: Word moves a 100pt row holding only an empty
         // paragraph onto the next page with its height honoured (_probe_trail2_para: the paragraph after the
         // table starts at 174.72pt, where absorption predicts 75.36), and LibreOffice has no absorption rule.
-        void PlaceTableRowByRow(TableElement table, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth)
+        void PlaceTableRowByRow(TableElement table, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, float keepAfter)
         {
             var headerCount = 0;
             while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
@@ -2548,6 +2599,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     y += rowHeight;
                     atRegionTop = false;
                     continue;
+                }
+
+                // Keep with next: where a row starts a kept run — it keeps with the row below, and the row
+                // above does not keep with it — the run has to fit, past the last row taking what the table
+                // keeps with. If it does not, the break lands here, before the run, rather than inside it:
+                // the nearest legal break before the one Word would otherwise take.
+                // The first row's break is the table's own boundary, legal unless what precedes keeps
+                // with the table.
+                var broke = false;
+                if (!atRegionTop &&
+                    RowKeeps(row) &&
+                    (rowIndex == 0 ? !keptBefore : !RowKeeps(table.Rows[rowIndex - 1])) &&
+                    y + KeptRun(table, rowHeights, rowIndex, keepAfter) > contentBottom)
+                {
+                    AdvanceColumnOrPage();
+                    broke = true;
                 }
 
                 // A row taller than a whole empty region cannot be rescued by moving it — it would overflow
@@ -2603,7 +2670,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 // The move mirrors EnsureSpaceFor with the same floor-strict fit as the trigger above.
-                var broke = false;
                 if (!atRegionTop && !oversize && overflows)
                 {
                     AdvanceColumnOrPage();
@@ -3898,6 +3964,257 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         bool HasSpaceFor(float height) => y + height <= contentBottom + contentHeight * 0.02f;
+
+        // Keep with next (w:keepNext) holds an element's end on the page of what follows it: a paragraph's
+        // last line with the next element's first, a kept table row with the row below it — or, the last
+        // row, with what follows the table. Word-probed through its own pagination (a probe document built
+        // over COM, each paragraph's and row's page read back), 2026-09-30:
+        //
+        //   - a kept paragraph that can split carries only its widow tail over: six lines went 4/2 and four
+        //     went 2/2, one line crossing without widow control. One that cannot split — three lines under
+        //     widow control, or keep-lines — moves whole;
+        //   - a chain of kept paragraphs moves as one, an empty paragraph in it included;
+        //   - a row keeps exactly when the FIRST paragraph of its FIRST cell does. Keep-with-next in the
+        //     second or third cell, or on the first cell's second paragraph, left the row unkept;
+        //   - a kept last row goes over with what follows and the table splits before it; a table whose
+        //     every row keeps moves whole;
+        //   - nothing is kept across a page break or a page-break-before;
+        //   - a chain is never pushed off a region top — the only abandonment. One taller than a page is
+        //     still pushed off a part-filled one and then breaks where it must (sixty kept one-line
+        //     paragraphs left five lines of page 1 empty and ran on to page 3).
+        //
+        // Word walks a break back to the nearest legal point before it. Placement here is forward, which
+        // comes to the same thing: at each legal point, what has to follow it unbroken must fit, or the
+        // break lands there. The widow/orphan rules already work that way inside a paragraph; keep extends
+        // the unbroken run past the element's end by KeepAfter.
+        static bool KeepsWithNext(DocumentElement element) =>
+            element switch
+            {
+                ParagraphElement paragraph => paragraph.Properties.KeepNext,
+                ContentControlElement {CellParagraph: { } paragraph} => paragraph.Properties.KeepNext,
+                TableElement {Properties.IsFloating: false, Rows.Count: > 0} table => RowKeeps(table.Rows[^1]),
+                _ => false
+            };
+
+        static bool RowKeeps(TableRow row) =>
+            row.Cells is [{Content: [ParagraphElement {Properties.KeepNext: true}, ..]}, ..];
+
+        // The body elements Run places in the flow — the ones that can part two others, or be kept to
+        // them. The rest (floats, a floating table, a content control with no paragraph, the element
+        // kinds Run does not place) take no flow space and pass between elements without parting them.
+        static bool TakesFlowSpace(DocumentElement element) =>
+            element is ParagraphElement or
+                ContentControlElement {CellParagraph: not null} or
+                TableElement {Properties.IsFloating: false} or
+                PageBreakElement or
+                ColumnBreakElement or
+                SectionBreakElement or
+                WordArtElement or
+                HorizontalRuleElement or
+                PositionedFrameElement;
+
+        // How far past an element's end the page has to reach for it to keep with what follows: the
+        // spacing between, then what follows up to its first legal break — a paragraph's opening lines
+        // the orphan rule holds together, a table's rows up to its first unkept one — and on into the
+        // element after that when what follows cannot break at all and keeps with next itself. The last
+        // line counts only as much of itself as has to clear the bottom margin, as when it is placed.
+        // Zero when the element does not keep with next, or nothing follows it this side of a break.
+        float KeepAfter(IReadOnlyList<DocumentElement> elements, int index)
+        {
+            if (!KeepsWithNext(elements[index]))
+            {
+                return 0;
+            }
+
+            var previous = elements[index] switch
+            {
+                ParagraphElement paragraph => paragraph.Properties,
+                ContentControlElement {CellParagraph: { } paragraph} => paragraph.Properties,
+                _ => null
+            };
+            var previousAfter = (float) (previous?.SpacingAfterPoints ?? 0);
+            var previousContextual = previous?.ContextualSpacing ?? false;
+            var previousStyle = previous?.StyleId;
+
+            // Measured down from the element's end: the bottom of the last line or row counted, and how
+            // much of that last line may overhang the margin (the descent of an auto-spaced line).
+            var bottom = 0f;
+            var overhang = 0f;
+            for (var next = index + 1; next < elements.Count; next++)
+            {
+                // Past a whole region it cannot fit whatever else follows, and the verdict is the same.
+                if (bottom > contentHeight)
+                {
+                    break;
+                }
+
+                var element = elements[next];
+                if (!TakesFlowSpace(element))
+                {
+                    continue;
+                }
+
+                if (element is PageBreakElement or ColumnBreakElement or SectionBreakElement)
+                {
+                    break;
+                }
+
+                var flowParagraph = element switch
+                {
+                    ParagraphElement direct => direct,
+                    ContentControlElement {CellParagraph: { } control} => control,
+                    _ => null
+                };
+                if (flowParagraph is { } paragraph)
+                {
+                    var properties = paragraph.Properties;
+                    if (properties.PageBreakBefore)
+                    {
+                        break;
+                    }
+
+                    var contextualCollapse = properties.ContextualSpacing && previousContextual && properties.StyleId == previousStyle;
+                    bottom += contextualCollapse ? 0f : Math.Max(previousAfter, (float) properties.SpacingBeforePoints);
+                    overhang = 0;
+
+                    // A paragraph splits after its orphan lines when the widow lines are left for the next
+                    // region, so only those opening lines are held; one that cannot split is held whole.
+                    var lines = measurer.LayoutLineContents(paragraph, columnWidth);
+                    var together = properties.WidowControl ? 2 : 1;
+                    var splits = !properties.KeepLines && lines.Count >= together * 2;
+                    var held = splits ? together : lines.Count;
+                    for (var line = 0; line < held; line++)
+                    {
+                        bottom += lines[line].Height;
+                    }
+
+                    if (held > 0 && properties.LineSpacingRule == LineSpacingRule.Auto)
+                    {
+                        overhang = lines[held - 1].Height - lines[held - 1].Ascent;
+                    }
+
+                    if (splits || !properties.KeepNext)
+                    {
+                        break;
+                    }
+
+                    previousAfter = (float) properties.SpacingAfterPoints;
+                    previousContextual = properties.ContextualSpacing;
+                    previousStyle = properties.StyleId;
+                    continue;
+                }
+
+                if (element is TableElement table)
+                {
+                    // An empty table places nothing.
+                    var colCount = TableLayout.GetColumnCount(table);
+                    if (table.Rows.Count == 0 || colCount == 0)
+                    {
+                        continue;
+                    }
+
+                    // A table has no spacing-before: the previous paragraph's after is the gap. Rows count
+                    // whole — a row is placed against the hard bottom.
+                    var (_, rowHeights) = TableGeometry(table, colCount, columnWidth);
+                    bottom += previousAfter;
+                    overhang = 0;
+                    var bound = true;
+                    for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
+                    {
+                        bottom += rowHeights[rowIndex];
+                        if (rowIndex + 1 < table.Rows.Count &&
+                            !RowKeeps(table.Rows[rowIndex]) &&
+                            !IsMergeContinuation(table.Rows[rowIndex + 1]))
+                        {
+                            bound = false;
+                            break;
+                        }
+                    }
+
+                    if (!bound || !RowKeeps(table.Rows[^1]))
+                    {
+                        break;
+                    }
+
+                    previousAfter = 0;
+                    previousContextual = false;
+                    previousStyle = null;
+                    continue;
+                }
+
+                // Other flow content — a rule, WordArt, a frame — keeps with nothing, so it ends the chain.
+                break;
+            }
+
+            return Math.Max(0f, bottom - overhang);
+        }
+
+        // How many of a kept paragraph's remaining lines stay when its tail has to go over with what
+        // follows: all but the widow tail (two lines, one without widow control), none when that would
+        // orphan the line left behind or keep-lines holds the paragraph whole.
+        static int KeptLines(ParagraphProperties properties, int remaining)
+        {
+            if (properties.KeepLines)
+            {
+                return 0;
+            }
+
+            var kept = remaining - (properties.WidowControl && remaining >= 2 ? 2 : 1);
+            if (properties.WidowControl && kept == 1)
+            {
+                return 0;
+            }
+
+            return Math.Max(0, kept);
+        }
+
+        // The height of the kept run of rows starting at `start`: the row, and each row below it for as
+        // long as the row above keeps with it (a merge continuation always does), then — when the run
+        // reaches the last row and that row keeps — whatever the table keeps with.
+        static float KeptRun(TableElement table, float[] rowHeights, int start, float keepAfter)
+        {
+            var run = 0f;
+            for (var rowIndex = start; rowIndex < table.Rows.Count; rowIndex++)
+            {
+                run += rowHeights[rowIndex];
+                if (rowIndex + 1 == table.Rows.Count)
+                {
+                    return RowKeeps(table.Rows[rowIndex]) ? run + keepAfter : run;
+                }
+
+                if (!RowKeeps(table.Rows[rowIndex]) && !IsMergeContinuation(table.Rows[rowIndex + 1]))
+                {
+                    return run;
+                }
+            }
+
+            return run;
+        }
+
+        // Whether every kept run of a table placed whole from here fits where it would land. The run the
+        // table opens with is exempt where the table cannot move: at a region top, or kept to what
+        // precedes it.
+        bool KeptRowsFit(TableElement table, float[] rowHeights, float keepAfter)
+        {
+            var top = y;
+            for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
+            {
+                var row = table.Rows[rowIndex];
+                var startsRun = rowIndex == 0
+                    ? !atRegionTop && !keptBefore
+                    : !RowKeeps(table.Rows[rowIndex - 1]) && !IsMergeContinuation(row);
+                if (startsRun &&
+                    RowKeeps(row) &&
+                    top + KeptRun(table, rowHeights, rowIndex, keepAfter) > contentBottom)
+                {
+                    return false;
+                }
+
+                top += rowHeights[rowIndex];
+            }
+
+            return true;
+        }
 
         static bool HasExactRow(TableElement table)
         {

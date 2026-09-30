@@ -760,7 +760,14 @@ Prevents a page break between this paragraph and the next.
 - **OOXML**: `w:keepNext`
 - **Model**: `ParagraphProperties.KeepNext`
 
-> **Contributors**: Implemented by measuring the next element and ensuring both fit on the current page, in all three backends (the PDF renderer mirrors the raster handlers; its keep-before-table stays inert until it has a table pre-measure). Word's abandonment guards apply: no push when already at the top of a page, and none when the kept pair cannot fit a fresh column either. See `PageRenderer` keep-next logic and `PdfPageRenderer.RenderParagraph`.
+> **Contributors**: A placement rule in the `Fragmenter` (`KeepsWithNext`, `KeepAfter`, and the keep checks in `PlaceParagraph` / `PlaceTableRowByRow`), pinned by the keep tests in `CanonicalFragmenterTests`. The deleted raster and PDF renderers approximated it pairwise; the engine did not honour it at all until 2026-09-30. Modelled on Word's own pagination, probed over COM (a probe document built in Word, each paragraph's and row's page read back, 2026-09-30):
+> - a kept paragraph that can split carries only its widow tail over with what follows — six lines went 4/2, four went 2/2, one line crossing without widow control — and one that cannot (three lines under widow control, or keep-lines) moves whole;
+> - a chain of kept paragraphs moves as one, empty paragraphs included;
+> - a table row keeps exactly when the **first paragraph of its first cell** does; the flag in the second or third cell, or on the first cell's second paragraph, is ignored. A kept last row goes over with what follows and the table splits before it; a table whose every row keeps moves whole;
+> - nothing is kept across a page break or a page-break-before;
+> - the only abandonment is a region top: a chain there is never pushed. A chain taller than a page is still pushed off a part-filled one and then breaks where it must — the old renderers' "no push when the pair cannot fit a fresh column" guard is **refuted** (sixty kept one-line paragraphs left five lines of page 1 empty).
+>
+> Word walks a break back to the nearest legal point before it; the engine places forward, checking at each legal point that what must follow unbroken fits. `KeepAfter` is how far past an element that run reaches — into the next element's orphan head, or through it when it cannot split and keeps with next itself — and a keep never pushes an element whole across a boundary its predecessor keeps.
 
 
 #### Keep Lines Together `DONE`
