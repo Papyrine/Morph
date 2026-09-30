@@ -184,6 +184,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // "spent" part of it. Captured in FinishPage before lastAfter resets.
         float pageCarriedAfter;
 
+        // The w:vAlign of the section flowing now. Tracked apart from `current` because a same-column
+        // continuous break adopts no geometry, yet its section's alignment governs the pages it fills.
+        PageVerticalAlignment verticalAlignment = page.VerticalAlignment;
+        // True once a continuous break has landed on the in-progress page after content: Word top-aligns
+        // a page that carries two sections, whichever of them asked for alignment (_probe_valign J/K).
+        bool pageMixesSections;
+        // True while a paragraph is part-placed, so a page it overflows closes without the paragraph's
+        // space-after (lastAfter is still the previous paragraph's then).
+        bool paragraphOpen;
+
         // Lines counted so far for w:lnNumType numbering — body flow lines of non-suppressed
         // paragraphs. Reset per page (restart="newPage") in FinishPage and per section
         // (restart="newSection") in ApplySectionBreak; "continuous" never resets.
@@ -751,6 +761,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             if (sectionBreak.BreakType == SectionBreakType.Continuous)
             {
+                if (sectionBreak.NewSectionSettings is { } next)
+                {
+                    pageMixesSections |= items.Count > 0;
+                    verticalAlignment = next.VerticalAlignment;
+                }
+
                 // A same-column continuous break is a flow no-op. A new column count (the masthead → columns
                 // case) adopts the new geometry and anchors the columns at the break point: column 0 flows
                 // from here to the bottom, each later column tops out here too, and an overflow to the next
@@ -802,6 +818,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 ApplyGeometry(settings);
+                verticalAlignment = settings.VerticalAlignment;
                 y = contentTop;
                 columnTop = contentTop;
             }
@@ -1064,6 +1081,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // the page below.
             FlushBorderRun();
 
+            // Before the note areas join the items: a page carrying notes has no slack to align with.
+            AlignPage();
+            pageMixesSections = false;
+
             // The page's footnote areas land at its bottom, on the body's own item list.
             EmitNoteAreas();
 
@@ -1166,6 +1187,226 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (bodyFloats[index].Page == pageIndex)
                 {
                     bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
+                }
+            }
+        }
+
+        // Applies the section's w:vAlign to the page being closed. Word-probed (_probe_valign, _valign2,
+        // _valign3 — 24pt lines on a Letter page with a 1in top and 3in bottom margin, read off the XPS):
+        //
+        //   - The extent runs from the band top to the LOWEST thing on the page — text, the last paragraph's
+        //     space-after, and every float, behind-text ones included. The first paragraph's space-before
+        //     counts through the top (its line sits below it). A float above the text is not an extent
+        //     (a page-anchored box at y=10 left centring on the two text lines); one below it is (a box at
+        //     y=450 cut the slack to 54pt), and a full-page background leaves no slack at all.
+        //   - center moves everything down by half the slack, bottom by all of it — the page's floats too,
+        //     page-anchored ones included, by the same amount.
+        //   - both (Justified) splits the slack equally between UNITS: a paragraph's lines stay together,
+        //     but every paragraph and every table row is its own unit, so a table comes apart row by row
+        //     (four gaps of 37.6pt on D; five of 57.6pt round a table on Q1). One unit leaves the page as is.
+        //   - Every page of the section is aligned on its own, full ones included (a 14-line page moved by
+        //     its 14.3pt of spare), and a page ended by a page break or the document end is no exception.
+        //   - A page with a footnote does not move: its note area reaches the bottom margin.
+        //   - A page carrying two sections (a continuous break) is top-aligned, whichever section asked.
+        //
+        // Justified is left top-aligned in a multi-column section, which is unprobed. Floats follow the
+        // unit whose top is nearest above theirs; Word ties a paragraph float's anchor paragraph to the
+        // paragraph it overlaps instead (_probe_valign3 Q2), which this does not model.
+        void AlignPage()
+        {
+            if (verticalAlignment == PageVerticalAlignment.Top || pageMixesSections || items.Count == 0 ||
+                noteAreas.Any(_ => _ is {Rows.Count: > 0}))
+            {
+                return;
+            }
+
+            var pageIndex = bodies.Count;
+            var bottom = paragraphOpen ? y : y + lastAfter;
+            foreach (var item in items)
+            {
+                bottom = Math.Max(bottom, item.Y + item.Height);
+            }
+
+            foreach (var (floatPage, item, _) in bodyFloats)
+            {
+                if (floatPage == pageIndex)
+                {
+                    bottom = Math.Max(bottom, item.Y + item.Height);
+                }
+            }
+
+            var slack = pageContentBottom - bottom;
+            if (slack <= 0.01f)
+            {
+                return;
+            }
+
+            if (verticalAlignment == PageVerticalAlignment.Justified)
+            {
+                if (columnCount == 1)
+                {
+                    JustifyPage(slack, pageIndex);
+                }
+
+                return;
+            }
+
+            var offset = slack;
+            if (verticalAlignment == PageVerticalAlignment.Center)
+            {
+                offset /= 2;
+            }
+
+            for (var index = 0; index < items.Count; index++)
+            {
+                items[index] = ShiftItem(items[index], offset);
+            }
+
+            for (var index = 0; index < bodyFloats.Count; index++)
+            {
+                if (bodyFloats[index].Page == pageIndex)
+                {
+                    bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
+                }
+            }
+        }
+
+        // w:vAlign="both": the page's slack shared equally between its units — each paragraph's lines, each
+        // table row. Anything else (a border box, shading, a shape) spans the units it overlaps and welds
+        // them into one, so a bordered group moves as a block rather than tearing its box.
+        void JustifyPage(float slack, int pageIndex)
+        {
+            var units = new List<(float Top, float Bottom)>();
+            var unitOf = new int[items.Count];
+            var paragraphUnits = new Dictionary<ParagraphElement, int>(ReferenceEqualityComparer.Instance);
+            for (var index = 0; index < items.Count; index++)
+            {
+                var item = items[index];
+                unitOf[index] = -1;
+                if (item is PlacedLine line)
+                {
+                    if (paragraphUnits.TryGetValue(line.Paragraph, out var existing))
+                    {
+                        units[existing] = (Math.Min(units[existing].Top, line.Y), Math.Max(units[existing].Bottom, line.Y + line.Height));
+                        unitOf[index] = existing;
+                        continue;
+                    }
+
+                    paragraphUnits[line.Paragraph] = units.Count;
+                }
+                else if (item is not PlacedTableRow)
+                {
+                    continue;
+                }
+
+                unitOf[index] = units.Count;
+                units.Add((item.Y, item.Y + item.Height));
+            }
+
+            // Units in page order, then welded wherever another item bridges two of them.
+            var order = Enumerable.Range(0, units.Count).OrderBy(_ => units[_].Top).ToArray();
+            var rank = new int[units.Count];
+            for (var position = 0; position < order.Length; position++)
+            {
+                rank[order[position]] = position;
+            }
+
+            // A unit joins the group before it when welded to it. An item that is not a unit moves with the
+            // first unit it overlaps — a border box starts above its first line, by its padding.
+            var welded = new bool[units.Count];
+            var firstOverlap = new int[items.Count];
+            for (var index = 0; index < items.Count; index++)
+            {
+                firstOverlap[index] = -1;
+                if (unitOf[index] >= 0)
+                {
+                    continue;
+                }
+
+                var item = items[index];
+                ref var first = ref firstOverlap[index];
+                for (var position = 0; position < order.Length; position++)
+                {
+                    var unit = units[order[position]];
+                    if (unit.Top < item.Y + item.Height - 0.01f && unit.Bottom > item.Y + 0.01f)
+                    {
+                        if (first < 0)
+                        {
+                            first = position;
+                        }
+                        else
+                        {
+                            welded[position] = true;
+                        }
+                    }
+                }
+            }
+
+            var groupOfRank = new int[order.Length];
+            var groups = 0;
+            for (var position = 0; position < order.Length; position++)
+            {
+                if (position > 0 && !welded[position])
+                {
+                    groups++;
+                }
+
+                groupOfRank[position] = groups;
+            }
+
+            // groups is now the count of gaps between groups.
+            if (groups == 0)
+            {
+                return;
+            }
+
+            var step = slack / groups;
+            float ShiftAt(float top)
+            {
+                // The group of the last unit starting at or above this top; the first when none does.
+                var group = 0;
+                for (var position = 0; position < order.Length; position++)
+                {
+                    if (units[order[position]].Top <= top + 0.01f)
+                    {
+                        group = groupOfRank[position];
+                    }
+                }
+
+                return group * step;
+            }
+
+            for (var index = 0; index < items.Count; index++)
+            {
+                float dy;
+                if (unitOf[index] >= 0)
+                {
+                    dy = groupOfRank[rank[unitOf[index]]] * step;
+                }
+                else if (firstOverlap[index] >= 0)
+                {
+                    dy = groupOfRank[firstOverlap[index]] * step;
+                }
+                else
+                {
+                    dy = ShiftAt(items[index].Y);
+                }
+
+                if (dy > 0)
+                {
+                    items[index] = ShiftItem(items[index], dy);
+                }
+            }
+
+            for (var index = 0; index < bodyFloats.Count; index++)
+            {
+                if (bodyFloats[index].Page == pageIndex)
+                {
+                    var dy = ShiftAt(bodyFloats[index].Item.Y);
+                    if (dy > 0)
+                    {
+                        bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, dy)};
+                    }
                 }
             }
         }
@@ -1357,6 +1598,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // The anchor paragraph laid out BEFORE this float reached the flow (a background-shape
                 // drawing flushes the paragraph first) — resolve against its recorded pre-spacing top.
                 EmitBodyFloatAt(element, placedTop);
+                return;
+            }
+
+            // A page- or margin-anchored float whose anchor paragraph has ALREADY laid out (its drawing run
+            // follows the paragraph's text) belongs to the page that paragraph just landed on. Deferring it
+            // to the anchor would wait for a first line that has come and gone, stranding the float until
+            // the flow's end drained it onto the document's LAST page (_probe_valign's H: a page-anchored
+            // box after its paragraph's text landed eight pages late).
+            if (anchor != null && paragraphPreSpacingTops.ContainsKey(anchor))
+            {
+                EmitBodyFloatAt(element, y);
+                ResolvePendingFloats();
                 return;
             }
 
@@ -2111,6 +2364,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // `pagesStarted <= 1` guard.
             // Word's paragraph-anchor reference is this pre-spacing position (see paragraphPreSpacingTops).
             paragraphPreSpacingTops[paragraph] = y;
+            paragraphOpen = true;
 
             var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
             var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
@@ -2440,6 +2694,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastAfter = (float) properties.SpacingAfterPoints;
             lastContextual = properties.ContextualSpacing;
             lastStyleId = properties.StyleId;
+            paragraphOpen = false;
         }
 
         // keepAfter is how far past the table the page has to reach for its last row to keep with what

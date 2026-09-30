@@ -68,9 +68,15 @@ sealed record PageSettings
     /// The page's content is centred vertically between the top and bottom margins instead of
     /// starting at the top one — spreadsheet <c>printOptions/@verticalCentered</c>
     /// (ECMA-376 §18.3.1.70). Set only by the spreadsheet parser; a DOCX section's own
-    /// <c>w:vAlign</c> is a separate, unmodelled feature.
+    /// <c>w:vAlign</c> is <see cref="VerticalAlignment"/>, whose extent rules differ.
     /// </summary>
     public bool VerticallyCentered { get; init; }
+
+    /// <summary>
+    /// Where the section's content sits between the margins on each of its pages (<c>w:vAlign</c> in
+    /// <c>w:sectPr</c>). Applied by the layout engine at page close — see <c>Fragmenter.AlignPage</c>.
+    /// </summary>
+    public PageVerticalAlignment VerticalAlignment { get; init; }
 
     /// <summary>
     /// Whether the first page has different header/footer (w:titlePg).

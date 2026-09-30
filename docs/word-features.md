@@ -1752,6 +1752,20 @@ Extra margin space on the binding edge for printed documents.
 > **Contributors**: Folding gutter into the effective margin is deliberate: every renderer already knows how to handle margins, so we avoid threading a "gutter offset" through `RenderContextBase`.
 
 
+#### Page Vertical Alignment `DONE`
+
+Where a section's content sits between the top and bottom margins of each page — Page Setup › Layout › Vertical alignment: top, center, justified or bottom.
+
+- **OOXML**: `w:vAlign` in `w:sectPr` — `top`, `center`, `both`, `bottom`
+- **Spec**: [VerticalTextAlignmentOnPage](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.verticaltextalignmentonpage)
+- **Model**: `PageSettings.VerticalAlignment` (`PageVerticalAlignment`)
+- **Parse**: `DocumentParser.ParsePageVerticalAlignment`
+- **Render**: `Fragmenter.AlignPage` / `JustifyPage`, at page close — the first moment a page's slack is known. Every output format inherits it from the engine; the text exporters reflow and ignore it.
+- **Test**: `page_vertical_alignment/`, `PageVerticalAlignmentTests`
+
+> **Contributors — Word's rules (probed 2026-09-30, `_probe_valign` / `_valign2` / `_valign3`, 24pt text against a 1in top and 3in bottom margin, read off the XPS).** The extent runs from the band top to the LOWEST thing on the page: the last line plus its paragraph's space-after, and every float — behind-text ones included, so a full-page background leaves no slack; a float wholly above the text widens nothing. `center` moves the page down by half the slack and `bottom` by all of it, **page-anchored floats included**. `both` shares the slack equally between units — a paragraph's lines stay together, but each paragraph and each TABLE ROW is its own unit, so a table comes apart row by row; a page with one unit stays at the top. Every page of the section is aligned on its own, full pages and the section's or document's last page alike, and a page ended by a page break is no exception. A page with a footnote never moves (its note area reaches the margin), and a page carrying two sections — a continuous break — is top-aligned whichever of them asked. Not modelled: under `both`, Word ties an anchored float's paragraph to the paragraph the float overlaps and moves page floats with the last unit, where the engine moves a float with the unit above it; `both` in a multi-column section is unprobed and left top-aligned. The spreadsheet `printOptions/@verticalCentered` (`PageSettings.VerticallyCentered`) is a separate rule with Excel's extent — the print area's own box.
+
+
 ### 5.3 Columns
 
 
@@ -3108,7 +3122,7 @@ Read-only mode, form protection, and editing restrictions.
 | 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
 | 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
 | 4. Tables | 28 | 0 | 0 | 0 | 28 |
-| 5. Page Layout & Sections | 19 | 0 | 0 | 0 | 19 |
+| 5. Page Layout & Sections | 20 | 0 | 0 | 0 | 20 |
 | 6. Graphics & Media | 22 | 3 | 1 | 1 | 27 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
 | 8. Themes & Styles | 4 | 0 | 0 | 0 | 4 |
@@ -3116,14 +3130,14 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **162** | **4** | **5** | **1** | **172** |
+| **Total** | **163** | **4** | **5** | **1** | **173** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 162
+    "Done" : 163
     "Partial" : 4
     "Todo" : 5
     "Wontfix" : 1
