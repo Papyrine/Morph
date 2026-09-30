@@ -3794,6 +3794,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Parse page borders (w:pgBorders)
         var pageBorders = ParsePageBorders(sectionProps.GetFirstChild<OoxmlPageBorders>());
 
+        var verticalAlignment = ParsePageVerticalAlignment(sectionProps.GetFirstChild<VerticalTextAlignmentOnPage>());
+
         return new()
         {
             WidthPoints = width,
@@ -3816,8 +3818,31 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             GutterPoints = gutterPoints,
             PageNumberStart = pageNumberStart,
             PageNumberFormat = pageNumberFormat,
-            GutterAtTop = gutterAtTop
+            GutterAtTop = gutterAtTop,
+            VerticalAlignment = verticalAlignment
         };
+    }
+
+    // w:sectPr/w:vAlign — the section's vertical alignment on the page. Absent, or top, is the default.
+    static PageVerticalAlignment ParsePageVerticalAlignment(VerticalTextAlignmentOnPage? element)
+    {
+        var value = element?.Val?.Value;
+        if (value == VerticalJustificationValues.Center)
+        {
+            return PageVerticalAlignment.Center;
+        }
+
+        if (value == VerticalJustificationValues.Both)
+        {
+            return PageVerticalAlignment.Justified;
+        }
+
+        if (value == VerticalJustificationValues.Bottom)
+        {
+            return PageVerticalAlignment.Bottom;
+        }
+
+        return PageVerticalAlignment.Top;
     }
 
     /// <summary>

@@ -1,0 +1,134 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+td, th { padding: 4pt 7pt; vertical-align: top; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Calibri, sans-serif; max-width: 468pt; padding: 72pt 72pt 216pt; position: relative">
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">A1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">A2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">A3</span></p>
+<p style="margin-top: 36pt; margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">B1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">B2</span></p>
+<p style="margin-bottom: 72pt; line-height: 1.16"><span style="font-size: 24pt;">B3</span></p>
+<p style="margin-top: 36pt; margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">C1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">C2</span></p>
+<p style="margin-bottom: 72pt; line-height: 1.16"><span style="font-size: 24pt;">C3</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">D1</span></p>
+<p style="margin-bottom: 12pt; line-height: 1.16"><span style="font-size: 24pt;">D2</span></p>
+<p style="margin-bottom: 36pt; line-height: 1.16"><span style="font-size: 24pt;">D3</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">Long wrapped paragraph w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37 w38 w39</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">D5</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E1</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E2</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E3</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E4</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E5</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E6</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E7</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E8</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E9</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E10</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E11</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E12</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E13</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E14</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E15</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E16</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E17</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E18</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E19</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">E20</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F1</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F2</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F3</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F4</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F5</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F6</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F7</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F8</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F9</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F10</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F11</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F12</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F13</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F14</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F15</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F16</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F17</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F18</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F19</span></p>
+<p style="margin-bottom: 0pt; line-height: 36pt"><span style="font-size: 24pt;">F20</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">G0</span></p>
+<table>
+  <tbody>
+    <tr>
+      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 24pt;">G1a</span></td>
+      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 24pt;">G1b</span></td>
+    </tr>
+    <tr>
+      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 24pt;">G2a</span></td>
+      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 24pt;">G2b</span></td>
+    </tr>
+    <tr>
+      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 24pt;">G3a</span></td>
+      <td style="width: 150pt;border: 3pt solid #000000"><span style="font-size: 24pt;">G3b</span></td>
+    </tr>
+  </tbody>
+</table>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">G4</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">H1</span></p>
+<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC" width="96" height="96" style="position: absolute; left: 328pt; top: 100pt; z-index: 1" alt="" /></div>
+<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEElEQVR4nGNgYPiPAw0pCQCpcD/BFMrqcwAAAABJRU5ErkJggg==" width="96" height="96" style="position: absolute; left: 300pt; top: 0pt; z-index: 1" alt="" /></div>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">H2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">I1</span><sup class="footnote-ref"><a href="#fn-1" id="fnref-1">1</a></sup></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">I2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">J1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">J2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">J3</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">K1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">K2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">K3</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">L1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">L2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">N1</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">N2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">N3</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">N4</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">M1</span></p>
+<p style="margin-bottom: 24pt; line-height: 1.16"><span style="font-size: 24pt;">M2</span></p>
+<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 24pt;">M3</span></p>
+<section class="footnotes">
+  <ol>
+    <li id="fn-1"> Footnote <a href="#fnref-1">↩</a></li>
+  </ol>
+</section>
+</body>
+</html>
