@@ -14,7 +14,6 @@
     <PackageReference Include="ProjectFiles" />
     <PackageReference Include="TUnit" />
     <PackageReference Include="MarkdownSnippets.MsBuild" PrivateAssets="all" />
-    <PackageReference Include="Verify.DiffPlex" />
     <PackageReference Include="Verify.PDFium" />
     <PackageReference Include="Verify.TUnit" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
