@@ -2508,14 +2508,57 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // TableGrid would otherwise lose the 108-twip start/end padding.
             var styleCellPadding = ResolveStyleCellPadding(style, tableStylesById);
             var styleIndent = ResolveStyleIndent(style, tableStylesById);
+            var styleCannotSplit = ResolveStyleCannotSplit(style, tableStylesById);
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleIndent != null)
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleIndent != null || styleCannotSplit)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ResolveStyleRunProperties(style, tableStylesById), styleIndent);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ResolveStyleRunProperties(style, tableStylesById), styleIndent, styleCannotSplit);
             }
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Whether a table style stops its rows splitting across pages — its own <c>w:trPr/w:cantSplit</c>,
+    /// the nearest declaration on the <c>w:basedOn</c> chain winning, so a derived style can switch a
+    /// base's off with <c>w:val="0"</c>. The conditional regions' row properties are not read here.
+    /// Word honours it: an A/B on a report whose rows take cantSplit only from their table style
+    /// (2026-09-30) had Word carry a straddling three-paragraph row whole to the next page, and split
+    /// it at exactly the line boundary the engine uses once the style's cantSplit was removed.
+    /// </summary>
+    // An ST_OnOffOnly w:val (w:cantSplit, w:tblHeader): absent is on, and off is "off" — or the "0" and
+    // "false" writers put there though the schema allows only on/off. The SDK's typed value throws on
+    // those rather than parsing them, which took the whole document down with it.
+    static bool OnOffOnlyIsOn(EnumValue<OnOffOnlyValues>? value) =>
+        value?.InnerText?.ToLowerInvariant() is not ("off" or "0" or "false");
+
+    internal static bool ResolveStyleCannotSplit(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            if (current.GetFirstChild<TableStyleConditionalFormattingTableRowProperties>()?.GetFirstChild<CantSplit>() is { } cantSplit)
+            {
+                return OnOffOnlyIsOn(cantSplit.Val);
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -5088,14 +5131,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             double? rowHeight = null;
             var isExactHeight = false;
             var isHeader = false;
-            var cannotSplit = false;
+            // A row's own w:cantSplit wins; without one it takes the table style's.
+            var cannotSplit = styleInfo?.CannotSplit ?? false;
             var rowProps = row.GetFirstChild<TableRowProperties>();
             if (rowProps != null)
             {
                 var cantSplitElement = rowProps.GetFirstChild<CantSplit>();
                 if (cantSplitElement != null)
                 {
-                    cannotSplit = cantSplitElement.Val?.Value != OnOffOnlyValues.Off;
+                    cannotSplit = OnOffOnlyIsOn(cantSplitElement.Val);
                 }
 
                 var trHeight = rowProps.GetFirstChild<TableRowHeight>();
@@ -5109,7 +5153,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var headerElement = rowProps.GetFirstChild<TableHeader>();
                 if (headerElement != null)
                 {
-                    isHeader = headerElement.Val?.Value != OnOffOnlyValues.Off;
+                    isHeader = OnOffOnlyIsOn(headerElement.Val);
                 }
             }
 
@@ -10856,19 +10900,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var backgroundColor = styleDefaults?.BackgroundColorHex;
 
         // If no inline properties, return style defaults. The mark still sizes its line by the run
-        // chain (see the paragraphMarkFontSize block below): a bare <w:p/> spacer in a table cell has no
-        // resolved mark (the cell path omits it) and no run, so without the chain it measured at the
+        // ladder (see the paragraphMarkFontSize block below): a bare <w:p/> spacer in a table cell has no
+        // resolved mark (the cell path omits it) and no run, so without the ladder it measured at the
         // record's default face — letters/13's Posterama 11 spacers came out 1.2pt short each and the
         // letter drifted a line up the page by its signature.
         if (props == null)
         {
-            RunProperties? bareMarkChain = null;
-            styleRunProperties?.TryGetValue(styleId ?? "Normal", out bareMarkChain);
+            var bareMark = ParseRunProperties(null, mainPart, styleId);
             return new()
             {
                 Alignment = alignment,
-                ParagraphMarkFontSizePoints = bareMarkChain?.FontSizePoints,
-                ParagraphMarkFontFamily = bareMarkChain?.FontFamily,
+                ParagraphMarkFontSizePoints = bareMark.FontSizePoints,
+                ParagraphMarkFontFamily = bareMark.FontFamily,
                 SpacingBeforePoints = spacingBefore,
                 SpacingAfterPoints = spacingAfter,
                 LineSpacingMultiplier = lineSpacingMultiplier,
@@ -11156,33 +11199,35 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // still gets the pitch wrong. business-plans/13 is the case that showed it — 189 of its marks
         // declare w:rFonts carrying only eastAsiaTheme/cstheme (no w:ascii) and 316 declare w:sz with no
         // w:rFonts at all, so in both groups the ascii face has to come from the chain.
+        //
+        // Whatever the mark does not declare it takes from the ladder a run with no rPr of its own climbs
+        // (ParseRunProperties): the document defaults, then inside a styled table the table style's rung,
+        // then the paragraph style chain — and for a style id the styles part does not define, the run's
+        // own fallback, the document defaults. Reading the paragraph chain alone missed both of those.
+        // COMPASS's stocktake summary shows the two together: its cells name a TBLText style the package
+        // never defines, and the table style carries the 9pt size, so an empty cell's mark resolved to
+        // nothing and measured at the record's default face — 13.43pt against the 11.97pt of Word's 9pt
+        // Segoe UI Semilight, making every row with an empty cell 1.13pt taller than Word's (read off
+        // Word's own layout of the report over COM, 2026-09-30).
         string? paragraphMarkFontFamily = null;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
-        RunProperties? markChain = null;
-        styleRunProperties?.TryGetValue(styleId ?? "Normal", out markChain);
+        var markLadder = ParseRunProperties(null, mainPart, styleId);
         if (paragraphMarkRunProps != null)
         {
             var fontSize = paragraphMarkRunProps.GetFirstChild<FontSize>();
-            if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSize?.Val?.Value) is { } declaredMarkSize)
-            {
-                paragraphMarkFontSize = declaredMarkSize;
-            }
-            else if (markChain != null)
-            {
-                paragraphMarkFontSize = markChain.FontSizePoints;
-            }
+            paragraphMarkFontSize = OoxmlUnits.FontSizeHalfPointsToPoints(fontSize?.Val?.Value) ?? markLadder.FontSizePoints;
 
             var markFonts = paragraphMarkRunProps.GetFirstChild<RunFonts>();
-            paragraphMarkFontFamily = ResolveRunFontFamily(markFonts) ?? markChain?.FontFamily;
+            paragraphMarkFontFamily = ResolveRunFontFamily(markFonts) ?? markLadder.FontFamily;
         }
-        else if (markChain != null)
+        else
         {
-            // A mark with no rPr at all — the bare <w:p/> spacer — still sizes its line by the chain:
+            // A mark with no rPr at all — the bare <w:p/> spacer — still sizes its line by the ladder:
             // letters/13's empty paragraphs sit under a Posterama 11 docDefaults, whose 14.63pt pitch the
             // record's default face fell 1.2pt short of, and the body drifted a line up the page by the
             // signature (Word's paragraph gaps 61px against the engine's 58.5).
-            paragraphMarkFontSize = markChain.FontSizePoints;
-            paragraphMarkFontFamily = markChain.FontFamily;
+            paragraphMarkFontSize = markLadder.FontSizePoints;
+            paragraphMarkFontFamily = markLadder.FontFamily;
         }
 
         // RTL paragraph (w:bidi)

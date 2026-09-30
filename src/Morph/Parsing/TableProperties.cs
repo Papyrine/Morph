@@ -33,6 +33,15 @@ sealed record TableProperties
     public bool IsFloating { get; init; }
 
     /// <summary>
+    /// Whether this table is a spreadsheet's printed grid (<c>SheetGridBuilder</c>) rather than a Word
+    /// table. Excel paginates a sheet by its own rules, which the engine approximates: a fit-to-page grid
+    /// is scaled to fill the page, and measuring it a hair over must not spill a row onto a page Excel
+    /// never prints, so a grid keeps the shared 2% rounding slack when deciding whether it fits. A Word
+    /// table fits strictly — see <c>Fragmenter.TableFitsHere</c>.
+    /// </summary>
+    public bool IsSheetGrid { get; init; }
+
+    /// <summary>
     /// Vertical offset in points from the floating-table anchor (w:tblpPr/@w:tblpY).
     /// Only meaningful when <see cref="IsFloating"/> is true. Morph treats floating tables
     /// inline today, so this is added as a y-offset before the table's first row to

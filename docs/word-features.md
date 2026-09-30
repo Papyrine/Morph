@@ -647,6 +647,8 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 >
 > Note this did NOT resolve `business-plans/13`'s own +0.069 from the size fix, which was the reason to look at the face — that scenario's metrics are untouched by it, so its residual has some other cause and is still open. The PDF backend applies the same three rules in `PdfTextEngine` (per finished line, on blank explicit-break lines, and on empty-paragraph mark lines), mirroring the raster `CalculateLineHeight`.
 >
+> **A mark gets what it leaves undeclared from the same ladder as a run with no `w:rPr` (2026-09-30).** `ParseParagraphProperties` resolves the mark's size and face through `ParseRunProperties(null, …)`: the document defaults, then inside a styled table the table style's rung, then the paragraph style chain. A style id the styles part does not define, or a package with no styles part at all, falls to the document defaults, just as a run's does. Reading the paragraph style chain alone missed the table style's rung and both fallbacks, so the mark measured at the `RunProperties` record's default face and 11pt. COMPASS's stocktake summary hits both at once: its cells name a `TBLText` style the package never defines, and the table style carries the 9pt. Every row with an empty cell came out 1.13pt taller than Word's, whose 9pt Segoe UI Semilight mark is an 11.97pt line against the engine's 13.43pt (read off Word's own layout of the report over COM). In the corpus it moved three documents whose empty cell paragraphs had nothing on the paragraph chain to resolve against. `table_layout_tall_row` and `table_two_column_layout` have no styles part: their spacer cell paragraphs, an empty `<w:t/>` run the parser drops, had measured at Aptos 11 among text set at the style-less default, Calibri 12. Both came closer to Word: page error Skia 0.0263 → 0.0222 and PDF 0.0287 → 0.0242 on the first document's page 2, and Skia 0.0256 → 0.0200 and PDF 0.0264 → 0.0208 on the second's only page. `complex_tables` defines no Normal style, so its empty cells now take the Arial 12 of its docDefaults; its page 1 is neutral (Skia 0.3668 → 0.3669, SSIM 0.6807 → 0.6817), since that page already holds different content from Word's. `TableStyleInheritanceTests` pins the table-style and undefined-style cases.
+>
 > **Inline images are not scaled by the Auto multiplier.** The multiplier applies to the text line box only; an inline image contributes its height unscaled and the line takes `max(imageHeight, textHeight × multiplier)` — see `AutoLineHeight` in each raster `TextRenderer`. Verified against Word by sweeping `brochures/06`'s docDefault `w:line` from 1.15 to 1.50: its two image-bearing table rows grew 1.3% and 3.4%, where scaling the image would predict 30%; fitting the sweep gives `row = 211.6px image + 22.6px text line × multiplier` with residuals under 1px. `PdfTextEngine` has always modelled this (an image item keeps its raw height while text runs get `rawHeight × multiplier`). Note the rule has to hold in BOTH the render path (`CalculateLineHeight`) and the table-cell measurement path (`LayoutParagraphForMeasurement` → `TableLayout.CalculateCompactLineHeight`); the latter takes the caller's already-computed Auto height precisely so the two cannot drift apart again.
 > **The spacing rule also decides what a line must get inside the bottom margin.** Only `auto` tolerates an overhang: the baseline has to clear the margin, and Word draws the overhanging descent and clips it at the text area. `exact` and `atLeast` both reserve the whole line box. Three Word renders pin the auto-versus-exact half, all against a content bottom of exactly 720pt, quoting box / ink / ascent bottoms: an exact-spaced 50th line is REJECTED at 722.00 / 722.43 / 719.47, an auto-spaced 42nd is KEPT at 720.56 / 718.55 / 715.59, and `image_wrap_square`'s sixth column line is KEPT at 724.36 / 722.35 / 719.39. No single quantity survives that set — the full box fails the last two, the ink box the last, the ascent the first — and no threshold separates the first and last either, since they straddle by 0.08pt in ascent bottom while disagreeing, and the box overhang runs non-monotone (0.56 kept, 2.00 rejected, 4.36 kept). The clipping is visible in Word's own render: `image_wrap_square`'s last column line has a full-width ink band ending dead on the content bottom, where the line above trails descenders 1.92pt past its own band.
 >
@@ -751,6 +753,13 @@ Forces the paragraph to start on a new page.
 > "Campaign Sign-off" page rides on the style-level break; before the fix the engine
 > reproduced that page boundary only through an accident of whole-table pagination, and the
 > fit-routing change exposed the miss.
+>
+> **A page it starts is kept (2026-09-30).** The page a page-break-before paragraph opens is a
+> deliberate one, like an explicit break's, so `FinishPage`'s blank-page drop no longer takes it:
+> two empty page-break-before paragraphs in a row give Word a page holding only the first. Read
+> off Word's own layout of COMPASS's stocktake report, whose last commitment and appendix are
+> separated by exactly that pair — Word's appendix opened a page later than the engine's, putting
+> every TOC entry after it one low.
 
 
 #### Keep With Next `DONE`
@@ -896,7 +905,17 @@ Borders around a paragraph (top, bottom, left, right, between).
 >
 > **HTML export group law (2026-08-20).** The export applies the group law per member: the top edge belongs to the group's first member — a later member shows the `w:between` rule there, or nothing — and the bottom edge to its last, with the `w:space` padding following the edges (`HtmlExporter.AppendParagraphBorderStyle`, fed neighbour context by the body walk and the cell-content walk). Members remain separate CSS boxes, so a four-sided group keeps hairline gaps in its side rules at member boundaries. A bordered cell paragraph renders as a real `<p>` block so its rules survive the inline cell join (resumes/08's separator rules).
 >
-> **Not yet Word-accurate**: the bottom reserve is charged when the run *flushes*, which is after its last line has already been fitted to the region — so a run whose last line fits but whose bottom space does not can still overhang. Closing that needs lookahead to the run's end. A run that breaks across a column or page also drops to no box rather than closing and reopening the way Word does.
+> **The bottom reserve fits with the closing line (2026-09-30).** A paragraph that closes its border box — it draws a bottom edge and the next flow element does not continue its group — has to fit its last line's whole box plus the bottom `w:space` and rule above the bottom margin, whatever the line's spacing rule. Word-probed by sliding a one-line Arial 10 paragraph down a Letter page (a spacer paragraph of exact height above it, binary-searched for its last kept position; content bottom 720pt), identical in compatibility modes 12 and 15:
+>
+> | Fixture | last kept paragraph top | line bottom + space + rule |
+> | --- | --- | --- |
+> | no border (control) | 708.52 | 720.02 |
+> | bottom border, `w:space` 0 | 708.02 | 720.02 |
+> | bottom border, `w:space` 12 | 696.02 | 720.02 |
+> | bottom border, `w:space` 24 | 684.02 | 720.02 |
+> | 1pt font, `w:space` 12 (COMPASS's Break rule) | 706.37 | 720.02 |
+>
+> On a three-line paragraph the reserve moved the LAST line rather than the paragraph, so it is a line-fit rule: `Fragmenter.ClosingBorderReserve` measures it ahead of placement and `PlaceParagraph` adds it to the closing line's reservation, leaving the widow/orphan rules to settle the split. COMPASS's stocktake report is what showed it: its thin rule under each commitment fitted by its text alone, where Word carried it onto a page of its own and put every later page one past the engine's. A run that breaks across a column or page still drops to no box rather than closing and reopening the way Word does.
 >
 > **Landing note (aggregate vs measurement).** The reservation raised the corpus AE sum by +0.50 across four scenarios while being demonstrably closer to Word — `business-plans/12`'s rule-to-next-line gap went from 6.3px out to 2.1px, and `paragraph_borders` / `cover-letters/02` improved outright. The positive sum came from `business-plans/15` p11 and `business-plans/12`, whose pages were misaligned by a separate defect: the paragraph mark's size not inheriting through the style chain, which made that scenario's table rows 5px too tall each and tipped content across page boundaries. **That has since been fixed** (see "Line Spacing"), taking the corpus AE sum down by 1.19 and bringing `business-plans/15` p11 back into line with Word. The reservation's own +0.50 is subsumed in that; what remains of the original decomposition was wrong — it inferred a too-large per-row overhead and a too-small line pitch from a single assumed 2-line row, where a controlled probe over cell margins, paragraph spacing and line count independently showed the row-height model itself matching Word within ±1.5px all along.
 
@@ -1346,11 +1365,31 @@ line boundary when it does not fit.
 
 > **Contributors**: Two routes into row-by-row placement: a table over 110% of a column's
 > content height, and — Word's own trigger, probed and landed 2026-08-07 after two reverted
-> attempts — a table that merely does not fit the space left. The routing condition mirrors the
-> whole-table move it replaces exactly (height less 2% against the 2%-extended bottom, an
-> effective 4% slack), because a knife-edge table the move would have squeezed onto the page
-> must not be routed into a split the old path never made (`business-plans/15`'s 79.6pt
-> boundary table clears the move by 0.24pt).
+> attempts — a table that merely does not fit the space left. Whether a table fits is
+> `Fragmenter.TableFitsHere`: **strictly** for a Word table, and with the old whole-table slack
+> (2% at a region top, an effective 4% below one) only for a spreadsheet's grid
+> (`TableProperties.IsSheetGrid`), whose fit-to-page scale fills the page and whose pagination
+> is Excel's, which the engine only approximates.
+>
+> **Word fits a row strictly (2026-09-30).** Probed by sliding a borderless table down a Letter
+> page (a spacer paragraph of exact height above it, binary-searched for the last position that
+> keeps the probed row on page 1; content bottom 720pt), identical in compatibility modes 12 and 15:
+>
+> | Fixture | row bottom at the last kept position |
+> | --- | --- |
+> | one row, one line, no padding | 720.02 |
+> | one row, one line, 20pt bottom padding | 720.02 (line bottom 700.02) |
+> | one row, one line, 20pt after-spacing | 720.02 (line bottom 700.02) |
+> | last of three rows, 20pt bottom padding | 720.02 |
+> | one row of three lines, 20pt bottom padding | first line + padding at 720.02 — the row splits |
+>
+> So the whole box — top padding, full lines, the last paragraph's after-spacing, bottom padding —
+> has to clear the margin, and the whole-table path's 4% slack had let tables overhang it where
+> Word moves the row. COMPASS's stocktake report showed it: two option rows placed 21pt past the
+> margin, one only 0.9pt past by its bottom padding with its text well inside, both moved by Word,
+> and the report ran a page short of Word from there. Taking the slack off Word tables moved no
+> Word document in the corpus but `resumes/13`, onto Word's pages 3-5; the Excel grids it would
+> have spilled (`check-register` gained a page) are what `IsSheetGrid` keeps it for.
 >
 > Probe-measured row rules (`_probe_multirow_*`, `_probe_straddle_*`, `_probe_cantsplit_*`,
 > `_probe_trail2_*`, plus `resumes/06` and `letters/04` measured in situ, 2026-08-07):
@@ -1382,11 +1421,11 @@ line boundary when it does not fit.
 >    floor to 541.2, margin 540). A content-only fit was briefly landed off an in-situ
 >    letters/04 reading; that keep was upstream height drift, not a fit law — the drift was
 >    root-caused on 2026-08-08 as the cell-measure contextual-spacing hole (see Contextual
->    Spacing), which sized that document's address row 54pt over its drawn content. The
->    bottom-margin overhang
->    tolerance belongs to CONTENT: Word keeps `business-plans/15`'s content-sized 79.6pt
->    boundary table 13pt past the margin, drawn and clipped — the same shape as the last-line
->    rule, where auto lines overhang and exact/atLeast boxes reserve fully. A row carrying any
+>    Spacing), which sized that document's address row 54pt over its drawn content. A
+>    content-sized row is strict too (see the 2026-09-30 probe above): the reading that Word
+>    kept `business-plans/15`'s content-sized 79.6pt boundary table 13pt past the margin was,
+>    like the letters/04 one, a measurement of drift rather than a law — that document did not
+>    move when the slack came off. A row carrying any
 >    vertical merge (span head included) is exempt from the strict test — a merge span is one
 >    drawn unit Word clips rather than moves. An exact row's declared box is verbatim in both
 >    directions and fits as declared. A whole row carried to a region top keeps the authored
@@ -1404,7 +1443,15 @@ line boundary when it does not fit.
 >    pages 14, 16 and 20, putting the eight rows below it 23px up the page at 150 DPI.
 > 7. **`w:cantSplit` is honoured until the row exceeds a full region's height**, at which point
 >    the row overflows and clips rather than splitting (`_probe_cantsplit_tall_on`) — and a
->    cantSplit row that fits a fresh page moves whole (`_probe_cantsplit_fit_on`).
+>    cantSplit row that fits a fresh page moves whole (`_probe_cantsplit_fit_on`). A row with no
+>    `w:cantSplit` of its own takes its table style's (`w:tblStyle`'s `w:trPr`, the nearest
+>    declaration on the `w:basedOn` chain winning; `DocumentParser.ResolveStyleCannotSplit`).
+>    COMPASS's stocktake report settles it (2026-09-30): its rows take cantSplit from the table
+>    style alone, Word carried a straddling three-paragraph row of it whole to the next page, and
+>    once the style's cantSplit was taken out Word split that row at exactly the line boundary the
+>    engine uses. Before this only the row's own flag was read, so every such row split. It moved
+>    no corpus document: `resumes/05` (FigureTable) and `header_full_bleed_banner` (Bidtable)
+>    define such a style, but none of their tables uses it.
 > 8. **Trailing empty rows are carried, never absorbed** (`_probe_trail2_*`: 108 borderless
 >    12pt exact-line rows filling two bands, then a 100pt trailing row, then a text paragraph
 >    whose position on the continuation page reads the row's fate). A trailing row holding an

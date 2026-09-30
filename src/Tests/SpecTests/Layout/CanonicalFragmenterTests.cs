@@ -799,6 +799,134 @@ public class CanonicalFragmenterTests
         await Assert.That(placed).IsEqualTo(pages);
     }
 
+    // Page-fit rules probed in Word by sliding the element down a page until it moved (a spacer paragraph
+    // of exact height above it, binary-searched — see Fragmenter.TableFitsHere and the closing-line
+    // reserve in PlaceParagraph). They came out of COMPASS's stocktake report, whose TOC and summary page
+    // numbers ran one to two pages short of Word's until all of them held.
+
+    // A paragraph exactly `height` points tall, so what follows it starts where a test needs it.
+    static ParagraphElement Spacer(double height) =>
+        P(
+            "spacer",
+            new()
+            {
+                LineSpacingRule = LineSpacingRule.Exactly,
+                LineSpacingPoints = height
+            });
+
+    static TableElement OneLineRows(int rows, bool sheetGrid = false) =>
+        new()
+        {
+            Properties = new()
+            {
+                IsSheetGrid = sheetGrid
+            },
+            Rows =
+            [
+                .. Enumerable.Range(0, rows).Select(_ => new TableRow
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P($"Row {_}")],
+                            Properties = new()
+                        }
+                    ]
+                })
+            ]
+        };
+
+    static ParagraphProperties BottomBordered => new()
+    {
+        Borders = new()
+        {
+            Bottom = new()
+            {
+                IsVisible = true,
+                WidthPoints = 0.5,
+                ColorHex = "000000"
+            }
+        },
+        BorderBottomSpacePoints = 12
+    };
+
+    /// <summary>
+    /// Word fits a table row strictly: it stays only while its whole box clears the bottom margin, so a
+    /// table one point short of room breaks before its last row. The 2% slack the whole-table path used
+    /// to give every table kept this one whole. A spreadsheet grid still has it, since Excel paginates by
+    /// rules the engine only approximates.
+    /// </summary>
+    [Test]
+    [Arguments(false, "112")]
+    [Arguments(true, "111")]
+    public async Task A_table_a_point_short_of_room_breaks_before_its_last_row_unless_it_is_a_sheet(bool sheetGrid, string pages)
+    {
+        var table = OneLineRows(3, sheetGrid);
+        var height = fragmenter.Layout([table], Page(200)).Pages[0].Items.OfType<PlacedTableRow>().Sum(_ => _.Height);
+
+        // 1pt over: well inside the 3.2pt the slack allowed.
+        var document = fragmenter.Layout([Spacer(160 - height + 1), table], Page(200));
+
+        await Assert.That(RowPages(document, table)).IsEqualTo(pages);
+    }
+
+    /// <summary>
+    /// A bottom border's space and rule have to fit under the line they close. Probed: a one-line
+    /// paragraph's last kept position put its line bottom plus w:space plus the rule on the margin, at
+    /// w:space 0, 12 and 24. Here the line has 10pt to spare, which a 12pt space does not fit in.
+    /// </summary>
+    [Test]
+    [Arguments(false, "1")]
+    [Arguments(true, "2")]
+    public async Task A_bottom_border_has_to_fit_under_the_line_it_closes(bool bordered, string page)
+    {
+        var closing = P("Closing", bordered ? BottomBordered : null);
+
+        var document = fragmenter.Layout([Spacer(160 - 14.5 - 10), closing, P("After")], Page(200));
+
+        await Assert.That(LinePages(document, closing)).IsEqualTo(page);
+    }
+
+    /// <summary>
+    /// A paragraph whose border group carries on into the next paragraph closes no box, so it has no
+    /// reserve to fit: the rule is drawn under the group's last member.
+    /// </summary>
+    [Test]
+    public async Task A_paragraph_that_continues_its_border_group_carries_no_bottom_reserve()
+    {
+        var first = P("First", BottomBordered);
+
+        var document = fragmenter.Layout([Spacer(160 - 14.5 - 10), first, P("Second", BottomBordered)], Page(200));
+
+        await Assert.That(LinePages(document, first)).IsEqualTo("1");
+    }
+
+    /// <summary>
+    /// A page begun by page-break-before is a deliberate one: two empty page-break-before paragraphs in a
+    /// row leave Word a page holding only the first, where the blank-page drop used to discard it.
+    /// </summary>
+    [Test]
+    public async Task Two_empty_page_break_before_paragraphs_leave_a_blank_page_between_them()
+    {
+        static ParagraphElement Break() =>
+            new()
+            {
+                Runs = [],
+                Properties = new()
+                {
+                    PageBreakBefore = true
+                }
+            };
+
+        var after = P("After");
+
+        var document = fragmenter.Layout([P("Before"), Break(), Break(), after], Page(200));
+
+        await Assert.That(document.Pages.Count).IsEqualTo(3);
+        await Assert.That(LinePages(document, after)).IsEqualTo("3");
+    }
+
     // A one-row table whose single cell holds `lines` short paragraphs — the shape that forces a row
     // taller than the page.
     static TableElement OneRowTable(int lines, bool cannotSplit) =>
