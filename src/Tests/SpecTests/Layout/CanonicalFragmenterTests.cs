@@ -131,30 +131,38 @@ public class CanonicalFragmenterTests
     }
 
     /// <summary>
-    /// Under auto spacing only the baseline has to clear the bottom margin: Word lets the last line's
-    /// descent and trailing gap encroach it rather than pushing the line to the next page, drawing the
-    /// overhang and clipping it at the text area. Word-probed twice — <c>_probe_lastline_auto_flow</c>
-    /// keeps a 42nd line whose box ends 0.56pt past the margin, and <c>image_wrap_square</c>'s column
-    /// keeps a line whose box ends 4.36pt past it (and whose ink band stops dead on the boundary).
-    /// This is the half of the rule that must NOT tighten with the exact case: the full box costs
-    /// <c>image_wrap_square</c> Word's page count, which is how two earlier readings were caught.
+    /// Under auto spacing the last line has to fit its NATURAL box — the font's single-spaced pitch —
+    /// and only the leading an expanding multiple adds under the baseline may hang past the margin; a
+    /// compressing multiple fits its whole (smaller) box. Word-probed (<c>_probe_fit*</c>, the band swept
+    /// across a page's second line for 25 configurations of font, size and multiple): every threshold
+    /// lands within 0.4pt of min(box, natural box), and the engine agrees with all 1,435 cases. The
+    /// baseline reading this replaces kept a 24pt 1.15 line whose natural box ran 0.9pt past the margin.
     /// </summary>
     [Test]
-    public async Task An_auto_spaced_line_keeps_only_its_baseline_inside_the_margin()
+    [Arguments(2.0)]
+    [Arguments(1.15)]
+    [Arguments(0.5)]
+    public async Task An_auto_spaced_line_fits_its_natural_box_and_lets_added_leading_overhang(double multiplier)
     {
-        // 197pt tall puts the content bottom at 177, between the eleventh line's baseline and its box.
-        var page = Page(197);
-        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)));
+        var properties = new ParagraphProperties { LineSpacingMultiplier = multiplier };
+        var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)), properties);
+        var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) Page(400).ContentWidth);
+        var line = lines[0];
+        var natural = line.Height - line.Overhang;
+        await Assert.That(line.Overhang > 0).IsEqualTo(multiplier > 1);
+        await Assert.That(line.Ascent).IsLessThan(natural);
 
-        var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) page.ContentWidth);
-        await Assert.That(lines.Count).IsGreaterThanOrEqualTo(12);
-        var eleventhTop = 20 + 10 * lines[0].Height;
-        await Assert.That(eleventhTop + lines[10].Ascent).IsLessThanOrEqualTo(177f);
-        await Assert.That(eleventhTop + lines[10].Height).IsGreaterThan(177f);
+        // The eleventh line starts ten boxes down; the content bottom sits at `bottom` past its top.
+        int KeptLines(float bottom) =>
+            fragmenter.Layout([paragraph], Page(20 + 10 * line.Height + bottom + 20)).Pages[0].Items.OfType<PlacedLine>().Count();
 
-        var document = fragmenter.Layout([paragraph], page);
+        // Its natural box fits, its added leading does not: kept (at 0.5 there is no leading, and the
+        // natural box is the whole box).
+        await Assert.That(KeptLines(natural + line.Overhang / 2)).IsEqualTo(11);
+        await Assert.That(KeptLines(natural + 0.01f)).IsEqualTo(11);
 
-        await Assert.That(document.Pages[0].Items.OfType<PlacedLine>().Count()).IsEqualTo(11);
+        // Its baseline clears, its natural box does not: moved.
+        await Assert.That(KeptLines((line.Ascent + natural) / 2)).IsEqualTo(10);
     }
 
     /// <summary>
@@ -1116,15 +1124,16 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
-    public async Task A_line_whose_baseline_clears_the_bottom_margin_stays_on_the_page()
+    public async Task A_line_whose_natural_box_clears_the_bottom_margin_stays_on_the_page()
     {
-        var probe = fragmenter.Layout([P("probe")], Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
+        var probe = LayoutTestFonts.Measurer.LayoutLineContents(P("probe"), (float) Page(400).ContentWidth)[0];
         var lineHeight = probe.Height;
-        var ascent = probe.Baseline - probe.Y;
 
-        // A content band that ends between the third line's baseline and its bottom: the third line's
-        // descent must spill past the margin. Word keeps it on the page; the fragmenter mirrors that.
-        var page = Page(40 + 2 * lineHeight + ascent + 0.5);
+        // A content band that ends inside the third line's added leading — past its natural box, short of
+        // its full one (the default 1.08 multiple): the leading spills past the margin. Word keeps the line
+        // on the page (_probe_fit*); the fragmenter mirrors that.
+        await Assert.That(probe.Overhang).IsGreaterThan(0.5f);
+        var page = Page(40 + 3 * lineHeight - probe.Overhang / 2);
 
         var document = fragmenter.Layout([P("one"), P("two"), P("three")], page);
         var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
@@ -3091,6 +3100,32 @@ public class CanonicalFragmenterTests
 
         // A continuous section break at the same geometry takes no flow space — both paragraphs stay on page 1.
         await Assert.That(document.Pages.Count).IsEqualTo(1);
+    }
+
+    /// <summary>
+    /// The page a continuous break lands on keeps the bottom margin it opened with; the new section's
+    /// margins govern from the next page. Word-probed (<c>_probe_contmargin</c>, a 1in-bottom section
+    /// continued by a 4in-bottom one, with and without a change to two columns): page 1 filled to the first
+    /// section's bottom, page 2 stopped at the second's.
+    /// </summary>
+    [Test]
+    [Arguments(1)]
+    [Arguments(2)]
+    public async Task A_continuous_break_keeps_the_pages_margins_until_the_next_page(int columns)
+    {
+        // Exact 20pt lines: the 360pt band of Page(400) holds 18; the continued section's 200pt bottom
+        // margin leaves a 180pt band, 9 lines.
+        var exact = new ParagraphProperties { LineSpacingRule = LineSpacingRule.Exactly, LineSpacingPoints = 20 };
+        var second = Page(400) with { MarginBottom = 200, ColumnCount = columns, ColumnSpacing = 20 };
+        var lines = Enumerable.Range(1, 60).Select(_ => (DocumentElement) P($"line{_}", exact));
+        var document = fragmenter.Layout(
+            [P("first", exact), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = second }, .. lines],
+            Page(400));
+
+        static float Lowest(LaidOutPage page) => page.Items.OfType<PlacedLine>().Max(_ => _.Y + _.Height);
+
+        await Assert.That(Lowest(document.Pages[0])).IsEqualTo(380f).Within(0.01f);
+        await Assert.That(Lowest(document.Pages[1])).IsEqualTo(200f).Within(0.01f);
     }
 
     [Test]

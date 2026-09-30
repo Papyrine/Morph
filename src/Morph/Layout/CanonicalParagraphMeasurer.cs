@@ -153,7 +153,18 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // Light paragraph has its baseline 14.8pt under the line top (the full 14.65 pitch), where a
             // text line's sits 11.4; resumes/12's coral rule sat 9px high on the mark ascent.
             var ascent = maxImageHeight > 0 && !hasText ? lineHeight : Math.Max(textAscent, maxImageHeight);
-            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images, wrapped[i].FootnoteReferenceIds, wrapped[i].EndnoteReferenceIds);
+
+            // The leading an expanding multiple adds under the baseline may hang past the bottom margin;
+            // the natural box above it has to fit (see Fragmenter's fit loop for the probe). It never
+            // exceeds what lies under the baseline, which an image-only line does not have.
+            var overhang = 0f;
+            if (props.LineSpacingRule == LineSpacingRule.Auto)
+            {
+                var leading = textHeight - 2 * runBorderPad - naturalPitch;
+                overhang = Math.Clamp(leading, 0f, Math.Max(0f, lineHeight - ascent));
+            }
+
+            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images, wrapped[i].FootnoteReferenceIds, wrapped[i].EndnoteReferenceIds, overhang);
         }
 
         return result;

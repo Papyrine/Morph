@@ -32,6 +32,6 @@ Two things the probes found that this fixture deliberately avoids:
 - Under `both`, Word welds a paragraph whose anchored float overlaps the next paragraph to that
   paragraph, and moves a page float with the last unit. The engine moves a float with the unit
   above it and does not weld on floats.
-- Pages 5–8 use **exact** line spacing. With 24pt `auto` lines the engine fits a 15th line whose
-  descent overruns the margin by 5.4pt, where Word moves it to the next page — the last-line fit
-  rule, independent of alignment.
+- Pages 5–8 use **exact** line spacing, so the page breaks rest on nothing but the band height. (With
+  24pt `auto` lines the engine once fitted a 15th line Word moves on; the last-line fit rule has since
+  been Word-probed and corrected — see Line Spacing in `docs/word-features.md`.)
