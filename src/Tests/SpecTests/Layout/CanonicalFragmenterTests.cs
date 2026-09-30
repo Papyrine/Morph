@@ -541,6 +541,264 @@ public class CanonicalFragmenterTests
         await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().Count(_ => ReferenceEquals(_.Paragraph, tail))).IsEqualTo(2);
     }
 
+    // Keep with next (w:keepNext). Each test below is one of the probes the rule was read from: a
+    // document built in Word over COM, and the page each paragraph and row landed on read back (see
+    // Fragmenter.KeepsWithNext). Page(200) holds eleven 14.5pt lines, so N fillers leave 11 - N free.
+
+    static ParagraphProperties Kept => new()
+    {
+        KeepNext = true
+    };
+
+    static List<ParagraphElement> Fillers(int count) =>
+        Enumerable.Range(0, count).Select(index => P($"Filler {index}")).ToList();
+
+    // A paragraph of exactly `count` lines at the test page's measure, grown a word at a time, so each
+    // test states the line counts Word was probed with rather than word counts that happen to give them.
+    static ParagraphElement Lines(string name, int count, ParagraphProperties? properties = null)
+    {
+        var width = (float) Page(200).ContentWidth;
+        for (var words = 0; words < 200; words++)
+        {
+            var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", words).Prepend(name)), properties);
+            var lines = LayoutTestFonts.Measurer.LayoutLines(paragraph, width).Count;
+            if (lines == count)
+            {
+                return paragraph;
+            }
+        }
+
+        throw new($"No word count lays {name} out in {count} lines.");
+    }
+
+    // The page each of a paragraph's lines landed on, one digit per line: "111122" is four lines on page
+    // 1 and two on page 2 — the form the probes were read in.
+    static string LinePages(LaidOutDocument document, ParagraphElement paragraph) =>
+        string.Concat(
+            document.Pages.SelectMany((page, number) => page.Items
+                .OfType<PlacedLine>()
+                .Where(_ => ReferenceEquals(_.Paragraph, paragraph))
+                .Select(_ => number + 1)));
+
+    static string RowPages(LaidOutDocument document, TableElement table) =>
+        string.Concat(
+            document.Pages.SelectMany((page, number) => page.Items
+                .OfType<PlacedTableRow>()
+                .Where(_ => ReferenceEquals(_.Table, table) && !_.IsRepeatedHeader)
+                .Select(_ => number + 1)));
+
+    // A one-column table of one-line rows. Row `index` keeps with next when `keeps(index)`: its first
+    // cell's first paragraph carries the flag, which is what Word reads a row's keep from. `cells` adds
+    // unkept cells beside it, and `keepInCell` moves the flag into that cell instead.
+    static TableElement KeptRowsTable(int rows, Func<int, bool> keeps, int cells = 1, int keepInCell = 0) =>
+        new()
+        {
+            Properties = new(),
+            Rows =
+            [
+                .. Enumerable.Range(0, rows).Select(row => new TableRow
+                {
+                    Cells =
+                    [
+                        .. Enumerable.Range(0, cells).Select(cell => new TableCell
+                        {
+                            Content = [P($"Row {row} cell {cell}", keeps(row) && cell == keepInCell ? Kept : null)],
+                            Properties = new()
+                        })
+                    ]
+                })
+            ]
+        };
+
+    // How many fillers leave room for a table on the page but not for the two lines after it the next
+    // paragraph's orphan rule holds together — the spot where the table's keep decides what moves.
+    static int FillersBeside(TableElement table)
+    {
+        var height = fragmenter.Layout([table], Page(200)).Pages[0].Items.OfType<PlacedTableRow>().Sum(_ => _.Height);
+        return (int) Math.Floor((160 - height) / 14.5);
+    }
+
+    /// <summary>
+    /// A kept paragraph that can split carries only its widow tail over with what follows. Probed: six
+    /// kept lines with room for seven, before a four-line paragraph, landed 4/2.
+    /// </summary>
+    [Test]
+    public async Task A_kept_paragraph_that_can_split_carries_its_widow_tail_over()
+    {
+        // Four fillers leave seven lines: all six of X fit, but not the two of Y the orphan rule needs.
+        var kept = Lines("X", 6, Kept);
+        var next = Lines("Y", 4);
+
+        var document = fragmenter.Layout([.. Fillers(4), kept, next], Page(200));
+
+        await Assert.That(LinePages(document, kept)).IsEqualTo("111122");
+        await Assert.That(LinePages(document, next)).IsEqualTo("2222");
+    }
+
+    /// <summary>Without widow control the tail is one line. Probed: 5/1.</summary>
+    [Test]
+    public async Task Without_widow_control_a_kept_paragraph_carries_one_line_over()
+    {
+        var kept = Lines(
+            "X",
+            6,
+            new()
+            {
+                KeepNext = true,
+                WidowControl = false
+            });
+        var next = Lines("Y", 4);
+
+        var document = fragmenter.Layout([.. Fillers(4), kept, next], Page(200));
+
+        await Assert.That(LinePages(document, kept)).IsEqualTo("111112");
+    }
+
+    /// <summary>
+    /// A kept paragraph that cannot split under widow control moves whole. Probed: a three-line kept
+    /// paragraph with room for four went over entire.
+    /// </summary>
+    [Test]
+    public async Task A_kept_paragraph_that_cannot_split_moves_whole()
+    {
+        var kept = Lines("X", 3, Kept);
+        var next = Lines("Y", 4);
+
+        var document = fragmenter.Layout([.. Fillers(7), kept, next], Page(200));
+
+        await Assert.That(LinePages(document, kept)).IsEqualTo("222");
+    }
+
+    /// <summary>
+    /// A chain of kept paragraphs moves as one when what it keeps with does not fit, and stays when it
+    /// does. Probed: three kept one-liners before a four-line paragraph, with four lines free all moved;
+    /// with five, the chain stayed and the paragraph split 2/2.
+    /// </summary>
+    [Test]
+    [Arguments(4, "2", "2222")]
+    [Arguments(5, "1", "1122")]
+    public async Task A_chain_of_kept_paragraphs_moves_as_one(int free, string chainPage, string nextPages)
+    {
+        var chain = new[] { Lines("A", 1, Kept), Lines("B", 1, Kept), Lines("C", 1, Kept) };
+        var next = Lines("D", 4);
+
+        // Four free lines hold the chain and one line of D, which its orphan rule will not leave alone;
+        // five hold the chain and two.
+        var document = fragmenter.Layout([.. Fillers(11 - free), .. chain, next], Page(200));
+
+        foreach (var paragraph in chain)
+        {
+            await Assert.That(LinePages(document, paragraph)).IsEqualTo(chainPage);
+        }
+
+        await Assert.That(LinePages(document, next)).IsEqualTo(nextPages);
+    }
+
+    /// <summary>
+    /// A chain is never pushed off a region top, even one taller than a page — which Word does push off
+    /// a part-filled page, before letting it break where it must. Probed: sixty kept one-liners from a
+    /// page top ran on without a blank page; from five lines short of the end of page 1, they started
+    /// page 2.
+    /// </summary>
+    [Test]
+    [Arguments(0, 1)]
+    [Arguments(6, 2)]
+    public async Task A_chain_taller_than_a_page_is_pushed_only_off_a_part_filled_one(int fillers, int firstPage)
+    {
+        var chain = Enumerable.Range(0, 15).Select(index => Lines($"K{index}", 1, Kept)).ToList();
+
+        var document = fragmenter.Layout([.. Fillers(fillers), .. chain, Lines("E", 1)], Page(200));
+
+        await Assert.That(LinePages(document, chain[0])).IsEqualTo(firstPage.ToString(CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>Keep does not reach across a page break. Probed: two kept lines stayed above one.</summary>
+    [Test]
+    public async Task Keep_does_not_reach_across_a_page_break()
+    {
+        var kept = Lines("A", 1, Kept);
+
+        var document = fragmenter.Layout([.. Fillers(10), kept, new PageBreakElement(), Lines("B", 4)], Page(200));
+
+        await Assert.That(LinePages(document, kept)).IsEqualTo("1");
+    }
+
+    /// <summary>
+    /// A kept last row goes over with what follows, the table splitting before it; a table whose every
+    /// row keeps moves whole; an unkept table stays. Probed on five one-line rows before a four-line
+    /// paragraph with room for the rows alone: 11112, 22222 and 11111.
+    /// </summary>
+    [Test]
+    [Arguments("last", "11112")]
+    [Arguments("last two", "11122")]
+    [Arguments("all", "22222")]
+    [Arguments("none", "11111")]
+    public async Task A_kept_row_goes_over_with_what_follows(string kept, string rowPages)
+    {
+        Func<int, bool> keeps = kept switch
+        {
+            "last" => _ => _ == 4,
+            "last two" => _ => _ >= 3,
+            "all" => _ => true,
+            _ => _ => false
+        };
+        var table = KeptRowsTable(5, keeps);
+        var next = Lines("P", 4);
+
+        var document = fragmenter.Layout([.. Fillers(FillersBeside(table)), table, next], Page(200));
+
+        await Assert.That(RowPages(document, table)).IsEqualTo(rowPages);
+        await Assert.That(LinePages(document, next)).IsEqualTo("2222");
+    }
+
+    /// <summary>
+    /// Only the first cell's first paragraph keeps a row. Probed: keep-with-next in the second or third
+    /// cell of a last row left the table on page 1 and moved only the paragraph after it.
+    /// </summary>
+    [Test]
+    public async Task Keep_with_next_outside_the_first_cell_does_not_keep_the_row()
+    {
+        var table = KeptRowsTable(5, _ => _ == 4, cells: 3, keepInCell: 1);
+        var next = Lines("P", 4);
+
+        var document = fragmenter.Layout([.. Fillers(FillersBeside(table)), table, next], Page(200));
+
+        await Assert.That(RowPages(document, table)).IsEqualTo("11111");
+    }
+
+    /// <summary>
+    /// An option table whose every row keeps, an empty kept spacer, a kept heading and the value under
+    /// it move as one — COMPASS's stocktake report, whose "This has changed" block must stay on the page
+    /// of the answer it describes. Probed: with room for all but the value, all four moved; with room
+    /// for the value too, all four stayed.
+    /// </summary>
+    [Test]
+    [Arguments(false, "22222")]
+    [Arguments(true, "11111")]
+    public async Task A_kept_table_carries_a_chain_through_an_empty_paragraph(bool valueFits, string pages)
+    {
+        var filler = P("Filler");
+        var table = KeptRowsTable(3, _ => true);
+        var spacer = new ParagraphElement
+        {
+            Runs = [],
+            Properties = Kept
+        };
+        var heading = Lines("H", 1, Kept);
+        var value = Lines("V", 1);
+        List<DocumentElement> flow = [filler, table, spacer, heading, value];
+
+        // Where the value line lands with room to spare, so the page can end just short of the ascent it
+        // needs inside the margin, or just past its whole box. The filler keeps the table off the page top,
+        // which is no place to push it from.
+        var line = fragmenter.Layout(flow, Page(1000)).Pages[0].Items.OfType<PlacedLine>().Single(_ => ReferenceEquals(_.Paragraph, value));
+        var bottom = valueFits ? line.Y + line.Height + 1 : line.Y + (line.Baseline - line.Y) / 2;
+        var document = fragmenter.Layout(flow, Page(bottom + 20));
+
+        var placed = RowPages(document, table) + LinePages(document, heading) + LinePages(document, value);
+        await Assert.That(placed).IsEqualTo(pages);
+    }
+
     // A one-row table whose single cell holds `lines` short paragraphs — the shape that forces a row
     // taller than the page.
     static TableElement OneRowTable(int lines, bool cannotSplit) =>
