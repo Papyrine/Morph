@@ -22,9 +22,10 @@
 /// that page topping out at the break and resetting to the page top on overflow. A multi-column section is
 /// newspaper-flowed — column 0 fills to the bottom, then column 1, and so on — when it ends the document,
 /// which matches Word (verified against three_columns, which lands its items 1-14 / 15-29 / 30 across the
-/// columns, and two_columns); a multi-column section that a *section break* terminates has its last page's
-/// columns balanced to equal heights instead, as Word does (validated against a Word-rendered fixture — six
-/// items across three columns become two, two, two). Deferred to later slices, and noted so a document using
+/// columns, and two_columns) and when a next-page, even-page or odd-page break ends it; a multi-column section
+/// that a *continuous* break terminates has its last page's columns balanced to equal heights instead, as
+/// Word does (validated against Word-rendered fixtures — six items across three columns become two, two,
+/// two; _probe_balance for the break types). Deferred to later slices, and noted so a document using
 /// them is not yet expected to paginate: minimal-tallest-column balancing (the greedy fill targets the
 /// average height, so uneven-height columns are approximate) and balancing a region that carries a table,
 /// shading or a border; a margin-only continuous change; float wrap exclusions (square/tight — floats
@@ -754,10 +755,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // wrong, as Word does.
         void ApplySectionBreak(SectionBreakElement sectionBreak)
         {
-            // A multi-column section terminated by a break has its last page's columns balanced to equal
-            // heights, as Word does — unlike a section that ends the document, which stays newspaper-flowed
-            // (there is no break to trigger this). Runs before the geometry switch, on the columns just laid.
-            if (columnCount > 1)
+            // A multi-column section that a CONTINUOUS break ends has its last page's columns balanced to
+            // equal heights, as Word does. Any other ending leaves them newspaper-flowed — the document's
+            // end, and a next-page, even-page or odd-page break alike. Word-probed (_probe_balance, nine
+            // 36pt lines in three columns): continuous 3/3/3, into one column or into three again, and on
+            // the spill page of a section that overflowed its first; next-page, even-page and odd-page all
+            // nine in column 1. Runs before the geometry switch, on the columns just laid.
+            if (columnCount > 1 && sectionBreak.BreakType == SectionBreakType.Continuous)
             {
                 BalanceCurrentColumns();
             }
@@ -777,21 +781,42 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // and the next opens at the second's top and stops at its bottom — so image_wrap_square's
                 // two-column tail runs to its opening section's 0.5in margin, not its own 1in.
                 //
-                // A same-column continuous break is otherwise a flow no-op. A new column count (the masthead
-                // → columns case) adopts the new columns now and anchors them at the break point: column 0
-                // flows from here to the bottom, each later column tops out here too, and an overflow to the
-                // next page resets the columns to its top (FinishPage). Page size stays — Word forces a
-                // page-size change to be a next-page break, never continuous.
+                // A single-column continuous break into one column is otherwise a flow no-op. A new column
+                // count (the masthead → columns case) adopts the new columns now and anchors them at the
+                // break point: column 0 flows from here to the bottom, each later column tops out here too,
+                // and an overflow to the next page resets the columns to its top (FinishPage). A section
+                // that ENDS in columns anchors the next the same way even at the same count — below the
+                // balanced block, from column 0 (_probe_balance E: three columns into three, the new
+                // section's first line in column 1 under the 3/3/3 block, not in column 3). The anchor is
+                // the lowest of the columns, which is the balanced bottom, or the tallest column when the
+                // region could not be balanced. Page size stays — Word forces a page-size change to be a
+                // next-page break, never continuous.
                 if (sectionBreak.NewSectionSettings is { } continuous)
                 {
                     pendingSettings = continuous;
-                    if (Math.Max(1, continuous.ColumnCount) != columnCount)
+                    var newColumnCount = Math.Max(1, continuous.ColumnCount);
+                    if (newColumnCount != columnCount || columnCount > 1)
                     {
                         var breakY = y;
-                        var (pageTop, pageBottom, pageHeight) = (contentTop, pageContentBottom, contentHeight);
-                        ApplyGeometry(continuous);
-                        (contentTop, pageContentBottom, contentHeight) = (pageTop, pageBottom, pageHeight);
-                        RefreshContentBottom();
+                        if (columnCount > 1)
+                        {
+                            foreach (var item in items)
+                            {
+                                if (item.Y >= columnTop - 0.01f)
+                                {
+                                    breakY = Math.Max(breakY, item.Y + item.Height);
+                                }
+                            }
+                        }
+
+                        if (newColumnCount != columnCount)
+                        {
+                            var (pageTop, pageBottom, pageHeight) = (contentTop, pageContentBottom, contentHeight);
+                            ApplyGeometry(continuous);
+                            (contentTop, pageContentBottom, contentHeight) = (pageTop, pageBottom, pageHeight);
+                            RefreshContentBottom();
+                        }
+
                         columnTop = breakY;
                         y = breakY;
                         currentColumn = 0;
@@ -854,7 +879,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         }
 
         // Redistributes the current page's multi-column content into equal-height columns, the way Word
-        // balances a multi-column section that a section break terminates. The column region is everything
+        // balances a multi-column section that a continuous break terminates. The column region is everything
         // placed at or below columnTop (a full-width masthead above it stays put); the lines flow in reading
         // order, so filling each column to the average height (total / columns) and advancing left to right
         // reproduces Word's even split — six items across three columns become two, two, two. Only plain

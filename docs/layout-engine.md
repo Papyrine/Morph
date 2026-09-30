@@ -826,7 +826,8 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   the shape.
 - **Column balancing landed**: a multi-column section that ends the document is newspaper-flowed — column 0
   fills to the bottom, then column 1 — while a section a *section break* terminates has its last page's columns
-  balanced to equal heights. Which of the two Word applies was settled by rendering documents through Word
+  balanced to equal heights. (Corrected 2026-09-30: only a CONTINUOUS break balances — `_probe_balance` left
+  next-page, even-page and odd-page endings newspaper-flowed; see Multi-column Layout in `word-features.md`.) Which of the two Word applies was settled by rendering documents through Word
   itself: three_columns (a final section) lays its thirty items out 14 / 15 / 1 across the columns, the last
   column holding a single item, and the engine reproduces that split exactly (two_columns likewise). For the
   balanced case the corpus has no example, so a synthetic fixture — a three-column section closed by a

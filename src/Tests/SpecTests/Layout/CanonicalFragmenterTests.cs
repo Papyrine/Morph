@@ -3271,7 +3271,7 @@ public class CanonicalFragmenterTests
         };
 
     [Test]
-    public async Task A_multi_column_section_terminated_by_a_break_balances_its_columns()
+    public async Task A_multi_column_section_terminated_by_a_continuous_break_balances_its_columns()
     {
         // Six short items in a three-column section, then a continuous break to one column. Word balances the
         // terminated section's columns to equal heights — two items each — rather than newspaper-filling
@@ -3292,6 +3292,48 @@ public class CanonicalFragmenterTests
         await Assert.That(itemLines.Count(_ => _.X < 100f)).IsEqualTo(2);
         await Assert.That(itemLines.Count(_ => _.X is >= 100f and < 250f)).IsEqualTo(2);
         await Assert.That(itemLines.Count(_ => _.X >= 250f)).IsEqualTo(2);
+    }
+
+    /// <summary>
+    /// Only a continuous break balances. Word-probed (<c>_probe_balance</c>, nine 36pt lines in three
+    /// columns): a next-page, even-page or odd-page break leaves all nine in column 1.
+    /// </summary>
+    [Test]
+    [Arguments("NextPage")]
+    [Arguments("EvenPage")]
+    [Arguments("OddPage")]
+    public async Task A_multi_column_section_terminated_by_a_page_break_stays_newspaper_flowed(string type)
+    {
+        var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
+        var document = fragmenter.Layout(
+            [.. items, new SectionBreakElement { BreakType = Enum.Parse<SectionBreakType>(type), NewSectionSettings = ThreeColumnSheet(1) }, P("footer")],
+            ThreeColumnSheet(3));
+
+        var itemLines = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(_ => _.Text.StartsWith("Item"))).ToList();
+        await Assert.That(itemLines.Count).IsEqualTo(6);
+        await Assert.That(itemLines.All(_ => _.X < 100f)).IsTrue();
+    }
+
+    /// <summary>
+    /// A continuous break into the SAME column count still balances, and the new section starts below the
+    /// balanced block in the first column — Word's <c>_probe_balance</c> E, whose tail line sat in column 1
+    /// under the 3/3/3 block.
+    /// </summary>
+    [Test]
+    public async Task A_continuous_break_into_the_same_columns_starts_below_the_balanced_block_in_column_one()
+    {
+        var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
+        var document = fragmenter.Layout(
+            [.. items, new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = ThreeColumnSheet(3) }, P("tail")],
+            ThreeColumnSheet(3));
+
+        var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();
+        var itemLines = lines.Where(_ => _.Runs.Any(_ => _.Text.StartsWith("Item"))).ToList();
+        var tail = lines.Single(_ => _.Runs.Any(_ => _.Text == "tail"));
+        await Assert.That(itemLines.Count(_ => _.X < 100f)).IsEqualTo(2);
+        await Assert.That(itemLines.Count(_ => _.X >= 250f)).IsEqualTo(2);
+        await Assert.That(tail.X).IsLessThan(100f);
+        await Assert.That(tail.Y).IsGreaterThanOrEqualTo(itemLines.Max(_ => _.Y + _.Height) - 0.01f);
     }
 
     [Test]

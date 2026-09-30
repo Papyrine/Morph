@@ -1778,9 +1778,11 @@ Document content flowing across 2+ columns per page.
 - **OOXML**: `w:cols` — `w:num` (count), `w:space` (spacing between)
 - **Spec**: [Columns](http://officeopenxml.com/WPsectionColMultiple.php)
 - **Model**: `PageSettings.ColumnCount`, `PageSettings.ColumnSpacing`
-- **Test**: `two_columns/`, `three_columns/`
+- **Test**: `two_columns/`, `three_columns/`, `CanonicalFragmenterTests` (the balancing cases)
 
-> **Contributors**: Column width = `(ContentWidth - spacing * (count - 1)) / count`. Current column tracked in `RenderContextBase.CurrentColumn`. Content flows left-to-right across columns before moving to next page.
+> **Contributors**: Column width = `(ContentWidth - spacing * (count - 1)) / count`. Content flows left-to-right across columns before moving to next page.
+>
+> **Only a continuous break balances.** A multi-column section is newspaper-flowed — each column filled to the bottom before the next — unless a CONTINUOUS section break ends it, when its last page's columns are balanced to equal heights (`Fragmenter.BalanceCurrentColumns`). Word-probed 2026-09-30 (`_probe_balance`, nine 36pt lines in three columns, the ending break varied): continuous balances 3/3/3, whether into one column or into three again, and on the spill page of a section that overflowed its first page; next-page, even-page and odd-page breaks leave all nine in column 1, like the document's end. After a continuous break the next section starts below the lowest column, in the first column, even at the same column count. The engine reproduces all 117 probe lines' pages and positions.
 
 
 #### Column Breaks `DONE`
@@ -1849,7 +1851,7 @@ Starts a new section on the same page. Resets column layout.
 - **Model**: `SectionBreakElement` with `SectionBreakType.Continuous`
 - **Test**: `section_break_continuous/`, `image_wrap_square/`, `CanonicalFragmenterTests.A_continuous_break_keeps_the_pages_margins_until_the_next_page`
 
-> **Margins wait for the next page.** The page a continuous break lands on keeps the top and bottom margins it opened with; the new section's page setup governs from the following page. Word-probed 2026-09-30 (`_probe_contmargin`: a 1in-bottom section continued by a 4in-bottom one and the reverse, with and without a change to two columns): the first page fills to the FIRST section's bottom, and the next opens at the second section's top and stops at its bottom. A new column count applies at once, from the break point (`Fragmenter.ApplySectionBreak`, `pendingSettings`). The same probe shows Word does NOT balance the columns of a section that a next-page break ends — `src/todo.md` #47.
+> **Margins wait for the next page.** The page a continuous break lands on keeps the top and bottom margins it opened with; the new section's page setup governs from the following page. Word-probed 2026-09-30 (`_probe_contmargin`: a 1in-bottom section continued by a 4in-bottom one and the reverse, with and without a change to two columns): the first page fills to the FIRST section's bottom, and the next opens at the second section's top and stops at its bottom. A new column count applies at once, from the break point (`Fragmenter.ApplySectionBreak`, `pendingSettings`). A continuous break is also the only one that balances the columns of the section it ends (Multi-column Layout).
 
 
 #### Section Break: Even / Odd Page `DONE`
