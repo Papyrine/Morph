@@ -14,6 +14,8 @@ sealed record ConditionalFormat(
 /// <summary>
 /// Captures the fields Morph cascades through a table style — whole-table defaults plus each
 /// <c>w:tblStylePr</c> conditional region. Paragraph-property cascading isn't modelled yet.
+/// <see cref="CannotSplit"/> is the style's own <c>w:trPr/w:cantSplit</c>, which reaches every row
+/// that does not declare its own.
 /// </summary>
 sealed record TableStyleBorderInfo(
     CellBorders Outer,
@@ -27,4 +29,5 @@ sealed record TableStyleBorderInfo(
     CellVerticalAlignment? VerticalAlignment = null,
     CellSpacing? DefaultCellPadding = null,
     DeclaredRunProperties? RunProperties = null,
-    double? IndentPoints = null);
+    double? IndentPoints = null,
+    bool CannotSplit = false);

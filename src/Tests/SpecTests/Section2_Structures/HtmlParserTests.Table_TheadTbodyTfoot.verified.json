@@ -211,6 +211,7 @@
     ],
     "Properties": {
       "IsFloating": false,
+      "IsSheetGrid": false,
       "DefaultBorders": {
         "Top": {
           "IsVisible": false,

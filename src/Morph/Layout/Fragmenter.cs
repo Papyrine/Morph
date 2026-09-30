@@ -934,13 +934,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case ParagraphElement paragraph:
-                        PlaceParagraph(paragraph, KeepAfter(elements, index));
+                        PlaceParagraph(paragraph, KeepAfter(elements, index), ClosingBorderReserve(elements, index));
                         break;
 
                     // A block-level content control renders as its synthetic paragraph (the parser resolved
                     // its value — checkbox glyph, dropdown selection, formatted date, plain text — into runs).
                     case ContentControlElement {CellParagraph: { } controlParagraph}:
-                        PlaceParagraph(controlParagraph, KeepAfter(elements, index));
+                        PlaceParagraph(controlParagraph, KeepAfter(elements, index), ClosingBorderReserve(elements, index));
                         break;
 
                     case TableElement {Properties.IsFloating: true} table:
@@ -1993,9 +1993,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
-            // Expanded by each edge's space — the gap Word leaves between the text and the line. The space is
-            // drawn but not yet charged to the flow budget, so a run can still overhang the region bottom by
-            // its bottom space; reserving it is a separate change with its own baseline sweep.
+            // Expanded by each edge's space — the gap Word leaves between the text and the line. The bottom
+            // space and rule are fitted with the run's closing line (PlaceParagraph's closingReserve), so the
+            // box no longer overhangs the region bottom by them.
             //
             // The left edge clears the HANGING INDENT as well, so a list's marker sits inside the box rather
             // than astride its left rule. Word measures from the paragraph's leftmost extent — Word-probed
@@ -2070,7 +2070,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // keepAfter is how far past this paragraph's last line the page has to reach for it to keep with
         // what follows (w:keepNext) — see KeepAfter. Zero when it does not keep with next.
-        void PlaceParagraph(ParagraphElement paragraph, float keepAfter = 0)
+        // closingReserve is the bottom border's space and rule when this paragraph closes its border box
+        // — see ClosingBorderReserve — which its last line has to fit above the bottom margin with.
+        void PlaceParagraph(ParagraphElement paragraph, float keepAfter = 0, float closingReserve = 0)
         {
             var properties = paragraph.Properties;
 
@@ -2081,9 +2083,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 FlushBorderRun();
             }
 
+            // The page this starts is a deliberate one, like a page break's, so it is kept even when all it
+            // ends up holding is empty paragraphs: two empty page-break-before paragraphs in a row give Word
+            // a blank page holding the first (COMPASS's stocktake report, read back from Word 2026-09-30 —
+            // its appendix opened a page later than the engine put it, which put every TOC entry after it
+            // one low). A page reached by overflow stays subject to FinishPage's blank-page drop.
             if (properties.PageBreakBefore && !AtPageTop)
             {
-                FinishPage(false);
+                FinishPage(nextPageExplicit: true);
             }
 
             // w:mirrorIndents resolves against the parity of the page the paragraph starts on, so the
@@ -2208,6 +2215,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         reserved = candidate.Height + NoteMinimum(newNotes, probeAreaOpen);
                     }
 
+                    // The line that closes a border box carries the box's bottom space and rule, and Word
+                    // fits them with it: the whole line box and the reserve under it have to clear the
+                    // bottom margin, whatever the line's spacing rule (Word-probed 2026-09-30, a one-line
+                    // paragraph slid down the page: its last kept position put line bottom plus w:space
+                    // plus rule at the margin exactly, at w:space 0, 12 and 24 and for a 1pt line alike,
+                    // in compatibility modes 12 and 15; on a three-line paragraph the reserve moved the
+                    // last line, not the paragraph).
+                    if (closingReserve > 0 && lineIndex + fit == paragraphLines.Count - 1)
+                    {
+                        reserved = Math.Max(reserved, candidate.Height) + closingReserve;
+                    }
+
                     if (!(atRegionTop && fit == 0) && probeY + reserved > probeBottom)
                     {
                         break;
@@ -2248,7 +2267,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // not the boundary with an element that keeps with it. Without one only a split that
                 // leaves lines here is taken, and otherwise the keep is abandoned, as Word abandons a
                 // chain it cannot rescue.
-                if (keepAfter > 0 && fit == remaining && probeY + keepAfter > probeBottom)
+                if (keepAfter > 0 && fit == remaining && probeY + closingReserve + keepAfter > probeBottom)
                 {
                     var kept = KeptLines(properties, remaining);
                     var canMove = !atRegionTop && !(lineIndex == 0 && keptBefore);
@@ -2474,13 +2493,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // a region top, where advancing is a no-op — every path below is gated on !atRegionTop, so a
             // table that overruns from the top used to be drawn past the bottom margin and clipped at the
             // paper edge, silently losing its tail and a page with it (Excel's basic-business-invoice: a
-            // 774pt sheet on 734pt of A4 content, one page rendered against Excel's two). Fit is judged
-            // with the SAME 2% slack every other break decision uses, so a table that squeezes under the
-            // shared rounding tolerance still stays whole.
+            // 774pt sheet on 734pt of A4 content, one page rendered against Excel's two). Fit is
+            // TableFitsHere's: strict for a Word table, and for a spreadsheet grid the shared 2% slack, so
+            // a grid that squeezes under that rounding tolerance still stays whole.
             // A table that merely misses the space LEFT is deliberately not routed here — the exact-row
-            // pre-advance and the whole-table move below get first refusal on it.
+            // pre-advance and the routing below get first refusal on it.
             if (totalHeight > contentHeight * 1.10f ||
-                (atRegionTop && !HasSpaceFor(totalHeight)))
+                (atRegionTop && !TableFitsHere(table, totalHeight, atTop: true)))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -2505,11 +2524,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // area, not a page height). Two earlier attempts at this routing were reverted on corpus
             // damage; the piece both lacked is the split-acceptance test in PlaceSplitRow, which turns the
             // pathological splits (unbreakable content force-placed into the remainder, or a trHeight floor
-            // mistaken for content) back into whole-row moves. The condition mirrors the whole-table move
-            // below EXACTLY — height less 2%, against HasSpaceFor's 2%-extended bottom — so a knife-edge
-            // table the move would have squeezed onto the page (business-plans/15's 79.6pt boundary table
-            // clears it by 0.24pt) is not routed into a split the old path never made.
-            if (!atRegionTop && !HasSpaceFor(totalHeight - contentHeight * 0.02f))
+            // mistaken for content) back into whole-row moves. What fits is TableFitsHere's call: strictly
+            // for a Word table, with the whole-table move's slack for a spreadsheet grid.
+            if (!atRegionTop && !TableFitsHere(table, totalHeight, atTop: false))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -2537,8 +2554,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return;
             }
 
-            // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a flow table may over-spill the
-            // bottom by the shared rounding slack before it is pushed to the next region.
+            // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a spreadsheet grid may over-spill
+            // the bottom by the shared rounding slack before it is pushed to the next region. A Word table
+            // only reaches here when it fits outright (TableFitsHere), so this never moves one.
             EnsureSpaceFor(totalHeight - contentHeight * 0.02f);
 
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
@@ -2549,6 +2567,34 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 y += rowHeights[rowIndex];
                 atRegionTop = false;
             }
+        }
+
+        // Whether a table of this height fits from the cursor. Word's fit is strict: a row stays on the page
+        // only while its whole box — top padding, full lines, the last paragraph's after-spacing and the
+        // bottom padding — clears the bottom margin, and a table fits when its rows do. Word-probed
+        // 2026-09-30, a borderless table slid down the page: its last kept position put the row's bottom on
+        // the margin exactly with no padding, with 20pt of bottom padding, with 20pt of after-spacing, and
+        // as the last of three rows, in compatibility modes 12 and 15 alike; a three-line row's first
+        // fragment needed its first line and its padding. The 2% slack this routing used to give every
+        // table let one overhang the margin where Word moves the row — COMPASS's stocktake report put two
+        // option rows 21pt past it and ran a page short of Word from there on. Taking it away moved no Word
+        // document in the corpus but resumes/13, onto Word's pages.
+        //
+        // A spreadsheet grid keeps the slack (TableProperties.IsSheetGrid): at a region top a grid may
+        // overrun by HasSpaceFor's 2%, and below one by the 4% of the whole-table move.
+        bool TableFitsHere(TableElement table, float totalHeight, bool atTop)
+        {
+            if (!table.Properties.IsSheetGrid)
+            {
+                return y + totalHeight <= contentBottom;
+            }
+
+            if (atTop)
+            {
+                return HasSpaceFor(totalHeight);
+            }
+
+            return HasSpaceFor(totalHeight - contentHeight * 0.02f);
         }
 
         // The sum of a table's declared w:trHeight values, in points — the floors (atLeast) and exact
@@ -4026,12 +4072,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return 0;
             }
 
-            var previous = elements[index] switch
-            {
-                ParagraphElement paragraph => paragraph.Properties,
-                ContentControlElement {CellParagraph: { } paragraph} => paragraph.Properties,
-                _ => null
-            };
+            var previous = FlowParagraph(elements[index])?.Properties;
             var previousAfter = (float) (previous?.SpacingAfterPoints ?? 0);
             var previousContextual = previous?.ContextualSpacing ?? false;
             var previousStyle = previous?.StyleId;
@@ -4059,13 +4100,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     break;
                 }
 
-                var flowParagraph = element switch
-                {
-                    ParagraphElement direct => direct,
-                    ContentControlElement {CellParagraph: { } control} => control,
-                    _ => null
-                };
-                if (flowParagraph is { } paragraph)
+                if (FlowParagraph(element) is { } paragraph)
                 {
                     var properties = paragraph.Properties;
                     if (properties.PageBreakBefore)
@@ -4148,6 +4183,53 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             return Math.Max(0f, bottom - overhang);
         }
+
+        // The flow space under a paragraph that closes its border box — the bottom edge's w:space and rule,
+        // as FlushBorderRun charges them — or zero when it does not close one: it draws no bottom edge, or
+        // the next flow element is a paragraph in the same border group, which extends the box so the rule
+        // is drawn under that one instead. A page break before the next paragraph closes the box here.
+        static float ClosingBorderReserve(IReadOnlyList<DocumentElement> elements, int index)
+        {
+            var properties = FlowParagraph(elements[index])?.Properties;
+            if (properties?.Borders is not {HasAnyBorder: true} borders)
+            {
+                return 0;
+            }
+
+            var reserve = EdgeReserve(borders.Bottom, properties.BorderBottomSpacePoints);
+            if (reserve <= 0)
+            {
+                return 0;
+            }
+
+            for (var next = index + 1; next < elements.Count; next++)
+            {
+                if (!TakesFlowSpace(elements[next]))
+                {
+                    continue;
+                }
+
+                if (FlowParagraph(elements[next])?.Properties is { } following &&
+                    !following.PageBreakBefore &&
+                    properties.SharesBorderGroupWith(following))
+                {
+                    return 0;
+                }
+
+                break;
+            }
+
+            return reserve;
+        }
+
+        // The paragraph a body element places as flow: a paragraph, or a content control's synthetic one.
+        static ParagraphElement? FlowParagraph(DocumentElement element) =>
+            element switch
+            {
+                ParagraphElement paragraph => paragraph,
+                ContentControlElement {CellParagraph: { } control} => control,
+                _ => null
+            };
 
         // How many of a kept paragraph's remaining lines stay when its tail has to go over with what
         // follows: all but the widow tail (two lines, one without widow control), none when that would

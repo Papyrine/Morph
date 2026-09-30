@@ -64,6 +64,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             {
                 GridColumnWidths = widths,
                 IsAutoFit = false,
+                IsSheetGrid = true,
                 // printOptions/@horizontalCentered (ECMA-376 §18.3.1.70) centres the print area
                 // between the margins, which is what a centre-aligned table already does with its
                 // slack. 38 of the 40 corpus workbooks ask for it — it is Excel's template default,
