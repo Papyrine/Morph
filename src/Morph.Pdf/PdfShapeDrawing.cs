@@ -10,9 +10,10 @@ static class PdfShapeDrawing
     /// <summary>
     /// The shape's <see cref="GroupShape.Subpaths"/> contours scaled into the given box with the
     /// flip flags applied, or null for primitive-geometry shapes. Alternate (even-odd) fill keeps
-    /// ring shapes (frame) hollow.
+    /// ring shapes (frame) hollow. <paramref name="close"/> false leaves each contour an open
+    /// figure — the stroke of an <see cref="GroupShape.OpenOutline"/>.
     /// </summary>
-    internal static XGraphicsPath? BuildGroupShapePath(GroupShape shape, double x, double y, double width, double height)
+    internal static XGraphicsPath? BuildGroupShapePath(GroupShape shape, double x, double y, double width, double height, bool close = true)
     {
         if (shape.Subpaths == null)
         {
@@ -37,8 +38,15 @@ static class PdfShapeDrawing
             }
 
             path.StartFigure();
-            path.AddPolygon(points);
-            path.CloseFigure();
+            if (close)
+            {
+                path.AddPolygon(points);
+                path.CloseFigure();
+            }
+            else
+            {
+                path.AddLines(points);
+            }
         }
 
         return path;

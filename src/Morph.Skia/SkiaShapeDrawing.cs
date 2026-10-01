@@ -13,9 +13,10 @@ static class SkiaShapeDrawing
     /// <summary>
     /// The shape's <see cref="GroupShape.Subpaths"/> contours scaled into <paramref name="rect"/>
     /// with the flip flags applied, or null for primitive-geometry shapes. Even-odd fill keeps
-    /// ring shapes (frame) hollow.
+    /// ring shapes (frame) hollow. <paramref name="close"/> false leaves each contour open — the
+    /// stroke of an <see cref="GroupShape.OpenOutline"/>.
     /// </summary>
-    internal static SKPath? BuildGroupShapePath(GroupShape shape, SKRect rect)
+    internal static SKPath? BuildGroupShapePath(GroupShape shape, SKRect rect, bool close = true)
     {
         if (shape.Subpaths == null)
         {
@@ -47,7 +48,10 @@ static class SkiaShapeDrawing
                 }
             }
 
-            path.Close();
+            if (close)
+            {
+                path.Close();
+            }
         }
 
         return path;

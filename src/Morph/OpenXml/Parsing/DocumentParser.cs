@@ -7166,11 +7166,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // or an ordinary solid fill (cover-letters/10's custGeom logo). Without this branch
         // both are silently dropped because the drawing has no <pic> child either.
         // The gate admits a style-referenced fill too (wps:style/a:fillRef), not just a fill named
-        // directly in spPr — see ParseInlineSingleShapeRun.
+        // directly in spPr — see ParseInlineSingleShapeRun — and an unfilled shape whose outline is
+        // its whole mark (brochures/04's stroked roof chevrons), so long as it is not a text box.
         if (standaloneWsp?.GetFirstChild<WPS.ShapeProperties>() is { } standaloneProps &&
             (standaloneProps.GetFirstChild<A.BlipFill>() != null ||
              standaloneProps.GetFirstChild<A.SolidFill>() != null ||
-             standaloneWsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference != null))
+             standaloneWsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference != null ||
+             (standaloneWsp.GetFirstChild<WPS.TextBoxInfo2>() == null &&
+              ReadGroupStroke(standaloneProps, standaloneWsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference).WidthEmu > 0)))
         {
             return ParseInlineSingleShapeRun(drawing, standaloneWsp, hostPart, runProps);
         }
@@ -7840,9 +7843,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // <wps:style><a:fillRef><a:schemeClr val="accent1">. The stroke already consults the style's
         // lnRef (see ReadGroupStroke); the fill did not, so these shapes resolved no fill and were
         // dropped before they could be drawn.
-        fillColorHex ??= ExtractFirstFillColor(wsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference);
+        // An explicit a:noFill overrides the style's fill.
+        if (shapeProps.GetFirstChild<A.NoFill>() == null)
+        {
+            fillColorHex ??= ExtractFirstFillColor(wsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference);
+        }
 
-        if (image == null && fillColorHex == null)
+        var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
+        if (image == null && fillColorHex == null && stroke.WidthEmu <= 0)
         {
             return null;
         }
@@ -7856,7 +7864,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
+        var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
         var shapes = new List<GroupShape>
         {
             new()
@@ -7868,6 +7876,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ColorHex = stroke.ColorHex,
                 LineWidthEmu = stroke.WidthEmu,
                 LineAlpha = stroke.Alpha,
+                OpenOutline = custGeom != null && !custGeom.Descendants<A.CloseShapePath>().Any(),
+                RoundCap = shapeProps.GetFirstChild<A.Outline>()?.CapType?.Value == A.LineCapValues.Round,
                 Geometry = MapGroupGeometry(shapeProps),
                 // Contours drive the SOLID fill's silhouette (custGeom logo art). Picture
                 // fills keep them null so the ellipse clip stays the smooth geometric path.
@@ -7894,6 +7904,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Properties = runProps,
             InlineImageWidthPoints = widthPoints,
             InlineImageHeightPoints = heightPoints,
+            // The line reserves the drawing's layout box (extent + wp:effectExtent), as for a picture —
+            // the room Word keeps for the chevrons' 5pt round-capped stroke spilling past the extent.
+            InlineImageEffectExtent = ReadEffectExtent(drawing),
             InlineShapeGroup = new()
             {
                 ChildExtentX = childExtentX,

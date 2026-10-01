@@ -66,6 +66,16 @@ sealed class GroupShape
     /// </summary>
     public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? Subpaths { get; init; }
 
+    /// <summary>
+    /// True when <see cref="Subpaths"/> came from an <c>a:custGeom</c> with no <c>a:close</c>: the
+    /// outline is an open polyline, stroked without the closing segment (brochures/04's roof
+    /// chevrons are a three-point <c>moveTo</c>/<c>lnTo</c>/<c>lnTo</c> stroke). A fill still closes it.
+    /// </summary>
+    public bool OpenOutline { get; init; }
+
+    /// <summary>True when the outline declares round end caps (<c>a:ln/@cap="rnd"</c>).</summary>
+    public bool RoundCap { get; init; }
+
     /// <summary>Solid fill colour (rectangles and ellipses only). Null = no fill / stroke-only line.</summary>
     public string? FillColorHex { get; init; }
 

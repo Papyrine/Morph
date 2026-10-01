@@ -25,8 +25,10 @@ static class ImageSharpShapeDrawing
     /// The shape's <see cref="GroupShape.Subpaths"/> contours scaled into the given box with the
     /// flip flags applied, or null for primitive-geometry shapes. Multiple contours combine into a
     /// <see cref="ComplexPolygon"/>, whose even-odd intersection keeps ring shapes (frame) hollow.
+    /// <paramref name="close"/> false builds each contour as an open path — the stroke of an
+    /// <see cref="GroupShape.OpenOutline"/>.
     /// </summary>
-    internal static IPath? BuildGroupShapePath(GroupShape shape, float x, float y, float width, float height)
+    internal static IPath? BuildGroupShapePath(GroupShape shape, float x, float y, float width, float height, bool close = true)
     {
         if (shape.Subpaths == null)
         {
@@ -50,7 +52,7 @@ static class ImageSharpShapeDrawing
                 points[index] = new(x + (float) unitX * width, y + (float) unitY * height);
             }
 
-            polygons.Add(new Polygon(new LinearLineSegment(points)));
+            polygons.Add(close ? new Polygon(new LinearLineSegment(points)) : new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(points)));
         }
 
         return polygons.Count switch
