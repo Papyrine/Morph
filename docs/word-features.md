@@ -2392,6 +2392,39 @@ Supported presets (16):
 
 > **AI**: Spec test `WordArtTransformTests` covers all preset parsing. To add new presets, add to `WordArtTransform` enum, map the OOXML preset string, and implement the transform math in `TextRenderer`.
 
+> **Contributors — the arches (`textArchUp` / `textArchDown`) are Word-probed.** `WordArtArch` holds the
+> geometry and both raster drawers place every glyph through it (`TryRenderArch`); the PDF embeds the
+> Skia raster. The rules were read off Word's XPS glyph transforms (em size, baseline origin, rotation) in
+> `_probe_arch`: 32 boxes varying the box width and height, the font size, the face (Impact and Arial),
+> the text length and the alignment.
+>
+> - **The text is drawn smaller than declared**, by `W' / (W' + 2·ink)`: the text rect width over that
+>   width plus twice the text's ink height at the declared size. 36pt Impact in wordart's 432x108pt box
+>   draws at 31.25pt, and the rule lands within 0.05pt on every probe. The box height plays no part.
+> - **The path is the half ellipse inscribed in the text rect** (the box less its `bodyPr` insets, now
+>   parsed into `Insets`), scaled by that same factor about the rect's centre: the upper half for an
+>   arch up, the lower for an arch down.
+> - **The paragraph is laid along the path by arc length**, by the alignment of the text inside the box
+>   (`TextAlignment`, the first paragraph's resolved `w:jc`): centred text straddles the apex, and
+>   left-aligned text starts at the path's left end.
+> - **Each glyph turns to the path's tangent at its centre**, with its baseline `usWinAscent −
+>   sTypoAscender` below the path in its own frame. That is 0.218 em on Impact (fitted 0.223) and
+>   0.177 em on Arial Bold (fitted 0.178), and it holds across all sizes and texts.
+>
+> The earlier model was a chord-sagitta circle fitted to the text width. It drew the text at full size
+> on a far tighter curve with its baseline on the box top, so wordart's "Arc Text Up" stood 15% too large
+> over the subtitle. Known residual: Word draws bold Impact with synthetic bold, which widens every
+> advance by about 3% and thickens the strokes. The WordArt drawers never embolden, so the arches run
+> about 4% narrow.
+>
+> **An inline WordArt keeps its paragraph's spacing.** `ParseWordArt` emits the WordArt in place of its
+> paragraph, so `WordArtElement.SpacingBeforePoints` / `SpacingAfterPoints` carry the paragraph's
+> `w:spacing`. `Fragmenter.PlaceWordArt` takes the larger of the previous after and its own before, then
+> leaves its own after for the next block. wordart's arch-up paragraph declares 10pt after. Dropping it
+> lifted every warp below the arch, which put "Wavy WordArt" and "Slanted Down" a page early. The line
+> itself is exactly the box height: in `_probe_archflow`, consecutive 72pt boxes sat exactly 72pt apart
+> at both a 12pt and a 48pt paragraph font.
+
 
 ### 6.4 Ink / Handwriting
 

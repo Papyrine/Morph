@@ -75,6 +75,18 @@ sealed class WordArtElement : DocumentElement, IWordArtVisual
     /// </summary>
     public TextAlignment Alignment { get; init; } = TextAlignment.Left;
 
+    /// <summary>
+    /// The containing paragraph's <c>w:spacing</c> before and after, in points, for the same reason as
+    /// <see cref="Alignment"/>: the WordArt is emitted in place of its paragraph, so the paragraph's
+    /// spacing has to travel with it. wordart's arch-up paragraph declares 10pt after, and every warp
+    /// below it sat that much high until it did. Zero before when text of the same paragraph was
+    /// emitted ahead of it and already took that spacing.
+    /// </summary>
+    public double SpacingBeforePoints { get; init; }
+
+    /// <inheritdoc cref="SpacingBeforePoints"/>
+    public double SpacingAfterPoints { get; init; }
+
     /// <summary>Whether the text has a shadow effect.</summary>
     public bool HasShadow { get; init; }
 
@@ -86,4 +98,18 @@ sealed class WordArtElement : DocumentElement, IWordArtVisual
 
     /// <summary>The preset text transform/warp type.</summary>
     public WordArtTransform Transform { get; init; } = WordArtTransform.None;
+
+    /// <summary>
+    /// The text rect's insets from the box (<c>wps:bodyPr</c>). An arched warp lays its path in the
+    /// text rect, so the insets set the arch's width.
+    /// </summary>
+    public WordArtInsets Insets { get; init; } = WordArtInsets.Default;
+
+    /// <summary>
+    /// Alignment of the text INSIDE the box — its first paragraph's resolved <c>w:jc</c> — as opposed
+    /// to <see cref="Alignment"/>, which places the box in the paragraph that holds it. An arched warp
+    /// lays the text along its path by it: centred text sits about the apex, left-aligned text starts
+    /// at the path's left end.
+    /// </summary>
+    public TextAlignment TextAlignment { get; init; } = TextAlignment.Left;
 }

@@ -6613,7 +6613,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         }
                         else
                         {
-                            var wordArtElement = ParseWordArt(drawing, mainPart, props.Alignment);
+                            var wordArtElement = ParseWordArt(
+                                drawing,
+                                mainPart,
+                                props.Alignment,
+                                spacingBefore: runs.Count > 0 ? 0 : props.SpacingBeforePoints,
+                                spacingAfter: props.SpacingAfterPoints);
                             if (wordArtElement != null)
                             {
                                 // Emit current paragraph content before the WordArt
@@ -9883,7 +9888,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return ChainDeclares(runProperties?.RunStyle?.Val?.Value) || ChainDeclares(paragraphStyleId);
     }
 
-    DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left)
+    DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left, double spacingBefore = 0, double spacingAfter = 0)
     {
         // Get dimensions from Inline or Anchor
         long widthEmu = 0;
@@ -10032,6 +10037,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var hasGlow = false;
 
         var bodyPr = wsp.GetFirstChild<WPS.TextBodyProperties>();
+        var insets = WordArtInsets.Default;
         if (bodyPr != null)
         {
             // Parse preset text warp (prstTxWarp)
@@ -10040,7 +10046,25 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 transform = ParseTextWarpPreset(prstTxWarp.Preset.Value);
             }
+
+            // An arched warp lays its path in the text rect, so the insets set the arch's width.
+            static double Inset(Int32Value? emu, double fallback) =>
+                emu?.HasValue == true ? emu.Value / OoxmlUnits.EmusPerPoint : fallback;
+
+            insets = new(
+                Inset(bodyPr.LeftInset, insets.Left),
+                Inset(bodyPr.TopInset, insets.Top),
+                Inset(bodyPr.RightInset, insets.Right),
+                Inset(bodyPr.BottomInset, insets.Bottom));
         }
+
+        // How the text sits inside the box — its first paragraph's resolved w:jc. An arched warp lays the
+        // text along its path by it.
+        var firstTextParagraph = txbxContent.Descendants<Paragraph>().FirstOrDefault();
+        var textAlignment = ParseParagraphProperties(
+            firstTextParagraph?.ParagraphProperties,
+            mainPart,
+            firstTextParagraph?.ParagraphProperties?.ParagraphStyleId?.Val?.Value).Alignment;
 
         // Check for effects in the shape style
         string? boxLineColor = null;
@@ -10196,7 +10220,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 HasShadow = hasShadow,
                 HasReflection = hasReflection,
                 HasGlow = hasGlow,
-                Transform = transform
+                Transform = transform,
+                Insets = insets,
+                TextAlignment = textAlignment
             };
         }
 
@@ -10220,10 +10246,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             BoxSubpaths = boxSubpaths,
             BoxIsEllipse = boxIsEllipse,
             Alignment = alignment,
+            SpacingBeforePoints = spacingBefore,
+            SpacingAfterPoints = spacingAfter,
             HasShadow = hasShadow,
             HasReflection = hasReflection,
             HasGlow = hasGlow,
-            Transform = transform
+            Transform = transform,
+            Insets = insets,
+            TextAlignment = textAlignment
         };
     }
 
