@@ -1031,7 +1031,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
 
                     case FloatingTextBoxElement {WrapType: WrapType.None} textBox:
-                        PlaceTextBox(textBox);
+                        EmitBodyFloat(textBox, textBox.VerticalAnchor, textBox.AnchorParagraph);
                         break;
 
                     case WordArtElement wordArt:
@@ -1759,6 +1759,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 case FloatingShapeElement shape:
                     AddBodyFloat(new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
+
+                case FloatingTextBoxElement textBox:
+                    PlaceTextBox(textBox, AnchoredY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent));
+                    break;
             }
         }
 
@@ -1965,10 +1969,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // paints as a shape and its content lays out at the box top-left — Word applies no internal inset,
         // wrapping the content to the full box width. Both are tagged with the page the flow has reached,
         // like the other body floats, and paint behind or in front of the text per BehindText.
-        void PlaceTextBox(FloatingTextBoxElement textBox)
+        void PlaceTextBox(FloatingTextBoxElement textBox, float boxY)
         {
             var boxX = FloatX(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent);
-            var boxY = FloatY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent);
             var boxWidth = (float) textBox.WidthPoints;
             var boxHeight = (float) textBox.HeightPoints;
             var absoluteY = IsAbsoluteY(textBox.VerticalAnchor);
@@ -1999,6 +2002,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 boxWidth,
                 boxHeight,
                 CellVerticalAlignment.Top);
+
+            // A fixed-size Word text box hides what falls below it: cards/02's code box holds an empty
+            // 18pt paragraph and then the code, which lands wholly under the box and Word does not show.
+            // Only lines starting past the bottom go; one cut by the edge is kept, as a measurement a
+            // point taller than Word's must not lose a line Word draws.
+            if (textBox.HidesOverflow)
+            {
+                content = content.Where(_ => _.Y < boxY + boxHeight).ToList();
+            }
 
             // A rotated text box turns its content with its chrome, about the box centre — the a:xfrm
             // rotation reached only the PlacedShape before, leaving labels/06's "ADMIT ONE" stubs flat.

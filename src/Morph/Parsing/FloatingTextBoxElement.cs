@@ -3,6 +3,13 @@
 /// </summary>
 sealed class FloatingTextBoxElement : DocumentElement
 {
+    /// <summary>
+    /// The paragraph this text box is anchored to, as <see cref="FloatingShapeElement.AnchorParagraph"/>:
+    /// a paragraph-relative offset resolves against its laid-out top, and the box waits for it with the
+    /// shapes of the same drawing, so a group's text box keeps its place in the group's paint order.
+    /// </summary>
+    public ParagraphElement? AnchorParagraph { get; set; }
+
     /// <summary>Text content of the text box.</summary>
     public required IReadOnlyList<DocumentElement> Content { get; init; }
 
@@ -26,6 +33,13 @@ sealed class FloatingTextBoxElement : DocumentElement
 
     /// <summary>How text wraps around this text box.</summary>
     public WrapType WrapType { get; init; } = WrapType.None;
+
+    /// <summary>
+    /// True for a Word text box of fixed size (no <c>wps:bodyPr/a:spAutoFit</c>), which hides the lines
+    /// that fall below it — cards/02's code box holds an 18pt empty paragraph and then the code, which
+    /// lands wholly below the 26pt box and is not shown. A slide's text box shows its overflow.
+    /// </summary>
+    public bool HidesOverflow { get; init; }
 
     /// <summary>Whether this text box is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
@@ -97,6 +111,7 @@ sealed class FloatingTextBoxElement : DocumentElement
             VerticalPositionPoints = y,
             CellAnchorParagraphIndex = CellAnchorParagraphIndex,
             Content = Content,
+            HidesOverflow = HidesOverflow,
             WidthPoints = WidthPoints,
             HeightPoints = HeightPoints,
             WrapType = WrapType,

@@ -1595,6 +1595,35 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_fixed_size_text_box_hides_the_lines_below_it()
+    {
+        // cards/02's code box: a line that starts inside the box stays, even cut by its edge; a line
+        // that starts past its bottom is not shown. A box that grows to its text shows everything.
+        // Single-spaced 11pt lines about 13.4pt apart: "second" starts inside the 20pt box, "third" below it.
+        var single = new ParagraphProperties { SpacingAfterPoints = 0, LineSpacingMultiplier = 1 };
+        FloatingTextBoxElement Box(bool hidesOverflow) => new()
+        {
+            Content = [P("first", single), P("second", single), P("third", single)],
+            WidthPoints = 200,
+            HeightPoints = 20,
+            HidesOverflow = hidesOverflow,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Page
+        };
+
+        string[] Shown(bool hidesOverflow) =>
+            fragmenter.Layout([Box(hidesOverflow), P("body")], Page(400)).Pages[0].Items
+                .OfType<PlacedLine>()
+                .SelectMany(_ => _.Runs)
+                .Select(_ => _.Text)
+                .Where(_ => _ != "body")
+                .ToArray();
+
+        await Assert.That(Shown(hidesOverflow: true)).IsEquivalentTo(["first", "second"]);
+        await Assert.That(Shown(hidesOverflow: false)).IsEquivalentTo(["first", "second", "third"]);
+    }
+
+    [Test]
     public async Task An_unwarped_wordart_block_emits_its_box_and_centred_text()
     {
         var wordArt = new WordArtElement

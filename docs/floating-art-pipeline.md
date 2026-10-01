@@ -245,6 +245,33 @@ business-plans/08's accent rule).
   crescent instead of a dashed open arc.
 - Text-free `wps:txbx` placeholders do not become text boxes — Word's templated artwork stores
   an empty txbx in every decorative shape, and emitting a box would mask same-anchor overlays.
+- A SOLID-filled preset beyond rect and ellipse builds its contours through
+  `PresetShapeGeometry` in the walk, as image, gradient and stroke-only shapes already did. The
+  model's `PresetShape` names only rect and ellipse, so the "solid fills keep the Preset fast
+  path" shortcut filled every other preset's bounding box: cards/02's five-point ticket stars
+  drew as orange squares and its notched `plaque` tickets as plain rects (cards/02 p1 +0.05,
+  cards/13 +0.12, labels/06/10/11 +0.07 to +0.11 from this and the text box rules below).
+
+## Text boxes
+
+- **Overflow.** A fixed-size Word text box (no `wps:bodyPr/a:spAutoFit`) hides the lines that
+  fall below it: `FloatingTextBoxElement.HidesOverflow`, applied in `Fragmenter.PlaceTextBox`.
+  cards/02's code box is 26.4pt tall and holds an empty Normal paragraph (18pt at 1.15 lines,
+  10pt after) and then the code, which starts wholly below the box. Word shows no trace of it
+  there, while the ticket table's own copy of the code sits centred in the box; Morph drew both.
+  Only a line that STARTS past the bottom is dropped — a line the edge cuts stays, since a line
+  measured a point taller than Word's must not lose text Word draws. Whether Word clips a cut line
+  at the box edge is unprobed. Slide and sheet text boxes leave the flag off: PowerPoint shows
+  overflow. The HTML export does not apply it yet.
+- **Anchor.** A text box records its anchor paragraph (`AnchorParagraph`, stamped with the shapes
+  and pictures of the same `ParseParagraph` call) and goes through `EmitBodyFloat` like them, so a
+  paragraph-relative offset resolves against the paragraph's pre-spacing top and the box waits for
+  that paragraph with its group's shapes. Placed at the cursor instead, cards/02's code box landed
+  in the paint order BEFORE its own ticket plaque, which then covered its white fill.
+- **The anchor paragraph's mark.** A paragraph that produced only floating art keeps its mark line
+  exactly as an empty paragraph would (spacing after 0), and a text box or WordArt counts as
+  floating art there. Counting only shapes and pictures dropped cards/02's anchor paragraph, an
+  18pt mark at 1.15 lines, carrying both ticket tables 25pt up the page.
 
 ## Clipping
 
