@@ -1453,6 +1453,61 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task A_page_field_in_a_footer_table_cell_resolves_per_page()
+    {
+        // business-plans/10's footer sets its PAGE field in a table cell, cached as "1".
+        var field = new Run
+        {
+            Text = "1",
+            PageField = PageFieldKind.Page,
+            Properties = new()
+            {
+                FontFamily = "Aptos",
+                FontSizePoints = 11
+            }
+        };
+        var footer = new HeaderFooterContent
+        {
+            Elements =
+            [
+                new TableElement
+                {
+                    Properties = new() { GridColumnWidths = [100, 100] },
+                    Rows =
+                    [
+                        new()
+                        {
+                            Cells =
+                            [
+                                new() { Content = [new ParagraphElement { Runs = [TextRun("left")] }] },
+                                new() { Content = [new ParagraphElement { Runs = [field] }] }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        var page = Page(400) with
+        {
+            FooterDistance = 20
+        };
+        var document = fragmenter.Layout([P("one"), new PageBreakElement(), P("two"), new PageBreakElement(), P("three")], page, footer: footer);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(3);
+        for (var pageIndex = 0; pageIndex < 3; pageIndex++)
+        {
+            var cellTexts = document.Pages[pageIndex].Items.OfType<PlacedTableRow>()
+                .SelectMany(_ => _.Cells)
+                .SelectMany(_ => _.Content.OfType<PlacedLine>())
+                .SelectMany(_ => _.Runs)
+                .Select(_ => _.Text)
+                .ToList();
+            await Assert.That(cellTexts).Contains((pageIndex + 1).ToString());
+            await Assert.That(cellTexts).Contains("left");
+        }
+    }
+
+    [Test]
     public async Task A_title_page_takes_its_first_page_header_background_image()
     {
         static FloatingImageElement Image(string tag) => new()

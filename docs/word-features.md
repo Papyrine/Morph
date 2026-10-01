@@ -1990,7 +1990,10 @@ Page number field rendering within headers/footers.
 
 - **OOXML**: `w:fldSimple` with `PAGE` instruction
 - **Model**: Page number substituted during header/footer rendering
-- **Test**: `page_numbers/`
+- **Layout**: `Fragmenter.SubstitutePageFields`, per page, for paragraphs and for the cells of band tables
+- **Test**: `page_numbers/`, `A_page_field_in_a_footer_table_cell_resolves_per_page`
+
+> **A field inside a band table is substituted too (2026-10-01).** business-plans/10's footer sets its `PAGE` field in the right-hand cell of a three-cell table. The substitution walked only the band's top-level paragraphs, so the cell kept the field's cached "1" on every page where Word counts 2-5. Only a table holding a field is rebuilt per page; the others keep their identity and their cached geometry.
 
 
 ### 5.6 Line Numbering

@@ -4254,13 +4254,47 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Replaces each page-field run's cached text with this page's displayed number (PAGE, in the
         // field's own \* switch format or else the section's w:pgNumType/@w:fmt), the document total
         // (NUMPAGES) or the section's pages (SECTIONPAGES), cloning only the paragraphs that carry a
-        // field. A "Page N of M" footer reads correctly across sections.
+        // field. A "Page N of M" footer reads correctly across sections. A field inside a band TABLE is
+        // substituted too — business-plans/10's footer sets its PAGE field in the right-hand cell of a
+        // three-cell table, and kept the field's cached "1" on every page until the cells were walked.
+        // Only a table that holds a field is rebuilt, so the others keep their identity (and with it the
+        // geometry cache, TableGeometry).
         static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, PageNumbering numbering, string? sectionFormat)
         {
             var result = new List<DocumentElement>(elements.Count);
             foreach (var element in elements)
             {
-                if (element is ParagraphElement paragraph &&
+                if (element is TableElement table && HasPageField([table]))
+                {
+                    result.Add(
+                        new TableElement
+                        {
+                            Properties = table.Properties,
+                            Rows = table.Rows
+                                .Select(_ => new TableRow
+                                {
+                                    Cells = _.Cells
+                                        .Select(cell => new TableCell
+                                        {
+                                            Content = SubstitutePageFields(cell.Content, numbering, sectionFormat),
+                                            Floats = cell.Floats,
+                                            FloatAnchorParagraphOrdinals = cell.FloatAnchorParagraphOrdinals,
+                                            Properties = cell.Properties
+                                        })
+                                        .ToList(),
+                                    HeightPoints = _.HeightPoints,
+                                    IsExactHeight = _.IsExactHeight,
+                                    IsHeader = _.IsHeader,
+                                    CannotSplit = _.CannotSplit,
+                                    OverrideBorders = _.OverrideBorders,
+                                    OverrideInsideHBorder = _.OverrideInsideHBorder,
+                                    OverrideInsideVBorder = _.OverrideInsideVBorder,
+                                    OverrideCellPadding = _.OverrideCellPadding
+                                })
+                                .ToList()
+                        });
+                }
+                else if (element is ParagraphElement paragraph &&
                     paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
                 {
                     var runs = paragraph.Runs
@@ -4290,6 +4324,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             return result;
         }
+
+        // Whether any paragraph among these elements, or in any cell of a table among them, nested
+        // tables included, carries a page field.
+        static bool HasPageField(IReadOnlyList<DocumentElement> elements) =>
+            elements.Any(_ => _ switch
+            {
+                ParagraphElement paragraph => paragraph.Runs.Any(run => run.PageField != PageFieldKind.None),
+                TableElement table => table.Rows.Any(row => row.Cells.Any(cell => HasPageField(cell.Content))),
+                _ => false
+            });
 
         // Resolves a header's behind-text floating images and shapes to absolute page positions. The
         // full-page decorative frames of letter/label templates are anchored here — page/margin/column
