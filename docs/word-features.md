@@ -1112,11 +1112,27 @@ Tables with rows and cells containing paragraphs and other content.
 
 Tables within table cells.
 
-- **Model**: Cell content can contain `TableElement` children
-- **Test**: `complex_tables/`
+- **Model**: Cell content can contain `TableElement` children; the empty end-of-cell mark directly after one is flagged `ParagraphElement.IsCollapsedCellMark` by `DocumentParser`
+- **Layout**: `TableHeightCalculator.MeasureCellHeight` sizes a nested table from its own column widths and row heights — the geometry `Fragmenter.LayoutNestedTable` places it with — and skips the collapsed mark; `Fragmenter.LayoutCellFragment` places that mark as a zero-height line
+- **Test**: `complex_tables/`, `resumes/06`, `CellHeightLawTests`
 
-> **Contributors**: Nested table height uses an approximate 50pt estimate during parent table layout. Deeply nested structures are supported but height estimation becomes less accurate.
-> **Consumers**: Nested tables render correctly for typical cases. Very complex nesting may show slight height inaccuracies.
+> **Contributors — measured, and the trailing mark collapses (2026-10-01).** XPS-read on
+> `_probe_cellheights`, a cell holding a 30pt exact nested table and then its end-of-cell mark:
+>
+> | Mark after the nested table | Outer row |
+> |---|---|
+> | plain empty `<w:p/>` | 30.6pt |
+> | empty, 48pt mark, 30pt before, 40pt after | 30.6pt |
+> | empty 48pt mark, then a text paragraph | the mark keeps its whole line and spacing (text 140pt below the table) |
+>
+> So the mark collapses — none of its line, size or spacing counts — only when it is the cell's
+> LAST paragraph. A centred cell centres the nested table in the row (a 30.6pt table in a 60pt row
+> sits 14.7pt down; see Cell Vertical Alignment). resumes/06's skill bars are the corpus case: each
+> is a one-row table followed by an empty mark, Word draws the row 21.6-23.4pt, and the engine's
+> former flat 50pt charge per nested table plus a full line for the mark ran each bar row 74pt,
+> putting the document on four pages to Word's three. With the measure, every one of its education
+> rows ends within 0.3pt of Word's XPS. `IsCollapsedCellMark` had been parsed since the deleted
+> production renderers and read by nothing in the engine — another engine-flip orphan.
 
 
 #### Table Indent `DONE`
@@ -1284,6 +1300,15 @@ Space between cell border and cell content (inside the cell).
 > carries a `w:tblCellMar`, and its enclosing table resolves to an all-zero default, so merging and
 > replacing coincide there. `TableCellMarginParseTests` builds an in-memory document with a
 > non-zero table default for that reason.
+>
+> **Top and bottom are the ROW's (2026-10-01).** Once resolved, a cell's top and bottom padding
+> are the largest any cell in its row declares (`TableLayout.GetEffectivePadding` given the row,
+> `TableLayout.RowVerticalPadding`); left and right stay the cell's own. XPS-read on
+> `_probe_cellheights`, four cells in one row, one with a 40pt top, one with a 30pt bottom, one
+> top-aligned and one bottom-aligned with no margins of their own: the row is 40 + 13.8 + 30pt and
+> all four lines share one baseline 40pt below the row top. Repeated at 20pt / 50pt: 20 + 13.8 +
+> 50pt, one baseline. Per cell, the row would have been the taller cell alone (53.8pt) and the
+> margin-less cells' text at the row top. The row's margins also bound the vertical-alignment band.
 
 
 #### Cell Margins `DONE`
@@ -1301,7 +1326,7 @@ Vertical positioning of content within a cell: top, center, or bottom.
 - **OOXML**: `w:vAlign` — `top`, `center`, `bottom`
 - **Model**: `TableCellProperties.VerticalAlignment`
 
-> **Contributors**: Special handling for vertically merged cells — alignment calculated across the full merged span.
+> **Contributors**: Special handling for vertically merged cells — alignment calculated across the full merged span. A cell holding a nested table aligns it with the rest of its content (`Fragmenter.ShiftDown` moves the nested rows); before 2026-10-01 such a cell was always top-aligned (see Nested Tables).
 
 
 ### 4.3 Layout & Sizing
@@ -1346,11 +1371,31 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 
 - **OOXML**: `w:trHeight` with `w:hRule` (exact/atLeast) and `w:val`
 - **Model**: `TableRow.HeightPoints`, `TableRow.ExactHeight`
-- **Test**: `table_explicit_heights/`, `table_layout_tall_row/`, `ExactRowTests`
+- **Test**: `table_explicit_heights/`, `table_layout_tall_row/`, `ExactRowTests`, `CellHeightLawTests`
+
+> **Contributors — the declared height is not the row's box; the margins are added to it (2026-10-01).**
+> `TableLayout.DeclaredRowHeight` resolves it, and the calculator, the whole-table floor test
+> (`Fragmenter.DeclaredRowFloors`) and the region-top floor all read it. XPS-read on
+> `_probe_cellheights` / `_probe_exact12` / `_probe_exact15`, a 60pt row holding one 12pt line, the
+> mode 12 and mode 15 renders identical to the hundredth:
+>
+> | Top / bottom margin | atLeast 60 | exact 60 |
+> |---|---|---|
+> | 40 / 20 | 120.7 | 79.9 |
+> | 20 / 10 | 90.1 | 70.3 |
+> | 10 / 40 | | 99.7 |
+> | 40 / 0 | | 60.0 |
+> | 0 / 40 | | 99.7 |
+> | 0 / 0 | | 60.1 |
+>
+> An **atLeast floor is the content box**, both of the row's margins outside it; an **exact height
+> holds the top margin and adds the bottom one**. The text of the exact row still sits a full top
+> margin down. resumes/06's 158.4pt summary row under an 18pt top margin is the corpus reading: Word
+> draws it 176.5pt and the engine had 158.9. The margins are the row's (see Cell Padding).
 
 > **Contributors — an exact row is a verbatim box, in both directions (2026-09-06).** Word's reference for `table_layout_tall_row` (an 80pt exact company row, then a 530pt exact letter row, after two body lines) settles two rules the engine had inverted. Pagination: the table misses the remainder, and Word keeps the 80pt row on page 1 and opens page 2 with the 530pt row — it flows row by row and moves the exact row that does not fit, whole; it does not lift the rows before it. The engine's "exact-row pre-advance" had moved the whole table (the recipient block landed four lines low on page 2), so `Fragmenter.PlaceTable` now routes an exact-row table that misses the HARD remainder into `PlaceTableRowByRow`, where an unfitting exact row already moved whole (the split exception). Clipping: the company cell's three paragraphs need ~112pt and Word shows two lines of them, the third hidden below the 80pt box — an exact row clips its cells' overflow, so `BuildRow` sets `PlacedCell.ClipContent` for every cell of an exact row (it had been Excel's pinned-row rule alone; the atLeast row keeps growing to its content). Page 1 is now band-for-band Word.
 
-> **Contributors**: Multi-pass calculation in `TableHeightCalculator.CalculateRowHeights`: content heights first, then explicit `w:trHeight`, then vMerge distribution, then a border-collapse pass. Two Word-matching rules in the content pass: (1) the *last* paragraph's space-after **overlaps** the bottom cell margin instead of stacking on it — the cell bottom is sized as `max(after, bottomMargin)`, not their sum (inter-paragraph after-spacing is still added in full); (2) the border-collapse pass grows every row by the horizontal edge above it and the last row by its bottom edge too — the full DECLARED stack of the wider of the two rows sharing the line (see Cell Borders, *Cell scope on the grid*). The same overlap rule is mirrored in the fragmenter's vertical-alignment measurement so centred/bottom content stays consistent.
+> **Contributors**: Multi-pass calculation in `TableHeightCalculator.CalculateRowHeights`: content heights first, then explicit `w:trHeight`, then vMerge distribution, then a border-collapse pass. Two Word-matching rules in the content pass: (1) the *last* paragraph's space-after **stacks** on the bottom cell margin (table_default_style: 3pt margins, 8pt after, one 12pt line → Word's 31pt row; an earlier `max(after, bottomMargin)` overlap rule predicted 28pt); (2) the border-collapse pass grows every row by the horizontal edge above it and the last row by its bottom edge too — the full DECLARED stack of the wider of the two rows sharing the line (see Cell Borders, *Cell scope on the grid*). The same overlap rule is mirrored in the fragmenter's vertical-alignment measurement so centred/bottom content stays consistent.
 
 
 #### Multi-page Tables `DONE`
@@ -1467,9 +1512,11 @@ line boundary when it does not fit.
 >    page 2 blank). The engine keeps that final page since 2026-09-24; a MID-document page holding
 >    only empty spacer lines still drops, because keeping those added a page to 14 corpus
 >    documents whose Word references have none (each an empty paragraph ahead of an explicit
->    break, overflowing only through upstream height drift). `resumes/06` pays the final-page
->    rule: its rows run ~13.6pt over Word's (`src/todo.md` #25), its final empty paragraph
->    overflows, and it renders 4 pages to Word's 3.
+>    break, overflowing only through upstream height drift). `resumes/06` paid the final-page
+>    rule with a fourth page until 2026-10-01; the recorded cause, ~13.6pt of drift in rows 0-9,
+>    was wrong. Its education table ran 149pt long — every skill-bar nested table charged a flat
+>    50pt and its trailing mark a full line — and the margins sat inside its 158.4pt floor
+>    (see Nested Tables and Row Heights). With those measured it is three pages, as Word's.
 
 
 ### 4.4 Advanced Table Features

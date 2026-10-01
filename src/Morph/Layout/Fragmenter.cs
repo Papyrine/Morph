@@ -2900,16 +2900,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return HasSpaceFor(totalHeight - contentHeight * 0.02f);
         }
 
-        // The sum of a table's declared w:trHeight values, in points — the floors (atLeast) and exact
+        // The sum of a table's declared w:trHeight boxes, in points — the floors (atLeast) and exact
         // boxes Word never lets spill past the bottom margin, whatever the content inside them does.
+        // Each box carries the row's margins as TableLayout.DeclaredRowHeight resolves them.
         static float DeclaredRowFloors(TableElement table)
         {
             var total = 0f;
             foreach (var row in table.Rows)
             {
-                if (row.HeightPoints is { } declared)
+                if (TableLayout.DeclaredRowHeight(row, table.Properties) is { } declared)
                 {
-                    total += (float) declared;
+                    total += declared;
                 }
             }
 
@@ -3302,13 +3303,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (isFirstFragment &&
                 atRegionStart &&
                 !anyContinues &&
-                row is
-                {
-                    IsExactHeight: false,
-                    HeightPoints: { } declaredFloor
-                })
+                !row.IsExactHeight &&
+                TableLayout.DeclaredRowHeight(row, table.Properties) is { } declaredFloor)
             {
-                fragmentHeight = Math.Min(available, Math.Max(fragmentHeight, (float) declaredFloor));
+                fragmentHeight = Math.Min(available, Math.Max(fragmentHeight, declaredFloor));
             }
             var boxed = new List<PlacedCell>(cells.Count);
             foreach (var cell in cells)
@@ -3595,7 +3593,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // A continuation fragment is never at the cell's start, so its first paragraph does not get the
             // first-paragraph spacing-before treatment (and a paragraph resumed mid-way gets no spacing at all).
             var first = start is {ElementIndex: 0, LineIndex: 0};
-            var hasNestedTable = false;
             var limit = budget is { } allowed ? contentTop + allowed : float.MaxValue;
             CellSplitPoint? continuation = null;
 
@@ -3664,15 +3661,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 // A nested table lays out at the cell cursor with no page breaks — the outer row height
-                // already accommodates it (TableHeightCalculator measures nested tables). Its rows are
-                // PlacedTableRows, which the vertical-alignment shift below cannot move, so a cell holding one
-                // stays top-aligned.
+                // already accommodates it (TableHeightCalculator measures nested tables), and the
+                // vertical-alignment shift below moves its rows with the rest of the content.
                 if (element is TableElement nestedTable)
                 {
                     FlushCellBorderRun();
                     cellY += first ? 0 : lastCellAfter;
                     first = false;
-                    hasNestedTable = true;
                     var (nestedItems, nestedHeight) = LayoutNestedTable(nestedTable, contentLeft, cellY, contentWidth);
                     lines.AddRange(nestedItems);
                     cellY += nestedHeight;
@@ -3715,6 +3710,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // paragraph — the parser resolved each control's visible text (checkbox glyph, dropdown
                 // selection, formatted date, plain text) into that paragraph's runs.
                 var paragraph = element as ParagraphElement ?? (element as ContentControlElement)?.CellParagraph;
+
+                // The empty end-of-cell mark after a nested table takes no height and none of its
+                // spacing (ParagraphElement.IsCollapsedCellMark carries the probe). It still places a
+                // zero-height line, so the paragraph keeps a position on the page.
+                if (paragraph is {IsCollapsedCellMark: true})
+                {
+                    FlushCellBorderRun();
+                    lines.Add(new PlacedLine(contentLeft, cellY, 0, 0, cellY, paragraph, 0, [], []));
+                    continue;
+                }
+
                 if (paragraph is null)
                 {
                     // Non-paragraph content separates the paragraphs either side of it, so the next one
@@ -3900,10 +3906,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             // Centre/bottom alignment shifts the whole content down within the cell's available height
-            // (top alignment leaves it at the padded top).
-            // Skipped when a nested table is present, since ShiftDown only moves text lines, and for a split
-            // row — its content no longer has one box to be centred in, and Word tops each fragment out.
-            var offset = hasNestedTable || budget != null
+            // (top alignment leaves it at the padded top). A nested table moves with it: Word centres
+            // _probe_cellheights' 30.6pt nested table in a 60pt centred row 14.7pt down, and resumes/06's
+            // skill bars sit mid-row. Skipped for a split row — its content no longer has one box to be
+            // centred in, and Word tops each fragment out.
+            var offset = budget != null
                 ? 0f
                 : verticalAlignment switch
                 {
@@ -3937,6 +3944,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (item is PlacedBorder border)
             {
                 return border with {Y = border.Y + offset};
+            }
+
+            // A nested table's rows, with their cells and content.
+            if (item is PlacedTableRow)
+            {
+                return ShiftItem(item, offset);
             }
 
             return item;
