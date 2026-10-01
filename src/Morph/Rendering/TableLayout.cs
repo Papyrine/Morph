@@ -939,6 +939,32 @@ static class TableLayout
         return endRow;
     }
 
+    /// <summary>
+    /// The edges a vertical merge draws, one record per row it spans. Word-read with 6pt edges on a
+    /// three-row merge (<c>_probe_vborders</c> / <c>_probe_vborders2</c>): the TOP is the head's and
+    /// the BOTTOM is the LAST cell's — the head's own bottom is never drawn, nor a continuation's own
+    /// top or bottom mid-span — while each row's stretch of the left and right edges is that row's
+    /// own cell's (a head declaring a left edge draws it beside its first row only). resumes/06's
+    /// rule under "Bachelor of Arts" is a last continuation's <c>w:bottom</c> the head does not repeat.
+    /// </summary>
+    internal static CellBorders[] MergeSegmentBorders(TableElement table, int startRowIndex, int endRowIndex, int gridColIndex, int colCount)
+    {
+        var segments = new CellBorders[endRowIndex - startRowIndex + 1];
+        for (var rowIndex = startRowIndex; rowIndex <= endRowIndex; rowIndex++)
+        {
+            var row = table.Rows[rowIndex];
+            var properties = CellCovering(row.Cells, gridColIndex) ?? new TableCellProperties();
+            var resolved = ResolveCellBorders(properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows) ?? new CellBorders();
+            segments[rowIndex - startRowIndex] = resolved with
+            {
+                Top = rowIndex == startRowIndex ? resolved.Top : BorderEdge.None,
+                Bottom = rowIndex == endRowIndex ? resolved.Bottom : BorderEdge.None
+            };
+        }
+
+        return segments;
+    }
+
     internal static int CalculateVerticalMergeRowSpan(TableElement table, int startRowIndex, int gridColIndex)
     {
         var continueStarts = GetVerticalMergeContinueStarts(table);
