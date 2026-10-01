@@ -3045,25 +3045,12 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
-    public async Task A_mid_document_page_of_only_empty_paragraphs_is_dropped()
-    {
-        var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
-        var document = fragmenter.Layout([.. fillers, P(""), new PageBreakElement(), P("after")], Page(200));
-
-        // The empty paragraph overflows onto a page of its own ahead of the explicit break; mid-document that
-        // spacer-only page still drops, so "after" lands on page 2.
-        await Assert.That(document.Pages.Count).IsEqualTo(2);
-        await Assert.That(document.Pages[1].Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Any(_ => _.Text == "after")).IsTrue();
-    }
-
-    [Test]
     public async Task A_trailing_paragraph_with_text_that_overflows_still_adds_a_page()
     {
         var fillers = Enumerable.Range(0, 11).Select(_ => P("filler")).ToArray();
         var document = fragmenter.Layout([.. fillers, P("overflow")], Page(200));
 
-        // A twelfth paragraph carrying real text overflows onto a second page — only a blank trailing page
-        // is absorbed, so this stays two pages.
+        // A twelfth paragraph carrying real text overflows onto a second page.
         await Assert.That(document.Pages.Count).IsEqualTo(2);
     }
 

@@ -1519,10 +1519,19 @@ line boundary when it does not fit.
 >    with no corpus page changing.
 > 9. **The page a document-final empty paragraph overflows onto is rendered**
 >    (`_probe_trail2_flowblank`: 54 exact lines plus a trailing empty paragraph is two pages,
->    page 2 blank). The engine keeps that final page since 2026-09-24; a MID-document page holding
->    only empty spacer lines still drops, because keeping those added a page to 14 corpus
->    documents whose Word references have none (each an empty paragraph ahead of an explicit
->    break, overflowing only through upstream height drift). `resumes/06` paid the final-page
+>    page 2 blank). Mid-document it is the same, with one exception, settled 2026-10-01 on a page
+>    filled exactly by 54 exact 12pt lines (`_probe_sbo1`-`_sbo5`): the empty paragraph that
+>    CARRIES a next-page section break takes no page when it overflows — the next section opens on
+>    page 2 — while an empty paragraph overflowing ahead of that mark, of a page break or of a
+>    page-break-before paragraph gets a blank page of its own (3 pages each). `Fragmenter.PlaceSectionMark`
+>    takes such a mark back off the fresh page it overflowed onto. It replaced a blanket drop of every
+>    mid-document page holding only empty lines, recorded as compensating for upstream height drift in
+>    14 documents. That drop was standing in for the mark rule: by 2026-10-01 it removed 28 pages in
+>    19 documents, every one the empty mark of a next-page break. Two of those documents also hid
+>    bundled-font errors that pushed an ordinary empty paragraph over with the mark: cards/08 bundled
+>    a third-party "The Hand" (a 1.44em line box against Office's 1.20em) and newsletters/04 an old
+>    Euphemia (version 5.00, whose 84-unit hhea gap Office's 6.00 drops). Both now bundle Office's
+>    faces, and every Word scenario's page count matches. `resumes/06` paid the final-page
 >    rule with a fourth page until 2026-10-01; the recorded cause, ~13.6pt of drift in rows 0-9,
 >    was wrong. Its education table ran 149pt long — every skill-bar nested table charged a flat
 >    50pt and its trailing mark a full line — and the margins sat inside its 158.4pt floor

@@ -993,6 +993,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         ApplySectionBreak(sectionBreak);
                         break;
 
+                    case ParagraphElement paragraph when IsNextPageSectionMark(elements, index, paragraph):
+                        PlaceSectionMark(paragraph, KeepAfter(elements, index), ClosingBorderReserve(elements, index));
+                        break;
+
                     case ParagraphElement paragraph:
                         PlaceParagraph(paragraph, KeepAfter(elements, index), ClosingBorderReserve(elements, index));
                         break;
@@ -1115,9 +1119,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return new(AssemblePages());
         }
 
-        // Emits the in-progress page and starts a fresh one at its first column. A page is kept when it
-        // has content, when it is a deliberate blank left by an explicit break (Word does not absorb
-        // those), or when it is the only page; a natural trailing-overflow blank is dropped.
+        // Emits the in-progress page and starts a fresh one at its first column. A page is kept when
+        // anything was placed on it, when it is a deliberate blank left by an explicit break (Word does
+        // not absorb those), or when it is the only page.
         void FinishPage(bool nextPageExplicit, bool documentEnd = false)
         {
             // The page ends the open border run — and the box has to reach items before they are handed to
@@ -1131,21 +1135,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // The page's footnote areas land at its bottom, on the body's own item list.
             EmitNoteAreas();
 
-            // A page is kept when it has visible content, when it is a deliberate blank left by an explicit
+            // A page is kept when anything was placed on it, when it is a deliberate blank left by an explicit
             // break, or when it is the only page. Only the body is stored here; the header/footer bands are
             // assembled once the flow finishes and the total page count is known, so a NUMPAGES field can
             // resolve.
             //
-            // The DOCUMENT-FINAL page is kept when anything at all was placed on it: Word renders the page a
-            // final empty paragraph overflows onto (_probe_trail2_flowblank: 54 exact lines plus a trailing
-            // empty paragraph is two pages, the second blank; LibreOffice's RemoveSuperfluous likewise trims
-            // only pages with no content frame). A MID-document page carrying only empty spacer lines still
-            // drops: keeping those added a page to 14 corpus documents whose Word references have none — an
-            // empty paragraph ahead of an explicit break that overflows here only through upstream height
-            // drift.
+            // A page holding only empty paragraphs is kept like any other: Word renders the page a trailing
+            // empty paragraph overflows onto (_probe_trail2_flowblank), and mid-document too — an empty
+            // paragraph overflowing ahead of a page break, a page-break-before paragraph or another empty
+            // paragraph carrying a section break gets a page of its own (_probe_sbo2 / _sbo3 / _sbo4). The
+            // one exception is the empty paragraph carrying a next-page section break itself, which takes
+            // no page when it overflows (_probe_sbo1) — see PlaceSectionMark.
             CentreVertically();
 
-            if ((documentEnd ? items.Count > 0 : HasVisibleContent(items)) || currentPageExplicit || bodies.Count == 0)
+            if (items.Count > 0 || currentPageExplicit || bodies.Count == 0)
             {
                 bodies.Add((items, current, pageStartsSection && !currentPageFiller, currentPageFiller));
                 pageStartsSection = false;
@@ -1488,6 +1491,38 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 },
                 _ => item with {Y = item.Y + dy}
             };
+
+        // The empty paragraph that carries a next-page (or even/odd-page) section break: the parser emits it
+        // directly ahead of the break.
+        static bool IsNextPageSectionMark(IReadOnlyList<DocumentElement> elements, int index, ParagraphElement paragraph) =>
+            paragraph is {Runs.Count: 0, Properties.Borders: null or {HasAnyBorder: false}} &&
+            index + 1 < elements.Count &&
+            elements[index + 1] is SectionBreakElement {BreakType: not SectionBreakType.Continuous};
+
+        // Places a next-page section break's mark paragraph, which Word lets take no room when it does not
+        // fit: a page filled exactly by 54 exact 12pt lines and closed by the empty sectPr paragraph is one
+        // page, the next section opening on page 2 (_probe_sbo1) — where the same empty paragraph WITHOUT
+        // the sectPr, or followed by a page break, gets a blank page of its own (_probe_sbo2 / _sbo3). So
+        // when the mark alone overflows onto a fresh page it is taken back off it, and the section break
+        // then finds the page untouched and opens the next section there rather than a page later.
+        // 28 pages across 19 corpus documents are this shape (a template's section ending in a full-page
+        // table or a filled panel); a blanket drop of every empty-paragraph page had stood in for it.
+        void PlaceSectionMark(ParagraphElement paragraph, float keepAfter, float closingReserve)
+        {
+            var pagesBefore = bodies.Count;
+            PlaceParagraph(paragraph, keepAfter, closingReserve);
+            if (bodies.Count == pagesBefore || HasVisibleContent(items))
+            {
+                return;
+            }
+
+            items.Clear();
+            currentColumn = 0;
+            y = contentTop;
+            columnTop = contentTop;
+            atRegionTop = true;
+            lastAfter = 0;
+        }
 
         // A page carries visible content if it has anything beyond empty spacer lines — a table row, an image,
         // a shape, or a line with real text or an inline image.
@@ -2391,7 +2426,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // ends up holding is empty paragraphs: two empty page-break-before paragraphs in a row give Word
             // a blank page holding the first (COMPASS's stocktake report, read back from Word 2026-09-30 —
             // its appendix opened a page later than the engine put it, which put every TOC entry after it
-            // one low). A page reached by overflow stays subject to FinishPage's blank-page drop.
+            // one low).
             if (properties.PageBreakBefore && !AtPageTop)
             {
                 FinishPage(nextPageExplicit: true);
