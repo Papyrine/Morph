@@ -104,18 +104,21 @@ static class TableHeightCalculator
         // row rendered on top of the overflow (business-plans/08's "Prepared for:" heading collided
         // with the contact block). Honouring atLeast everywhere matches Word and, across the corpus,
         // improves far more pages than it shifts.
+        //
+        // The declared value is not the row's box: an atLeast floor is the content box with the row's
+        // top and bottom margins outside it, and an exact height holds the top margin with the bottom
+        // one added (TableLayout.DeclaredRowHeight carries the probe).
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            if (!row.HeightPoints.HasValue)
+            if (TableLayout.DeclaredRowHeight(row, table.Properties) is not { } declaredHeight)
             {
                 continue;
             }
 
-            var explicitHeight = (float) row.HeightPoints.Value;
             heights[rowIndex] = row.IsExactHeight
-                ? explicitHeight
-                : Math.Max(heights[rowIndex], explicitHeight);
+                ? declaredHeight
+                : Math.Max(heights[rowIndex], declaredHeight);
         }
 
         // Third pass: distribute vMerge-Restart cell content across spanned rows.
@@ -333,6 +336,14 @@ static class TableHeightCalculator
         foreach (var element in cell.Content)
         {
             var cellParagraph = element as ParagraphElement ?? (element as ContentControlElement)?.CellParagraph;
+
+            // The empty end-of-cell mark after a nested table takes no height and none of its spacing
+            // (ParagraphElement.IsCollapsedCellMark carries the probe).
+            if (cellParagraph is {IsCollapsedCellMark: true})
+            {
+                continue;
+            }
+
             if (cellParagraph is not null)
             {
                 // The shared ContentControlElement wrapper keeps the layout-cache key identical
@@ -347,9 +358,13 @@ static class TableHeightCalculator
                 continue;
             }
 
-            if (element is TableElement {Properties.IsFloating: false})
+            if (element is TableElement {Properties.IsFloating: false} nestedTable)
             {
-                height += 50;
+                // Measured as laid out: the same column widths and row heights the Fragmenter's
+                // LayoutNestedTable places it with, at the cell's content width. A flat 50pt stood in
+                // for every nested table, which ran resumes/06's one-line skill bars (13.8pt in Word)
+                // 36pt tall each and put its last skill row on a fourth page.
+                height += NestedTableHeight(nestedTable, contentWidth, measurer);
                 sawNonParagraph = true;
             }
             else if (element is WordArtElement wordArt)
@@ -377,6 +392,15 @@ static class TableHeightCalculator
             var para = paragraphs[i];
             var lines = measurer.LayoutParagraphForMeasurement(para, contentWidth);
             var props = para.Properties;
+
+            // A nested table or WordArt between two paragraphs takes the previous paragraph's
+            // after-spacing with it — the placement charges that after BEFORE the object and then
+            // starts the next paragraph from a zero after — so this paragraph's before is charged in
+            // full rather than collapsed against an after that no longer borders it.
+            if (separatedFromPrevious.Contains(i))
+            {
+                previousAfter = 0;
+            }
 
             // Cell padding sits between the border and the content area; paragraph
             // spacing-before/after lives inside that content area, so the two stack.
@@ -452,6 +476,26 @@ static class TableHeightCalculator
         }
 
         return height;
+    }
+
+    // A nested table's height at the given content width: its rows as CalculateRowHeights sizes them,
+    // interior edges included, exactly as the Fragmenter's TableGeometry does for its placement.
+    static float NestedTableHeight(TableElement table, float width, IParagraphMeasurer measurer)
+    {
+        var colCount = TableLayout.GetColumnCount(table);
+        if (colCount == 0 || table.Rows.Count == 0)
+        {
+            return 0;
+        }
+
+        var colWidths = TableLayout.CalculateColumnWidths(table, colCount, width, measurer);
+        var total = 0f;
+        foreach (var rowHeight in CalculateRowHeights(table, colWidths, measurer, addInteriorBorders: true))
+        {
+            total += rowHeight;
+        }
+
+        return total;
     }
 
     static bool IsOnlyEmptyParagraph(IReadOnlyList<DocumentElement> content)

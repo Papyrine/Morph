@@ -35,8 +35,74 @@ static class TableLayout
     /// <c>w:tblPrEx</c> (<see cref="TableRow.OverrideCellPadding"/>), and per-cell
     /// <c>w:tcMar</c> (<see cref="TableCellProperties.Padding"/>). Cell wins, then row, then table.
     /// </summary>
-    internal static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row = null) =>
+    ///
+    /// Given the <paramref name="row"/>, the TOP and BOTTOM sides are the row's, not the cell's: every
+    /// cell takes the largest top and the largest bottom any cell in its row declares. XPS-read on
+    /// <c>_probe_cellheights</c>: a four-cell row with a 40pt top on one cell and a 30pt bottom on
+    /// another is 40 + 13.8 + 30pt tall, and the text of all four — the margin-less top- and
+    /// bottom-aligned cells included — sits on one baseline 40pt down; 20 and 50pt read the same way.
+    /// Read per cell, the row came out as the taller of the two cells alone.
+    internal static CellSpacing GetEffectivePadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row = null)
+    {
+        var own = OwnPadding(cellProps, tableProps, row);
+        if (row is null)
+        {
+            return own;
+        }
+
+        var (rowTop, rowBottom) = RowVerticalPadding(row, tableProps);
+        var top = Math.Max(own.Top, rowTop);
+        var bottom = Math.Max(own.Bottom, rowBottom);
+        return top == own.Top && bottom == own.Bottom ? own : own with {Top = top, Bottom = bottom};
+    }
+
+    static CellSpacing OwnPadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row) =>
         cellProps.Padding ?? row?.OverrideCellPadding ?? tableProps.DefaultCellPadding;
+
+    /// <summary>
+    /// The top and bottom cell margins a row applies to every one of its cells: the largest each
+    /// side declares across the row (see <see cref="GetEffectivePadding"/>).
+    /// </summary>
+    internal static (double Top, double Bottom) RowVerticalPadding(TableRow row, TableProperties tableProps)
+    {
+        if (row.Cells.Count == 0)
+        {
+            var fallback = OwnPadding(new(), tableProps, row);
+            return (fallback.Top, fallback.Bottom);
+        }
+
+        double top = 0;
+        double bottom = 0;
+        foreach (var cell in row.Cells)
+        {
+            var padding = OwnPadding(cell.Properties, tableProps, row);
+            top = Math.Max(top, padding.Top);
+            bottom = Math.Max(bottom, padding.Bottom);
+        }
+
+        return (top, bottom);
+    }
+
+    /// <summary>
+    /// The height a row's declared <c>w:trHeight</c> commits it to, margins included, or null when it
+    /// declares none. XPS-read on <c>_probe_cellheights</c> / <c>_probe_exact12</c> /
+    /// <c>_probe_exact15</c> (identical in compatibility modes 12 and 15): an atLeast floor is the
+    /// CONTENT box and both of the row's margins stack outside it — 60pt under 40/20pt margins draws
+    /// 120.7pt, under 20/10pt 90.1pt (resumes/06's 158.4pt summary row under an 18pt top margin draws
+    /// 176.5pt) — while an exact height already holds the TOP margin and only the bottom one is added:
+    /// 60pt draws 79.9 / 70.3 / 99.7 / 60.0 / 99.7 / 60.1pt under top/bottom margins of
+    /// 40/20, 20/10, 10/40, 40/0, 0/40 and 0/0.
+    /// </summary>
+    internal static float? DeclaredRowHeight(TableRow row, TableProperties tableProps)
+    {
+        if (row.HeightPoints is not { } declared)
+        {
+            return null;
+        }
+
+        var (top, bottom) = RowVerticalPadding(row, tableProps);
+        return (float) (row.IsExactHeight ? declared + bottom : declared + top + bottom);
+    }
 
     /// <summary>
     /// Cell margin (the gap *outside* the border). OOXML doesn't expose a row-level override

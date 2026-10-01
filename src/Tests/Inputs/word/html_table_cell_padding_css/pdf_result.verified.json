@@ -11,7 +11,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "20px all sides\n30px top, 5px bottom\n40px left 10px vert, 20px horiz"
+        "Text": "20px all sides 30px top, 5px bottom\n40px left 10px vert, 20px horiz"
       }
     ]
   },
@@ -19,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0114,
-      "Ssim": 0.973,
+      "Ssim": 0.9741,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

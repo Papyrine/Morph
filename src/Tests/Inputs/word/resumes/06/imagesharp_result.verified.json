@@ -1,4 +1,30 @@
 ﻿{
   "ExpectedPageCount": 3,
-  "ResultingPageCount": 4
+  "ResultingPageCount": 3,
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0484,
+      "Ssim": 0.9323,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "imagesharp_result#page_0001.verified.png",
+      "ReceivedFile": "imagesharp_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0474,
+      "Ssim": 0.9314,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "imagesharp_result#page_0002.verified.png",
+      "ReceivedFile": "imagesharp_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0474,
+      "Ssim": 0.9313,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "imagesharp_result#page_0003.verified.png",
+      "ReceivedFile": "imagesharp_result#page_0003.received.png"
+    }
+  ]
 }
