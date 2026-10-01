@@ -88,6 +88,11 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
 
         var transform = wordArt.Transform;
         var fillColor = wordArt.FillColorHex;
+        if (TryRenderArch(wordArt, x, y, width, pixelHeight, typeface, pixelFontSize))
+        {
+            return;
+        }
+
         if (TryRenderWordArtOnPath(transform, text, fillColor, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
@@ -133,6 +138,11 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
 
         var transform = wordArt.Transform;
         var fillColor = wordArt.FillColorHex;
+        if (TryRenderArch(wordArt, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize))
+        {
+            return;
+        }
+
         if (TryRenderWordArtOnPath(transform, text, fillColor, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize * scale))
         {
             return;
@@ -246,18 +256,85 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
     }
 
     /// <summary>
-    /// Renders WordArt that follows a curved path (ArchUp / ArchDown / Circle) via
+    /// Renders <c>textArchUp</c> / <c>textArchDown</c> as Word does: the text drawn smaller by
+    /// <see cref="WordArtArch.Scale"/>, each glyph turned to the half ellipse of the scaled text rect
+    /// at its own place along it — see <see cref="WordArtArch"/> for the probed rules. Returns false
+    /// for any other warp, or a box with no room for a text rect.
+    /// </summary>
+    bool TryRenderArch(IWordArtVisual wordArt, float x, float y, float width, float height, SKTypeface typeface, float fontSize)
+    {
+        if (wordArt.Transform is not (WordArtTransform.ArchUp or WordArtTransform.ArchDown))
+        {
+            return false;
+        }
+
+        var insets = wordArt.Insets;
+        var textLeft = x + context.PointsToPixels((float) insets.Left);
+        var textTop = y + context.PointsToPixels((float) insets.Top);
+        var textWidth = width - context.PointsToPixels((float) (insets.Left + insets.Right));
+        var textHeight = height - context.PointsToPixels((float) (insets.Top + insets.Bottom));
+        if (textWidth <= 0 || textHeight <= 0)
+        {
+            return false;
+        }
+
+        using var declaredFont = new SKFont(typeface, fontSize);
+        declaredFont.MeasureText(wordArt.Text, out var inkBounds);
+        var scale = WordArtArch.Scale(textWidth, inkBounds.Height);
+
+        using var font = new SKFont(typeface, fontSize * scale)
+        {
+            Edging = SKFontEdging.Antialias
+        };
+        var glyphs = WordArtArch.Glyphs(wordArt.Text);
+        var advances = glyphs.Select(_ => font.MeasureText(_)).ToList();
+        var baselineDepth = WordArtArch.BaselineDepthEm(context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic)) * font.Size;
+        var placements = WordArtArch.Place(
+            advances, textLeft, textTop, textWidth, textHeight, scale, baselineDepth,
+            wordArt.TextAlignment, down: wordArt.Transform == WordArtTransform.ArchDown);
+
+        using var fillPaint = new SKPaint
+        {
+            IsAntialias = true,
+            Color = wordArt.FillColorHex != null ? SkiaRenderContext.ParseColor(wordArt.FillColorHex) : SKColors.Black
+        };
+        using var outlinePaint = wordArt is {OutlineColorHex: { } outlineColor, OutlineWidthPoints: > 0}
+            ? new SKPaint
+            {
+                IsAntialias = true,
+                Color = SkiaRenderContext.ParseColor(outlineColor),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = context.PointsToPixels((float) wordArt.OutlineWidthPoints)
+            }
+            : null;
+
+        for (var i = 0; i < glyphs.Count; i++)
+        {
+            var (originX, originY, angle) = placements[i];
+            canvas.Save();
+            canvas.RotateDegrees(angle, originX, originY);
+            if (outlinePaint != null)
+            {
+                canvas.DrawText(glyphs[i], originX, originY, font, outlinePaint);
+            }
+
+            canvas.DrawText(glyphs[i], originX, originY, font, fillPaint);
+            canvas.Restore();
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Renders WordArt that follows a curved path (Circle, Chevron, Wave, Slant) via
     /// <see cref="SKCanvas.DrawTextOnPath(string, SKPath, SKPoint, SKTextAlign, SKFont, SKPaint)"/>.
     /// Returns true when the warp was handled, false for warps that should fall back to
     /// flat-text rendering.
     /// </summary>
     /// <remarks>
-    /// Word's <c>prstTxWarp</c> presets don't treat the WordArt bbox as the *full* arc
-    /// bounding box — that would produce a tight half-ellipse, much sharper than Word
-    /// actually draws. The chord-sagitta interpretation gives the right shape: bbox W is
-    /// the arc chord, bbox H is the sagitta, and the circle radius is
-    /// R = (W² + 4H²) / (8H). For typical 4:1 wide-and-flat WordArt bboxes this gives a
-    /// large radius and a gentle, mostly-horizontal curve — matching Word.
+    /// The chevrons ride a chord-sagitta circle: bbox W is the arc chord, bbox H the sagitta,
+    /// and the circle radius R = (W² + 4H²) / (8H) — a gentle, mostly-horizontal curve for a
+    /// wide-and-flat box.
     /// <para>
     /// The path is sized to the rendered text width and centred on the arc peak/dip so
     /// short text sits at the bbox-centre rather than being stretched along the full
@@ -284,12 +361,6 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         SKPath? path;
         switch (transform)
         {
-            case WordArtTransform.ArchUp:
-                path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: false);
-                break;
-            case WordArtTransform.ArchDown:
-                path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: true);
-                break;
             case WordArtTransform.Circle:
                 {
                     var radius = Math.Min(width, height) / 2f;
@@ -302,8 +373,8 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
                     break;
                 }
             case WordArtTransform.ChevronUp:
-                // Word's textChevron renders as a single-peak smooth arch — same envelope as
-                // ArchUp. Sharp-corner ^ paths cause per-glyph overlap at the apex.
+                // Word's textChevron renders as a single-peak smooth arch. Sharp-corner ^ paths
+                // cause per-glyph overlap at the apex.
                 path = BuildChordSagittaArc(x, y, width, height, textWidth, archDown: false);
                 break;
             case WordArtTransform.ChevronDown:

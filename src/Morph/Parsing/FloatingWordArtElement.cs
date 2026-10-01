@@ -77,6 +77,12 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     /// <summary>The preset text transform/warp type.</summary>
     public WordArtTransform Transform { get; init; } = WordArtTransform.None;
 
+    /// <inheritdoc cref="WordArtElement.Insets"/>
+    public WordArtInsets Insets { get; init; } = WordArtInsets.Default;
+
+    /// <inheritdoc cref="WordArtElement.TextAlignment"/>
+    public TextAlignment TextAlignment { get; init; } = TextAlignment.Left;
+
     /// <summary>
     /// Horizontal position as a fraction (0..1) of the anchor reference frame, parsed from
     /// <c>wp14:pctPosHOffset</c>. When set, overrides <see cref="HorizontalPositionPoints"/>.
@@ -121,6 +127,8 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
             HasReflection = HasReflection,
             HasGlow = HasGlow,
             Transform = Transform,
+            Insets = Insets,
+            TextAlignment = TextAlignment,
         };
 
 }

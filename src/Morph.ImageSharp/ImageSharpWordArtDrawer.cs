@@ -119,6 +119,11 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
             wordArt.Bold,
             wordArt.Italic);
 
+        if (TryRenderArch(wordArt, x, y, width, pixelHeight))
+        {
+            return;
+        }
+
         if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, scaledFont))
         {
             return;
@@ -173,6 +178,11 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
             (float) wordArt.FontSizePoints * scale,
             wordArt.Bold,
             wordArt.Italic);
+
+        if (TryRenderArch(wordArt, pixelX, pixelY, width, pixelHeight))
+        {
+            return;
+        }
 
         if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, scaledFont))
         {
@@ -235,22 +245,88 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
     }
 
     /// <summary>
-    /// Renders WordArt that follows a curved path (ArchUp / ArchDown / Circle) through
+    /// Renders <c>textArchUp</c> / <c>textArchDown</c> as Word does: the text drawn smaller by
+    /// <see cref="WordArtArch.Scale"/>, each glyph turned to the half ellipse of the scaled text rect
+    /// at its own place along it — see <see cref="WordArtArch"/> for the probed rules. Returns false
+    /// for any other warp, or a box with no room for a text rect.
+    /// </summary>
+    bool TryRenderArch(IWordArtVisual wordArt, float x, float y, float width, float height)
+    {
+        if (wordArt.Transform is not (WordArtTransform.ArchUp or WordArtTransform.ArchDown))
+        {
+            return false;
+        }
+
+        var insets = wordArt.Insets;
+        var textLeft = x + context.PointsToPixels((float) insets.Left);
+        var textTop = y + context.PointsToPixels((float) insets.Top);
+        var textWidth = width - context.PointsToPixels((float) (insets.Left + insets.Right));
+        var textHeight = height - context.PointsToPixels((float) (insets.Top + insets.Bottom));
+        if (textWidth <= 0 || textHeight <= 0)
+        {
+            return false;
+        }
+
+        var declaredFont = context.GetFontForFamily(wordArt.FontFamily, (float) wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic);
+        var inkHeight = TextMeasurer.MeasureBounds(wordArt.Text, new(declaredFont) {Dpi = context.Dpi}).Height;
+        var scale = WordArtArch.Scale(textWidth, inkHeight);
+
+        var drawnSizePoints = (float) wordArt.FontSizePoints * scale;
+        var font = context.GetFontForFamily(wordArt.FontFamily, drawnSizePoints, wordArt.Bold, wordArt.Italic);
+        var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
+        var glyphs = WordArtArch.Glyphs(wordArt.Text);
+        var advances = glyphs.Select(_ => TextMeasurer.MeasureAdvance(_, measureOptions).Width).ToList();
+        var baselineDepth = context.PointsToPixels(
+            WordArtArch.BaselineDepthEm(context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic)) * drawnSizePoints);
+        var placements = WordArtArch.Place(
+            advances, textLeft, textTop, textWidth, textHeight, scale, baselineDepth,
+            wordArt.TextAlignment, down: wordArt.Transform == WordArtTransform.ArchDown);
+
+        var brush = context.GetBrush(wordArt.FillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(wordArt.FillColorHex));
+        var outlinePen = wordArt is {OutlineColorHex: { } outlineColor, OutlineWidthPoints: > 0}
+            ? context.GetPen(ImageSharpRenderContext.ParseColor(outlineColor), context.PointsToPixels((float) wordArt.OutlineWidthPoints))
+            : null;
+
+        for (var i = 0; i < glyphs.Count; i++)
+        {
+            var (originX, originY, angle) = placements[i];
+            canvas.Save(
+                new()
+                {
+                    Transform = new(Matrix3x2.CreateRotation(angle * MathF.PI / 180, new(originX, originY)))
+                });
+
+            // Anchored on the alphabetic baseline, as ImageSharpPainter draws a line.
+            var glyphOptions = new RichTextOptions(font)
+            {
+                Dpi = context.Dpi,
+                Origin = new(originX, originY),
+                TextBaseline = TextBaseline.Alphabetic
+            };
+            if (outlinePen != null)
+            {
+                canvas.DrawText(glyphOptions, glyphs[i].AsSpan(), null, outlinePen);
+            }
+
+            canvas.DrawText(glyphOptions, glyphs[i].AsSpan(), brush, null);
+            canvas.Restore();
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Renders WordArt that follows a curved path (Circle, Chevron, Wave, Slant) through
     /// <see cref="DrawingCanvas.DrawText(RichTextOptions, ReadOnlySpan{char}, IPath, Brush, Pen)"/>.
     /// Returns true when the warp was handled, false for warps that should fall back to
     /// flat-text rendering.
     /// </summary>
     /// <remarks>
-    /// Word's <c>prstTxWarp</c> presets don't treat the WordArt bbox as the *full* arc
-    /// bounding box — that produces a tight half-ellipse, much sharper than Word actually
-    /// draws (and the typical bbox is 4:1 wide-and-flat, so the half-ellipse is also far
-    /// off-centre vertically).
     /// <para>
-    /// The correct geometry for <c>textArchUp</c>/<c>textArchDown</c> treats bbox W as the
-    /// arc <em>chord</em> and bbox H as the <em>sagitta</em> (perpendicular distance from
-    /// chord midpoint to arc midpoint). The circle radius is R = (W² + 4H²) / (8H), and the
-    /// arc sweep is 2·asin(W/(2R)). Wide-and-flat bboxes give large R and small sweep —
-    /// gentle, mostly-horizontal curves, matching Word.
+    /// The chevrons ride a chord-sagitta circle: bbox W is the arc <em>chord</em> and bbox H
+    /// the <em>sagitta</em> (perpendicular distance from chord midpoint to arc midpoint). The
+    /// circle radius is R = (W² + 4H²) / (8H), and the arc sweep is 2·asin(W/(2R)) — gentle,
+    /// mostly-horizontal curves for a wide-and-flat box.
     /// </para>
     /// <para>
     /// <c>textCircle</c> wraps text around the right side of an inscribed circle. Short
@@ -282,12 +358,6 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         IPath path;
         switch (transform)
         {
-            case WordArtTransform.ArchUp:
-                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: false);
-                break;
-            case WordArtTransform.ArchDown:
-                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: true);
-                break;
             case WordArtTransform.Circle:
                 {
                     var radius = Math.Min(width, height) / 2f;

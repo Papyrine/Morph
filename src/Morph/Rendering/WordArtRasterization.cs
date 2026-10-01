@@ -19,6 +19,8 @@ interface IWordArtVisual
     bool HasReflection { get; }
     bool HasGlow { get; }
     WordArtTransform Transform { get; }
+    WordArtInsets Insets { get; }
+    TextAlignment TextAlignment { get; }
 }
 
 /// <summary>
@@ -120,6 +122,8 @@ static class WordArtRasterPage
             HasShadow = visual.HasShadow,
             HasReflection = visual.HasReflection,
             HasGlow = visual.HasGlow,
-            Transform = visual.Transform
+            Transform = visual.Transform,
+            Insets = visual.Insets,
+            TextAlignment = visual.TextAlignment
         };
 }

@@ -1645,9 +1645,9 @@ public class CanonicalFragmenterTests
     [Test]
     public async Task A_wordart_block_sits_below_the_previous_paragraph_s_after_spacing()
     {
-        // WordArt carries no spacing of its own, so the gap before it is the previous paragraph's
-        // after-spacing — as for a table or any other block. Without this the box rides up by that gap and
-        // every later block follows it (business/06's memo header and wordart-envelope's warps both did).
+        // The gap before a WordArt includes the previous paragraph's after-spacing, as for a table or any
+        // other block. Without this the box rides up by that gap and every later block follows it
+        // (business/06's memo header and wordart-envelope's warps both did).
         var spaced = new ParagraphProperties
         {
             SpacingAfterPoints = 20
@@ -1666,6 +1666,37 @@ public class CanonicalFragmenterTests
         var gapTop = withGap.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "LOGO")).Y;
         var flushTop = withoutGap.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "LOGO")).Y;
         await Assert.That(gapTop - flushTop).IsEqualTo(20f).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_wordart_block_keeps_its_own_paragraph_s_spacing()
+    {
+        // The WordArt stands in for its paragraph, so that paragraph's spacing travels with it: its before
+        // meets the previous after as any paragraph gap does (the larger wins), and its after opens the gap
+        // below. wordart's arch-up paragraph declares 10pt after, and every warp below it sat that high.
+        WordArtElement WordArt(double before, double after) =>
+            new()
+            {
+                Text = "LOGO",
+                WidthPoints = 150,
+                HeightPoints = 40,
+                Transform = WordArtTransform.ArchUp,
+                SpacingBeforePoints = before,
+                SpacingAfterPoints = after
+            };
+
+        (float WordArtTop, float BelowTop) Layout(WordArtElement wordArt)
+        {
+            var items = fragmenter.Layout([P("above", new() {SpacingAfterPoints = 6}), wordArt, P("below")], Page(400)).Pages[0].Items;
+            return (items.OfType<PlacedWordArt>().Single().Y,
+                items.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "below")).Y);
+        }
+
+        var flush = Layout(WordArt(0, 0));
+        var spaced = Layout(WordArt(15, 25));
+
+        await Assert.That(spaced.WordArtTop - flush.WordArtTop).IsEqualTo(9f).Within(0.01f);
+        await Assert.That(spaced.BelowTop - flush.BelowTop).IsEqualTo(9f + 25f).Within(0.01f);
     }
 
     [Test]

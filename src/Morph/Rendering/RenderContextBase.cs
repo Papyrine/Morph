@@ -72,6 +72,17 @@ abstract class RenderContextBase
         PageHeightPixels = ToPagePixels(pageSettings.HeightPoints, dpi);
     }
 
+    Func<string, bool, bool, FontMetrics?>? layoutMetrics;
+
+    /// <summary>
+    /// The face's OpenType metrics as the layout engine reads them, resolved through the same
+    /// <see cref="FontDirectory"/> and <see cref="FontFallback"/>. For a drawing rule stated in the
+    /// font's own tables (an arched WordArt's baseline depth) rather than in what the backend measures.
+    /// Created on first use: most renders never ask.
+    /// </summary>
+    public FontMetrics? LayoutMetrics(string family, bool bold, bool italic) =>
+        (layoutMetrics ??= LayoutFonts.ToDelegate(LayoutFonts.CreateResolver(FontDirectory, FontFallback)))(family, bold, italic);
+
     // Must be computed in double precision rather than via the float Scale. For common page sizes
     // the exact pixel count is a whole number (US Letter at 150 DPI is 612x792pt -> 1275x1650px),
     // and float Scale is a hair below the true dpi/72 ratio, which drags the product just under the

@@ -2239,18 +2239,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
         // A block-level unwarped WordArt takes flow space (its declared height) at the current cursor, aligned
         // by its w:jc — it paints its box chrome then its centred text.
-        // The preceding paragraph's after-spacing precedes the shape, as it does for a table or any other
-        // block. WordArt carries no spacing of its own, so without this the box rides up by that gap and
-        // every later block follows it — wordart-envelope's warps each sat 10pt (the subtitle's w:after)
-        // above Word. Never at a region top, where the break swallows the gap.
+        // The gap above is the paragraph gap — the larger of the preceding after-spacing and the WordArt
+        // paragraph's own before — and its own after then follows the box like any paragraph's. Without
+        // the preceding after the box rode up by it (wordart-envelope's warps each sat 10pt, the subtitle's
+        // w:after, above Word); without its own after every later block did (wordart's arch-up paragraph
+        // declares 10pt after). Never at a region top, where the break swallows the gap.
         void PlaceWordArt(WordArtElement wordArt)
         {
             if (!atRegionTop)
             {
-                y += lastAfter;
+                y += Math.Max(lastAfter, (float) wordArt.SpacingBeforePoints);
             }
 
-            lastAfter = 0;
+            lastAfter = (float) wordArt.SpacingAfterPoints;
             var height = (float) wordArt.HeightPoints;
             EnsureSpaceFor(height);
             var boxWidth = (float) wordArt.WidthPoints;

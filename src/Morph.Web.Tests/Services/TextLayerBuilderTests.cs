@@ -336,5 +336,7 @@ public class TextLayerBuilderTests
         public bool HasReflection => false;
         public bool HasGlow => false;
         public WordArtTransform Transform => WordArtTransform.None;
+        public WordArtInsets Insets => WordArtInsets.Default;
+        public TextAlignment TextAlignment => TextAlignment.Left;
     }
 }
