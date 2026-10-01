@@ -17,7 +17,7 @@ Family_Weight[_Italic].ttf
 ```
 
 `Weight` is the OS/2 `usWeightClass` of the face — 300 Light, 400 Regular, 500 Medium, 600 Semibold, 700
-Bold, 900 Black. The current spread is 97 regular, 67 bold, 8 light, 5 semibold, 3 black, one each at 350 and
+Bold, 900 Black. The current spread is 98 regular, 68 bold, 8 light, 5 semibold, 3 black, one each at 350 and
 500, plus 59 italics among them. A handful of files carry a trailing `__Token` (for example
 `Bodoni_MT_400__BOD_R.ttf`) to break a collision where two distinct faces share a family and weight.
 
