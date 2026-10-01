@@ -809,10 +809,11 @@ Background color behind the full paragraph area.
 
 - **OOXML**: `w:shd` within `w:pPr`
 - **Model**: `ParagraphProperties.BackgroundColorHex`
-- **Export**: `HtmlExporter.AppendParagraphStyle` emits it as the `<p>`'s `background-color` (since 2026-08-19 — resumes/15's lavender name band, and the HTML-input block backgrounds in `html_inline_styles`/`html_css_colors`)
-- **Test**: `block_quote/`, `newsletters/14` (style-cascaded shading inside a layout-table cell), `resumes/15` (PDF)
+- **Render (cell)**: `Fragmenter.LayoutCellFragment` — a bordered run of shaded paragraphs fills its whole border box (`FlushCellBorderRun` inserts the `PlacedShading` ahead of the run's lines, so the fill sits behind them); an unbordered shaded paragraph shades each line's band across the cell's text width
+- **Export**: `HtmlExporter.AppendParagraphStyle` emits it as the `<p>`'s `background-color` (since 2026-08-19 — resumes/15's lavender name band, and the HTML-input block backgrounds in `html_inline_styles`/`html_css_colors`); the cell-block paragraph path emits it too
+- **Test**: `block_quote/`, `newsletters/14` (style-cascaded shading inside a layout-table cell), `brochures/06` (shaded, bordered quote pair in a cell), `resumes/15` (PDF), `CellParagraphShadingTests`, `HtmlExporterTests.ShadedCellParagraphKeepsItsFill`
 
-> **Contributors**: Rendered as a filled rectangle spanning the full paragraph height, respecting left/right indents, in the flow path AND the table-cell path (`RenderParagraphInBounds`) of all three backends — the shading cascades from the paragraph style like any pPr property (newsletters/14's DECEMBER banner is Subtitle-style shading). Paragraph BORDERS remain flow-path-only by design (Word does not border a paragraph inside a table cell — see `PdfTextEngine`).
+> **Contributors**: The shading cascades from the paragraph style like any pPr property (newsletters/14's DECEMBER banner is Subtitle-style shading; brochures/06's olive quote box is QuoteAlt/QuoteSource). The cell path drew no paragraph shading from the engine flip until 2026-10-01, so both of those rendered as a bare border with their white text invisible on the white page — an engine-flip orphan of the deleted renderers' `RenderParagraphInBounds`. Paragraph borders inside a cell ARE drawn (`FlushCellBorderRun`); the shading follows the same run grouping, so a `w:between`-free pair that shares borders shares one fill.
 
 
 #### Horizontal Rule `DONE`
