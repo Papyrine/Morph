@@ -2488,7 +2488,7 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
-    public async Task An_in_front_of_text_cell_float_shape_is_not_placed()
+    public async Task An_in_front_of_text_cell_float_shape_is_drawn_over_the_content()
     {
         var shape = new FloatingShapeElement
         {
@@ -2521,7 +2521,14 @@ public class CanonicalFragmenterTests
         };
 
         var cell = fragmenter.Layout([table], Page(400)).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
-        await Assert.That(cell.Content.OfType<PlacedShape>().Any()).IsFalse();
+
+        // Not on the behind-text Floats: it follows the content, so it paints over the text (brochures/06's
+        // balloons).
+        await Assert.That((cell.Floats ?? []).OfType<PlacedShape>().Any()).IsFalse();
+        var content = cell.Content.ToList();
+        var placed = content.OfType<PlacedShape>().Single();
+        await Assert.That(placed.Shape.FillColorHex).IsEqualTo("0F3344");
+        await Assert.That(content.IndexOf(placed)).IsGreaterThan(content.IndexOf(content.OfType<PlacedLine>().Last()));
     }
 
     [Test]

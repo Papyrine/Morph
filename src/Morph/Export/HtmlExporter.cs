@@ -1839,7 +1839,8 @@ static class HtmlExporter
                         }
                         else if (paragraph.Properties.SpacingBeforePoints > 0.01 ||
                                  paragraph.Properties.SpacingAfterPoints > 0.01 ||
-                                 paragraph.Properties.Borders is {HasAnyBorder: true})
+                                 paragraph.Properties.Borders is {HasAnyBorder: true} ||
+                                 DocumentExportHelpers.NormalizeColor(paragraph.Properties.BackgroundColorHex) != null)
                         {
                             // A cell paragraph that declares before/after spacing renders as a real
                             // block so the spacing survives — the <br /> join below drops it, which
@@ -1860,6 +1861,14 @@ static class HtmlExporter
                             AppendParagraphBorderStyle(cellBlockParts, paragraph.Properties);
                             borderGroupPrevious = null;
                             borderGroupNext = null;
+
+                            // Paragraph shading takes the block form too, as AppendParagraphStyle gives it
+                            // in the flow: brochures/06's olive QuoteAlt/QuoteSource box exported as its
+                            // outline alone, the white quote inside it invisible on the white page.
+                            if (DocumentExportHelpers.NormalizeColor(paragraph.Properties.BackgroundColorHex) is { } cellShading)
+                            {
+                                cellBlockParts.Add($"background-color: {cellShading}");
+                            }
                             builder
                                 .Append("<p style=\"")
                                 .Append(string.Join("; ", cellBlockParts))

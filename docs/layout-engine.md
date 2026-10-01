@@ -671,7 +671,10 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   `PdfPageRenderer.BuildShapePath`) fill each cell behind the white recipient text (labels/14 blank → 0.86;
   solid fills only — gradient/image fills stay deferred). *Gradient fills have since landed for every placed
   shape, cell floats included. Image fills remain deferred for cell floats specifically — a **body**
-  image-fill shape is routed to a `PlacedImage` and does draw.*
+  image-fill shape is routed to a `PlacedImage` and does draw. In-front (`behindDoc="0"`) cell-float shapes, which
+  were dropped, landed 2026-10-01: `ResolveCellFloatShapes(behindText: false)` resolves them the same way and
+  appends them after the cell's content, so they paint over its text (brochures/06's balloon line art, the
+  corpus's only in-front cell shapes; a split cell carries them on its first fragment only).*
 - **Empty-paragraph after-spacing and a last-line bottom-margin tolerance landed**: an empty paragraph carries
   its after-spacing into the collapse with the next paragraph like any other (measured against Word —
   two_columns' title/blank/body gap is line + after + line + after, not one dropped after), and a line is placed

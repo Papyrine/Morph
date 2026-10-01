@@ -3310,6 +3310,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // Cell-anchored behind-text art belongs to the row's first fragment; repeating it on every
                 // continuation would stamp it down the document.
                 var floatShapes = isFirstFragment ? ResolveCellFloatShapes(cell, cellX, rowY) : [];
+                if (isFirstFragment && ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is {Count: > 0} frontShapes)
+                {
+                    content = [.. content, .. frontShapes];
+                }
 
                 cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals, floatShapes));
 
@@ -3445,8 +3449,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
-                // before the cell's paragraphs, and outside any clip (PlacedCell.Floats).
+                // before the cell's paragraphs, and outside any clip (PlacedCell.Floats); in-front ones
+                // join the content after the paragraphs, so they paint over the text.
                 var floatShapes = ResolveCellFloatShapes(cell, cellX, rowY);
+                if (ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is {Count: > 0} frontShapes)
+                {
+                    content = [.. content, .. frontShapes];
+                }
 
                 // A w:hRule="exact" row clips what its cells cannot hold — Word's reference for
                 // table_layout_tall_row shows two of the company cell's three lines in its 80pt row, the
@@ -3508,8 +3517,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // fills render (an image-fill shape paints as a plain image, mirroring the body-float case —
         // brochures/04's construction photo is one, silently dropped before this); in-front-of-text
         // floats and the paragraph-anchor walk that positions non-cell-top floats are later slices
-        // (each painter's PaintShape skips what it cannot draw).
-        static IReadOnlyList<PlacedItem> ResolveCellFloatShapes(TableCell cell, float cellX, float cellY)
+        // (each painter's PaintShape skips what it cannot draw). With behindText false the same resolver
+        // returns the IN-FRONT shapes, which the caller paints after the cell's text — brochures/06's
+        // hot-air balloons, a group of freeforms in front of each grey panel's paragraphs, were dropped
+        // until then (the only in-front cell shapes in the corpus).
+        static IReadOnlyList<PlacedItem> ResolveCellFloatShapes(TableCell cell, float cellX, float cellY, bool behindText = true)
         {
             if (cell.Floats.Count == 0)
             {
@@ -3519,7 +3531,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var shapes = new List<PlacedItem>();
             foreach (var element in cell.Floats)
             {
-                if (element is not FloatingShapeElement {BehindText: true} shape)
+                if (element is not FloatingShapeElement shape || shape.BehindText != behindText)
                 {
                     continue;
                 }
@@ -3672,6 +3684,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // rule draw a single rule above the first, which the cell path silently dropped.
             // TableHeightCalculator.MeasureCellHeight charges the same reserves so measure = placement.
             ParagraphProperties? cellBorderRun = null;
+            var cellBorderRunItemsIndex = 0;
             var cellBorderRunTop = 0f;
             var cellBorderRunBottom = 0f;
             List<float>? cellBorderBetweens = null;
@@ -3691,6 +3704,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                                + borderBoxLeftOutset + borderBoxRightOutset;
                 var boxTop = cellBorderRunTop - (float) run.BorderTopSpacePoints;
                 var boxHeight = cellBorderRunBottom - cellBorderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
+
+                // The run's shading fills the whole box, out to the rules, behind its member lines — as
+                // FlushBorderRun does in the page flow. Cell paragraphs had none at all: brochures/06's
+                // QuoteAlt/QuoteSource box, an olive w:shd under white text, drew as a bare outline with
+                // its quote invisible.
+                if (!string.IsNullOrEmpty(run.BackgroundColorHex))
+                {
+                    lines.Insert(cellBorderRunItemsIndex, new PlacedShading(boxLeft, boxTop, boxWidth, boxHeight, run.BackgroundColorHex));
+                }
+
                 lines.Add(new PlacedBorder(boxLeft, boxTop, boxWidth, boxHeight, runBorders));
                 if (cellBorderBetweens != null)
                 {
@@ -3906,12 +3929,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 var memberTop = cellY;
+                var memberItemsStart = lines.Count;
                 for (var lineIndex = resumeLine; lineIndex < resumeLine + take; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
                     var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width, cell.Properties.SingleLine);
                     var baseline = cellY + line.Ascent;
+
+                    // Paragraph shading fills the paragraph's box behind each line, as in the page flow.
+                    if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
+                    {
+                        lines.Add(new PlacedShading(textLeft, cellY, availableWidth, line.Height, properties.BackgroundColorHex));
+                    }
+
                     lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
                     cellY += line.Height;
                 }
@@ -3932,6 +3963,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     if (cellBorderRun == null)
                     {
                         cellBorderRun = properties;
+                        cellBorderRunItemsIndex = memberItemsStart;
                         cellBorderRunTop = memberTop;
                     }
                     else if (properties.BorderBetween.IsVisible)
@@ -4009,10 +4041,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 return ShiftLine(line, 0, offset);
             }
 
-            // A paragraph-border box rides with the lines it wraps.
+            // A paragraph-border box, and the shading behind it, ride with the lines they wrap.
             if (item is PlacedBorder border)
             {
                 return border with {Y = border.Y + offset};
+            }
+
+            if (item is PlacedShading shading)
+            {
+                return shading with {Y = shading.Y + offset};
             }
 
             // A nested table's rows, with their cells and content.

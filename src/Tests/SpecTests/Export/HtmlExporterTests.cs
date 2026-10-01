@@ -317,6 +317,23 @@ public class HtmlExporterTests
                     })));
     }
 
+    /// <summary>
+    /// A shaded cell paragraph keeps its fill: brochures/06's olive quote box exported as an outline,
+    /// its white text invisible. A shaded paragraph with no spacing or border takes the block form too.
+    /// </summary>
+    [Test]
+    public async Task ShadedCellParagraphKeepsItsFill()
+    {
+        var shaded = new ParagraphElement
+        {
+            Runs = [TextRun("quote")],
+            Properties = new() { BackgroundColorHex = "454C02" }
+        };
+        var html = HtmlExporter.Export(Doc(Table(new TableRow { Cells = [new() { Content = [shaded] }] })));
+
+        await Assert.That(html).Contains("background-color: #454c02");
+    }
+
     [Test]
     public Task TableRowHeight()
     {
