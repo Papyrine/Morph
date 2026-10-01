@@ -78,6 +78,58 @@ public class CellHeightLawTests
         await Assert.That(nested.Y).IsEqualTo(row.Y + 15).Within(0.01f);
     }
 
+    [Test]
+    public async Task A_cells_own_margin_and_top_edge_stack()
+    {
+        var table = Table(
+            [
+                Row([Cell([Paragraph("a1")], null), Cell([Paragraph("b1")], null)]),
+                Row([Cell([Paragraph("a2")], new(4, 0, 0, 0), top: 6), Cell([Paragraph("b2")], new(4, 0, 0, 0), top: 6)])
+            ],
+            [130, 130]);
+
+        var rows = Rows(table);
+        var line = rows[1].Cells[1].Content.OfType<PlacedLine>().Single();
+
+        await Assert.That(line.Y - rows[1].Y).IsEqualTo(4 + 6).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_margin_on_one_cell_and_an_edge_on_another_give_the_larger()
+    {
+        var table = Table(
+            [
+                Row([Cell([Paragraph("a1")], null), Cell([Paragraph("b1")], null)]),
+                Row([Cell([Paragraph("a2")], new(10, 0, 0, 0)), Cell([Paragraph("b2")], null, top: 6)]),
+                Row([Cell([Paragraph("a3")], new(4, 0, 0, 0)), Cell([Paragraph("b3")], null, top: 12)])
+            ],
+            [130, 130]);
+
+        var rows = Rows(table);
+        var second = rows[1].Cells[1].Content.OfType<PlacedLine>().Single();
+        var third = rows[2].Cells[1].Content.OfType<PlacedLine>().Single();
+
+        await Assert.That(second.Y - rows[1].Y).IsEqualTo(10).Within(0.01f);
+        await Assert.That(third.Y - rows[2].Y).IsEqualTo(12).Within(0.01f);
+    }
+
+    [Test]
+    public async Task A_merged_cell_holds_its_content_across_the_edges_between_its_rows()
+    {
+        // A two-row merge beside a cell whose 6pt bottom edge closes the first row: the merged content
+        // needs 50pt, and the edge's 6pt counts towards it rather than going on top.
+        var table = Table(
+            [
+                Row([Cell([Nested(height: 50), CollapsedMark()], null, merge: VerticalMergeType.Restart), Cell([Paragraph("b1")], null, bottom: 6)], 20, exact: false),
+                Row([Cell([], null, merge: VerticalMergeType.Continue), Cell([Paragraph("b2")], null)], 10, exact: false)
+            ],
+            [130, 130]);
+
+        var rows = Rows(table);
+
+        await Assert.That(rows.Sum(_ => _.Height)).IsEqualTo(50).Within(0.01f);
+    }
+
     static List<PlacedTableRow> Rows(TableElement table) =>
         new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
 
@@ -87,12 +139,28 @@ public class CellHeightLawTests
     static TableRow Row(List<TableCell> cells, double? height = null, bool exact = false) =>
         new() { HeightPoints = height, IsExactHeight = exact, Cells = cells };
 
-    static TableCell Cell(List<DocumentElement> content, CellSpacing? padding, CellVerticalAlignment alignment = CellVerticalAlignment.Top) =>
-        new() { Properties = new() { Padding = padding, VerticalAlignment = alignment }, Content = content };
+    static TableCell Cell(List<DocumentElement> content, CellSpacing? padding, CellVerticalAlignment alignment = CellVerticalAlignment.Top, double top = 0, double bottom = 0, VerticalMergeType merge = VerticalMergeType.None) =>
+        new() { Properties = new() { Padding = padding, VerticalAlignment = alignment, Borders = Edges(top, bottom), VerticalMerge = merge }, Content = content };
 
-    // A one-row 30pt exact table, as a cell's nested content.
-    static TableElement Nested() =>
-        Table([Row([Cell([Paragraph("inner")], null)], 30, exact: true)], [200]);
+    // A w:tcBorders declaring only the given top and bottom edges, or none.
+    static CellBorders? Edges(double top, double bottom)
+    {
+        if (top == 0 && bottom == 0)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Top = top > 0 ? new() { IsVisible = true, WidthPoints = top } : BorderEdge.None,
+            Bottom = bottom > 0 ? new() { IsVisible = true, WidthPoints = bottom } : BorderEdge.None,
+            Declared = (top > 0 ? BorderSides.Top : 0) | (bottom > 0 ? BorderSides.Bottom : 0)
+        };
+    }
+
+    // A one-row exact table, 30pt unless told otherwise, as a cell's nested content.
+    static TableElement Nested(double height = 30) =>
+        Table([Row([Cell([Paragraph("inner")], null)], height, exact: true)], [100]);
 
     // The empty end-of-cell mark after a nested table, given spacing and a size that would cost the row
     // well over its 30pt if any of it counted.

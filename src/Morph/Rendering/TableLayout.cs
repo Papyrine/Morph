@@ -56,7 +56,7 @@ static class TableLayout
         return top == own.Top && bottom == own.Bottom ? own : own with {Top = top, Bottom = bottom};
     }
 
-    static CellSpacing OwnPadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row) =>
+    internal static CellSpacing OwnPadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row) =>
         cellProps.Padding ?? row?.OverrideCellPadding ?? tableProps.DefaultCellPadding;
 
     /// <summary>
