@@ -451,7 +451,14 @@ static class ImageSharpPainter
             if (shape.LineWidthEmu > 0)
             {
                 var strokeWidth = (float) (shape.LineWidthEmu / OoxmlUnits.EmusPerPointF) * context.Scale;
-                canvas.Draw(context.GetPen(ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth), path);
+                var strokeColor = ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha);
+                var strokePath = shape.OpenOutline
+                    ? ImageSharpShapeDrawing.BuildGroupShapePath(shape, x1, y1, width, height, close: false) ?? path
+                    : path;
+                var pen = shape.RoundCap
+                    ? new SolidPen(new PenOptions(strokeColor, strokeWidth) {StrokeOptions = new() {LineCap = LineCap.Round}})
+                    : context.GetPen(strokeColor, strokeWidth);
+                canvas.Draw(pen, strokePath);
             }
         }
 

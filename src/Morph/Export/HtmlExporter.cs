@@ -2845,7 +2845,12 @@ static class HtmlExporter
                             .Append(Number(shape.Y + offsetY + unitY * shape.Height));
                     }
 
-                    builder.Append('Z');
+                    // SVG fills an open path as if closed and strokes it open — DrawingML's reading of
+                    // a custGeom with no a:close.
+                    if (!shape.OpenOutline)
+                    {
+                        builder.Append('Z');
+                    }
                 }
 
                 builder.Append('"');
@@ -2889,6 +2894,11 @@ static class HtmlExporter
             if (shape.LineAlpha < 0.999)
             {
                 builder.Append(" stroke-opacity=\"").Append(Number(shape.LineAlpha)).Append('"');
+            }
+
+            if (shape.RoundCap)
+            {
+                builder.Append(" stroke-linecap=\"round\"");
             }
         }
 

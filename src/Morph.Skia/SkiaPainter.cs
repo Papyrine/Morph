@@ -500,9 +500,15 @@ static class SkiaPainter
                     Color = SkiaShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha),
                     Style = SKPaintStyle.Stroke,
                     StrokeWidth = (float) (shape.LineWidthEmu / OoxmlUnits.EmusPerPointF) * context.Scale,
+                    StrokeCap = shape.RoundCap ? SKStrokeCap.Round : SKStrokeCap.Butt,
                     IsAntialias = true
                 };
-                if (geometryPath != null)
+                if (shape.OpenOutline && SkiaShapeDrawing.BuildGroupShapePath(shape, rect, close: false) is { } openPath)
+                {
+                    canvas.DrawPath(openPath, strokePaint);
+                    openPath.Dispose();
+                }
+                else if (geometryPath != null)
                 {
                     canvas.DrawPath(geometryPath, strokePaint);
                 }

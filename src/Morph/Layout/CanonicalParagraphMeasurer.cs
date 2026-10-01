@@ -989,7 +989,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 var groupWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
                 var groupHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
-                pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(groupWidth), 0, "", run.Properties, new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: shapeGroup), false, false));
+                var group = new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: shapeGroup, EffectExtent: run.InlineImageEffectExtent);
+                pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(group.BoxWidth), 0, "", run.Properties, group, false, false));
                 continue;
             }
 

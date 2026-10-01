@@ -570,7 +570,14 @@ static class PdfPainter
             if (shape.LineWidthEmu > 0)
             {
                 var pen = PdfShapeDrawing.StrokePen(shape, shape.LineWidthEmu / OoxmlUnits.EmusPerPoint);
-                if (geometryPath != null)
+                if (shape.OpenOutline && PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height, close: false) is { } openPath)
+                {
+                    // An open stroke shows its ends, so it takes the declared cap rather than the
+                    // square one the connector pieces need.
+                    pen.LineCap = shape.RoundCap ? XLineCap.Round : XLineCap.Flat;
+                    graphics.DrawPath(pen, openPath);
+                }
+                else if (geometryPath != null)
                 {
                     graphics.DrawPath(pen, geometryPath);
                 }
