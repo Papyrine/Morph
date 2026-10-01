@@ -3417,7 +3417,41 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // table_layout_tall_row shows two of the company cell's three lines in its 80pt row, the
                 // third hidden. The engine had drawn the overflow (ClipContent was Excel's alone).
                 var clip = cell.Properties.ClipOverflow || row.IsExactHeight;
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, borders, content, clip, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipHorizontally: cell.Properties.ClipOverflow));
+
+                // A vertical merge takes its top from the head, its bottom from its LAST cell and each
+                // row's stretch of its sides from that row's cell (TableLayout.MergeSegmentBorders).
+                // Sides that agree down the span stay one box, so its corners join as any cell's do;
+                // sides that differ are drawn as a content-less box per row, after the merged cell so
+                // its shading stays underneath.
+                var drawnBorders = borders;
+                CellBorders[]? sideSegments = null;
+                if (endRowIndex > rowIndex)
+                {
+                    var segments = TableLayout.MergeSegmentBorders(table, rowIndex, endRowIndex, gridColIndex, colCount);
+                    if (detached || segments.All(_ => _.Left == segments[0].Left && _.Right == segments[0].Right))
+                    {
+                        drawnBorders = segments[0] with {Bottom = segments[^1].Bottom};
+                    }
+                    else
+                    {
+                        drawnBorders = null;
+                        sideSegments = segments;
+                    }
+                }
+
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, clip, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipHorizontally: cell.Properties.ClipOverflow));
+
+                if (sideSegments != null)
+                {
+                    var segmentY = rowY;
+                    for (var segment = 0; segment < sideSegments.Length; segment++)
+                    {
+                        var segmentHeight = rowHeights[rowIndex + segment];
+                        var isLast = segment == sideSegments.Length - 1;
+                        cells.Add(new(cellX, segmentY, cellWidth, segmentHeight, null, sideSegments[segment], [], BottomEdgeInset: isLast ? cellBottomEdge : 0f));
+                        segmentY += segmentHeight;
+                    }
+                }
 
                 cellX += cellWidth;
                 gridColIndex += span;

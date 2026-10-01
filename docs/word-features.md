@@ -1357,10 +1357,20 @@ Cells spanning multiple rows.
 
 - **OOXML**: `w:vMerge` — `restart` (start of merge) or `continue` (continuation)
 - **Model**: `TableCellProperties.VerticalMerge` (Restart/Continue enum)
-- **Layout**: `TableLayout.CalculateVerticalMergeHeights()`
-- **Test**: `table_vmerge_basic/`, `table_vmerge_explicit_heights/`
+- **Layout**: `TableLayout.CalculateVerticalMergeHeights()`; edges per spanned row from `TableLayout.MergeSegmentBorders()`
+- **Test**: `table_vmerge_basic/`, `table_vmerge_explicit_heights/`, `MergedCellBorderTests`
 
 > **Contributors**: Per-column Y-position tracking ensures merged cells render across the correct row span.
+>
+> **A merge's edges come from different cells (2026-10-01, `_probe_vborders` / `_probe_vborders2`).** Seven three-row merges in a borderless table, each declaring 6pt edges in its own colours on one or more of its cells, settle it:
+>
+> | Edge | Drawn from | Never drawn |
+> | --- | --- | --- |
+> | top | the head | a continuation's own top |
+> | bottom | the LAST continuation | the head's own bottom, a middle cell's bottom |
+> | left / right | each row's own cell, beside that row only | — |
+>
+> A head declaring a left edge draws it beside its first row alone, and a head and last cell declaring different bottoms draw only the last one's. The single exception seen was a page break: a merge Word split after its middle row drew that row's declared bottom at the page foot. Morph never splits a merge (Multi-page Tables rule 4), so the case does not arise in the engine. The mid-span edges Word hides still take their room: a middle cell's 6pt top or bottom adds 6pt between its row and the neighbouring one, as a drawn edge would. `TableLayout.MergeSegmentBorders` returns the edges per row. `Fragmenter.BuildRow` keeps one box when the sides agree down the span, so its corners join as any cell's do, and otherwise draws a content-less box per row. resumes/06's rule under "Bachelor of Arts" is a last continuation's `w:bottom` that its head does not repeat. Morph had drawn the head's edges round the whole merge, so that rule was missing. Pinned by `MergedCellBorderTests`.
 >
 > **A merge's overflow lands in the LAST spanned row (2026-09-05, XPS-read).** When the merged cell's content is taller than the rows it spans, Word leaves every row but the last at its own height and grows the last by the whole difference. `_probe_vmerge` merged a 14-line cell (205pt) down three one-line rows: Word's rows read 15 / 15 / 174.7, and with `atLeast` floors of 30 and 45 on the first two, 30 / 45 / 129.1 — the floors hold, the remainder still goes last. `TableHeightCalculator`'s third pass spread the difference evenly before, which put newsletters/09's rows 4-6 each 30pt below Word's (308.8 / 66.2 / 127.7 against 279.2 / 36 / 96.6) and, once the cell-border reserves landed on the same page, tipped its page-1 footer rows onto a fifth page. With the rule, that page's rows match Word's clips row for row and the scenario reads −0.07 AE / +0.25 SSIM per backend.
 
