@@ -3229,7 +3229,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // unpaid budget takes 54 lines to Word's 53. An exact row is exempt, mirroring the height model,
             // since ECMA-376 §17.4.81 makes its height verbatim against borders as against content.
             var chargesEdges = !TableHeightCalculator.IsPinnedExact(row);
-            var topEdge = chargesEdges ? TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: true) : 0f;
+            var topEdge = chargesEdges ? TableHeightCalculator.TopEdgeReserve(table, colCount, rowIndex) : 0f;
             var bottomEdge = chargesEdges ? TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: false) : 0f;
             var horizontalEdges = topEdge + bottomEdge;
 
@@ -3344,7 +3344,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // row's text 6pt lower than an unbordered row's, a 3pt `double` 9pt lower (_probe_cellw /
             // _probe_cellfam, XPS) — so the reserve is spent above the content, not left under it.
             var lastRowIndex = table.Rows.Count - 1;
-            var topEdge = TableHeightCalculator.IsPinnedExact(row) ? 0f : TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: true);
+            var topEdge = TableHeightCalculator.IsPinnedExact(row) ? 0f : TableHeightCalculator.TopEdgeReserve(table, colCount, rowIndex);
             var bottomEdge = TableHeightCalculator.IsPinnedExact(table.Rows[lastRowIndex]) ? 0f : TableHeightCalculator.HorizontalBorderWidth(table, colCount, lastRowIndex, top: false);
 
             // Detached-border model: the table FRAME is its own box at the row extent — left/right

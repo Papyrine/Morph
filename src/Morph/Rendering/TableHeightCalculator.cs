@@ -145,10 +145,19 @@ static class TableHeightCalculator
 
                     var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row);
 
+                    // The merged box runs straight across the edges between its rows, so the room the fourth
+                    // pass reserves for each of them holds the merged content too. resumes/05's section
+                    // headings are two-row merges beside a rule that closes the first row: Word's heading
+                    // box is 33.03pt across that 1.5pt rule, and leaving the rule out of the span grew each
+                    // second row by its width (Word's 19.2pt rows read 20.6).
                     float currentTotalHeight = 0;
                     for (var r = rowIndex; r < rowIndex + rowSpan && r < table.Rows.Count; r++)
                     {
                         currentTotalHeight += heights[r];
+                        if (addInteriorBorders && r > rowIndex && !IsPinnedExact(table.Rows[r]))
+                        {
+                            currentTotalHeight += TopEdgeReserve(table, colCount, r);
+                        }
                     }
 
                     // The overflow lands in the LAST spanned row, not spread across the span. XPS-read on
@@ -205,7 +214,7 @@ static class TableHeightCalculator
             var lastRowIndex = table.Rows.Count - 1;
             if (!IsPinnedExact(table.Rows[0]))
             {
-                heights[0] += HorizontalBorderWidth(table, colCount, rowIndex: 0, top: true);
+                heights[0] += TopEdgeReserve(table, colCount, rowIndex: 0);
             }
 
             if (!IsPinnedExact(table.Rows[lastRowIndex]))
@@ -222,7 +231,7 @@ static class TableHeightCalculator
                         continue;
                     }
 
-                    heights[rowIndex] += HorizontalBorderWidth(table, colCount, rowIndex, top: true);
+                    heights[rowIndex] += TopEdgeReserve(table, colCount, rowIndex);
                 }
             }
         }
@@ -265,6 +274,40 @@ static class TableHeightCalculator
         }
 
         return width;
+    }
+
+    /// <summary>
+    /// How far the edge above a row pushes its content below the row's top margin, in points. Word
+    /// sets the row's content at the LARGEST of each cell's own top margin plus its own top edge, and
+    /// of the row above's bottom edge (XPS-read on <c>_probe_edgemar</c> at 6/12pt edges against
+    /// 4/10pt margins): a cell declaring both stacks them (6 + 4 = 10), but a margin on one cell and
+    /// an edge on another, or under the row above's bottom edge, give the larger of the two (6 and 4
+    /// give 6, 6 and 10 give 10). resumes/05's sidebar cells carry 3.6pt margins beside the
+    /// right-hand cells' 1.5pt rules, so its rows are 3.6pt in, not 5.1. A detached table
+    /// (<c>w:tblCellSpacing</c>) keeps the whole edge, since each of its cells is a box of its own.
+    /// </summary>
+    internal static float TopEdgeReserve(TableElement table, int colCount, int rowIndex)
+    {
+        var edge = HorizontalBorderWidth(table, colCount, rowIndex, top: true);
+        if (edge == 0 || table.Properties.CellSpacingPoints > 0)
+        {
+            return edge;
+        }
+
+        var row = table.Rows[rowIndex];
+        var rowMargin = (float) TableLayout.RowVerticalPadding(row, table.Properties).Top;
+        var inset = rowIndex > 0 ? Math.Max(rowMargin, RowEdgeWidth(table, colCount, rowIndex - 1, top: false)) : rowMargin;
+        var gridColIndex = 0;
+        for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
+        {
+            var properties = row.Cells[cellIndex].Properties;
+            var borders = TableLayout.ResolveCellBorders(properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
+            var ownEdge = borders?.Top is {IsVisible: true} top ? (float) BorderStroke.Extent(top.Style, top.WidthPoints, BorderStroke.Scope.Cell) : 0f;
+            inset = Math.Max(inset, (float) TableLayout.OwnPadding(properties, table.Properties, row).Top + ownEdge);
+            gridColIndex += properties.GridSpan;
+        }
+
+        return inset - rowMargin;
     }
 
     static float RowEdgeWidth(TableElement table, int colCount, int rowIndex, bool top)
