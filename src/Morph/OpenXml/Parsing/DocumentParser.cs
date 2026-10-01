@@ -6789,9 +6789,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // FloatingImageElement belongs here as much as FloatingShapeElement, and reading only the
         // latter left a picture-anchoring paragraph matching NO branch below, silently losing its
         // mark. business-plans/13's cover lifts out one image and one shape from a single paragraph
-        // and so lost a whole line, carrying its title and subtitle ~24pt up the page.
+        // and so lost a whole line, carrying its title and subtitle ~24pt up the page. A floating
+        // text box or WordArt leaves the flow the same way: cards/02's ticket group lifts out a text
+        // box among its shapes, and its anchor paragraph's 25pt mark line vanished, carrying both
+        // tickets' tables up the page by it.
         var onlyFloatingArt = result.Count > 0 &&
-                              result.All(_ => _ is FloatingShapeElement or FloatingImageElement);
+                              result.All(_ => _ is FloatingShapeElement or FloatingImageElement or FloatingTextBoxElement or FloatingWordArtElement);
 
         // Add remaining content
         if (runs.Count == 0 &&
@@ -6888,6 +6891,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         break;
                     case FloatingShapeElement {AnchorParagraph: null} shape:
                         shape.AnchorParagraph = anchorParagraph;
+                        break;
+                    case FloatingTextBoxElement {AnchorParagraph: null} textBox:
+                        textBox.AnchorParagraph = anchorParagraph;
                         break;
                 }
             }
@@ -8703,6 +8709,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return new()
         {
             Content = content,
+            HidesOverflow = HidesOverflow(wsp),
             WidthPoints = widthPoints,
             HeightPoints = heightPoints,
             RelativeHeight = positioning.RelativeHeight,
@@ -8989,6 +8996,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return new()
         {
             Content = content,
+            HidesOverflow = HidesOverflow(wsp),
             WidthPoints = widthPt,
             HeightPoints = heightPt,
             RelativeHeight = positioning.RelativeHeight,
@@ -9306,8 +9314,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // below otherwise drops for want of geometry (labels/04's light-blue hexagon
         // accents: the hexagon builder exists, but a gradient shape carries the start
         // colour as its fillColorHex and never reached it). Solid fills keep the Preset
-        // fast path — no contour churn there.
-        if (subpaths == null && (imageData != null || fillColorHex == null || gradient != null))
+        // fast path when the preset IS a rect or ellipse; any other solid preset needs its
+        // contours too, or it fills its bounding box (cards/02's ticket stars filled as orange
+        // squares and its notched plaque tickets as plain rects).
+        if (subpaths == null &&
+            (imageData != null || fillColorHex == null || gradient != null || !ShapeParser.HasStrokeablePresetOutline(shapeProps)))
         {
             subpaths = PresetShapeGeometry.TryBuild(
                 shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
@@ -9668,6 +9679,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Parses a text box from a WordprocessingShape using accumulated transform from nested groups.
     /// </summary>
+    // A text box that resizes to its text (wps:bodyPr/a:spAutoFit) never overflows; any other hides
+    // what does not fit.
+    static bool HidesOverflow(WPS.WordprocessingShape wsp) =>
+        wsp.GetFirstChild<WPS.TextBodyProperties>()?.GetFirstChild<A.ShapeAutoFit>() == null;
+
     FloatingTextBoxElement? ParseTextBoxFromShapeWithTransform(
         WPS.WordprocessingShape wsp,
         AnchorPositioning positioning,
@@ -9791,6 +9807,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return new()
         {
             Content = content,
+            HidesOverflow = HidesOverflow(wsp),
             WidthPoints = widthPt,
             HeightPoints = heightPt,
             RelativeHeight = positioning.RelativeHeight,
