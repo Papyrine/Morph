@@ -60,7 +60,7 @@ When a name doesn't match any indexed face, Morph falls back in this order:
    | `Grandview Display` | `Grandview` |
    | `Cambria Math` | `Cambria` |
 
-3. **User `FontFallback` delegate**, if `ExportOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`.
+3. **User `FontFallback` delegate**, if `ExportOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`. The alternative is looked up in the indexed fonts, then the platform font manager, then the Aptos faces embedded in `Morph.dll`, so `FontFallback = _ => "Aptos"` renders every unresolved family on any host, including one with no fonts installed.
 4. **Platform font manager.** Skia's `SKTypeface.FromFamilyName` / ImageSharp's `SystemFonts` get a final chance, useful for fonts the user installed after Morph's caches loaded.
 
 If all four fall through, an `InvalidOperationException` is thrown listing every directory that was searched.
