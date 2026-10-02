@@ -140,6 +140,23 @@ public class FontStyleFromNameTests
     }
 
     [Test]
+    public async Task GetFontFamily_UnknownFont_DelegateNamesEmbeddedFont_ResolvesFromMorph()
+    {
+        // An empty FontDirectory, so no installed Aptos can answer: only the faces inside Morph.dll.
+        var directory = Directory.CreateTempSubdirectory("morph-no-fonts-").FullName;
+        try
+        {
+            using var context = new ImageSharpRenderContext(new(), 96, fontFallback: _ => "Aptos", fontDirectory: directory);
+            var family = context.GetFontFamily("NonExistentFont12345", false, false);
+            await Assert.That(family.Name).IsEqualTo("Aptos");
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
     public async Task GetFontFamily_UnknownFont_DelegateReturnsNull_Throws()
     {
         using var context = new ImageSharpRenderContext(

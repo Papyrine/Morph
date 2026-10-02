@@ -18,7 +18,9 @@ public abstract record ExportOptions
     /// <summary>
     /// Optional delegate to resolve missing fonts. Called with the font family name that could not
     /// be found; return an alternative family, or null to fall through to the curated alias map,
-    /// the platform resolver, and finally <see cref="DefaultFont"/>.
+    /// the platform resolver, and finally <see cref="DefaultFont"/>. The family returned is looked up
+    /// in the same places plus the Aptos faces embedded in Morph.dll, so <c>_ => "Aptos"</c> resolves
+    /// on any host, including one with no fonts installed.
     /// <para>
     /// Consulted only once <see cref="FontDirectory"/> / the bundled faces and the host's installed
     /// fonts have both missed, so a family the machine can already serve never reaches it.
