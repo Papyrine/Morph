@@ -68,6 +68,18 @@ margins, single digits) are metric-invisible. The judging loop that proved relia
    highest-numbered per-page verified file orphaned; Verify then fails that scenario with a
    `Delete:` instruction and NO received files. Remove the orphan by hand.
 
+**The loop judges a render, not a rule.** A summed delta mixes where lines break with where glyphs
+sit inside them, so a model that copies how Word draws can score level with one that copies how
+Word breaks while getting the breaks wrong. The per-glyph advance sidecars and the
+space-compression wedge landed on 2026-08-30 on a flat aggregate (+0.0006 AE over 400
+page/backend pairs) and stood for five weeks; a threshold probe then showed Word breaks on plain
+linear widths (`docs/layout-engine.md`, "The crux"), and taking them out moved 61 pages closer
+against 31 further. The same loop misled in the other direction during that removal: eight table
+fixtures scored worse, which read as "autofit needs the drawn widths" until a probe of 990 tables
+said autofit is linear too and the cause turned out to be a float round-off in the fit test. When
+a change encodes a claim about what Word does, settle the claim with a probe (below) and use the
+suite to look for collateral.
+
 ## Promotion-time guard against degenerate baselines
 
 The judging loop above is a manual discipline; the suite itself has one blind spot it cannot
@@ -206,8 +218,7 @@ coincided with its reference. Thirteen templates behaved this way (`business-pla
 `/06`, `cards/12`, `cards/19`, `cover-letters/01`, `/02`, `letters/08`, `/10`, `/11`, `wedding/01`,
 `wedding/06`), and regenerating from their first renders would have replaced thirteen good references
 with substituted ones. The family names Word embedded are in the XPS (`MORPH_KEEP_XPS=1`;
-`xps_font_families` in `scripts/generate-word-advances.py` reads them), and a second render that
-differs from the first is the tell.
+`scripts/read-word-xps.py` prints them), and a second render that differs from the first is the tell.
 
 **Telling the classes apart.** A raw pixel count cannot do it: a line sitting one pixel lower differs
 on every stroke edge, which on a sparse page reads like a change of typeface. What separated them
@@ -283,6 +294,11 @@ diff can decide:
 - **Build a minimal document when no fixture isolates the rule.** A hand-written docx of N
   consecutive break-only paragraphs answered "does Word absorb a page break at a page top?"
   — it does not, N breaks give N+1 pages.
+- **Measure the decision, not the drawing.** To learn where Word breaks a line, step the measure
+  a pixel at a time and watch the last word wrap; to learn what an autofit column holds, grow its
+  text and read the column off the border rules. The glyph positions in Word's XPS say how a line
+  was drawn after those decisions were made, and advance tables built from them measured sentences
+  from 1.6% under to 4.2% over the width Word broke on (`scripts/read-word-xps.py` has the detail).
 
 Two traps worth knowing. Resolve parts through the relationship, not the conventional name:
 several fixtures use `styles2.xml`/`document2.xml`, so a scan hardcoding `word/styles.xml`

@@ -162,52 +162,6 @@ sealed record FontMetrics
     public IReadOnlyDictionary<int, ushort> GlyphForCodepoint { get; init; } = new Dictionary<int, ushort>();
 
     /// <summary>
-    /// Word-measured advance overrides from a <c>.wordadvances</c> sidecar next to the font file,
-    /// or null for a font without one. Word does not lay text out on the font's linear <c>hmtx</c>
-    /// advances: it rounds the em to whole pixels on its 120-dpi layout grid per size and takes
-    /// per-glyph GDI natural widths, most of which snap to whole pixels at text sizes — and the
-    /// snap depends on the authored point size, not just the resulting pixel em (10.5pt and 11pt
-    /// both render on an 18px em with different <c>n</c> advances). No public API reproduces the
-    /// values (DirectWrite's GDI-compatible mode rounds cells Word keeps fractional), so the
-    /// sidecar memoizes Word itself, measured from its XPS output: keyed by half-point size, then
-    /// codepoint, value in pixels on the 120-dpi reference grid — the same grid
-    /// <see cref="CanonicalTextMeasurer"/> accumulates in. Codepoints absent at a covered
-    /// size, and sizes absent entirely, fall back to linear at the rounded em plus the measured
-    /// half-twip bias: <c>design/upm * (round(pt*5/3) + 1/24)</c>.
-    ///
-    /// <para>Live since 2026-08-30 (the Calibri five) and 2026-09-06 (twenty faces). These are the
-    /// COMPATIBILITY MODE 14-and-below values — Word's GDI-compatible whole-pixel glyph widths, which
-    /// every settings-less package and 204 corpus documents take. A mode 15 document lays text out
-    /// on DirectWrite's fractional widths instead, up to a pixel narrower per glyph (Segoe UI 12pt
-    /// 's': a constant 9px in mode 12, 8/8/8/9 in mode 15 — <c>_probe_seg_m15</c>), so mode 15 reads
-    /// <see cref="WordAdvancesMode15"/>; <see cref="WordAdvancesFor"/> picks. Measuring a mode 15
-    /// document with the mode 12 table wrapped agendas-minutes/15 a line short per paragraph.</para>
-    /// </summary>
-    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvances { get; init; }
-
-    /// <summary>
-    /// The compatibility-mode-15 sidecar (<c>*.wordadvances15</c>, generated with a probe package
-    /// declaring <c>compatibilityMode 15</c>): Word's fractional DirectWrite widths, in the same
-    /// per-size, per-codepoint pixel form as <see cref="WordAdvances"/> — a hinted integer where the
-    /// font grid-fits at that pixel size, fractional where it does not. Null when not generated, and
-    /// the face measures linearly in mode 15. Shipped for the Calibri five; the tables generated for
-    /// the other faces are held back until Word's mode-15 kerning (a kerned pair's first glyph floors)
-    /// is modelled — see <c>docs/word-features.md</c>, Fonts.
-    /// </summary>
-    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesMode15 { get; init; }
-
-    /// <summary>The sidecar a document in the given compatibility mode measures with, or null.</summary>
-    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>>? WordAdvancesFor(int compatibilityMode)
-    {
-        if (compatibilityMode >= 15)
-        {
-            return WordAdvancesMode15;
-        }
-
-        return WordAdvances;
-    }
-
-    /// <summary>
     /// GPOS <c>kern</c>-feature pair kerning, or null for a font without usable pair data. Word
     /// applies these adjustments when kerning is enabled for a run (<c>w:kern</c>; the built-in
     /// Normal of a document with no docDefaults kerns by default — <c>_probe_kern_*</c>), with the

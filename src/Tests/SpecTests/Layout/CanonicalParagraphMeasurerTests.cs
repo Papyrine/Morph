@@ -73,6 +73,31 @@ public class CanonicalParagraphMeasurerTests
         await Assert.That(lines.Count).IsEqualTo(1);
     }
 
+    // An autofit column is sized to its text's natural width plus the cell's chrome, and the cell
+    // then takes the chrome back off — so the measure the text is wrapped at has been through float
+    // arithmetic, and can land a few millionths of a point under the width it was read from. The
+    // text still has to fit on the one line that was measured.
+    [Test]
+    public async Task A_line_fits_the_measure_taken_from_its_own_width()
+    {
+        var paragraph = Para(Run("Top margin emphasis", "Calibri", 12));
+        var natural = measurer.MeasureParagraphNaturalWidth(paragraph, float.MaxValue / 4);
+
+        // Every chrome up to 40pt, in the twentieths of a point that margins and borders come in.
+        var wrapped = new List<float>();
+        for (var twentieths = 0; twentieths <= 800; twentieths++)
+        {
+            var chrome = twentieths / 20f;
+            var column = natural + chrome;
+            if (measurer.LayoutParagraphForMeasurement(paragraph, column - chrome).Count != 1)
+            {
+                wrapped.Add(chrome);
+            }
+        }
+
+        await Assert.That(wrapped).IsEmpty();
+    }
+
     [Test]
     public async Task Empty_paragraph_is_one_mark_line_with_no_after_spacing()
     {

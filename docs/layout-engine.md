@@ -246,6 +246,41 @@ bundled Calibri faces are generated but still ship PARKED (`.wordadvances.pendin
 the remaining blocker is the table/autofit interplay under changed advances, not the advances themselves.
 Ledger: `src/todo.md` #43.*
 
+*Third update (2026-10-02): the second update read the right numbers and drew the wrong conclusion from
+them. The sidecars went live on 2026-08-30 and were deleted five weeks later, because the XPS shows where
+Word DRAWS glyphs and Word does not break lines there. Asked directly instead of read off the page:*
+
+- ***Line breaks.** One sentence per paragraph, the right indent stepped a pixel at a time. The narrowest
+  measure the sentence still fits on is `ceil(linear width)` — design units at the size as authored, plus
+  GPOS kerning scaled the same way — on 76 of 76 thresholds: Calibri, Arial, Aptos and Times New Roman;
+  10, 11 and 12pt; compatibility modes 12 and 15; kerning on and off; left-aligned, and justified in
+  mode 12. The sidecars measured the same sentences from 1.6% under to 4.2% over (Calibri 12pt: 785px for
+  a sentence whose linear width is 757).*
+- ***Autofit.** 990 single-cell tables: the column is the linear width plus the cell's chrome, within 1px
+  on 902 and within 1.7px on all (`docs/word-features.md`, Table Auto-fit).*
+- ***What the XPS records instead.** Whole-pixel glyph advances at the em rounded to a whole pixel. Inside
+  a run the pen may fall about 5px behind its linear position before a glyph is widened by a pixel (one
+  glyph repeated 5 to 160 times, 300 runs: 296 within 1px of that model, 235 of a per-glyph one). A space
+  brings the pen up to the rounded linear position when it is behind and never pulls it back when it is
+  ahead. And a line that drew wider than its measure has its spaces narrowed until it fits — which is what
+  the "space-compression wedge" of 2026-08-30 had modelled as a breaking rule. Word was not squeezing a
+  line to avoid a wrap; it was squeezing the drawing of a line that already fitted on its linear width.*
+- ***Why the sidecars looked right.** A sidecar cell was the mean advance of a 20-glyph run, and 5px of
+  lag spread over 20 glyphs is a quarter pixel: `max(whole-pixel advance, linear − ¼px)` reproduces 99.6%
+  of the kerning-free Calibri table at 6-24pt. The tables were a faithful record of 20-glyph runs and
+  described no other run length.*
+
+*So every face measures on the linear track (`CanonicalTextMeasurer.LinearPixels`), which is where the
+first update had left it, and the sidecars, their generator, the Word-track measurer and the wedge are
+gone. Corpus effect over the 597 Word pages: no page count moved; Skia 61 pages closer to Word and 31
+further (summed AE −0.061), PDF −0.051, ImageSharp −0.019; and in the 30 scenarios whose line breaks
+changed, 417 of the 485 long lines that Word sets today are reproduced verbatim, against 276 before. The
+lines that still part from Word's point the same way: four measured in the corpus break a word early
+because their kerning never reaches the measurer, and in each the linear kerned width is the one that
+fits. What is still open is `src/todo.md` #43: that kerning gap, how glyphs are placed inside a line, mode
+15's squeeze of justified lines, and the two places the engine's own rounding still parts from Word's
+(the kerned-pair rule and the pen rounding in the fit test).*
+
 ## Migration checklist (sequence matters even unbounded)
 
 Build alongside the existing renderers; do not delete anything until all three backends consume the tree.
@@ -273,7 +308,9 @@ through the render context's own primitives rather than a common `ILayoutPainter
       paragraph sample. The advance model uses **pen-position rounding** — the whole-line total tracks
       the linear ideal to within half a device pixel, so per-glyph error can't accumulate and
       over-wrap; this is the "inter-word spaces are elastic upward" behaviour, spread across the run.
-      The lone residual is one Calibri 10pt paragraph a sub-pixel from its boundary. The
+      The lone residual is one Calibri 10pt paragraph a sub-pixel from its boundary. (Over the whole
+      corpus as it stands on 2026-10-02 the rate is 97.1%, 404 of 416 paragraphs — the gate now walks
+      every input rather than a sample, and twelve near-fit lines land either side of the measure.) The
       **`IParagraphMeasurer` surface adapter** landed too (`CanonicalParagraphMeasurer`,
       `CanonicalParagraphMeasurerTests`): multi-run greedy wrap (a mid-word format change never splits
       the word), per-line height = the tallest run's hhea box under the spacing rule, and Word's

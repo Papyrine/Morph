@@ -26,39 +26,39 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting\nagain. For example, this is the Normal style."
+        "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting again.\nFor example, this is the Normal style."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4397,
-      "Ssim": 0.6333,
+      "ErrorMetric": 0.4396,
+      "Ssim": 0.6337,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.381,
-      "Ssim": 0.6827,
+      "ErrorMetric": 0.3808,
+      "Ssim": 0.6844,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3375,
-      "Ssim": 0.7148,
+      "ErrorMetric": 0.3372,
+      "Ssim": 0.7151,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.5614,
-      "Ssim": 0.5564,
+      "ErrorMetric": 0.5609,
+      "Ssim": 0.5595,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

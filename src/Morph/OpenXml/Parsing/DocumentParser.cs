@@ -28,21 +28,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // w:after="160". The family is Word-probed (bare three-part package, one paragraph, no
     // w:rFonts anywhere): Word draws the sample 632x21px at 150 DPI, matching its own explicit
     // Calibri 12 exactly on both axes (Aptos 12 is 665x20, Times 12 is 629x23). An earlier
-    // comment here read the long_paragraph advances as "12pt Aptos" — the 12pt was right, the
-    // family wrong: linear Aptos matched that document's wrap points only because its +4% width
-    // error coincided with the -2.4% error of measuring Word's Calibri on the linear hmtx track
-    // (Word's real advance model is measured and tooled - see FontMetrics.WordAdvances).
+    // comment here read the long_paragraph advances as "12pt Aptos", and of the reference it was
+    // read from that was true: the references rendered before 2026-08 are set in Aptos, which is
+    // what Word gave a style-less document then. It gives Calibri now, and the 105 references
+    // that were in Aptos were regenerated on 2026-10-02 (docs/fidelity-audit.md).
     // The line pitch is unchanged by the family: Calibri's GDI cell and Aptos's hhea box are
     // both 1.2207em, so 12pt * 1.2207 * 278/240 = 35.35px at 150 DPI either way.
     // A caller-supplied default font (ExportOptions.DefaultFont or a customized
     // DefaultFontSettings.DefaultFont) still overrides the family - see the constructor.
     // Word's built-in family for this case is CALIBRI (probed - see the comment block above).
-    // The flip from Aptos landed 2026-08-30 with the rest of the todo #43 bundle, once its two
-    // gates cleared: the "autofit slack" proved to be a mismeasurement (Word's rule is
-    // max(cellMargin, borderWidth/2) per side - see TableLayout), and the page-count loser
-    // resumes/16 proved to be Word's space-compression wedge, not advances (see
-    // CanonicalParagraphMeasurer.TryCompress). The Word-measured Calibri advances
-    // (src/Fonts/*.wordadvances) activated with it.
+    // The flip from Aptos landed 2026-08-30, once the "autofit slack" that had held it back
+    // proved to be a mismeasurement (Word's rule is max(cellMargin, borderWidth/2) per side -
+    // see TableLayout).
     const string builtInDefaultFontFamily = "Calibri";
 
     const double builtInDefaultFontSizePoints = 12.0;
