@@ -67,6 +67,43 @@ If all four fall through, an `InvalidOperationException` is thrown listing every
 
 This chain is the shared `FontResolver`, used by the Skia and ImageSharp backends. The PDF backend has its own: PdfSharp resolves faces through the process-global `PdfFontResolver`, which mirrors steps 1, 2 and 4. Step 3 still applies, from outside — because a process-global resolver cannot see per-conversion state, `PdfRenderContext` substitutes the delegate's answer before the family name ever reaches PdfSharp, consulting it only once the indexed faces and the host's installed fonts (`HostFontIndex`) have both missed.
 
+### How `FontResolver` picks a face
+
+The numbered list above is the order the tiers are described in. The resolver itself runs them in this order:
+
+```mermaid
+flowchart TD
+    Request["Requested family + bold/italic"] --> Cache{"Resolved already, or one of<br/>the Aptos faces in Morph.dll?"}
+    Cache -->|yes| Done(["Use that face"])
+    Cache -->|no| Mode{"FontDirectory set?"}
+
+    Mode -->|no| Host{"In the indexed host fonts?<br/>user, Office, cloud, system"}
+    Host -->|no| Platform{"Platform font manager<br/>has it?"}
+    Mode -->|yes| Dir{"In FontDirectory?"}
+
+    Host -->|yes| Weight
+    Platform -->|yes| Weight
+    Platform -->|no| Name
+    Dir -->|yes| Weight
+    Dir -->|no| Name
+
+    Weight{"Weight within 300<br/>of the request?"}
+    Weight -->|yes| Done
+    Weight -->|no| Name
+
+    Name{"Fallback name?<br/>built-in alias, else FontFallback"}
+    Name -->|no, and a face was found| Done
+    Name -->|"no, nothing found,<br/>no FontDirectory"| ThrowHost(["InvalidOperationException<br/>listing every searched directory"])
+    Name -->|"no, nothing found,<br/>FontDirectory set"| ThrowDir(["InvalidOperationException<br/>naming the directory"])
+    Name -->|yes| Alias{"Fallback name found in the same places,<br/>then in Morph.dll's Aptos faces?"}
+
+    Alias -->|"yes, and closer than<br/>any face already found"| Fallback(["Use the fallback face"])
+    Alias -->|"no, or no closer,<br/>and a face was found"| Done
+    Alias -->|"no, and nothing found"| ThrowHost
+```
+
+So `FontFallback = _ => "Aptos"` never throws: the last place a fallback name is looked for is the Aptos faces embedded in `Morph.dll`, which every host has.
+
 ## Configuration
 
 Font configuration is split between the shared [`ExportOptions`](../src/Morph/Export/ExportOptions.cs) base record and the per-format records that derive from it — the layout-affecting knobs only exist where they can take effect, so **which options are available depends on the output format**:
