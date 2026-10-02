@@ -170,6 +170,55 @@ render it again before believing it.
 The deck references were regenerated wholesale during the 2026-08 image cut, so they currently all
 come from one environment. The finding applies to the next person who regenerates on a different one.
 
+## Telling a stale Word reference from a merely different render
+
+On 2026-10-02 every Word fixture was rendered again from a COPY of its `input.docx` (in a
+`_probe_copy` directory, so no fixture was written to) and compared with its checked-in pages. Only
+32 of the 335 came out pixel-identical on the first render, and that count means nothing by itself:
+the other 303 fall into classes that want opposite handling.
+
+| class | fixtures | what differs | done |
+| --- | --- | --- | --- |
+| antialiasing only | 177 | the same glyphs in the same place; only edge pixels differ | left |
+| cloud font still downloading | 13 | the FIRST render is set in Calibri; the second coincides with the reference | left |
+| nudged | 6 | the same glyphs a pixel off (`newsletters/09`, `page_borders/01`, `page_vertical_alignment`, `pct_pos_offset`, `section_numbering`, `section_numbering_even_odd`) | left |
+| different | 105 | another typeface, and with it other line breaks | regenerated |
+| held back | 2 | `business-plans/12` (a photograph on page 2 drawn softer), `business-plans/15` (one table on page 12 a few pixels off) | left, cause not found |
+
+**The 105.** All but `complex_spacing` (which has a styles part that names no font) are packages
+with no styles part at all, so the body font is whichever one Word supplies. When their references
+were made, before August 2026, that was Aptos. Word now assigns Calibri 12pt, and this was read off
+the object model rather than inferred from a render: `Styles("Normal").Font` reports Calibri at
+size 12 and the document opens in compatibility mode 12. References added from mid-August on were
+already Calibri, and the parser's built-in default has been Calibri since 2026-08-30. Until the
+regeneration those fixtures therefore compared a Calibri render with an Aptos reference, and a
+paragraph of more than one line could only agree with its reference by breaking where Aptos breaks
+(`align_justified`: four lines in the old reference, three in Word today). No page count changed.
+At the same commit the recorded Skia error metric over their 133 pages went 0.0268 → 0.0259, 108
+pages closer and 11 further; the furthest are the multi-line fixtures whose breaks had matched the
+Aptos reference (`complex_spacing`, `align_justified`).
+
+**Render twice.** Word fetches an Office cloud font the first time a document asks for it and
+substitutes until the download lands, so after the font cache has been emptied a first RenderHelper
+run produces a page that looks plausible and is set in the wrong face. `business-plans/04` embedded
+only Calibri on its first render; on the second it embedded Lato Light and Playfair Display and
+coincided with its reference. Thirteen templates behaved this way (`business-plans/02`, `/03`, `/04`,
+`/06`, `cards/12`, `cards/19`, `cover-letters/01`, `/02`, `letters/08`, `/10`, `/11`, `wedding/01`,
+`wedding/06`), and regenerating from their first renders would have replaced thirteen good references
+with substituted ones. The family names Word embedded are in the XPS (`MORPH_KEEP_XPS=1`;
+`xps_font_families` in `scripts/generate-word-advances.py` reads them), and a second render that
+differs from the first is the tell.
+
+**Telling the classes apart.** A raw pixel count cannot do it: a line sitting one pixel lower differs
+on every stroke edge, which on a sparse page reads like a change of typeface. What separated them
+cleanly was to slide each text band up to 3px over the reference to its best fit, and then count the
+dark ink on either page that has no ink within one pixel of it on the other, as a share of the
+band's ink. The nudged fixtures topped out at 6%. The lowest genuinely different one was 11%
+(`table_alignment/01`, two words in a table), and most were over 30%.
+
+Copying a page rendered from the copy into the fixture is the same as running RenderHelper on the
+fixture: checked on `align_justified`, the two wrote identical bytes.
+
 ## Promoting baselines when a page count drops
 
 Promotion renames `*.received.*` onto `*.verified.*` one file at a time, so a scenario that now
