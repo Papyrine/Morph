@@ -281,6 +281,16 @@ fits. What is still open is `src/todo.md` #43: that kerning gap, how glyphs are 
 15's squeeze of justified lines, and the two places the engine's own rounding still parts from Word's
 (the kerned-pair rule and the pen rounding in the fit test).*
 
+*Kerning followed the same day, in two halves. `w:kern` comes down the style ladder like any other run
+property — document default, table style, paragraph style with its `basedOn` chain, character style, the
+run's own `w:rPr`, 52 probed cases — where the parser had read only docDefaults and the run. And the
+measurer adds the GPOS pair adjustments linearly, the pairs that straddle a space included, in place of
+the drawn pair rule, which once kerning reached all text over-fitted Aptos lines by up to 4px. Those four
+lines now break where Word's do, no page count moved, and over the 597 Word pages Skia is −0.043 AE (31
+pages closer, 22 further). That leaves in `src/todo.md` #43 glyph placement — kerned ink included, which
+only ImageSharp's shaper draws — mode 15's squeeze of justified lines, and the pen rounding in the fit
+test. The cascade and the two kerning probes are written up in `docs/word-features.md`, Kerning.*
+
 ## Migration checklist (sequence matters even unbounded)
 
 Build alongside the existing renderers; do not delete anything until all three backends consume the tree.

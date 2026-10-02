@@ -16,7 +16,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "1/9/23 Target Audience Profiling Plan 1\nDEVELOP A PLAN\nMISSION AND GOALS\nDescribe your company's mission and goals.\nQUESTIONS FOR CONSUMERS\nNo. Questions\n1 Question for consumers #1\nList questions that you can use in your target audience profile.\n2 Question for consumers #2\n3 Question for consumers #3\n4 Question for consumers #4\n5 Question for consumers #5\nAUDIENCE AND MARKET\nNo. Audience and Market\n1 Audience and market #1\nIdentify who makes up your target audience and your market.\n2 Audience and market #2\n3 Audience and market #3\n4 Audience and market #4\n5 Audience and market #5\nQUESTIONS TO NARROW DOWN YOUR TARGET\nAUDIENCE\nNo. Audience and Market\n1 Questions to narrow down target audience #1\nList questions that you can use to help you narrow down who your target audience is.\n2 Questions to narrow down target audience #2\n3 Questions to narrow down target audience #3\n4 Questions to narrow down target audience #4\n5 Questions to narrow down target audience #5"
+        "Text": "1/9/23 Target Audience Profiling Plan 1\nDEVELOP A PLAN\nMISSION AND GOALS\nDescribe your company's mission and goals.\nQUESTIONS FOR CONSUMERS\nNo. Questions\n1 Question for consumers #1\nList questions that you can use in your target audience profile.\n2 Question for consumers #2\n3 Question for consumers #3\n4 Question for consumers #4\n5 Question for consumers #5\nAUDIENCE AND MARKET\nNo. Audience and Market\n1 Audience and market #1\nIdentify who makes up your target audience and your market.\n2 Audience and market #2\n3 Audience and market #3\n4 Audience and market #4\n5 Audience and market #5\nQUESTIONS TO NARROW DOWN YOUR TARGET AUDIENCE\nNo. Audience and Market\n1 Questions to narrow down target audience #1\nList questions that you can use to help you narrow down who your target audience is.\n2 Questions to narrow down target audience #2\n3 Questions to narrow down target audience #3\n4 Questions to narrow down target audience #4\n5 Questions to narrow down target audience #5"
       },
       {
         "Width": 612.0,
@@ -41,16 +41,16 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0851,
-      "Ssim": 0.8515,
+      "ErrorMetric": 0.0789,
+      "Ssim": 0.878,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0862,
-      "Ssim": 0.7764,
+      "ErrorMetric": 0.0642,
+      "Ssim": 0.899,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

@@ -164,8 +164,8 @@ sealed record FontMetrics
     /// <summary>
     /// GPOS <c>kern</c>-feature pair kerning, or null for a font without usable pair data. Word
     /// applies these adjustments when kerning is enabled for a run (<c>w:kern</c>; the built-in
-    /// Normal of a document with no docDefaults kerns by default — <c>_probe_kern_*</c>), with the
-    /// pair quantization implemented in <see cref="CanonicalTextMeasurer"/>.
+    /// Normal of a document with no docDefaults kerns by default — <c>_probe_kern_*</c>), and its
+    /// layout takes them linearly, as <see cref="CanonicalTextMeasurer.LinearPixels"/> does.
     /// </summary>
     public GposKernTable? KernPairs { get; init; }
 

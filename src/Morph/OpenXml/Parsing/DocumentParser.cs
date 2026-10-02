@@ -888,8 +888,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // The document-wide kerning threshold, Word-probed with the _probe_kern_* fixtures (todo #43):
     // a document with NO docDefaults kerns by default (Word's built-in Normal - measured kerned at
     // 10/12/24pt in a bare package), docDefaults WITHOUT w:kern disable it (the spec default 0),
-    // and a docDefaults w:kern enables it at its half-point threshold. An inline run w:kern
-    // overrides either way.
+    // and a docDefaults w:kern enables it at its half-point threshold.
+    //
+    // That is the bottom rung of an ordinary ladder. Probed 2026-10-02 (_probe_kerncascade: 52
+    // cases over three packages, in compatibility modes 12 and 15, each read off the XPS against
+    // directly formatted references), w:kern cascades like any other run property: document
+    // default, then the table style, then the paragraph style with its basedOn chain, then the
+    // character style, then the run's own w:rPr. A rung that declares it wins outright, w:val="0"
+    // included, and the size test is the resolved threshold's (a style declaring w:val="80" kerns
+    // its 48pt text and not its 24pt text). ExtractStyleRunProperties and ParseRunProperties
+    // carry it down.
     static double ResolveDocDefaultKerningMinPoints(MainDocumentPart mainPart)
     {
         var docDefaults = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults;
@@ -898,10 +906,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return builtInKerningMinPoints;
         }
 
-        var kern = docDefaults.RunPropertiesDefault?.RunPropertiesBaseStyle?.GetFirstChild<Kern>();
+        return DeclaredKerningMinPoints(docDefaults.RunPropertiesDefault?.RunPropertiesBaseStyle) ?? 0;
+    }
+
+    // What one rung's w:rPr says about kerning: the w:kern threshold in points (zero switches it
+    // off), or null when the rung does not mention it.
+    static double? DeclaredKerningMinPoints(OpenXmlElement? rPr)
+    {
+        var kern = rPr?.GetFirstChild<Kern>();
         if (kern?.Val?.HasValue != true)
         {
-            return 0;
+            return null;
         }
 
         return kern.Val.Value.HalfPointsToPoints();
@@ -1513,6 +1528,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
 
+                // The kerning threshold comes down the chain like the rest. Leaving it off the style
+                // measured every run that takes its properties from a style UNKERNED, whatever the
+                // document default said — most body text, since such a run carries no w:rPr.
+                var kerningMinFontSize = baseProps?.KerningMinFontSizePoints ?? effectiveDefaultKerningMinPoints;
+
                 RecordDeclared(styleId, basedOnId, runProps);
 
                 // If no run properties, still save inherited properties
@@ -1530,7 +1550,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         SmallCaps = smallCaps,
                         ColorHex = color,
                         BackgroundColorHex = backgroundColor,
-                        CharacterSpacingPoints = characterSpacing
+                        CharacterSpacingPoints = characterSpacing,
+                        KerningMinFontSizePoints = kerningMinFontSize
                     };
                     processed.Add(styleId);
                     continue;
@@ -1616,6 +1637,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
                 }
 
+                // Kerning threshold (w:kern in rPr); w:val="0" switches it off for this style.
+                if (DeclaredKerningMinPoints(runProps) is { } declaredKerning)
+                {
+                    kerningMinFontSize = declaredKerning;
+                }
+
                 // Colour — mirror the run-level rule: an explicit w:color on the style overrides
                 // whatever was inherited (basedOn chain / docDefaults), and w:val="auto" RESETS the
                 // inherited colour to automatic rather than falling through to it (a card template's
@@ -1654,7 +1681,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     SmallCaps = smallCaps,
                     ColorHex = color,
                     BackgroundColorHex = backgroundColor,
-                    CharacterSpacingPoints = characterSpacing
+                    CharacterSpacingPoints = characterSpacing,
+                    KerningMinFontSizePoints = kerningMinFontSize
                 };
                 processed.Add(styleId);
             }
@@ -2507,9 +2535,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var styleIndent = ResolveStyleIndent(style, tableStylesById);
             var styleCannotSplit = ResolveStyleCannotSplit(style, tableStylesById);
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleIndent != null || styleCannotSplit)
+            // A style that declares nothing but run properties still hands them to its cells: probed
+            // with a table style carrying only w:rPr/w:kern, whose text Word kerns or not as the
+            // style says (_probe_kerncascade, A10 / A12 / B8).
+            var styleRun = ResolveStyleRunProperties(style, tableStylesById);
+
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleRun != null || styleIndent != null || styleCannotSplit)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, ResolveStyleRunProperties(style, tableStylesById), styleIndent, styleCannotSplit);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, styleRun, styleIndent, styleCannotSplit);
             }
         }
 
@@ -4093,7 +4126,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             SmallCaps = Toggle<SmallCaps>(rPr),
             Underline = rPr.GetFirstChild<Underline>() is {Val.HasValue: true} u
                 ? u.Val!.Value != UnderlineValues.None
-                : null
+                : null,
+            KerningMinFontSizePoints = DeclaredKerningMinPoints(rPr)
         };
 
         if (declared.HasAny)
@@ -11987,6 +12021,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var allCaps = styleDefaults?.AllCaps ?? false;
         var smallCaps = styleDefaults?.SmallCaps ?? false;
         var color = styleDefaults?.ColorHex ?? defaultRunColorHex ?? automaticRunColorHex;
+        var kerningMinFontSize = styleDefaults?.KerningMinFontSizePoints ?? effectiveDefaultKerningMinPoints;
 
         // Inside a styled table the ladder has an extra rung: document defaults, then the table style
         // (whole-table rPr with the cell's conditional region over it), then the paragraph style, then
@@ -12011,6 +12046,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             allCaps = DeclaredRunProperties.ToggleAcross(tableRun.AllCaps, paragraphDeclared?.AllCaps);
             smallCaps = DeclaredRunProperties.ToggleAcross(tableRun.SmallCaps, paragraphDeclared?.SmallCaps);
             underline = paragraphDeclared?.Underline ?? tableRun.Underline ?? underline;
+            kerningMinFontSize = paragraphDeclared?.KerningMinFontSizePoints ?? tableRun.KerningMinFontSizePoints ?? kerningMinFontSize;
         }
 
         if (color == automaticColorSentinel)
@@ -12219,10 +12255,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
         }
 
-        // Kerning threshold (w:kern in rPr — half-points; 0 disables). Absent inline kern
-        // inherits the document-wide default (docDefaults w:kern, or the built-in-Normal
-        // default for a document with no docDefaults — ResolveDocDefaultKerningMinPoints).
-        var kerningMinFontSize = effectiveDefaultKerningMinPoints;
+        // Kerning threshold (w:kern in rPr — half-points; 0 disables). An absent inline kern leaves
+        // what the style ladder resolved above: the paragraph style's chain, the table style, or
+        // the document default (ResolveDocDefaultKerningMinPoints).
         if (kernElement?.Val?.HasValue == true)
         {
             kerningMinFontSize = kernElement.Val.Value.HalfPointsToPoints();
@@ -12379,6 +12414,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (spacingElement == null && originalRPr?.GetFirstChild<Spacing>() != null)
             {
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
+            }
+
+            // A character style's w:kern outranks the paragraph style's and yields to the run's own.
+            if (kernElement == null && DeclaredKerningMinPoints(originalRPr) != null)
+            {
+                kerningMinFontSize = runStyleProps.KerningMinFontSizePoints;
             }
 
             if (colorElement == null && originalRPr?.GetFirstChild<Color>() != null)

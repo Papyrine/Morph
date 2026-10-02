@@ -157,6 +157,26 @@ public class CanonicalMetricsTests
         await Assert.That(Math.Abs(measured - ideal) < 0.31).IsTrue();
     }
 
+    // Word's layout takes GPOS kerning linearly, in the same design units as the advances. The pixel
+    // values are the autofit columns Word gave ten "To" set solid in Calibri with kerning on
+    // (_probe_autofit, 2026-10-02, read off the border rules). The pair rule this replaced, which
+    // snapped each kern and rounded the pair's first glyph to a whole pixel as Word DRAWS it, gave
+    // 166.7 and 157.9 for the 11 and 10pt columns.
+    [Test]
+    [Arguments(12, 185.2)]
+    [Arguments(11, 169.2)]
+    [Arguments(10, 154.2)]
+    public async Task Kerning_adds_the_pair_adjustments_linearly(double size, double wordColumnPixels)
+    {
+        var calibri = Read("Calibri_400.ttf");
+        const string text = "ToToToToToToToToToTo";
+        var kerned = CanonicalTextMeasurer.LinearPixels(calibri, text, size, kerning: true);
+        var unkerned = CanonicalTextMeasurer.LinearPixels(calibri, text, size);
+
+        await Assert.That(kerned).IsEqualTo(wordColumnPixels).Within(0.75);
+        await Assert.That(unkerned - kerned).IsGreaterThan(14);
+    }
+
     [Test]
     public async Task Wraps_greedily_at_the_measure()
     {

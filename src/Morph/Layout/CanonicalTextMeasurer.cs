@@ -151,62 +151,85 @@ sealed class CanonicalTextMeasurer
     /// linear track, exactly as a single-font line stays on it. <paramref name="fontWidthScale"/> is the
     /// per-conversion widening (<c>PdfExportOptions</c>/<c>ImageExportOptions.FontWidthScale</c>), applied
     /// linearly before quantization — the same knob production's <c>RenderContextBase</c> multiplies advances by.
+    ///
+    /// <para>With <paramref name="kerning"/> the GPOS pair adjustments are added in the same design
+    /// units and scaled with the advances, which is how Word's layout takes them. Probed 2026-10-02:
+    /// the wrap threshold of a kerned sentence sits at <c>ceil</c> of exactly this width (Calibri and
+    /// Aptos at three sizes each), and ten <c>To</c> set solid make autofit columns of 185.2, 169.2 and
+    /// 154.2px at 12, 11 and 10pt Calibri where this gives 185.2, 169.7 and 154.3. The rule that stood
+    /// here before snapped the kern to 1/16px and rounded the pair's first glyph to a whole pixel, which
+    /// is how Word DRAWS a kerned pair (it was read off XPS glyph positions: 24pt <c>Ta</c> draws T at
+    /// 17.000px from an unkerned 20.042). As a layout width it gave 185.5, 166.7 and 157.9 for those
+    /// columns and put an Aptos line of 22 kerned pairs 4.3px narrow.</para>
     /// </summary>
     public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false)
     {
-        if (kerning && metrics.KernPairs != null)
+        var units = AdvanceUnits(metrics, text);
+        if (kerning)
         {
-            return KernedLinearPixels(metrics, text, sizePoints) * fontWidthScale;
+            units += KernUnits(metrics, text);
         }
 
-        return (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
+        return (double) units / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
     }
 
-    // Word's kerned-pair quantization, measured on the _probe_kern_* fixtures across three sizes
-    // and six Calibri pairs (todo #43): the kern value snaps to 1/16 px at the layout em, and the
-    // pair's FIRST glyph advance then rounds to a whole layout pixel — even where its unkerned
-    // advance was fractional (24pt Ta renders T at 17.000px from an unkerned 20.042). Returns the
-    // signed pixel delta to add for the pair, replacing the first glyph's unkerned advance with
-    // Word's kerned one.
-    //
-    // Those fixtures read XPS glyph positions, so this is how Word DRAWS a kerned pair. Its line
-    // breaks and autofit columns take the kern linearly (probed 2026-10-02: ten "To" at 10pt Calibri
-    // make a 154.2px column, 154.3 linear, where this rule gives 157.9), which is open as todo #43.
-    static double KernPairDelta(double firstAdvancePixels, short kernUnits, double emPixels, int unitsPerEm)
+    // The pair adjustments between each glyph of the text and the next, in design units.
+    static long KernUnits(FontMetrics metrics, string text)
     {
-        var kernSixteenths = Math.Round((double) kernUnits / unitsPerEm * emPixels * 16, MidpointRounding.AwayFromZero) / 16;
-        return Math.Round(firstAdvancePixels + kernSixteenths, MidpointRounding.AwayFromZero) - firstAdvancePixels;
-    }
+        if (metrics.KernPairs is not { } kernTable)
+        {
+            return 0;
+        }
 
-    // The kerned advance: the pair rule above, on the unrounded reference em.
-    static double KernedLinearPixels(FontMetrics metrics, string text, double sizePoints)
-    {
-        var kernTable = metrics.KernPairs!;
-        var emPixels = EmPixels(sizePoints);
-        double pixels = 0;
+        long units = 0;
         var previousGlyph = (ushort) 0;
-        double previousAdvance = 0;
         var havePrevious = false;
         foreach (var rune in text.EnumerateRunes())
         {
             var glyph = metrics.GlyphId(rune.Value);
             if (havePrevious)
             {
-                var kern = kernTable.KernUnits(previousGlyph, glyph);
-                if (kern != 0)
-                {
-                    pixels += KernPairDelta(previousAdvance, kern, emPixels, metrics.UnitsPerEm);
-                }
+                units += kernTable.KernUnits(previousGlyph, glyph);
             }
 
-            var advance = (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * emPixels;
-            pixels += advance;
             previousGlyph = glyph;
-            previousAdvance = advance;
             havePrevious = true;
         }
 
-        return pixels;
+        return units;
+    }
+
+    /// <summary>
+    /// The pair adjustment between the last glyph of <paramref name="before"/> and the first glyph of
+    /// <paramref name="after"/>, in the same device pixels as <see cref="LinearPixels"/> — the kern
+    /// that falls BETWEEN two pieces of text measured separately. Word's layout counts a pair across
+    /// a space like any other: probed 2026-10-02 on autofit columns (<c>_probe_spacekern</c>), twenty
+    /// <c>A</c> set a space apart make a 331.4px column in 12pt Arial, whose <c>A</c>+space and
+    /// space+<c>A</c> pairs are −113 units each, against 372.4px with kerning off; Times New Roman and
+    /// Avenir Next LT Pro agree. Zero when the font carries no pair for them.
+    /// </summary>
+    public static double KernPixelsBetween(FontMetrics metrics, string before, string after, double sizePoints, double fontWidthScale = 1.0)
+    {
+        if (metrics.KernPairs is not { } kernTable || before.Length == 0 || after.Length == 0)
+        {
+            return 0;
+        }
+
+        var last = default(Rune);
+        foreach (var rune in before.EnumerateRunes())
+        {
+            last = rune;
+        }
+
+        var first = default(Rune);
+        foreach (var rune in after.EnumerateRunes())
+        {
+            first = rune;
+            break;
+        }
+
+        var units = kernTable.KernUnits(metrics.GlyphId(last.Value), metrics.GlyphId(first.Value));
+        return (double) units / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
     }
 
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>

@@ -21,7 +21,7 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Multiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing. The\nvalue is specified as 240 * 2.5 = 600 twips.\nMultiple 3.0 - Triple line spacing (720 twips).\n14. Contextual Spacing (Same Style)\nFirst paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear below.\nSecond paragraph with same style, spacing after 240 - contextual spacing OFF. Space will\nappear below.\nThird paragraph with style, spacing after 240 - contextual spacing ON. No space between same￾style paragraphs.\nFourth paragraph with style, spacing after 240 - contextual spacing ON.\n15. Widow/Orphan Control\nWidow/Orphan control ON - This paragraph has widow and orphan control enabled, which\nprevents single lines from being left alone at the top or bottom of a page. This is a longer\nparagraph to demonstrate the effect when it wraps across pages.\nWidow/Orphan control OFF - This paragraph has widow and orphan control disabled. Single\nlines may be left alone at page boundaries. This is a longer paragraph to demonstrate the effect\nwhen it wraps across pages.\n16. Keep With Next\nKeep with next paragraph ENABLED - This paragraph will stay with the following paragraph on\nthe same page.\nThis paragraph is kept with the previous one.\nKeep with next paragraph DISABLED - Normal behavior.\n17. Keep Lines Together\nKeep lines together ENABLED - All lines of this paragraph will be kept on the same page. This is\nuseful for paragraphs that should not be split across page boundaries, such as important\nstatements or short critical sections."
+        "Text": "Multiple 2.5 - This paragraph uses multiple line spacing at 2.5 times the normal spacing. The\nvalue is specified as 240 * 2.5 = 600 twips.\nMultiple 3.0 - Triple line spacing (720 twips).\n14. Contextual Spacing (Same Style)\nFirst paragraph with style, spacing after 240 - contextual spacing OFF. Space will appear below.\nSecond paragraph with same style, spacing after 240 - contextual spacing OFF. Space will appear\nbelow.\nThird paragraph with style, spacing after 240 - contextual spacing ON. No space between same￾style paragraphs.\nFourth paragraph with style, spacing after 240 - contextual spacing ON.\n15. Widow/Orphan Control\nWidow/Orphan control ON - This paragraph has widow and orphan control enabled, which\nprevents single lines from being left alone at the top or bottom of a page. This is a longer\nparagraph to demonstrate the effect when it wraps across pages.\nWidow/Orphan control OFF - This paragraph has widow and orphan control disabled. Single\nlines may be left alone at page boundaries. This is a longer paragraph to demonstrate the effect\nwhen it wraps across pages.\n16. Keep With Next\nKeep with next paragraph ENABLED - This paragraph will stay with the following paragraph on\nthe same page.\nThis paragraph is kept with the previous one.\nKeep with next paragraph DISABLED - Normal behavior.\n17. Keep Lines Together\nKeep lines together ENABLED - All lines of this paragraph will be kept on the same page. This is\nuseful for paragraphs that should not be split across page boundaries, such as important\nstatements or short critical sections."
       },
       {
         "Width": 612.0,
@@ -64,8 +64,8 @@
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.1029,
-      "Ssim": 0.7621,
+      "ErrorMetric": 0.1028,
+      "Ssim": 0.7624,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

@@ -926,6 +926,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     pieces.Add(new(false, 0, pitch, "", run.Properties, null, true, false));
                 }
 
+                var kerning = KerningEnabled(run.Properties);
+                var previousToken = -1;
                 foreach (var (token, isSpace, breaksBefore) in TokenizeText(parts[partIndex]))
                 {
                     // A no-break space glues its neighbours into one unbreakable token (TokenizeText
@@ -934,11 +936,25 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // resolved it to .notdef's wide advance, so "to improve" drew with a
                     // double-width gap where Word shows a single space (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
-                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale, KerningEnabled(run.Properties));
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale, kerning);
                     if (trackingPerChar != 0)
                     {
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
                     }
+
+                    // The pair that straddles two tokens goes to the earlier one, whose last glyph it
+                    // adjusts. Measuring token by token would otherwise drop every pair against a space,
+                    // and Word's layout counts those (CanonicalTextMeasurer.KernPixelsBetween).
+                    if (kerning && previousToken >= 0)
+                    {
+                        var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, fontWidthScale);
+                        if (between != 0)
+                        {
+                            pieces[previousToken] = pieces[previousToken] with {Pixels = pieces[previousToken].Pixels + between};
+                        }
+                    }
+
+                    previousToken = pieces.Count;
 
                     // A note reference rides on the run's first piece — the line that takes it opens the
                     // note's page-bottom area (Fragmenter.CommitFootnotes).
