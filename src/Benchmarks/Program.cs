@@ -10,8 +10,7 @@ BenchmarkSwitcher.FromAssemblies([typeof(ConversionBenchmarks).Assembly]).Run(ar
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class ConversionBenchmarks
 {
-    static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
-    static readonly string inputsDir = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Tests", "Inputs", "word"));
+    static readonly string inputsDir = Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "Tests", "Inputs", "word"));
 
     // Small (~33KB) - simple resume
     static readonly string smallDoc = Path.Combine(inputsDir, "resumes", "01", "input.docx");

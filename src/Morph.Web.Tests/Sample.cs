@@ -4,11 +4,11 @@ static class Sample
     // csproj. The DOCX (an agenda/minutes document) is two pages, so it exercises the multi-page PNG
     // (zip) path as well as the single-file formats; the XLSX (an invoice worksheet) is one page, which
     // covers the single-file PNG branch; the PPTX (a two-slide brochure) covers the slide path.
-    public static byte[] DocxBytes { get; } = Read("sample.docx");
+    public static byte[] DocxBytes { get; } = File.ReadAllBytes(ProjectFiles.sample_docx);
 
-    public static byte[] XlsxBytes { get; } = Read("sample.xlsx");
+    public static byte[] XlsxBytes { get; } = File.ReadAllBytes(ProjectFiles.sample_xlsx);
 
-    public static byte[] PptxBytes { get; } = Read("sample.pptx");
+    public static byte[] PptxBytes { get; } = File.ReadAllBytes(ProjectFiles.sample_pptx);
 
     /// <summary>The bytes of the bundled sample for a readable format.</summary>
     public static byte[] BytesFor(InputFormat format) =>
@@ -26,8 +26,5 @@ static class Sample
 
     // The Aptos faces, copied alongside the tests. The PDF export resolves fonts against a directory
     // (PdfSharp can't read Morph's embedded fonts), so the service tests point at this one.
-    public static string FontDirectory { get; } = Path.Combine(AppContext.BaseDirectory, "fonts");
-
-    static byte[] Read(string name) =>
-        File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, name));
+    public static string FontDirectory { get; } = ProjectFiles.fonts.FullPath;
 }

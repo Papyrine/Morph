@@ -10,8 +10,7 @@
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class RenderBenchmarks
 {
-    static string GetSourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
-    static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(GetSourceDir(), "..", "Fonts"));
+    static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "Fonts"));
 
     static readonly ImageExportOptions imageOptions = new()
     {

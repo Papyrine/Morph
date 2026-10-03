@@ -23,7 +23,7 @@ public class TextLayerCorpusTests
     [MethodDataSource(nameof(CorpusFiles))]
     public Task Corpus_Snapshot(string file)
     {
-        var bytes = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "corpus", file));
+        var bytes = File.ReadAllBytes(Path.Combine(ProjectFiles.corpus, file));
         var source = ConversionService.Detect(file)!.Format;
         return Verify(PageTexts(bytes, source), extension: "txt");
     }

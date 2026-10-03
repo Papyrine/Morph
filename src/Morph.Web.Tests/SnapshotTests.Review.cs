@@ -3,9 +3,9 @@
 // document is laid out again and swapped in under the reader.
 public partial class SnapshotTests
 {
-    static byte[] TrackedChanges { get; } = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "corpus", "tracked_changes.docx"));
+    static byte[] TrackedChanges { get; } = File.ReadAllBytes(ProjectFiles.corpus.tracked_changes_docx);
 
-    static byte[] Comments { get; } = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "corpus", "comments.docx"));
+    static byte[] Comments { get; } = File.ReadAllBytes(ProjectFiles.corpus.comments_docx);
 
     [Test]
     public async Task Review_ListsAComment_AndPaintsWhatItIsOn()

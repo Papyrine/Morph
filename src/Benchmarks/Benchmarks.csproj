@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="ProjectFiles" PrivateAssets="all" />
     <ProjectReference Include="..\Morph\Morph.csproj" />
     <ProjectReference Include="..\Morph.Skia\Morph.Skia.csproj" />
     <ProjectReference Include="..\Morph.ImageSharp\Morph.ImageSharp.csproj" />
