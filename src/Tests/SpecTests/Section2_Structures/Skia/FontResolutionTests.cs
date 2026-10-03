@@ -77,6 +77,47 @@ public class SkiaFontResolutionTests
     }
 
     [Test]
+    public async Task GetTypeface_UnknownFont_DelegateNamesEmbeddedFont_ResolvesFromMorph()
+    {
+        // An empty FontDirectory, so no installed Aptos can answer: only the faces inside Morph.dll.
+        var directory = Directory.CreateTempSubdirectory("morph-no-fonts-").FullName;
+        try
+        {
+            using var context = new SkiaRenderContext(new(), 96, fontFallback: _ => "Aptos", fontDirectory: directory);
+            using var typeface = context.GetTypeface("NonExistentFont12345", true, true);
+            await Assert.That(typeface.FamilyName).IsEqualTo("Aptos");
+            await Assert.That(typeface.FontStyle.Weight).IsEqualTo(700);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
+    public async Task UnknownFont_DelegateNamesEmbeddedFont_DocumentRenders()
+    {
+        var document = Doc(
+            Para(
+                new Run
+                {
+                    Text = "alpha",
+                    Properties = new()
+                    {
+                        FontFamily = "NonExistentFont12345",
+                        FontSizePoints = 11
+                    }
+                }));
+        var options = new ImageExportOptions
+        {
+            Dpi = 96,
+            FontFallback = _ => "Aptos"
+        };
+        var pages = SkiaDocumentConverter.RenderPagesCounted(document, options, _ => _(Stream.Null));
+        await Assert.That(pages).IsEqualTo(1);
+    }
+
+    [Test]
     public async Task GetTypeface_UnknownFont_DelegateReturnsNull_Throws()
     {
         using var context = new SkiaRenderContext(

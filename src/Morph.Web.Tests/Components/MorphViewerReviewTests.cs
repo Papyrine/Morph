@@ -17,12 +17,9 @@ public class MorphViewerReviewTests : BunitTestContext
         controller = SetupViewerController();
     }
 
-    static byte[] Tracked { get; } = Corpus("tracked_changes.docx");
+    static byte[] Tracked { get; } = File.ReadAllBytes(ProjectFiles.corpus.tracked_changes_docx);
 
-    static byte[] Commented { get; } = Corpus("comments.docx");
-
-    static byte[] Corpus(string file) =>
-        File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "corpus", file));
+    static byte[] Commented { get; } = File.ReadAllBytes(ProjectFiles.corpus.comments_docx);
 
     async Task<IRenderedComponent<MorphViewer>> Open(byte[] bytes, Action<ComponentParameterCollectionBuilder<MorphViewer>>? parameters = null, string name = "review.docx")
     {

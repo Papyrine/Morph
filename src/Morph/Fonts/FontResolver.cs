@@ -182,7 +182,8 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
             var fallback = TryResolveFromCache(allFontsCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
-                           ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic);
+                           ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic)
+                           ?? TryResolveEmbedded(fallbackCandidates, fallbackWeight, targetItalic);
             if (fallback != null &&
                 (font == null ||
                  fbDelta < weightDelta))
@@ -209,7 +210,8 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         {
             var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-            var fallback = TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta);
+            var fallback = TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
+                           ?? TryResolveEmbedded(fallbackCandidates, fallbackWeight, targetItalic);
             if (fallback != null &&
                 (font == null ||
                  fbDelta < weightDelta))
@@ -230,8 +232,21 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
 
         var lastFallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
         var lastFallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-        return TryResolveFromCache(directoryCache, lastFallbackCandidates, lastFallbackWeight, targetItalic);
+        return TryResolveFromCache(directoryCache, lastFallbackCandidates, lastFallbackWeight, targetItalic) ??
+               TryResolveEmbedded(lastFallbackCandidates, lastFallbackWeight, targetItalic);
     }
+
+    /// <summary>
+    /// A fallback name served by the fonts shipped inside <c>Morph.dll</c>, the last place it is
+    /// looked for. A document naming one of them reaches the seed through the cache at the top of
+    /// <see cref="Resolve"/>, but a fallback name never passes through there, so without this a
+    /// <c>FontFallback</c> of <c>"Aptos"</c> missed on any host without Aptos installed.
+    /// </summary>
+    TFont? TryResolveEmbedded(FontNameCandidates candidates, int targetWeight, bool targetItalic) =>
+        cache.TryGetValue((candidates.Effective, targetWeight, targetItalic), out var font) &&
+        seededFonts.Contains(font)
+            ? font
+            : null;
 
     /// <summary>
     /// Iterates faces matching the candidate names in score order (closest weight/italic
