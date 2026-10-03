@@ -7,10 +7,10 @@ static class TextShaping
 {
     public static KerningMode ResolveKerningMode(RunProperties props)
     {
-        // Word only kerns when fontSize >= w:kern threshold. Threshold of 0 = no explicit
-        // setting → default kerning behaviour applies.
-        if (props.KerningMinFontSizePoints > 0 &&
-            props.FontSizePoints < props.KerningMinFontSizePoints)
+        // The same question the measurer asks: the run kerns when its size reaches the resolved
+        // w:kern threshold, and a threshold of zero is kerning off (the parser resolves the
+        // cascade, a document with no docDefaults included). The ink then matches the measure.
+        if (!CanonicalParagraphMeasurer.KerningEnabled(props))
         {
             return KerningMode.None;
         }

@@ -214,7 +214,7 @@ static class ImageSharpPainter
 
         if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
         {
-            canvas.DrawText(Options(context, font, P(context, penX), baselineY), text.AsSpan(), brush, null);
+            canvas.DrawText(Options(context, font, P(context, penX), baselineY, properties), text.AsSpan(), brush, null);
         }
         else
         {
@@ -224,7 +224,7 @@ static class ImageSharpPainter
             {
                 var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
                 var piece = text.Substring(i, length);
-                canvas.DrawText(Options(context, font, x, baselineY), piece.AsSpan(), brush, null);
+                canvas.DrawText(Options(context, font, x, baselineY, properties), piece.AsSpan(), brush, null);
                 x += P(context, context.MeasureText(font, piece)) + trackingPixels;
                 i += length - 1;
             }
@@ -236,14 +236,26 @@ static class ImageSharpPainter
         }
     }
 
-    static RichTextOptions Options(ImageSharpRenderContext context, Font font, float x, float baseline) =>
+    // A run kerns only when its resolved w:kern threshold says so, as the measurer measured it
+    // (TextShaping.ResolveKerningMode); a leader glyph stands alone and has nothing to kern.
+    static RichTextOptions Options(ImageSharpRenderContext context, Font font, float x, float baseline, RunProperties? properties = null) =>
         new(font)
         {
             Dpi = context.Dpi,
             Origin = new PointF(x, baseline),
             TextBaseline = TextBaseline.Alphabetic,
-            KerningMode = KerningMode.Standard
+            KerningMode = KerningFor(properties)
         };
+
+    static KerningMode KerningFor(RunProperties? properties)
+    {
+        if (properties == null)
+        {
+            return KerningMode.Standard;
+        }
+
+        return TextShaping.ResolveKerningMode(properties);
+    }
 
     static void DrawLeader(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedRun run, double baseline)
     {

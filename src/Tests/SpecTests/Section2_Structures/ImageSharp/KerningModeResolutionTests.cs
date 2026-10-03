@@ -7,7 +7,7 @@ public class KerningModeResolutionTests
     [Test]
     public async Task DefaultsToStandardWhenNoConstraints()
     {
-        var props = new RunProperties {FontSizePoints = 11};
+        var props = new RunProperties {FontSizePoints = 11, KerningMinFontSizePoints = 1};
 
         var mode = ImageSharp::TextShaping.ResolveKerningMode(props);
 
@@ -44,9 +44,11 @@ public class KerningModeResolutionTests
     }
 
     [Test]
-    public async Task ZeroThresholdIsTreatedAsNoExplicitSetting()
+    public async Task ZeroThresholdIsKerningOff()
     {
-        // Threshold of 0 means "no w:kern element captured" — default kerning behaviour applies.
+        // The parser resolves the w:kern cascade, so zero reaching a run means kerning is off
+        // for it (docDefaults without w:kern, or a rung declaring w:val="0"), as the measurer
+        // takes it (KerningCascadeTests).
         var props = new RunProperties
         {
             FontSizePoints = 8,
@@ -55,7 +57,7 @@ public class KerningModeResolutionTests
 
         var mode = ImageSharp::TextShaping.ResolveKerningMode(props);
 
-        await Assert.That(mode).IsEqualTo(KerningMode.Standard);
+        await Assert.That(mode).IsEqualTo(KerningMode.None);
     }
 
     [Test]
@@ -65,6 +67,7 @@ public class KerningModeResolutionTests
         var props = new RunProperties
         {
             FontSizePoints = 24,
+            KerningMinFontSizePoints = 1,
             Ligatures = LigatureMode.None
         };
 
