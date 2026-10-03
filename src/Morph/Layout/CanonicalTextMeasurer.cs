@@ -232,6 +232,75 @@ sealed class CanonicalTextMeasurer
         return (double) units / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
     }
 
+    /// <summary>
+    /// The kern each glyph of <paramref name="text"/> carries, in points: at index <c>i</c> (a UTF-16
+    /// index into the text) the sum of the pair adjustments between the glyphs before it, so a painter
+    /// that draws at its backend's own advances adds it to each glyph's pen and the ink is kerned as
+    /// the line was measured by <see cref="LinearPixels"/>. A backend that draws a run at unkerned
+    /// advances draws it wider than it was measured, and the run after it on the line starts inside
+    /// the ink — wedding/03's 30pt title lost 5px that way. Null when no pair of the text adjusts.
+    /// </summary>
+    public static double[]? KernShiftsPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0)
+    {
+        if (metrics.KernPairs is not { } kernTable || text.Length < 2)
+        {
+            return null;
+        }
+
+        var shifts = new double[text.Length];
+        long units = 0;
+        var any = false;
+        var previousGlyph = (ushort) 0;
+        var havePrevious = false;
+        var index = 0;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            var glyph = metrics.GlyphId(rune.Value);
+            if (havePrevious)
+            {
+                var pair = kernTable.KernUnits(previousGlyph, glyph);
+                units += pair;
+                any |= pair != 0;
+            }
+
+            shifts[index] = (double) units / metrics.UnitsPerEm * sizePoints * fontWidthScale;
+            index += rune.Utf16SequenceLength;
+            previousGlyph = glyph;
+            havePrevious = true;
+        }
+
+        if (!any)
+        {
+            return null;
+        }
+
+        return shifts;
+    }
+
+    /// <summary>
+    /// The end (exclusive) of the stretch of <paramref name="text"/> from <paramref name="start"/> whose
+    /// glyphs all carry the kern of the glyph at <paramref name="start"/> in <paramref name="shifts"/>
+    /// (from <see cref="KernShiftsPoints"/>), so a painter draws each stretch as one string at one pen and
+    /// splits only where a pair adjusts. A surrogate pair is never split.
+    /// </summary>
+    public static int KernSegmentEnd(string text, double[] shifts, int start)
+    {
+        var shift = shifts[start];
+        var end = start;
+        while (end < text.Length)
+        {
+            var length = char.IsHighSurrogate(text[end]) && end + 1 < text.Length ? 2 : 1;
+            if (end > start && shifts[end] != shift)
+            {
+                break;
+            }
+
+            end += length;
+        }
+
+        return end;
+    }
+
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
     public static double PixelsToPoints(double pixels) =>
         Math.Round(pixels, MidpointRounding.AwayFromZero) * 72.0 / ReferenceDpi;

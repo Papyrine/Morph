@@ -177,6 +177,47 @@ public class CanonicalMetricsTests
         await Assert.That(unkerned - kerned).IsGreaterThan(14);
     }
 
+    // The painters draw a kerned run at their backend's own (unkerned) advances plus the kern the
+    // layout measured at each glyph, so the last glyph lands where the run's width says it does and
+    // the next run on the line starts clear of the ink. The shifts are cumulative and in points.
+    [Test]
+    public async Task Kern_shifts_place_each_glyph_where_the_linear_measure_puts_it()
+    {
+        var calibri = Read("Calibri_400.ttf");
+        const string text = "To the happy couple";
+        var shifts = CanonicalTextMeasurer.KernShiftsPoints(calibri, text, 30)!;
+
+        await Assert.That(shifts.Length).IsEqualTo(text.Length);
+        await Assert.That(shifts[0]).IsEqualTo(0);
+        // "T" and "o" kern, so "o" is pulled left and everything after it carries that pull.
+        await Assert.That(shifts[1]).IsLessThan(-0.5);
+        for (var i = 1; i < text.Length; i++)
+        {
+            await Assert.That(shifts[i]).IsLessThanOrEqualTo(shifts[i - 1] + 1e-9);
+        }
+
+        // The last glyph's shift is the whole kerned-minus-unkerned difference of the text.
+        var kernPixels = CanonicalTextMeasurer.LinearPixels(calibri, text, 30, kerning: true) - CanonicalTextMeasurer.LinearPixels(calibri, text, 30);
+        await Assert.That(shifts[^1]).IsEqualTo(kernPixels * 72 / 120).Within(0.001);
+
+        // A text with no adjusting pair reports nothing to shift.
+        await Assert.That(CanonicalTextMeasurer.KernShiftsPoints(calibri, "mmmm", 30)).IsNull();
+    }
+
+    // A painter splits a kerned run only where a pair adjusts, and never inside a surrogate pair.
+    [Test]
+    public async Task Kern_segments_split_only_where_a_pair_adjusts()
+    {
+        var text = "ab\U0001F600cd";
+        var shifts = new double[] {0, 0, 0, 0, -1, -1};
+
+        await Assert.That(CanonicalTextMeasurer.KernSegmentEnd(text, shifts, 0)).IsEqualTo(4);
+        await Assert.That(CanonicalTextMeasurer.KernSegmentEnd(text, shifts, 4)).IsEqualTo(6);
+
+        var pairFirst = "\U0001F600a";
+        await Assert.That(CanonicalTextMeasurer.KernSegmentEnd(pairFirst, [0, 0, -1], 0)).IsEqualTo(2);
+    }
+
     [Test]
     public async Task Wraps_greedily_at_the_measure()
     {

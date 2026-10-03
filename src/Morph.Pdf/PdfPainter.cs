@@ -230,7 +230,7 @@ static class PdfPainter
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties));
+            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties), KernShifts(context, run.Text, properties));
 
             // Underline below the baseline, strike through the x-height — geometry carried over from the
             // deleted PdfTextEngine.
@@ -271,10 +271,12 @@ static class PdfPainter
         }
     }
 
-    // Draws text, spreading each character by w:spacing tracking (letter-spacing). The run's placed width
-    // already includes the tracking (the canonical measurer widened it), so a following run starts past it.
-    // Per-glyph, so surrogate pairs stay intact.
-    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints, bool syntheticItalic = false)
+    // Draws text, spreading each character by w:spacing tracking (letter-spacing) and pulling each by its
+    // kern. The run's placed width already includes both (the canonical measurer kerned and tracked the
+    // advances), so a following run starts past it; PdfSharp's DrawString takes no pair adjustment, so a
+    // kerned run is drawn glyph by glyph with the kern the layout measured added to each pen
+    // (CanonicalTextMeasurer.KernShiftsPoints). Per-glyph, so surrogate pairs stay intact.
+    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints, bool syntheticItalic = false, double[]? kernShifts = null)
     {
         // An italic run whose family bundles no italic face: shear the glyphs right about the
         // baseline by the Word-measured oblique. PdfSharp's own mustSimulateItalic is deliberately
@@ -287,20 +289,28 @@ static class PdfPainter
             graphics.MultiplyTransform(new(1, 0, -skew, 1, skew * baseline, 0));
         }
 
-        if (trackingPoints == 0 || text.Length <= 1)
+        if ((trackingPoints == 0 && kernShifts == null) || text.Length <= 1)
         {
             graphics.DrawString(text, font, brush, new XPoint(penX, baseline), baselineFormat);
         }
         else
         {
-            var x = penX;
-            for (var i = 0; i < text.Length; i++)
+            // Tracked text goes glyph by glyph; kerned text splits only where a pair adjusts.
+            var advanced = 0.0;
+            var i = 0;
+            while (i < text.Length)
             {
-                var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
-                var piece = text.Substring(i, length);
+                var end = SegmentEnd(text, i, trackingPoints != 0, kernShifts);
+                var piece = text.Substring(i, end - i);
+                var x = penX + advanced;
+                if (kernShifts != null)
+                {
+                    x += kernShifts[i];
+                }
+
                 graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
-                x += graphics.MeasureString(piece, font).Width + trackingPoints;
-                i += length - 1;
+                advanced += graphics.MeasureString(piece, font).Width + trackingPoints;
+                i = end;
             }
         }
 
@@ -308,6 +318,40 @@ static class PdfPainter
         {
             graphics.Restore(state);
         }
+    }
+
+    // One glyph (a surrogate pair intact) for tracked text, else the stretch sharing one kern.
+    static int SegmentEnd(string text, int start, bool tracked, double[]? kernShifts)
+    {
+        if (tracked || kernShifts == null)
+        {
+            if (char.IsHighSurrogate(text[start]) && start + 1 < text.Length)
+            {
+                return start + 2;
+            }
+
+            return start + 1;
+        }
+
+        return CanonicalTextMeasurer.KernSegmentEnd(text, kernShifts, start);
+    }
+
+    // The kern the layout gave each glyph of a run, at the face and size it was measured with (a
+    // superscript's reduced size included), or null for a run that does not kern.
+    static double[]? KernShifts(PdfRenderContext context, string text, RunProperties properties)
+    {
+        if (!CanonicalParagraphMeasurer.KerningEnabled(properties))
+        {
+            return null;
+        }
+
+        var metrics = context.LayoutMetrics(properties.FontFamily, properties.Bold, properties.Italic);
+        if (metrics == null)
+        {
+            return null;
+        }
+
+        return CanonicalTextMeasurer.KernShiftsPoints(metrics, text, VerticalRunPosition.RenderSizePoints(properties), context.FontWidthScale);
     }
 
     // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the

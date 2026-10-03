@@ -11,14 +11,14 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Footnote ref1\nEndnote refi\nx\nThis is an endnote.\nThis is a footnote."
+        "Text": "Footnote ref\n1\nEndnote ref\ni\nx\nThis is an endnote.\nThis is a footnote."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0044,
+      "ErrorMetric": 0.0045,
       "Ssim": 0.9905,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",

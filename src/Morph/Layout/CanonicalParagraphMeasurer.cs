@@ -395,8 +395,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // Word applies pair kerning to a run whose size reaches the resolved w:kern threshold; zero
     // (the spec default when docDefaults declare no kern) disables it. The threshold itself is
     // resolved by the parser, including the built-in-Normal default for a document with no
-    // docDefaults - see DocumentParser (todo #43, _probe_kern_* fixtures).
-    static bool KerningEnabled(RunProperties properties) =>
+    // docDefaults - see DocumentParser (_probe_kern_* and _probe_kerncascade fixtures). The painters
+    // ask the same question to kern what they draw (CanonicalTextMeasurer.KernShiftsPoints).
+    internal static bool KerningEnabled(RunProperties properties) =>
         properties.KerningMinFontSizePoints > 0 && properties.FontSizePoints >= properties.KerningMinFontSizePoints;
 
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth)

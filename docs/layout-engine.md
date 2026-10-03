@@ -287,9 +287,9 @@ run's own `w:rPr`, 52 probed cases — where the parser had read only docDefault
 measurer adds the GPOS pair adjustments linearly, the pairs that straddle a space included, in place of
 the drawn pair rule, which once kerning reached all text over-fitted Aptos lines by up to 4px. Those four
 lines now break where Word's do, no page count moved, and over the 597 Word pages Skia is −0.043 AE (31
-pages closer, 22 further). That leaves in `src/todo.md` #43 glyph placement — kerned ink included, which
-only ImageSharp's shaper draws — mode 15's squeeze of justified lines, and the pen rounding in the fit
-test. The cascade and the two kerning probes are written up in `docs/word-features.md`, Kerning.*
+pages closer, 22 further). Skia and PDF kern their ink since the next day (`docs/word-features.md`, Kerning). That leaves in
+`src/todo.md` #43 glyph placement — Word's whole-pixel drawn advances — mode 15's squeeze of justified
+lines, and the pen rounding in the fit test. The cascade and the two kerning probes are written up in `docs/word-features.md`, Kerning.*
 
 ## Migration checklist (sequence matters even unbounded)
 
