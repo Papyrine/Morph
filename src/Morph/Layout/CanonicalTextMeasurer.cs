@@ -107,26 +107,28 @@ sealed class CanonicalTextMeasurer
     internal const double ReferenceDpi = 120.0;
 
     /// <summary>
-    /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded
-    /// on the linear (no-sidecar) track.
+    /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded.
     ///
     /// <para>This used to round to a whole pixel, which bucketed 10.5pt and 11pt onto the same 18px em
     /// and wrapped them identically. Measuring Word directly settled it (the probe is recorded in
     /// <c>src/page_counts.md</c>, "Ppem grain root-caused"): a run of one repeated glyph shows Word's
     /// advances landing on whole device pixels while their *mean* tracks the plain fractional advance,
-    /// so on this track the unrounded em is the model that fits. Rounding the em — onto a fixed 120-dpi
+    /// so the unrounded em is the model that fits. Rounding the em — onto a fixed 120-dpi
     /// grid unrelated to the output resolution, at that — made the width error jump ~4% between adjacent
     /// point sizes, and that discontinuity, not its magnitude, is what wrapped 10 / 10.5pt documents
-    /// early while 11pt behaved. The quantization that remains, and that Word does share, is
+    /// early while 11pt behaved. The quantization that remains is
     /// <see cref="PixelsToPoints"/> rounding the accumulated pen position once per line.</para>
     ///
-    /// <para>Word itself DOES round the em — its XPS output declares 7.8pt (13px) for 8pt Calibri —
-    /// and takes per-glyph GDI natural widths on that grid, so per-glyph truth deviates from ANY
-    /// single linear track, this one included. The unrounded em is kept here as the model that
-    /// measured best corpus-wide for fonts without measured data (the discontinuity above was a real
-    /// regression; the per-size deviations are not linearly correctable). Where the deviation is
-    /// modelled, it is carried per glyph by <see cref="FontMetrics.WordAdvances"/> sidecars, which
-    /// bypass this em entirely.</para>
+    /// <para>Word DRAWS on a rounded em — its XPS output declares 7.8pt (13px) for 8pt Calibri, with
+    /// whole-pixel glyph advances on that grid — but it does not LAY OUT on it. Probed 2026-10-02 by
+    /// stepping a right indent one pixel at a time: a line's last word wraps exactly where the linear
+    /// width (the <c>hmtx</c> advance at the size as authored, plus GPOS kerning scaled the same way)
+    /// passes the measure, on 76 of 76 thresholds across Calibri, Arial, Aptos and Times New Roman at
+    /// 10/11/12pt in compatibility modes 12 and 15, and an autofit column sizes to the same linear
+    /// width (990 tables). The glyph positions in the XPS are presentation and say nothing about
+    /// where a line breaks: per-glyph tables memoizing them (the <c>.wordadvances</c> sidecars this
+    /// measurer read from 2026-08-30 until that probe) measured those sentences 1.6% under to 4.2%
+    /// over. The numbers are in <c>docs/layout-engine.md</c>, "The crux".</para>
     /// </summary>
     public static double EmPixels(double sizePoints) =>
         sizePoints * ReferenceDpi / 72.0;
@@ -150,135 +152,153 @@ sealed class CanonicalTextMeasurer
     /// per-conversion widening (<c>PdfExportOptions</c>/<c>ImageExportOptions.FontWidthScale</c>), applied
     /// linearly before quantization — the same knob production's <c>RenderContextBase</c> multiplies advances by.
     ///
-    /// <para>A font carrying a <see cref="FontMetrics.WordAdvances"/> sidecar advances by Word's own
-    /// measured per-glyph values instead of the linear <c>hmtx</c> track — see that property for the
-    /// model and its evidence. The reference grid here is 120 dpi, the same grid Word's measured
-    /// pixels are on, so sidecar values add into this accumulator directly.</para>
+    /// <para>With <paramref name="kerning"/> the GPOS pair adjustments are added in the same design
+    /// units and scaled with the advances, which is how Word's layout takes them. Probed 2026-10-02:
+    /// the wrap threshold of a kerned sentence sits at <c>ceil</c> of exactly this width (Calibri and
+    /// Aptos at three sizes each), and ten <c>To</c> set solid make autofit columns of 185.2, 169.2 and
+    /// 154.2px at 12, 11 and 10pt Calibri where this gives 185.2, 169.7 and 154.3. The rule that stood
+    /// here before snapped the kern to 1/16px and rounded the pair's first glyph to a whole pixel, which
+    /// is how Word DRAWS a kerned pair (it was read off XPS glyph positions: 24pt <c>Ta</c> draws T at
+    /// 17.000px from an unkerned 20.042). As a layout width it gave 185.5, 166.7 and 157.9 for those
+    /// columns and put an Aptos line of 22 kerned pairs 4.3px narrow.</para>
     /// </summary>
-    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false, int compatibilityMode = 12)
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false)
     {
-        if (metrics.WordAdvancesFor(compatibilityMode) is { } wordAdvances)
+        var units = AdvanceUnits(metrics, text);
+        if (kerning)
         {
-            return WordPixels(metrics, wordAdvances, text, sizePoints, kerning, compatibilityMode) * fontWidthScale;
+            units += KernUnits(metrics, text);
         }
 
-        if (kerning && metrics.KernPairs != null)
+        return (double) units / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
+    }
+
+    // The pair adjustments between each glyph of the text and the next, in design units.
+    static long KernUnits(FontMetrics metrics, string text)
+    {
+        if (metrics.KernPairs is not { } kernTable)
         {
-            return KernedLinearPixels(metrics, text, sizePoints) * fontWidthScale;
+            return 0;
         }
 
-        return (double) AdvanceUnits(metrics, text) / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
-    }
-
-    // Word's kerned-pair quantization, measured on the _probe_kern_* fixtures across three sizes
-    // and six Calibri pairs (todo #43): the kern value snaps to 1/16 px at the layout em, and the
-    // pair's FIRST glyph advance then rounds to a whole layout pixel — even where its unkerned
-    // advance was fractional (24pt Ta renders T at 17.000px from an unkerned 20.042). Returns the
-    // signed pixel delta to add for the pair, replacing the first glyph's unkerned advance with
-    // Word's kerned one.
-    static double KernPairDelta(double firstAdvancePixels, short kernUnits, double emPixels, int unitsPerEm)
-    {
-        var kernSixteenths = Math.Round((double) kernUnits / unitsPerEm * emPixels * 16, MidpointRounding.AwayFromZero) / 16;
-        return Math.Round(firstAdvancePixels + kernSixteenths, MidpointRounding.AwayFromZero) - firstAdvancePixels;
-    }
-
-    // Kerning on the linear (no-sidecar) track: same pair rule, on the unrounded reference em.
-    static double KernedLinearPixels(FontMetrics metrics, string text, double sizePoints)
-    {
-        var kernTable = metrics.KernPairs!;
-        var emPixels = EmPixels(sizePoints);
-        double pixels = 0;
+        long units = 0;
         var previousGlyph = (ushort) 0;
-        double previousAdvance = 0;
         var havePrevious = false;
         foreach (var rune in text.EnumerateRunes())
         {
             var glyph = metrics.GlyphId(rune.Value);
             if (havePrevious)
             {
-                var kern = kernTable.KernUnits(previousGlyph, glyph);
-                if (kern != 0)
-                {
-                    pixels += KernPairDelta(previousAdvance, kern, emPixels, metrics.UnitsPerEm);
-                }
+                units += kernTable.KernUnits(previousGlyph, glyph);
             }
 
-            var advance = (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * emPixels;
-            pixels += advance;
             previousGlyph = glyph;
-            previousAdvance = advance;
             havePrevious = true;
         }
 
-        return pixels;
+        return units;
     }
 
-    // Word's measured advance track: per-glyph sidecar pixels where measured, else linear at the
-    // em rounded to whole reference pixels plus Word's half-twip bias (FontMetrics.WordAdvances).
-    // Kerning, when enabled, applies Word's pair rule (KernPairDelta) on the same em.
-    static double WordPixels(FontMetrics metrics, IReadOnlyDictionary<int, IReadOnlyDictionary<int, float>> wordAdvances, string text, double sizePoints, bool kerning, int compatibilityMode)
+    /// <summary>
+    /// The pair adjustment between the last glyph of <paramref name="before"/> and the first glyph of
+    /// <paramref name="after"/>, in the same device pixels as <see cref="LinearPixels"/> — the kern
+    /// that falls BETWEEN two pieces of text measured separately. Word's layout counts a pair across
+    /// a space like any other: probed 2026-10-02 on autofit columns (<c>_probe_spacekern</c>), twenty
+    /// <c>A</c> set a space apart make a 331.4px column in 12pt Arial, whose <c>A</c>+space and
+    /// space+<c>A</c> pairs are −113 units each, against 372.4px with kerning off; Times New Roman and
+    /// Avenir Next LT Pro agree. Zero when the font carries no pair for them.
+    /// </summary>
+    public static double KernPixelsBetween(FontMetrics metrics, string before, string after, double sizePoints, double fontWidthScale = 1.0)
     {
-        var halfPoints = (int) Math.Round(sizePoints * 2, MidpointRounding.AwayFromZero);
-        wordAdvances.TryGetValue(halfPoints, out var table);
-        var roundedEmPixels = Math.Round(EmPixels(sizePoints), MidpointRounding.AwayFromZero) + 1.0 / 24;
-        var kernTable = kerning ? metrics.KernPairs : null;
-        double pixels = 0;
-        var previousGlyph = (ushort) 0;
-        double previousAdvance = 0;
-        var havePrevious = false;
-        foreach (var rune in text.EnumerateRunes())
+        if (metrics.KernPairs is not { } kernTable || before.Length == 0 || after.Length == 0)
         {
-            if (kernTable != null)
-            {
-                var glyph = metrics.GlyphId(rune.Value);
-                if (havePrevious)
-                {
-                    var kern = kernTable.KernUnits(previousGlyph, glyph);
-                    if (kern != 0)
-                    {
-                        pixels += KernPairDelta(previousAdvance, kern, roundedEmPixels, metrics.UnitsPerEm);
-                    }
-                }
-
-                previousGlyph = glyph;
-                havePrevious = true;
-            }
-
-            double advance;
-            if (table != null && table.TryGetValue(rune.Value, out var measured))
-            {
-                advance = measured;
-            }
-            else
-            {
-                advance = (double) metrics.AdvanceUnits(rune.Value) / metrics.UnitsPerEm * roundedEmPixels;
-
-                // The space is deliberately absent from the sidecars (a run of spaces measures
-                // differently from a single inter-word gap), and on Word's track it is a WHOLE
-                // layout pixel: with word advances integer-snapped, the pen makes every gap
-                // round(fractional space) — 4px at 10pt Calibri (resumes/16's XPS, uniform on
-                // every comfortable line), 5px at 12pt. Carrying the fractional 4.52px here left
-                // lines ~half a pixel per space narrower than Word's, enough to fit an extra
-                // word and merge lines Word keeps (complex_spacing's band-count drift).
-                //
-                // That snap is the GDI track's (compatibility mode 14 and older). A mode 15 document
-                // keeps the space fractional: agendas-minutes/15's XPS (Segoe UI 12pt, kerned) sums its
-                // first list line to 717px, which the fractional DirectWrite sidecar reproduces only
-                // with the 5.48px linear space (723.6 unkerned, against 716.2 with a 5px space); the
-                // XPS shows the glyph origins pixel-snapped with the accumulated fraction landing on
-                // the spaces (5, 6 and 7px gaps on one line). Rounding the space there fitted one
-                // more word per line and re-wrapped every list item away from Word's.
-                if (rune.Value == ' ' && compatibilityMode < 15)
-                {
-                    advance = Math.Round(advance, MidpointRounding.AwayFromZero);
-                }
-            }
-
-            pixels += advance;
-            previousAdvance = advance;
+            return 0;
         }
 
-        return pixels;
+        var last = default(Rune);
+        foreach (var rune in before.EnumerateRunes())
+        {
+            last = rune;
+        }
+
+        var first = default(Rune);
+        foreach (var rune in after.EnumerateRunes())
+        {
+            first = rune;
+            break;
+        }
+
+        var units = kernTable.KernUnits(metrics.GlyphId(last.Value), metrics.GlyphId(first.Value));
+        return (double) units / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
+    }
+
+    /// <summary>
+    /// The kern each glyph of <paramref name="text"/> carries, in points: at index <c>i</c> (a UTF-16
+    /// index into the text) the sum of the pair adjustments between the glyphs before it, so a painter
+    /// that draws at its backend's own advances adds it to each glyph's pen and the ink is kerned as
+    /// the line was measured by <see cref="LinearPixels"/>. A backend that draws a run at unkerned
+    /// advances draws it wider than it was measured, and the run after it on the line starts inside
+    /// the ink — wedding/03's 30pt title lost 5px that way. Null when no pair of the text adjusts.
+    /// </summary>
+    public static double[]? KernShiftsPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0)
+    {
+        if (metrics.KernPairs is not { } kernTable || text.Length < 2)
+        {
+            return null;
+        }
+
+        var shifts = new double[text.Length];
+        long units = 0;
+        var any = false;
+        var previousGlyph = (ushort) 0;
+        var havePrevious = false;
+        var index = 0;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            var glyph = metrics.GlyphId(rune.Value);
+            if (havePrevious)
+            {
+                var pair = kernTable.KernUnits(previousGlyph, glyph);
+                units += pair;
+                any |= pair != 0;
+            }
+
+            shifts[index] = (double) units / metrics.UnitsPerEm * sizePoints * fontWidthScale;
+            index += rune.Utf16SequenceLength;
+            previousGlyph = glyph;
+            havePrevious = true;
+        }
+
+        if (!any)
+        {
+            return null;
+        }
+
+        return shifts;
+    }
+
+    /// <summary>
+    /// The end (exclusive) of the stretch of <paramref name="text"/> from <paramref name="start"/> whose
+    /// glyphs all carry the kern of the glyph at <paramref name="start"/> in <paramref name="shifts"/>
+    /// (from <see cref="KernShiftsPoints"/>), so a painter draws each stretch as one string at one pen and
+    /// splits only where a pair adjusts. A surrogate pair is never split.
+    /// </summary>
+    public static int KernSegmentEnd(string text, double[] shifts, int start)
+    {
+        var shift = shifts[start];
+        var end = start;
+        while (end < text.Length)
+        {
+            var length = char.IsHighSurrogate(text[end]) && end + 1 < text.Length ? 2 : 1;
+            if (end > start && shifts[end] != shift)
+            {
+                break;
+            }
+
+            end += length;
+        }
+
+        return end;
     }
 
     /// <summary>Quantizes an accumulated linear-pixel total to points — the pen position rounded once.</summary>
@@ -310,8 +330,8 @@ sealed class CanonicalTextMeasurer
     /// spaces only, a regression applied whole-advance (<c>src/page_counts.md</c>) — so it stays
     /// unmodelled by choice.
     /// </summary>
-    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false, int compatibilityMode = 12) =>
-        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning, compatibilityMode));
+    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false) =>
+        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within

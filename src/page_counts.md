@@ -147,6 +147,20 @@ washes and regressions revert, but the measured knowledge is kept.
 
 ## Pass 4 experiment ledger (newest first)
 
+- **23 — the advance sidecars and the space-compression wedge removed: zero page-count changes
+  (2026-10-02).** The wedge had landed on 2026-08-30 to take resumes/16 back to one page under the
+  per-glyph `.wordadvances` widths (todo #43), on the reading that Word lays text out on the pixel
+  advances its XPS shows and squeezes spaces rather than wrap. A threshold probe refuted the
+  reading: Word breaks lines and sizes autofit columns on plain linear widths
+  (`docs/layout-engine.md`, "The crux"). With every face back on the linear track and no wedge,
+  **every page count in the corpus is unchanged, resumes/16's single page included** — that
+  résumé now reproduces all eleven of the long lines Word sets, where it had seven. 289 snapshot
+  tests moved on pixels: over the 597 Word pages Skia has 61 closer to Word and 31 further,
+  summed AE −0.061 (PDF −0.051, ImageSharp −0.019). One fit rule came out of it: a line
+  may pass its measure by 0.012pt (`CanonicalParagraphMeasurer.fitTolerancePoints`), because an
+  autofit cell is sized from its own text through float arithmetic and otherwise wraps the last
+  word of that text. Without it eight table fixtures re-wrapped and
+  `A_table_a_point_short_of_room_breaks_before_its_last_row_unless_it_is_a_sheet` failed.
 - **22 — exact row fit landed for plain content rows, narrowing experiment 12's "load-bearing"
   verdict (2026-08-19).** Found off-corpus: a 1216-row summary table over 52 landscape pages (COMPASS
   stocktake report, via Parchment's resolved PAGEREFs), where `HasSpaceFor`'s 2% slack is 9.6pt
@@ -486,6 +500,17 @@ The change shipped on correctness rather than on that payoff: the old model asse
 lay out identically, which the probe shows is false, and the assertion was pinned by two passing tests
 (`Ppem_quantizes_at_120_dpi` asserted the bucket; the pen-position test compared against the ideal at
 the *quantized* em, so it passed under either model). Both now assert the measured behaviour.
+
+### Word lays out on linear advances (2026-10-02)
+
+The repeated-glyph probe above read the DRAWN page. Asked instead what Word breaks on — a right
+indent stepped a pixel at a time, 76 thresholds over four faces, three sizes, both
+compatibility-mode families, kerning on and off — a line's last word wraps exactly where the
+unrounded linear width passes the measure, and an autofit column is sized to the same width. So
+"the mean tracks the nominal advance" above was the layout showing through the drawing: the
+whole-pixel advances are how the line is painted afterwards. The per-glyph sidecar tables and the
+space-compression wedge that modelled the drawn advances as layout (2026-08-30 to 2026-10-02) are
+gone; the numbers are in `docs/layout-engine.md`, "The crux", and experiment 23 above.
 
 ## Root-cause lessons
 

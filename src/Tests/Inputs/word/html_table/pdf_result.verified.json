@@ -11,15 +11,15 @@
       {
         "Width": 612.0,
         "Height": 792.0,
-        "Text": "Basic HTML table:\nHeader 1 Header 2 Header 3\nRow 1, Cell 1Row 1, Cell 2Row 1, Cell 3\nRow 2, Cell 1Row 2, Cell 2Row 2, Cell 3\nRow 3, Cell 1Row 3, Cell 2Row 3, Cell 3"
+        "Text": "Basic HTML table:\nHeader 1 Header 2 Header 3\nRow 1, Cell 1 Row 1, Cell 2 Row 1, Cell 3\nRow 2, Cell 1 Row 2, Cell 2 Row 2, Cell 3\nRow 3, Cell 1 Row 3, Cell 2 Row 3, Cell 3"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0105,
-      "Ssim": 0.9726,
+      "ErrorMetric": 0.0102,
+      "Ssim": 0.9739,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
