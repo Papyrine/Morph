@@ -12,7 +12,7 @@ static class BenchmarkSmoke
         var outputDir = Path.Combine(Path.GetTempPath(), "morph-benchmark-smoke");
         Directory.CreateDirectory(outputDir);
 
-        var fontsDirectory = Path.GetFullPath(Path.Combine(SourceDir(), "..", "Fonts"));
+        var fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.SolutionDirectory, "Fonts"));
         var imageOptions = new ImageExportOptions
         {
             FontDirectory = fontsDirectory
@@ -55,6 +55,4 @@ static class BenchmarkSmoke
 
         Console.WriteLine($"Output written to {outputDir}");
     }
-
-    static string SourceDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
 }
