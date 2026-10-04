@@ -17,6 +17,9 @@ sealed record DeclaredRunProperties
     public bool? AllCaps { get; init; }
     public bool? SmallCaps { get; init; }
 
+    // The rung's w:kern as a size threshold in points; zero is an explicit "kerning off".
+    public double? KerningMinFontSizePoints { get; init; }
+
     public bool HasAny =>
         FontFamily != null ||
         FontSizePoints != null ||
@@ -26,7 +29,8 @@ sealed record DeclaredRunProperties
         Underline != null ||
         Strikethrough != null ||
         AllCaps != null ||
-        SmallCaps != null;
+        SmallCaps != null ||
+        KerningMinFontSizePoints != null;
 
     /// <summary>
     /// Layers <paramref name="over"/> on top of this rung — anything it declares wins, anything it
@@ -50,7 +54,8 @@ sealed record DeclaredRunProperties
             Underline = over.Underline ?? Underline,
             Strikethrough = over.Strikethrough ?? Strikethrough,
             AllCaps = over.AllCaps ?? AllCaps,
-            SmallCaps = over.SmallCaps ?? SmallCaps
+            SmallCaps = over.SmallCaps ?? SmallCaps,
+            KerningMinFontSizePoints = over.KerningMinFontSizePoints ?? KerningMinFontSizePoints
         };
     }
 

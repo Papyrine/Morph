@@ -73,6 +73,58 @@ public class CanonicalParagraphMeasurerTests
         await Assert.That(lines.Count).IsEqualTo(1);
     }
 
+    // An autofit column is sized to its text's natural width plus the cell's chrome, and the cell
+    // then takes the chrome back off — so the measure the text is wrapped at has been through float
+    // arithmetic, and can land a few millionths of a point under the width it was read from. The
+    // text still has to fit on the one line that was measured.
+    [Test]
+    public async Task A_line_fits_the_measure_taken_from_its_own_width()
+    {
+        var paragraph = Para(Run("Top margin emphasis", "Calibri", 12));
+        var natural = measurer.MeasureParagraphNaturalWidth(paragraph, float.MaxValue / 4);
+
+        // Every chrome up to 40pt, in the twentieths of a point that margins and borders come in.
+        var wrapped = new List<float>();
+        for (var twentieths = 0; twentieths <= 800; twentieths++)
+        {
+            var chrome = twentieths / 20f;
+            var column = natural + chrome;
+            if (measurer.LayoutParagraphForMeasurement(paragraph, column - chrome).Count != 1)
+            {
+                wrapped.Add(chrome);
+            }
+        }
+
+        await Assert.That(wrapped).IsEmpty();
+    }
+
+    // Word's layout kerns a pair that straddles a space like any other. Probed on autofit columns
+    // (_probe_spacekern, 2026-10-02): twenty "A" set a space apart in 12pt Arial, whose A+space and
+    // space+A pairs are -113 units each, make a 331.4px column with kerning on and a 372.4px one
+    // with it off. The wrap measures word by word, so the pair has to be carried between the pieces.
+    [Test]
+    public async Task Kerning_reaches_across_a_space()
+    {
+        var text = string.Join(' ', Enumerable.Repeat("A", 20));
+        ParagraphElement Spaced(double kerningThreshold) =>
+            Para(new Run
+            {
+                Text = text,
+                Properties = new()
+                {
+                    FontFamily = "Arial",
+                    FontSizePoints = 12,
+                    KerningMinFontSizePoints = kerningThreshold
+                }
+            });
+
+        var kernedPixels = measurer.MeasureParagraphNaturalWidth(Spaced(1), 10000) * 120.0 / 72;
+        var unkernedPixels = measurer.MeasureParagraphNaturalWidth(Spaced(0), 10000) * 120.0 / 72;
+
+        await Assert.That(unkernedPixels).IsEqualTo(372.4).Within(1);
+        await Assert.That(kernedPixels).IsEqualTo(331.4).Within(2);
+    }
+
     [Test]
     public async Task Empty_paragraph_is_one_mark_line_with_no_after_spacing()
     {

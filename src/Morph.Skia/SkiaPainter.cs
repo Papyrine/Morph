@@ -205,31 +205,77 @@ static class SkiaPainter
         }
     }
 
-    // Draws text, spreading each character by w:spacing tracking. The run's placed width already includes the
-    // tracking, so the following run starts past it. Per-glyph so surrogate pairs stay intact — mirrors
-    // PdfPainter.DrawTracked.
+    // Draws text, spreading each character by w:spacing tracking and pulling each by its kern. The run's
+    // placed width already includes both (the measurer kerns and tracks the advances), so the following run
+    // starts past it; Skia's own DrawText takes no pair adjustment, so a kerned run is drawn glyph by glyph
+    // with the kern the layout measured added to each pen (CanonicalTextMeasurer.KernShiftsPoints).
+    // Per-glyph so surrogate pairs stay intact — mirrors PdfPainter.DrawTracked.
     static void DrawTracked(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, double baseline)
     {
         var font = context.CreateFont(properties);
         var paint = context.GetReusableTextPaint(properties);
         var y = P(context, baseline);
+        var kernShifts = KernShifts(context, text, properties);
 
-        if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
+        if ((properties.CharacterSpacingPoints == 0 && kernShifts == null) || text.Length <= 1)
         {
             canvas.DrawText(text, P(context, penX), y, font, paint);
             return;
         }
 
+        // Tracked text goes glyph by glyph; kerned text splits only where a pair adjusts.
         var trackingPixels = P(context, properties.CharacterSpacingPoints);
-        var x = P(context, penX);
-        for (var i = 0; i < text.Length; i++)
+        var start = P(context, penX);
+        var advanced = 0f;
+        var i = 0;
+        while (i < text.Length)
         {
-            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
-            var piece = text.Substring(i, length);
+            var end = SegmentEnd(text, i, trackingPixels != 0, kernShifts);
+            var piece = text.Substring(i, end - i);
+            var x = start + advanced;
+            if (kernShifts != null)
+            {
+                x += P(context, kernShifts[i]);
+            }
+
             canvas.DrawText(piece, x, y, font, paint);
-            x += font.MeasureText(piece) + trackingPixels;
-            i += length - 1;
+            advanced += font.MeasureText(piece) + trackingPixels;
+            i = end;
         }
+    }
+
+    // One glyph (a surrogate pair intact) for tracked text, else the stretch sharing one kern.
+    static int SegmentEnd(string text, int start, bool tracked, double[]? kernShifts)
+    {
+        if (tracked || kernShifts == null)
+        {
+            if (char.IsHighSurrogate(text[start]) && start + 1 < text.Length)
+            {
+                return start + 2;
+            }
+
+            return start + 1;
+        }
+
+        return CanonicalTextMeasurer.KernSegmentEnd(text, kernShifts, start);
+    }
+
+    // The kern the layout gave each glyph of a run, at the face and size it was measured with (a
+    // superscript's reduced size included), or null for a run that does not kern.
+    static double[]? KernShifts(SkiaRenderContext context, string text, RunProperties properties)
+    {
+        if (!CanonicalParagraphMeasurer.KerningEnabled(properties))
+        {
+            return null;
+        }
+
+        var metrics = context.LayoutMetrics(properties.FontFamily, properties.Bold, properties.Italic);
+        if (metrics == null)
+        {
+            return null;
+        }
+
+        return CanonicalTextMeasurer.KernShiftsPoints(metrics, text, VerticalRunPosition.RenderSizePoints(properties), context.FontWidthScale);
     }
 
     // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the

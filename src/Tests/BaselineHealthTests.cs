@@ -130,14 +130,7 @@ public class BaselineHealthTests
         // fell 0.241 -> 0.011. Correct output.
         "weekly-lesson-planner/skia_result#page_0002.verified.png",
         "weekly-lesson-planner/imagesharp_result#page_0002.verified.png",
-        "weekly-lesson-planner/pdf_result#page_0002.verified.png",
-        // -- Known regressions (temporary) --
-        // resumes/06's document-final empty paragraph overflows onto a blank fourth page, which the engine
-        // keeps because Word renders such a page (_probe_trail2_flowblank). Word's own layout fits it on page
-        // 3: the engine's rows 0-9 run ~13.6pt over Word's (src/todo.md #25). Remove when that drift is fixed.
-        "resumes/06/skia_result#page_0004.verified.png",
-        "resumes/06/imagesharp_result#page_0004.verified.png",
-        "resumes/06/pdf_result#page_0004.verified.png"
+        "weekly-lesson-planner/pdf_result#page_0002.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();
