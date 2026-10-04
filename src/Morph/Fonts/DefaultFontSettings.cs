@@ -14,11 +14,7 @@ static class DefaultFontSettings
     /// <para>The parser's built-in family for a style-less document lives in
     /// <c>DocumentParser.builtInDefaultFontFamily</c> and only applies when neither
     /// <see cref="ExportOptions.DefaultFont"/> nor this setting has been customized. Word's own
-    /// built-in there is Calibri 12pt, and Word's per-glyph Calibri advance model is measured and
-    /// tooled (<see cref="FontMetrics.WordAdvances"/>, <c>scripts/generate-word-advances.py</c>) -
-    /// but both the advance sidecars and the family flip are parked: with pair kerning landed,
-    /// activating them still measured worse against Word via the table/autofit interplay under
-    /// changed advances. See <c>src/todo.md</c> #43.</para>
+    /// built-in there is Calibri 12pt, and that is what the parser supplies.</para>
     /// </summary>
     const string builtInDefaultFont = "Aptos";
 

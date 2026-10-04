@@ -134,13 +134,10 @@ public class CanonicalMetricsTests
         // The distinction that matters: 10.5pt must measure narrower than 11pt, in the nominal ratio. A long
         // line, so the one pen-position rounding (0.6pt at 120dpi) is a small fraction of the total — on a
         // short string that single rounding is ~1% on its own and would swamp the ratio being asserted.
-        // On a face WITHOUT a .wordadvances sidecar: this pins the linear fallback model. A sidecar-backed
-        // face measures with Word's own per-size advances, and Word does collapse Aptos 10.5pt onto the
-        // 11pt em (its sidecar reads 0.996 for this ratio) — the fallback is the rule under test, not Word.
-        var face = Read("Times_New_Roman_400.ttf");
+        var aptos = Read("Aptos_400.ttf");
         const string line = "The quick brown fox jumps over the lazy dog again and again and again";
-        var narrow = CanonicalTextMeasurer.MeasureWidthPoints(face, line, 10.5);
-        var wide = CanonicalTextMeasurer.MeasureWidthPoints(face, line, 11);
+        var narrow = CanonicalTextMeasurer.MeasureWidthPoints(aptos, line, 10.5);
+        var wide = CanonicalTextMeasurer.MeasureWidthPoints(aptos, line, 11);
         await Assert.That(narrow).IsLessThan(wide);
         await Assert.That(narrow / wide).IsEqualTo(10.5 / 11.0).Within(0.005);
     }
@@ -148,18 +145,77 @@ public class CanonicalMetricsTests
     [Test]
     public async Task Pen_position_width_bounds_the_whole_line_rounding_error()
     {
-        // A face without a .wordadvances sidecar, so the linear fallback is what is measured (see
-        // The_em_is_not_quantized).
-        var face = Read("Times_New_Roman_400.ttf");
+        var aptos = Read("Aptos_400.ttf");
         const string text = "The quick brown fox jumps over the lazy dog again and again and again";
 
         // The pen-position measurement sits within half a device pixel (0.5px @120dpi = 0.3pt) of the
         // unrounded ideal at the same size, no matter how long the line — because the whole-line total is
         // rounded once. Per-glyph rounding over this many glyphs would drift several points and over-wrap.
         // Now that the em is unquantized the ideal is simply the nominal width at 11pt.
-        var ideal = CanonicalTextMeasurer.MeasureWidthRawPoints(face, text, 11);
-        var measured = CanonicalTextMeasurer.MeasureWidthPoints(face, text, 11);
+        var ideal = CanonicalTextMeasurer.MeasureWidthRawPoints(aptos, text, 11);
+        var measured = CanonicalTextMeasurer.MeasureWidthPoints(aptos, text, 11);
         await Assert.That(Math.Abs(measured - ideal) < 0.31).IsTrue();
+    }
+
+    // Word's layout takes GPOS kerning linearly, in the same design units as the advances. The pixel
+    // values are the autofit columns Word gave ten "To" set solid in Calibri with kerning on
+    // (_probe_autofit, 2026-10-02, read off the border rules). The pair rule this replaced, which
+    // snapped each kern and rounded the pair's first glyph to a whole pixel as Word DRAWS it, gave
+    // 166.7 and 157.9 for the 11 and 10pt columns.
+    [Test]
+    [Arguments(12, 185.2)]
+    [Arguments(11, 169.2)]
+    [Arguments(10, 154.2)]
+    public async Task Kerning_adds_the_pair_adjustments_linearly(double size, double wordColumnPixels)
+    {
+        var calibri = Read("Calibri_400.ttf");
+        const string text = "ToToToToToToToToToTo";
+        var kerned = CanonicalTextMeasurer.LinearPixels(calibri, text, size, kerning: true);
+        var unkerned = CanonicalTextMeasurer.LinearPixels(calibri, text, size);
+
+        await Assert.That(kerned).IsEqualTo(wordColumnPixels).Within(0.75);
+        await Assert.That(unkerned - kerned).IsGreaterThan(14);
+    }
+
+    // The painters draw a kerned run at their backend's own (unkerned) advances plus the kern the
+    // layout measured at each glyph, so the last glyph lands where the run's width says it does and
+    // the next run on the line starts clear of the ink. The shifts are cumulative and in points.
+    [Test]
+    public async Task Kern_shifts_place_each_glyph_where_the_linear_measure_puts_it()
+    {
+        var calibri = Read("Calibri_400.ttf");
+        const string text = "To the happy couple";
+        var shifts = CanonicalTextMeasurer.KernShiftsPoints(calibri, text, 30)!;
+
+        await Assert.That(shifts.Length).IsEqualTo(text.Length);
+        await Assert.That(shifts[0]).IsEqualTo(0);
+        // "T" and "o" kern, so "o" is pulled left and everything after it carries that pull.
+        await Assert.That(shifts[1]).IsLessThan(-0.5);
+        for (var i = 1; i < text.Length; i++)
+        {
+            await Assert.That(shifts[i]).IsLessThanOrEqualTo(shifts[i - 1] + 1e-9);
+        }
+
+        // The last glyph's shift is the whole kerned-minus-unkerned difference of the text.
+        var kernPixels = CanonicalTextMeasurer.LinearPixels(calibri, text, 30, kerning: true) - CanonicalTextMeasurer.LinearPixels(calibri, text, 30);
+        await Assert.That(shifts[^1]).IsEqualTo(kernPixels * 72 / 120).Within(0.001);
+
+        // A text with no adjusting pair reports nothing to shift.
+        await Assert.That(CanonicalTextMeasurer.KernShiftsPoints(calibri, "mmmm", 30)).IsNull();
+    }
+
+    // A painter splits a kerned run only where a pair adjusts, and never inside a surrogate pair.
+    [Test]
+    public async Task Kern_segments_split_only_where_a_pair_adjusts()
+    {
+        var text = "ab\U0001F600cd";
+        var shifts = new double[] {0, 0, 0, 0, -1, -1};
+
+        await Assert.That(CanonicalTextMeasurer.KernSegmentEnd(text, shifts, 0)).IsEqualTo(4);
+        await Assert.That(CanonicalTextMeasurer.KernSegmentEnd(text, shifts, 4)).IsEqualTo(6);
+
+        var pairFirst = "\U0001F600a";
+        await Assert.That(CanonicalTextMeasurer.KernSegmentEnd(pairFirst, [0, 0, -1], 0)).IsEqualTo(2);
     }
 
     [Test]
