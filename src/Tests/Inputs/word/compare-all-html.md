@@ -1,4 +1,4 @@
-# All HTML export scenarios (335)
+# All HTML export scenarios (336)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 

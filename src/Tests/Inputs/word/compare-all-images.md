@@ -1,4 +1,4 @@
-# All scenarios (335)
+# All scenarios (336)
 
 <details>
 <summary>Contents</summary>
@@ -3797,7 +3797,7 @@ splitting.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1133 · SSIM: 0.8771** | **Page 1. ErrorMetric: 0.1147 · SSIM: 0.8752** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1119 · SSIM: 0.8817** | **Page 1. ErrorMetric: 0.1123 · SSIM: 0.8812** |
 | <img src="wordart-astral/expected_0001.png" width="500"> | <img src="wordart-astral/skia_result%23page_0001.verified.png" width="500"> | <img src="wordart-astral/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## wordart-envelope
