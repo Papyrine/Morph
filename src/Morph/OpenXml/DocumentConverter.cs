@@ -106,7 +106,7 @@ public abstract class DocumentConverter
     // Every paragraph under these elements, depth-first, matching the document order the parser
     // assigns bookmark ordinals in (see DocumentParser's paragraph-ordinal map, which walks
     // body.Descendants&lt;Paragraph&gt;()).
-    static IEnumerable<ParagraphElement> Flatten(IEnumerable<DocumentElement> elements)
+    internal static IEnumerable<ParagraphElement> Flatten(IEnumerable<DocumentElement> elements)
     {
         foreach (var element in elements)
         {
@@ -161,7 +161,7 @@ public abstract class DocumentConverter
     //
     // Floating text boxes and frames need no case: PlaceTextBox and PlaceFrame add their content to
     // the page as body floats, so those lines are already top-level items here.
-    static IEnumerable<PlacedLine> Lines(IEnumerable<PlacedItem> items)
+    internal static IEnumerable<PlacedLine> Lines(IEnumerable<PlacedItem> items)
     {
         foreach (var item in items)
         {
@@ -191,6 +191,55 @@ public abstract class DocumentConverter
         }
     }
 
+    /// <summary>Reports the text of each page of a DOCX file.</summary>
+    public static IReadOnlyList<string> GetPageTexts(string docxPath, ImageExportOptions? options = null)
+    {
+        using var stream = File.OpenRead(docxPath);
+        return GetPageTexts(stream, options);
+    }
+
+    /// <summary>
+    /// Reports the text of each page of a DOCX stream: one entry for every page, in page order, so
+    /// the count is the number of pages and the entry of a page with no text is empty.
+    /// </summary>
+    /// <remarks>
+    /// Where a page ends is a product of pagination, so the text of a document can only be divided
+    /// by page once it is laid out. This paginates it, as
+    /// <see cref="GetBookmarkPages(Stream, ImageExportOptions?)"/> does and at the same cost: a
+    /// layout pass, with no page drawn and no backend involved. It is the pagination every rendered
+    /// output goes through, so the text of a page is the text drawn on it.
+    /// <para>
+    /// The text is that of the body, in document order, with a line (<c>\n</c>) for each paragraph
+    /// and for each row of a table, whose cells are separated by tabs. A paragraph or a row that
+    /// runs over the end of a page is divided where the page ends. Headers, footers and notes are
+    /// left out. It is the text as laid out rather than as stored, so a list paragraph starts with
+    /// its marker.
+    /// </para>
+    /// </remarks>
+    public static IReadOnlyList<string> GetPageTexts(Stream docxStream, ImageExportOptions? options = null)
+    {
+        options ??= new();
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
+
+        DefaultFontSettings.MarkRenderOccurred();
+        using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+        return PageTextReader.Read(document, Layout(document, options, fontResolver));
+    }
+
+    static LaidOutDocument Layout(ParsedDocument document, ImageExportOptions options, FontResolver<FontMetrics> fontResolver)
+    {
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
+        return new Fragmenter(measurer).Layout(
+            document.Elements,
+            document.PageSettings,
+            document.Header,
+            document.Footer,
+            document.FirstPageHeader,
+            document.FirstPageFooter,
+            document.EvenPageHeader,
+            document.EvenPageFooter);
+    }
+
     // The page each paragraph starts on, read straight off the laid-out tree: a placed line is
     // anchored back to the paragraph it came from, and the page it sits on knows its own number. A
     // paragraph split across a page boundary contributes lines to both, so the lowest page wins —
@@ -200,16 +249,7 @@ public abstract class DocumentConverter
     static Dictionary<ParagraphElement, int> ParagraphPages(ParsedDocument document, ImageExportOptions options)
     {
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
-        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
-        var laidOut = new Fragmenter(measurer).Layout(
-            document.Elements,
-            document.PageSettings,
-            document.Header,
-            document.Footer,
-            document.FirstPageHeader,
-            document.FirstPageFooter,
-            document.EvenPageHeader,
-            document.EvenPageFooter);
+        var laidOut = Layout(document, options, fontResolver);
 
         var pages = new Dictionary<ParagraphElement, int>();
         foreach (var page in laidOut.Pages)
