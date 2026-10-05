@@ -1,4 +1,5 @@
 ﻿using S = DocumentFormat.OpenXml.Spreadsheet;
+using XDR = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
 /// <summary>
 /// Parses an XLSX package into the shared <see cref="ParsedDocument"/> model.
@@ -17,14 +18,32 @@
 /// That is one of the two deliberate divergences from Excel. The other is orientation: a sheet
 /// stating none is laid out landscape rather than deferring to a printer's portrait — see
 /// <see cref="PageSettingsFor"/>.
+///
+/// None of that applies under <see cref="SheetPagination.OnePagePerSheet"/>, where a sheet is not
+/// printed but drawn: see <see cref="WholeSheetPage"/>.
 /// </summary>
 sealed class SpreadsheetParser(
     string defaultFont,
     string? fontDirectory = null,
     Func<string, string?>? fontFallback = null,
-    bool? useLetterPageSize = null)
+    bool? useLetterPageSize = null,
+    bool onePagePerSheet = false)
 {
     const double pointsPerInch = 72.0;
+
+    /// <summary>
+    /// What is left around a sheet drawn whole, in points. A border on an outside edge of the grid
+    /// is drawn half to either side of that edge, so with nothing around the grid the outer half of
+    /// it falls off the image.
+    /// </summary>
+    const double wholeSheetMargin = 2;
+
+    /// <summary>
+    /// The room a sheet drawn whole is laid out in, in points: far more than any sheet an image can
+    /// hold comes to, so that no row is ever moved to a second page. The page is cut down to what
+    /// was placed on it afterwards (<see cref="PageSettings.FitHeightToContent"/>).
+    /// </summary>
+    const double wholeSheetRoom = 10_000_000;
 
     readonly Dictionary<OpenXmlPart, byte[]> partBytes = [];
 
@@ -90,35 +109,63 @@ sealed class SpreadsheetParser(
 
         foreach (var sheet in VisibleSheets(workbookPart))
         {
-            if (workbookPart.GetPartById(sheet.Id!.Value!) is not WorksheetPart worksheetPart)
-            {
-                continue;
-            }
-
-            var worksheet = worksheetPart.Worksheet;
+            var worksheetPart = workbookPart.GetPartById(sheet.Id!.Value!) as WorksheetPart;
+            var worksheet = worksheetPart?.Worksheet;
             if (worksheet == null)
             {
-                continue;
+                if (!onePagePerSheet)
+                {
+                    continue;
+                }
+
+                // A tab that is not a grid: a chart sheet, a dialog sheet, a macro sheet. It prints
+                // as nothing here, but drawn a sheet to an image it is still one of the sheets, and
+                // leaving it out would put every image after it against the wrong one. It is drawn
+                // as a sheet with nothing on it is.
+                worksheet = new(new S.SheetData());
             }
 
             AssignImpliedReferences(worksheet);
 
             var name = sheet.Name?.Value ?? string.Empty;
-            var settings = PageSettingsFor(worksheet, useLetterPageSize);
-
-            var range = ResolveRange(worksheet, definedNames.PrintArea(name));
-            if (range is not { } bounds || bounds.IsEmpty)
-            {
-                continue;
-            }
-
-            var scale = ResolveScale(builder, worksheet, bounds, settings);
             var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors);
-            var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
-            var table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, centered);
-            if (table == null)
+
+            PageSettings settings;
+            SheetRange bounds;
+            double scale;
+            TableElement? table;
+            if (onePagePerSheet)
             {
-                continue;
+                // Drawn rather than printed: the whole of the sheet at its own size, whatever its
+                // page setup says of paper, print area, titles and scale
+                bounds = WholeSheetRange(worksheetPart, worksheet);
+                scale = 1;
+                table = builder.Build(worksheet, bounds, scale, null, conditional, false);
+                if (table == null)
+                {
+                    continue;
+                }
+
+                settings = WholeSheetPage(table);
+            }
+            else
+            {
+                settings = PageSettingsFor(worksheet, useLetterPageSize);
+
+                var range = ResolveRange(worksheet, definedNames.PrintArea(name));
+                if (range is not { } printed || printed.IsEmpty)
+                {
+                    continue;
+                }
+
+                bounds = printed;
+                scale = ResolveScale(builder, worksheet, bounds, settings);
+                var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
+                table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, centered);
+                if (table == null)
+                {
+                    continue;
+                }
             }
 
             // Drawings are emitted BEFORE the table: they anchor vertically to the flow cursor, which
@@ -126,7 +173,11 @@ sealed class SpreadsheetParser(
             // first page rather than deferring. Their coordinates are relative to the grid's
             // top-left, which is where the table begins — including the centring slack, computed the
             // same way the table's own centre alignment computes it (Fragmenter.ComputeTableX).
-            var art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale, maxDigitWidth), scale, 0, GridLeft(table, settings));
+            List<DocumentElement> art = [];
+            if (worksheetPart != null)
+            {
+                art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale, maxDigitWidth), scale, 0, GridLeft(table, settings));
+            }
 
             if (first == null)
             {
@@ -218,6 +269,116 @@ sealed class SpreadsheetParser(
 
         return ExtendForOverflow(worksheet, bounds);
     }
+
+    /// <summary>
+    /// The range of a sheet drawn whole (<see cref="SheetPagination.OnePagePerSheet"/>): the cells
+    /// it uses, whatever its print area says, widened to take in what is drawn on it.
+    ///
+    /// A sheet with nothing on it is the one cell, A1, rather than no range at all. Skipped, as an
+    /// empty sheet is when printing, it would leave the images one short of the sheets, and nothing
+    /// to say which sheet the image after it was of.
+    /// </summary>
+    static SheetRange WholeSheetRange(WorksheetPart? worksheetPart, S.Worksheet worksheet)
+    {
+        // The grid is built from the rows, and a sheet nobody has typed in can have no element for
+        // them at all. The DOM is in memory and never saved, as for AssignImpliedReferences
+        if (worksheet.GetFirstChild<S.SheetData>() == null)
+        {
+            worksheet.AppendChild(new S.SheetData());
+        }
+
+        var used = ResolveRange(worksheet, null);
+        if (used is not { IsEmpty: false } bounds)
+        {
+            bounds = new(1, 1, 1, 1);
+        }
+
+        return ExtendForDrawings(worksheetPart, bounds);
+    }
+
+    /// <summary>
+    /// Widens a range to the cells its drawings reach. A chart beside the table it charts sits over
+    /// cells that hold nothing, so the used range stops short of it, and an anchor past the end of
+    /// the range is clamped to the range's edge (<see cref="SheetGeometry.ColumnLeft"/>): the chart
+    /// came out with no width.
+    ///
+    /// Only the anchors that say where they end, which is the two-cell anchor nearly every drawing
+    /// has. One that gives a size instead still ends where the range does.
+    /// </summary>
+    static SheetRange ExtendForDrawings(WorksheetPart? worksheetPart, SheetRange bounds)
+    {
+        var root = worksheetPart?.DrawingsPart?.WorksheetDrawing;
+        if (root == null)
+        {
+            return bounds;
+        }
+
+        foreach (var anchor in root.ChildElements)
+        {
+            if (anchor.GetFirstChild<XDR.ToMarker>() is not { } to)
+            {
+                continue;
+            }
+
+            bounds = bounds with
+            {
+                LastColumn = Math.Max(bounds.LastColumn, Math.Min(LastCell<XDR.ColumnId, XDR.ColumnOffset>(to), CellReference.MaxColumn)),
+                LastRow = Math.Max(bounds.LastRow, Math.Min(LastCell<XDR.RowId, XDR.RowOffset>(to), CellReference.MaxRow))
+            };
+        }
+
+        return bounds;
+    }
+
+    /// <summary>
+    /// The last column or row a drawing reaches into, counting from one, from the marker it ends
+    /// at. A marker counts from zero and says how far into that cell the drawing runs: with no
+    /// offset it stops on the cell's near edge, and the cell before is the last it touches.
+    ///
+    /// Nor does a drawing that only just crosses that edge reach into the cell in any way worth a
+    /// whole column: one dragged to a boundary rarely lands on it exactly. check-register's corner
+    /// art ends 3319 EMU, a quarter of a point, into column K, and taking K for that put a blank
+    /// strip a hundred pixels wide down the side of the sheet. Under a point it is taken to end on
+    /// the boundary, and what crosses it is clipped there.
+    /// </summary>
+    static int LastCell<TIndex, TOffset>(XDR.ToMarker to)
+        where TIndex : OpenXmlElement
+        where TOffset : OpenXmlElement
+    {
+        if (!int.TryParse(to.GetFirstChild<TIndex>()?.InnerText, out var index))
+        {
+            return 0;
+        }
+
+        if (long.TryParse(to.GetFirstChild<TOffset>()?.InnerText, out var offset) &&
+            offset > OoxmlUnits.EmusPerPoint)
+        {
+            return index + 1;
+        }
+
+        return index;
+    }
+
+    /// <summary>
+    /// The page of a sheet drawn whole: as wide as its grid, and as tall as the grid turns out to
+    /// be once it is laid out. Nothing of a printed page is left: no paper, no margins beyond the
+    /// sliver that keeps an edge border whole, no header or footer band, nothing centred.
+    /// </summary>
+    static PageSettings WholeSheetPage(TableElement table) =>
+        new()
+        {
+            // A hair over the grid, so that a difference in how the two are summed cannot leave the
+            // grid a rounding error wider than the page it is on
+            WidthPoints = (table.Properties.GridColumnWidths?.Sum() ?? 0) + wholeSheetMargin * 2 + 0.01,
+            HeightPoints = wholeSheetRoom,
+            FitHeightToContent = true,
+            MarginLeft = wholeSheetMargin,
+            MarginRight = wholeSheetMargin,
+            MarginTop = wholeSheetMargin,
+            MarginBottom = wholeSheetMargin,
+            HeaderDistance = 0,
+            FooterDistance = 0
+        };
 
     /// <summary>
     /// Widens a range to the columns the author shaped, when the last used column holds text that

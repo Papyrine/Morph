@@ -30,6 +30,14 @@ public sealed record ImageExportOptions : ExportOptions
     public PageRange? Pages { get; init; }
 
     /// <summary>
+    /// How an Excel workbook is divided into images: as it prints, which is the default, or one
+    /// image for each sheet. Only the Excel converters read it. Under
+    /// <see cref="SheetPagination.OnePagePerSheet"/> a page is a sheet, so <see cref="Pages"/>
+    /// chooses among the visible sheets.
+    /// </summary>
+    public SheetPagination SheetPagination { get; init; } = SheetPagination.PrintLayout;
+
+    /// <summary>
     /// How much of the paper page each image covers. The default emits the whole sheet; the other
     /// values crop away the margins, which is what a thumbnail or an embedded preview usually
     /// wants and otherwise obliges the caller to re-derive the document's margins for itself.
