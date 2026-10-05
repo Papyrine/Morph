@@ -488,6 +488,35 @@ It costs a layout pass and nothing more — the answer is read off the layout en
 [Parchment](https://github.com/Papyrine/Parchment) consumes this through its `Parchment.Morph` package to resolve a generated document's table of contents as it is built.
 
 
+### Page text
+
+The text of a document can be divided by page only once it is paginated, since a docx does not record where its pages end.
+
+`GetPageTexts` paginates the document and reports the text that landed on each page:
+
+<!-- snippet: GetPageTexts -->
+<a id='snippet-GetPageTexts'></a>
+```cs
+// The text of each page, in page order — one entry for every page, so the count is the
+// number of pages.
+var pages = DocumentConverter.GetPageTexts("report.docx");
+
+for (var index = 0; index < pages.Count; index++)
+{
+    Console.WriteLine($"Page {index + 1}:");
+    Console.WriteLine(pages[index]);
+}
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L397-L409' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetPageTexts' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
+There is one entry for every page, in page order, so the count is the number of pages and a page with no text has an empty entry.
+
+The text is that of the body, in document order: a line for each paragraph, and a line for each row of a table with a tab between its cells. A paragraph or a row that runs over the end of a page is divided where the page ends. Headers, footers and notes are left out. It is the text as laid out, so a list paragraph starts with its marker.
+
+Like `GetBookmarkPages` it costs a layout pass and nothing more, and it is the same pagination every rendered output goes through, so the text of a page is the text drawn on it.
+
+
 ## In the browser
 
 [`Morph.Blazor`](https://nuget.org/packages/Morph.Blazor/) is a Razor class library holding the converter that powers [morph.papyrine.org](https://morph.papyrine.org/): a drop-in Blazor WebAssembly component that reads Word `.docx`, Excel `.xlsx` and PowerPoint `.pptx` and writes PNG, PDF, HTML, Markdown or plain text — entirely client-side. No file ever leaves the device, and the host app needs no server-side conversion endpoint. `src/Morph.Web` is now only a shell — header, theme toggle and footer — around this component.

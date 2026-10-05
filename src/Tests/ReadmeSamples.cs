@@ -391,4 +391,21 @@ public class Samples
 
         #endregion
     }
+
+    public static void GetPageTexts()
+    {
+        #region GetPageTexts
+
+        // The text of each page, in page order — one entry for every page, so the count is the
+        // number of pages.
+        var pages = DocumentConverter.GetPageTexts("report.docx");
+
+        for (var index = 0; index < pages.Count; index++)
+        {
+            Console.WriteLine($"Page {index + 1}:");
+            Console.WriteLine(pages[index]);
+        }
+
+        #endregion
+    }
 }
