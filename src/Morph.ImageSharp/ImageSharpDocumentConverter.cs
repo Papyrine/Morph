@@ -16,7 +16,7 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
     internal static int RenderPagesCounted(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
         var laidOut = Layout(document, options);
-        using var context = CreateContext(document, options);
+        using var context = CreateContext(document, options, laidOut.ContextSettings(document.PageSettings));
         ImageSharpPainter.Paint(laidOut, context, options.Crop, pageCallback);
         return laidOut.Pages.Count;
     }
@@ -39,9 +39,13 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
             document.EvenPageHeader,
             document.EvenPageFooter,
             DocumentNotes.From(document))
+            .FitToContent(options.Dpi)
             .Restrict(options.Pages);
     }
 
     internal static ImageSharpRenderContext CreateContext(ParsedDocument document, ImageExportOptions options) =>
-        new(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
+        CreateContext(document, options, document.PageSettings);
+
+    static ImageSharpRenderContext CreateContext(ParsedDocument document, ImageExportOptions options, PageSettings page) =>
+        new(page, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
 }
