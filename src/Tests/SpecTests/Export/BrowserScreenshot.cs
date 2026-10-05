@@ -36,6 +36,26 @@ static class BrowserScreenshot
     /// </summary>
     const int pageTimeout = 180_000;
 
+    /// <summary>
+    /// What Chromium answers when it has no frame to hand back for a capture. It is not a timeout
+    /// and it is not about the page: one CI run failed 2 of 4483 with it, on two Markdown pages of
+    /// a few hundred bytes, 10ms apart and half a second into each, while the same commit passed
+    /// on a run started seven seconds later and two full local runs (one held to the runner's 4
+    /// cores) could not produce it. Two captures in separate contexts failing together points at
+    /// something they share rather than at either page, so the capture is made once more on a new
+    /// page, and <see cref="Report"/> says so. The second PNG goes through Verify like any other,
+    /// so a retry cannot pass a rendering change.
+    /// </summary>
+    const string captureFailure = "Unable to capture screenshot";
+
+    static readonly TextWriter diagnostics = TextWriter.Synchronized(
+        new StreamWriter(Console.OpenStandardError())
+        {
+            AutoFlush = true
+        });
+
+    static string gpuProcessAtLaunch = "unknown";
+
     static readonly string fontsDirectory =
         Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
@@ -58,6 +78,31 @@ static class BrowserScreenshot
     /// </summary>
     public static async Task<byte[]> RenderHtmlAsync(string html, double deviceScale = 1)
     {
+        // Render from a real file:// page so the file:// @font-face URLs are same-scheme and load
+        // (SetContent runs on an opaque about:blank origin, which blocks local font files).
+        var tempFile = Path.Combine(Path.GetTempPath(), $"morph-screenshot-{Guid.NewGuid():N}.html");
+        await File.WriteAllTextAsync(tempFile, WrapHtmlFragment(html));
+        try
+        {
+            try
+            {
+                return await CaptureAsync(tempFile, deviceScale);
+            }
+            catch (PlaywrightException exception) when (exception.Message.Contains(captureFailure))
+            {
+                Report($"{captureFailure}. {await DescribeBrowserAsync()} Capturing again on a new page.");
+            }
+
+            return await CaptureAsync(tempFile, deviceScale);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    static async Task<byte[]> CaptureAsync(string file, double deviceScale)
+    {
         var instance = await GetBrowserAsync();
         await using var context = await instance.NewContextAsync(
             new()
@@ -70,37 +115,74 @@ static class BrowserScreenshot
                 DeviceScaleFactor = (float) deviceScale
             });
         var page = await context.NewPageAsync();
+        page.Crash += (_, _) => Report("A page's renderer process crashed.");
 
-        // Render from a real file:// page so the file:// @font-face URLs are same-scheme and load
-        // (SetContent runs on an opaque about:blank origin, which blocks local font files).
-        var tempFile = Path.Combine(Path.GetTempPath(), $"morph-screenshot-{Guid.NewGuid():N}.html");
-        await File.WriteAllTextAsync(tempFile, WrapHtmlFragment(html));
+        await page.GotoAsync(
+            new Uri(file).AbsoluteUri,
+            new()
+            {
+                WaitUntil = WaitUntilState.Load,
+                Timeout = pageTimeout
+            });
+        // Block until every @font-face the page references has finished loading, so no glyph is
+        // captured mid-swap from a fallback face. EvaluateAsync takes no timeout and is not
+        // bound by the default one, so this await is not a candidate for the same failure.
+        await page.EvaluateAsync("async () => { await document.fonts.ready; }");
+        return await page.ScreenshotAsync(
+            new()
+            {
+                FullPage = true,
+                Type = ScreenshotType.Png,
+                Timeout = pageTimeout
+            });
+    }
+
+    /// <summary>
+    /// The state of the browser at a failed capture: whether it is still there, how many captures
+    /// were in flight, and its GPU process against the one it launched with. Never throws, since
+    /// it runs where a failure is already being handled.
+    /// </summary>
+    static async Task<string> DescribeBrowserAsync()
+    {
+        if (browser is not {IsConnected: true} instance)
+        {
+            return "Chromium is no longer connected.";
+        }
+
+        var inFlight = instance.Contexts.Count;
+        var gpuProcess = await GpuProcessAsync(instance);
+        return $"{inFlight} other captures in flight, GPU process {gpuProcess} (launched with {gpuProcessAtLaunch}).";
+    }
+
+    // The pid and CPU seconds of Chromium's GPU process. Every page is composited there, so it is
+    // the one process a capture depends on that outlives the page.
+    static async Task<string> GpuProcessAsync(IBrowser instance)
+    {
         try
         {
-            await page.GotoAsync(
-                new Uri(tempFile).AbsoluteUri,
-                new()
+            var session = await instance.NewBrowserCDPSessionAsync();
+            var info = await session.SendAsync("SystemInfo.getProcessInfo");
+            await session.DetachAsync();
+            foreach (var process in info!.Value.GetProperty("processInfo").EnumerateArray())
+            {
+                if (process.GetProperty("type").GetString() == "GPU")
                 {
-                    WaitUntil = WaitUntilState.Load,
-                    Timeout = pageTimeout
-                });
-            // Block until every @font-face the page references has finished loading, so no glyph is
-            // captured mid-swap from a fallback face. EvaluateAsync takes no timeout and is not
-            // bound by the default one, so this await is not a candidate for the same failure.
-            await page.EvaluateAsync("async () => { await document.fonts.ready; }");
-            return await page.ScreenshotAsync(
-                new()
-                {
-                    FullPage = true,
-                    Type = ScreenshotType.Png,
-                    Timeout = pageTimeout
-                });
+                    return $"{process.GetProperty("id").GetInt32()} after {process.GetProperty("cpuTime").GetDouble():F1}s of CPU";
+                }
+            }
+
+            return "absent";
         }
-        finally
+        catch (Exception exception)
         {
-            File.Delete(tempFile);
+            return $"unknown ({exception.Message})";
         }
     }
+
+    // TUnit keeps what a test writes to Console and shows it only if the test fails, so a retry
+    // that rescued its test would leave no trace. The process's own stderr reaches the log.
+    static void Report(string message) =>
+        diagnostics.WriteLine($"BrowserScreenshot: {message}");
 
     public static Task<byte[]> RenderMarkdownAsync(string markdown, double deviceScale = 1) =>
         RenderHtmlAsync(Markdown.ToHtml(markdown, markdownPipeline), deviceScale);
@@ -211,6 +293,8 @@ static class BrowserScreenshot
                         "--force-color-profile=srgb"
                     ]
                 });
+            browser.Disconnected += (_, _) => Report("Chromium disconnected.");
+            gpuProcessAtLaunch = await GpuProcessAsync(browser);
         }
         finally
         {
