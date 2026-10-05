@@ -25,29 +25,39 @@ is surrogate-safe by construction. Only Fade and Triangle reach the per-glyph lo
 renders **byte-identically** before and after the fix and proves nothing — that mistake cost a
 build, so it is recorded here.
 
-**The failure mode is a dropped glyph plus a skewed warp, not tofu.** Splitting with
-`text[i].ToString()` yields a lone high surrogate and a lone low surrogate. Neither backend draws
-a replacement box for these — measured, they draw *nothing at all*. But they still consume two
-iterations, so the loop counted 6 glyphs where the label has 5 and evaluated
-`t = i / (glyphCount - 1)` against the wrong denominator, moving every glyph's vertical scale,
-while the pen advanced by two unmapped-glyph advances instead of one real one.
+**The failure mode is a lost glyph plus a skewed warp.** Splitting with `text[i].ToString()` yields
+a lone high surrogate and a lone low surrogate, and the real glyph is drawn by neither backend.
+Skia draws *nothing at all* for the pair. ImageSharp draws an empty outlined box for each half —
+two boxes where the one glyph belongs. Either way the pair consumes two iterations, so the loop
+counted 6 glyphs where the label has 5 and evaluated `t = i / (glyphCount - 1)` against the wrong
+denominator, moving every glyph's vertical scale, while the pen advanced by two unmapped-glyph
+advances instead of one real one.
 
-Measured on this fixture at 150 dpi, per WordArt row band (ink = pixels in the `4472C4` fill):
+Measured on this fixture at 150 dpi, per WordArt row band, before → after the fix. Both sides are
+the linux/amd64 container's renders (after is the checked-in `*_result#page_0001.verified.png`),
+taken 2026-10-05 on SkiaSharp 4.153.1 and SixLabors.Fonts 3.1.3. Ink is a pixel within 133 of the
+`4472C4` fill by RGB distance — the fill itself plus the antialiased edge pixels it covers about
+half of or more. A band is a run of consecutive pixel rows carrying ink; its width is the distance
+from its leftmost ink column to its rightmost.
 
 | row | Skia h | ink | width | ImageSharp h | ink | width |
 | --- | --- | --- | --- | --- | --- | --- |
-| FadeRight control | 72 → 72 | 7817 → 7817 | 359 → 359 | 77 → 77 | 7822 → 7822 | 359 → 359 |
-| FadeRight astral first | **53 → 72** | 5092 → 7509 | 286 → 368 | **58 → 77** | 5528 → 7503 | 425 → 368 |
-| FadeRight astral middle | 72 → 72 | **6330 → 7653** | 286 → 368 | 77 → 77 | **6668 → 7602** | 437 → 368 |
-| FadeRight astral last | 72 → 72 | **7438 → 7674** | 287 → 369 | 77 → 76 | **7831 → 7735** | 425 → 368 |
-| Triangle control | 72 → 72 | 7035 → 7035 | 358 → 358 | 77 → 77 | 7094 → 7094 | 359 → 359 |
-| Triangle astral middle | **44 → 72** | 4458 → 6727 | 285 → 367 | **58 → 77** | 4924 → 6779 | 437 → 368 |
+| FadeRight control | 72 → 72 | 7796 → 7796 | 358 → 358 | 77 → 77 | 7829 → 7829 | 359 → 359 |
+| FadeRight astral first | **53 → 72** | 5059 → 7471 | 286 → 368 | **68 → 77** | 5650 → 7505 | 425 → 368 |
+| FadeRight astral middle | 72 → 72 | **6293 → 7616** | 286 → 368 | 77 → 77 | **6672 → 7606** | 437 → 368 |
+| FadeRight astral last | 72 → 72 | **7506 → 7688** | 287 → 368 | 77 → 76 | **7837 → 7742** | 425 → 369 |
+| Triangle control | 72 → 72 | 7020 → 7020 | 357 → 357 | 77 → 77 | 7095 → 7095 | 359 → 359 |
+| Triangle astral middle | **44 → 72** | 4430 → 6695 | 285 → 367 | **58 → 77** | 4924 → 6780 | 437 → 368 |
 
-Two things to read from that table. **Both controls are unchanged in both backends** — the fix
-cannot move all-BMP text, which is why no existing baseline shifted. And every astral row
-converges on its control's geometry afterwards (h 72 / w ≈ 368 on Skia, 77 / ≈ 368 on
-ImageSharp), where before it collapsed to 53, 44 or 58 — the band height is the tell, because a
-label whose tallest glyph has silently vanished cannot reach the control's height.
+Three things to read from that table. **Both controls are unchanged in both backends** — the fix
+cannot move all-BMP text, which is why no existing baseline shifted. Every astral row converges on
+its control's geometry afterwards (h 72 / w ≈ 368 on Skia, 77 / ≈ 368 on ImageSharp), where before
+it collapsed to 53 or 44 on Skia and 68 or 58 on ImageSharp — the band height is the tell, because
+a label whose tallest glyph is missing cannot reach the control's height. And the two backends
+failed in opposite directions on width: Skia came out 72px NARROWER than the control, having
+drawn nothing for the pair, while ImageSharp came out 66 or 78px WIDER, its two boxes each taking
+an advance. ImageSharp's before figures include those boxes, which is why its astral-first band
+reaches 68 where the glyphs left in it span only 56.
 
 **Word's own reference is the reason this is a fidelity fixture rather than a regression latch.**
 The bundled `src/Fonts/Arial_700.ttf` and the machine's `arialbd.ttf` are both Version 7.06 and

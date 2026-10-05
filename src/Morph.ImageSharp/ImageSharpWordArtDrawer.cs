@@ -591,9 +591,10 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         }
 
         // Split per rune, not per UTF-16 unit: a supplementary-plane character is one glyph.
-        // Splitting per char hands the backend two lone surrogates, which draw nothing at all,
-        // yet each still consumes an iteration — so a 5-glyph label counted 6 and scaled every
-        // glyph against the wrong denominator in the t interpolation below. Mirrors SkiaWordArtDrawer.
+        // Splitting per char hands the backend two lone surrogates, which draw an empty box each
+        // in place of the glyph, and each still consumes an iteration — so a 5-glyph label counted
+        // 6 and scaled every glyph against the wrong denominator in the t interpolation below.
+        // Mirrors SkiaWordArtDrawer.
         var glyphs = text.EnumerateRunes().Select(_ => _.ToString()).ToArray();
         var glyphCount = glyphs.Length;
         var cursorX = startX;

@@ -2359,8 +2359,9 @@ Decorative text with fill, outline, shadow, reflection, and glow effects.
 > CanUp / CanDown are claimed earlier by `TryRenderWordArtPathWarp`, which outlines the whole string
 > at once and is surrogate-safe by construction. That loop used to split with `text[i].ToString()`,
 > which cleaves a supplementary-plane character into two lone surrogates: neither backend draws
-> anything for those (measured — no tofu box), yet both still consumed an iteration, so a 5-glyph
-> label counted 6 and `t = i / (glyphCount - 1)` scaled every glyph against the wrong denominator.
+> the glyph for those (measured — Skia draws nothing, ImageSharp an empty box for each half), yet
+> both still consumed an iteration, so a 5-glyph label counted 6 and `t = i / (glyphCount - 1)`
+> scaled every glyph against the wrong denominator.
 > `wordart-astral` pins it with U+10780 at each position against an all-BMP control; see its
 > `notes.md` for the measured per-row bands and for why a fixture built on `textInflate` proves
 > nothing.
