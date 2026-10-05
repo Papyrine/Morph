@@ -73,6 +73,16 @@ sealed record PageSettings
     public bool VerticallyCentered { get; init; }
 
     /// <summary>
+    /// The page is as tall as what is placed on it, rather than <see cref="HeightPoints"/>, which
+    /// is then only the room the layout is given to place it in. Set only by the spreadsheet
+    /// parser, for a sheet drawn whole (<see cref="SheetPagination.OnePagePerSheet"/>): how tall a
+    /// sheet is is not known until its rows have been laid out, since a row with no height of its
+    /// own grows to the text in it. <see cref="LaidOutDocument.FitToContent"/> is what cuts the
+    /// page down, once it is.
+    /// </summary>
+    public bool FitHeightToContent { get; init; }
+
+    /// <summary>
     /// Where the section's content sits between the margins on each of its pages (<c>w:vAlign</c> in
     /// <c>w:sectPr</c>). Applied by the layout engine at page close — see <c>Fragmenter.AlignPage</c>.
     /// </summary>

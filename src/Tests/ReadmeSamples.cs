@@ -92,6 +92,24 @@ public class Samples
         #endregion
     }
 
+    public static void SheetImages()
+    {
+        #region SheetImages
+
+        var converter = new SkiaExcelConverter();
+
+        var options = new ImageExportOptions
+        {
+            // One image for each visible sheet, as large as what the sheet holds, rather than
+            // the pages the workbook would print as.
+            SheetPagination = SheetPagination.OnePagePerSheet
+        };
+
+        var sheets = converter.ConvertToImageData("workbook.xlsx", options);
+
+        #endregion
+    }
+
     public static void ConvertToHtml()
     {
         #region ConvertToHtml

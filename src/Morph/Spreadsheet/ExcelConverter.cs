@@ -8,6 +8,8 @@
 ///
 /// Pages come from the print layout rather than the sheet: a long sheet paginates downward, and each
 /// visible sheet starts a new page with its own paper size and orientation.
+/// <see cref="SheetPagination.OnePagePerSheet"/> on <see cref="ImageExportOptions.SheetPagination"/>
+/// draws each sheet whole instead, as one image.
 /// </summary>
 public abstract class ExcelConverter
 {
@@ -76,15 +78,24 @@ public abstract class ExcelConverter
     /// family the directory does not hold, which is the common case for a substituting caller.
     /// </summary>
     internal static ParsedDocument Parse(Stream xlsxStream, ExportOptions? options) =>
-        Parse(xlsxStream, options?.DefaultFont, options?.FontDirectory, options?.FontFallback, options?.UseLetterPageSize);
+        Parse(
+            xlsxStream,
+            options?.DefaultFont,
+            options?.FontDirectory,
+            options?.FontFallback,
+            options?.UseLetterPageSize,
+            // Decided at parse time, as the paper is: a sheet's page is part of the model the layout
+            // is handed, not something a painter can change afterwards
+            options is ImageExportOptions {SheetPagination: SheetPagination.OnePagePerSheet});
 
     internal static ParsedDocument Parse(
         Stream xlsxStream,
         string? defaultFont,
         string? fontDirectory,
         Func<string, string?>? fontFallback = null,
-        bool? useLetterPageSize = null) =>
-        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, fontFallback, useLetterPageSize)
+        bool? useLetterPageSize = null,
+        bool onePagePerSheet = false) =>
+        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, fontFallback, useLetterPageSize, onePagePerSheet)
             .Parse(xlsxStream);
 
     /// <summary>

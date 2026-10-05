@@ -27,9 +27,10 @@ public sealed class SkiaDocumentConverter : DocumentConverter
             document.EvenPageHeader,
             document.EvenPageFooter,
             DocumentNotes.From(document))
+            .FitToContent(options.Dpi)
             .Restrict(options.Pages);
 
-        using var context = new SkiaRenderContext(document.PageSettings, options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
+        using var context = new SkiaRenderContext(laidOut.ContextSettings(document.PageSettings), options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
         SkiaPainter.Paint(laidOut, context, options.Crop, pageCallback);
         return laidOut.Pages.Count;
     }
