@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Chanchal\nSharma\nContact information\n(718) 555–0100\nchanchals@example.com\n4567 Main Street City, ST 98052\nTo\nHailey Clark\nKramer-Correia Construction\n123 Avenue A Metropolis, ST 54321\nDear Hailey Clark,\nI am excited to apply for the office manager position at Kramer-Correia Construction. Although\nI do not have direct experience in the construction industry, I believe my skills in office\nmanagement, organization, and communication will be highly valuable to your team.\nMy experience in managing office operations, coordinating schedules, and overseeing\nadministrative tasks will help ensure that your projects run smoothly and efficiently.\nAdditionally, my ability to work well under pressure and to multitask effectively will enable me\nto handle the demands of a fast-paced construction environment.\nThank you for considering my application. I look forward to Discussing my qualifications with\nyou further.\nSincerely,\nChanchal Sharma\nJanuary 13, 20XX"
       }
     ]

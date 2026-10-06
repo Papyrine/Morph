@@ -1,101 +1,155 @@
 ﻿{
   "target": {
-    "PageCount": 18,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 18,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "A1\nA2\nA3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "B1\nB2\nB3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "C1\nC2\nC3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "D1\nD2\nD3\nLong wrapped paragraph w0 w1 w2 w3 w4 w5\nw6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16\nw17 w18 w19 w20 w21 w22 w23 w24 w25 w26\nw27 w28 w29 w30 w31 w32 w33 w34 w35 w36\nw37 w38 w39\nD5"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 5,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "E1\nE2\nE3\nE4\nE5\nE6\nE7\nE8\nE9\nE10\nE11\nE12\nE13\nE14"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 6,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "E15\nE16\nE17\nE18\nE19\nE20"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 7,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "F1\nF2\nF3\nF4\nF5\nF6\nF7\nF8\nF9\nF10\nF11\nF12\nF13\nF14"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 8,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "F15\nF16\nF17\nF18\nF19\nF20"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 9,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "G0\nG1a G1b\nG2a G2b\nG3a G3b\nG4"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 10,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "H1\nH2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 11,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "I11\nI2\n1\n Footnote"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 12,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "J1\nJ2\nJ3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 13,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "K1\nK2\nK3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 14,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "L1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 15,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "L2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 16,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "N1\nN2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 17,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "N3\nN4"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 18,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "M1\nM2\nM3"
       }
     ]

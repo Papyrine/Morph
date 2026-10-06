@@ -1,31 +1,43 @@
 ﻿{
   "target": {
-    "PageCount": 4,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 4,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Page 1, first paragraph.\nLine 1\nLine 2 (after line break)"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Page 2 content."
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Content after column break."
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Page 3 - Final page."
       }
     ]

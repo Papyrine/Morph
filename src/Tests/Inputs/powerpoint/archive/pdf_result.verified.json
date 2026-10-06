@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 960.0,
-        "Height": 540.0,
+        "Number": 1,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
         "Text": "P R E S E N T A T I O N T I T L E\nPresenter name"
       },
       {
-        "Width": 960.0,
-        "Height": 540.0,
+        "Number": 2,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
         "Text": "A\nG\nE\nN\nD\nA\n•\nT\no\np\ni\nc\no\nn\ne\n•\nT\no\np\ni\nc\nt\nw\no\n•\nT\no\np\ni\nc\nt\nh\nr\ne\ne\n•\nT\no\np\ni\nc\nfo\nu\nr\nP R E S E N T A T I O N T I T L E\n2"
       }
     ]

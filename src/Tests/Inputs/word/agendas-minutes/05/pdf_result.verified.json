@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "MARKETING & SALES TEAM\nMEET ING MINUTES\nLOCATION: Conference Room B\nDATE: 1/9/23\nATTENDEES: Jon, Serra, Lionel, Grace\nTIME: 2:00 PM\nAGENDA I TEMS\nI. Call to order\nII. Roll call\nIII. Approval of minutes from last meeting\nIV. Open issues\nV. New business\nVI. Adjournment\nACTION ITEMS OWNER DEADLINE STATUS\nBudget assessment Jon 2/10 In progress\nBuilding maintenance Serra 3/15 Not started\nHiring contractors Lionel 1/30 In progress"
       }
     ]

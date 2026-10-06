@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 1,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "KAYLA + JACOB\nWEDDING PARTY\nKAYLA + JACOB\nTIE THE KNOT\nPARENTS OF THE BRIDE\nMirjam Lewis & Victoria Lewis\nPARENTS OF THE GROOM\nAugust Hancock & Alexander Hancock\nMATRON OF HONOR\nAngelica Astrom\nBEST MAN\nAllan Mattsson\nBRIDESMAIDS\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nGROOMSMEN\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nSATURDAY\n10.25.20XX\nPrelude\nProcessional\nWedding message\nExchange of rings\nRecessional"
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 2,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "K\nA\nY\nL\nA\n+\nJ\nA\nC\nO\nB\nMENU\nK\nA\nY\nL\nA\n+\nJ\nA\nC\nO\nB\nTABLE 1\nJuan Morgan\nRowan Murphy\nMirjam Nilsson\nVictoria Lindqvist\nAugust Bergqvist\nSanjay Trivedi\nE\nN\nT\nR\nÉ\nE\nBacon wrapped dates\nPolenta fritters with mango salsa\nCarb puffs with sweet pepper sauce MAIN COURSE\nGrilled New York steak\nHazelnut encrusted halibut\nVegetable pesto lasagna DESSERT\nLemon poppy seed cake\nMini chocolate Bundt cakes\nCoffee, tea, and soft drinks"
       }
     ]

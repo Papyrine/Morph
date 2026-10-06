@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "accent1 themeFill\naccent1 themeFillShade 40\naccent1 themeFillShade 80\naccent1 themeFillShade BF\naccent1 themeFillTint 40\naccent1 themeFillTint 80\naccent1 themeFillTint BF\naccent2 themeFill\naccent2 themeFillShade 40\naccent2 themeFillShade 80\naccent2 themeFillShade BF\naccent2 themeFillTint 40\naccent2 themeFillTint 80\naccent2 themeFillTint BF"
       }
     ]

@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "a:shade / a:tint at 25/50/75%. Rows: srgbClr 748DF3, srgbClr ED7D31, schemeClr accent1,\nschemeClr accent2."
       }
     ]

@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Paragraph without line breaks.\nFirst line\nSecond line after line break\nThird line after another break\nNormal paragraph after the one with line breaks."
       }
     ]

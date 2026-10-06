@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "PLEASE JOIN\nFlora Persson\nFor their Bridal Shower!\nPLEASE JOIN\nFlora Persson\nFor their Bridal Shower!"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "DATE: [Date]\nTIME: [Time]\nLOCATION: [Location]\nRegistered at: [Store Name]\nRSVP by [Click to select date] to\n[Name] at [phone]\nDATE: [Date]\nTIME: [Time]\nLOCATION: [Location]\nRegistered at: [Store Name]\nRSVP by [Click to select date] to\n[Name] at [phone]"
       }
     ]

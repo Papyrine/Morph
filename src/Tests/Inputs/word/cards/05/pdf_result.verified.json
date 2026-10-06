@@ -1,51 +1,75 @@
 ﻿{
   "target": {
-    "PageCount": 8,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 8,
     "Pages": [
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 1,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "Autumn Autumn"
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 2,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 3,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "Spring Spring"
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 4,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 5,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "Summer Summer"
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 6,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 7,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "Winter Winter"
       },
       {
-        "Width": 792.0,
-        "Height": 612.0,
+        "Number": 8,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
         "Text": "To get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card.\nTo get started right away, just tap any placeholder\ntext (such as this) and start typing to replace it with\nyour own or delete for a blank card."
       }
     ]

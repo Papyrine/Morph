@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 1,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Header text\nFooter text\nBody paragraph 1.\nBody paragraph 2.\nBody paragraph 3.\nBody paragraph 4.\nBody paragraph 5.\nBody paragraph 6."
       }
     ]

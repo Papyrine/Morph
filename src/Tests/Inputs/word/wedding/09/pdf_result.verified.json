@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "YOU ARE INVITED TO JOIN\nRobin Zupanc\nPeyton Davis &\non our wedding day\nYOU ARE INVITED TO JOIN\nRobin Zupanc\nPeyton Davis &\non our wedding day"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Mr. & Mrs. Robin Zupanc\nRequest the honor of Your Presence\nAt the marriage of\nRobin Zupanc\nTo\nPeyton Davis\nChild of\nMr. & Mrs. Peyton Davis\nSaturday the Twenty-First of June\nTwo thousand and [Year]\nEleven O’clock in the morning\nAt Location City, State.\nReception to Follow\nMr. & Mrs. Robin Zupanc\nRequest the honor of Your Presence\nAt the marriage of\nRobin Zupanc\nTo\nPeyton Davis\nChild of\nMr. & Mrs. Peyton Davis\nSaturday the Twenty-First of June\nTwo thousand and [Year]\nEleven O’clock in the morning\nAt Location City, State.\nReception to Follow"
       }
     ]

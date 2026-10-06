@@ -1,84 +1,129 @@
 ﻿{
   "target": {
-    "PageCount": 15,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 15,
     "Pages": [
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 1,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "WordArt Test Document\nFor Renderer Testing"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 2,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "ACTUAL WORDART SHAPES\nThese use DrawingML WordArt transforms"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625
+        "Number": 3,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        }
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625
+        "Number": 4,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        }
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 5,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 1: Text Effects\nBOLD IMPACT TEXT\nElegant Script Style\nRAINBOW"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 6,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 2: Size Variations\nTINY\nSMALL\nMEDIUM\nLARGE\nHUGE\nGIANT"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 7,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 3: Font Variety\nArial Black Style\nTimes New Roman\nGeorgia Elegance\nVerdana Clean\nTrebuchet MS\nCourier New Mono"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 8,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 4: Color Themes\nOcean Blue\nForest Green\nSunset Orange\nRoyal Purple\nCherry Red\nGolden Yellow"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 9,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 5: Text Decorations\nUNDERLINED TEXT\nDOUBLE UNDERLINE\nSTRIKETHROUGH\nSMALL CAPS STYLE\nALL CAPS STYLE\nSuperscript2\n and Subscript2"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 10,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 6: Highlighted Text\nYellow Highlight\nCyan Highlight\nGreen Highlight\nMagenta Highlight\nRed Highlight"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 11,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 7: Combined Effects\nBold + Italic + Color\nUnderline + Highlight\nMulti-Color Word\nGoogle Style"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 12,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 8: Gradient-Like Effects\nBLUE GRAD\nFIRE TEXT\nPURPLE"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 13,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 9: Wave Effect (Size)\nWAVY TEXT!\nBOUNCY!"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 14,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "Section 10: Emboss Simulation\nEMBOSSED\nEMBOSSED\nIMPRINTED\nOUTLINED\nSHADOWED"
       },
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 15,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "End of WordArt Test Document\nThis document contains various text effects for testing docx renderers\nSections covered:\nText Effects • Size Variations • Font Variety • Color Themes\nText Decorations • Highlights • Combined Effects • Gradients • Waves • Emboss"
       }
     ]

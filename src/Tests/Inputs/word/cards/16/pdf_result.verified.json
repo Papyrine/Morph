@@ -1,41 +1,59 @@
 ﻿{
   "target": {
-    "PageCount": 6,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 6,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Merry\nChristmas\nMerry\nChristmas"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "We hope you have a\nwonderful holiday!\nWe hope you have a\nwonderful holiday!"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Merry\nChristmas\nMerry\nChristmas"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "We hope you have a\nwonderful holiday!\nWe hope you have a\nwonderful holiday!"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 5,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Merry\nChristmas\nMerry\nChristmas"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 6,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "We hope you have a\nwonderful holiday!\nWe hope you have a\nwonderful holiday!"
       }
     ]

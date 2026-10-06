@@ -1,31 +1,43 @@
 ﻿{
   "target": {
-    "PageCount": 4,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 4,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "VERSION 3.0\n1/9/23\nPresented by: Laura Melgar\nCompany Name\n210 Stars Avenue, Berkley\nTARGET AUDIENCE\nPROFILING PLAN\nINTERNAL DOCUMENT"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "1/9/23 Target Audience Profiling Plan 1\nDEVELOP A PLAN\nMISSION AND GOALS\nDescribe your company's mission and goals.\nQUESTIONS FOR CONSUMERS\nNo. Questions\n1 Question for consumers #1\nList questions that you can use in your target audience profile.\n2 Question for consumers #2\n3 Question for consumers #3\n4 Question for consumers #4\n5 Question for consumers #5\nAUDIENCE AND MARKET\nNo. Audience and Market\n1 Audience and market #1\nIdentify who makes up your target audience and your market.\n2 Audience and market #2\n3 Audience and market #3\n4 Audience and market #4\n5 Audience and market #5\nQUESTIONS TO NARROW DOWN YOUR TARGET AUDIENCE\nNo. Audience and Market\n1 Questions to narrow down target audience #1\nList questions that you can use to help you narrow down who your target audience is.\n2 Questions to narrow down target audience #2\n3 Questions to narrow down target audience #3\n4 Questions to narrow down target audience #4\n5 Questions to narrow down target audience #5"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "1/9/23 Target Audience Profiling Plan 2\nTEST THE PLAN\nCONSUMER PERCEPTIONS\nNo. Questions\n1 Consumer perceptions #1\nList consumer perceptions about your product or service.\n2 Consumer perceptions #2\n3 Consumer perceptions #3\n4 Consumer perceptions #4\n5 Consumer perceptions #5\nQUANTITATIVE METRICS\nNo. Questions\n1 Quantitative metrics #1\nList quantitative metrics that you will use to evaluate the effectiveness of the plan.\n2 Quantitative metrics #2\n3 Quantitative metrics #3\n4 Quantitative metrics #4\n5 Quantitative metrics #5\nADJUST THE PLAN\nNo. Questions\n1 Adjust the plan #1\nList the changes that you need to make to your plan so that it will be more successful.\n2 Adjust the plan #2\n3 Adjust the plan #3\n4 Adjust the plan #4\n5 Adjust the plan #5"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "1/9/23 Target Audience Profiling Plan 3\nPUT THE PLAN INTO ACTION\nStep Action Due date for\ncompletion\n% complete\n1 Action Date %\n2 Action Date %\n3 Action Date %\n4 Action Date %\n5 Action Date %"
       }
     ]

@@ -1,31 +1,43 @@
 ﻿{
   "target": {
-    "PageCount": 4,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 4,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "VanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd."
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Jordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "VanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd.\nVanArsdel, Ltd. VanArsdel, Ltd."
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Jordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com\nJordan\nMitchell\nCEO\nVanArsdel, Ltd.\n5678 Main St. New York, NY 90210\n212-555-0199\nwww.vanarsdelltd.com\njordan@vanarsdelltd.com"
       }
     ]

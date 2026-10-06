@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "DAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\nDAVIDE MILANO\n333 3rd Ave.\nSeattle, WA 54321\n(417) 555­0123\ndavide@contoso.com\nwww.contoso.com\n­­­­­"
       }
     ]

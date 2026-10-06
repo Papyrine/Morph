@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "This paragraph contains a nonbreaking hyphen. The phrase 'nonbreaking' will not break at\nthe hyphen.\nCall us at 18005551234 wher e the phone number stays on one line.\nRegular text with normal hyphens: co-worker, self-aware, twenty-one."
       }
     ]

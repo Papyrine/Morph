@@ -1,41 +1,59 @@
 ﻿{
   "target": {
-    "PageCount": 6,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 6,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "S1 HEADER FIRST\nS1 FOOTER FIRST\nSection 1 page 1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "S1 HEADER EVEN\nS1 FOOTER EVEN\nSection 1 page 2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "S2 HEADER DEFAULT\nS1 FOOTER DEFAULT\nSection 2 page 1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "S1 HEADER EVEN\nS1 FOOTER EVEN\nSection 2 page 2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 5,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "S1 HEADER FIRST\nS1 FOOTER FIRST\nSection 3 page 1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 6,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "S1 HEADER EVEN\nS1 FOOTER EVEN\nSection 3 page 2"
       }
     ]

@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "f­­\nCelebrate!\nCelebrate!"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "To get started right away, just tap\nany placeholder text (such as this)\nand start typing to replace it with\nyour own or delete for a blank\ncard.\nTo get started right away, just tap\nany placeholder text (such as this)\nand start typing to replace it with\nyour own or delete for a blank\ncard."
       }
     ]

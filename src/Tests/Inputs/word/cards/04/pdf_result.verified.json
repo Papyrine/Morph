@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 504.04998779296875,
-        "Height": 360.04998779296875,
+        "Number": 1,
+        "Info": {
+          "Width": 504.04998779296875,
+          "Height": 360.04998779296875
+        },
         "Text": "Thinking of You…\nFrom…"
       }
     ]

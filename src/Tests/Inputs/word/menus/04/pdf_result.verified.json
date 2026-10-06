@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "MONTHLY MEAL PLANNER\nNovember 20YY\nWeek 1 Week 2\nMON MON\nTUE TUE\nWED WED\nTHU THU\nFRI FRI\nSAT SAT\nSUN SUN\nWeek 3 Week 4\nMON MON\nTUE TUE\nWED WED\nTHU THU\nFRI FRI\nSAT SAT\nSUN SUN"
       }
     ]

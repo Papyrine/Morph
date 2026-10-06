@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 841.8900146484375,
-        "Height": 595.280029296875,
+        "Number": 1,
+        "Info": {
+          "Width": 841.8900146484375,
+          "Height": 595.280029296875
+        },
         "Text": "Weekly lesson planner\n8:00 – 8:45 8:45 – 9:30 9:30 – 10:15 10:30 – 11:30 11:30 – 12:00 Notes\nMON\nJul 13 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nTUE\nJul 14 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nWED\nJul 15 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nTHU\nJul 16 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nFRI\nJul 17 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities"
       },
       {
-        "Width": 841.8900146484375,
-        "Height": 595.280029296875
+        "Number": 2,
+        "Info": {
+          "Width": 841.8900146484375,
+          "Height": 595.280029296875
+        }
       }
     ]
   },

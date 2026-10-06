@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 960.0,
-        "Height": 540.0,
+        "Number": 1,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
         "Text": "FASHION\nSpring\nAll the newest trends, styles, and inspiration for your hottest\nSpring looks"
       },
       {
-        "Width": 960.0,
-        "Height": 540.0,
+        "Number": 2,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
         "Text": "LOOKS\nFresh\nNo more rules – the most\npopular trend is a unique sense\nof personal style"
       }
     ]

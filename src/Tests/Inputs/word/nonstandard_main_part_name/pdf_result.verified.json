@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 595.2760009765625,
-        "Height": 841.8900146484375,
+        "Number": 1,
+        "Info": {
+          "Width": 595.2760009765625,
+          "Height": 841.8900146484375
+        },
         "Text": "SENSITIVE//EXAMPLE\nSENSITIVE//EXAMPLE\nAUTUMN 2022 Bid Advice Summary\nPORTFOLIO A\nSMITH, John\nBill 1\nNo Advice\nNotes:"
       }
     ]

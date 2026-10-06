@@ -1,26 +1,35 @@
 ﻿{
   "target": {
-    "PageCount": 3,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 3,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "TAYLOR TURNS 7!\nJoin us for a birthday party on August 11, 20xx at 2:30 pm\n123 Bubbles Way | Bellevue, WA | RSVP to sara@vanarsdel.com\nTAYLOR TURNS 7!\nJoin us for a birthday party on August 11, 20xx at 2:30 pm\n123 Bubbles Way | Bellevue, WA | RSVP to sara@vanarsdel.com"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "TAYLOR TURNS 7!\nJoin us for a birthday party on\nAugust 11, 20xx at 2:30 pm 123 Bubbles Way | Bellevue, WA\nRSVP to sara@vanarsdel.com\nTAYLOR TURNS 7!\nJoin us for a birthday party on\nAugust 11, 20xx at 2:30 pm 123 Bubbles Way | Bellevue, WA\nRSVP to sara@vanarsdel.com"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "TAYLOR TURNS 7!\nJoin us for a birthday party on August 11, 20xx at 2:30 pm\n123 Bubbles Way | Bellevue, WA | RSVP to sara@vanarsdel.com\nTAYLOR TURNS 7!\nJoin us for a birthday party on August 11, 20xx at 2:30 pm\n123 Bubbles Way | Bellevue, WA | RSVP to sara@vanarsdel.com"
       }
     ]

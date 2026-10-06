@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Heading 1 Style\nNormal paragraph under heading 1.\nHeading 2 Style\nNormal paragraph under heading 2.\nHeading 3 Style\nNormal paragraph under heading 3.\nHeading 4 Style\nNormal paragraph under heading 4."
       }
     ]

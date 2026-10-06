@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Tonnie\nThomsen\nJUNE 30, 20XX\nADDRESS\n987 6th Ave\nSanta Fe, NM 76543\nUSA\nPHONE\n706.555.0123\nEMAIL\ntonnie@example.com\nWEBSITE\nwww.interestingsite.com\nLILLI ALLIK\nPrincipal\nEmerald View Elementary\n4321 Maplewood Ave\nNashville, TN 65432\nDear Principal Allik,\nI am excited to submit my application for the Elementary School Teacher\nposition at Emerald View Elementary. As a passionate and experienced\neducator, I believe in creating a positive and inclusive classroom\nenvironment that supports students' academic and social-emotional growth.\nI have a strong commitment to student-centered learning and personalized\ninstruction that engages and challenges every student. I am confident that\nmy dedication, creativity, and expertise will make me a valuable addition to\nyour school community.\nThank you for your consideration.\nSincerely,\nTonnie Thomsen"
       }
     ]

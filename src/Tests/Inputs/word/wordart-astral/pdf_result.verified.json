@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 595.2999877929688,
-        "Height": 841.9000244140625,
+        "Number": 1,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
         "Text": "WORDART ASTRAL GLYPHS\nU+10780 in Fade / Triangle warps, against all-BMP controls\nFadeRight control (5 BMP)\nFadeRight astral first\nFadeRight astral middle\nFadeRight astral last\nTriangle control (5 BMP)\nTriangle astral middle"
       }
     ]

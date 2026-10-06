@@ -1,51 +1,75 @@
 ﻿{
   "target": {
-    "PageCount": 8,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 8,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=v numpages=8 sectionpages=3\nSection 1 page 1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=vi numpages=8 sectionpages=3\nSection 1 page 2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=vii numpages=8 sectionpages=3\nSection 1 page 3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=1 numpages=8 sectionpages=3\nSection 2 page 1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 5,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=2 numpages=8 sectionpages=3\nSection 2 page 2"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 6,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=3 numpages=8 sectionpages=3\nSection 2 page 3"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 7,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=4 numpages=8 sectionpages=2\nSection 3 page 1"
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 8,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "HEADER ODD\nFOOTER page=5 numpages=8 sectionpages=2\nSection 3 page 2"
       }
     ]

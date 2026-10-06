@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "April 4, 20XX\nBUSINESS\nPROPOSAL\nThis proposal outlines a streamlined solution designed to address key business\nchallenges and drive growth. Our approach leverages industry expertise,\ninnovative strategies, and data-driven insights to create a tailored plan that\ndelivers measurable results.\nPROBLEM STATEMENT SOLUTION\nBusinesses today face challenges such as\ninefficiencies, rising costs, and evolving market\ndemands. Addressing these issues requires a\nwell-structured, strategic approach that ensures\nlong-term success.\nOur solution is designed to enhance operations,\nincrease efficiency, and improve overall performance.\nBy implementing best practices and modern\ntechnology, we help businesses optimize workflows,\nreduce costs, and drive innovation.\nMARKET OPPORTUNITY FINANCIAL SUMMARY\nWith industry trends shifting rapidly, adopting a\nflexible and forward-thinking model is essential.\nOur approach provides businesses with scalable,\nadaptable solutions that align with market\ndemands and ensure long-term sustainability.\nBased on market analysis, businesses that implement\nour strategies see an average 20% reduction in\noperational costs and a 35% improvement in workflow\nefficiency within the first year. Clients can expect a\nstrong return on investment through improved\nproductivity and streamlined operations.\nPREPARED FOR: PREPARED BY:\nCasey Jensen, Fabrikam, Inc.\ncasey@fabrikam.com\n573-555-0172\nwww.fabrikam.com\n333 3rd Avenue, Seattle, WA 89101\nAvery Howard, Contoso, Ltd.\navery@contoso.com\n898-555-0111\nwww.contoso.com\n987 6th Ave, Santa Fe, NM 11121"
       }
     ]

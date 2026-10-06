@@ -1,16 +1,19 @@
 ﻿{
   "target": {
-    "PageCount": 1,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 1,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "Three-Column La\nyout\nItem 1: Short t\ne\nxt for\nnarr\now columns.\nItem 2: Short t\ne\nxt for\nnarr\now columns.\nItem 3: Short t\ne\nxt for\nnarr\now columns.\nItem 4: Short t\ne\nxt for\nnarr\now columns.\nItem 5: Short t\ne\nxt for\nnarr\now columns.\nItem 6: Short t\ne\nxt for\nnarr\now columns.\nItem 7: Short t\ne\nxt for\nnarr\now columns.\nItem 8: Short t\ne\nxt for\nnarr\now columns.\nItem 9: Short t\ne\nxt for\nnarr\now columns.\nItem 10: Short t\ne\nxt for\nnarr\now columns.\nItem 11: Short t\ne\nxt for\nnarr\now columns.\nItem 12: Short t\ne\nxt for\nnarr\now columns.\nItem 13: Short t\ne\nxt for\nnarr\now columns.\nItem 14: Short t\ne\nxt for\nnarr\now columns.\nItem 15: Short t\ne\nxt for\nnarr\now columns.\nItem 16: Short t\ne\nxt for\nnarr\now columns.\nItem 17: Short t\ne\nxt for\nnarr\now columns.\nItem 18: Short t\ne\nxt for\nnarr\now columns.\nItem 19: Short t\ne\nxt for\nnarr\now columns.\nItem 20: Short t\ne\nxt for\nnarr\now columns.\nItem 21: Short t\ne\nxt for\nnarr\now columns.\nItem 22: Short t\ne\nxt for\nnarr\now columns.\nItem 23: Short t\ne\nxt for\nnarr\now columns.\nItem 24: Short t\ne\nxt for\nnarr\now columns.\nItem 25: Short t\ne\nxt for\nnarr\now columns.\nItem 26: Short t\ne\nxt for\nnarr\now columns.\nItem 27: Short t\ne\nxt for\nnarr\now columns.\nItem 28: Short t\ne\nxt for\nnarr\now columns.\nItem 29: Short t\ne\nxt for\nnarr\now columns.\nItem 30: Short t\ne\nxt for\nnarr\now columns."
       }
     ]

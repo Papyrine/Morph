@@ -1,21 +1,27 @@
 ﻿{
   "target": {
-    "PageCount": 2,
-    "Properties": {
+    "Document": {
       "CreationDate": "DateTimeOffset_1",
       "Creator": "Morph",
       "ModDate": "DateTimeOffset_1",
       "Producer": "PDFsharp 6.2.4"
     },
+    "PageCount": 2,
     "Pages": [
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "2 Section 1 - Line numbers restart on each section.\n3 Section 1, Paragraph 2.\n4 Section 1, Paragraph 3.\n5 Section 1, Paragraph 4.\n6 Section 1, Paragraph 5.\n7 Section 1, Paragraph 6.\n8 Section 1, Paragraph 7.\n9 Section 1, Paragraph 8.\n10 Section 1, Paragraph 9.\n11 Section 1, Paragraph 10.\n12 Section 1, Paragraph 11.\n13 Section 1, Paragraph 12.\n14 Section 1, Paragraph 13.\n15 Section 1, Paragraph 14.\n16 Section 1, Paragraph 15."
       },
       {
-        "Width": 612.0,
-        "Height": 792.0,
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
         "Text": "2 Section 2 - Line numbers restarted.\n3 Section 2, Paragraph 2.\n4 Section 2, Paragraph 3.\n5 Section 2, Paragraph 4.\n6 Section 2, Paragraph 5.\n7 Section 2, Paragraph 6.\n8 Section 2, Paragraph 7.\n9 Section 2, Paragraph 8.\n10 Section 2, Paragraph 9.\n11 Section 2, Paragraph 10.\n12 Section 2, Paragraph 11.\n13 Section 2, Paragraph 12.\n14 Section 2, Paragraph 13.\n15 Section 2, Paragraph 14.\n16 Section 2, Paragraph 15."
       }
     ]
