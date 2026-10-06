@@ -44,7 +44,7 @@
     <PackageVersion Include="SixLabors.ImageSharp" Version="4.1.2" />
     <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="3.1.2" />
     <PackageVersion Include="Svg.Skia" Version="5.2.3" />
-    <PackageVersion Include="Verify.PDFium" Version="1.5.0" />
+    <PackageVersion Include="Verify.PDFium" Version="2.0.0" />
     <PackageVersion Include="TUnit" Version="1.72.16" />
     <PackageVersion Include="Verify.TUnit" Version="33.3.0" />
     <PackageVersion Include="DiffEngine" Version="20.7.0" />
