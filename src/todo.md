@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 9 major, 114 medium, 128 minor = 251 findings across 132 scenarios.** The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted (hand-adjusted, it drifted twice). Not every finding has been re-read against the current baselines: every MAJOR was re-judged against Word's page on 2026-10-01; the findings on the 105 fixtures whose Word references were regenerated in Calibri on 2026-10-02 were measured against the Aptos references they replaced and have not been re-read since; and a finding that names a specific block N px off is usually still live where one describing whole-page drift is usually stale (aligning each page's ink profile against Word's gives a median page offset of 2px, but a median worst local displacement of 11px). How a landing moved the corpus is in its commit message and in `src/page_counts.md`, not here.
+**Open: 9 major, 99 medium, 120 minor = 228 findings across 123 scenarios.** The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted (hand-adjusted, it drifted twice). Not every finding has been re-read against the current baselines: every MAJOR was re-judged against Word's page on 2026-10-01; the findings on the 105 fixtures whose Word references were regenerated in Calibri on 2026-10-02 were measured against the Aptos references they replaced and have not been re-read since; and a finding that names a specific block N px off is usually still live where one describing whole-page drift is usually stale (aligning each page's ink profile against Word's gives a median page offset of 2px, but a median worst local displacement of 11px). How a landing moved the corpus is in its commit message and in `src/page_counts.md`, not here.
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -20,7 +20,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
   - **A ligature's advance is not measured.** Word's layout takes the ligature glyph's advance where `w14:ligatures` is on, and the measurer sums the letters'. One line of evidence, indirect: of the 1,606 paragraphs of the 2026-10-11 justified probes the engine misses one, a sentence whose first line holds `off`, which Word squeezes at a measure where the letters' widths put the squeeze-to-stretch ratio at 0.521 against the 0.5 limit the other fifteen thresholds bracket between 0.497 and 0.503. Calibri's `ff` ligature is 65 units narrower than `f` + `f` (0.63px at 12pt), which is what brings that line under the limit. Not probed directly (step a measure over a sentence full of `fi`/`ff`/`fl`, with `w14:ligatures` on and off), and the painters would have to draw the ligature for the ink to end where the width says: Skia and PDF substitute none today.
   - **An autofit column takes its text's unrounded linear width, and Word's runs a fraction of a pixel over that**: 0.3px in compatibility mode 12 and 0.7px in mode 15, behind a hairline border (990 probed tables). Unmodelled; it is under a pixel and moves no break.
   - **Glyph placement inside a line is not Word's.** Word draws whole-pixel advances at the em rounded to a whole pixel on its 120-dpi grid (the 26.6 scaled advance `round(units × ppem × 64 / upm)`, rounded up from 30/64px in mode 14 and older and to the nearest pixel in mode 15), lets the pen fall about 5px behind its linear position inside a run, brings it up at a space, never pulls it back, and narrows the spaces of a line that would overrun its measure. A painter draws each run at the backend's own advances at the nominal size. Where the whole-pixel advances sum wider than linear it shows: 12pt Calibri is drawn 3.6% wider (784px for a sentence of 757), so Word's full lines reach the measure and Morph's stop short of it (multiple_pages p1: Word's first lines end at x=1124, Morph's at 1095; two_columns the same; both moved 0.006 AE further when the wedge, which had been spreading such lines, went). 11pt Calibri draws at about its linear width (690px for a sentence of 693.9) and shows nothing. Closing it needs per-word or per-glyph placement in the painters (`PlacedGlyphRun`, deferred). The glyph RENDER size is em-rounded as well (8pt Calibri draws at 7.8pt), an unmeasured ink-scale deviation of up to ~3% at half-point sizes. Every painter kerns its ink as the line was measured (2026-10-03); Word's own drawing of a kerned pair snaps the kern to 1/16px and rounds the pair's first glyph to a whole pixel (`docs/word-features.md`, Kerning), which is part of the same whole-pixel placement.
-  - Text set in a face that is not bundled is measured on a substitute's metrics: business-plans/15's Univers falls back to Tahoma (measured closest at −5.9% against the real Univers installed on the reference machine), and Segoe UI Semibold, Franklin Gothic Demi and Avenir Next LT Pro Light are not bundled either (business-plans/13, set in the last, reproduces 150 of the 258 long lines Word sets). Their wraps are approximations; the honest fix for Univers is a licensed Univers-metric face, which is out of Morph's hands.
+  - Text set in a face that is not bundled is measured on a substitute's metrics: business-plans/15's Univers falls back to Tahoma (measured closest at −5.9% against the real Univers installed on the reference machine), and Segoe UI Semibold, Franklin Gothic Demi and Avenir Next LT Pro Light are not bundled either (business-plans/13, set in the last, reproduces 150 of the 258 long lines Word sets). Their wraps are approximations; the honest fix for Univers is a licensed Univers-metric face, which is out of Morph's hands. **Several findings below are a missing face and nothing else, and the face is in Office's cloud-font cache on the reference machine:** Grandview Display (letters/08's wraps and its light signature), Quire Sans regular (brochures/07's heavy body text), Avenir Next LT Pro Light and Demi (letters/07, business-plans/13), Trade Gothic Next Bold and Cond Bold (business-plans/02, /03). They are proprietary, which `src/Fonts/README.md` rules out bundling; the open-licensed ones the cache holds went in on 2026-10-11 (Karla, Source Sans Pro, Playfair Display and Work Sans faces) and closed letters/09, letters/10, business-plans/04 and business-plans/06.
   - The suite's confirmation pass has not always been deterministic on near-fit scenarios: on 2026-09-06 `regenerate-baselines.sh` promoted resumes/16 from its first pass and the second pass rendered both Skia and ImageSharp pages differently on five consecutive regenerations, as did a third Skia-only run, and business-plans/15 did the same on 2026-09-05. Host renders of the same input are byte-identical across four processes, so the variance lives in the parallel test process, not in the layout rules. Re-examined 2026-09-24 and NOT reproduced: every Word scenario rendered on Skia and ImageSharp in two separate host processes (12-way parallel, shuffled order) hashed byte-identical, as did a sequential pass against three in-process parallel rounds; the measurer's caches are per-conversion and nothing in the engine shares mutable state across conversions. The 2026-09-24 and 2026-10-02 regenerations both confirmed clean, the second reproducing an earlier run of the same code byte for byte across 782 files. `regenerate-baselines.sh` restores any promoted PNG whose decoded pixels match the previous baseline (`scripts/png-identical`), so encoder-only churn does not reach the tree.
 
 - **#45 Spreadsheet geometry** — the width/scale/range rules landed 2026-08-14 (code comments on `SheetGridBuilder.MaxDigitWidth` / `ToPoints` and `SpreadsheetParser.ResolveRange` / `ResolveScale`, pinned by `ColumnWidthTests`). Still open:
@@ -34,7 +34,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - **#5 Floating/anchored decorative art missing or misplaced.** Architecture, parse-path authority rules and the attempted-and-reverted decision log are in `docs/floating-art-pipeline.md`. Still open: `brochures/06`'s quote-box hatching (the dash column sits at the box's right edge where Word hatches inside), and in the HTML export the `cards/12`/`18` fold guides and `labels/03`'s tear lines.
 - **#6 Shape geometry defects.** Preset polygons, text-box chrome, picture flips, line alpha, connector assembly and outline-only/stroked-fill shapes are resolved across both parse paths (`docs/word-features.md`, `docs/floating-art-pipeline.md`). Still open: `business-plans/02`'s arrow construction.
 - **#8 Picture effects.** The colour transforms (duotone/greyscale/washout through one shared `ImageRecolor.Rows` recipe) and the `a:alphaModFix` transparency on shape fills landed 2026-08-29 on all four outputs (`docs/word-features.md`). Still open: shape fills carry no COLOUR transforms (`FloatingShapeElement` has no effect fields; nothing in the corpus needs it yet); `a:clrChange`/`a:biLevel` parse to `None`; soft-focus/blur (`business-plans/02`) and warm-tone (`newsletters/07`) are unmodelled.
-- **#46 Tiled picture fills are stretched.** `a:blipFill/a:tile` repeats the picture at its natural size from an aligned corner (every corpus use is `sx="100000" sy="100000" algn="tl"`); the engine stretches the one picture over the shape's box instead. `brochures/04`'s brick wall (a 500x334pt photo across a 794x256pt triangle, so Word shows about a tile and a half and larger bricks) and the wood-grain bars of `menus/07`, `inline_group_crop` and `inline_group_rotation` (128–264px tiles across 555pt bars) are the cases. Needs the picture's natural size at parse — its pixel size and declared resolution, which nothing in core reads yet — and a tiling draw in the three painters, for both the placed-image and the inline-group picture paths.
 - **#47 Charts other than pie and doughnut are empty space**, and no chart draws its title, legend or data labels (`docs/word-features.md`, Charts). `business-plans/12`'s SWOT ring draws since 2026-10-11 without its "SWOT" title; the spreadsheet and presentation inputs do not go through that path at all.
 - **#9 Text measure inside shapes and text boxes.** Centred text can still wrap in a narrower measure than Word in containers other than pct tables — `cards/02`'s ticket-back TEXT BOX is ~40px narrow and its placeholder barely moved.
 - **#10 Table-style conditional-region inheritance.** The conditional `w:tblStylePr` blocks merge through `w:basedOn` per property (`DocumentParser.ResolveStyleConditionals`, `TableStyleConditionalInheritanceTests`), modelled on the whole-table rules' measured behaviour and not probed for the conditional regions themselves. The autofit half is closed: Word distributes columns by the CSS auto-table rule, probed (`docs/word-features.md`, Table Auto-fit).
@@ -85,10 +84,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | pdf | p1 | bold weight lost: FINANCIAL MEETING/AGENDA title renders regular weight
 - MINOR | all | p1 | agenda table rows slightly tighter, cumulative ~half-line upward drift by the last row
-
-### agendas-minutes/06
-
-- MINOR | all | p1 | the middle of the page sits 4-8px high of Word (26 bands, median -4px, measured 2026-10-11); the head and foot of the page are at Word's
 
 ### agendas-minutes/08
 
@@ -145,11 +140,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | pdf | p1,p2 | photo interior crop wider than Word and the other backends (more scene, hands smaller)
 - MINOR | html | - | the lower-left photo renders as an unclipped rectangle: it is an INLINE picture with `a:prstGeom prst="ellipse"`, and an inline picture carries no clip geometry in the model (the custGeom-cut one above it is clipped since 2026-10-11)
 
-### brochures/04
-
-- MINOR | all | p2 | the brick wall is cut to its triangle (2026-10-11) but the photo is stretched over the triangle's box where Word tiles it at its natural size, so the bricks draw smaller and squashed (#46)
-
-
 ### brochures/05
 
 - MEDIUM | all | p4 | spice-tray and soup photos lose Word's tight crop — the full image is shown zoomed out with visibly smaller subjects
@@ -162,6 +152,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | all | p2 | quote-box geometry residual: dash column sits at the box's right edge where Word hatches inside
 - MINOR | skia,imagesharp | p2 | couple photo drawn slightly taller with content shifted ~8px vs Word's crop
+- MINOR | all | p2 | the services table's rows under "OUR SERVICES INCLUDE" sit 5px high: a row whose cells hold only empty paragraphs, one of them with an Auto space-after that Word's rule makes nothing at a cell's end (`_probe_autospace_d`), is 5pt taller in Word than in the render. What makes it taller is not found
 
 ### brochures/07
 
@@ -179,27 +170,18 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | pdf | p1,p2,p3,p4,p5,p6 | Uniform small downward drift (~10px) of body content producing ghost doubling of text and table rules
 - MEDIUM | html | - | Hero wheat photo shows the sharp un-blurred original, missing Word's soft-focus treatment.
+- MEDIUM | all | p2-p6 | the section headings ("EXECUTIVE SUMMARY" and the rest) render at regular weight where Word draws Trade Gothic Next Cond Bold, which is not bundled
 
 ### business-plans/03
 
-- MINOR | all | p1 | the left column under the title sits 6-9px high of Word's (thirteen bands in a row, measured 2026-10-11 after the title took Word's two-line wrap); below that the two pages' band counts part (20 against 21) and the offsets read there are not comparable
 - CLEAN: html
-
-### business-plans/04
-
-- MEDIUM | imagesharp,pdf | p1 | Title "ONE PAGE PROPOSAL" rendered in a visibly lighter/regular serif weight instead of Word's heavy bold display weight (HTML export shows the correct bold, confirming the source asks for it).
-- CLEAN: html
+- MEDIUM | all | p1 | the cover title and the section headings render at regular weight where Word draws Trade Gothic Next Bold: the bold face is not bundled (the Skia painter's synthetic bold falls well short of it at 42pt)
 
 ### business-plans/05
 
 - MEDIUM | skia,imagesharp | p1 | Body content progressively compressed upward — section headings and the PREPARED BY/PREPARED FOR blocks end up to ~0.5in higher than Word (line spacing too tight for the display serif), with word-level rewraps.
 - MINOR | pdf | p1 | Full-page cream background tint minutely off (em=0.99 — nearly every pixel faintly differs, invisible side-by-side).
 - MINOR | pdf | p1 | Small downward drift (~10px) doubling the divider rules and footer block positions.
-
-### business-plans/06
-
-- MEDIUM | all | p1,p2 | Document-wide bold loss: cover title "CLIENT PROPOSAL", "Prepared for:/by:" labels, grey numerals 01-05 and yellow section headings all render regular/light instead of Word's heavy bold (title ink 25-50% lower)
-- MEDIUM | html | - | title "CLIENT PROPOSAL" and numerals 01-05 render light instead of Word's heavy bold (same bold-loss as rasters)
 
 ### business-plans/07
 
@@ -236,8 +218,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### business-plans/15
 
 - MEDIUM | all | p2,p3 | Footer bar ("BUSINESS PLAN | APRIL 25, 20XX" + number) is drawn on the TOC pages where Word shows less. **Not the header/footer z-order rule** — landing that (`docs/floating-art-pipeline.md`) moved p2 by −0.0001 and left p3 untouched. And "suppresses entirely" overstates it: Word's own p2 footer strip carries 4129 dark pixels against Morph's 4483, so Word draws a footer there too; only p3 is lopsided (1866 against 4063). Re-read both pages before treating this as one finding.
-- MEDIUM | all | p17 | the ASSETS and LIABILITIES tables stand side by side as one table with an empty spacer column between them; Word leaves the spacer bare, and the render carries the row banding and the rules across it (found 2026-10-11, the markup not yet read)
-- MEDIUM | all | p7 | the page opens on the last line of a paragraph ("debts or collections?") where Word opens it on the paragraph's first four lines — a break one page earlier, in a document whose Univers text is measured on a substitute (#43)
 
 ### business/01
 
@@ -279,10 +259,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | all | p2 | polka-dot background pattern misaligned — dots at visibly different positions across both card backs
 - MAJOR | html | - | ticket content displaced: the code text boxes' "150220YY" pair shows above the first ticket (the export does not hide a fixed-size text box's overflow), the first ticket's star ribbon lands on ADMIT ONE, "Keep ticket stub" and the table's code fall below or on the ticket's edge, and an extra third copy of the placeholder paragraph appears at the bottom
 
-### cards/05
-
-- MINOR | all | p2,p4,p6,p8 | placeholder-text pages differ in band structure from Word
-
 ### cards/06
 
 - MEDIUM | html | - | teal divider rule missing on both invitation backs
@@ -294,7 +270,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### cards/08
 
-- MINOR | all | p1,p3 | watercolor card-face photos shifted vertically as a whole (Skia/ImageSharp ~17px up, PDF ~5px down); size and content otherwise match Word
 - MEDIUM | html | - | placeholder message shows the same wrong heavy bold typeface (Word uses thin light text)
 
 ### cards/11
@@ -344,14 +319,12 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | html | - | "All features" paragraph left-aligned instead of right-aligned
 
 ### html_complex
+- MEDIUM | all | p1,p2 | everything under the data table sits about 31pt high of Word's: the table's rows stand 32.6pt apart against Word's 35.4 (the cell-paragraph spacing of html_table), and the "3. Lists" heading opens 20pt closer to the table than Word's, whose headings keep their space above after a table. Page 1 so takes the "5. Styled Boxes" heading that opens Word's page 2. The intro wraps as Word's since 2026-10-11
 
-- MEDIUM | all | p1,p2 | "Visit our website for more information." paragraph spills to p2 top — the page break lands one element off Word's. BLOCKED by the intro-wrap root cause below (a narrow-measure issue); not cleanly fixable in isolation
-- MEDIUM | all | p1 | **Intro paragraph wraps 3 lines vs Word's 2 — ATTEMPTED 2026-07-21, REVERTED (net regression).** TWO causes, not the sup/sub: (1) `HtmlParser` did NOT collapse HTML whitespace — literal source newlines in the `<p>` became hard breaks (the intro source has newlines after "and" and "have", exactly where Morph broke). (2) Morph's HTML body text measures ~6-9% NARROWER than Word (same font/size — first line ink height matches — so it's font metrics + sup/sub at 0.7×), so it UNDER-wraps. Fixing (1) alone (`CollapseWhitespace` on text nodes in `ParseInlineNodes`, char-by-char run→single-space, `<pre>` unaffected) is objectively correct HTML behaviour BUT over-corrects the intro to 1 line (Word's 2) because (2) then dominates, and REGRESSES the metric: html_complex p1 +0.068 AE / −0.021 SSIM, p2 +0.011, html_css_margin_padding +0.011 (only 3 scenarios changed; the newline-breaks had been *accidentally compensating* for the narrow measure). It also only SHIFTS the reflow (p2 then loses the "5. Styled Boxes" heading to p1) instead of fixing it. To truly land: fix the whitespace collapse AND match Word's text width (a corpus-wide font-metric issue — same class as the `header_footer`/`resumes` "wraps 3 vs 2 lines" findings), then the page break seats correctly.
 
 ### html_css_alignment
 
 - MEDIUM | all | p1 | Table height:100px ignored (row 33px tall vs Word's 61px; interior borders land with the 2026-08-20 model)
-- MINOR | all | p1 | Justified paragraph breaks after "entire line" instead of Word's "fill the" (same 2-line count, different break word)
 - MEDIUM | html | - | width:100% lost in the export (content-width table; interior borders land with the 2026-08-20 model)
 
 ### html_images
@@ -374,11 +347,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### html_table_cell_padding_css
 
 - MEDIUM | all | p1 | CSS cell padding under-applied: table ~20% narrower and rows ~25% shorter than Word, right-column text ends flush against the table border (per-cell borders land with the 2026-08-20 model; the export now carries the padding too, though as raw px-as-pt values — covered by this conversion question)
-- MEDIUM | skia | p1 | "20px all sides" wraps to two lines (single line in Word, ImageSharp and PDF)
-
-### html_table_cellpadding
-
-- MINOR | all | p1 | first column runs slightly narrow — "Cell with 15px padding" wraps where Word keeps one line
 
 ### html_table_styled
 
@@ -417,7 +385,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### inline_group_rotation
 
 - MINOR | all | p1 | residual differences in the rotated nested pieces (unvetted at crop level)
-- MEDIUM | all | p1 | the decorative double border frame's ornamental corner details and the red accent line's exact geometry differ from Word
+- MINOR | all | p1 | the frame's hairline accent rule (a 0.25pt rounded rectangle in the first accent colour) reads fainter in Word than in the render; the octagon band's corners are Word's since 2026-10-11
 - MINOR | all | p1 | "Menu" lacks its white+mint outlined glyph style (the text colour itself is correct now)
 
 ### inline_shape_arrows
@@ -479,13 +447,8 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | large signature "Joseph Price" rendered in bold/heavy weight instead of Word's light strokes
 - MINOR | html | - | signature "Joseph Price" bold vs Word's light weight
 
-### letters/09
-
-- MEDIUM | all | p1 | first body paragraph wraps to 5 lines vs Word's 4 ("...advanced financial / forecasting."), pushing body text and the footer contact block ~1 line lower
-
 ### letters/10
 
-- MEDIUM | all | p1 | body wraps differ (first paragraph 5 lines vs Word's 4, breaks at "regional / manager")
 - MAJOR | html | - | signature image broken — placeholder "Image of signature" shown instead of the script signature
 
 ### letters/11
@@ -527,10 +490,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MEDIUM | all | p1 | right instruction block wraps at a different word than Word ("...select the whole / cell.)" vs Word's "...select the / whole cell.)")
 
-### menus/09
-
-- MEDIUM | all | p1 | the inner decorative frame's geometry is slightly off Word's (octagon corner cuts vs rounded corners)
-
 ### newsletters/01
 
 - MINOR | all | p1 | Left-column caption, "Happy holidays" heading and body sit 8px (3.8pt) higher than Word — the image-only line's height: Word's picture line measures 2.4-3.5pt taller than the extent on `_probe_picln2`, a descent the engine does not charge
@@ -539,10 +498,10 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### newsletters/02
 
-- MINOR | all | p1 | the whole page (masthead, sidebar, hero image, article) sits 9-11px LOW of Word, measured 2026-10-11 over 18 bands
 - MEDIUM | all | p2 | Main-column paragraphs wrap to more lines than Word (bold lede 6 lines vs 5; following paragraph 5 vs 4)
 - MEDIUM | all | p2 | "Work with the industry's best" column renders wider with fewer, longer lines, so the column ends ~1in higher than Word
 - MEDIUM | html | - | Hero network-figures image renders above "The Review" masthead — wrong content order vs the document
+- MINOR | all | p2 | the article under the photo sits 4px low: Word's line for the photo reads about a point shorter than the picture's own box, and the line now carries the 1pt of leading the paragraph's 1.08 spacing adds under a picture (`_probe_picline`)
 
 ### newsletters/04
 
@@ -553,10 +512,8 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### newsletters/05
 
 - MEDIUM | all | p1,p3 | body copy under "Welcome back to school!" wraps to one extra line (17 text bands vs Word's 16), block ends 26-80px lower
-- MEDIUM | skia,imagesharp | p1,p3 | "Welcome back to school!" heading and body start ~45-50px lower than Word (extra gap inserted below the school photo)
 - MEDIUM | skia,imagesharp | p1,p3 | sidebar "Ms. Tanaka" contact block ~22px and "Upcoming Events" block ~48px lower than Word (PDF within 10px)
 - MEDIUM | all | p2,p4 | sidebar "Fall highlights" block sits ~210-235px (~1.5 inch) higher than Word
-- MEDIUM | skia,imagesharp | p2,p4 | "Our next area of focus" heading and following paragraphs ~35-38px lower than Word (extra gap below classroom photo; PDF matches)
 - MINOR | all | p1,p3 | school photo ~1% narrower than Word (right edge 7-9px short), lighting the whole photo in the diff
 - MINOR | all | p2,p4 | classroom photo shifted ~9px left at identical size
 
@@ -578,7 +535,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### newsletters/09
 
-- MINOR | all | p3 | the rule under the top section sits 5px (2.3pt) below Word's: row 4 — a row of vMerge continuations sized by the overflow of the column-2/3 spans above it — is 123.5pt against Word's ~121.3 (XPS). It read 3px high before 2026-10-01 only because row 5 (the caption row) lacked the 10.8pt top margin its continuation cell declares, which Word applies
 - MEDIUM | all | p3,p4 | photo captions detach from their images and collide with neighbouring content (caption box overlaps the section rule above "Mirjam Nilsson" on p3; caption floats over the "scoop of the day" columns on p4)
 - MINOR | html | - | full four-sided borders drawn around the bridge sidebar box and the pull-quote box where Word shows only top/bottom rules
 
@@ -657,10 +613,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | html | - | SKILLS bullets black instead of accent color
 
-### resumes/11
-
-- MINOR | all | p1 | Name block starts ~17px lower than Word, and the three thin divider rules sit ~15-20px higher; the body text between them tracks Word to ±1px
-
 ### resumes/12
 
 - MINOR | pdf | p1 | "VICTORIA BURKE" name block sits ~20px lower than Word
@@ -705,7 +657,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### wedding/05
 
 - MEDIUM | pdf | p1 | date block also rendered bold where Word uses regular weight
-- MEDIUM | all | p2 | menu list starts ~1 line high on p2 (gap below the wash heading too small)
 - MEDIUM | html | - | watercolor washes exported as standalone images stacked above the panels instead of backgrounds behind the headings
 
 ### wedding/06
@@ -714,7 +665,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### wedding/08
 
-- MEDIUM | all | p1 | the circled "&" badge sits at the left of its cell where Word centres it under the names (~90px left at 150 DPI); its card panels and text blocks sit at Word's since the 2026-10-01 cell-height laws
 - MINOR | html | - | the green "&" badge renders (2026-10-01) as a square where Word draws a circle
 
 ### wedding/09
@@ -728,8 +678,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### wordart
 
-- MEDIUM | skia,imagesharp | p2,p3 | Path-warp WordArt drawn at nominal font size instead of stretched to the shape bbox — p3 items (Wavy WordArt, Chevron Up/Down, Fade Effect, Slanted Up/Down) span ~180px where Word fills ~430px page width (hard ~23%)
-- MINOR | skia,imagesharp | p2 | the circle warp is off position and size: ImageSharp places "Circle Text" ~85px left of Word's position; Skia draws it ~20% larger and shifted right
 - MINOR | all | p2 | the arches run ~4% narrower than Word's ("Arc Text Up" 289px against 302): Word draws the bold Impact with synthetic bold, which widens every advance and thickens the strokes, and the WordArt drawers never embolden
 - MINOR | pdf | p10 | highlight bars render ~10% more ink than Word's (magenta 3049 sampled units against 2622): the box spans the font's full ascent-to-descent where Word's sits slightly tighter. All five colours are correct and present
 - MEDIUM | all | p14 | Emboss/shadow character effects flattened: black "EMBOSSED" and "SHADOWED" lose their offset drop shadows in every backend; "IMPRINTED" engrave two-tone lost in ImageSharp/PDF (Skia approximates it with a light offset)
@@ -739,10 +687,8 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### wordart-envelope
 
 - MEDIUM | html | - | the four WordArt words export in their colours and face (2026-10-01) but small and unwarped
-- MEDIUM | imagesharp | p1 | "Can Up" and "Can Down" are squashed to roughly half Word's glyph height — "Can Up" becomes a low flat ribbon hugging the bottom of its band leaving a large blank gap below "Deflate", and "Can Down" bows into a deep flattened smile arc instead of Word's full-height gently-warped letters.
-- [known] MEDIUM | skia,imagesharp | p1 | Envelope warp shape deviates from Word on the Can Up/Can Down lines: sin-curve amplitude is much stronger and edge glyphs shrink to ~55% height so the leading capital "C" reads as lowercase, vs Word's near-uniform letter heights with a gentle arch (envelope curve + 0.55 minRatio design documented in notes.md).
 ---
 
 ## Clean scenarios (faithful on skia, imagesharp, pdf and html)
 
-`agendas-minutes/03`, `agendas-minutes/04`, `agendas-minutes/05`, `agendas-minutes/07`, `agendas-minutes/09`, `agendas-minutes/11`, `agendas-minutes/13`, `agendas-minutes/15`, `agendas-minutes/18`, `agendas-minutes/19`, `business/04`, `cards/03`, `cards/04`, `cards/16`, `cards/19`, `complex_tables`, `cover-letters/06`, `cover-letters/08`, `cover-letters/09`, `cover-letters/11`, `labels/02`, `resumes/04`, `html_nested_lists`, `icon_with_text`, `table_autofit_no_widths`, `table_cell_spacing/01`, `table_diagonal_borders/01`, `table_grid_styling_padding`, `wedding/10`, `align_center`, `font_sizes`, `labels/05`, `labels/08`, `labels/16`, `letters/04`, `table_default_style_inside_h`, `align_justified`, `align_left`, `align_mixed`, `align_right`, `all_caps`, `block_quote`, `bold_text`, `bullet_list`, `colored_text`, `column_breaks`, `complex_document`, `content_control_inline`, `compatibility_mode_14`, `cover-letters/02`, `custom_margins`, `decimal_tabs/01`, `cards/10`, `deep_nested_list`, `document_protection/01`, `dot_points`, `embedded_font`, `labels/14`, `resumes/18`, `table_borders`, `even_odd_headers/01`, `even_odd_headers/02`, `explicit_break_blank_page`, `first_line_indent`, `font_families`, `field_codes_simple/01`, `footer`, `form_checkboxes`, `form_dropdowns`, `form_text_fields`, `gutter_margins/01`, `hanging_indent`, `header`, `header_banner_table`, `header_footer`, `headings`, `html_basic_formatting`, `html_css_colors`, `html_font_tag`, `html_inline_styles`, `html_links`, `html_paragraphs`, `hyperlinks`, `hyphenation_nonbreaking`, `hyphenation_soft`, `image_cropping/01`, `inline_group_crop`, `inline_image`, `italic_text`, `labels/01`, `labels/07`, `labels/12`, `labels/13`, `left_indent`, `letters/06`, `line_breaks`, `line_numbers_continuous`, `line_numbers_count_by_5`, `line_numbers_custom_distance`, `line_numbers_restart_page`, `line_numbers_restart_section`, `line_numbers_suppressed`, `line_spacing`, `line_spacing_at_least`, `line_spacing_exactly`, `long_paragraph`, `nonstandard_main_part_name`, `numbered_list_tracking`, `page_letter`, `cover-letters/16`, `resumes/15`, `menus/02`, `mixed_breaks`, `mixed_formatting`, `multiple_images`, `multiple_pages`, `multiple_paragraphs`, `nested_list`, `numbered_list`, `numbered_list_restart`, `page_a4`, `page_borders/01`, `page_breaks`, `page_landscape`, `page_legal`, `page_numbers`, `pct_pos_offset`, `postcards/02`, `resumes/13`, `rtl_paragraph`, `section_break_continuous`, `section_break_even_page`, `section_break_next_page`, `section_break_odd_page`, `simple_paragraph`, `simple_table`, `small_caps`, `strikethrough_text`, `subscript_superscript`, `tab_stops`, `table_alignment/01`, `table_cell_margin_per_cell`, `table_cell_padding`, `table_cell_padding_varied`, `table_colors`, `table_default_cell_margin`, `table_default_cell_margin_start_end`, `table_default_style`, `table_default_style_first_row_run_color`, `table_default_style_first_row_shading`, `table_explicit_heights`, `table_indent`, `table_text_direction`, `table_of_contents/01`, `table_of_contents/02`, `table_page_break`, `table_two_column_layout`, `table_vmerge_basic`, `table_vmerge_explicit_heights`, `text_wrapping_break`, `wide_table`, `three_columns`, `tracked_changes/01`, `two_columns`, `underline_text`, `wedding/07`
+`agendas-minutes/03`, `agendas-minutes/04`, `agendas-minutes/05`, `agendas-minutes/07`, `agendas-minutes/09`, `agendas-minutes/11`, `agendas-minutes/13`, `agendas-minutes/15`, `agendas-minutes/18`, `agendas-minutes/19`, `business/04`, `cards/03`, `cards/04`, `cards/16`, `cards/19`, `complex_tables`, `cover-letters/06`, `cover-letters/08`, `cover-letters/09`, `cover-letters/11`, `labels/02`, `resumes/04`, `html_nested_lists`, `icon_with_text`, `table_autofit_no_widths`, `table_cell_spacing/01`, `table_diagonal_borders/01`, `table_grid_styling_padding`, `wedding/10`, `align_center`, `font_sizes`, `labels/05`, `labels/08`, `labels/16`, `letters/04`, `table_default_style_inside_h`, `align_justified`, `align_left`, `align_mixed`, `align_right`, `all_caps`, `block_quote`, `bold_text`, `bullet_list`, `colored_text`, `column_breaks`, `complex_document`, `content_control_inline`, `compatibility_mode_14`, `cover-letters/02`, `custom_margins`, `decimal_tabs/01`, `cards/10`, `deep_nested_list`, `document_protection/01`, `dot_points`, `embedded_font`, `labels/14`, `resumes/18`, `table_borders`, `even_odd_headers/01`, `even_odd_headers/02`, `explicit_break_blank_page`, `first_line_indent`, `font_families`, `field_codes_simple/01`, `footer`, `form_checkboxes`, `form_dropdowns`, `form_text_fields`, `gutter_margins/01`, `hanging_indent`, `header`, `header_banner_table`, `header_footer`, `headings`, `html_basic_formatting`, `html_css_colors`, `html_font_tag`, `html_inline_styles`, `html_links`, `html_paragraphs`, `hyperlinks`, `hyphenation_nonbreaking`, `hyphenation_soft`, `image_cropping/01`, `inline_group_crop`, `inline_image`, `italic_text`, `labels/01`, `labels/07`, `labels/12`, `labels/13`, `left_indent`, `letters/06`, `line_breaks`, `line_numbers_continuous`, `line_numbers_count_by_5`, `line_numbers_custom_distance`, `line_numbers_restart_page`, `line_numbers_restart_section`, `line_numbers_suppressed`, `line_spacing`, `line_spacing_at_least`, `line_spacing_exactly`, `long_paragraph`, `nonstandard_main_part_name`, `numbered_list_tracking`, `page_letter`, `cover-letters/16`, `resumes/15`, `menus/02`, `mixed_breaks`, `mixed_formatting`, `multiple_images`, `multiple_pages`, `multiple_paragraphs`, `nested_list`, `numbered_list`, `numbered_list_restart`, `page_a4`, `page_borders/01`, `page_breaks`, `page_landscape`, `page_legal`, `page_numbers`, `pct_pos_offset`, `postcards/02`, `resumes/13`, `rtl_paragraph`, `section_break_continuous`, `section_break_even_page`, `section_break_next_page`, `section_break_odd_page`, `simple_paragraph`, `simple_table`, `small_caps`, `strikethrough_text`, `subscript_superscript`, `tab_stops`, `table_alignment/01`, `table_cell_margin_per_cell`, `table_cell_padding`, `table_cell_padding_varied`, `table_colors`, `table_default_cell_margin`, `table_default_cell_margin_start_end`, `table_default_style`, `table_default_style_first_row_run_color`, `table_default_style_first_row_shading`, `table_explicit_heights`, `table_indent`, `table_text_direction`, `table_of_contents/01`, `table_of_contents/02`, `table_page_break`, `table_two_column_layout`, `table_vmerge_basic`, `table_vmerge_explicit_heights`, `text_wrapping_break`, `wide_table`, `three_columns`, `tracked_changes/01`, `two_columns`, `underline_text`, `wedding/07`, `agendas-minutes/06`, `brochures/04`, `business-plans/04`, `business-plans/06`, `html_table_cellpadding`, `letters/09`, `menus/09`, `resumes/11`, `cards/05`

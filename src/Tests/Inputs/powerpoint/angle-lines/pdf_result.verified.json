@@ -22,15 +22,15 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "AGENDA\nIntroduction\nBuilding confidence\nEngaging the audience\nVisual aids\nFinal tips & takeaways"
+        "Text": "AGENDA Introduction\nBuilding confidence\nEngaging the audience\nVisual aids\nFinal tips & takeaways"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5192,
-      "Ssim": 0.8316,
+      "ErrorMetric": 0.5193,
+      "Ssim": 0.831,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

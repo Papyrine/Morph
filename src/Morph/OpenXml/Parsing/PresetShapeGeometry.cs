@@ -169,10 +169,12 @@ static class PresetShapeGeometry
         return Single(contour);
     }
 
-    // Octagon: straight 45° corner cuts of length adj (of min-side).
+    // Octagon: straight 45° corner cuts of length adj (of min-side). The guide is named adj, like the
+    // hexagon's; read as adj1 it was never found, and every octagon took the default cut whatever it
+    // declared (menus/07's frame declares 11057 and was cut nearly three times too deep).
     static List<IReadOnlyList<(double X, double Y)>> Octagon(double width, double height, Dictionary<string, double> adjustments)
     {
-        var cut = Math.Min(width, height) * Pin(0, Adjustment(adjustments, "adj1", 29289), 50000) / 100000;
+        var cut = Math.Min(width, height) * Pin(0, Adjustment(adjustments, "adj", 29289), 50000) / 100000;
         return Single(
         [
             (cut, 0),

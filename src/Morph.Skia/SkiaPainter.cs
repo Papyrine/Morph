@@ -416,7 +416,7 @@ static class SkiaPainter
         var transformed = Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical;
         if (!transformed && clip == null)
         {
-            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            DrawPicture(context, canvas, bitmap, box, image, paint);
             PaintImageOutline(context, canvas, image, box);
             return;
         }
@@ -436,19 +436,39 @@ static class SkiaPainter
 
         if (clip == null)
         {
-            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            DrawPicture(context, canvas, bitmap, box, image, paint);
             PaintImageOutline(context, canvas, image, box);
         }
         else
         {
             canvas.Save();
             canvas.ClipPath(clip, antialias: true);
-            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            DrawPicture(context, canvas, bitmap, box, image, paint);
             canvas.Restore();
             PaintImageOutline(context, canvas, image, clip);
         }
 
         canvas.Restore();
+    }
+
+    // The picture into its box: stretched over it through its crop, or - a tiled fill - repeated at
+    // the tile's size from the tile's origin. The tiles are one shader fill of the box, so
+    // neighbours meet without a seam and the clip already set cuts them like any other picture.
+    static void DrawPicture(SkiaRenderContext context, SKCanvas canvas, SKBitmap bitmap, SKRect box, PlacedImage image, SKPaint? paint)
+    {
+        if (image.Tile is not { } tile)
+        {
+            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            return;
+        }
+
+        var (originX, originY) = tile.Origin(image.Width, image.Height);
+        var placement = SKMatrix.CreateScale(P(context, tile.WidthPoints) / bitmap.Width, P(context, tile.HeightPoints) / bitmap.Height)
+            .PostConcat(SKMatrix.CreateTranslation(box.Left + P(context, originX), box.Top + P(context, originY)));
+        using var shader = SKShader.CreateBitmap(bitmap, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, placement);
+        using var fill = paint?.Clone() ?? new SKPaint();
+        fill.Shader = shader;
+        canvas.DrawRect(box, fill);
     }
 
     static SKPath? ImageClip(PlacedImage image, SKRect box)
@@ -687,7 +707,7 @@ static class SkiaPainter
         // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
         // accent tint that reads as near-white, not a solid panel. SkiaShapeDrawing.ParseColor applies the alpha.
         var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaShapeDrawing.ParseColor(fillHex, shape.FillAlpha), antialias: true) : null);
-        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, ShapeStroke.WidthPoints(shape.LineWidthPoints))) : null;
 
         if (fill != null || line != null)
         {

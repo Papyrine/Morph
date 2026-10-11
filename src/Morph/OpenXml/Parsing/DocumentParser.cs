@@ -201,6 +201,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // none (ExtractCompatibilitySettings).
     int compatibilityMode = 12;
 
+    // w:compat/w:doNotUseHTMLParagraphAutoSpacing (CompatibilitySettings.UsesFixedAutoSpacing).
+    bool usesFixedAutoSpacing;
+
     // The table-style step of the paragraph cascade: docDefaults -> table style w:pPr ->
     // paragraph style chain -> direct w:pPr (ECMA-376). A table style's own w:pPr applies to
     // every paragraph in tables that reference it, so it overrides the document defaults but
@@ -427,6 +430,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         var compatibility = ExtractCompatibilitySettings(mainPart);
         compatibilityMode = compatibility.CompatibilityMode;
+        usesFixedAutoSpacing = compatibility.UsesFixedAutoSpacing;
 
         // Each section's header/footer set, inheritance applied, folded into the section settings the
         // section breaks will carry — so it has to exist before the body parses (ParseSectionBreak reads
@@ -1891,6 +1895,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var alignment = baseProps?.Alignment ?? defaultAlignment;
                 var spacingBefore = baseProps?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
+                var spacingBeforeAuto = baseProps?.SpacingBeforeAuto ?? false;
+                var spacingAfterAuto = baseProps?.SpacingAfterAuto ?? false;
                 // OOXML says an absent w:spacing/@w:line is SINGLE — the font's own line box —
                 // and a Word probe confirms it directly (2026-08-04, long wrapping paragraphs
                 // in the resumes/01 and agendas-minutes/15 packages, both styles.xml-bearing:
@@ -1945,6 +1951,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         Alignment = alignment,
                         SpacingBeforePoints = spacingBefore,
                         SpacingAfterPoints = spacingAfter,
+                        SpacingBeforeAuto = spacingBeforeAuto,
+                        SpacingAfterAuto = spacingAfterAuto,
                         LineSpacingMultiplier = lineSpacingMultiplier,
                         LineSpacingPoints = lineSpacingPoints,
                         LineSpacingRule = lineSpacingRule,
@@ -2005,6 +2013,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
 
                     spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
+                    spacingBeforeAuto = spacing.BeforeAutoSpacing?.Value ?? spacingBeforeAuto;
+                    spacingAfterAuto = spacing.AfterAutoSpacing?.Value ?? spacingAfterAuto;
 
                     if (spacing.Line?.HasValue == true)
                     {
@@ -2156,6 +2166,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     Alignment = alignment,
                     SpacingBeforePoints = spacingBefore,
                     SpacingAfterPoints = spacingAfter,
+                    SpacingBeforeAuto = spacingBeforeAuto,
+                    SpacingAfterAuto = spacingAfterAuto,
                     LineSpacingMultiplier = lineSpacingMultiplier,
                     LineSpacingPoints = lineSpacingPoints,
                     LineSpacingRule = lineSpacingRule,
@@ -3747,8 +3759,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         return new()
         {
-            CompatibilityMode = compatMode
+            CompatibilityMode = compatMode,
+            UsesFixedAutoSpacing = compat.Elements().Any(_ => _.LocalName == "doNotUseHTMLParagraphAutoSpacing" && OnOff(_))
         };
+
+        // An on/off element is on when it is there, unless its w:val says otherwise.
+        static bool OnOff(OpenXmlElement element) =>
+            element.GetAttributes().FirstOrDefault(_ => _.LocalName == "val").Value is not ("0" or "false" or "off");
     }
 
     PageSettings ExtractPageSettings(SectionProperties sectionProps)
@@ -5069,6 +5086,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 string? bgColor = null;
                 CellSpacing? cellPadding = null;
                 CellSpacing? cellMargin = null;
+                var clearsShading = false;
 
                 if (cellProps != null)
                 {
@@ -5091,6 +5109,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     {
                         bgColor = shading.Fill.Value;
                     }
+
+                    // A cell that declares its shading as no colour at all (w:val="clear" with
+                    // w:fill="auto", what Word writes for Shading > No Color) has said so in
+                    // direct formatting, which outranks the table style: its banding and its
+                    // header fill stop at this cell. business-plans/15 stands two tables side by
+                    // side as one, and the spacer column between them is cleared this way.
+                    clearsShading = shading is {Fill.Value: "auto"} &&
+                                    (shading.Val?.HasValue != true ||
+                                     shading.Val.Value == ShadingPatternValues.Clear ||
+                                     shading.Val.Value == ShadingPatternValues.Nil);
 
                     // Parse cell-level margins (which act as padding in Word). A partial w:tcMar
                     // inherits its unspecified sides from the table's w:tblCellMar (doc, then style)
@@ -5238,7 +5266,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // conditional regions, and what THEY leave undeclared stays open for the
                     // table-level cascade at layout (TableLayout.ResolveCellBorders).
                     cellBorders = cellBorders?.Over(conditionalBorders) ?? conditionalBorders;
-                    bgColor ??= conditionalShading;
+                    if (!clearsShading)
+                    {
+                        bgColor ??= conditionalShading;
+                    }
 
                     // Cascade tblStylePr's run colour onto runs in this cell that don't carry
                     // an explicit w:color. Explicit run colour wins (RunProperties.ColorHex
@@ -6057,7 +6088,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var inScopedPart = para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
                            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
                            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Footer>().Any();
-        var props = ParseParagraphProperties(paraProps, mainPart, paragraphStyleId, omitParagraphMark: inScopedPart);
+        var props = ParseParagraphProperties(paraProps, mainPart, paragraphStyleId, omitParagraphMark: inScopedPart, paragraph: para);
 
         // --- PAGE / NUMPAGES / SECTIONPAGES field tracking ---
         // Word emits these as complex fields: fldChar begin → instrText → fldChar separate →
@@ -6630,6 +6661,30 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         }
                     }
 
+                    // The text gathered ahead of a drawing is closed off as a paragraph of its own only
+                    // when the drawing takes a place in the flow (an inline WordArt box, ink). Floating
+                    // art is lifted out of the line: the text either side of its anchor is still ONE
+                    // paragraph on one line, and closing it at the anchor turned the rest into a second
+                    // paragraph with a line of its own. brochures/06's second page opens on a 4pt
+                    // paragraph holding a space, an anchored group and another space, and stood a
+                    // line (4.9pt) low of Word's for it.
+                    void EndParagraphAhead(IReadOnlyList<DocumentElement> drawn)
+                    {
+                        if (runs.Count == 0 ||
+                            drawn.All(_ => _ is FloatingShapeElement or FloatingImageElement or FloatingTextBoxElement or FloatingWordArtElement))
+                        {
+                            return;
+                        }
+
+                        result.Add(
+                            new ParagraphElement
+                            {
+                                Runs = new List<Run>(runs),
+                                Properties = props
+                            });
+                        runs.Clear();
+                    }
+
                     // Check for drawings (images/icons/WordArt/ink/shapes) within run
                     foreach (var drawing in runDrawings ?? (IReadOnlyList<Drawing>) [])
                     {
@@ -6666,18 +6721,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                         if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) && !isInlineGroup)
                         {
-                            // Emit current paragraph content before the shapes/group content
-                            if (runs.Count > 0 && !IsTabOnly(runs))
-                            {
-                                result.Add(
-                                    new ParagraphElement
-                                    {
-                                        Runs = new List<Run>(runs),
-                                        Properties = props
-                                    });
-                                runs.Clear();
-                            }
-
                             // For grouped drawings anchored inside table cells the DocumentParser
                             // walk below owns the children: its nested-group transform math resolves
                             // each child's page position and size correctly, while ShapeParser's flat
@@ -6771,7 +6814,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 });
                             }
 
-                            result.AddRange(groupChildren);
+                            var drawn = groupChildren.ToList();
+                            if (!IsTabOnly(runs))
+                            {
+                                EndParagraphAhead(drawn);
+                            }
+
+                            result.AddRange(drawn);
 
                             continue;
                         }
@@ -6804,18 +6853,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 spacingAfter: props.SpacingAfterPoints);
                             if (wordArtElement != null)
                             {
-                                // Emit current paragraph content before the WordArt
-                                if (runs.Count > 0)
-                                {
-                                    result.Add(
-                                        new ParagraphElement
-                                        {
-                                            Runs = new List<Run>(runs),
-                                            Properties = props
-                                        });
-                                    runs.Clear();
-                                }
-
+                                EndParagraphAhead([wordArtElement]);
                                 result.Add(wordArtElement);
                             }
                             else
@@ -6824,18 +6862,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 var textBoxElement = ParseTextBox(drawing, mainPart);
                                 if (textBoxElement != null)
                                 {
-                                    // Emit current paragraph content before the text box
-                                    if (runs.Count > 0)
-                                    {
-                                        result.Add(
-                                            new ParagraphElement
-                                            {
-                                                Runs = new List<Run>(runs),
-                                                Properties = props
-                                            });
-                                        runs.Clear();
-                                    }
-
+                                    EndParagraphAhead([textBoxElement]);
                                     result.Add(textBoxElement);
                                 }
                                 else
@@ -6858,18 +6885,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                         var imageElements = ParseDrawingElements(drawing, mainPart);
                                         if (imageElements.Count > 0)
                                         {
-                                            // Emit current paragraph content before the images
-                                            if (runs.Count > 0)
-                                            {
-                                                result.Add(
-                                                    new ParagraphElement
-                                                    {
-                                                        Runs = new List<Run>(runs),
-                                                        Properties = props
-                                                    });
-                                                runs.Clear();
-                                            }
-
+                                            EndParagraphAhead(imageElements);
                                             result.AddRange(imageElements);
                                         }
                                     }
@@ -8666,6 +8682,64 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     }
 
     /// <summary>
+    /// A blip fill's <c>a:tile</c>: the picture repeats across its shape at its own size rather than
+    /// stretching over it. The tile is the picture's pixels at the resolution the fill names
+    /// (<c>a:blipFill/@dpi</c>) or, when that is absent or zero, the resolution the picture's own file
+    /// declares, scaled by the tile's <c>sx</c>/<c>sy</c>. Null for a stretched fill, a tile with no
+    /// extent, and a picture whose header gives no size (a vector format).
+    /// </summary>
+    internal static ImageTile? ReadTile(OpenXmlElement blipFill, byte[]? imageData)
+    {
+        var tile = blipFill.Elements().FirstOrDefault(_ => _.LocalName == "tile");
+        if (tile == null ||
+            imageData == null ||
+            !ImageHeader.TryRead(imageData, out var pixelWidth, out var pixelHeight, out var dpiX, out var dpiY))
+        {
+            return null;
+        }
+
+        if (blipFill.AttributeValue("dpi") is { } declared &&
+            double.TryParse(declared, NumberStyles.Float, CultureInfo.InvariantCulture, out var dpi) &&
+            dpi > 0)
+        {
+            dpiX = dpi;
+            dpiY = dpi;
+        }
+
+        var width = pixelWidth * 72.0 / dpiX * Scale("sx");
+        var height = pixelHeight * 72.0 / dpiY * Scale("sy");
+        if (width <= 0 || height <= 0)
+        {
+            return null;
+        }
+
+        var alignment = tile.AttributeValue("algn") switch
+        {
+            "t" => ImageTileAlignment.Top,
+            "tr" => ImageTileAlignment.TopRight,
+            "l" => ImageTileAlignment.Left,
+            "ctr" => ImageTileAlignment.Center,
+            "r" => ImageTileAlignment.Right,
+            "bl" => ImageTileAlignment.BottomLeft,
+            "b" => ImageTileAlignment.Bottom,
+            "br" => ImageTileAlignment.BottomRight,
+            _ => ImageTileAlignment.TopLeft
+        };
+        return new(width, height, Offset("tx"), Offset("ty"), alignment);
+
+        // sx and sy are 1000ths of a percent; absent, the tile is the picture's own size.
+        double Scale(string attributeName) =>
+            tile.AttributeValue(attributeName) is { } value && long.TryParse(value, out var thousandthsOfPercent)
+                ? thousandthsOfPercent / 100000.0
+                : 1;
+
+        double Offset(string attributeName) =>
+            tile.AttributeValue(attributeName) is { } value && long.TryParse(value, out var emu)
+                ? emu / OoxmlUnits.EmusPerPoint
+                : 0;
+    }
+
+    /// <summary>
     /// Parses all images from a drawing element, including multiple images in groups.
     /// </summary>
     static OpenXmlPart ResolveHostPart(OpenXmlElement element, MainDocumentPart mainPart)
@@ -9618,6 +9692,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         byte[]? imageData = null;
         string? imageContentType = null;
         ImageCrop? imageCrop = null;
+        ImageTile? imageTile = null;
         if (shapeProps.GetFirstChild<A.BlipFill>() is { } blipFill)
         {
             (imageData, imageContentType) = ShapeParser.ExtractBlipFillImage(blipFill, mainPart, GetPartBytes);
@@ -9627,6 +9702,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             imageCrop = ReadCrop(blipFill);
+            imageTile = ReadTile(blipFill, imageData);
         }
 
         // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
@@ -9907,6 +9983,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ImageData = imageData,
             ImageContentType = imageContentType,
             ImageCrop = imageCrop,
+            ImageTile = imageTile,
             // Solid-filled shapes stroke their <a:ln> exactly like ShapeParser's solid branch
             // always has — the asymmetry left walk-owned filled shapes borderless
             // (letters/05's p1 triangle is a WHITE-filled custGeom whose thick teal stroke is
@@ -10542,6 +10619,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // Parse text transform preset from body properties
         var transform = WordArtTransform.None;
+        double? warpAdjust = null;
         string? outlineColor = null;
         double outlineWidth = 0;
         var hasShadow = false;
@@ -10557,6 +10635,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (prstTxWarp?.Preset?.HasValue == true)
             {
                 transform = ParseTextWarpPreset(prstTxWarp.Preset.Value);
+                warpAdjust = ParseTextWarpAdjust(prstTxWarp);
             }
 
             // An arched warp lays its path in the text rect, so the insets set the arch's width.
@@ -10733,6 +10812,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 HasReflection = hasReflection,
                 HasGlow = hasGlow,
                 Transform = transform,
+                WarpAdjust = warpAdjust,
                 Insets = insets,
                 TextAlignment = textAlignment
             };
@@ -10764,96 +10844,75 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             HasReflection = hasReflection,
             HasGlow = hasGlow,
             Transform = transform,
+            WarpAdjust = warpAdjust,
             Insets = insets,
             TextAlignment = textAlignment
         };
     }
 
-    static WordArtTransform ParseTextWarpPreset(A.TextShapeValues preset)
+    /// <summary>
+    /// The warp a <c>prstTxWarp</c> preset names. A preset with no entry (the rings, the button, the
+    /// multi-line deflate-inflates) is drawn unwarped.
+    /// </summary>
+    static readonly Dictionary<A.TextShapeValues, WordArtTransform> textWarpPresets = new()
     {
-        if (preset == A.TextShapeValues.TextArchUp || preset == A.TextShapeValues.TextArchUpPour)
+        [A.TextShapeValues.TextArchUp] = WordArtTransform.ArchUp,
+        [A.TextShapeValues.TextArchUpPour] = WordArtTransform.ArchUp,
+        [A.TextShapeValues.TextArchDown] = WordArtTransform.ArchDown,
+        [A.TextShapeValues.TextArchDownPour] = WordArtTransform.ArchDown,
+        [A.TextShapeValues.TextCircle] = WordArtTransform.Circle,
+        [A.TextShapeValues.TextCirclePour] = WordArtTransform.Circle,
+        [A.TextShapeValues.TextPlain] = WordArtTransform.Plain,
+        [A.TextShapeValues.TextStop] = WordArtTransform.Stop,
+        [A.TextShapeValues.TextTriangle] = WordArtTransform.Triangle,
+        [A.TextShapeValues.TextTriangleInverted] = WordArtTransform.TriangleInverted,
+        [A.TextShapeValues.TextChevron] = WordArtTransform.ChevronUp,
+        [A.TextShapeValues.TextChevronInverted] = WordArtTransform.ChevronDown,
+        [A.TextShapeValues.TextWave1] = WordArtTransform.Wave,
+        [A.TextShapeValues.TextWave2] = WordArtTransform.WaveInverted,
+        [A.TextShapeValues.TextDoubleWave1] = WordArtTransform.DoubleWave,
+        [A.TextShapeValues.TextWave4] = WordArtTransform.DoubleWaveInverted,
+        [A.TextShapeValues.TextInflate] = WordArtTransform.Inflate,
+        [A.TextShapeValues.TextDeflate] = WordArtTransform.Deflate,
+        [A.TextShapeValues.TextInflateTop] = WordArtTransform.InflateTop,
+        [A.TextShapeValues.TextInflateBottom] = WordArtTransform.InflateBottom,
+        [A.TextShapeValues.TextDeflateTop] = WordArtTransform.DeflateTop,
+        [A.TextShapeValues.TextDeflateBottom] = WordArtTransform.DeflateBottom,
+        [A.TextShapeValues.TextCanUp] = WordArtTransform.CanUp,
+        [A.TextShapeValues.TextCanDown] = WordArtTransform.CanDown,
+        [A.TextShapeValues.TextFadeRight] = WordArtTransform.FadeRight,
+        [A.TextShapeValues.TextFadeLeft] = WordArtTransform.FadeLeft,
+        [A.TextShapeValues.TextFadeUp] = WordArtTransform.FadeUp,
+        [A.TextShapeValues.TextFadeDown] = WordArtTransform.FadeDown,
+        [A.TextShapeValues.TextSlantUp] = WordArtTransform.SlantUp,
+        [A.TextShapeValues.TextSlantDown] = WordArtTransform.SlantDown,
+        [A.TextShapeValues.TextCurveUp] = WordArtTransform.CurveUp,
+        [A.TextShapeValues.TextCurveDown] = WordArtTransform.CurveDown,
+        [A.TextShapeValues.TextCascadeUp] = WordArtTransform.CascadeUp,
+        [A.TextShapeValues.TextCascadeDown] = WordArtTransform.CascadeDown
+    };
+
+    static WordArtTransform ParseTextWarpPreset(A.TextShapeValues preset) =>
+        textWarpPresets.GetValueOrDefault(preset, WordArtTransform.None);
+
+    /// <summary>
+    /// A warp's first adjust value as a fraction — <c>a:avLst/a:gd</c> named <c>adj</c> or <c>adj1</c>, whose
+    /// formula is <c>val N</c> in hundred-thousandths — or null when the preset's default stands.
+    /// </summary>
+    static double? ParseTextWarpAdjust(A.PresetTextWarp warp)
+    {
+        var guide = warp.GetFirstChild<A.AdjustValueList>()?
+            .Elements<A.ShapeGuide>()
+            .FirstOrDefault(_ => _.Name?.Value is "adj" or "adj1");
+        var formula = guide?.Formula?.Value;
+        if (formula == null ||
+            !formula.StartsWith("val ", StringComparison.Ordinal) ||
+            !double.TryParse(formula.AsSpan(4), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
         {
-            return WordArtTransform.ArchUp;
+            return null;
         }
 
-        if (preset == A.TextShapeValues.TextArchDown || preset == A.TextShapeValues.TextArchDownPour)
-        {
-            return WordArtTransform.ArchDown;
-        }
-
-        if (preset == A.TextShapeValues.TextCircle || preset == A.TextShapeValues.TextCirclePour)
-        {
-            return WordArtTransform.Circle;
-        }
-
-        if (preset == A.TextShapeValues.TextWave1 || preset == A.TextShapeValues.TextWave2 || preset == A.TextShapeValues.TextWave4)
-        {
-            return WordArtTransform.Wave;
-        }
-
-        if (preset == A.TextShapeValues.TextChevron)
-        {
-            return WordArtTransform.ChevronUp;
-        }
-
-        if (preset == A.TextShapeValues.TextChevronInverted)
-        {
-            return WordArtTransform.ChevronDown;
-        }
-
-        if (preset == A.TextShapeValues.TextSlantUp)
-        {
-            return WordArtTransform.SlantUp;
-        }
-
-        if (preset == A.TextShapeValues.TextSlantDown)
-        {
-            return WordArtTransform.SlantDown;
-        }
-
-        if (preset == A.TextShapeValues.TextTriangle || preset == A.TextShapeValues.TextTriangleInverted)
-        {
-            return WordArtTransform.Triangle;
-        }
-
-        if (preset == A.TextShapeValues.TextFadeRight || preset == A.TextShapeValues.TextFadeUp)
-        {
-            return WordArtTransform.FadeRight;
-        }
-
-        if (preset == A.TextShapeValues.TextFadeLeft || preset == A.TextShapeValues.TextFadeDown)
-        {
-            return WordArtTransform.FadeLeft;
-        }
-
-        // Top+bottom envelope warps: both edges curve away from the centre line (Inflate)
-        // or toward it (Deflate). InflateTop/Bottom and DeflateTop/Bottom only curve one
-        // edge — closest match is the symmetric variant rather than a separate enum value.
-        if (preset == A.TextShapeValues.TextInflate ||
-            preset == A.TextShapeValues.TextInflateTop ||
-            preset == A.TextShapeValues.TextInflateBottom)
-        {
-            return WordArtTransform.Inflate;
-        }
-
-        if (preset == A.TextShapeValues.TextDeflate ||
-            preset == A.TextShapeValues.TextDeflateTop ||
-            preset == A.TextShapeValues.TextDeflateBottom)
-        {
-            return WordArtTransform.Deflate;
-        }
-
-        if (preset == A.TextShapeValues.TextCanUp)
-        {
-            return WordArtTransform.CanUp;
-        }
-
-        if (preset == A.TextShapeValues.TextCanDown)
-        {
-            return WordArtTransform.CanDown;
-        }
-
-        return WordArtTransform.None;
+        return value / 100000.0;
     }
 
     static string? MapSchemeColor(A.SchemeColorValues? schemeColor)
@@ -11385,7 +11444,135 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             _ => TabLeader.None
         };
 
-    ParagraphProperties ParseParagraphProperties(OoxmlParagraphProperties? props, MainDocumentPart mainPart, string? styleId = null, bool omitParagraphMark = false)
+    /// <summary>The space Word's "Auto" paragraph spacing stands for.</summary>
+    const double autoSpacingPoints = 14;
+
+    /// <summary>
+    /// What a paragraph's space before and after come to when either is Word's "Auto"
+    /// (<c>w:beforeAutospacing</c> / <c>w:afterAutospacing</c>, what the HTML importer writes and
+    /// what Word's own Normal (Web) and several template Title styles carry). The amount declared
+    /// beside the flag is not used. Auto is 14pt, and nothing at all where the paragraph has no
+    /// neighbour to be set off from: before the first paragraph of a table cell, after the last one,
+    /// and between two consecutive items of one list. It then collapses against the neighbour's
+    /// spacing like any other.
+    ///
+    /// <para>Word-probed 2026-10-11 (<c>_probe_autospace_a</c> / <c>_c</c>, compatibility modes 15
+    /// and 12, identical: one-line paragraphs of exact 20pt lines, baselines read off the XPS). Auto
+    /// before with 5pt declared opens 14.2pt of space, and with 40pt declared 13.6; auto after
+    /// 14.2; an auto after against an auto before leaves 14.2, not 28. Three list items, auto on
+    /// both sides, stand 20.4 and 19.8 apart with 13.6 above the first and 14.2 under the last. A
+    /// cell's only paragraph, auto on both sides, sits on the baseline of the plain paragraph in the
+    /// cell beside it and adds nothing under itself; in a three-paragraph cell the first takes no
+    /// auto before, the last no auto after, and the middle one 14.2 either side. Unmodelled: a 30pt
+    /// paragraph on single line spacing took 19.5 before and left 5.6 after.</para>
+    ///
+    /// <para>The compatibility setting <c>w:doNotUseHTMLParagraphAutoSpacing</c> switches all of
+    /// that off: the declared amounts stand, in cells and lists too (<c>_probe_autospace_b</c>: 5pt
+    /// before reads 4.8 at a cell's top and 5.4 under its last line). Under it two auto spacings that
+    /// meet are ADDED rather than collapsed (5 and 5 leave 10), which is not modelled either.</para>
+    /// </summary>
+    (double Before, double After) ResolveAutoSpacing(Paragraph? paragraph, double before, double after, bool beforeAuto, bool afterAuto)
+    {
+        if (usesFixedAutoSpacing)
+        {
+            return (before, after);
+        }
+
+        if (beforeAuto)
+        {
+            before = paragraph != null && (IsCellEdge(paragraph, first: true) || SharesListWith(paragraph, PreviousBlock(paragraph)))
+                ? 0
+                : autoSpacingPoints;
+        }
+
+        if (afterAuto)
+        {
+            after = paragraph != null && (IsCellEdge(paragraph, first: false) || SharesListWith(paragraph, NextBlock(paragraph)))
+                ? 0
+                : autoSpacingPoints;
+        }
+
+        return (before, after);
+
+        static OpenXmlElement? PreviousBlock(Paragraph paragraph)
+        {
+            for (var sibling = paragraph.PreviousSibling(); sibling != null; sibling = sibling.PreviousSibling())
+            {
+                if (sibling is Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock)
+                {
+                    return sibling;
+                }
+            }
+
+            return null;
+        }
+
+        static OpenXmlElement? NextBlock(Paragraph paragraph)
+        {
+            for (var sibling = paragraph.NextSibling(); sibling != null; sibling = sibling.NextSibling())
+            {
+                if (sibling is Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock)
+                {
+                    return sibling;
+                }
+            }
+
+            return null;
+        }
+
+        // The first (or last) block of a table cell, a content control around it looked through.
+        static bool IsCellEdge(Paragraph paragraph, bool first)
+        {
+            OpenXmlElement block = paragraph;
+            while (true)
+            {
+                var neighbour = first ? block.PreviousSibling() : block.NextSibling();
+                while (neighbour != null && neighbour is not (Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock))
+                {
+                    neighbour = first ? neighbour.PreviousSibling() : neighbour.NextSibling();
+                }
+
+                if (neighbour != null)
+                {
+                    return false;
+                }
+
+                switch (block.Parent)
+                {
+                    case DocumentFormat.OpenXml.Wordprocessing.TableCell:
+                        return true;
+                    case SdtContentBlock {Parent: SdtBlock control}:
+                        block = control;
+                        continue;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        bool SharesListWith(Paragraph paragraph, OpenXmlElement? neighbour) =>
+            neighbour is Paragraph other &&
+            ListOf(paragraph) is { } list &&
+            ListOf(other) == list;
+
+        // The list a paragraph is an item of: its own w:numPr, or its style's. A numId of 0 takes
+        // the paragraph out of any list its style puts it in.
+        int? ListOf(Paragraph paragraph)
+        {
+            var properties = paragraph.ParagraphProperties;
+            if (properties?.NumberingProperties?.NumberingId?.Val?.Value is { } direct)
+            {
+                return direct == 0 ? null : direct;
+            }
+
+            var style = properties?.ParagraphStyleId?.Val?.Value ?? defaultParagraphStyleId;
+            return style != null && styleNumbering != null && styleNumbering.TryGetValue(style, out var inherited) && inherited.numId != 0
+                ? inherited.numId
+                : null;
+        }
+    }
+
+    ParagraphProperties ParseParagraphProperties(OoxmlParagraphProperties? props, MainDocumentPart mainPart, string? styleId = null, bool omitParagraphMark = false, Paragraph? paragraph = null)
     {
         // Get style defaults if available. Paragraphs without an explicit w:pStyle still
         // inherit the document's default paragraph style (the one with w:default="1",
@@ -11413,6 +11600,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var alignment = styleDefaults?.Alignment ?? defaultAlignment;
         var spacingBefore = styleDefaults?.SpacingBeforePoints ?? defaultSpacingBeforePoints;
         var spacingAfter = styleDefaults?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
+        var spacingBeforeAuto = styleDefaults?.SpacingBeforeAuto ?? false;
+        var spacingAfterAuto = styleDefaults?.SpacingAfterAuto ?? false;
         // When no style applies (bare docx without styles.xml), Word falls back to its built-in
         // Normal style — see defaultLineSpacingMultiplier, which carries that value only when the
         // document declares no styles.xml or no docDefaults, and single spacing otherwise.
@@ -11639,6 +11828,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
 
             spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
+            spacingBeforeAuto = spacing.BeforeAutoSpacing?.Value ?? spacingBeforeAuto;
+            spacingAfterAuto = spacing.AfterAutoSpacing?.Value ?? spacingAfterAuto;
 
             if (spacing.Line?.HasValue == true)
             {
@@ -11878,11 +12069,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             frame = styleDefaults?.Frame ?? ParseParagraphFrame(framePr);
         }
 
+        if (spacingBeforeAuto || spacingAfterAuto)
+        {
+            (spacingBefore, spacingAfter) = ResolveAutoSpacing(paragraph, spacingBefore, spacingAfter, spacingBeforeAuto, spacingAfterAuto);
+        }
+
         return new()
         {
             Alignment = alignment,
             SpacingBeforePoints = spacingBefore,
             SpacingAfterPoints = spacingAfter,
+            SpacingBeforeAuto = spacingBeforeAuto,
+            SpacingAfterAuto = spacingAfterAuto,
             LineSpacingMultiplier = lineSpacingMultiplier,
             LineSpacingPoints = lineSpacingPoints,
             LineSpacingRule = lineSpacingRule,

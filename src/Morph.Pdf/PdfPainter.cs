@@ -521,6 +521,28 @@ static class PdfPainter
     // technique the deleted production DrawRaster used.
     static void DrawIntoBox(XGraphics graphics, XImage decoded, PlacedImage image)
     {
+        // A tiled fill (see SkiaPainter.DrawPicture): the picture at the tile's size, corner after
+        // corner, cut to the box. Each tile is drawn a hair past its own edges so a viewer's
+        // antialiasing leaves no line where two meet. One too finely tiled falls through to the stretch.
+        if (image.Tile is { } tile)
+        {
+            const int maxTiles = 4096;
+            const double overlap = 0.05;
+            var corners = tile.Corners(image.Width, image.Height).Take(maxTiles + 1).ToList();
+            if (corners.Count is > 0 and <= maxTiles)
+            {
+                var tiled = graphics.Save();
+                graphics.IntersectClip(new XRect(image.X, image.Y, image.Width, image.Height));
+                foreach (var (cornerX, cornerY) in corners)
+                {
+                    graphics.DrawImage(decoded, image.X + cornerX, image.Y + cornerY, tile.WidthPoints + overlap, tile.HeightPoints + overlap);
+                }
+
+                graphics.Restore(tiled);
+                return;
+            }
+        }
+
         if (image.Crop is { IsCropped: true } crop)
         {
             var (dx, dy, dw, dh) = crop.Expand(image.X, image.Y, image.Width, image.Height);
@@ -688,7 +710,7 @@ static class PdfPainter
         if (shape.LineColorHex is { } lineHex)
         {
             var rgb = PdfRenderContext.ParseColor(lineHex);
-            pen = new(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.5, shape.LineWidthPoints ?? 1));
+            pen = new(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), ShapeStroke.WidthPoints(shape.LineWidthPoints));
         }
         if (fill == null && pen == null)
         {

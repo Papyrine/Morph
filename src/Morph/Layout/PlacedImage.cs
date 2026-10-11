@@ -8,7 +8,9 @@
 /// image (a header background, most inline images) constructs with the five-argument form. A
 /// <see cref="Recolor"/> is Word's Recolor gallery transform (duotone, greyscale, washout), which the
 /// painter applies as a colour filter over whatever it draws, and <see cref="Opacity"/> is the blip's
-/// constant transparency (<c>a:alphaModFix</c>), which it composites with.
+/// constant transparency (<c>a:alphaModFix</c>), which it composites with. A <see cref="Tile"/> is a
+/// picture fill that repeats: the painter lays the picture edge to edge at the tile's size from the
+/// tile's origin, cut to the box and to the clip, instead of stretching it over the box.
 ///
 /// An inline <see cref="ShapeGroup"/> (a grouped drawing embedded in a run) rides the same inline-image
 /// carrier: <see cref="Data"/> is then null and the painter draws the group's child shapes scaled into the
@@ -29,4 +31,5 @@ sealed record PlacedImage(
     InlineShapeGroup? ShapeGroup = null,
     ImageRecolor? Recolor = null,
     double Opacity = 1,
-    ImageOutline? Outline = null) : PlacedItem(X, Y, Width, Height);
+    ImageOutline? Outline = null,
+    ImageTile? Tile = null) : PlacedItem(X, Y, Width, Height);

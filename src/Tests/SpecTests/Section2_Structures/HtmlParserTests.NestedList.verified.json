@@ -5,7 +5,7 @@
         "Text": "outer",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 12.0,
           "Bold": false,
           "Italic": false,
           "Underline": false,
@@ -29,7 +29,7 @@
       }
     ],
     "Properties": {
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "LeftIndentPoints": 36.0,
       "HangingIndentPoints": 18.0,
       "ContextualSpacing": false,
@@ -66,7 +66,7 @@
         "Text": "inner",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 12.0,
           "Bold": false,
           "Italic": false,
           "Underline": false,
@@ -91,7 +91,7 @@
     ],
     "Properties": {
       "SpacingAfterPoints": 14.0,
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "LeftIndentPoints": 72.0,
       "HangingIndentPoints": 18.0,
       "ContextualSpacing": false,

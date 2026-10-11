@@ -36,6 +36,8 @@ These are Word-derived numbers. They are not defaults anyone would guess, and ch
 
 | rule | value | how it was established |
 |---|---|---|
+| Unsized text | **12pt**, in paragraphs, table cells and list items alike | XPS-read off Word's import of `html_complex` (`_probe_htmlsize`, 2026-10-11): every glyph run of body, cell and list text carries an em of 12.00, headings 24.02 and 18.02, superscripts 7.80. The model's default of 11pt stood in until then and set every line 8% narrow. |
+| Line spacing of a paragraph or list item | **single** | The same probe: a two-line paragraph's baselines are 13.8pt apart, 12pt Times New Roman's own line, and list items 14.4pt apart. A 1.08 multiple had made nearly the same pitch out of the 11pt text. Cell paragraphs keep the model's 1.08: Word's rows stand further apart than a single line and the padding account for (Known gaps). |
 | Block paragraph pitch | `spacing-after` **14pt** (12pt when the base font is over 14pt, so headings keep their own) | Word's AltChunk `<p>` pitch measures ≈57px at 150 DPI against a ~29px line box. The obvious 8pt packed paragraphs ~6pt too tight and every band and line drifted up the page. |
 | `<img>` dimensions | CSS px **× 0.75** → points | `width`/`height` attributes are CSS pixels. Treated as points they render ~33% oversized — a 312×234 image where Word draws 234×175 — and each caption pushes further down the page (`ParseDimensionAttribute`). |
 | `margin-left` indent | CSS px **× 0.75** → `LeftIndentPoints` | Word's staircase for `html_css_margin_padding` measures 78px and 156px at 150 DPI for `margin-left: 50px`/`100px` — exactly 37.5pt/75pt. The `margin` shorthand's left component carries the same meaning (a `margin: 20px` paragraph starts 31px ≈ 15pt in). |
@@ -162,10 +164,14 @@ the ordinary 14pt block pitch, giving the ~42px gap the references show before w
 
 Source indentation such as `<p style="…">\n    text\n</p>` renders in neither a browser nor Word,
 but the literal newlines became soft breaks and each took a line box — a bordered box grew two
-blank lines taller than Word's until `TrimEdgeWhitespace` dropped them. INTERNAL whitespace stays
-untouched: the full CSS collapse was tried 2026-07-21 and reverted, because the newline hard-breaks
-compensate the narrow measure in `html_complex`'s intro — see that scenario's entry in
-`src/todo.md`.
+blank lines taller than Word's until `TrimEdgeWhitespace` dropped them.
+
+INTERNAL whitespace collapses by CSS's own rule (`HtmlParser.CollapseWhitespace`, 2026-10-11): a run
+of spaces, tabs and line ends is one space, none where the text before it already ended in one,
+and `<pre>` or a `white-space: pre…` style keeps its text as typed. Source line ends had become
+breaks, each its own line. The collapse was first tried 2026-07-21 and reverted, because with the
+breaks gone `html_complex`'s intro set on one line where Word sets two; the cause was the text
+size (11pt against Word's 12, Measured constants), and at 12pt the intro wraps where Word wraps it.
 
 ## Known gaps
 

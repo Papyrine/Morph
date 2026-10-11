@@ -5,7 +5,7 @@
         "Text": "subscript",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 7.699999999999999,
+          "FontSizePoints": 8.399999999999999,
           "Bold": false,
           "Italic": false,
           "Underline": false,
@@ -30,7 +30,7 @@
     ],
     "Properties": {
       "SpacingAfterPoints": 14.0,
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
       "SuppressAutoHyphens": false,

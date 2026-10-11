@@ -193,6 +193,18 @@ business-plans/08's accent rule).
 
 ## Z-order and paint order
 
+- Text on both sides of a floating drawing's anchor is ONE paragraph. The drawing is lifted out of
+  the line, so the runs before and after it share a line; `DocumentParser`'s `EndParagraphAhead`
+  closes the paragraph at a drawing only when that drawing takes a place in the flow (an inline
+  WordArt box, ink). Closed at every anchor, `brochures/06`'s page-opening paragraph (a space, an
+  anchored group, a space, all at 4pt) had been two paragraphs and two lines, and the page stood a
+  line low. The floats are emitted ahead of the paragraph and wired to it as their anchor.
+- Body floats paint in the order the document declares them, whatever page-resolution queue they
+  went through: a page-anchored float waits in `pendingFloats` for its page while a
+  paragraph-anchored one is placed at once, so each carries its place in the sequence
+  (`Fragmenter.floatOrder`) and a page sorts its behind and in-front floats by it.
+  `page_vertical_alignment` declares such a pair on one paragraph (z 101 and 102) and they had
+  swapped over.
 - `wp:anchor@relativeHeight` is Word's z-value across ALL floating drawings.
   `SortFloatingBatchesByZ` stable-sorts each maximal run of consecutive floating elements in the
   parse stream; behind-text vs in-front routing is untouched. Group children share their
@@ -235,6 +247,15 @@ business-plans/08's accent rule).
 
 ## Fills
 
+- A TILED picture fill (`a:blipFill/a:tile`) is the picture repeated at its own size, not stretched:
+  `FloatingShapeElement.ImageTile` → `PlacedImage.Tile`, drawn by each painter under the shape's
+  clip (`docs/word-features.md`, Floating Shapes (Image Fill), has the rule and the three draws).
+- An outline is stroked at the width it declares, however thin (`ShapeStroke.WidthPoints`): 75
+  outlines in the corpus are a quarter of a point and 200 are 0.34pt, and a half-point floor had
+  drawn them at up to twice Word's ink. A declared zero is the hairline, half a point.
+- `prstGeom prst="octagon"` reads its cut from the guide named `adj`, as the definition names it.
+  Read as `adj1` it was never found and every octagon took the default 29289 (`menus/07`'s frame
+  declares 11057).
 - `a:grpFill` defers a child's fill to its group: `ResolveGroupFill` walks the ancestor
   `grpSp`/`wgp` chain to the nearest group whose `grpSpPr` carries a solid fill. Fill-less
   wrapper groups are looked through (labels/07 nests clusters two wrappers deep); an ancestor

@@ -5,7 +5,7 @@
         "Text": "Term",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 12.0,
           "Bold": true,
           "Italic": false,
           "Underline": false,
@@ -30,7 +30,7 @@
     ],
     "Properties": {
       "SpacingAfterPoints": 14.0,
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
       "SuppressAutoHyphens": false,
@@ -57,7 +57,7 @@
         "Text": "Def1",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 12.0,
           "Bold": false,
           "Italic": false,
           "Underline": false,
@@ -82,7 +82,7 @@
     ],
     "Properties": {
       "SpacingAfterPoints": 14.0,
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "LeftIndentPoints": 36.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
@@ -110,7 +110,7 @@
         "Text": "Def2",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 12.0,
           "Bold": false,
           "Italic": false,
           "Underline": false,
@@ -135,7 +135,7 @@
     ],
     "Properties": {
       "SpacingAfterPoints": 14.0,
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "LeftIndentPoints": 36.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,

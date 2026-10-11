@@ -5,7 +5,7 @@
         "Text": "text",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 12.0,
           "Bold": false,
           "Italic": false,
           "Underline": false,
@@ -31,7 +31,7 @@
     "Properties": {
       "Alignment": "Center",
       "SpacingAfterPoints": 14.0,
-      "LineSpacingMultiplier": 1.08,
+      "LineSpacingMultiplier": 1.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
       "SuppressAutoHyphens": false,

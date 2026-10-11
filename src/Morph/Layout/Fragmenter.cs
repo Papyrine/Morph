@@ -58,7 +58,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
     // (a:srcRect and a:stretch/a:fillRect, folded by the parser) stretched over the box, and the
     // shape's own outline - its contours, or its ellipse - as the clip. brochures/04's brick wall is
     // a triangle cut from a photo that reaches well past the triangle's box; without the two it
-    // paints as the whole photo squeezed into the box, over the text beside it.
+    // paints as the whole photo squeezed into the box, over the text beside it. A tiled fill (a:tile)
+    // carries its tile for the painter to repeat under that same cut.
     static PlacedImage ShapeImage(FloatingShapeElement shape, float x, float y, byte[] data) =>
         new(
             x,
@@ -72,7 +73,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             ClipToEllipse: shape.Subpaths == null && shape.Preset == PresetShape.Ellipse,
             ClipSubpaths: shape.Subpaths,
             Crop: shape.ImageCrop,
-            Opacity: shape.ImageOpacity);
+            Opacity: shape.ImageOpacity,
+            Tile: shape.ImageTile);
 
     // What a footnote area stacks, top down: the separator (its paragraph's mark line carrying the 2in
     // rule) or the continuation separator (the full-width rule), a note's text line, or a note
@@ -159,15 +161,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         SectionBands Bands(PageSettings settings) => settings.Bands ?? defaultBands;
         // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
-        // behind the text; assembled into their page's items once the flow ends.
-        readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
+        // behind the text; assembled into their page's items once the flow ends. Order is the float's place
+        // in the document's own sequence of floats, which is the order a page paints them in: the
+        // parser has already put each run of floats in z-order, and a page-anchored float that waits
+        // in pendingFloats for its page must not fall behind a paragraph-anchored one declared after
+        // it for the waiting (page_vertical_alignment's two overlapping squares swapped over).
+        readonly List<(int Page, PlacedItem Item, bool Behind, int Order)> bodyFloats = [];
+        int floatOrder;
         // Where in bodyFloats the floats emitted since the last non-float element begin.
         int floatRunStart;
         // Absolutely-positioned body floats (page/margin anchor) awaiting page resolution: their element is
         // reached before the content they belong to has flowed, so the page is only known once the next
         // visible line or row commits (a page-2 background is declared before page-1 finishes). Resolved into
         // bodyFloats there; a flow-anchored float never lands here — its page is the emit-time cursor page.
-        readonly List<(PlacedItem Item, bool Behind)> pendingFloats = [];
+        readonly List<(PlacedItem Item, bool Behind, int Order)> pendingFloats = [];
         // Boxes a wrapping float (wp:wrapSquare / wrapTight / wrapThrough / wrapTopAndBottom) carves out of
         // the text measure, in absolute page points. Page-scoped: cleared when a page starts, since a float
         // never carries its exclusion across a break. A wrapNone or behind-text float registers nothing —
@@ -1345,7 +1352,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 bottom = Math.Max(bottom, item.Y + item.Height);
             }
 
-            foreach (var (floatPage, item, _) in bodyFloats)
+            foreach (var (floatPage, item, _, _) in bodyFloats)
             {
                 if (floatPage == pageIndex)
                 {
@@ -1636,8 +1643,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Body floats: behind-text ones paint under the body (over the header background), in-front
                 // ones over it. Anchored on the page they were reached on.
                 var pageFloats = index;
-                var behindFloats = bodyFloats.Where(_ => _.Page == pageFloats && _.Behind).Select(_ => _.Item).ToList();
-                var frontFloats = bodyFloats.Where(_ => _.Page == pageFloats && !_.Behind).Select(_ => _.Item).ToList();
+                var behindFloats = bodyFloats.Where(_ => _.Page == pageFloats && _.Behind).OrderBy(_ => _.Order).Select(_ => _.Item).ToList();
+                var frontFloats = bodyFloats.Where(_ => _.Page == pageFloats && !_.Behind).OrderBy(_ => _.Order).Select(_ => _.Item).ToList();
 
                 // The whole header/footer story paints BELOW every body item, floats included — w:behindDoc
                 // orders a float against the body TEXT and says nothing about the bands, which are under it
@@ -2049,7 +2056,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var bandTop = origin + shown;
                 var bandBottom = bandTop + (bottom - top);
                 var shift = top - bandTop;
-                foreach (var (_, item, behind) in floats)
+                foreach (var (_, item, behind, order) in floats)
                 {
                     // A turned picture reaches outside its own box, by half its longer side at most.
                     var reach = item is PlacedImage {RotationDegrees: not 0} ? Math.Max(item.Width, item.Height) / 2 : 0;
@@ -2059,7 +2066,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
 
                     var moved = shift == 0 ? item : ShiftItem(item, shift);
-                    bodyFloats.Add((pageIndex, new PlacedClipGroup(0, top, pageWidth, bottom - top, [moved]), behind));
+                    bodyFloats.Add((pageIndex, new PlacedClipGroup(0, top, pageWidth, bottom - top, [moved]), behind, order));
                 }
 
                 shown += bottom - top;
@@ -2072,13 +2079,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // page; a flow-anchored one is tagged with the current cursor page, where its y offset was measured.
         void AddBodyFloat(PlacedItem item, bool behind, bool absoluteY)
         {
+            var order = floatOrder++;
             if (absoluteY)
             {
-                pendingFloats.Add((item, behind));
+                pendingFloats.Add((item, behind, order));
             }
             else
             {
-                bodyFloats.Add((bodies.Count, item, behind));
+                bodyFloats.Add((bodies.Count, item, behind, order));
             }
         }
 
@@ -2092,9 +2100,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return;
             }
 
-            foreach (var (item, behind) in pendingFloats)
+            foreach (var (item, behind, order) in pendingFloats)
             {
-                bodyFloats.Add((bodies.Count, item, behind));
+                bodyFloats.Add((bodies.Count, item, behind, order));
             }
 
             pendingFloats.Clear();
@@ -2388,10 +2396,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 y += Math.Max(lastAfter, (float) wordArt.SpacingBeforePoints);
             }
 
-            lastAfter = (float) wordArt.SpacingAfterPoints;
-            lastIsParagraph = false;
             var height = (float) wordArt.HeightPoints;
             EnsureSpaceFor(height);
+
+            // Its own after-spacing is noted once the box has its page: a box carried to a fresh page
+            // starts that page's spacing over, and noted ahead of the move its after went with the old
+            // page (wordart's wave, first on its page, sat flush against the chevron under it).
+            lastAfter = (float) wordArt.SpacingAfterPoints;
+            lastIsParagraph = false;
             var boxWidth = (float) wordArt.WidthPoints;
             var boxX = ColumnLeft + AlignmentOffset(wordArt.Alignment, columnWidth, boxWidth);
             if (wordArt.Transform != WordArtTransform.None)
@@ -2699,6 +2711,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             float? borderTop = null;
             var borderBroke = false;
             var paragraphItemsStart = items.Count;
+            var paragraphItems = items;
 
             var lineIndex = 0;
             while (lineIndex < paragraphLines.Count)
@@ -2961,7 +2974,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     borderRunProperties = properties;
                     borderRunTop = boxTop;
                     borderRunWidth = availableWidth;
-                    borderRunItemsIndex = paragraphItemsStart;
+                    // Where the box's shading goes in, behind its lines. A paragraph whose first
+                    // line was carried to a fresh page opens its box there, and the count taken
+                    // on the page it left is no index into the new page's items: a shaded box
+                    // that opened so threw as it closed.
+                    borderRunItemsIndex = ReferenceEquals(paragraphItems, items) ? paragraphItemsStart : 0;
                 }
                 else if (properties.BorderBetween.IsVisible)
                 {
@@ -3417,6 +3434,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // The acceptance test. Nothing has been emitted yet on this path (no advance, so no header
                 // re-emission either), so rejection leaves the cursor untouched for the caller's move.
                 if (allowReject && isFirstFragment && !advanced && (finished || contentHeight > available + 0.5f))
+                {
+                    return false;
+                }
+
+                // A row with a declared height splits only where that height fits the space left: the
+                // floor is owed to the row's first piece, and a remainder too short for it sends the
+                // whole row on however much of its content would have fitted. Word-probed 2026-10-11
+                // (_probe_floorsplit_*: twelve one-line paragraphs, 240pt, in a one-cell row behind
+                // filler that leaves a known remainder): with 68pt left the row splits three lines
+                // and nine under no floor and under a 40pt one, and moves whole under a 100pt floor,
+                // alone in its table or second in it, as twelve paragraphs or as one; with 128pt left
+                // the 100pt-floored row splits six and six. business-plans/15 opens its seventh page
+                // on such a row, which split here and left the page a paragraph's last line.
+                if (allowReject && isFirstFragment && !advanced &&
+                    TableLayout.DeclaredRowHeight(row, table.Properties) is { } declaredHeight &&
+                    declaredHeight > contentBottom - y + 0.5f)
                 {
                     return false;
                 }
@@ -4009,18 +4042,23 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     cellY += first ? 0 : lastCellAfter;
                     first = false;
                     var wordArtWidth = Math.Min((float) cellWordArt.WidthPoints, contentWidth);
+
+                    // The box stands in the cell where its paragraph's w:jc puts it, as it does in the
+                    // page flow (PlaceWordArt). Set at the cell's left edge whatever the paragraph
+                    // said, wedding/08's centred ampersand badge stood 43pt left of the names over it.
+                    var wordArtLeft = contentLeft + AlignmentOffset(cellWordArt.Alignment, contentWidth, wordArtWidth);
                     if (cellWordArt.Transform != WordArtTransform.None)
                     {
-                        lines.Add(new PlacedWordArt(contentLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints, cellWordArt));
+                        lines.Add(new PlacedWordArt(wordArtLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints, cellWordArt));
                     }
                     else
                     {
-                        if (WordArtBoxShape(cellWordArt, contentLeft, cellY) is { } boxItem)
+                        if (WordArtBoxShape(cellWordArt, wordArtLeft, cellY) is { } boxItem)
                         {
                             lines.Add(boxItem);
                         }
 
-                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, contentLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
+                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, wordArtLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
                     }
 
                     cellY += (float) cellWordArt.HeightPoints;
@@ -4078,6 +4116,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (first)
                 {
                     cellY += (float) properties.SpacingBeforePoints;
+                }
+                else if (elementIndex == start.ElementIndex)
+                {
+                    // The top of a cell continued from the page before. A paragraph resumed part-way
+                    // through has no spacing left to take. One that STARTS here takes only what its
+                    // space-before adds beyond the space-after of the paragraph the page before ended
+                    // on: that after was laid down there, and the excess is all the gap ever owed this
+                    // one (ParagraphGap). Word-probed 2026-10-11 (_probe_cellcont_*: a cell of
+                    // one-line paragraphs split across pages, first baseline overleaf read off the
+                    // XPS against a cell with no spacing at 89.5pt): 30pt before with nothing after
+                    // opens at 118.9, with 20pt after at 99.7, with 30pt after at 89.5, and 20pt
+                    // before with 30pt after at 89.5, in compatibility modes 12, 14 and 15 alike; a
+                    // 30pt-before paragraph cut by the break carries on at 89.5. The whole before was
+                    // charged here in both cases, which stood business-plans/15's page 17 5pt low.
+                    if (resumeLine == 0)
+                    {
+                        var ending = elementIndex > 0
+                            ? cell.Content[elementIndex - 1] as ParagraphElement ?? (cell.Content[elementIndex - 1] as ContentControlElement)?.CellParagraph
+                            : null;
+                        cellY += ending == null
+                            ? (float) properties.SpacingBeforePoints
+                            : ParagraphGap.Between((float) ending.Properties.SpacingAfterPoints, ending.Properties.ContextualSpacing, ParagraphGap.StyleKey(ending.Properties), true, properties).Before;
+                    }
                 }
                 else
                 {

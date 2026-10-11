@@ -124,17 +124,7 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
             return;
         }
 
-        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, x, y, width, pixelHeight, scaledFont))
-        {
-            return;
-        }
-
-        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, scaledFont))
-        {
-            return;
-        }
-
-        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, x, y, width, pixelHeight, scaledFont))
+        if (TryRenderEnvelope(wordArt, x, y, width, pixelHeight, font))
         {
             return;
         }
@@ -184,17 +174,7 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
             return;
         }
 
-        if (TryRenderWordArtOnPath(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, wordArt.OutlineColorHex, wordArt.OutlineWidthPoints, pixelX, pixelY, width, pixelHeight, scaledFont))
-        {
-            return;
-        }
-
-        if (TryRenderWordArtPathWarp(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, scaledFont))
-        {
-            return;
-        }
-
-        if (TryRenderWordArtEnvelope(wordArt.Transform, wordArt.Text, wordArt.FillColorHex, pixelX, pixelY, width, pixelHeight, scaledFont))
+        if (TryRenderEnvelope(wordArt, pixelX, pixelY, width, pixelHeight, font))
         {
             return;
         }
@@ -245,14 +225,14 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
     }
 
     /// <summary>
-    /// Renders <c>textArchUp</c> / <c>textArchDown</c> as Word does: the text drawn smaller by
-    /// <see cref="WordArtArch.Scale"/>, each glyph turned to the half ellipse of the scaled text rect
+    /// Renders <c>textArchUp</c> / <c>textArchDown</c> / <c>textCircle</c> as Word does: the text drawn smaller by
+    /// <see cref="WordArtArch.Scale"/>, each glyph turned to the ellipse of the scaled text rect
     /// at its own place along it — see <see cref="WordArtArch"/> for the probed rules. Returns false
     /// for any other warp, or a box with no room for a text rect.
     /// </summary>
     bool TryRenderArch(IWordArtVisual wordArt, float x, float y, float width, float height)
     {
-        if (wordArt.Transform is not (WordArtTransform.ArchUp or WordArtTransform.ArchDown))
+        if (!WordArtArch.Covers(wordArt.Transform))
         {
             return false;
         }
@@ -269,7 +249,7 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
 
         var declaredFont = context.GetFontForFamily(wordArt.FontFamily, (float) wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic);
         var inkHeight = TextMeasurer.MeasureBounds(wordArt.Text, new(declaredFont) {Dpi = context.Dpi}).Height;
-        var scale = WordArtArch.Scale(textWidth, inkHeight);
+        var scale = WordArtArch.Scale(WordArtArch.ScaleSide(wordArt.Transform, textWidth, textHeight), inkHeight);
 
         var drawnSizePoints = (float) wordArt.FontSizePoints * scale;
         var font = context.GetFontForFamily(wordArt.FontFamily, drawnSizePoints, wordArt.Bold, wordArt.Italic);
@@ -280,7 +260,7 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
             WordArtArch.BaselineDepthEm(context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic)) * drawnSizePoints);
         var placements = WordArtArch.Place(
             advances, textLeft, textTop, textWidth, textHeight, scale, baselineDepth,
-            wordArt.TextAlignment, down: wordArt.Transform == WordArtTransform.ArchDown);
+            wordArt.TextAlignment, wordArt.Transform);
 
         var brush = context.GetBrush(wordArt.FillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(wordArt.FillColorHex));
         var outlinePen = wordArt is {OutlineColorHex: { } outlineColor, OutlineWidthPoints: > 0}
@@ -316,157 +296,30 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
     }
 
     /// <summary>
-    /// Renders WordArt that follows a curved path (Circle, Chevron, Wave, Slant) through
-    /// <see cref="DrawingCanvas.DrawText(RichTextOptions, ReadOnlySpan{char}, IPath, Brush, Pen)"/>.
-    /// Returns true when the warp was handled, false for warps that should fall back to
-    /// flat-text rendering.
+    /// Renders the envelope warps — every preset <see cref="WordArtEnvelope"/> covers — as Word does:
+    /// the line's outline is taken as polylines and its ink box bent onto the envelope drawn in the
+    /// shape's text rect, so the text fills the rect whatever size it declares. Returns false for any
+    /// other warp, a box with no room for a text rect, or text with no ink.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// The chevrons ride a chord-sagitta circle: bbox W is the arc <em>chord</em> and bbox H
-    /// the <em>sagitta</em> (perpendicular distance from chord midpoint to arc midpoint). The
-    /// circle radius is R = (W² + 4H²) / (8H), and the arc sweep is 2·asin(W/(2R)) — gentle,
-    /// mostly-horizontal curves for a wide-and-flat box.
-    /// </para>
-    /// <para>
-    /// <c>textCircle</c> wraps text around the right side of an inscribed circle. Short
-    /// text covers a small arc centred on 3 o'clock and reads downward — matches Word's
-    /// behaviour where bbox width determines the circle diameter and text sits on the
-    /// right hemisphere.
-    /// </para>
-    /// </remarks>
-    bool TryRenderWordArtOnPath(
-        WordArtTransform transform,
-        string text,
-        string? fillColorHex,
-        string? outlineColorHex,
-        double outlineWidthPoints,
-        float x, float y, float width, float height,
-        Font font)
+    bool TryRenderEnvelope(IWordArtVisual wordArt, float x, float y, float width, float height, Font font)
     {
-        // We size the path to exactly fit the text, centred on the desired anchor (peak/dip
-        // for arches, 3 o'clock for circle). ImageSharp's HorizontalAlignment.Center doesn't
-        // centre text along a path baseline the way Skia's SKTextAlign.Center does — it
-        // places glyphs starting at the path origin regardless. Sizing the path to text
-        // length sidesteps that and gives Word-shaped output.
-        var textWidthPixels = TextMeasurer.MeasureAdvance(text, new(font) {Dpi = context.Dpi}).Width;
-        if (textWidthPixels <= 0)
+        if (!WordArtEnvelope.Covers(wordArt.Transform))
         {
             return false;
         }
 
-        IPath path;
-        switch (transform)
-        {
-            case WordArtTransform.Circle:
-                {
-                    var radius = Math.Min(width, height) / 2f;
-                    var cx = x + width / 2f;
-                    var cy = y + height / 2f;
-                    // Text-length arc centred on 3 o'clock (right side of inscribed circle),
-                    // running CW from upper-right to lower-right. Word's textCircle wraps
-                    // short text on this hemisphere reading downward.
-                    var halfAngleDegrees = (float) (textWidthPixels / radius * 90.0 / Math.PI);
-                    var startAngle = 360f - halfAngleDegrees;
-                    var sweepAngle = 2 * halfAngleDegrees;
-                    path = BuildArc(new(cx - radius, cy - radius, 2 * radius, 2 * radius), startAngle, sweepAngle);
-                    break;
-                }
-            case WordArtTransform.ChevronUp:
-                // Word's textChevron renders as a single-peak smooth arch, not a sharp ^ —
-                // the chord-sagitta arc gives the right visual without per-glyph overlap at
-                // a discontinuous apex.
-                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: false);
-                break;
-            case WordArtTransform.ChevronDown:
-                path = BuildChordSagittaArc(x, y, width, height, textWidthPixels, archDown: true);
-                break;
-            case WordArtTransform.Wave:
-                path = BuildWavePath(x, y, width, height, textWidthPixels);
-                break;
-            case WordArtTransform.SlantUp:
-                path = BuildSlantPath(x, y, width, height, textWidthPixels, slantUp: true);
-                break;
-            case WordArtTransform.SlantDown:
-                path = BuildSlantPath(x, y, width, height, textWidthPixels, slantUp: false);
-                break;
-            default:
-                return false;
-        }
-
-        var fillColor = fillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(fillColorHex);
-        var options = new RichTextOptions(font)
-        {
-            Dpi = context.Dpi
-        };
-
-        if (outlineColorHex != null && outlineWidthPoints > 0)
-        {
-            var outlineColor = ImageSharpRenderContext.ParseColor(outlineColorHex);
-            var outlinePen = context.GetPen(outlineColor, context.PointsToPixels((float) outlineWidthPoints));
-            canvas.DrawText(options, text.AsSpan(), path, null, outlinePen);
-        }
-
-        canvas.DrawText(options, text.AsSpan(), path, context.GetBrush(fillColor), null);
-        return true;
-    }
-
-    /// <summary>
-    /// Renders the box-filling envelope warps (Inflate / Deflate / CanUp / CanDown) by
-    /// extracting glyph outline paths and remapping every point so each glyph's top and
-    /// bottom edges follow the envelope curve. Word distorts each glyph as a true non-affine
-    /// trapezoid — affine per-glyph scaling (the legacy fallback) only varies glyph height,
-    /// keeping each glyph rectangular. Path-level remap captures the per-column height
-    /// variation that makes the warp look right.
-    ///
-    /// Algorithm: render text glyphs at natural size to get outline paths in
-    /// text-local coords (x ∈ [0, totalWidth], y ∈ ~[0, glyphHeight]). For every point,
-    /// normalise (x, y) into (t, normY), look up the envelope's top/bottom Y at t, and
-    /// remap y linearly between them. X is stretched to fill the bbox width.
-    /// </summary>
-    bool TryRenderWordArtPathWarp(
-        WordArtTransform transform,
-        string text,
-        string? fillColorHex,
-        float x, float y, float width, float height,
-        Font font)
-    {
-        if (transform is not (WordArtTransform.Inflate or WordArtTransform.Deflate
-            or WordArtTransform.CanUp or WordArtTransform.CanDown))
+        var insets = wordArt.Insets;
+        var rectLeft = x + context.PointsToPixels((float) insets.Left);
+        var rectTop = y + context.PointsToPixels((float) insets.Top);
+        var rectWidth = width - context.PointsToPixels((float) (insets.Left + insets.Right));
+        var rectHeight = height - context.PointsToPixels((float) (insets.Top + insets.Bottom));
+        if (rectWidth <= 0 || rectHeight <= 0)
         {
             return false;
         }
 
-        var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
-        var totalWidth = TextMeasurer.MeasureAdvance(text, measureOptions).Width;
-        if (totalWidth <= 0)
-        {
-            return false;
-        }
-
-        var (_, baselineFromTop) = ImageSharpRenderContext.GetFontMetrics(font);
-        var naturalAscent = baselineFromTop * context.Scale;
-
-        // Render glyph outlines at text-local coords: baseline at y = ascent. X spans
-        // 0..totalWidth. Use the resulting paths' actual bounds for Y normalisation rather
-        // than font metrics — the visible glyph extent (cap-top to descender-bottom) is what
-        // the envelope curve should map onto, and that's tighter than the font's metric box.
-        var pathOptions = new RichTextOptions(font)
-        {
-            Dpi = context.Dpi,
-            Origin = new(0, naturalAscent)
-        };
-        var glyphPaths = TextBuilder.GeneratePaths(text, pathOptions);
-        var pathsBounds = glyphPaths.Bounds;
-        var glyphsTop = pathsBounds.Top;
-        var glyphsHeight = pathsBounds.Height;
-        if (glyphsHeight <= 0)
-        {
-            return false;
-        }
-
-        var pathBuilder = new PathBuilder();
-        foreach (var glyphPath in glyphPaths)
+        var contours = new List<IReadOnlyList<(float X, float Y)>>();
+        foreach (var glyphPath in TextBuilder.GeneratePaths(wordArt.Text, new RichTextOptions(font) {Dpi = context.Dpi}))
         {
             foreach (var simplePath in glyphPath.Flatten())
             {
@@ -476,257 +329,40 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
                     continue;
                 }
 
-                PointF Warp(PointF sample)
+                var contour = new List<(float X, float Y)>(points.Length);
+                foreach (var point in points)
                 {
-                    var (warpedX, warpedY) = WordArtEnvelope.WarpPoint(
-                        (sample.X, sample.Y), totalWidth, glyphsTop, glyphsHeight, x, y, width, height, transform);
-                    return new(warpedX, warpedY);
+                    contour.Add((point.X, point.Y));
                 }
 
-                pathBuilder.StartFigure();
-                pathBuilder.MoveTo(Warp(points[0]));
-                for (var i = 1; i < points.Length; i++)
-                {
-                    pathBuilder.LineTo(Warp(points[i]));
-                }
-                if (simplePath.IsClosed)
-                {
-                    pathBuilder.CloseFigure();
-                }
+                contours.Add(contour);
             }
         }
 
-        var fillColor = fillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(fillColorHex);
-        canvas.Fill(context.GetBrush(fillColor), pathBuilder.Build());
-        return true;
-    }
-
-    /// <summary>
-    /// Renders WordArt envelope warps that aren't text-on-path — Fade, Triangle, Inflate,
-    /// Deflate, CanUp, CanDown — by drawing each glyph individually with a per-glyph
-    /// vertical scale. The anchor depends on the warp: baseline for Fade/Triangle/CanUp
-    /// (bottom stays put), glyph centre for Inflate/Deflate (both edges move symmetrically),
-    /// glyph top for CanDown (top stays put). Returns true when handled. Per-glyph
-    /// rendering is slower than a single DrawText so the path-based warps are tried first.
-    /// </summary>
-    bool TryRenderWordArtEnvelope(
-        WordArtTransform transform,
-        string text,
-        string? fillColorHex,
-        float x, float y, float width, float height,
-        Font font)
-    {
-        var scaleY = WordArtEnvelope.ScaleY(transform);
-        if (scaleY == null)
+        var warped = WordArtEnvelope.Warp(contours, wordArt.Transform, wordArt.WarpAdjust, rectLeft, rectTop, rectWidth, rectHeight);
+        if (warped.Count == 0)
         {
             return false;
         }
 
-        var anchor = WordArtEnvelope.AnchorFor(transform);
-
-        var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
-        var totalWidth = TextMeasurer.MeasureAdvance(text, measureOptions).Width;
-        if (totalWidth <= 0)
+        var pathBuilder = new PathBuilder();
+        foreach (var contour in warped)
         {
-            return false;
+            pathBuilder.StartFigure();
+            pathBuilder.AddLines(contour.Select(_ => new PointF(_.X, _.Y)).ToArray());
+            pathBuilder.CloseFigure();
         }
 
-        var (glyphHeight, baselineFromTop) = ImageSharpRenderContext.GetFontMetrics(font);
-        var glyphHeightPixels = glyphHeight * context.Scale;
-        var baselineOffsetPixels = baselineFromTop * context.Scale;
+        var path = pathBuilder.Build();
+        var fillColor = wordArt.FillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(wordArt.FillColorHex);
+        canvas.Fill(context.GetBrush(fillColor), path);
 
-        var fillColor = fillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(fillColorHex);
-        var brush = context.GetBrush(fillColor);
-
-        // Inflate / Deflate / Can warps fill the bbox horizontally AND vertically — Word
-        // stretches glyphs to span the box, then modulates each glyph's height by the warp
-        // curve. Fade / Triangle leave the natural size (matches Word for those).
-        // For the box-filling warps, scale so the PEAK (most-stretched) glyph fits the bbox
-        // height: Inflate/Can peak at 1.4× the base, Deflate's largest is 1.0× (it shrinks
-        // toward the centre rather than growing).
-        var fillsBox = transform is WordArtTransform.Inflate or WordArtTransform.Deflate
-            or WordArtTransform.CanUp or WordArtTransform.CanDown;
-        var peakScale = transform switch
+        if (wordArt is {OutlineColorHex: { } outlineHex, OutlineWidthPoints: > 0})
         {
-            WordArtTransform.Inflate or WordArtTransform.CanUp or WordArtTransform.CanDown => 1.5f,
-            // Deflate's biggest glyph is at the edges (sy=1.0) — it shrinks toward middle.
-            _ => 1.0f
-        };
-        var sx = fillsBox ? width / totalWidth : 1f;
-        var baseScaleY = fillsBox ? height / (peakScale * glyphHeightPixels) : 1f;
-        var stretchedWidth = totalWidth * sx;
-
-        // Position the natural-size glyph so its anchor point lands at the desired bbox
-        // anchor. The Matrix3x2 then scales around that anchor without translating it, so
-        // the chosen edge (top / centre / baseline) stays fixed and the opposite edge moves.
-        // For non-box-filling warps (Fade / Triangle) keep the legacy layout — text centred
-        // vertically in the bbox with baseline anchor — so existing baselines stay stable.
-        var startX = x + (width - stretchedWidth) / 2f;
-        var legacyTopY = y + (height - glyphHeightPixels) / 2f;
-        var legacyBaselineY = legacyTopY + baselineOffsetPixels;
-        float anchorY;
-        float originY;
-        if (!fillsBox)
-        {
-            originY = legacyTopY;
-            anchorY = legacyBaselineY;
-        }
-        else
-        {
-            switch (anchor)
-            {
-                case EnvelopeAnchor.Top:
-                    anchorY = y;
-                    originY = anchorY;
-                    break;
-                case EnvelopeAnchor.Centre:
-                    anchorY = y + height / 2f;
-                    originY = anchorY - glyphHeightPixels / 2f;
-                    break;
-                default:
-                    anchorY = y + height;
-                    originY = anchorY - baselineOffsetPixels;
-                    break;
-            }
-        }
-
-        // Split per rune, not per UTF-16 unit: a supplementary-plane character is one glyph.
-        // Splitting per char hands the backend two lone surrogates, which draw an empty box each
-        // in place of the glyph, and each still consumes an iteration — so a 5-glyph label counted
-        // 6 and scaled every glyph against the wrong denominator in the t interpolation below.
-        // Mirrors SkiaWordArtDrawer.
-        var glyphs = text.EnumerateRunes().Select(_ => _.ToString()).ToArray();
-        var glyphCount = glyphs.Length;
-        var cursorX = startX;
-        for (var i = 0; i < glyphCount; i++)
-        {
-            var ch = glyphs[i];
-            var charAdvance = TextMeasurer.MeasureAdvance(ch, measureOptions).Width;
-            // For 1-glyph labels in a box-filling warp, t=0 collapses sin(πt)=0 (no
-            // warp). Use 0.5 so a single glyph still gets the centre amplitude. For Fade /
-            // Triangle a single glyph at the start (t=0) is intentional.
-            var t = glyphCount > 1 ? (float) i / (glyphCount - 1) : fillsBox ? 0.5f : 0f;
-            var sy = scaleY(t) * baseScaleY;
-
-            // Scale anchored at (cursorX, anchorY): the X scale stretches each glyph
-            // horizontally from its left edge so cursorX increments stay in stretched space;
-            // the Y scale anchors at the warp anchor line so the chosen edge stays put.
-            var matrix = Matrix3x2.CreateScale(new Vector2(sx, sy), new(cursorX, anchorY));
-            canvas.Save(
-                new()
-                {
-                    Transform = new(matrix)
-                });
-
-            var charOpts = new RichTextOptions(font)
-            {
-                Dpi = context.Dpi,
-                Origin = new(cursorX, originY)
-            };
-            canvas.DrawText(charOpts, ch.AsSpan(), brush, null);
-            canvas.Restore();
-
-            cursorX += charAdvance * sx;
+            var outlinePen = context.GetPen(ImageSharpRenderContext.ParseColor(outlineHex), context.PointsToPixels((float) wordArt.OutlineWidthPoints));
+            canvas.Draw(outlinePen, path);
         }
 
         return true;
-    }
-
-
-    /// <summary>
-    /// Builds a text-length-fitting arc on the chord-sagitta circle (chord = bbox width,
-    /// sagitta = bbox height). Path is centred on the bbox horizontal midline at the arc
-    /// peak (archUp) or dip (archDown), with sweep limited to <paramref name="textWidth"/>
-    /// arc length so glyphs sit at the page-centre of the WordArt without relying on
-    /// path-text alignment.
-    /// </summary>
-    static IPath BuildChordSagittaArc(float x, float y, float width, float height, float textWidth, bool archDown)
-    {
-        // Sagitta-to-radius identity: R = (chord² + 4·sagitta²) / (8·sagitta).
-        var radius = (width * width + 4 * height * height) / (8 * height);
-        var textHalfAngleDegrees = (float) (textWidth / (2 * radius) * 180.0 / Math.PI);
-        var centerX = x + width / 2f;
-
-        float bboxTop;
-        float startAngle;
-        float sweepAngle;
-        if (archDown)
-        {
-            // Arc dips through y+H; circle center above chord at y - (R-H).
-            // Path centred on 90° (bottom of circle = arc dip), runs CCW for symmetric span.
-            bboxTop = y + height - 2 * radius;
-            startAngle = 90f + textHalfAngleDegrees;
-            sweepAngle = -(2 * textHalfAngleDegrees);
-        }
-        else
-        {
-            // Arc peaks at y; circle center below chord at y + R.
-            // Path centred on 270° (top of circle = arc peak), runs CW for symmetric span.
-            bboxTop = y;
-            startAngle = 270f - textHalfAngleDegrees;
-            sweepAngle = 2 * textHalfAngleDegrees;
-        }
-
-        return BuildArc(new(centerX - radius, bboxTop, 2 * radius, 2 * radius), startAngle, sweepAngle);
-    }
-
-    static IPath BuildArc(RectangleF oval, float startAngle, float sweepAngle)
-    {
-        var builder = new PathBuilder();
-        builder.AddArc(oval, rotation: 0, startAngle, sweepAngle);
-        return builder.Build();
-    }
-
-    /// <summary>
-    /// Straight diagonal path through the bbox centre with slope derived from bbox aspect
-    /// (dy/dx = ±H/W). Path length matches <paramref name="textWidth"/> so glyphs sit on a
-    /// slanted baseline. Text-on-path naturally rotates each glyph to the line angle —
-    /// a small visual difference from Word (which keeps glyphs upright) but captures the
-    /// slant effect with a single uniform path.
-    /// </summary>
-    static IPath BuildSlantPath(float x, float y, float width, float height, float textWidth, bool slantUp)
-    {
-        var slope = (slantUp ? -1f : 1f) * height / width;
-        var halfTextLength = textWidth / 2f;
-        var dx = halfTextLength / (float) Math.Sqrt(1 + slope * slope);
-        var dy = dx * slope;
-        var centerX = x + width / 2f;
-        var centerY = y + height / 2f;
-
-        var builder = new PathBuilder();
-        builder.MoveTo(new(centerX - dx, centerY - dy));
-        builder.LineTo(new(centerX + dx, centerY + dy));
-        return builder.Build();
-    }
-
-    /// <summary>
-    /// Builds a sine-wave polyline path centred on the bbox. Word's <c>textWave1</c> fits one
-    /// full period across the text length: text starts high, dips through the middle, and
-    /// ends high again — formula <c>y = midY - amplitude·cos(2π·t/textWidth)</c>. Amplitude
-    /// is bbox H/4 (not H/2) — half the box reserves space for the glyph height itself so
-    /// text stays within the bbox visually, matching Word's textWave1 where the wave
-    /// excursion is gentle relative to glyph size. 64 polyline segments per period — dense
-    /// enough that per-glyph tangent jumps at segment joins are visually smooth.
-    /// </summary>
-    static IPath BuildWavePath(float x, float y, float width, float height, float textWidth)
-    {
-        var amplitude = height / 4f;
-        var midY = y + height / 2f;
-        // Path covers exactly textWidth horizontal extent, centred on bbox horizontal centre.
-        var pathStartX = x + width / 2f - textWidth / 2f;
-
-        const int segmentsPerPeriod = 64;
-        var dx = textWidth / segmentsPerPeriod;
-        var phaseScale = 2.0 * Math.PI / textWidth;
-
-        var builder = new PathBuilder();
-        builder.MoveTo(new(pathStartX, midY - amplitude));
-        for (var i = 1; i <= segmentsPerPeriod; i++)
-        {
-            var t = i * dx;
-            var py = midY - amplitude * (float) Math.Cos(t * phaseScale);
-            builder.LineTo(new(pathStartX + t, py));
-        }
-        return builder.Build();
     }
 }
