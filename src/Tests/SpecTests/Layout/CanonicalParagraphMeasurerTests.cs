@@ -98,6 +98,39 @@ public class CanonicalParagraphMeasurerTests
         await Assert.That(wrapped).IsEmpty();
     }
 
+    // Word wraps a line's last word where the line's UNROUNDED linear width passes the measure.
+    // Probed 2026-10-02 by stepping a right indent a pixel at a time: every logged threshold sat at
+    // ceil(linear width), so a line whose width carries a fraction under half a pixel does not fit the
+    // whole pixel below it — which a test on the pen-rounded width said it did.
+    [Test]
+    public async Task A_line_wraps_as_soon_as_its_linear_width_passes_the_measure()
+    {
+        var checkedTexts = 0;
+        foreach (var text in new[] {"Visit and reserve wedding and reception sites.", "B2B BUSINESS PROPOSAL", "The quick brown fox jumps over the lazy dog"})
+        {
+            foreach (var size in new[] {10d, 11d, 12d})
+            {
+                var paragraph = Para(Run(text, "Calibri", size));
+                var natural = measurer.MeasureParagraphNaturalWidth(paragraph, float.MaxValue / 4);
+                var pixels = natural * CanonicalTextMeasurer.ReferenceDpi / 72;
+                var fraction = pixels - Math.Floor(pixels);
+
+                // Only a width that pen rounding takes DOWN tells the two tests apart.
+                if (fraction is < 0.1 or > 0.45)
+                {
+                    continue;
+                }
+
+                checkedTexts++;
+                var wholePixelBelow = (float) (Math.Floor(pixels) * 72 / CanonicalTextMeasurer.ReferenceDpi);
+                await Assert.That(measurer.LayoutParagraphForMeasurement(paragraph, natural).Count).IsEqualTo(1);
+                await Assert.That(measurer.LayoutParagraphForMeasurement(paragraph, wholePixelBelow).Count).IsEqualTo(2);
+            }
+        }
+
+        await Assert.That(checkedTexts).IsGreaterThan(0);
+    }
+
     // Word's layout kerns a pair that straddles a space like any other. Probed on autofit columns
     // (_probe_spacekern, 2026-10-02): twenty "A" set a space apart in 12pt Arial, whose A+space and
     // space+A pairs are -113 units each, make a 331.4px column with kerning on and a 372.4px one

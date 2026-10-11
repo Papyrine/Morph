@@ -117,7 +117,8 @@ sealed class CanonicalTextMeasurer
     /// grid unrelated to the output resolution, at that — made the width error jump ~4% between adjacent
     /// point sizes, and that discontinuity, not its magnitude, is what wrapped 10 / 10.5pt documents
     /// early while 11pt behaved. The quantization that remains is
-    /// <see cref="PixelsToPoints"/> rounding the accumulated pen position once per line.</para>
+    /// <see cref="PixelsToPoints"/> rounding the accumulated pen position once per line, and it places
+    /// things only: whether a word fits is tested on the unrounded total.</para>
     ///
     /// <para>Word DRAWS on a rounded em — its XPS output declares 7.8pt (13px) for 8pt Calibri, with
     /// whole-pixel glyph advances on that grid — but it does not LAY OUT on it. Probed 2026-10-02 by
@@ -363,9 +364,9 @@ sealed class CanonicalTextMeasurer
                         current.Append(chunk);
                         linePixels = chunkPixels;
                     }
-                    // Measure the whole candidate line (its cumulative pixels, rounded once) so the pen
-                    // position tracks the linear ideal instead of accumulating a per-word rounding error.
-                    else if (PixelsToPoints(linePixels + gapPixels + chunkPixels) <= maxWidthPoints)
+                    // Measure the whole candidate line on its cumulative linear pixels, unrounded: Word
+                    // wraps where that width passes the measure (CanonicalParagraphMeasurer.LinearPoints).
+                    else if ((linePixels + gapPixels + chunkPixels) * 72.0 / ReferenceDpi <= maxWidthPoints)
                     {
                         if (afterSpace)
                         {

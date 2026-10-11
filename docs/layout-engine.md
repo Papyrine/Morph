@@ -291,6 +291,29 @@ pages closer, 22 further). Skia and PDF kern their ink since the next day (`docs
 `src/todo.md` #43 glyph placement — Word's whole-pixel drawn advances — mode 15's squeeze of justified
 lines, and the pen rounding in the fit test. The cascade and the two kerning probes are written up in `docs/word-features.md`, Kerning.*
 
+*Fourth update (2026-10-11): the last two of those are closed, and a third case of "what Word draws is
+not what Word breaks on" turned up beside them. Each was asked the same way, a paragraph per whole pixel
+of measure and the break read off the XPS:*
+
+- ***The fit test.** A word stays while the line's UNROUNDED linear width is within the measure
+  (`CanonicalParagraphMeasurer.LinearPoints`); the pen is still rounded once per line, for placement only.
+  A box sized from a line reads the same unrounded width (`WrapLine.LinearWidth`), which is what had
+  coupled the test to autofit. The float slack on the comparison came down from 0.012pt to 0.002pt with
+  it: at 0.012 eight probed lines fitted a measure Word wraps them at, 0.017px short of it.*
+- ***Mode 15's justified squeeze.** A justified line takes one more word, its spaces narrowed, when the
+  squeeze is at most a quarter of each space and, per space, at most half the stretch the line would need
+  without the word (`docs/word-features.md`, Justified Alignment). 1,606 probed paragraphs across modes 12
+  and 15; the engine reproduces all but one, which holds a ligature (`src/todo.md` #43).*
+- ***A bordered run.** Word draws a `w:bdr` run at its pixel-floored inset and charges the line the whole
+  declared stack and space on each side (`docs/word-features.md`, Run Border): the pen and the fit test
+  part company, so a wrap piece carries a fit-only charge (`Piece.FitPixels`) beside the pixels it moves
+  the pen. 2,920 probed paragraphs, all reproduced.*
+
+*Corpus effect of the three together with the day's spacing and pagination fixes, over the Skia pages
+the container re-rendered: 51 closer to their references against 13 further, no Word page count moved,
+and the furthest page out is +0.36 mean grey levels (header_row_repeat/01 p2, whose rows now sit where
+Word's do). What is left in `src/todo.md` #43 is glyph placement inside a line and the ligature advance.*
+
 ## Migration checklist (sequence matters even unbounded)
 
 Build alongside the existing renderers; do not delete anything until all three backends consume the tree.

@@ -68,6 +68,11 @@ sealed class FloatingShapeElement : DocumentElement
     /// transforms are still unread here — see todo #8.</summary>
     public double ImageOpacity { get; init; } = 1;
 
+    /// <summary>The part of the fill's picture that shows in the shape's box: its
+    /// <c>a:srcRect</c> folded with its <c>a:stretch/a:fillRect</c>. Null when the whole picture is
+    /// stretched over the box.</summary>
+    public ImageCrop? ImageCrop { get; init; }
+
     /// <summary>Stroke color for the shape outline (hex RGB, no #). Null when no outline is drawn.</summary>
     public string? LineColorHex { get; init; }
 
@@ -165,6 +170,7 @@ sealed class FloatingShapeElement : DocumentElement
             ImageData = ImageData,
             ImageContentType = ImageContentType,
             ImageOpacity = ImageOpacity,
+            ImageCrop = ImageCrop,
             LineColorHex = LineColorHex,
             LineWidthPoints = LineWidthPoints,
             LineAlpha = LineAlpha,

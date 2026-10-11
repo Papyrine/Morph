@@ -121,7 +121,23 @@ static class PdfPainter
             case PlacedRotatedGroup group:
                 PaintRotatedGroup(context, graphics, group);
                 break;
+            case PlacedClipGroup clip:
+                PaintClipGroup(context, graphics, clip, rasterizeWordArt, onWarning);
+                break;
         }
+    }
+
+    // See SkiaPainter.PaintClipGroup.
+    static void PaintClipGroup(PdfRenderContext context, XGraphics graphics, PlacedClipGroup clip, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
+    {
+        var state = graphics.Save();
+        graphics.IntersectClip(new XRect(clip.X, clip.Y, clip.Width, clip.Height));
+        foreach (var item in clip.Items)
+        {
+            PaintItem(context, graphics, item, rasterizeWordArt, onWarning);
+        }
+
+        graphics.Restore(state);
     }
 
     // See SkiaPainter.PaintRotatedGroup.
@@ -260,7 +276,7 @@ static class PdfPainter
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), BorderStroke.RunBorderReserves(run.Text));
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), !run.BorderInside);
                 PaintRunBorder(context, graphics, boxX, boxY, boxWidth, boxHeight, runBorder);
             }
         }

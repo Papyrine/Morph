@@ -156,6 +156,7 @@ static class FontMetricsReader
             UseTypoMetrics = os2.UseTypoMetrics,
             StrikeoutPosition = os2.StrikeoutPosition,
             StrikeoutSize = os2.StrikeoutSize,
+            EastAsian = os2.EastAsian,
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
             GlyphForCodepoint = ReadCmap(stream, tables),
@@ -235,20 +236,23 @@ static class FontMetricsReader
     /// pitch is <see cref="FontMetrics.LineBoxUnits"/>'s. Zeros when the font declares no <c>OS/2</c>
     /// table or a truncated one, which the model treats as "fall back to hhea".
     /// </summary>
-    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics, int StrikeoutPosition, int StrikeoutSize) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics, int StrikeoutPosition, int StrikeoutSize, bool EastAsian) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
     {
         if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 78)
         {
-            return (0, 0, 0, 0, 0, false, 0, 0);
+            return (0, 0, 0, 0, 0, false, 0, 0, false);
         }
 
-        var bytes = new byte[78];
+        // ulCodePageRange1 (uint32 at offset 78) arrived with table version 1.
+        var bytes = new byte[os2.Length >= 82 ? 82 : 78];
         if (!TryReadExactAt(stream, os2.Offset, bytes))
         {
-            return (0, 0, 0, 0, 0, false, 0, 0);
+            return (0, 0, 0, 0, 0, false, 0, 0, false);
         }
 
         var fsSelection = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(62, 2));
+        var version = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(0, 2));
+        var codePages = version >= 1 && bytes.Length >= 82 ? BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(78, 4)) : 0u;
         return (
             BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(74, 2)),
             BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(76, 2)),
@@ -257,8 +261,13 @@ static class FontMetricsReader
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(72, 2)),
             (fsSelection & 0x80) != 0,
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(28, 2)),
-            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(26, 2)));
+            BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(26, 2)),
+            (codePages & eastAsianCodePages) != 0);
     }
+
+    // OS/2.ulCodePageRange1 bits 17 to 21: JIS, simplified Chinese (GB2312), Korean Wansung,
+    // traditional Chinese (Big5) and Korean Johab.
+    const uint eastAsianCodePages = 0b11111u << 17;
 
     /// <summary>
     /// Reads the <c>cmap</c> table, selects the best Unicode subtable, and expands it to a

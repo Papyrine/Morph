@@ -210,6 +210,49 @@ public class TableRowHeightRulesTests
         await Assert.That(height).IsEqualTo(80f).Within(0.01f);
     }
 
+    // A paragraph opts out of only its OWN half of a gap (ParagraphGap, Word-probed in cells too:
+    // _probe_ctx's table row). After 30 then before 20 leaves nothing when the first opts in and 30
+    // when only the second does, and the row is sized to match.
+    [Test]
+    [Arguments(true, false, 0)]
+    [Arguments(false, true, 30)]
+    [Arguments(false, false, 30)]
+    [Arguments(true, true, 0)]
+    public async Task ContextualSpacing_DropsOnlyTheHalfOfTheParagraphThatOptsIn(bool firstContextual, bool secondContextual, int gap)
+    {
+        static ParagraphElement Paragraph(double before, double after, bool contextual) =>
+            new()
+            {
+                Runs = [new() {Text = "a", Properties = new()}],
+                Properties = new()
+                {
+                    StyleId = "S",
+                    ContextualSpacing = contextual,
+                    SpacingBeforePoints = before,
+                    SpacingAfterPoints = after
+                }
+            };
+
+        var cell = new TableCell
+        {
+            Content =
+            [
+                Paragraph(0, 30, firstContextual),
+                Paragraph(20, 0, secondContextual)
+            ],
+            Properties = new()
+        };
+        var tableProps = new TableProperties
+        {
+            DefaultCellPadding = new(top: 0, right: 0, bottom: 0, left: 0)
+        };
+
+        var height = TableHeightCalculator.MeasureCellHeight(cell, cellWidth: 100, tableProps, new StubMeasurer());
+
+        // Two 12pt lines and the gap between them; the last paragraph leaves nothing after it.
+        await Assert.That(height).IsEqualTo(24f + gap).Within(0.01f);
+    }
+
     static ParagraphElement ContextualParagraph(string text, string styleId = "RecipientAddress") =>
         new()
         {

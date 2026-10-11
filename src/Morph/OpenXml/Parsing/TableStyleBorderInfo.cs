@@ -15,7 +15,9 @@ sealed record ConditionalFormat(
 /// Captures the fields Morph cascades through a table style — whole-table defaults plus each
 /// <c>w:tblStylePr</c> conditional region. Paragraph-property cascading isn't modelled yet.
 /// <see cref="CannotSplit"/> is the style's own <c>w:trPr/w:cantSplit</c>, which reaches every row
-/// that does not declare its own.
+/// that does not declare its own. <see cref="CellMargin"/> is the style's whole-table
+/// <c>w:tcPr/w:tcMar</c> — margins the style gives every cell, which stand above the table's own
+/// <c>w:tblCellMar</c> and under a cell's own <c>w:tcMar</c> (<c>DocumentParser.ResolveStyleCellMargin</c>).
 /// </summary>
 sealed record TableStyleBorderInfo(
     CellBorders Outer,
@@ -30,4 +32,5 @@ sealed record TableStyleBorderInfo(
     CellSpacing? DefaultCellPadding = null,
     DeclaredRunProperties? RunProperties = null,
     double? IndentPoints = null,
-    bool CannotSplit = false);
+    bool CannotSplit = false,
+    DocumentFormat.OpenXml.Wordprocessing.TableCellMargin? CellMargin = null);

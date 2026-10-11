@@ -27,9 +27,18 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
     ///
     /// Positions are relative to the grid's top-left, and the caller emits these BEFORE the table so
     /// the flow cursor still sits at the content top — the same paragraph-anchor trick the slide
-    /// parser relies on, which binds each float to the page being built instead of deferring it.
+    /// parser relies on, which places each float where it is emitted instead of deferring it. The
+    /// fragmenter then moves each to the page its rows land on (<c>PlaceSheetUnderFloats</c>).
     /// </summary>
-    public List<DocumentElement> Parse(WorksheetPart worksheetPart, SheetGeometry geometry, double scale, uint firstOrdinal, double gridLeftPoints = 0)
+    /// <remarks>
+    /// With <paramref name="printed"/> the drawings Excel does not print are marked
+    /// <see cref="DocumentElement.NotPrinted"/>: an anchor whose <c>xdr:clientData</c> says
+    /// <c>fPrintsWithSheet="0"</c>, which is how a template marks its on-screen navigation buttons
+    /// (invoice-accessibility-guide's "Let's go >" is on the sheet and on none of Excel's pages).
+    /// The paged layout leaves those out and the text exports keep them. A sheet drawn whole rather
+    /// than printed marks none.
+    /// </remarks>
+    public List<DocumentElement> Parse(WorksheetPart worksheetPart, SheetGeometry geometry, double scale, uint firstOrdinal, double gridLeftPoints = 0, bool printed = false)
     {
         var elements = new List<DocumentElement>();
         var drawingsPart = worksheetPart.DrawingsPart;
@@ -47,11 +56,13 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                 continue;
             }
 
+            var notPrinted = printed && anchor.GetFirstChild<XDR.ClientData>()?.PrintWithSheet?.Value == false;
+
             // Anchors are measured from the GRID's left edge, but the elements come out anchored to
             // the page margin — so wherever the grid starts, the art has to start there too. That is
             // zero until printOptions/@horizontalCentered moves the grid off the margin, and every
             // sheet's logo detaches from its cells the moment the two disagree.
-            Walk(anchor, box with {X = box.X + gridLeftPoints}, SlideTransform.Identity, drawingsPart, elements, ref ordinal, anchorIsRoot: true);
+            Walk(anchor, box with {X = box.X + gridLeftPoints}, SlideTransform.Identity, drawingsPart, elements, ref ordinal, anchorIsRoot: true, notPrinted);
         }
 
         return elements;
@@ -64,14 +75,15 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         DrawingsPart drawingsPart,
         List<DocumentElement> elements,
         ref uint ordinal,
-        bool anchorIsRoot)
+        bool anchorIsRoot,
+        bool notPrinted)
     {
         foreach (var child in container.ChildElements)
         {
             switch (child)
             {
                 case XDR.Picture picture:
-                    if (ParsePicture(picture, box, transform, drawingsPart, anchorIsRoot, ordinal) is { } image)
+                    if (ParsePicture(picture, box, transform, drawingsPart, anchorIsRoot, ordinal, notPrinted) is { } image)
                     {
                         elements.Add(image);
                         ordinal++;
@@ -80,7 +92,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                     break;
 
                 case XDR.Shape shape:
-                    if (ParseShape(shape, box, transform, anchorIsRoot, ordinal) is { } drawn)
+                    if (ParseShape(shape, box, transform, anchorIsRoot, ordinal, notPrinted) is { } drawn)
                     {
                         elements.Add(drawn);
                         ordinal++;
@@ -93,7 +105,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                     // A group's children are authored in its own coordinate space, so the anchor
                     // rectangle maps onto the group's chOff/chExt exactly as it does on a slide.
                     var groupTransform = GroupTransform(group, box);
-                    Walk(group, box, groupTransform, drawingsPart, elements, ref ordinal, anchorIsRoot: false);
+                    Walk(group, box, groupTransform, drawingsPart, elements, ref ordinal, anchorIsRoot: false, notPrinted);
                     break;
                 }
             }
@@ -106,7 +118,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         SlideTransform transform,
         DrawingsPart drawingsPart,
         bool anchorIsRoot,
-        uint ordinal)
+        uint ordinal,
+        bool notPrinted)
     {
         var blipFill = picture.BlipFill;
         if (blipFill == null)
@@ -134,11 +147,12 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
             VerticalAnchor = VerticalAnchor.Paragraph,
             WrapType = WrapType.None,
             Description = picture.NonVisualPictureProperties?.NonVisualDrawingProperties?.Description?.Value,
-            RelativeHeight = ordinal
+            RelativeHeight = ordinal,
+            NotPrinted = notPrinted
         };
     }
 
-    DocumentElement? ParseShape(XDR.Shape shape, DrawingBox box, SlideTransform transform, bool anchorIsRoot, uint ordinal)
+    DocumentElement? ParseShape(XDR.Shape shape, DrawingBox box, SlideTransform transform, bool anchorIsRoot, uint ordinal, bool notPrinted)
     {
         var properties = shape.ShapeProperties;
         var placed = Placement(properties?.Transform2D, box, transform, anchorIsRoot);
@@ -169,7 +183,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                 BackgroundColorHex = fill,
                 LineColorHex = lineColor,
                 LineWidthPoints = outline?.Width?.Value is { } width ? width / OoxmlUnits.EmusPerPoint : 0,
-                RelativeHeight = ordinal
+                RelativeHeight = ordinal,
+                NotPrinted = notPrinted
             };
         }
 
@@ -195,7 +210,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
                 ? PresetShape.Ellipse
                 : PresetShape.Rect,
             Subpaths = ShapeParser.ExtractSubpaths(properties!),
-            RelativeHeight = ordinal
+            RelativeHeight = ordinal,
+            NotPrinted = notPrinted
         };
     }
 
