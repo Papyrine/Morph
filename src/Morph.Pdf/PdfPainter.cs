@@ -246,7 +246,16 @@ static class PdfPainter
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            DrawTracked(graphics, run.Text, context.GetFont(properties), context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties), KernShifts(context, run.Text, properties));
+            var font = context.GetFont(properties);
+
+            // A bold run in a face that is not bold is drawn with PdfSharp's bold simulation
+            // (PdfFontResolver), which fills and strokes the glyphs. PdfSharp also MEASURES such a font
+            // wider, by 2% of the em a glyph, though it moves the pen no further for it, so a run
+            // drawn glyph by glyph steps by the regular face's advances.
+            var stepFont = properties.SyntheticBold == SyntheticBold.None
+                ? font
+                : context.GetFont(properties.FontFamily, false, properties.Italic, VerticalRunPosition.RenderSizePoints(properties));
+            DrawTracked(graphics, run.Text, font, context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties), KernShifts(context, run.Text, properties), stepFont);
 
             // Underline below the baseline, strike through the x-height — geometry carried over from the
             // deleted PdfTextEngine.
@@ -292,7 +301,7 @@ static class PdfPainter
     // advances), so a following run starts past it; PdfSharp's DrawString takes no pair adjustment, so a
     // kerned run is drawn glyph by glyph with the kern the layout measured added to each pen
     // (CanonicalTextMeasurer.KernShiftsPoints). Per-glyph, so surrogate pairs stay intact.
-    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints, bool syntheticItalic = false, double[]? kernShifts = null)
+    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints, bool syntheticItalic = false, double[]? kernShifts = null, XFont? stepFont = null)
     {
         // An italic run whose family bundles no italic face: shear the glyphs right about the
         // baseline by the Word-measured oblique. PdfSharp's own mustSimulateItalic is deliberately
@@ -325,7 +334,7 @@ static class PdfPainter
                 }
 
                 graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
-                advanced += graphics.MeasureString(piece, font).Width + trackingPoints;
+                advanced += graphics.MeasureString(piece, stepFont ?? font).Width + trackingPoints;
                 i = end;
             }
         }
@@ -431,14 +440,21 @@ static class PdfPainter
             return;
         }
 
-        if (image.Data is not { Length: > 0 } data)
+        // A picture stored as SVG is placed as a form of the paths the reader made of it
+        // (PlacedImage.Vector), so it stays vector in the PDF and its raster fallback is not embedded
+        // (see SkiaPainter.PaintImage). A translucent one keeps to its fallback when it has one:
+        // PDFsharp can fade a bitmap as a whole but a form only path by path.
+        var vector = image.Opacity >= 1 || image.Data is not { Length: > 0 } ? image.Vector : null;
+        if (vector == null && image.Data is not { Length: > 0 })
         {
             return;
         }
 
         try
         {
-            var decoded = context.GetImage(data, image.Recolor, image.Opacity);
+            var decoded = vector != null
+                ? context.GetVectorForm(vector, image.Recolor, image.Opacity)
+                : context.GetImage(image.Data!, image.Recolor, image.Opacity);
             // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
             // alternative (Word does not combine the two).
             if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
@@ -711,6 +727,7 @@ static class PdfPainter
         {
             var rgb = PdfRenderContext.ParseColor(lineHex);
             pen = new(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), ShapeStroke.WidthPoints(shape.LineWidthPoints));
+            PdfShapeDrawing.Dash(pen, shape.LineDashPattern);
         }
         if (fill == null && pen == null)
         {
@@ -733,7 +750,17 @@ static class PdfPainter
             return;
         }
 
+        // A preset box turns about its own centre (a contour has its rotation baked into its points).
+        // Without this a rotated rectangle drew lying down: resumes/06's black strip up the page's left
+        // edge, a 235x43pt rectangle turned 90°, came out as a wide bar across the top.
         var box = new XRect(placed.X, placed.Y, placed.Width, placed.Height);
+        XGraphicsState? turned = null;
+        if (shape.RotationDegrees != 0)
+        {
+            turned = graphics.Save();
+            graphics.RotateAtTransform(shape.RotationDegrees, new(placed.X + placed.Width / 2, placed.Y + placed.Height / 2));
+        }
+
         if (shape.Preset == PresetShape.Ellipse)
         {
             if (fill != null)
@@ -745,18 +772,23 @@ static class PdfPainter
             {
                 graphics.DrawEllipse(pen, box);
             }
+        }
+        else
+        {
+            if (fill != null)
+            {
+                graphics.DrawRectangle(fill, box);
+            }
 
-            return;
+            if (pen != null)
+            {
+                graphics.DrawRectangle(pen, box);
+            }
         }
 
-        if (fill != null)
+        if (turned != null)
         {
-            graphics.DrawRectangle(fill, box);
-        }
-
-        if (pen != null)
-        {
-            graphics.DrawRectangle(pen, box);
+            graphics.Restore(turned);
         }
     }
 

@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -129,8 +132,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td style="width: 85.5pt"><span style="font-size: 9pt;">20XX-20XX</span></td>
       <td style="width: 270pt"><span style="font-size: 9pt;"><strong>Dissertation </strong></span><span style="font-size: 9pt;">Jasper University, Frankfort, KY</span><br /><span style="font-size: 9pt;">Advisor: Name</span>
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Project</span></li>
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Project</span></li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Project</li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Project</li>
         </ul>
       </td>
     </tr>
@@ -140,8 +143,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td style="width: 85.5pt"><span style="font-size: 9pt;">20XX-20XX</span></td>
       <td style="width: 270pt"><span style="font-size: 9pt;"><strong>Institution/Company/Organization, </strong></span><span style="font-size: 9pt;">Location</span><br /><span style="font-size: 9pt;"><strong>Position,</strong></span><span style="font-size: 9pt;"> Lab or Advisor Name</span>
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Project</span></li>
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Project</span></li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Project</li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Project</li>
         </ul>
       </td>
     </tr>
@@ -151,8 +154,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td style="width: 85.5pt"><span style="font-size: 9pt;">20XX-20XX</span></td>
       <td style="width: 270pt"><span style="font-size: 9pt;"><strong>Company/Organization, </strong></span><span style="font-size: 9pt;">Location</span><br /><span style="font-size: 9pt;"><strong>Position </strong></span><span style="font-size: 9pt;">Lab or Advisor Name</span>
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Project</span></li>
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Project</span></li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Project</li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Project</li>
         </ul>
       </td>
     </tr>
@@ -184,10 +187,10 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td rowspan="2" style="width: 85.5pt"><span style="font-size: 9pt;">20XX-20XX</span></td>
       <td colspan="2" style="width: 270pt"><span style="font-size: 9pt;"><strong>Name of University,</strong></span><span style="font-size: 9pt;"> Location</span><br /><span style="font-size: 9pt;"><strong>Associate Professor, </strong></span><span style="font-size: 9pt;">Department</span>
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 9pt;">Taught Name of Course, an undergraduate course averaging 120 students per semester, covering the following topics: topic, topic, topic, topic</span></li>
-          <li><span style="font-size: 9pt;">Developed quizzes, exams, and homework</span></li>
-          <li><span style="font-size: 9pt;">Revised the syllabus to meet accreditation standards</span></li>
-          <li><span style="font-size: 9pt;">Coordinated grading and labs with a team of 4 teaching assistants</span></li>
+          <li style="font-size: 9pt">Taught Name of Course, an undergraduate course averaging 120 students per semester, covering the following topics: topic, topic, topic, topic</li>
+          <li style="font-size: 9pt">Developed quizzes, exams, and homework</li>
+          <li style="font-size: 9pt">Revised the syllabus to meet accreditation standards</li>
+          <li style="font-size: 9pt">Coordinated grading and labs with a team of 4 teaching assistants</li>
         </ul>
       </td>
     </tr>
@@ -201,7 +204,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td style="width: 85.5pt"><span style="font-size: 9pt;">20XX-20XX</span></td>
       <td colspan="2" style="width: 270pt"><span style="font-size: 9pt;"><strong>Name of University,</strong></span><span style="font-size: 9pt;"> Location</span><br /><span style="font-size: 9pt;"><strong>Teaching Assistant, </strong></span><span style="font-size: 9pt;">Department</span>
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 9pt;">Highlight important projects, duties, skills, and responsibilities following a consistent grammatical style</span></li>
+          <li style="font-size: 9pt">Highlight important projects, duties, skills, and responsibilities following a consistent grammatical style</li>
         </ul>
       </td>
     </tr>
@@ -356,8 +359,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td style="width: 85.5pt"><span style="font-size: 9pt;">20XX</span></td>
       <td style="width: 270pt"><h2 id="companyorganization-position-department-dates" style="font-size: 9pt; margin-top: 0pt; line-height: 1">Company/Organization, [Position], [Department], Dates</h2>
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Award/Certification</span></li>
-          <li><span style="font-size: 9pt;">Skill/Accomplishment/Award/Certification</span></li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Award/Certification</li>
+          <li style="font-size: 9pt">Skill/Accomplishment/Award/Certification</li>
         </ul>
       </td>
     </tr>

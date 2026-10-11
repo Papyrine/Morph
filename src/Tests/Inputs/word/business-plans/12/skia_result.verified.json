@@ -4,8 +4,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4955,
-      "Ssim": 0.8904,
+      "ErrorMetric": 0.495,
+      "Ssim": 0.891,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "skia_result#page_0001.verified.png",
       "ReceivedFile": "skia_result#page_0001.received.png"
@@ -69,7 +69,7 @@
     {
       "Page": 9,
       "ErrorMetric": 0.0914,
-      "Ssim": 0.8626,
+      "Ssim": 0.8628,
       "ExpectedFile": "expected_0009.png",
       "VerifiedFile": "skia_result#page_0009.verified.png",
       "ReceivedFile": "skia_result#page_0009.received.png"

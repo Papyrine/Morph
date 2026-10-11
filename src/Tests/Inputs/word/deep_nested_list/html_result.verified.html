@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -34,32 +37,32 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: Calibri, sans-serif; max-width: 468pt; padding: 72pt">
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Deeply nested list with 5 levels:</span></p>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 12pt;">Level 1 - Item A</span>
+  <li style="font-size: 12pt">Level 1 - Item A
     <ul style="list-style-type: circle">
-      <li><span style="font-size: 12pt;">Level 2 - Item A.1</span>
+      <li>Level 2 - Item A.1
         <ul style="list-style-type: '■ '">
-          <li><span style="font-size: 12pt;">Level 3 - Item A.1.a</span>
+          <li>Level 3 - Item A.1.a
             <ul style="list-style-type: '▪ '">
-              <li><span style="font-size: 12pt;">Level 4 - Item A.1.a.i</span>
+              <li>Level 4 - Item A.1.a.i
                 <ul style="list-style-type: '▸ '">
-                  <li><span style="font-size: 12pt;">Level 5 - Item A.1.a.i.α</span></li>
-                  <li><span style="font-size: 12pt;">Level 5 - Item A.1.a.i.β</span></li>
+                  <li>Level 5 - Item A.1.a.i.α</li>
+                  <li>Level 5 - Item A.1.a.i.β</li>
                 </ul>
               </li>
-              <li><span style="font-size: 12pt;">Level 4 - Item A.1.a.ii</span></li>
+              <li>Level 4 - Item A.1.a.ii</li>
             </ul>
           </li>
-          <li><span style="font-size: 12pt;">Level 3 - Item A.1.b</span></li>
+          <li>Level 3 - Item A.1.b</li>
         </ul>
       </li>
-      <li><span style="font-size: 12pt;">Level 2 - Item A.2</span></li>
+      <li>Level 2 - Item A.2</li>
     </ul>
   </li>
-  <li><span style="font-size: 12pt;">Level 1 - Item B</span>
+  <li style="font-size: 12pt">Level 1 - Item B
     <ul style="list-style-type: circle">
-      <li><span style="font-size: 12pt;">Level 2 - Item B.1</span>
+      <li>Level 2 - Item B.1
         <ul style="list-style-type: '■ '">
-          <li><span style="font-size: 12pt;">Level 3 - Item B.1.a</span></li>
+          <li>Level 3 - Item B.1.a</li>
         </ul>
       </li>
     </ul>

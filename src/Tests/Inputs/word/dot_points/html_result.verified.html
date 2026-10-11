@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -33,17 +36,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: Calibri, sans-serif; max-width: 468pt; padding: 72pt">
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 12pt;">A</span>
+  <li style="font-size: 12pt">A
     <ul style="list-style-type: circle">
-      <li><span style="font-size: 12pt;">B</span> 
+      <li>B 
         <ul style="list-style-type: '▪ '">
-          <li><span style="font-size: 12pt;">C</span>
+          <li>C
             <ul style="list-style-type: disc">
-              <li><span style="font-size: 12pt;">D</span>
+              <li>D
                 <ul style="list-style-type: circle">
-                  <li><span style="font-size: 12pt;">E</span>
+                  <li>E
                     <ul style="list-style-type: '▪ '">
-                      <li><span style="font-size: 12pt;">F</span></li>
+                      <li>F</li>
                     </ul>
                   </li>
                 </ul>

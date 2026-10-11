@@ -2041,14 +2041,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse indentation — but skip when the style has numPr without a numId.
-                // In Word, indentation in a style that has numPr is numbering-level indentation
-                // and only applies when the numbering is active. Without a numId the numbering
-                // is dormant, so the indent should fall back to the base style's value — and the
-                // BASE's own numbering indent goes with it (styleIndentBound): business-plans/08's
-                // Title, basedOn the numbered Heading 1, sets numId=0 and Word puts both its lines
-                // at the margin where the inherited left=720/hanging=720 would have put the second
-                // at 36pt.
+                // A style that switches numbering off (w:numPr with numId 0, or with no numId at all)
+                // drops the indent its BASE declared beside live numbering (styleIndentBound), and
+                // then applies its own w:ind like any other style. Word-probed (_probe_numoff, first
+                // glyph x read off the XPS, against a base style numbered with left=1440
+                // hanging=720): a style based on it with numId=0 and no w:ind sets both lines of a
+                // wrapped paragraph at the margin; with numId=0 and left=2160 the text starts at
+                // 108pt with no hanging; with left=2160 hanging=720 its first line starts at 72pt and
+                // its second at 108pt; and a style based on Normal with numId=0, or with only an
+                // w:ilvl, and left=1440 starts at 72pt. business-plans/08's Title is the first case
+                // (basedOn the numbered Heading 1, numId=0, both lines at the margin), and
+                // resumes/07's "College info" the second: basedOn List Bullet, numId=0, left=360, an
+                // indent this used to throw away with the numbering.
                 var styleNumPr = paraProps.GetFirstChild<NumberingProperties>();
                 var hasOrphanedNumPr = styleNumPr != null && (styleNumPr.NumberingId?.Val?.Value ?? 0) == 0;
                 var activeNumbering = styleNumPr != null && !hasOrphanedNumPr;
@@ -2058,7 +2062,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 }
 
                 var indentation = paraProps.GetFirstChild<Indentation>();
-                var ownIndentation = indentation != null && !hasOrphanedNumPr;
+                var ownIndentation = indentation != null;
                 if (ownIndentation)
                 {
                     firstLineIndent = indentation!.FirstLine.TwipsToPoints() ?? firstLineIndent;
@@ -6872,8 +6876,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                                     if (isInline)
                                     {
-                                        // Try to create an inline image run
-                                        var inlineRun = TryParseInlineImageRun(drawing, mainPart, new());
+                                        // The picture's run is set in the run's own font like any other:
+                                        // what a line keeps under a picture, and the pitch of a line a
+                                        // thin rule stands alone on, are that font's. Given the document
+                                        // default instead, resumes/09's sidebar rules (a 0.7pt rectangle
+                                        // in a 9.5pt heading style) each took an 11pt Aptos line, 2pt too
+                                        // tall, and the sidebar ran 13px low by its foot.
+                                        var inlineRun = TryParseInlineImageRun(drawing, mainPart, ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId));
                                         if (inlineRun != null)
                                         {
                                             runs.Add(inlineRun);
@@ -7697,6 +7706,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         ColorHex = stroke.ColorHex,
                         LineWidthEmu = stroke.WidthEmu,
                         LineAlpha = stroke.Alpha,
+                        LineDashPattern = stroke.DashPattern,
                         FlipVertical = member.FlipVertical,
                         FlipHorizontal = member.FlipHorizontal,
                         Geometry = geometry,
@@ -7771,6 +7781,20 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ChildExtentX = outerChildExtentX,
                 ChildExtentY = outerChildExtentY,
                 RotationDegrees = rotationDegrees,
+
+                // In compatibility mode 12, and in a document that declares no mode, Word draws the
+                // group its left and top effect edges further in AGAIN, past the inner box; in modes
+                // 14 and 15 it draws it at the inner box. Word-probed (_probe_arrowmode): one arrow
+                // group (effect edges 13.5pt left, 12pt top) alone on a line at the 72pt margin has
+                // its ink from x=72.0 in modes 15 and 14 and from x=85.4 in mode 12, and from y=94.6
+                // against y=106.6; after two letters of text the same 13.4pt and 12.0pt. On
+                // inline_shape_arrows, which declares no mode, a 6pt-stroked arrow with edges of 5pt
+                // sits 5.3pt further in both ways. The frame the line reserves does not change with
+                // it: a second arrow starts 75.4pt after the first in every mode, the extent and its
+                // two side edges, so in mode 12 the ink runs past its frame on the right and at the
+                // foot. business-plans/12 holds the same arrows in mode 15, at the inner box.
+                DrawOffsetXPoints = compatibilityMode <= 12 ? effectL / OoxmlUnits.EmusPerPoint : 0,
+                DrawOffsetYPoints = compatibilityMode <= 12 ? effectT / OoxmlUnits.EmusPerPoint : 0,
                 Shapes = shapes
             }
         };
@@ -8067,12 +8091,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <c>a:noFill</c> on the outline means no stroke; so does a shape with neither a width nor a
     /// resolvable <c>a:lnRef</c>.
     /// </summary>
-    (string ColorHex, double WidthEmu, double Alpha) ReadGroupStroke(OpenXmlElement shapeProperties, A.LineReference? lineReference)
+    (string ColorHex, double WidthEmu, double Alpha, IReadOnlyList<double>? DashPattern) ReadGroupStroke(OpenXmlElement shapeProperties, A.LineReference? lineReference)
     {
         var outline = shapeProperties.GetFirstChild<A.Outline>();
         if (outline?.GetFirstChild<A.NoFill>() != null)
         {
-            return ("000000", 0, 1);
+            return ("000000", 0, 1, null);
         }
 
         var solidFill = outline?.GetFirstChild<A.SolidFill>();
@@ -8084,7 +8108,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return (
             ExtractFirstFillColor(colorSource) ?? "000000",
             outline?.Width?.Value ?? ResolveLineReferenceWidthEmu(lineReference),
-            solidFill != null ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1);
+            solidFill != null ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1,
+            MapPresetDashPattern(outline?.GetFirstChild<A.PresetDash>()?.Val));
     }
 
     /// <summary>
@@ -8299,6 +8324,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 Height = shapeXfrm.Extents.Cy ?? 0,
                 ColorHex = stroke,
                 LineWidthEmu = lineWidth,
+                LineDashPattern = MapPresetDashPattern(ln?.GetFirstChild<A.PresetDash>()?.Val),
                 Geometry = GroupShapeGeometry.Line
             }
         };
@@ -8385,6 +8411,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ColorHex = stroke.ColorHex,
                 LineWidthEmu = stroke.WidthEmu,
                 LineAlpha = stroke.Alpha,
+                LineDashPattern = stroke.DashPattern,
                 OpenOutline = custGeom != null && !custGeom.Descendants<A.CloseShapePath>().Any(),
                 RoundCap = shapeProps.GetFirstChild<A.Outline>()?.CapType?.Value == A.LineCapValues.Round,
                 Geometry = MapGroupGeometry(shapeProps),

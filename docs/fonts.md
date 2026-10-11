@@ -48,7 +48,7 @@ If `ExportOptions.FontDirectory` is set, **only** that directory is searched (re
 
 When a name doesn't match any indexed face, Morph falls back in this order:
 
-1. **Suffix-stripped lookup.** `"Calibri Bold"` → strip ` Bold` → look up `"Calibri"`. The full list of recognised weight/width suffixes lives in `FontHelpers.StyleSuffixes`. This is a defensive safety net — well-formed fonts declare their full name in the `name` table and hit step 1 directly.
+1. **Suffix-stripped lookup.** `"Calibri Bold"` → strip ` Bold` → look up `"Calibri"`. The full list of recognised weight/width suffixes lives in `FontHelpers.StyleSuffixes`. This is a defensive safety net — well-formed fonts declare their full name in the `name` table and hit step 1 directly. The named family is always the first candidate and the stripped one the second, whatever the run's weight (`FontHelpers.GetCandidateNames`): a bold run used to lead with the stripped name, and the PDF resolver, which takes the first name it knows, then drew a different family from the raster backends. A family with no bold face is drawn in its regular face with Word's bold simulation — see *Bold* in [word-features.md](word-features.md).
 2. **Built-in alias dictionary.** A small map handles commonly-missing fonts:
 
    | Requested | Substituted |

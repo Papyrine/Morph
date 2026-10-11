@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -50,8 +53,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
   </tbody>
 </table>
-<p style="margin-bottom: 0pt; line-height: 1.16"><span style="font-size: 10pt;"><em>Bachelor of Arts, Degree, GPA </em></span></p>
-<p style="margin-bottom: 6pt; line-height: 1.16"><span style="font-size: 10pt;"><em>Relevant course work: </em></span></p>
+<p style="margin-bottom: 0pt; margin-left: 18pt; line-height: 1.16"><span style="font-size: 10pt;"><em>Bachelor of Arts, Degree, GPA </em></span></p>
+<p style="margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-size: 10pt;"><em>Relevant course work: </em></span></p>
 <p style="line-height: 1.16">&nbsp;</p>
 <table>
   <tbody>
@@ -71,8 +74,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <h3 id="role" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
-  <li><span style="font-size: 10pt;">Remember to be concise</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did and what your impact was</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Remember to be concise</span></li>
 </ul>
 <table>
   <tbody>
@@ -84,7 +87,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <h3 id="role-1" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did and what your impact was</span></li>
 </ul>
 <table>
   <tbody>
@@ -96,7 +99,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <h3 id="role-2" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did and what your impact was</span></li>
 </ul>
 <table>
   <tbody>
@@ -108,7 +111,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <h3 id="role-3" style="font-size: 10pt; margin-top: 0pt; margin-bottom: 6pt; margin-left: 18pt; line-height: 1.16"><span style="font-weight: normal;"><em>Role </em></span></h3>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did and what your impact was</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did and what your impact was</span></li>
 </ul>
 <p style="line-height: 1.16">&nbsp;</p>
 <table>
@@ -128,7 +131,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did/built etc.</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did/built etc.</span></li>
 </ul>
 <table>
   <tbody>
@@ -139,8 +142,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did/built etc. </span></li>
-  <li><span style="font-size: 10pt;">Accomplishments</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did/built etc. </span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Accomplishments</span></li>
 </ul>
 <table>
   <tbody>
@@ -151,7 +154,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 10pt;">Describe what you did/built etc.</span></li>
+  <li style="color: #0e2841; font-size: 10pt"><span style="color: #000000;">Describe what you did/built etc.</span></li>
 </ul>
 <p style="line-height: 1.16">&nbsp;</p>
 <table>

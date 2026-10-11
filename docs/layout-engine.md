@@ -725,7 +725,9 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
 - **Inline images landed**: the wrap treats an image as an unbreakable box (its width counts toward the line,
   its height grows the line), the fragmenter places it with its bottom on the baseline, and the painter decodes
   the bytes (an SVG's raster fallback) and draws them — an inline icon flowing mid-sentence and a figure growing
-  its own line both confirmed in a render.
+  its own line both confirmed in a render. Since 2026-10-12 an SVG picture also carries its drawing
+  (`PlacedImage.Vector`, made by `SvgReader`), and every painter draws that instead of the fallback — see
+  *SVG Images* in `docs/word-features.md`.
 - **Alignment (centre/right/justify), page background, intra-paragraph line breaks and all-caps landed**: the
   fragmenter shifts each line by its alignment offset within the available width; justify distributes the
   leftover width evenly across a naturally wrapped line's inter-word gaps (the last line and break-ended lines
@@ -843,8 +845,9 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
 - **Body floating images and shapes landed**: a top-level floating image or image-filled shape resolves to a
   page position — page-anchored offsets from the sheet edge, margin-anchored from the content box,
   paragraph-anchored from the flow cursor — and paints behind or in front of the body by its `BehindText` flag,
-  in the post-pass that assembles the header/footer bands (so the page count is known). SVG artwork paints its
-  raster fallback, since PdfSharp (like ImageSharp) cannot rasterise SVG; an image-fill shape becomes a plain
+  in the post-pass that assembles the header/footer bands (so the page count is known). SVG artwork painted its
+  raster fallback when this landed, and since 2026-10-12 paints its `PlacedImage.Vector` wherever the SVG
+  reader takes the document; an image-fill shape becomes a plain
   image, since the shape painter draws only solid and outline fills. agendas-minutes/01's people-at-a-table
   illustration lands at Word's position and size, and a single full-bleed background photo fills its page. The
   float is anchored to the page the flow has reached, so a document with one full-page background per page

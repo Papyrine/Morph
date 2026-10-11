@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -32,189 +35,313 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </style>
 </head>
 <body style="font-family: 'Gill Sans MT', sans-serif; max-width: 612pt; padding: 0pt; position: relative">
-<div style="position: relative"><svg style="position: absolute; left: 0pt; top: 0pt; width: 612pt; height: 792pt; z-index: 1" viewBox="0 0 612 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="792" fill="#ffffff" /></svg></div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-size: 24pt;">Business Cards</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
-</div>
-<div>
-  <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+<div style="min-height: 792pt">
+  <div style="position: relative"><svg style="position: absolute; left: 0pt; top: 0pt; width: 612pt; height: 792pt; z-index: 1; overflow: visible" viewBox="0 0 612 792" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="792" fill="#ffffff" /></svg></div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 30.6pt; top: 12pt; width: 550.8pt; min-height: 49.18pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-size: 24pt;">Business Cards</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 87.06pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 104.38pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 120.77pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 134.89pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 144.39pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 157.57pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 231.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 248.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 265.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 279.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 288.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 301.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 375.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 392.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 409.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 423.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 432.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 445.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 519.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 536.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 553.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 567.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 576.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 589.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 663.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 680.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 697.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 711.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 720.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 65.69pt; top: 733.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 87.06pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 104.38pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 120.77pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 134.89pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 144.39pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 157.57pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 231.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 248.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 265.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 279.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 288.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 301.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 375.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 392.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 409.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 423.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 432.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 445.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 519.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 536.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 553.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 567.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 576.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 589.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 663.41pt; width: 228.96pt; min-height: 14.59pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 12pt; letter-spacing: 1pt; text-transform: uppercase;"><strong>Robert Tamburello</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 680.73pt; width: 228.96pt; min-height: 11.05pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;">Vice President</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 697.12pt; width: 228.96pt; min-height: 11.03pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 9pt;"><strong>Fabrikam</strong></span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 711.24pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">1234 First Street, Brunswick, GA 98052</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 720.74pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">www.fabrikam.com</span></p>
+    </div>
+  </div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 317.19pt; top: 733.92pt; width: 228.96pt; min-height: 10.08pt; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 0.8"><span style="font-size: 8pt;">360.555.0150 | rtamburello@fabrikam.com</span></p>
+    </div>
+  </div>
 </div>
 </body>
 </html>

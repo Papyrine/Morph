@@ -100,6 +100,83 @@ public class DrawingAndTableParseRulesTests
         await Assert.That(PresetShapeGeometry.TryBuild(plain, 200, 100)![0][^1].Y).IsEqualTo(0.29289).Within(0.0001);
     }
 
+    static ParsedDocument ParseScenario(params string[] scenario)
+    {
+        using var stream = File.OpenRead(Path.Combine([ProjectFiles.ProjectDirectory, "Inputs", "word", .. scenario, "input.docx"]));
+        return new DocumentParser().Parse(stream);
+    }
+
+    static IEnumerable<Run> Runs(IEnumerable<DocumentElement> elements)
+    {
+        foreach (var element in elements)
+        {
+            switch (element)
+            {
+                case ParagraphElement paragraph:
+                    foreach (var run in paragraph.Runs)
+                    {
+                        yield return run;
+                    }
+
+                    break;
+                case TableElement table:
+                    foreach (var run in table.Rows.SelectMany(_ => _.Cells).SelectMany(_ => Runs(_.Content)))
+                    {
+                        yield return run;
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    // resumes/05's monogram picture stands in a 48pt run. Parsed with no properties it was measured
+    // in the default 11pt face, and the line it shares with nothing else came out the wrong height.
+    [Test]
+    public async Task An_inline_picture_run_keeps_the_properties_its_run_declares()
+    {
+        var picture = Runs(ParseScenario("resumes", "05").Elements).First(_ => _.InlineImageData != null);
+
+        await Assert.That(picture.Properties.FontSizePoints).IsEqualTo(48);
+    }
+
+    // letters/05's signature rule is an inline group whose line declares a:prstDash "dash".
+    [Test]
+    public async Task An_inline_groups_shapes_carry_their_outline_dash()
+    {
+        var shapes = Runs(ParseScenario("letters", "05").Elements)
+            .Where(_ => _.InlineShapeGroup != null)
+            .SelectMany(_ => _.InlineShapeGroup!.Shapes)
+            .ToList();
+
+        // "dash" is four widths on, three off; "solid" is no pattern at all.
+        await Assert.That(shapes.Any(_ => _.LineDashPattern is [4, 3])).IsTrue();
+        await Assert.That(shapes.Any(_ => _.LineDashPattern == null)).IsTrue();
+    }
+
+    [Test]
+    public async Task A_dash_is_stroked_in_multiples_of_its_line_width()
+    {
+        await Assert.That(ShapeStroke.DashLengths([4, 3], 2)).IsEquivalentTo(new[] {8f, 6f});
+        await Assert.That(ShapeStroke.DashLengths(null, 2)).IsNull();
+        await Assert.That(ShapeStroke.DashLengths([4, 3], 0)).IsNull();
+    }
+
+    // _probe_arrowmode: the same arrow group (effect edges 13.5pt left, 12pt top) has its ink from
+    // x=72.0, y=94.6 in compatibility modes 15 and 14 and from x=85.4, y=106.6 in mode 12.
+    // inline_shape_arrows declares no mode at all; business-plans/12 holds the same arrows in mode 15.
+    [Test]
+    public async Task An_inline_group_is_drawn_its_effect_edges_further_in_only_below_mode_14()
+    {
+        var legacy = Runs(ParseScenario("inline_shape_arrows").Elements).First(_ => _.InlineShapeGroup != null);
+        var current = Runs(ParseScenario("business-plans", "12").Elements).First(_ => _.InlineShapeGroup != null);
+
+        await Assert.That(legacy.InlineShapeGroup!.DrawOffsetXPoints).IsEqualTo(13.5).Within(0.001);
+        await Assert.That(legacy.InlineShapeGroup.DrawOffsetYPoints).IsEqualTo(12).Within(0.001);
+        await Assert.That(current.InlineShapeGroup!.DrawOffsetXPoints).IsEqualTo(0);
+        await Assert.That(current.InlineShapeGroup.DrawOffsetYPoints).IsEqualTo(0);
+    }
+
     // A quarter-point accent rule was drawn at half a point, twice Word's ink.
     [Test]
     public async Task An_outline_is_stroked_at_the_width_it_declares_however_thin()

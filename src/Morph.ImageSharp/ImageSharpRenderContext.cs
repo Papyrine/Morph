@@ -45,8 +45,8 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         // present.
         var collection = new FontCollection();
         using var stream = new MemoryStream(bytes, writable: false);
-        var family = collection.Add(stream);
-        return new(family);
+        var family = collection.Add(stream, out var description);
+        return new(family, description.Style);
     }
 
     /// <summary>
@@ -92,7 +92,46 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
 
         if (sharedFontCollection.TryGet(bestFace.Family, out var family))
         {
-            return new(family);
+            return new(family, StyleOf(bestFace, family));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The style ImageSharp files <paramref name="face"/> under inside its family, so the font drawn is
+    /// the face the shared resolver scored best and not a sibling. Null when the file's own
+    /// description cannot be read or the family does not hold that style, which leaves the choice to
+    /// <see cref="PickAvailableStyle"/>.
+    /// </summary>
+    static FontStyle? StyleOf(FontFace face, FontFamily family)
+    {
+        try
+        {
+            FontStyle style;
+            if (face.Path.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
+            {
+                var descriptions = FontDescription.LoadFontCollectionDescriptions(face.Path);
+                if (face.Index >= descriptions.Length)
+                {
+                    return null;
+                }
+
+                style = descriptions.Span[face.Index].Style;
+            }
+            else
+            {
+                style = FontDescription.LoadDescription(face.Path).Style;
+            }
+
+            if (family.TryGetMetrics(style, out _))
+            {
+                return style;
+            }
+        }
+        catch
+        {
+            // A description ImageSharp cannot read leaves the style to PickAvailableStyle.
         }
 
         return null;
@@ -118,6 +157,42 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
 
     public FontFamily GetFontFamily(string fontFamily, bool bold, bool italic) =>
         resolver.Resolve(fontFamily, bold, italic).Family;
+
+    /// <summary>
+    /// The family and the style within it to draw a run in: the face the shared resolver picked when
+    /// it came from a font file, which is the face Skia and the PDF painter draw too. Asking the
+    /// family for a style worked out from the run's flags and the words in its name picked a
+    /// different face wherever the two disagree — newsletters/07's "AvenirNext LT Pro Medium" body
+    /// text drew in the family's Bold because "Medium" read as bold, where the resolver had scored
+    /// the Regular closest.
+    /// </summary>
+    (FontFamily Family, FontStyle Style) ResolveFace(string fontFamily, bool bold, bool italic)
+    {
+        var handle = resolver.Resolve(fontFamily, bold, italic);
+        if (handle.Style is { } picked)
+        {
+            return (handle.Family, picked);
+        }
+
+        // An OS font manager answer carries no face, only a family: ask it for the style the run's
+        // flags and its name call for.
+        var effectiveBold = bold || FontHelpers.ImpliesBold(fontFamily);
+        var style = FontStyle.Regular;
+        if (effectiveBold && italic)
+        {
+            style = FontStyle.BoldItalic;
+        }
+        else if (effectiveBold)
+        {
+            style = FontStyle.Bold;
+        }
+        else if (italic)
+        {
+            style = FontStyle.Italic;
+        }
+
+        return (handle.Family, PickAvailableStyle(handle.Family, style));
+    }
 
     // Font allocations are a hot-path cost in ImageSharp (`family.CreateFont`
     // performs internal style lookup + font instantiation). The result is fully
@@ -304,25 +379,8 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             return cached;
         }
 
-        var family = GetFontFamily(fontFamily, bold, italic);
-
-        var effectiveBold = bold || FontHelpers.ImpliesBold(fontFamily);
-
-        var style = FontStyle.Regular;
-        if (effectiveBold && italic)
-        {
-            style = FontStyle.BoldItalic;
-        }
-        else if (effectiveBold)
-        {
-            style = FontStyle.Bold;
-        }
-        else if (italic)
-        {
-            style = FontStyle.Italic;
-        }
-
-        var font = GetOrCreateCachedFont(family, sizePoints, PickAvailableStyle(family, style));
+        var (family, style) = ResolveFace(fontFamily, bold, italic);
+        var font = GetOrCreateCachedFont(family, sizePoints, style);
         requestFontCache[requestKey] = font;
         return font;
     }
@@ -517,6 +575,64 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return image;
     }
 
+    // Keyed as processedImageCache is, with the drawing where the bytes are: SvgDrawing.For hands out
+    // one instance per picture part, so it is as stable a key as the part's array.
+    readonly Dictionary<(SvgDrawing Vector, int Width, int Height, ImageCrop? Crop, ImageRecolor? Recolor, double Opacity, float Rotation, bool FlipHorizontal, bool FlipVertical), Image<Rgba32>?> vectorImageCache = [];
+
+    /// <summary>
+    /// <see cref="GetProcessedImage"/> for a picture stored as SVG: the drawing rasterised at the
+    /// box's own pixel size, through its crop and with its recolour already in its colours
+    /// (<see cref="ImageSharpVectorDrawing"/>), then the same transparency, flips and rotation.
+    /// Nothing is decoded and nothing is resized, which is the point — the fallback PNG is a
+    /// rendering at some other size. Cached for the context's lifetime; callers must not mutate or
+    /// dispose the result.
+    /// </summary>
+    public Image<Rgba32>? GetVectorImage(SvgDrawing vector, int width, int height, ImageCrop? crop, ImageRecolor? recolor, float rotationDegrees, bool flipHorizontal = false, bool flipVertical = false, double opacity = 1)
+    {
+        var key = (vector, width, height, crop, recolor, opacity, rotationDegrees, flipHorizontal, flipVertical);
+        if (vectorImageCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        Image<Rgba32>? image = null;
+        if (width > 0 && height > 0)
+        {
+            try
+            {
+                image = ImageSharpVectorDrawing.Rasterize(vector.Recolored(recolor), width, height, crop);
+                if (opacity < 1)
+                {
+                    image.Mutate(_ => ImageSharpImageEffects.Apply(_, null, opacity));
+                }
+
+                // Mirror, then turn — the order GetProcessedImage gives a raster picture.
+                if (flipHorizontal)
+                {
+                    image.Mutate(_ => _.Flip(FlipMode.Horizontal));
+                }
+
+                if (flipVertical)
+                {
+                    image.Mutate(_ => _.Flip(FlipMode.Vertical));
+                }
+
+                if (rotationDegrees != 0)
+                {
+                    image.Mutate(_ => _.Rotate(rotationDegrees));
+                }
+            }
+            catch
+            {
+                image?.Dispose();
+                image = null;
+            }
+        }
+
+        vectorImageCache[key] = image;
+        return image;
+    }
+
     readonly Dictionary<(byte[] Data, int Width, int Height, ImageCrop? Crop), Image<Rgba32>?> ellipseClippedCache = [];
 
     /// <summary>
@@ -691,6 +807,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             image?.Dispose();
         }
         processedImageCache.Clear();
+        foreach (var image in vectorImageCache.Values)
+        {
+            image?.Dispose();
+        }
+        vectorImageCache.Clear();
         foreach (var image in ellipseClippedCache.Values)
         {
             image?.Dispose();
@@ -719,7 +840,10 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
 /// Adapter around <see cref="FontFamily"/> (a struct in SixLabors.Fonts) so it can flow
 /// through the reference-typed <see cref="FontResolver{TFont}"/> cache.
 /// </summary>
-sealed class FontFamilyHandle(FontFamily family)
+sealed class FontFamilyHandle(FontFamily family, FontStyle? style = null)
 {
     public FontFamily Family { get; } = family;
+
+    /// <summary>The style of the resolved face inside <see cref="Family"/>; null when only the family is known.</summary>
+    public FontStyle? Style { get; } = style;
 }

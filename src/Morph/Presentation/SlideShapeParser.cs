@@ -408,7 +408,7 @@ sealed class SlideShapeParser(
             return null;
         }
 
-        var (data, contentType) = ShapeParser.ExtractBlipFillImage(picture.BlipFill, hostPart, partBytes);
+        var (data, contentType, rasterFallback, rasterFallbackContentType) = ShapeParser.ExtractPicture(picture.BlipFill, hostPart, partBytes);
         if (data is not { Length: > 0 })
         {
             return null;
@@ -418,6 +418,8 @@ sealed class SlideShapeParser(
         {
             ImageData = data,
             ContentType = contentType,
+            RasterFallbackData = rasterFallback,
+            RasterFallbackContentType = rasterFallbackContentType,
             WidthPoints = box.Width,
             HeightPoints = box.Height,
             HorizontalPositionPoints = box.X,

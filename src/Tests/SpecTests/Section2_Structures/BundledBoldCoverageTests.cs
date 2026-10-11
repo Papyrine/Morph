@@ -192,7 +192,7 @@ public class BundledBoldCoverageTests
     /// </summary>
     static FontFace? ResolveBoldFace(FontFileCache cache, string family, bool italic)
     {
-        var candidates = FontHelpers.GetCandidateNames(family, true);
+        var candidates = FontHelpers.GetCandidateNames(family);
         var face = BestFace(cache, candidates, FontHelpers.ResolveTargetWeight(family, true), italic, out var delta);
 
         var fallbackName = FontHelpers.FindFallback(candidates);
@@ -202,7 +202,7 @@ public class BundledBoldCoverageTests
             return face;
         }
 
-        var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, true);
+        var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
         var fallback = BestFace(
             cache,
             fallbackCandidates,

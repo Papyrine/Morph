@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -34,17 +37,17 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: Calibri, sans-serif; max-width: 468pt; padding: 72pt">
 <p style="margin-bottom: 14pt; line-height: 1"><span style="font-family: 'Times New Roman', sans-serif; font-size: 12pt;">Unordered list:</span></p>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 12pt;">First bullet item</span></li>
-  <li><span style="font-size: 12pt;">Second bullet item</span></li>
-  <li><span style="font-size: 12pt;">Third bullet item</span></li>
-  <li><span style="font-size: 12pt;">Fourth bullet item</span></li>
+  <li style="font-size: 12pt">First bullet item</li>
+  <li style="font-size: 12pt">Second bullet item</li>
+  <li style="font-size: 12pt">Third bullet item</li>
+  <li style="font-size: 12pt">Fourth bullet item</li>
 </ul>
 <p style="margin-bottom: 14pt; line-height: 1"><span style="font-family: 'Times New Roman', sans-serif; font-size: 12pt;">Ordered list:</span></p>
 <ol>
-  <li><span style="font-size: 12pt;">First numbered item</span></li>
-  <li><span style="font-size: 12pt;">Second numbered item</span></li>
-  <li><span style="font-size: 12pt;">Third numbered item</span></li>
-  <li><span style="font-size: 12pt;">Fourth numbered item</span></li>
+  <li style="font-size: 12pt">First numbered item</li>
+  <li style="font-size: 12pt">Second numbered item</li>
+  <li style="font-size: 12pt">Third numbered item</li>
+  <li style="font-size: 12pt">Fourth numbered item</li>
 </ol>
 </body>
 </html>

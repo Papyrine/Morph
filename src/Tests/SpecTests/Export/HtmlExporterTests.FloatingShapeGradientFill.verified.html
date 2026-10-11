@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -32,6 +35,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </style>
 </head>
 <body style="max-width: 451.28pt; padding: 72pt; position: relative">
-<div style="position: relative"><svg style="position: absolute; left: 0pt; top: 0pt; width: 120pt; height: 60pt; z-index: -1" viewBox="0 0 120 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="shape-grad-0" x1="0" y1="0.5" x2="1" y2="0.5"><stop offset="0" stop-color="#ff0000" /><stop offset="1" stop-color="#0000ff" /></linearGradient></defs><rect x="0" y="0" width="120" height="60" fill="url(#shape-grad-0)" /></svg></div>
+<div style="min-height: 60pt">
+  <div style="position: relative"><svg style="position: absolute; left: 0pt; top: 0pt; width: 120pt; height: 60pt; z-index: -1; overflow: visible" viewBox="0 0 120 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="shape-grad-0" x1="0" y1="0.5" x2="1" y2="0.5"><stop offset="0" stop-color="#ff0000" /><stop offset="1" stop-color="#0000ff" /></linearGradient></defs><rect x="0" y="0" width="120" height="60" fill="url(#shape-grad-0)" /></svg></div>
+</div>
 </body>
 </html>

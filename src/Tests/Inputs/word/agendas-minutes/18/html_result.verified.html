@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -55,12 +58,12 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <h1 id="agenda-items" style="font-size: 15pt; margin-top: 18pt; margin-bottom: 10pt; line-height: 1.1"><span style="font-weight: normal; color: #7a4100;">Agenda items</span></h1>
 <ol>
-  <li><span style="color: #0d0d0d;">[It’s easy to make this template your own. To replace placeholder text, just select it and start typing. Don’t include space to the right or left of the characters in your selection.]</span></li>
-  <li><span style="color: #0d0d0d;">[Apply any text formatting you see in this template with just a click from the Home tab, in the Styles group. For example, this text uses the List Number style.]</span></li>
-  <li><span style="color: #0d0d0d;">[To add a new row at the end of the action items table, just click into the last cell in the last row and then press Tab.]</span></li>
-  <li><span style="color: #0d0d0d;">[To add a new row or column anywhere in a table, click in an adjacent row or column to the one you need and then, on the Table Tools Layout tab of the ribbon, click an Insert option.]</span></li>
-  <li><span style="color: #0d0d0d;">[Agenda item]</span></li>
-  <li><span style="color: #0d0d0d;">[Agenda item]</span></li>
+  <li style="color: #595959"><span style="color: #0d0d0d;">[It’s easy to make this template your own. To replace placeholder text, just select it and start typing. Don’t include space to the right or left of the characters in your selection.]</span></li>
+  <li style="color: #595959"><span style="color: #0d0d0d;">[Apply any text formatting you see in this template with just a click from the Home tab, in the Styles group. For example, this text uses the List Number style.]</span></li>
+  <li style="color: #595959"><span style="color: #0d0d0d;">[To add a new row at the end of the action items table, just click into the last cell in the last row and then press Tab.]</span></li>
+  <li style="color: #595959"><span style="color: #0d0d0d;">[To add a new row or column anywhere in a table, click in an adjacent row or column to the one you need and then, on the Table Tools Layout tab of the ribbon, click an Insert option.]</span></li>
+  <li style="color: #595959"><span style="color: #0d0d0d;">[Agenda item]</span></li>
+  <li style="color: #595959"><span style="color: #0d0d0d;">[Agenda item]</span></li>
 </ol>
 <table style="width: 100%">
   <thead>

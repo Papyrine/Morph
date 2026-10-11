@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -44,7 +47,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   </tbody>
 </table>
 <p style="margin-top: 6pt; margin-bottom: 0pt; line-height: 1">&nbsp;</p>
-<p style="margin-top: 6pt; margin-bottom: 0pt; line-height: 1">&nbsp;</p>
+<p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>
 <table>
   <tbody>
     <tr style="height: 25.2pt">
@@ -133,18 +136,18 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     <tr style="height: 67.55pt">
       <td style="width: 233.75pt">
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Recap of Back-to-School night – September 9</span></li>
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Parent Education Programs – Counselors</span></li>
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Teacher Grants Application Process – <br />School Principal</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Recap of Back-to-School night – September 9</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Parent Education Programs – Counselors</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Teacher Grants Application Process – <br />School Principal</span></li>
         </ul>
       </td>
       <td style="width: 11.8pt"></td>
       <td style="width: 221.95pt">
         <ul style="list-style-type: disc">
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Membership</span></li>
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Volunteers</span></li>
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Newsletter</span></li>
-          <li><span style="font-size: 10pt; letter-spacing: 0.3pt;">Computer Support</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Membership</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Volunteers</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Newsletter</span></li>
+          <li style="font-size: 10pt"><span style="letter-spacing: 0.3pt;">Computer Support</span></li>
         </ul>
       </td>
     </tr>

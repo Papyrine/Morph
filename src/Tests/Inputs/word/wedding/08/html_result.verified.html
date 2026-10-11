@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -44,7 +47,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
       <td rowspan="6" style="width: 9pt;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #7e7b99"></td>
       <td rowspan="6" style="width: 9pt;border-right: 0.75pt solid #7e7b99;border-left: 0.75pt solid #a6a6a6"></td>
       <td colspan="4" style="width: 346.5pt;padding: 50.4pt 14.4pt 0pt;border-top: 0.75pt solid #7e7b99;border-right: 0.75pt solid #7e7b99;border-left: 0.75pt solid #7e7b99"><h1 id="brides-full-name" style="font-size: 36pt; text-align: center; margin-top: 0pt; margin-bottom: 8pt; line-height: 1"><span style="font-weight: normal; color: #373545; text-transform: uppercase;">BRIDE’S FULL NAME </span></h1>
-        <div style="background-color: #4a9b83; width: 76.5pt; min-height: 76.5pt; display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: auto">
+        <div style="background-color: #4a9b83; border-radius: 50%; width: 76.5pt; min-height: 76.5pt; display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: auto">
           <p style="font-family: 'Baskerville Old Face', sans-serif; font-size: 48pt; margin: 0; color: #ffffff">&amp;</p>
         </div>
       <h1 id="grooms-full-name" style="font-size: 36pt; text-align: center; margin-top: 0pt; margin-bottom: 8pt; line-height: 1"><span style="font-weight: normal; color: #373545; text-transform: uppercase;">Groom’S FULL NAME </span></h1></td>
@@ -74,34 +77,37 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
     </tr>
   </tbody>
 </table>
-<table style="width: 100%">
-  <tbody>
-    <tr>
-      <td colspan="5" style="width: 373.3pt;border-top: 0.75pt solid #a6a6a6;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
-      <td colspan="5" style="width: 367.5pt;border-top: 0.75pt solid #a6a6a6;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
-    </tr>
-    <tr>
-      <td rowspan="2" style="width: 13.45pt;border-right: 0.75pt solid #7e7b99;border-left: 0.75pt solid #a6a6a6"></td>
-      <td rowspan="2" style="width: 26.95pt;border-top: 0.75pt solid #7e7b99;border-left: 0.75pt solid #7e7b99"></td>
-      <td style="width: 296.9pt;vertical-align: middle;padding: 72pt 0pt 21.6pt;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="the-ceremony" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">The Ceremony</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Prelude</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Processional </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Opening Words</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Readings </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Declaration of Intent</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Exchange of Vows</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Exchange of Rings</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Declaration of Marriage</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Blessings</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Recessional</span></p></td>
-      <td rowspan="2" style="width: 27pt;border-top: 0.75pt solid #7e7b99;border-right: 0.75pt solid #7e7b99"></td>
-      <td rowspan="2" style="width: 9pt;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #7e7b99"></td>
-      <td rowspan="2" style="width: 9pt;border-right: 0.75pt solid #7e7b99;border-left: 0.75pt solid #a6a6a6"></td>
-      <td rowspan="2" style="width: 27pt;border-top: 0.75pt solid #7e7b99;border-left: 0.75pt solid #7e7b99"></td>
-      <td style="width: 292.4pt;vertical-align: middle;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="wedding-participants" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">Wedding Participants</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Officiant(s)</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Parents of the Bride</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Parents of the Groom</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Maid/Matron of Honor</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Best Man</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Bridesmaids</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Groomsmen</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Reader(s)</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Musicians</span></p></td>
-      <td rowspan="2" style="width: 27pt;border-top: 0.75pt solid #7e7b99;border-right: 0.75pt solid #7e7b99"></td>
-      <td rowspan="2" style="width: 12.1pt;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #7e7b99"></td>
-    </tr>
-    <tr>
-      <td style="width: 296.9pt;vertical-align: middle;padding: 21.6pt 0pt 57.6pt;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="additional-text" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">Additional Text</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Type a quote </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Or a poem  </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">about marriage </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">here </span></p></td>
-      <td style="width: 292.4pt;vertical-align: middle;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="additional-text-1" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">Additional Text</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Readings</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Hymns</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Poems</span></p></td>
-    </tr>
-    <tr>
-      <td colspan="5" style="width: 373.3pt;border-right: 0.75pt solid #a6a6a6;border-bottom: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
-      <td colspan="5" style="width: 367.5pt;border-right: 0.75pt solid #a6a6a6;border-bottom: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
-    </tr>
-  </tbody>
-</table>
-<p style="text-align: center; line-height: 1">&nbsp;</p>
+<div style="min-height: 341.3pt">
+  <table style="width: 100%">
+    <tbody>
+      <tr>
+        <td colspan="5" style="width: 373.3pt;border-top: 0.75pt solid #a6a6a6;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
+        <td colspan="5" style="width: 367.5pt;border-top: 0.75pt solid #a6a6a6;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
+      </tr>
+      <tr>
+        <td rowspan="2" style="width: 13.45pt;border-right: 0.75pt solid #7e7b99;border-left: 0.75pt solid #a6a6a6"></td>
+        <td rowspan="2" style="width: 26.95pt;border-top: 0.75pt solid #7e7b99;border-left: 0.75pt solid #7e7b99"></td>
+        <td style="width: 296.9pt;vertical-align: middle;padding: 72pt 0pt 21.6pt;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="the-ceremony" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">The Ceremony</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Prelude</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Processional </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Opening Words</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Readings </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Declaration of Intent</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Exchange of Vows</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Exchange of Rings</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Declaration of Marriage</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Blessings</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Recessional</span></p></td>
+        <td rowspan="2" style="width: 27pt;border-top: 0.75pt solid #7e7b99;border-right: 0.75pt solid #7e7b99"></td>
+        <td rowspan="2" style="width: 9pt;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #7e7b99"></td>
+        <td rowspan="2" style="width: 9pt;border-right: 0.75pt solid #7e7b99;border-left: 0.75pt solid #a6a6a6"></td>
+        <td rowspan="2" style="width: 27pt;border-top: 0.75pt solid #7e7b99;border-left: 0.75pt solid #7e7b99"></td>
+        <td style="width: 292.4pt;vertical-align: middle;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="wedding-participants" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">Wedding Participants</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Officiant(s)</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Parents of the Bride</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Parents of the Groom</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Maid/Matron of Honor</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Best Man</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Bridesmaids</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Groomsmen</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Reader(s)</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Musicians</span></p></td>
+        <td rowspan="2" style="width: 27pt;border-top: 0.75pt solid #7e7b99;border-right: 0.75pt solid #7e7b99"></td>
+        <td rowspan="2" style="width: 12.1pt;border-right: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #7e7b99"></td>
+      </tr>
+      <tr>
+        <td style="width: 296.9pt;vertical-align: middle;padding: 21.6pt 0pt 57.6pt;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="additional-text" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">Additional Text</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Type a quote </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Or a poem  </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">about marriage </span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">here </span></p></td>
+        <td style="width: 292.4pt;vertical-align: middle;border-top: 0.75pt solid #7e7b99;border-bottom: 0.75pt solid #7e7b99; text-align: center"><h2 id="additional-text-1" style="font-size: 22pt; text-align: center; margin-top: 0pt; margin-bottom: 6pt; line-height: 1"><span style="font-weight: normal; color: #4a9b82;">Additional Text</span></h2><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Readings</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Hymns</span></p><p style="margin: 0pt 0 8pt"><span style="color: #373545;">Poems</span></p></td>
+      </tr>
+      <tr>
+        <td colspan="5" style="width: 373.3pt;border-right: 0.75pt solid #a6a6a6;border-bottom: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
+        <td colspan="5" style="width: 367.5pt;border-right: 0.75pt solid #a6a6a6;border-bottom: 0.75pt solid #a6a6a6;border-left: 0.75pt solid #a6a6a6"></td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="position: relative"><svg style="position: absolute; left: 400.65pt; top: 340.93pt; width: 289.5pt; height: 0.75pt; z-index: 1; overflow: visible" viewBox="0 0 289.5 0.75" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0.38" x2="289.5" y2="0.38" stroke="#7f7b9a" stroke-width="0.75" /></svg></div>
+  <p style="text-align: center; line-height: 1">&nbsp;</p>
+</div>
 </body>
 </html>

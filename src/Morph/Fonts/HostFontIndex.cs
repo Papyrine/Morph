@@ -18,8 +18,8 @@ static class HostFontIndex
 
     /// <summary>
     /// True when some installed face declares <paramref name="family"/>, matched through the same
-    /// priority-ordered candidate names the shared resolver uses (effective, original, stripped).
+    /// priority-ordered candidate names the shared resolver uses (as named, then stripped).
     /// </summary>
-    public static bool Contains(string family, bool bold) =>
-        cache.Value.TryGet(FontHelpers.GetCandidateNames(family, bold), out _);
+    public static bool Contains(string family) =>
+        cache.Value.TryGet(FontHelpers.GetCandidateNames(family), out _);
 }

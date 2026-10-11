@@ -70,12 +70,22 @@ static class ImageSharpShapeDrawing
     /// </summary>
     internal static void RenderGroupPicture(ImageSharpRenderContext context, DrawingCanvas pageCanvas, GroupShape shape, float x, float y, float width, float height, IPath? clip, bool groupRotated)
     {
-        // SVG isn't supported here; use the raster fallback the parser kept from the primary
-        // <a:blip>, or skip if we don't have one.
+        // An SVG picture is rasterised from the drawing the core reader made of it; one the reader
+        // gave up falls back to the raster the parser kept from the primary <a:blip>, as does
+        // nothing at all when there is neither.
+        var vector = SvgDrawing.For(shape.ImageData, shape.ImageContentType);
         var imageBytes = shape.ImageContentType == "image/svg+xml"
             ? shape.ImageRasterFallbackData
             : shape.ImageData;
-        if (imageBytes == null)
+        if (vector == null && imageBytes == null)
+        {
+            return;
+        }
+
+        var img = vector != null
+            ? context.GetVectorImage(vector, (int) width, (int) height, shape.ImageCrop, recolor: null, rotationDegrees: 0)
+            : context.GetProcessedImage(imageBytes!, (int) width, (int) height, shape.ImageCrop, recolor: null, rotationDegrees: 0);
+        if (img == null)
         {
             return;
         }
@@ -86,18 +96,14 @@ static class ImageSharpShapeDrawing
         // rect picture already goes through DrawImage below and rotates for free.)
         if (groupRotated && clip != null)
         {
-            var clipped = context.GetEllipseClippedImage(imageBytes, (int) width, (int) height, shape.ImageCrop);
+            var clipped = vector != null
+                ? context.GetClippedImage(img, contours: null, flipHorizontal: false, flipVertical: false)
+                : context.GetEllipseClippedImage(imageBytes!, (int) width, (int) height, shape.ImageCrop);
             if (clipped != null)
             {
                 pageCanvas.DrawImage(clipped, new((int) x, (int) y));
             }
 
-            return;
-        }
-
-        var img = context.GetProcessedImage(imageBytes, (int) width, (int) height, shape.ImageCrop, recolor: null, rotationDegrees: 0);
-        if (img == null)
-        {
             return;
         }
 

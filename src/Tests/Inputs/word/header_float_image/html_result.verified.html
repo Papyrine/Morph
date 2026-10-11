@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -44,7 +47,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 5.</span></p>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Body paragraph 6.</span></p>
 <footer class="doc-footer">
-<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABLklEQVR4nO3UwQ0CMQwAweQ64YrhCoL+QwP3i1YgMfO35cfKc601fs/5vr59AluOvXG4JywSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEvPxejab+Ws+FglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhMQofzj4Fe4FthkgAAAAASUVORK5CYII=" width="192" height="96" style="position: absolute; left: 0pt; top: 720pt; z-index: 1" alt="" /></div>
+<div style="position: relative"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAIAAABM5OhcAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABLklEQVR4nO3UwQ0CMQwAweQ64YrhCoL+QwP3i1YgMfO35cfKc601fs/5vr59AluOvXG4JywSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEsIiISwSwiIhLBLCIiEsEvPxejab+Ws+FglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhkRAWCWGREBYJYZEQFglhMQofzj4Fe4FthkgAAAAASUVORK5CYII=" width="192" height="96" style="position: absolute; left: 0pt; top: 22.1pt; z-index: 1" alt="" /></div>
 <p style="line-height: 1.16"><span style="font-size: 12pt;">Footer text</span></p>
 </footer>
 </body>

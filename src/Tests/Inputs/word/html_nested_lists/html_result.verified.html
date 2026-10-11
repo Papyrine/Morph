@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -34,35 +37,35 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <body style="font-family: Calibri, sans-serif; max-width: 468pt; padding: 72pt">
 <p style="margin-bottom: 14pt; line-height: 1"><span style="font-family: 'Times New Roman', sans-serif; font-size: 12pt;">Nested unordered lists:</span></p>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 12pt;">Item 1</span>
+  <li style="font-size: 12pt">Item 1
     <ul style="list-style-type: '◦ '">
-      <li><span style="font-size: 12pt;">Item 1.1</span></li>
-      <li><span style="font-size: 12pt;">Item 1.2</span>
+      <li>Item 1.1</li>
+      <li>Item 1.2
         <ul style="list-style-type: '▪ '">
-          <li><span style="font-size: 12pt;">Item 1.2.1</span></li>
-          <li><span style="font-size: 12pt;">Item 1.2.2</span></li>
+          <li>Item 1.2.1</li>
+          <li>Item 1.2.2</li>
         </ul>
       </li>
     </ul>
   </li>
-  <li><span style="font-size: 12pt;">Item 2</span></li>
+  <li style="font-size: 12pt">Item 2</li>
 </ul>
 <p style="margin-bottom: 14pt; line-height: 1"><span style="font-family: 'Times New Roman', sans-serif; font-size: 12pt;">Nested ordered lists:</span></p>
 <ol>
-  <li><span style="font-size: 12pt;">First</span>
+  <li style="font-size: 12pt">First
     <ol>
-      <li><span style="font-size: 12pt;">First sub-item</span></li>
-      <li><span style="font-size: 12pt;">Second sub-item</span></li>
+      <li>First sub-item</li>
+      <li>Second sub-item</li>
     </ol>
   </li>
-  <li><span style="font-size: 12pt;">Second</span></li>
+  <li style="font-size: 12pt">Second</li>
 </ol>
 <p style="margin-bottom: 14pt; line-height: 1"><span style="font-family: 'Times New Roman', sans-serif; font-size: 12pt;">Mixed nested lists:</span></p>
 <ul style="list-style-type: disc">
-  <li><span style="font-size: 12pt;">Bullet item</span>
+  <li style="font-size: 12pt">Bullet item
     <ol>
-      <li><span style="font-size: 12pt;">Numbered sub-item 1</span></li>
-      <li><span style="font-size: 12pt;">Numbered sub-item 2</span></li>
+      <li>Numbered sub-item 1</li>
+      <li>Numbered sub-item 2</li>
     </ol>
   </li>
 </ul>

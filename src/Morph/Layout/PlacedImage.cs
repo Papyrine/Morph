@@ -12,6 +12,12 @@
 /// picture fill that repeats: the painter lays the picture edge to edge at the tile's size from the
 /// tile's origin, cut to the box and to the clip, instead of stretching it over the box.
 ///
+/// A picture stored as SVG carries its <see cref="Vector"/> as well, whenever the reader could take the
+/// whole document (<see cref="SvgDrawing.For"/>): the painter then draws that into the box with its own
+/// path calls, through the same crop, turn and clip, and leaves <see cref="Data"/> — the PNG Office
+/// saved beside the SVG, and absent from a file that holds only the SVG — undecoded. Null for a raster
+/// picture and for an SVG the reader gave up, which is drawn from <see cref="Data"/> as before.
+///
 /// An inline <see cref="ShapeGroup"/> (a grouped drawing embedded in a run) rides the same inline-image
 /// carrier: <see cref="Data"/> is then null and the painter draws the group's child shapes scaled into the
 /// box instead of decoding bytes. Floating images never set it.
@@ -32,4 +38,5 @@ sealed record PlacedImage(
     ImageRecolor? Recolor = null,
     double Opacity = 1,
     ImageOutline? Outline = null,
-    ImageTile? Tile = null) : PlacedItem(X, Y, Width, Height);
+    ImageTile? Tile = null,
+    SvgDrawing? Vector = null) : PlacedItem(X, Y, Width, Height);
