@@ -159,6 +159,21 @@ centred backgrounds have extent == reference box, which is why only 4 of the cor
 align-carrying scenarios moved when this landed (−0.10..−0.11/backend on the three
 board-menu scenarios, zero regressions).
 
+## Relative sizes (`wp14:sizeRelH` / `wp14:sizeRelV`)
+
+An anchor sized as a percentage of the page or of a margin takes that size from the page it
+lands on, and its `wp:extent` is only what that came to when the file was saved. The fold is
+made at parse, like the alignment fold and for the same reason: `FoldRelativeSizes` writes the
+resolved size into the anchor's extent before the part is read, so the group scale
+(`extent / chExt`), the group frame, the alignment fold and every single-shape and picture
+size come out of the one number. Body anchors resolve against the page of the section they
+stand in; header and footer anchors against the first section's. The reference lengths are
+Word-probed (`docs/word-features.md`, Percentage-Sized Drawings). The fields
+`WidthPercent`/`HeightPercent` still ride on the model for the HTML exporter, which resolves
+them against its own page box and arrives at the same size. Before 2026-10-11 the engine read
+the extent alone: a Letter-size sidebar group declared 100% of the page's height stopped 50pt
+short of an A4 page's foot (cover-letters/09, resumes/04).
+
 ## Anchor resolution (vertical, shapes)
 
 `FloatingPosition.ResolveShapeY`: page → 0, margin → top margin, paragraph/line → the top
@@ -286,10 +301,20 @@ business-plans/08's accent rule).
 - **Pictures are deliberately NOT frame-clipped** — see the decision log.
 - **`pic:spPr` geometry crops:** a floating picture whose spPr declares `prstGeom
   prst="ellipse"` or a custGeom is Word's shaped "picture style" (brochures/03's round photos).
-  `FloatingImageElement.ClipToEllipse`/`ClipSubpaths` carry it; Skia clips via `ClipPath`, PDF
-  via `IntersectClip`, ImageSharp composites a pre-clipped bitmap for the ellipse case
-  (`GetEllipseClippedImage`) and draws custGeom crops unclipped (no canvas clip stack). Rotated
-  pictures are exempt: the clip sits in page space while the bitmap turns inside the draw.
+  `FloatingImageElement.ClipToEllipse`/`ClipSubpaths` carry it onto the `PlacedImage`. The
+  engine painters lost this in the flip — only `PdfPainter` read the two fields, so Skia and
+  ImageSharp drew every cut picture as its whole rectangle until 2026-10-11 (newsletters/13's
+  arch, newsletters/08's cover). Now Skia clips the canvas to the outline inside the picture's
+  own turn and mirror (`SkiaPainter.ImageClip`), PDF clips via `IntersectClip`, and ImageSharp
+  masks the processed bitmap's alpha with the outline (`ImageSharpRenderContext.GetClippedImage`
+  — its canvas clip rebases coordinates on the path's bounds, so the cut is made in the pixels).
+  PDF and ImageSharp leave a rotated picture uncut: the outline sits in page space while the
+  bitmap turns inside the draw.
+- **A picture-FILLED shape is a cut picture too.** `Fragmenter.ShapeImage` builds its
+  `PlacedImage` with the shape's contours (or its ellipse) as the cut and the fill's crop
+  (`FloatingShapeElement.ImageCrop`: `a:srcRect` folded with `a:stretch/a:fillRect`, see
+  `docs/word-features.md`, Image Cropping). Before 2026-10-11 it passed neither: brochures/04's
+  brick-wall triangle painted as the whole photo squeezed into the triangle's box.
 
 ## Cell-attached floats
 

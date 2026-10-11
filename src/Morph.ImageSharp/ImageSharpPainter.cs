@@ -86,7 +86,23 @@ static class ImageSharpPainter
             case PlacedRotatedGroup group:
                 PaintRotatedGroup(context, canvas, group);
                 break;
+            case PlacedClipGroup clip:
+                PaintClipGroup(context, canvas, clip);
+                break;
         }
+    }
+
+    // See SkiaPainter.PaintClipGroup.
+    static void PaintClipGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedClipGroup clip)
+    {
+        canvas.Save();
+        canvas.Clip(new RectanglePolygon(P(context, clip.X), P(context, clip.Y), P(context, clip.Width), P(context, clip.Height)));
+        foreach (var item in clip.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        canvas.Restore();
     }
 
     // See SkiaPainter.PaintRotatedGroup. DrawingCanvas.Save(DrawingOptions) replaces rather than
@@ -175,7 +191,7 @@ static class ImageSharpPainter
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), BorderStroke.RunBorderReserves(run.Text));
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), !run.BorderInside);
                 PaintEdges(context, canvas, boxX, boxY, boxWidth, boxHeight, CellBorders.Uniform(runBorder));
             }
         }
@@ -367,10 +383,18 @@ static class ImageSharpPainter
             return;
         }
 
+        // The outline the picture is cut to (see SkiaPainter.PaintImage). A turned picture's bitmap is
+        // its turned bounds, which the outline no longer fits, so it is left uncut.
+        var cut = (image.ClipToEllipse || image.ClipSubpaths != null) && Math.Abs(image.RotationDegrees) <= 0.01;
+        if (cut)
+        {
+            processed = context.GetClippedImage(processed, image.ClipSubpaths, image.FlipHorizontal, image.FlipVertical) ?? processed;
+        }
+
         canvas.DrawImage(processed, new((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
 
         // The picture's a:ln (see SkiaPainter.PaintImageOutline): a band outside the unrotated box.
-        if (image.Outline is { } outline)
+        if (image.Outline is { } outline && !cut)
         {
             var strokeWidth = P(context, (float) outline.WidthPoints);
             var half = strokeWidth / 2;

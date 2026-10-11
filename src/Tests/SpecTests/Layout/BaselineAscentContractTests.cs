@@ -2,7 +2,8 @@
 /// Pins the baseline-ascent contract: the canonical measurer positions every baseline at the line box
 /// minus the font's descent, so the line gap / external leading stacks ABOVE the text and the descent is
 /// what remains below it. The descent comes from the same metric family as the box —
-/// <c>−sTypoDescender</c> when the font sets USE_TYPO_METRICS, <c>usWinDescent</c> otherwise.
+/// <c>−sTypoDescender</c> when the font sets USE_TYPO_METRICS, <c>usWinDescent</c> otherwise — and, for
+/// an East Asian face, the lower half of the extra leading Word sets such a face in.
 ///
 /// <para>This replaced two earlier rules, both measured and both wrong: the hhea ascender (0.2 em high on
 /// Calibri, whose hhea box is not its GDI cell) and then <c>usWinAscent</c> for every font regardless of
@@ -25,7 +26,7 @@ public class BaselineAscentContractTests
     public async Task Every_baseline_sits_at_the_line_box_minus_the_descent()
     {
         var wrong = new List<string>();
-        int withOs2 = 0, flagged = 0;
+        int withOs2 = 0, flagged = 0, eastAsian = 0;
         foreach (var path in Directory.GetFiles(fontsDirectory, "*.ttf").Order())
         {
             var metrics = FontMetricsReader.Read(path);
@@ -35,10 +36,12 @@ public class BaselineAscentContractTests
             }
 
             int descent;
+            int faceBox;
             if (metrics.WinAscent == 0)
             {
                 // No OS/2 table: the hhea box and descender are all there is.
                 descent = -metrics.Descender;
+                faceBox = metrics.Ascender - metrics.Descender + metrics.LineGap;
             }
             else
             {
@@ -47,11 +50,31 @@ public class BaselineAscentContractTests
                 {
                     flagged++;
                     descent = -metrics.TypoDescender;
+                    faceBox = metrics.TypoAscender - metrics.TypoDescender + metrics.TypoLineGap;
                 }
                 else
                 {
                     descent = metrics.WinDescent;
+                    var winTotal = metrics.WinAscent + metrics.WinDescent;
+                    faceBox = winTotal + Math.Max(0, metrics.LineGap - (winTotal - (metrics.Ascender - metrics.Descender)));
                 }
+            }
+
+            // An East Asian face is set in a box 1.3 times its own, half the extra under the text
+            // (FontMetrics.EastAsian; EastAsianLineBoxTests holds Word's numbers).
+            if (metrics.EastAsian)
+            {
+                eastAsian++;
+                var leading = (int) Math.Round(faceBox * 0.15, MidpointRounding.AwayFromZero);
+                descent += leading;
+                if (metrics.LineBoxUnits != faceBox + 2 * leading)
+                {
+                    wrong.Add($"{Path.GetFileName(path)}: East Asian box {metrics.LineBoxUnits} != {faceBox} + 2 x {leading}");
+                }
+            }
+            else if (metrics.LineBoxUnits != faceBox)
+            {
+                wrong.Add($"{Path.GetFileName(path)}: box {metrics.LineBoxUnits} != {faceBox}");
             }
 
             if (metrics.DescentUnits != descent)
@@ -68,6 +91,8 @@ public class BaselineAscentContractTests
         await Assert.That(withOs2).IsGreaterThan(150);
         // The rule only means something if the corpus actually contains flagged fonts to take the typo side on.
         await Assert.That(flagged).IsGreaterThan(3);
+        // Batang and the two Microsoft GothicNeo weights (the YaHei and MS Gothic collections are .ttc).
+        await Assert.That(eastAsian).IsGreaterThanOrEqualTo(3);
         await Assert.That(wrong).IsEmpty();
     }
 

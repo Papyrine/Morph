@@ -21,6 +21,12 @@ sealed record NumberingInfo
     public string? FontFamily { get; init; }
 
     /// <summary>
+    /// The label's own size, from the numbering level's <c>w:lvl/w:rPr/w:sz</c>. Null = the level
+    /// declares none and the label is set at the size of the paragraph's text.
+    /// </summary>
+    public double? FontSizePoints { get; init; }
+
+    /// <summary>
     /// Marker colour from the numbering level's own <c>w:lvl/w:rPr/w:color</c> (hex, no #).
     /// Null = no level colour; the marker takes the paragraph's first-run colour instead
     /// (business-plans/12's SWOT bullets declare lavender/grey at the level).

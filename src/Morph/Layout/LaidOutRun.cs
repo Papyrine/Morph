@@ -6,5 +6,7 @@
 /// the segment's start, so a painter draws each segment's font at the right place without re-measuring.
 /// A tab-leader filler carries an empty <see cref="Text"/> and a non-<c>None</c> <see cref="Leader"/>: a
 /// painter fills its span with the leader (tiled dots/hyphens, or a baseline rule for underscore).
+/// <see cref="BorderInside"/> is set on a piece of a bordered run whose border takes no room of its own
+/// (<see cref="BorderStroke.RunBorderReserves"/>).
 /// </summary>
-readonly record struct LaidOutRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0);
+readonly record struct LaidOutRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false);

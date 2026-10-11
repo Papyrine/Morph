@@ -27,6 +27,19 @@ sealed record BorderEdge
     /// </summary>
     public double SpacePoints { get; init; }
 
+    /// <summary>
+    /// <c>w:shadow</c>: the edge casts a shadow. On a paragraph box Word draws it as a black band
+    /// beside the right and bottom rules (<c>Fragmenter.FlushBorderRun</c>).
+    /// </summary>
+    internal bool Shadow { get; init; }
+
+    /// <summary>
+    /// <c>w:frame</c>. Nothing is drawn for it, but it is part of what makes two paragraphs' boxes
+    /// the same box: border_style_variants sets three paragraphs alike but for <c>w:shadow</c> and
+    /// <c>w:frame</c>, and Word draws three boxes, not one around the three.
+    /// </summary>
+    internal bool Frame { get; init; }
+
     public static BorderEdge None => new()
     {
         IsVisible = false

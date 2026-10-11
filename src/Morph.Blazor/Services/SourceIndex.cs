@@ -87,6 +87,9 @@ sealed class SourceIndex
                 case PlacedRotatedGroup group:
                     Walk(group.Items, cursors);
                     break;
+                case PlacedClipGroup clip:
+                    Walk(clip.Items, cursors);
+                    break;
             }
         }
     }

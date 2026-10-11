@@ -240,12 +240,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // paragraph that declares its own w:jc (including an explicit "left") still overrides.
     TextAlignment defaultAlignment = TextAlignment.Left;
 
-    // Document default line spacing, used when no style supplies one. Word's built-in Normal
-    // (line=278) applies when the document declares no styles.xml, no docDefaults, or no
-    // default paragraph style (see ExtractDefaultParagraphProperties); a document that DOES
-    // declare docDefaults without a w:line AND defines a default paragraph style is
-    // single-spaced — Word-probed 2026-08-04 alongside the style-path fallback above
-    // (an invented 1.08 lived here and was part of the same corpus-wide pitch drift).
+    // Document default line spacing, used when no style supplies one. Word's built-in default
+    // (line=278) applies when the document declares no styles.xml, no docDefaults, or docDefaults
+    // with no pPrDefault element (see ExtractDefaultParagraphProperties); a document whose
+    // docDefaults DO carry a pPrDefault, empty or without a w:line, is single-spaced —
+    // Word-probed 2026-08-04 alongside the style-path fallback above (an invented 1.08 lived
+    // here and was part of the same corpus-wide pitch drift).
     double defaultLineSpacingMultiplier = 1.0;
 
     // Document-wide line multiplier from docDefaults/pPrDefault/w:spacing/@w:line, read only under
@@ -341,6 +341,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         runOrdinals = captureSources ? SourceRuns.Index(mainPart.Document) : null;
         paragraphSources = captureSources ? SourceRuns.IndexParagraphs(mainPart.Document) : null;
 
+        DropRedefinedStyles(mainPart);
+
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
         currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
 
@@ -405,6 +407,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // slightly off — acceptable: align-positioned art overwhelmingly sits in section 1
         // covers/headers, and multi-section documents rarely change the page box.
         anchorAlignmentPage = pageSettings;
+        FoldRelativeSizes(body, pageSettings);
 
         // Extract style run properties (with theme color resolution)
         styleRunProperties = ExtractStyleRunProperties(mainPart);
@@ -1897,9 +1900,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // to 1.0 alone once measured worse (40 better / 67 worse) — that verdict predated
                 // the Ppem, usWinAscent, interior-border and atLeast-row fixes it was compensating
                 // for, and it was the corpus-wide "~0.6-1pt/line too tall" drift vs Word.
+                // Where Word's BUILT-IN paragraph defaults are in force (no docDefaults, or none
+                // for paragraphs: see ExtractDefaultParagraphProperties) they stand under every
+                // style exactly as a declared pPrDefault would, so the fallback is the document
+                // default and not a flat 1.0. Probed 2026-10-11 (_probe_styleline_a/b/c/e): a
+                // style based on an undefined Normal, one with no basedOn at all, one that
+                // declares only w:spacing/@w:after and one that declares nothing each keep the
+                // 278/240 pitch (17.1pt at 12pt Calibri against 14.7 single), and complex_spacing's
+                // CustomStyle1 paragraphs sat at single spacing against Word's page until it was.
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier
                                             ?? docDefaultLineSpacingMultiplier
-                                            ?? 1.0;
+                                            ?? defaultLineSpacingMultiplier;
                 var lineSpacingPoints = baseProps?.LineSpacingPoints ?? 0;
                 var lineSpacingRule = baseProps?.LineSpacingRule ?? LineSpacingRule.Auto;
                 var firstLineIndent = baseProps?.FirstLineIndentPoints ?? 0;
@@ -2183,6 +2194,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     {
         public string LevelText { get; init; } = "";
         public string? FontFamily { get; init; }
+        public double? FontSizePoints { get; init; }
         public string? ColorHex { get; init; }
         public double LeftIndentPoints { get; init; }
         public double HangingIndentPoints { get; init; }
@@ -2231,10 +2243,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 // Get font for bullet character
                 string? fontFamily = null;
+                double? fontSizePoints = null;
                 string? markerColorHex = null;
                 var runProps = level.NumberingSymbolRunProperties;
                 if (runProps != null)
                 {
+                    // The level's own label size (w:lvl/w:rPr/w:sz, half-points).
+                    if (runProps.GetFirstChild<FontSize>()?.Val?.Value is { } halfPoints &&
+                        double.TryParse(halfPoints, NumberStyles.Float, CultureInfo.InvariantCulture, out var labelHalfPoints) &&
+                        labelHalfPoints > 0)
+                    {
+                        fontSizePoints = labelHalfPoints / 2;
+                    }
+
                     var fonts = runProps.GetFirstChild<RunFonts>();
                     if (fonts?.Ascii?.HasValue == true)
                     {
@@ -2275,6 +2296,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     LevelText = levelText,
                     FontFamily = fontFamily,
+                    FontSizePoints = fontSizePoints,
                     ColorHex = markerColorHex,
                     LeftIndentPoints = leftIndent,
                     HangingIndentPoints = hangingIndent,
@@ -2325,6 +2347,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         LevelText = baseDef.LevelText,
                         ColorHex = baseDef.ColorHex,
                         FontFamily = baseDef.FontFamily,
+                        FontSizePoints = baseDef.FontSizePoints,
                         LeftIndentPoints = baseDef.LeftIndentPoints,
                         HangingIndentPoints = baseDef.HangingIndentPoints,
                         IsBullet = baseDef.IsBullet,
@@ -2540,9 +2563,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // style says (_probe_kerncascade, A10 / A12 / B8).
             var styleRun = ResolveStyleRunProperties(style, tableStylesById);
 
-            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleRun != null || styleIndent != null || styleCannotSplit)
+            var styleCellMargin = ResolveStyleCellMargin(style, tableStylesById);
+
+            if (cellBorders.HasAnyBorder || insideH.IsVisible || insideV.IsVisible || wholeTableShading != null || conditionals != null || styleCellSpacing > 0 || styleVerticalAlignment != null || styleCellPadding != null || styleRun != null || styleIndent != null || styleCannotSplit || styleCellMargin != null)
             {
-                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, styleRun, styleIndent, styleCannotSplit);
+                result[styleId] = new(cellBorders, insideH, insideV, wholeTableShading, rowBandSize, colBandSize, styleCellSpacing, conditionals, styleVerticalAlignment, styleCellPadding, styleRun, styleIndent, styleCannotSplit, styleCellMargin);
             }
         }
 
@@ -2562,6 +2587,47 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // those rather than parsing them, which took the whole document down with it.
     static bool OnOffOnlyIsOn(EnumValue<OnOffOnlyValues>? value) =>
         value?.InnerText?.ToLowerInvariant() is not ("off" or "0" or "false");
+
+    /// <summary>
+    /// The cell margins a table style gives every cell through its whole-table <c>w:tcPr/w:tcMar</c>,
+    /// the nearest declaration on the <c>w:basedOn</c> chain. They are not the style's
+    /// <c>w:tblCellMar</c> and do not rank with it. Word-probed 2026-10-11 (<c>_probe_styletcmar</c>:
+    /// a Table Grid style fattened to 15pt above and below and 30pt on the left, on one-row tables
+    /// of 10pt text): a table with nothing of its own took all three (27.6pt from the line above to
+    /// the cell's baseline, text 30pt in from the edge); a table declaring its OWN
+    /// <c>w:tblCellMar</c> of 30pt, 30pt and 5pt still took the style's 15, 15 and 30; and a cell
+    /// with its own zero <c>w:tcMar</c> stood flush left. So a cell's own margins come first, then
+    /// these, then the table's, then the style's <c>w:tblCellMar</c>. agendas-minutes/19's contact
+    /// table is the corpus case — its style declares 3.6pt above and below, and every row was that
+    /// much too short twice over.
+    /// </summary>
+    internal static TableCellMargin? ResolveStyleCellMargin(Style style, Dictionary<string, Style> tableStylesById)
+    {
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = style;
+        while (current != null)
+        {
+            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            {
+                break;
+            }
+
+            if (current.StyleTableCellProperties?.GetFirstChild<TableCellMargin>() is { } margin)
+            {
+                return margin;
+            }
+
+            var basedOnId = current.BasedOn?.Val?.Value;
+            if (basedOnId == null || !tableStylesById.TryGetValue(basedOnId, out var baseStyle))
+            {
+                break;
+            }
+
+            current = baseStyle;
+        }
+
+        return null;
+    }
 
     internal static bool ResolveStyleCannotSplit(Style style, Dictionary<string, Style> tableStylesById)
     {
@@ -3346,6 +3412,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Text = text,
             Level = ilvl,
             FontFamily = levelDef.FontFamily,
+            FontSizePoints = levelDef.FontSizePoints,
             ColorHex = levelDef.ColorHex,
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints,
@@ -4245,20 +4312,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return;
         }
 
-        // docDefaults IS present but declares NO pPrDefault element at all, and the package
-        // defines no default paragraph style either: nothing has replaced Word's BUILT-IN
-        // Normal (8pt-after, line=278), so unstyled paragraphs still take its spacing.
-        // Measured against Word's references: even_odd_headers/02's footer line and
-        // decimal_tabs/01's rows each sit exactly the built-in spacing below a zero-spacing
-        // render (row pitch 46.5px vs the 25.5px bare line at 150 DPI). An EMPTY
+        // docDefaults IS present but declares NO pPrDefault element at all: nothing has
+        // replaced Word's BUILT-IN paragraph defaults (8pt-after, line=278), so every paragraph
+        // still starts from them. Measured against Word's references: even_odd_headers/02's
+        // footer line and decimal_tabs/01's rows each sit exactly the built-in spacing below a
+        // zero-spacing render (row pitch 46.5px vs the 25.5px bare line at 150 DPI). An EMPTY
         // <w:pPrDefault/> is different — it is an explicit "no paragraph defaults" and Word
         // reads it as zero: wordart declares one and its reference is tight (a built-in
-        // fallback there regressed pages 5-15 by +0.01..+0.045 AE). A defined default
-        // paragraph style also suppresses the built-in — resumes/13, cover-letters/03,
-        // letters/09 and wedding/05 all define Normal and render tight in Word.
-        var definesDefaultParagraphStyle = stylesPart.Styles.Elements<Style>()
-            .Any(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true);
-        if (docDefaults.ParagraphPropertiesDefault == null && !definesDefaultParagraphStyle)
+        // fallback there regressed pages 5-15 by +0.01..+0.045 AE).
+        //
+        // Whether the package defines a default paragraph style makes no difference. Probed
+        // 2026-10-11 (_probe_styleline_a to _e, five packages differing only in this part's
+        // defaults, each paragraph's pitch and after-spacing read off the XPS baselines): with
+        // an rPrDefault and no pPrDefault, an unstyled paragraph is pitched 17.4pt and followed
+        // by 8pt whether Normal is defined (and empty) or not, against 14.7pt and nothing under
+        // an empty pPrDefault. A rule that a defined Normal suppresses the built-in stood here
+        // until then; the four fixtures it was read off (resumes/13, cover-letters/03,
+        // letters/09, wedding/05) all carry an EMPTY pPrDefault, which is what makes them tight.
+        if (docDefaults.ParagraphPropertiesDefault == null)
         {
             defaultSpacingAfterPoints = builtInSpacingAfterPoints;
             defaultLineSpacingMultiplier = builtInLineSpacingMultiplier;
@@ -4400,6 +4471,71 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return result;
     }
 
+    // A styles part that defines one styleId twice: Word keeps the LAST definition and nothing of the
+    // ones before it. Word-probed 2026-10-11 (_probe_headname_a to _f) on complex_tables' own styles
+    // part, which declares Heading1 and Heading2 first as blue 16pt and 13pt, and again at its end as
+    // bold black 18pt and 14pt with space above and below: Word set the headings at 18.025 and 13.8pt
+    // on the second definitions' spacing, and adding italics, centring and an indent to the FIRST
+    // definition moved nothing. Every reader of the styles walks the part in order and takes the
+    // first match, so the earlier definitions are dropped from the tree before anything reads it.
+    static void DropRedefinedStyles(MainDocumentPart mainPart)
+    {
+        if (mainPart.StyleDefinitionsPart?.Styles is not { } styles)
+        {
+            return;
+        }
+
+        var last = new Dictionary<string, Style>(StringComparer.Ordinal);
+        List<Style>? redefined = null;
+        foreach (var style in styles.Elements<Style>())
+        {
+            if (style.StyleId?.Value is not { } styleId)
+            {
+                continue;
+            }
+
+            if (last.TryGetValue(styleId, out var earlier))
+            {
+                (redefined ??= []).Add(earlier);
+            }
+
+            last[styleId] = style;
+        }
+
+        if (redefined == null)
+        {
+            return;
+        }
+
+        foreach (var style in redefined)
+        {
+            style.Remove();
+        }
+    }
+
+    // Percentage-sized anchors take their size from the page of the section they stand in: a section
+    // ends at the paragraph carrying its w:sectPr, and the body's own w:sectPr is the last section's.
+    void FoldRelativeSizes(Body body, PageSettings firstSection)
+    {
+        if (!body.Descendants<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>().Any())
+        {
+            return;
+        }
+
+        // Walked from the end, so that each element is under the section properties that close it.
+        var page = body.GetFirstChild<SectionProperties>() is { } last ? ExtractPageSettings(last) : firstSection;
+        for (var index = body.ChildElements.Count - 1; index >= 0; index--)
+        {
+            var child = body.ChildElements[index];
+            if (child is Paragraph {ParagraphProperties.SectionProperties: { } section})
+            {
+                page = ExtractPageSettings(section);
+            }
+
+            child.FoldRelativeSizes(page);
+        }
+    }
+
     // A header or footer part's content, null when the part is missing or empty (a blank first-page
     // header is Word's way of showing none on a title page, and must stay "nothing").
     HeaderFooterContent? ParseBandPart(OpenXmlPart? part, MainDocumentPart mainPart)
@@ -4414,6 +4550,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (rootElement == null)
         {
             return null;
+        }
+
+        // A band's part is shared by the sections that show it; its percentage-sized art takes the
+        // first section's page, as its aligned art does.
+        if (anchorAlignmentPage != null)
+        {
+            rootElement.FoldRelativeSizes(anchorAlignmentPage);
         }
 
         var elements = new List<DocumentElement>();
@@ -4800,6 +4943,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // a cell's w:tcMar — inherits its unstated sides from THIS, so it is computed once here
         // rather than re-derived at each site.
         var effectiveCellPadding = defaultCellPadding ?? styleInfo?.DefaultCellPadding;
+
+        // The style's whole-table w:tcPr/w:tcMar stands over both, side by side
+        // (ResolveStyleCellMargin).
+        if (styleInfo?.CellMargin is { } styleCellMargin)
+        {
+            effectiveCellPadding = ParseCellMargin(styleCellMargin, effectiveCellPadding);
+        }
 
         // tblLook gates which conditional flags can be derived from cell position when the
         // document doesn't carry explicit w:cnfStyle.
@@ -5753,7 +5903,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             WidthPoints = width,
             ColorHex = color,
             Style = MapBorderStyle(border.Val?.Value),
-            SpacePoints = border.Space?.Value ?? 0
+            SpacePoints = border.Space?.Value ?? 0,
+            Shadow = border.Shadow?.Value == true,
+            Frame = border.Frame?.Value == true
         };
     }
 
@@ -7191,6 +7343,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return ParseInlineShapeGroupRun(drawing, wpgGroup, hostPart, runProps);
         }
 
+        // An inline chart (a:graphicData holding a c:chart reference to a chart part).
+        if (drawing.Descendants().FirstOrDefault(_ => _.LocalName == "chart" && _.Parent?.LocalName == "graphicData") is { } chartReference)
+        {
+            return ParseInlineChartRun(drawing, chartReference, hostPart, runProps);
+        }
+
         // Standalone inline connector — a single <wps:wsp> with prstGeom prst="line" sitting
         // directly under <a:graphicData> (no wpg:wgp wrapper). Used by some templates for
         // section divider rules between sub-headings; without this branch the line is silently
@@ -7501,24 +7659,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var wspBlipFill = shapeProps.GetFirstChild<A.BlipFill>();
                 var blipImage = wspBlipFill != null ? ReadBlipImage(wspBlipFill, hostPart) : null;
 
+                var geometry = MapGroupGeometry(shapeProps);
+                var member = PlaceGroupMember(
+                    wsp,
+                    shapeXfrm,
+                    geometry,
+                    ShapeParser.ExtractSubpaths(shapeProps)
+                    ?? PresetShapeGeometry.TryBuild(
+                        shapeProps.GetFirstChild<A.PresetGeometry>(),
+                        shapeXfrm.Extents.Cx ?? 0,
+                        shapeXfrm.Extents.Cy ?? 0),
+                    turnable: blipImage == null);
+
                 shapes.Add(
                     new()
                     {
-                        X = (shapeXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                        Y = (shapeXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                        Width = shapeXfrm.Extents.Cx ?? 0,
-                        Height = shapeXfrm.Extents.Cy ?? 0,
+                        X = member.X - chOffX + paddingX,
+                        Y = member.Y - chOffY + paddingY,
+                        Width = member.Width,
+                        Height = member.Height,
                         ColorHex = stroke.ColorHex,
                         LineWidthEmu = stroke.WidthEmu,
                         LineAlpha = stroke.Alpha,
-                        FlipVertical = shapeXfrm.VerticalFlip?.Value == true,
-                        FlipHorizontal = shapeXfrm.HorizontalFlip?.Value == true,
-                        Geometry = MapGroupGeometry(shapeProps),
-                        Subpaths = ShapeParser.ExtractSubpaths(shapeProps)
-                                   ?? PresetShapeGeometry.TryBuild(
-                                       shapeProps.GetFirstChild<A.PresetGeometry>(),
-                                       shapeXfrm.Extents.Cx ?? 0,
-                                       shapeXfrm.Extents.Cy ?? 0),
+                        FlipVertical = member.FlipVertical,
+                        FlipHorizontal = member.FlipHorizontal,
+                        Geometry = geometry,
+                        Subpaths = member.Subpaths,
                         FillColorHex = fill != null ? ExtractFirstFillColor(fill) : null,
                         FillAlpha = fill != null ? ShapeParser.ExtractSolidFillAlpha(fill) : 1,
                         Shadow = ReadOuterShadow(shapeProps),
@@ -7545,14 +7711,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // style") and the ring drawn around it, the same way a wps:wsp carries its own.
                 // A picture has no wps:style, so its outline width has to be explicit.
                 var picStroke = ReadGroupStroke(picProps, lineReference: null);
+                var member = PlaceGroupMember(picture, picXfrm, GroupShapeGeometry.Rectangle, subpaths: null, turnable: false);
 
                 shapes.Add(
                     new()
                     {
-                        X = (picXfrm.Offset.X ?? 0) - chOffX + paddingX,
-                        Y = (picXfrm.Offset.Y ?? 0) - chOffY + paddingY,
-                        Width = picXfrm.Extents.Cx ?? 0,
-                        Height = picXfrm.Extents.Cy ?? 0,
+                        X = member.X - chOffX + paddingX,
+                        Y = member.Y - chOffY + paddingY,
+                        Width = member.Width,
+                        Height = member.Height,
                         ColorHex = picStroke.ColorHex,
                         LineWidthEmu = picStroke.WidthEmu,
                         LineAlpha = picStroke.Alpha,
@@ -7591,6 +7758,290 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 Shapes = shapes
             }
         };
+    }
+
+    /// <summary>
+    /// An inline pie or doughnut chart, as an inline group of its slices: each slice a filled outline
+    /// in the plot circle's box, coloured and stroked as its <c>c:dPt</c> says (or from the theme's
+    /// accents in turn when the chart varies its colours and the point names none). Slices run
+    /// clockwise from <c>c:firstSliceAng</c> degrees past twelve o'clock, each a share of the circle
+    /// proportional to its cached value; the plot circle is the largest that fits the plot area's
+    /// manual layout (the whole chart when there is none), and a doughnut's hole is
+    /// <c>c:holeSize</c> percent of its diameter. business-plans/12's SWOT ring is the case: four
+    /// quarters around a half-width hole. Titles, legends and data labels are not drawn, and other
+    /// chart kinds are not read (null: the run then carries nothing, as before).
+    /// </summary>
+    Run? ParseInlineChartRun(Drawing drawing, OpenXmlElement chartReference, OpenXmlPart hostPart, RunProperties runProps)
+    {
+        var extent = drawing.Descendants<DW.Extent>().FirstOrDefault();
+        var relationshipId = chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value;
+        if (extent?.Cx == null || extent.Cy == null || extent.Cx.Value <= 0 || extent.Cy.Value <= 0 || string.IsNullOrEmpty(relationshipId))
+        {
+            return null;
+        }
+
+        OpenXmlPartRootElement? chartSpace;
+        try
+        {
+            chartSpace = hostPart.GetPartById(relationshipId).RootElement;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return null;
+        }
+
+        var plotArea = chartSpace?.Descendants().FirstOrDefault(_ => _.LocalName == "plotArea");
+        var chart = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "doughnutChart" or "pieChart");
+        var series = chart?.Elements().FirstOrDefault(_ => _.LocalName == "ser");
+        if (plotArea == null || chart == null || series == null)
+        {
+            return null;
+        }
+
+        static OpenXmlElement? Child(OpenXmlElement? parent, string localName) =>
+            parent?.Elements().FirstOrDefault(_ => _.LocalName == localName);
+
+        static double? Value(OpenXmlElement? element) =>
+            element?.GetAttributes().FirstOrDefault(_ => _.LocalName == "val").Value is { } text &&
+            double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+                ? number
+                : null;
+
+        // The cached values, by point index.
+        var values = new SortedDictionary<int, double>();
+        foreach (var point in Child(series, "val")?.Descendants().Where(_ => _.LocalName == "pt") ?? [])
+        {
+            if (int.TryParse(point.GetAttributes().FirstOrDefault(_ => _.LocalName == "idx").Value, out var pointIndex) &&
+                double.TryParse(Child(point, "v")?.InnerText, NumberStyles.Float, CultureInfo.InvariantCulture, out var pointValue) &&
+                pointValue > 0)
+            {
+                values[pointIndex] = pointValue;
+            }
+        }
+
+        var total = values.Values.Sum();
+        if (total <= 0)
+        {
+            return null;
+        }
+
+        var pointProperties = new Dictionary<int, OpenXmlElement>();
+        foreach (var dataPoint in series.Elements().Where(_ => _.LocalName == "dPt"))
+        {
+            if (Value(Child(dataPoint, "idx")) is { } dataPointIndex && Child(dataPoint, "spPr") is { } properties)
+            {
+                pointProperties[(int) dataPointIndex] = properties;
+            }
+        }
+
+        // The plot area's manual layout, as fractions of the chart; the whole chart without one.
+        var layout = Child(Child(plotArea, "layout"), "manualLayout");
+        var plotX = (Value(Child(layout, "x")) ?? 0) * extent.Cx.Value;
+        var plotY = (Value(Child(layout, "y")) ?? 0) * extent.Cy.Value;
+        var plotWidth = (Value(Child(layout, "w")) ?? 1) * extent.Cx.Value;
+        var plotHeight = (Value(Child(layout, "h")) ?? 1) * extent.Cy.Value;
+        var diameter = Math.Min(plotWidth, plotHeight);
+        if (diameter <= 0)
+        {
+            return null;
+        }
+
+        var circleX = plotX + (plotWidth - diameter) / 2;
+        var circleY = plotY + (plotHeight - diameter) / 2;
+        var hole = chart.LocalName == "doughnutChart" ? Math.Clamp((Value(Child(chart, "holeSize")) ?? 10) / 100, 0, 0.9) : 0;
+        var varyColors = Value(Child(chart, "varyColors")) != 0;
+        var seriesProperties = Child(series, "spPr");
+
+        var shapes = new List<GroupShape>();
+        var angle = Value(Child(chart, "firstSliceAng")) ?? 0;
+        foreach (var (pointIndex, pointValue) in values)
+        {
+            var sweep = pointValue / total * 360;
+            var properties = pointProperties.GetValueOrDefault(pointIndex) ?? seriesProperties;
+            var fill = ExtractFirstFillColor(Child(properties, "solidFill"))
+                       ?? (varyColors ? currentThemeColors?.ResolveColor($"accent{pointIndex % 6 + 1}") : null)
+                       ?? currentThemeColors?.ResolveColor("accent1")
+                       ?? "4472C4";
+            var outline = Child(properties, "ln");
+            var stroked = outline != null && Child(outline, "noFill") == null;
+            shapes.Add(
+                new()
+                {
+                    X = circleX,
+                    Y = circleY,
+                    Width = diameter,
+                    Height = diameter,
+                    Geometry = GroupShapeGeometry.Rectangle,
+                    Subpaths = [SliceContour(angle, sweep, hole)],
+                    FillColorHex = fill,
+                    ColorHex = stroked ? ExtractFirstFillColor(Child(outline, "solidFill")) ?? "FFFFFF" : "FFFFFF",
+                    LineWidthEmu = stroked && long.TryParse(outline!.GetAttributes().FirstOrDefault(_ => _.LocalName == "w").Value, out var lineWidth) ? lineWidth : 0
+                });
+            angle += sweep;
+        }
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint,
+            InlineImageHeightPoints = extent.Cy.Value / OoxmlUnits.EmusPerPoint,
+            InlineShapeGroup = new()
+            {
+                ChildExtentX = extent.Cx.Value,
+                ChildExtentY = extent.Cy.Value,
+                Shapes = shapes
+            }
+        };
+    }
+
+    // One slice's outline in the unit square of the plot circle: the outer arc clockwise from
+    // startDegrees past twelve o'clock, then back along the hole's arc (or to the centre for a pie).
+    static IReadOnlyList<(double X, double Y)> SliceContour(double startDegrees, double sweepDegrees, double hole)
+    {
+        var steps = Math.Max(2, (int) Math.Ceiling(sweepDegrees / 2));
+        var points = new List<(double X, double Y)>(steps * 2 + 2);
+
+        (double X, double Y) At(double degrees, double radius)
+        {
+            var radians = degrees * Math.PI / 180;
+            return (0.5 + radius * Math.Sin(radians), 0.5 - radius * Math.Cos(radians));
+        }
+
+        for (var step = 0; step <= steps; step++)
+        {
+            points.Add(At(startDegrees + sweepDegrees * step / steps, 0.5));
+        }
+
+        if (hole <= 0)
+        {
+            points.Add((0.5, 0.5));
+            return points;
+        }
+
+        for (var step = steps; step >= 0; step--)
+        {
+            points.Add(At(startDegrees + sweepDegrees * step / steps, 0.5 * hole));
+        }
+
+        return points;
+    }
+
+    /// <summary>
+    /// Where a member of an inline group stands in the group's own child space, and what its outline
+    /// is there. A member inside nested <c>wpg:grpSp</c> groups is declared in the innermost one's
+    /// child space, and each group on the way out scales that into its own box and turns it about
+    /// its centre — newsletters/03's banner hexagons sit in a nested group drawn at 65% (one of them
+    /// turned half way round), and read flat they covered half the photo. A turn — the groups', or
+    /// the member's own <c>a:xfrm/@rot</c> — is baked into the outline, so the painters need know
+    /// nothing of it: the box becomes the turned outline's bounds, and the outline is restated
+    /// inside that. A picture cannot be turned this way and keeps its upright box at the place the
+    /// groups put its centre.
+    /// </summary>
+    static (double X, double Y, double Width, double Height, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? Subpaths, bool FlipHorizontal, bool FlipVertical)
+        PlaceGroupMember(OpenXmlElement element, A.Transform2D xfrm, GroupShapeGeometry geometry, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? subpaths, bool turnable)
+    {
+        var flipHorizontal = xfrm.HorizontalFlip?.Value == true;
+        var flipVertical = xfrm.VerticalFlip?.Value == true;
+        var (x, y, width, height, groupDegrees, mirrored) = GetAccumulatedTransform(element, 0, 0, 1, 1, composeFlips: true)
+            .MapRectangle(xfrm.Offset?.X ?? 0, xfrm.Offset?.Y ?? 0, xfrm.Extents?.Cx ?? 0, xfrm.Extents?.Cy ?? 0);
+        var ownDegrees = (xfrm.Rotation?.Value ?? 0) / 60000.0;
+
+        static bool IsTurn(double degrees) => Math.Abs(Math.IEEERemainder(degrees, 360)) > 0.01;
+
+        if (!turnable || (!mirrored && !IsTurn(groupDegrees) && !IsTurn(ownDegrees)))
+        {
+            return (x, y, width, height, subpaths, flipHorizontal, flipVertical);
+        }
+
+        // A point of the member, measured from its centre: its own flips, its own turn, then the
+        // groups' mirror and turn.
+        var ownRadians = ownDegrees * Math.PI / 180;
+        var groupRadians = groupDegrees * Math.PI / 180;
+        (double X, double Y) Turn(double pointX, double pointY)
+        {
+            if (flipHorizontal)
+            {
+                pointX = -pointX;
+            }
+
+            if (flipVertical)
+            {
+                pointY = -pointY;
+            }
+
+            (pointX, pointY) = (pointX * Math.Cos(ownRadians) - pointY * Math.Sin(ownRadians), pointX * Math.Sin(ownRadians) + pointY * Math.Cos(ownRadians));
+            if (mirrored)
+            {
+                pointY = -pointY;
+            }
+
+            return (pointX * Math.Cos(groupRadians) - pointY * Math.Sin(groupRadians), pointX * Math.Sin(groupRadians) + pointY * Math.Cos(groupRadians));
+        }
+
+        var centerX = x + width / 2;
+        var centerY = y + height / 2;
+
+        // A line is its two ends, and stays a line: the flips say which way it now runs.
+        if (subpaths == null && geometry == GroupShapeGeometry.Line)
+        {
+            var start = Turn(-width / 2, -height / 2);
+            var end = Turn(width / 2, height / 2);
+            return (
+                centerX + Math.Min(start.X, end.X),
+                centerY + Math.Min(start.Y, end.Y),
+                Math.Abs(end.X - start.X),
+                Math.Abs(end.Y - start.Y),
+                null,
+                end.X < start.X,
+                end.Y < start.Y);
+        }
+
+        var turned = (subpaths ?? [PrimitiveContour(geometry)])
+            .Select(_ => _.Select(point => Turn((point.X - 0.5) * width, (point.Y - 0.5) * height)).ToList())
+            .ToList();
+        var points = turned.SelectMany(_ => _).ToList();
+        if (points.Count == 0)
+        {
+            return (x, y, width, height, subpaths, flipHorizontal, flipVertical);
+        }
+
+        var left = points.Min(_ => _.X);
+        var top = points.Min(_ => _.Y);
+        var turnedWidth = points.Max(_ => _.X) - left;
+        var turnedHeight = points.Max(_ => _.Y) - top;
+        if (turnedWidth <= 0 || turnedHeight <= 0)
+        {
+            return (x, y, width, height, subpaths, flipHorizontal, flipVertical);
+        }
+
+        return (
+            centerX + left,
+            centerY + top,
+            turnedWidth,
+            turnedHeight,
+            [.. turned.Select(_ => (IReadOnlyList<(double X, double Y)>) [.. _.Select(point => ((point.X - left) / turnedWidth, (point.Y - top) / turnedHeight))])],
+            false,
+            false);
+    }
+
+    // A rect's or an ellipse's outline in the unit square, for a primitive that has to be turned.
+    static IReadOnlyList<(double X, double Y)> PrimitiveContour(GroupShapeGeometry geometry)
+    {
+        if (geometry != GroupShapeGeometry.Ellipse)
+        {
+            return [(0, 0), (1, 0), (1, 1), (0, 1)];
+        }
+
+        const int segments = 72;
+        var points = new List<(double X, double Y)>(segments);
+        for (var index = 0; index < segments; index++)
+        {
+            var angle = 2 * Math.PI * index / segments;
+            points.Add((0.5 + 0.5 * Math.Cos(angle), 0.5 + 0.5 * Math.Sin(angle)));
+        }
+
+        return points;
     }
 
     /// <summary>
@@ -8150,21 +8601,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return (dark, light);
     }
 
-    static ImageCrop? ReadCrop(OpenXmlElement blipFill)
+    /// <summary>
+    /// The part of a blip fill's picture that shows in its box. Two rectangles decide it, both in
+    /// 1000ths of a percent per edge: <c>a:srcRect</c> picks the part of the picture that is used
+    /// (positive trims, negative pads), and <c>a:stretch/a:fillRect</c> says where that part is
+    /// stretched to, as insets from the box's own edges (positive inside it, negative beyond it —
+    /// which is how Word stores a picture zoomed inside a shape: newsletters/03's banner photos
+    /// reach a third of the box's width past its left edge and half past its right, and the box
+    /// shows the middle of them). The two fold into one crop of the picture.
+    /// </summary>
+    internal static ImageCrop? ReadCrop(OpenXmlElement blipFill)
     {
-        // a:srcRect attributes l/t/r/b are in 1000ths of a percent (100000 = 100%).
-        var srcRect = blipFill.Elements().FirstOrDefault(_ => _.LocalName == "srcRect");
-        if (srcRect == null)
-        {
-            return null;
-        }
+        var source = ReadEdges(blipFill.Elements().FirstOrDefault(_ => _.LocalName == "srcRect"));
+        var fill = ReadEdges(blipFill.Elements().FirstOrDefault(_ => _.LocalName == "stretch")?.Elements().FirstOrDefault(_ => _.LocalName == "fillRect"));
 
+        var (left, right) = Fold(source.Left, source.Right, fill.Left, fill.Right);
+        var (top, bottom) = Fold(source.Top, source.Bottom, fill.Top, fill.Bottom);
         var crop = new ImageCrop
         {
-            Left = ReadFraction(srcRect, "l"),
-            Top = ReadFraction(srcRect, "t"),
-            Right = ReadFraction(srcRect, "r"),
-            Bottom = ReadFraction(srcRect, "b")
+            Left = left,
+            Top = top,
+            Right = right,
+            Bottom = bottom
         };
 
         if (crop.IsCropped)
@@ -8173,6 +8631,25 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         return null;
+
+        // Along one axis: the used part of the picture spans the fill rectangle, and the box sees
+        // the stretch of it between the box's own edges.
+        static (double Near, double Far) Fold(double sourceNear, double sourceFar, double fillNear, double fillFar)
+        {
+            var fillSpan = 1 - fillNear - fillFar;
+            if (fillSpan <= 0 || (fillNear == 0 && fillFar == 0))
+            {
+                return (sourceNear, sourceFar);
+            }
+
+            var sourceSpan = 1 - sourceNear - sourceFar;
+            return (sourceNear - fillNear / fillSpan * sourceSpan, sourceFar - fillFar / fillSpan * sourceSpan);
+        }
+
+        static (double Left, double Top, double Right, double Bottom) ReadEdges(OpenXmlElement? element) =>
+            element == null
+                ? default
+                : (ReadFraction(element, "l"), ReadFraction(element, "t"), ReadFraction(element, "r"), ReadFraction(element, "b"));
 
         static double ReadFraction(OpenXmlElement element, string attributeName)
         {
@@ -9140,6 +9617,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // body groups still dual-parse; the position/size dedup collapses the twins.
         byte[]? imageData = null;
         string? imageContentType = null;
+        ImageCrop? imageCrop = null;
         if (shapeProps.GetFirstChild<A.BlipFill>() is { } blipFill)
         {
             (imageData, imageContentType) = ShapeParser.ExtractBlipFillImage(blipFill, mainPart, GetPartBytes);
@@ -9147,6 +9625,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 return null;
             }
+
+            imageCrop = ReadCrop(blipFill);
         }
 
         // prstGeom prst="line" — stroke-only connector. Has no fill (and typically cy=0
@@ -9426,6 +9906,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Gradient = gradient,
             ImageData = imageData,
             ImageContentType = imageContentType,
+            ImageCrop = imageCrop,
             // Solid-filled shapes stroke their <a:ln> exactly like ShapeParser's solid branch
             // always has — the asymmetry left walk-owned filled shapes borderless
             // (letters/05's p1 triangle is a WHITE-filled custGeom whose thick teal stroke is
@@ -11047,6 +11528,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ParagraphMarkRunProperties = paragraphMark,
                 BackgroundColorHex = backgroundColor,
                 StyleId = styleId,
+                ResolvedStyleId = effectiveStyleId,
+                InDefaultStyle = effectiveStyleId == defaultParagraphStyleId,
                 Borders = styleDefaults?.Borders,
                 BorderTopSpacePoints = styleDefaults?.BorderTopSpacePoints ?? 0,
                 BorderBottomSpacePoints = styleDefaults?.BorderBottomSpacePoints ?? 0,
@@ -11419,6 +11902,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ParagraphMarkRunProperties = paragraphMark,
             BackgroundColorHex = backgroundColor,
             StyleId = styleId,
+            ResolvedStyleId = effectiveStyleId,
+            InDefaultStyle = effectiveStyleId == defaultParagraphStyleId,
             Borders = borders,
             BorderTopSpacePoints = borderTopSpace,
             BorderBottomSpacePoints = borderBottomSpace,

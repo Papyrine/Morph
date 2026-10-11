@@ -23,4 +23,18 @@ sealed class CompatibilitySettings
     /// In mode 15+, table cells may get additional line spacing for single-spaced text.
     /// </summary>
     public bool AddLineSpacingToTableCells => CompatibilityMode >= 15;
+
+    /// <summary>
+    /// Whether a justified line may take one more word than fits by narrowing its spaces (Word 2013+
+    /// behavior). In mode 14 and older a justified line breaks exactly where a left-aligned one does.
+    /// The rule and its Word probe are on <c>CanonicalParagraphMeasurer.BuildWrap</c>.
+    /// </summary>
+    public bool SqueezesJustifiedLines => CompatibilityMode >= 15;
+
+    /// <summary>
+    /// Whether a paragraph that opens its page with <c>w:pageBreakBefore</c> keeps the part of its
+    /// spacing-before that exceeds the previous paragraph's spacing-after (Word 2010 and older
+    /// behavior). In mode 15 it keeps none. The Word probe is on <c>Fragmenter.PlaceParagraph</c>.
+    /// </summary>
+    public bool KeepsSpacingBeforeAfterPageBreakBefore => CompatibilityMode <= 14;
 }

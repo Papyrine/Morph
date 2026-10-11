@@ -284,6 +284,7 @@ public class TextLayerBuilderTests
         await Assert.That(kinds).IsEquivalentTo(
         [
             "PlacedBorder",
+                "PlacedClipGroup",
                 "PlacedImage",
                 "PlacedLine",
                 "PlacedRotatedGroup",

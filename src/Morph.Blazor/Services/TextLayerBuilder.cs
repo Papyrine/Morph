@@ -110,6 +110,11 @@ static class TextLayerBuilder
                 case PlacedRotatedGroup group:
                     nodes.Add(new FrameNode('r', group.X, group.Y, group.Width, group.Height, group.RotationDegrees, true, Container(group.Items, sources)));
                     break;
+                case PlacedClipGroup clip:
+                    // A clip changes what is drawn of its items, not where they are: their text reads
+                    // as it would outside one.
+                    nodes.AddRange(Container(clip.Items, sources));
+                    break;
                 case PlacedWordArt {Visual.Text.Length: > 0} wordArt:
                     // A warp draws as one figure with no line geometry; the whole box stands in for its text.
                     nodes.Add(new BoxNode(wordArt.X, wordArt.Y, wordArt.Width, wordArt.Height, wordArt.Visual.Text));

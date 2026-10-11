@@ -35,7 +35,10 @@ sealed record FontMetrics
     /// compressed ~2.2 pt per line under the hhea model. Falls back to the hhea box for a font with no
     /// <c>OS/2</c> table.
     /// </summary>
-    public int LineBoxUnits
+    public int LineBoxUnits => FaceBoxUnits + 2 * EastAsianLeadingUnits;
+
+    // The box the face's own tables give, before the East Asian leading.
+    int FaceBoxUnits
     {
         get
         {
@@ -53,6 +56,26 @@ sealed record FontMetrics
             return Ascender - Descender + LineGap;
         }
     }
+
+    /// <summary>
+    /// <c>OS/2.ulCodePageRange1</c> names an East Asian code page (bits 17 to 21: JIS, simplified
+    /// Chinese, Korean Wansung, traditional Chinese, Korean Johab). Word sets a line of such a face
+    /// in a box 1.3 times the face's own, with the extra shared evenly above and below the text —
+    /// whatever the text is, Latin included, which is how a template whose theme names Microsoft
+    /// YaHei for its headings gets them. Word-probed 2026-10-11 (<c>_probe_eaheight</c>, on two base
+    /// documents): eleven faces at 24 and 48pt, three lines each at the top of a page. The single
+    /// pitch came to 1.3 × the face's box on every one — Microsoft YaHei 1.7133 em for a box of
+    /// 1.3198, its UI cut 1.6510 for 1.2700, MS Gothic, Batang and SimSun 1.3004 for 1.0000,
+    /// Microsoft GothicNeo 1.5573 for 1.1968, Malgun Gothic 1.7263 for 1.3301 — against Arial's
+    /// 1.1513 for 1.1499 on the same pages. The first baseline sat half the extra lower than the
+    /// face's own (YaHei 24pt at 51px on the 120-dpi grid: its 43, and 8 of the 15.8 extra), and a
+    /// 1.5 multiple stacked on top of the 1.3 box and left that baseline where it was.
+    /// </summary>
+    public bool EastAsian { get; init; }
+
+    // Half of the extra 0.3 of the face's box: what an East Asian face's line carries above its
+    // text, and again below it.
+    int EastAsianLeadingUnits => EastAsian ? (int) Math.Round(FaceBoxUnits * 0.15, MidpointRounding.AwayFromZero) : 0;
 
     /// <summary>The single-spaced line pitch in points at <paramref name="sizePoints"/>.</summary>
     public double LinePitchPoints(double sizePoints) => (double) LineBoxUnits / UnitsPerEm * sizePoints;
@@ -92,9 +115,12 @@ sealed record FontMetrics
     /// The descent below the baseline that Word reserves at the bottom of the line box — the same
     /// family <see cref="LineBoxUnits"/> is built from: <c>−sTypoDescender</c> for a font that sets
     /// USE_TYPO_METRICS, <c>usWinDescent</c> for any other OS/2-bearing font, the hhea descender
-    /// for a font with no <c>OS/2</c> table.
+    /// for a font with no <c>OS/2</c> table. An <see cref="EastAsian"/> face has the lower half of its
+    /// extra leading under that.
     /// </summary>
-    public int DescentUnits
+    public int DescentUnits => FaceDescentUnits + EastAsianLeadingUnits;
+
+    int FaceDescentUnits
     {
         get
         {

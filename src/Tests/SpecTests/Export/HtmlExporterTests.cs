@@ -510,6 +510,46 @@ public class HtmlExporterTests
                 }));
 
     [Test]
+    public async Task APictureCroppedToAnEllipseIsRounded()
+    {
+        // a:prstGeom prst="ellipse" on a picture: the painters clip it to the oval inscribed in its
+        // box, and a 50% radius is that oval. Both placements of a floating picture carry it — placed
+        // absolutely (wrap none) and floated beside the text — and a rectangular one carries nothing.
+        static FloatingImageElement Picture(bool ellipse, WrapType wrap) =>
+            new()
+            {
+                ImageData = [1, 2, 3],
+                ContentType = "image/png",
+                WidthPoints = 60,
+                HeightPoints = 60,
+                WrapType = wrap,
+                ClipToEllipse = ellipse
+            };
+
+        await Assert.That(HtmlExporter.Export(Doc(Picture(true, WrapType.None)))).Contains("border-radius: 50%");
+        await Assert.That(HtmlExporter.Export(Doc(Picture(true, WrapType.Square)))).Contains("border-radius: 50%");
+        await Assert.That(HtmlExporter.Export(Doc(Picture(false, WrapType.None)))).DoesNotContain("border-radius");
+    }
+
+    [Test]
+    public async Task APictureCutByACustomGeometryIsClippedToItsContour()
+    {
+        // a:custGeom on a picture reaches the model as contours in the unit square; one contour is a
+        // CSS polygon in percentages of the picture's box.
+        var picture = new FloatingImageElement
+        {
+            ImageData = [1, 2, 3],
+            ContentType = "image/png",
+            WidthPoints = 60,
+            HeightPoints = 60,
+            WrapType = WrapType.None,
+            ClipSubpaths = [[(0.5, 0), (1, 0.5), (0.5, 1), (0, 0.5)]]
+        };
+
+        await Assert.That(HtmlExporter.Export(Doc(picture))).Contains("clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)");
+    }
+
+    [Test]
     public Task FloatingShapeGradientFill() =>
         // A gradient-filled floating shape emits a <defs><linearGradient> whose axis is derived from
         // the direction (90° → horizontal: x1=0 → x2=1), then fills the geometry via

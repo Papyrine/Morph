@@ -169,14 +169,15 @@ sealed class SpreadsheetParser(
             }
 
             // Drawings are emitted BEFORE the table: they anchor vertically to the flow cursor, which
-            // still sits at the content top until the table is placed, so each binds to this sheet's
-            // first page rather than deferring. Their coordinates are relative to the grid's
-            // top-left, which is where the table begins — including the centring slack, computed the
-            // same way the table's own centre alignment computes it (Fragmenter.ComputeTableX).
+            // still sits at the content top until the table is placed. Their coordinates are relative
+            // to the grid's top-left, which is where the table begins — including the centring slack,
+            // computed the same way the table's own centre alignment computes it
+            // (Fragmenter.ComputeTableX). The fragmenter then carries them down the pages with the
+            // rows they stand over (Fragmenter.PlaceSheetUnderFloats).
             List<DocumentElement> art = [];
             if (worksheetPart != null)
             {
-                art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale, maxDigitWidth), scale, 0, GridLeft(table, settings));
+                art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale, maxDigitWidth), scale, 0, GridLeft(table, settings), printed: !onePagePerSheet);
             }
 
             if (first == null)

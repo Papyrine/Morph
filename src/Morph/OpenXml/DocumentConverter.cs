@@ -187,6 +187,13 @@ public abstract class DocumentConverter
                     }
 
                     break;
+                case PlacedClipGroup clip:
+                    foreach (var nested in Lines(clip.Items))
+                    {
+                        yield return nested;
+                    }
+
+                    break;
             }
         }
     }
@@ -228,8 +235,8 @@ public abstract class DocumentConverter
 
     static LaidOutDocument Layout(ParsedDocument document, ImageExportOptions options, FontResolver<FontMetrics> fontResolver)
     {
-        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
-        return new Fragmenter(measurer).Layout(
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.SqueezesJustifiedLines);
+        return new Fragmenter(measurer, document.Compatibility).Layout(
             document.Elements,
             document.PageSettings,
             document.Header,

@@ -565,6 +565,14 @@ static class BorderStroke
     /// and position, while "boxed" reserves (16.2 at 2.25pt/1pt, 18.0 at 4.5pt/1pt, 22.8 at 2.25pt/8pt).
     /// This is the case <c>_probe_runbdr2</c> found and <c>_probe_runbdr3</c> could not separate: its
     /// mid-line runs all began with a space. The horizontal glyph inset applies either way.
+    ///
+    /// <para>The character is the RUN's first, not that of the piece of it on a given line. When
+    /// " boxed " wraps, its leading space hangs at the end of the line above and the next line starts
+    /// with the letter, yet Word gives that line no extra height: border_style_variants' fourth box,
+    /// wrapped to a line of its own, sits one plain 22.1pt row under the row above it (read off Word's
+    /// page, 2026-10-11). So the measurer asks this of the run's whole text and carries the answer on
+    /// every piece (<c>PlacedRun.BorderInside</c>); asking it of the fragment grew that line by 15.5pt
+    /// and pushed the paragraph to the next page.</para>
     /// </summary>
     internal static bool RunBorderReserves(string text) =>
         text.Length == 0 || text[0] != ' ';
@@ -575,7 +583,7 @@ static class BorderStroke
         var pad = 0d;
         foreach (var run in runs)
         {
-            if (run.Properties.Border is { } border && RunBorderReserves(run.Text))
+            if (run.Properties.Border is { } border && !run.BorderInside)
             {
                 pad = Math.Max(pad, RunBorderReserve(border));
             }

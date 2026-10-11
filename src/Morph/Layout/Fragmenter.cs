@@ -35,7 +35,7 @@
 /// <para>Widow/orphan control, keep-lines and keep-with-next — paragraphs, chains of them, and table
 /// rows — are placement rules; see <c>KeepsWithNext</c> for the Word-probed keep model.</para>
 /// </summary>
-sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
+sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettings? compatibility = null)
 {
     public LaidOutDocument Layout(
         IReadOnlyList<DocumentElement> elements,
@@ -47,12 +47,32 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         HeaderFooterContent? evenPageHeader = null,
         HeaderFooterContent? evenPageFooter = null,
         DocumentNotes? notes = null) =>
-        new Flow(measurer, page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes).Run(elements);
+        new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes).Run(elements);
 
     // Word's footnote / endnote separator rule is two inches long, whatever the column (XPS-read on
     // every _probe_fn_* fixture: 72.075 → 216.2pt on a 468pt column); a continuation separator spans
     // the column.
     const float separatorWidthPoints = 144f;
+
+    // A picture-filled shape paints as the picture cut to the shape: the part of it the fill shows
+    // (a:srcRect and a:stretch/a:fillRect, folded by the parser) stretched over the box, and the
+    // shape's own outline - its contours, or its ellipse - as the clip. brochures/04's brick wall is
+    // a triangle cut from a photo that reaches well past the triangle's box; without the two it
+    // paints as the whole photo squeezed into the box, over the text beside it.
+    static PlacedImage ShapeImage(FloatingShapeElement shape, float x, float y, byte[] data) =>
+        new(
+            x,
+            y,
+            (float) shape.WidthPoints,
+            (float) shape.HeightPoints,
+            data,
+            shape.RotationDegrees,
+            shape.FlipHorizontal,
+            shape.FlipVertical,
+            ClipToEllipse: shape.Subpaths == null && shape.Preset == PresetShape.Ellipse,
+            ClipSubpaths: shape.Subpaths,
+            Crop: shape.ImageCrop,
+            Opacity: shape.ImageOpacity);
 
     // What a footnote area stacks, top down: the separator (its paragraph's mark line carrying the 2in
     // rule) or the continuation separator (the full-width rule), a note's text line, or a note
@@ -80,6 +100,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
     // and the emitted pages together without leaking between runs (the Fragmenter itself is reusable).
     sealed class Flow(
         CanonicalParagraphMeasurer measurer,
+        CompatibilitySettings compatibility,
         PageSettings page,
         HeaderFooterContent? header,
         HeaderFooterContent? footer,
@@ -140,6 +161,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
         // behind the text; assembled into their page's items once the flow ends.
         readonly List<(int Page, PlacedItem Item, bool Behind)> bodyFloats = [];
+        // Where in bodyFloats the floats emitted since the last non-float element begin.
+        int floatRunStart;
         // Absolutely-positioned body floats (page/margin anchor) awaiting page resolution: their element is
         // reached before the content they belong to has flowed, so the page is only known once the next
         // visible line or row commits (a page-2 background is declared before page-1 finishes). Resolved into
@@ -162,11 +185,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
         bool atRegionTop = true;
         float lastAfter;
         // Style and contextual-spacing flag of the previous flow paragraph, for w:contextualSpacing: a
-        // contextual paragraph that follows a same-style contextual one collapses the gap between them (its
-        // own space-before and the previous paragraph's space-after) — Word's tight address blocks and list
-        // runs. A table breaks the run and clears these.
+        // contextual paragraph drops its own space-before against a same-style paragraph before it and
+        // its own space-after against one after it (ParagraphGap) — Word's tight address blocks and list
+        // runs. A table breaks the run and clears lastIsParagraph, so nothing after it shares a style
+        // with what came before.
         bool lastContextual;
         string? lastStyleId;
+        bool lastIsParagraph;
         // Whether the flow element just placed keeps with the one being placed (w:keepNext — see
         // KeepsWithNext). Keep never breaks across that boundary, so it is no place to push the element to
         // the next region: once a chain has had its one chance to move — at its first element — its
@@ -672,6 +697,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             lastAfter = (float) separator.Properties.SpacingAfterPoints;
             lastContextual = false;
             lastStyleId = null;
+            lastIsParagraph = false;
             // The separator parts the notes from the body, so nothing is kept across it.
             keptBefore = false;
 
@@ -711,12 +737,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return 0;
         }
 
+        // Sets the body's top for the page being opened from the header that page will show: the
+        // section's first-page header on a title page, the even header on an even page of a document
+        // that keeps both, the default otherwise (SelectVariant, as the bands themselves are picked). A
+        // page used to keep whatever the page before it reserved, so a tall first-page letterhead held
+        // every later page's body down under a header that was no longer there, and a tall default or
+        // even header under a short first one was not cleared at all.
+        void ReserveHeader(bool sectionFirst)
+        {
+            contentTop = HeaderReservedTop(current, SelectVariant(current, sectionFirst, bodies.Count + 1, isHeader: true));
+            contentHeight = pageContentBottom - contentTop;
+        }
+
         // Where the body starts. A positive w:top margin is a MINIMUM (ECMA-376 §17.6.11): a header whose
         // content, laid out from the header distance, reaches past the margin pushes the body down to clear
         // it — so a two-line header no longer overlaps the first body line. A negative w:top
-        // (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap instead. Reserves for
-        // the default header (per-page first/even variants are a later refinement), mirroring how
-        // The deleted production render parked the body cursor below the rendered header.
+        // (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap instead. The
+        // header is the one the page shows (ReserveHeader), mirroring how the deleted production render
+        // parked the body cursor below the rendered header.
         //
         // A header TABLE counts toward that height exactly as a paragraph does — LayoutBand stacks the two
         // the same way, and FooterBand has always measured both. Skipping tables here left the body reserving
@@ -862,9 +900,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 ApplyGeometry(settings);
                 pendingSettings = null;
                 verticalAlignment = settings.VerticalAlignment;
-                y = contentTop;
-                columnTop = contentTop;
             }
+
+            // The page is its section's first whether or not the break brought new geometry (it is
+            // flagged so below), so it is the first-page header its body has to clear.
+            ReserveHeader(sectionFirst: true);
+            y = contentTop;
+            columnTop = contentTop;
 
             // w:lnNumType restart="newSection" numbers each section from Start again; "continuous"
             // carries the count across, and "newPage" resets in FinishPage anyway.
@@ -960,6 +1002,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             {
                 var element = elements[index];
 
+                // On the sheet and not on the paper (DocumentElement.NotPrinted): a page has no place
+                // for it.
+                if (element.NotPrinted)
+                {
+                    continue;
+                }
+
                 // Anything but another flow paragraph ends an open border run — a table, a rule, a break.
                 // Out-of-flow floats are exempt: they take no flow space, so they cannot come between two
                 // members of a run the way a table can.
@@ -1009,6 +1058,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                     case TableElement {Properties.IsFloating: true} table:
                         PlaceFloatingTable(table);
+                        break;
+
+                    case TableElement {Properties.IsSheetGrid: true} sheet when bodyFloats.Count > floatRunStart:
+                        PlaceSheetUnderFloats(sheet, KeepAfter(elements, index));
                         break;
 
                     case TableElement table:
@@ -1080,6 +1133,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (TakesFlowSpace(element))
                 {
                     keptBefore = KeepsWithNext(element);
+                }
+
+                // The floats emitted since the last thing that is not one: what leads a sheet's grid
+                // (PlaceSheetUnderFloats).
+                if (element is not (FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement))
+                {
+                    floatRunStart = bodyFloats.Count;
                 }
             }
 
@@ -1162,6 +1222,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 ApplyGeometry(pendingSettings);
                 pendingSettings = null;
             }
+
+            // The page now opening carries on its section, so the header it shows is the even or the
+            // default one, and that is the header its body has to clear.
+            ReserveHeader(sectionFirst: false);
 
             items = [];
             currentColumn = 0;
@@ -1489,6 +1553,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     Y = group.Y + dy,
                     Items = [.. group.Items.Select(inner => ShiftItem(inner, dy))]
                 },
+                // A clip moves with what it clips.
+                PlacedClipGroup clip => clip with
+                {
+                    Y = clip.Y + dy,
+                    Items = [.. clip.Items.Select(_ => ShiftItem(_, dy))]
+                },
                 _ => item with {Y = item.Y + dy}
             };
 
@@ -1753,7 +1823,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 }
 
                 case FloatingShapeElement {ImageData: { Length: > 0 } shapeImage} shape when shape.ImageContentType != "image/svg+xml":
-                    AddBodyFloat(new PlacedImage(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical, Opacity: shape.ImageOpacity), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                    AddBodyFloat(ShapeImage(shape, FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), shapeImage), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
 
                 case FloatingShapeElement shape:
@@ -1931,6 +2001,71 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             return (left, right - left, currentTop, false);
+        }
+
+        // A spreadsheet's grid with the drawings that stand over it. The drawings are emitted ahead of the
+        // grid as floats placed from its top-left corner (SheetDrawingParser), so as they come they all sit
+        // on the page the sheet starts on, however far down the sheet they are. Excel prints a drawing
+        // with the ROWS it stands over: one that a page break parts comes out in two pieces, the top at
+        // the foot of one page and the rest at the head of the next, each cut where its page's rows end.
+        // invoice-accessibility-guide's first sheet is all drawing over a few lines of grid, and Excel's
+        // second page shows the lower part of its banner, logo and thumbnail where everything here was
+        // drawn on the first and the second was blank.
+        //
+        // So the floats are taken back, the grid is placed, and each page then gets the floats shifted to
+        // where that page's rows put them, inside a clip to those rows (PlacedClipGroup). Rows a print
+        // title repeats at the head of a later page are not part of the band: the sheet carries on under
+        // them.
+        void PlaceSheetUnderFloats(TableElement sheet, float keepAfter)
+        {
+            var floats = bodyFloats.GetRange(floatRunStart, bodyFloats.Count - floatRunStart);
+            bodyFloats.RemoveRange(floatRunStart, floats.Count);
+            var firstPage = floats[0].Page;
+            var origin = y;
+            PlaceTable(sheet, keepAfter);
+
+            // How much of the sheet the pages before this one have shown.
+            var shown = 0f;
+            for (var pageIndex = firstPage; pageIndex <= bodies.Count; pageIndex++)
+            {
+                var pageItems = pageIndex < bodies.Count ? bodies[pageIndex].Items : items;
+                var pageWidth = (float) (pageIndex < bodies.Count ? bodies[pageIndex].Settings : current).WidthPoints;
+                var top = float.MaxValue;
+                var bottom = float.MinValue;
+                foreach (var item in pageItems)
+                {
+                    if (item is PlacedTableRow {IsRepeatedHeader: false} row && ReferenceEquals(row.Table, sheet))
+                    {
+                        top = Math.Min(top, row.Y);
+                        bottom = Math.Max(bottom, row.Y + row.Height);
+                    }
+                }
+
+                if (bottom <= top)
+                {
+                    continue;
+                }
+
+                var bandTop = origin + shown;
+                var bandBottom = bandTop + (bottom - top);
+                var shift = top - bandTop;
+                foreach (var (_, item, behind) in floats)
+                {
+                    // A turned picture reaches outside its own box, by half its longer side at most.
+                    var reach = item is PlacedImage {RotationDegrees: not 0} ? Math.Max(item.Width, item.Height) / 2 : 0;
+                    if (item.Y + item.Height + reach < bandTop || item.Y - reach > bandBottom)
+                    {
+                        continue;
+                    }
+
+                    var moved = shift == 0 ? item : ShiftItem(item, shift);
+                    bodyFloats.Add((pageIndex, new PlacedClipGroup(0, top, pageWidth, bottom - top, [moved]), behind));
+                }
+
+                shown += bottom - top;
+            }
+
+            floatRunStart = bodyFloats.Count;
         }
 
         // Records a body float. An absolutely-positioned one defers until the next visible line/row reveals its
@@ -2159,14 +2294,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // The previous paragraph's after-spacing precedes the table (a table has no before-spacing to
                 // collapse it with), exactly as for an inline table, and never applies at a region top —
                 // without this the block starts one after-gap too high (agendas-minutes/11's 30pt placeholder).
+                // A contextual paragraph drops it against the table's first paragraph (ParagraphGap.BeforeTable).
                 if (!atRegionTop)
                 {
-                    y += lastAfter;
+                    y += ParagraphGap.BeforeTable(lastAfter, lastContextual, lastStyleId, lastIsParagraph, table);
                 }
 
                 lastAfter = 0;
                 lastContextual = false;
                 lastStyleId = null;
+                lastIsParagraph = false;
 
                 var flowTop = y + offsetY;
                 var (rows, height) = LayoutNestedTable(table, left, flowTop, tableWidth);
@@ -2252,6 +2389,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             }
 
             lastAfter = (float) wordArt.SpacingAfterPoints;
+            lastIsParagraph = false;
             var height = (float) wordArt.HeightPoints;
             EnsureSpaceFor(height);
             var boxWidth = (float) wordArt.WidthPoints;
@@ -2373,6 +2511,31 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
             items.Add(new PlacedBorder(left, top, width, height, borders));
 
+            // w:shadow on the box's right and bottom edges: a black band as thick as the edge beside
+            // it, hugging the rule's outer face and stepped in by the opposite rule's width at its
+            // start, the two meeting in the corner. Word-probed 2026-10-11 (_probe_shadow: grey single
+            // rules of 1, 1.5, 3, 6 and 12pt and a 3pt double, read off the page): the band under a
+            // 12pt rule is 24px of black where the rule is 26, runs from the left rule's INNER face to
+            // the right band's outer one, and the right band from the top rule's inner face down to
+            // the bottom band's foot; under the double it is the whole 9pt stack. A box flagged on its
+            // top edge alone got none.
+            var rightBand = borders.Right.Shadow && BorderStroke.Draws(borders.Right) ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints) : 0f;
+            var bottomBand = borders.Bottom.Shadow && BorderStroke.Draws(borders.Bottom) ? (float) BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints) : 0f;
+            if (rightBand > 0 || bottomBand > 0)
+            {
+                var outerRight = left + width + (BorderStroke.Draws(borders.Right) ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints) : 0f);
+                var outerBottom = top + height + (BorderStroke.Draws(borders.Bottom) ? (float) BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints) : 0f);
+                if (rightBand > 0)
+                {
+                    items.Add(new PlacedShading(outerRight, top, rightBand, outerBottom + bottomBand - top, "000000"));
+                }
+
+                if (bottomBand > 0)
+                {
+                    items.Add(new PlacedShading(left, outerBottom, outerRight - left, bottomBand, "000000"));
+                }
+            }
+
             // w:between rules each internal boundary; the box itself carries no edge there. Emitted after the
             // box so it paints over it, as a zero-height top-only border (the w:hr geometry).
             foreach (var betweenY in borderRunBetweens)
@@ -2453,8 +2616,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
             // region top. If the collapsed gap plus the first line overflows, the line-level break below
             // resets the cursor — the same space-before drop for the moved paragraph. w:contextualSpacing
-            // removes the gap entirely between two same-style contextual paragraphs (Word's memo To/From/CC
-            // block, list runs).
+            // drops a paragraph's own half of the gap against a same-style neighbour (Word's memo
+            // To/From/CC block, list runs) — see ParagraphGap for the rule and its probe.
+            //
+            // A paragraph that opens its page with w:pageBreakBefore keeps the excess of its before over
+            // the previous paragraph's after in compatibility modes 14 and older, as a page opened by a
+            // section break does in every mode, and keeps nothing in mode 15. Word-probed 2026-10-11
+            // (_probe_pgbrk and _probe_pgbrk_m11/12/14/15, first baselines read off the XPS): 36pt before
+            // puts the paragraph 16.2pt down its page after a 20pt after, 36pt down after none and
+            // nowhere after 50pt in modes 11, 12 and 14, and nowhere at all in mode 15. A page opened
+            // by a w:br page break keeps nothing in either mode, whether the break has a paragraph to
+            // itself or ends the previous one's run. complex_spacing's Combination 6 is the corpus case:
+            // 36pt before, after a paragraph with 20pt after, and its page sat 16pt high.
             //
             // The drop is a *break* rule, not a top-of-box rule: Word applies a leading space-before on the
             // document's own first page and only swallows it where the flow broke onto a new region. Treating
@@ -2465,18 +2638,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             paragraphPreSpacingTops[paragraph] = y;
             paragraphOpen = true;
 
-            var contextualCollapse = properties.ContextualSpacing && lastContextual && properties.StyleId == lastStyleId;
             var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
             var atSectionStart = AtPageTop && currentPageSectionStart && items.Count == 0;
+            var atOwnPageBreak = AtPageTop && properties.PageBreakBefore && items.Count == 0 && compatibility.KeepsSpacingBeforeAfterPageBreakBefore;
             if (!atRegionTop || atDocumentStart)
             {
-                y += contextualCollapse ? 0f : Math.Max(lastAfter, (float) properties.SpacingBeforePoints);
+                var (keptAfter, keptBefore) = ParagraphGap.Between(lastAfter, lastContextual, lastStyleId, lastIsParagraph, properties);
+                y += keptAfter + keptBefore;
             }
-            else if (atSectionStart)
+            else if (atSectionStart || atOwnPageBreak)
             {
                 // The kept spacing is the EXCESS over the previous page's trailing after (see
                 // pageCarriedAfter) — Word's after-then-excess flow carries across the break.
-                y += contextualCollapse ? 0f : Math.Max(0f, (float) properties.SpacingBeforePoints - pageCarriedAfter);
+                y += ParagraphGap.Before(pageCarriedAfter, lastStyleId, lastIsParagraph, properties);
             }
 
             // Opening a border run reserves its top rule and w:space in the flow, so the box sits BELOW the
@@ -2489,6 +2663,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             if (borderRunProperties == null && properties.Borders is { HasAnyBorder: true } opening)
             {
                 y += EdgeReserve(opening.Top, properties.BorderTopSpacePoints);
+            }
+
+            // A member that continues an open box under a w:between rule: the rule and its space on
+            // either side take room of their own below the spacing just charged
+            // (ParagraphProperties.BorderBetweenReservePoints), and the rule's foot is where it draws to.
+            float? betweenRule = null;
+            if (borderRunProperties != null && properties.BorderBetweenReservePoints > 0)
+            {
+                betweenRule = y + (float) (properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
+                y += (float) properties.BorderBetweenReservePoints;
             }
 
             // Where this paragraph may lay out beside any wrapping float, resolved once at its first line's
@@ -2656,6 +2840,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         // Word's paragraph-anchor reference — is the new region top, not where the
                         // cursor first sat (spacing-before is dropped at a region top).
                         paragraphPreSpacingTops[paragraph] = y;
+
+                        // A box the paragraph opens moves with it, and keeps its place in the flow: the
+                        // top rule starts at the region's top and the text sits its width and w:space
+                        // below, where the spacing-before is dropped. border_style_variants' second
+                        // page opens on such a box: Word's rule is at the margin (72.8pt) and the text
+                        // 11pt further down than a line set at the margin.
+                        if (borderRunProperties == null && properties.Borders is { HasAnyBorder: true } carried)
+                        {
+                            y += EdgeReserve(carried.Top, properties.BorderTopSpacePoints);
+                        }
                     }
 
                     continue;
@@ -2774,7 +2968,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // Continuing a run whose w:between is visible: rule the boundary just crossed. It sits a
                     // between-space below the previous member's last line (probe group F: with a 6pt space the
                     // green rule fell 11px/5.3pt under F1's line bottom at 150dpi).
-                    borderRunBetweens.Add(borderRunBottom + (float) properties.BorderBetweenSpacePoints);
+                    borderRunBetweens.Add(betweenRule ?? borderRunBottom + (float) properties.BorderBetweenSpacePoints);
                 }
 
                 borderRunBottom = y;
@@ -2789,7 +2983,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // line + after + line + after, not line + after + line). It behaves like any other paragraph.
             lastAfter = (float) properties.SpacingAfterPoints;
             lastContextual = properties.ContextualSpacing;
-            lastStyleId = properties.StyleId;
+            lastStyleId = ParagraphGap.StyleKey(properties);
+            lastIsParagraph = true;
             paragraphOpen = false;
         }
 
@@ -2826,10 +3021,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var tableX = ComputeTableX(table, tableWidth);
 
             // The previous paragraph's after-spacing precedes the table (a table has no before-spacing to
-            // collapse it with), and never applies at a region top.
+            // collapse it with), and never applies at a region top. A contextual paragraph drops it
+            // against the table's first paragraph (ParagraphGap.BeforeTable).
             if (!atRegionTop)
             {
-                y += lastAfter;
+                y += ParagraphGap.BeforeTable(lastAfter, lastContextual, lastStyleId, lastIsParagraph, table);
             }
 
             lastAfter = 0;
@@ -2837,6 +3033,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // one before it.
             lastContextual = false;
             lastStyleId = null;
+            lastIsParagraph = false;
 
             // A table that cannot fit where it stands AND has no move available to rescue it flows row by
             // row (the raster backend's needsRowByRowRendering). Two cases reach here. One is taller than
@@ -3224,6 +3421,24 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     return false;
                 }
 
+                // A row the sliver advance carried to a fresh region, and which that region holds whole,
+                // was not split at all: it is an ordinary row at the head of its page and is placed as
+                // one. A fragment closes itself with a bottom rule of its own (BuildRowFragment), which
+                // an unsplit row does not pay — the rule under it is the next row's top edge — so placed
+                // as a fragment it stood one rule too tall and everything under it on the page that much
+                // low. Read off Word's XPS (copies of table_multipage and header_row_repeat/01,
+                // 2026-10-11): the first row of a continuation page is pitched as every other row, 28.2pt
+                // behind 3pt rules where the fragment made 31.0, and 25.8 behind 0.5pt rules against 26.0.
+                if (isFirstFragment && advanced && finished)
+                {
+                    items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                    ResolvePendingFloats();
+                    CommitRowNotes(table.Rows[rowIndex], y + rowHeights[rowIndex]);
+                    y += rowHeights[rowIndex];
+                    atRegionTop = false;
+                    return true;
+                }
+
                 items.Add(fragment);
                 ResolvePendingFloats();
                 CommitRowNotes(table.Rows[rowIndex], y + height);
@@ -3314,7 +3529,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     budget,
                     cell.Properties.VerticalAlignment,
                     start.Value,
-                    budget);
+                    budget,
+                    row);
 
                 continuations[cellIndex] = continuation;
                 anyContinues |= continuation != null;
@@ -3458,7 +3674,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
                 var (insetLeft, insetRight) = SideInsets(padding, borders);
                 var content = cell.Properties.TextDirection == CellTextDirection.LeftToRight
-                    ? LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment)
+                    ? LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment, row)
                     : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge);
 
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
@@ -3553,7 +3769,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 var shapeY = cellY + (float) shape.VerticalPositionPoints;
                 if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
                 {
-                    shapes.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical, Opacity: shape.ImageOpacity));
+                    shapes.Add(ShapeImage(shape, shapeX, shapeY, shapeImage));
                 }
                 else if (shape.ImageData == null)
                 {
@@ -3658,8 +3874,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             return [new PlacedRotatedGroup(unrotatedLeft, unrotatedTop, contentHeight, contentWidth, items, rotation)];
         }
 
-        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment) =>
-            LayoutCellFragment(cell, contentLeft, contentTop, contentWidth, availableHeight, verticalAlignment, default, budget: null).Items;
+        IReadOnlyList<PlacedItem> LayoutCellContent(TableCell cell, float contentLeft, float contentTop, float contentWidth, float availableHeight, CellVerticalAlignment verticalAlignment, TableRow? row = null) =>
+            LayoutCellFragment(cell, contentLeft, contentTop, contentWidth, availableHeight, verticalAlignment, default, budget: null, row).Items;
 
         /// <summary>
         /// Lays a cell's content out from <paramref name="start"/>, stopping once <paramref name="budget"/>
@@ -3676,13 +3892,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             float availableHeight,
             CellVerticalAlignment verticalAlignment,
             CellSplitPoint start,
-            float? budget)
+            float? budget,
+            TableRow? row = null)
         {
             var lines = new List<PlacedItem>();
             var cellY = contentTop;
             var lastCellAfter = 0f;
             var lastCellVisibleAfter = 0f;
             var lastCellContextual = false;
+            var lastCellIsParagraph = false;
             string? lastCellStyleId = null;
             // A continuation fragment is never at the cell's start, so its first paragraph does not get the
             // first-paragraph spacing-before treatment (and a paragraph resumed mid-way gets no spacing at all).
@@ -3779,6 +3997,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     lastCellAfter = 0;
                     lastCellVisibleAfter = 0;
                     lastCellContextual = false;
+                    lastCellIsParagraph = false;
                     continue;
                 }
 
@@ -3808,6 +4027,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     lastCellAfter = 0;
                     lastCellVisibleAfter = 0;
                     lastCellContextual = false;
+                    lastCellIsParagraph = false;
                     continue;
                 }
 
@@ -3833,6 +4053,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // oval, Title — the drawing keeps the two contextual Titles apart).
                     FlushCellBorderRun();
                     lastCellContextual = false;
+                    lastCellIsParagraph = false;
                     lastCellStyleId = null;
                     continue;
                 }
@@ -3848,19 +4069,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 // Space-before, collapsed with the previous paragraph's after (max, not sum). Unlike page
                 // flow, a cell's FIRST paragraph keeps its space-before — TableHeightCalculator sizes the
                 // cell with it, so the content must be positioned with it too or it floats to the top and
-                // leaves the gap at the bottom. w:contextualSpacing removes the gap entirely between two
-                // same-style contextual paragraphs — production collapses in bounded (cell) rendering too
-                // (PdfTextEngine.TrackContextualSpacing "in both flow and bounded"), so the placement here
-                // collapses as well (cover-letters/09's Address block: five 42pt-after contextual
-                // paragraphs rendered 42pt apart instead of tight). TableHeightCalculator once measured
-                // WITHOUT the collapse, leaving the row oversized by every suppressed gap; it now applies
-                // the same rule, so measure and placement agree.
-                var cellContextualCollapse = properties.ContextualSpacing && lastCellContextual && properties.StyleId == lastCellStyleId;
-                cellY += first
-                    ? (float) properties.SpacingBeforePoints
-                    : cellContextualCollapse
-                        ? 0f
-                        : Math.Max(lastCellAfter, (float) properties.SpacingBeforePoints);
+                // leaves the gap at the bottom. w:contextualSpacing drops a paragraph's own half of the gap
+                // against a same-style neighbour in a cell exactly as in the page flow (ParagraphGap;
+                // cover-letters/09's Address block: five 42pt-after contextual paragraphs rendered 42pt
+                // apart instead of tight). TableHeightCalculator once measured WITHOUT the collapse,
+                // leaving the row oversized by every suppressed gap; it applies the same rule, so measure
+                // and placement agree.
+                if (first)
+                {
+                    cellY += (float) properties.SpacingBeforePoints;
+                }
+                else
+                {
+                    var (keptAfter, keptBefore) = ParagraphGap.Between(lastCellAfter, lastCellContextual, lastCellStyleId, lastCellIsParagraph, properties);
+                    cellY += keptAfter + keptBefore;
+                }
+
                 first = false;
 
                 // Opening a border run reserves its top rule and w:space, exactly as the page flow does
@@ -3868,6 +4092,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 if (cellBorderRun == null && properties.Borders is {HasAnyBorder: true} openingBorders)
                 {
                     cellY += EdgeReserve(openingBorders.Top, properties.BorderTopSpacePoints);
+                }
+
+                // A member continuing the open box under a w:between rule, as in the page flow.
+                float? cellBetweenRule = null;
+                if (cellBorderRun != null && properties.BorderBetweenReservePoints > 0)
+                {
+                    cellBetweenRule = cellY + (float) (properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
+                    cellY += (float) properties.BorderBetweenReservePoints;
                 }
 
                 // A single-line cell wraps against an unbounded width — the line simply runs past the
@@ -3981,7 +4213,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     }
                     else if (properties.BorderBetween.IsVisible)
                     {
-                        (cellBorderBetweens ??= []).Add(cellBorderRunBottom + (float) properties.BorderBetweenSpacePoints);
+                        (cellBorderBetweens ??= []).Add(cellBetweenRule ?? cellBorderRunBottom + (float) properties.BorderBetweenSpacePoints);
                     }
 
                     cellBorderRunBottom = cellY;
@@ -4001,7 +4233,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                 lastCellAfter = (float) properties.SpacingAfterPoints;
                 lastCellVisibleAfter = isEmpty ? 0 : lastCellAfter;
                 lastCellContextual = properties.ContextualSpacing;
-                lastCellStyleId = properties.StyleId;
+                lastCellIsParagraph = true;
+                lastCellStyleId = ParagraphGap.StyleKey(properties);
             }
 
             // A run still open at the end of the cell's content strokes here, before the trailing
@@ -4014,7 +4247,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low). A
             // trailing EMPTY paragraph's after is excluded, mirroring ParagraphHasVisibleContent. A
             // fragment that continues overleaf has no trailing paragraph yet, so it charges none.
-            if (continuation == null)
+            if (continuation == null && !ParagraphGap.DropsCellEndAfter(row, cell))
             {
                 cellY += lastCellVisibleAfter;
             }
@@ -4433,7 +4666,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     DecodableImageBytes(image) is { Length: > 0 } data)
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
-                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline));
+                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -4446,7 +4679,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                     // front-text page-anchored header shapes) were silently dropped by the behind-only gate.
                     if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
                     {
-                        items.Add(new PlacedImage(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shapeImage, shape.RotationDegrees, shape.FlipHorizontal, shape.FlipVertical, Opacity: shape.ImageOpacity));
+                        items.Add(ShapeImage(shape, shapeX, shapeY, shapeImage));
                     }
                     else if (shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null))
                     {
@@ -4554,7 +4787,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             var previous = FlowParagraph(elements[index])?.Properties;
             var previousAfter = (float) (previous?.SpacingAfterPoints ?? 0);
             var previousContextual = previous?.ContextualSpacing ?? false;
-            var previousStyle = previous?.StyleId;
+            var previousIsParagraph = previous != null;
+            var previousStyle = previous == null ? null : ParagraphGap.StyleKey(previous);
 
             // Measured down from the element's end: the bottom of the last line or row counted, and how
             // much of that last line may overhang the margin (an auto multiple's added leading).
@@ -4587,8 +4821,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
                         break;
                     }
 
-                    var contextualCollapse = properties.ContextualSpacing && previousContextual && properties.StyleId == previousStyle;
-                    bottom += contextualCollapse ? 0f : Math.Max(previousAfter, (float) properties.SpacingBeforePoints);
+                    var (keptAfter, keptBefore) = ParagraphGap.Between(previousAfter, previousContextual, previousStyle, previousIsParagraph, properties);
+                    bottom += keptAfter + keptBefore;
                     overhang = 0;
 
                     // A paragraph splits after its orphan lines when the widow lines are left for the next
@@ -4614,7 +4848,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                     previousAfter = (float) properties.SpacingAfterPoints;
                     previousContextual = properties.ContextualSpacing;
-                    previousStyle = properties.StyleId;
+                    previousIsParagraph = true;
+                    previousStyle = ParagraphGap.StyleKey(properties);
                     continue;
                 }
 
@@ -4652,6 +4887,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
 
                     previousAfter = 0;
                     previousContextual = false;
+                    previousIsParagraph = false;
                     previousStyle = null;
                     continue;
                 }
@@ -4875,7 +5111,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer)
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
                 var run = line.Runs[runIndex];
-                runs[runIndex] = new(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift);
+                runs[runIndex] = new(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside);
             }
 
             return runs;

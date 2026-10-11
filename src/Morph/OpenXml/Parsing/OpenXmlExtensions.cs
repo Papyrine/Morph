@@ -384,6 +384,63 @@ static class OpenXmlExtensions
         return (emuOffset, pctOffset);
     }
 
+    /// <summary>
+    /// Folds <c>wp14:sizeRelH</c> / <c>wp14:sizeRelV</c> into the <c>wp:extent</c> of every anchor
+    /// under <paramref name="root"/>. Word sizes such an object from the page it lands on; the extent
+    /// beside it is only what that came to on the page the file was last saved for. Believing the
+    /// extent leaves a letter-size sidebar declared 100% of the page's height 50pt short of an A4
+    /// page's foot (cover-letters/09, resumes/04), and menus/09's 93%-wide chalkboard 9pt narrow.
+    /// Every reader of an anchor's size goes through its extent, and a group's children scale by it,
+    /// so the fold is made once, on the element, before the part is parsed.
+    /// </summary>
+    public static void FoldRelativeSizes(this OpenXmlElement root, PageSettings page)
+    {
+        foreach (var anchor in root.Descendants<DW.Anchor>())
+        {
+            var extent = anchor.Extent;
+            if (extent == null)
+            {
+                continue;
+            }
+
+            foreach (var child in anchor.ChildElements)
+            {
+                if (child.LocalName == "sizeRelH" &&
+                    ParsePercentChild(child, "pctWidth") is { } widthFraction &&
+                    RelativeSizeReference(child, page, horizontal: true) is { } widthReference)
+                {
+                    extent.Cx = (long) Math.Round(widthFraction * widthReference * OoxmlUnits.EmusPerPoint);
+                }
+                else if (child.LocalName == "sizeRelV" &&
+                         ParsePercentChild(child, "pctHeight") is { } heightFraction &&
+                         RelativeSizeReference(child, page, horizontal: false) is { } heightReference)
+                {
+                    extent.Cy = (long) Math.Round(heightFraction * heightReference * OoxmlUnits.EmusPerPoint);
+                }
+            }
+        }
+    }
+
+    // The length a relative size is a fraction of, in points. Word-probed (_probe_pctsize2, a Letter
+    // page with margins left 90, right 54, top 108, bottom 72, every rectangle declared 72x36pt):
+    // 50% of the page came to 306pt wide, 50% of the margin to 234pt (the text area), the left and
+    // right margins to 90 and 54, 10% of the margin to 61.2pt tall, half the top and bottom margins
+    // to 54 and 36. On that first page the inside margin measured as the RIGHT one and the outside
+    // as the left, and vertically both measured as the top margin.
+    static double? RelativeSizeReference(OpenXmlElement sizeRel, PageSettings page, bool horizontal) =>
+        (sizeRel.AttributeValue("relativeFrom"), horizontal) switch
+        {
+            ("page", true) => page.WidthPoints,
+            ("page", false) => page.HeightPoints,
+            ("margin", true) => page.WidthPoints - page.MarginLeft - page.MarginRight,
+            ("margin", false) => page.HeightPoints - Math.Abs(page.MarginTop) - Math.Abs(page.MarginBottom),
+            ("leftMargin" or "outsideMargin", true) => page.MarginLeft,
+            ("rightMargin" or "insideMargin", true) => page.MarginRight,
+            ("topMargin" or "insideMargin" or "outsideMargin", false) => Math.Abs(page.MarginTop),
+            ("bottomMargin", false) => Math.Abs(page.MarginBottom),
+            _ => null
+        };
+
     static SizeRelativeFrom ParseSizeRelativeFrom(OpenXmlElement sizeRel)
     {
         if (sizeRel.AttributeValue("relativeFrom") == "page")

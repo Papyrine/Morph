@@ -92,20 +92,6 @@ public class BaselineHealthTests
         "basic-business-invoice/imagesharp_result#page_0002.verified.png",
         "basic-business-invoice/pdf_result#page_0002.verified.png",
         // -- Known regressions (temporary — remove when fixed) --
-        // invoice-accessibility-guide's first sheet needs two landscape pages, and now gets them —
-        // but the second comes out blank. That sheet's grid is twelve cells of narrow column-A text
-        // Excel all but clips away; everything a reader sees is DRAWING (banner, contents list,
-        // thumbnail), and SheetDrawingParser emits every drawing paragraph-anchored so it binds to
-        // the sheet's FIRST page. So the split moves the invisible clipped text overleaf and leaves
-        // the visible art behind. Excel's expected_0002.png is a full page (1573 colours, ink over
-        // rows 72-761). Fixing it means paginating sheet drawings by their own anchor rows rather
-        // than pinning them to the first page. Tracked in src/todo.md.
-        // Note the metrics get BETTER when this page goes blank (AE 0.4842 to 0.1251, SSIM null to
-        // 0.9365), because a white page differs from a sparse one less than a wrong page does —
-        // exactly the blindness this guard exists to cover.
-        "invoice-accessibility-guide/skia_result#page_0002.verified.png",
-        "invoice-accessibility-guide/imagesharp_result#page_0002.verified.png",
-        "invoice-accessibility-guide/pdf_result#page_0002.verified.png",
         // Horizontal pagination is not implemented. to-do-list spans columns A:Q and asks for no
         // fitToPage, so Excel prints it at 100% across TWO page strips, left and right. Morph prints
         // the left strip and clips the rest, then breaks vertically instead — which lands on the same

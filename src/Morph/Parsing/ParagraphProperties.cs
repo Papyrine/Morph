@@ -37,8 +37,8 @@ sealed record ParagraphProperties
     public double HangingIndentPoints { get; init; }
 
     /// <summary>
-    /// When true, spacing before/after is collapsed between this paragraph and adjacent
-    /// paragraphs that also have contextual spacing enabled.
+    /// When true, this paragraph drops its own spacing-before against a preceding paragraph of the
+    /// same style and its own spacing-after against a following one (see <see cref="ParagraphGap"/>).
     /// </summary>
     public bool ContextualSpacing { get; init; }
 
@@ -118,6 +118,21 @@ sealed record ParagraphProperties
     public string? StyleId { get; init; }
 
     /// <summary>
+    /// The style this paragraph is actually in: <see cref="StyleId"/> when it names one, otherwise the
+    /// document's default paragraph style. Two paragraphs are "the same style" for contextual spacing
+    /// by this, so an unstyled paragraph and one that names the default style match as they do in Word.
+    /// Null when the source has no notion of a default style.
+    /// </summary>
+    public string? ResolvedStyleId { get; init; }
+
+    /// <summary>
+    /// The paragraph is in the document's default paragraph style, by name or by naming none. The
+    /// mark that ends a table row is a paragraph of that style as far as contextual spacing goes
+    /// (<c>ParagraphGap.DropsCellEndAfter</c>).
+    /// </summary>
+    internal bool InDefaultStyle { get; init; }
+
+    /// <summary>
     /// Paragraph borders (from w:pBdr element in w:pPr).
     /// </summary>
     public CellBorders? Borders { get; init; }
@@ -157,6 +172,19 @@ sealed record ParagraphProperties
     /// Space around the between border, in points. From w:pBdr/w:between/@w:space.
     /// </summary>
     public double BorderBetweenSpacePoints { get; init; }
+
+    /// <summary>
+    /// The room a <c>w:between</c> rule takes between two members of a border group: its
+    /// <c>w:space</c>, the rule, and the space again — on top of whatever spacing the two paragraphs
+    /// keep between them, and after it. Read off Word's page for border_style_variants' group of
+    /// three (10pt Calibri, 8pt after, a 1pt between rule with 4pt space): the members' lines stand
+    /// 31.2pt apart where the line and its after make 22.1, and each rule lies 11.6pt under the line
+    /// above it — the 8pt after, then the 4pt space. Zero when the paragraph draws no between rule.
+    /// </summary>
+    internal double BorderBetweenReservePoints =>
+        BorderStroke.Draws(BorderBetween)
+            ? 2 * BorderBetweenSpacePoints + BorderStroke.Extent(BorderBetween.Style, BorderBetween.WidthPoints)
+            : 0;
 
     /// <summary>
     /// Returns true if this paragraph and <paramref name="next"/> belong to the same w:pBdr border

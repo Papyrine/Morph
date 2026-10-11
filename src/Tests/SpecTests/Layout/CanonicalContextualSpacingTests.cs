@@ -97,4 +97,95 @@ public class CanonicalContextualSpacingTests
         await Assert.That(differentStyle[1] - differentStyle[0] - (sameStyle[1] - sameStyle[0]))
             .IsEqualTo(spacingBeforePoints).Within(0.5f);
     }
+
+    static ParagraphElement Spaced(string styleId, double before, double after, bool contextual, bool pageBreakBefore = false) =>
+        new()
+        {
+            Runs = [new() {Text = "Line", Properties = new() {FontFamily = "Calibri", FontSizePoints = 12}}],
+            Properties = new()
+            {
+                StyleId = styleId,
+                ContextualSpacing = contextual,
+                SpacingBeforePoints = before,
+                SpacingAfterPoints = after,
+                PageBreakBefore = pageBreakBefore
+            }
+        };
+
+    // The space between the lines of consecutive single-line paragraphs, over and above the line itself.
+    static List<float> Gaps(params ParagraphElement[] paragraphs)
+    {
+        var plain = LineTops(Spaced("S", 0, 0, false), Spaced("S", 0, 0, false));
+        var line = plain[1] - plain[0];
+        var tops = LineTops(paragraphs);
+        return tops.Skip(1).Select((top, index) => top - tops[index] - line).ToList();
+    }
+
+    // The pairs Word was asked about (_probe_ctx and _probe_ctx2, 2026-10-11): the first paragraph's
+    // after and whether it opts in, the second's before and whether it opts in, whether they share a
+    // style, and the gap read off the XPS baselines.
+    [Test]
+    [Arguments(30, true, 20, true, true, 0)]
+    [Arguments(30, true, 20, false, true, 0)]
+    [Arguments(30, false, 20, true, true, 30)]
+    [Arguments(30, false, 20, false, true, 30)]
+    [Arguments(10, true, 40, false, true, 30)]
+    [Arguments(10, false, 40, true, true, 10)]
+    [Arguments(10, false, 40, false, true, 40)]
+    [Arguments(40, false, 10, true, true, 40)]
+    [Arguments(30, true, 50, true, true, 0)]
+    [Arguments(0, true, 40, false, true, 40)]
+    [Arguments(30, true, 20, true, false, 30)]
+    [Arguments(10, true, 40, false, false, 40)]
+    public async Task Each_paragraph_drops_only_its_own_half_of_the_gap(int after, bool firstContextual, int before, bool secondContextual, bool sameStyle, int expected)
+    {
+        var gaps = Gaps(
+            Spaced("S", 0, after, firstContextual),
+            Spaced(sameStyle ? "S" : "T", before, 0, secondContextual));
+
+        await Assert.That(gaps[0]).IsEqualTo((float) expected).Within(0.05f);
+    }
+
+    // A dropped after still counts against the next paragraph's before: after 30 (opting in), then
+    // before 20 / after 25 (not), then before 45 (opting in) leaves 0 and 25 in Word; with only the
+    // MIDDLE paragraph opting in the same three leave 30 and 20.
+    [Test]
+    public async Task A_dropped_after_still_reduces_the_before_that_follows_it()
+    {
+        var outer = Gaps(Spaced("S", 0, 30, true), Spaced("S", 20, 25, false), Spaced("S", 45, 0, true));
+        await Assert.That(outer[0]).IsEqualTo(0f).Within(0.05f);
+        await Assert.That(outer[1]).IsEqualTo(25f).Within(0.05f);
+
+        var middle = Gaps(Spaced("S", 0, 30, false), Spaced("S", 20, 25, true), Spaced("S", 45, 0, false));
+        await Assert.That(middle[0]).IsEqualTo(30f).Within(0.05f);
+        await Assert.That(middle[1]).IsEqualTo(20f).Within(0.05f);
+    }
+
+    // w:pageBreakBefore: how far down its page the paragraph starts. Word-probed 2026-10-11
+    // (_probe_pgbrk_m11/12/14/15): in modes 14 and older it keeps the excess of its before over the
+    // previous paragraph's after - 16pt of 36 after a 20pt after, all 36 after none, nothing after
+    // 50 - and in mode 15 nothing at all. Opting in to contextual spacing against a same-style
+    // paragraph on the previous page drops it in any mode.
+    [Test]
+    [Arguments(12, 20, false, 16)]
+    [Arguments(12, 0, false, 36)]
+    [Arguments(12, 50, false, 0)]
+    [Arguments(14, 20, false, 16)]
+    [Arguments(11, 20, false, 16)]
+    [Arguments(15, 20, false, 0)]
+    [Arguments(15, 0, false, 0)]
+    [Arguments(12, 20, true, 0)]
+    public async Task A_page_break_before_keeps_the_excess_of_its_spacing_in_older_modes(int mode, int previousAfter, bool contextual, int expected)
+    {
+        var document = new Fragmenter(LayoutTestFonts.Measurer, new() {CompatibilityMode = mode}).Layout(
+            [
+                Spaced("S", 0, previousAfter, false),
+                Spaced("S", 36, 0, contextual, pageBreakBefore: true)
+            ],
+            page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        var top = document.Pages[1].Items.OfType<PlacedLine>().First().Y;
+        await Assert.That(top - (float) page.MarginTop).IsEqualTo((float) expected).Within(0.05f);
+    }
 }
