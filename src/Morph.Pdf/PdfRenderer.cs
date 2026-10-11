@@ -16,8 +16,8 @@ static class PdfRenderer
     {
         var options = optionsOrNull ?? new PdfExportOptions();
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
-        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale);
-        var laidOut = new Fragmenter(measurer).Layout(
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.SqueezesJustifiedLines);
+        var laidOut = new Fragmenter(measurer, document.Compatibility).Layout(
             document.Elements,
             document.PageSettings,
             document.Header,

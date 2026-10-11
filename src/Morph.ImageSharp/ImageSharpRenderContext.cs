@@ -547,6 +547,81 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return clipped;
     }
 
+    // Keyed by the picture and the model's own contour list (null for an ellipse), both by reference.
+    readonly Dictionary<(Image<Rgba32> Source, object? Contours, bool FlipHorizontal, bool FlipVertical), Image<Rgba32>?> outlineClippedCache = [];
+
+    /// <summary>
+    /// A copy of a picture <see cref="GetProcessedImage"/> made, with everything outside an outline
+    /// transparent: the unit-square <paramref name="contours"/> of the shape the picture fills,
+    /// mirrored as the picture was, or the ellipse inscribed in it when there are none. A floating
+    /// picture cut to a shape draws from this — the cut is made in the pixels, so it lands where the
+    /// outline says whatever the canvas makes of a clip. Cached and disposed with the context;
+    /// callers must not mutate or dispose the result.
+    /// </summary>
+    public Image<Rgba32>? GetClippedImage(Image<Rgba32> source, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? contours, bool flipHorizontal, bool flipVertical)
+    {
+        var key = (source, (object?) contours, flipHorizontal, flipVertical);
+        if (outlineClippedCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        Image<Rgba32>? clipped = null;
+        try
+        {
+            IPath outline = new EllipsePolygon(source.Width / 2f, source.Height / 2f, source.Width, source.Height);
+            if (contours != null)
+            {
+                var polygons = new List<IPath>();
+                foreach (var contour in contours)
+                {
+                    if (contour.Count < 3)
+                    {
+                        continue;
+                    }
+
+                    var points = new PointF[contour.Count];
+                    for (var index = 0; index < contour.Count; index++)
+                    {
+                        var unitX = flipHorizontal ? 1 - contour[index].X : contour[index].X;
+                        var unitY = flipVertical ? 1 - contour[index].Y : contour[index].Y;
+                        points[index] = new((float) (unitX * source.Width), (float) (unitY * source.Height));
+                    }
+
+                    polygons.Add(new Polygon(new LinearLineSegment(points)));
+                }
+
+                outline = polygons.Count == 1 ? polygons[0] : new ComplexPolygon(polygons.ToArray());
+            }
+
+            using var mask = new Image<Rgba32>(source.Width, source.Height, Color.Transparent.ToPixel<Rgba32>());
+            mask.Mutate(_ => _.Paint(canvas => canvas.Fill(Brushes.Solid(Color.White), outline)));
+            clipped = source.Clone();
+            clipped.ProcessPixelRows(
+                mask,
+                (pixels, coverage) =>
+                {
+                    for (var y = 0; y < pixels.Height; y++)
+                    {
+                        var row = pixels.GetRowSpan(y);
+                        var covered = coverage.GetRowSpan(y);
+                        for (var x = 0; x < row.Length; x++)
+                        {
+                            row[x].A = (byte) (row[x].A * covered[x].A / 255);
+                        }
+                    }
+                });
+        }
+        catch
+        {
+            clipped?.Dispose();
+            clipped = null;
+        }
+
+        outlineClippedCache[key] = clipped;
+        return clipped;
+    }
+
     public static Color ParseColor(string? hexColor)
     {
         if (hexColor.TryParseArgb(out var a, out var r, out var g, out var b))
@@ -576,6 +651,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             image?.Dispose();
         }
         ellipseClippedCache.Clear();
+        foreach (var image in outlineClippedCache.Values)
+        {
+            image?.Dispose();
+        }
+        outlineClippedCache.Clear();
     }
 
     public void Dispose()

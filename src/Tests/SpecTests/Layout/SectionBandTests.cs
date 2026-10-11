@@ -97,4 +97,50 @@ public class SectionBandTests
         await Assert.That(Bands(laidOut.Pages[3], false)).IsEqualTo("FOOTER page=1 numpages=8 sectionpages=3");
         await Assert.That(Bands(laidOut.Pages[7], false)).IsEqualTo("FOOTER page=5 numpages=8 sectionpages=2");
     }
+
+    static ParagraphElement Text(string text) =>
+        new()
+        {
+            Runs = [new() {Text = text, Properties = new() {FontFamily = "Calibri", FontSizePoints = 12}}],
+            Properties = new()
+        };
+
+    static HeaderFooterContent Band(int lines, string name) =>
+        new() {Elements = [.. Enumerable.Range(1, lines).Select(_ => (DocumentElement) Text($"{name} {_}"))]};
+
+    static float BodyTop(LaidOutPage page, string text) =>
+        page.Items.OfType<PlacedLine>().First(_ => string.Concat(_.Runs.Select(run => run.Text)) == text).Y;
+
+    // A page's body clears the header THAT page shows. Six lines of header reach well past a 72pt top
+    // margin from a 36pt header distance; one line stays inside it. menus/01 is the corpus case: its
+    // third page's body sat a tall first-page header's worth out of place until each page asked.
+    [Test]
+    [Arguments(6, 1)]
+    [Arguments(1, 6)]
+    public async Task Each_page_reserves_room_for_the_header_it_shows(int firstLines, int laterLines)
+    {
+        var page = new PageSettings
+        {
+            WidthPoints = 612,
+            HeightPoints = 792,
+            MarginTop = 72,
+            MarginBottom = 72,
+            MarginLeft = 72,
+            MarginRight = 72,
+            HeaderDistance = 36,
+            DifferentFirstPage = true
+        };
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(
+            [Text("body one"), new PageBreakElement(), Text("body two"), new PageBreakElement(), Text("body three")],
+            page,
+            header: Band(laterLines, "later"),
+            firstPageHeader: Band(firstLines, "first"));
+
+        var tall = BodyTop(laidOut.Pages[firstLines > laterLines ? 0 : 1], firstLines > laterLines ? "body one" : "body two");
+        var plain = BodyTop(laidOut.Pages[firstLines > laterLines ? 1 : 0], firstLines > laterLines ? "body two" : "body one");
+
+        await Assert.That(plain).IsEqualTo(72f).Within(0.01f);
+        await Assert.That(tall).IsGreaterThan(100f);
+        await Assert.That(BodyTop(laidOut.Pages[2], "body three")).IsEqualTo(BodyTop(laidOut.Pages[1], "body two")).Within(0.01f);
+    }
 }

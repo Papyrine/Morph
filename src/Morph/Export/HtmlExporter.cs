@@ -1058,6 +1058,8 @@ static class HtmlExporter
                 style += $"; margin: {BoxShorthand(image.WrapDistanceTopPoints, image.WrapDistanceRightPoints, image.WrapDistanceBottomPoints, image.WrapDistanceLeftPoints)}";
             }
 
+            style += EllipseClip(image);
+
             Indent(depth);
             AppendImageTag(
                 source, image.WidthPoints, image.HeightPoints, image.Description, style,
@@ -1082,7 +1084,7 @@ static class HtmlExporter
             var pageLeft = (image.HorizontalAnchor == HorizontalAnchor.Page ? 0 : pageSettings.MarginLeft) + image.HorizontalPositionPoints;
             var pageTop = (image.VerticalAnchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop) + image.VerticalPositionPoints;
             var (left, top) = FloatOrigin(pageLeft, pageTop, image.VerticalAnchor);
-            var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}";
+            var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}{EllipseClip(image)}";
 
             Indent(depth).Append("""<div style="position: relative">""");
             AppendImageTag(
@@ -1090,6 +1092,28 @@ static class HtmlExporter
                 image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
                 ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
             builder.Append("</div>\n");
+        }
+
+        // A picture cropped to its pic:spPr geometry, as the raster painters clip it. An ellipse
+        // (a:prstGeom prst="ellipse") is the oval inscribed in the box, which a 50% radius on each
+        // axis draws. A custom geometry arrives as contours in the unit square
+        // (FloatingImageElement.ClipSubpaths), which is a polygon in percentages of the box — one
+        // contour only, since a CSS polygon is one; a picture cut by several keeps its rectangle.
+        // brochures/03's round portrait photo is cut by a custGeom circle, and came out square.
+        static string EllipseClip(FloatingImageElement image)
+        {
+            if (image.ClipToEllipse)
+            {
+                return "; border-radius: 50%";
+            }
+
+            if (image.ClipSubpaths is [{Count: > 2} contour])
+            {
+                var points = string.Join(", ", contour.Select(_ => $"{Number(_.X * 100)}% {Number(_.Y * 100)}%"));
+                return $"; clip-path: polygon({points})";
+            }
+
+            return "";
         }
 
         /// <summary>

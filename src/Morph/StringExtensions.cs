@@ -53,10 +53,16 @@ static class StringExtensions
     /// one space, Calibri 16pt at 150dpi), where this substitutes exactly one. Matching that would
     /// mean inventing a width no specification gives, for a character the corpus only ever carries
     /// at paragraph end where the advance is invisible.
+    ///
+    /// A literal line feed or carriage return in <c>w:t</c> is the same case, and Word sets it as a
+    /// space too: complex_tables carries <c>COMPLEX</c> LF <c>MERGE</c> and <c>15-16</c> LF
+    /// <c>Event</c> in single <c>w:t</c> elements, and Word's page has each on one line with a word
+    /// space between. Left in the text they read as the engine's own mark for a <c>w:br</c> and broke
+    /// the line there.
     /// </remarks>
     public static string ReplaceSeparatorsWithSpace(this string value)
     {
-        var index = value.AsSpan().IndexOfAny(lineSeparator, paragraphSeparator);
+        var index = value.AsSpan().IndexOfAny(separators);
         if (index < 0)
         {
             return value;
@@ -70,11 +76,13 @@ static class StringExtensions
                 state.Value.CopyTo(span);
                 for (var i = state.Index; i < span.Length; i++)
                 {
-                    if (span[i] is lineSeparator or paragraphSeparator)
+                    if (span[i] is lineSeparator or paragraphSeparator or '\n' or '\r')
                     {
                         span[i] = ' ';
                     }
                 }
             });
     }
+
+    static readonly System.Buffers.SearchValues<char> separators = System.Buffers.SearchValues.Create([lineSeparator, paragraphSeparator, '\n', '\r']);
 }

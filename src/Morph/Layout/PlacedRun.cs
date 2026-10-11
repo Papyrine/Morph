@@ -9,5 +9,8 @@
 /// painter fills its span with the leader (tiled dots/hyphens, or a baseline rule for underscore).
 /// <see cref="BaselineShift"/> is how far ABOVE the line baseline this run's glyphs sit, in points — a
 /// superscript's raise, a subscript's (negative) drop, zero for ordinary text (<see cref="VerticalRunPosition"/>).
+/// <see cref="BorderInside"/> is set on a piece of a bordered run whose border takes no room of its own:
+/// the line was not grown for it, and its rules are drawn inside the line box
+/// (<see cref="BorderStroke.RunBorderReserves"/>).
 /// </summary>
-readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0);
+readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false);

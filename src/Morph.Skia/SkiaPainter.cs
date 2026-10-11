@@ -103,7 +103,24 @@ static class SkiaPainter
             case PlacedRotatedGroup group:
                 PaintRotatedGroup(context, canvas, group);
                 break;
+            case PlacedClipGroup clip:
+                PaintClipGroup(context, canvas, clip);
+                break;
         }
+    }
+
+    // Items drawn only inside the group's box (PlacedClipGroup): the part of a sheet's drawings that
+    // falls on the rows one page holds.
+    static void PaintClipGroup(SkiaRenderContext context, SKCanvas canvas, PlacedClipGroup clip)
+    {
+        canvas.Save();
+        canvas.ClipRect(new(P(context, clip.X), P(context, clip.Y), P(context, clip.X + clip.Width), P(context, clip.Y + clip.Height)));
+        foreach (var item in clip.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        canvas.Restore();
     }
 
     // Items laid out in the group's unrotated box, drawn rotated about that box's centre
@@ -194,7 +211,7 @@ static class SkiaPainter
             if (properties.Border is {} runBorder &&
                 BorderStroke.Draws(runBorder))
             {
-                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), BorderStroke.RunBorderReserves(run.Text));
+                var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), !run.BorderInside);
                 PaintEdges(context, canvas, boxX, boxY, boxWidth, boxHeight, CellBorders.Uniform(runBorder));
             }
         }
@@ -391,29 +408,106 @@ static class SkiaPainter
         using var paint = SkiaImageEffects.Paint(image.Recolor, image.Opacity);
 
         var box = SKRect.Create(P(context, image.X), P(context, image.Y), P(context, image.Width), P(context, image.Height));
-        if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
+
+        // The outline the picture is cut to - an ellipse, or the freeform contours of the shape it
+        // fills (PlacedImage.ClipToEllipse / ClipSubpaths). It is set in the box's own frame, so it
+        // turns and mirrors with the picture.
+        using var clip = ImageClip(image, box);
+        var transformed = Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical;
+        if (!transformed && clip == null)
         {
-            canvas.Save();
-            if (Math.Abs(image.RotationDegrees) > 0.01)
-            {
-                canvas.RotateDegrees((float) image.RotationDegrees, box.MidX, box.MidY);
-            }
-
-            if (image.FlipHorizontal || image.FlipVertical)
-            {
-                canvas.Translate(box.MidX, box.MidY);
-                canvas.Scale(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1);
-                canvas.Translate(-box.MidX, -box.MidY);
-            }
-
             SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
             PaintImageOutline(context, canvas, image, box);
-            canvas.Restore();
             return;
         }
 
-        SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
-        PaintImageOutline(context, canvas, image, box);
+        canvas.Save();
+        if (Math.Abs(image.RotationDegrees) > 0.01)
+        {
+            canvas.RotateDegrees((float) image.RotationDegrees, box.MidX, box.MidY);
+        }
+
+        if (image.FlipHorizontal || image.FlipVertical)
+        {
+            canvas.Translate(box.MidX, box.MidY);
+            canvas.Scale(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1);
+            canvas.Translate(-box.MidX, -box.MidY);
+        }
+
+        if (clip == null)
+        {
+            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            PaintImageOutline(context, canvas, image, box);
+        }
+        else
+        {
+            canvas.Save();
+            canvas.ClipPath(clip, antialias: true);
+            SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
+            canvas.Restore();
+            PaintImageOutline(context, canvas, image, clip);
+        }
+
+        canvas.Restore();
+    }
+
+    static SKPath? ImageClip(PlacedImage image, SKRect box)
+    {
+        if (image.ClipSubpaths is { } contours)
+        {
+            var path = new SKPath();
+            foreach (var contour in contours)
+            {
+                if (contour.Count < 3)
+                {
+                    continue;
+                }
+
+                for (var index = 0; index < contour.Count; index++)
+                {
+                    var point = new SKPoint(box.Left + (float) contour[index].X * box.Width, box.Top + (float) contour[index].Y * box.Height);
+                    if (index == 0)
+                    {
+                        path.MoveTo(point);
+                    }
+                    else
+                    {
+                        path.LineTo(point);
+                    }
+                }
+
+                path.Close();
+            }
+
+            return path;
+        }
+
+        if (image.ClipToEllipse)
+        {
+            var path = new SKPath();
+            path.AddOval(box);
+            return path;
+        }
+
+        return null;
+    }
+
+    // A cut picture's a:ln follows the cut, centred on its edge.
+    static void PaintImageOutline(SkiaRenderContext context, SKCanvas canvas, PlacedImage image, SKPath clip)
+    {
+        if (image.Outline is not { } outline)
+        {
+            return;
+        }
+
+        using var strokePaint = new SKPaint
+        {
+            Color = SkiaShapeDrawing.ParseColor(outline.ColorHex, outline.Alpha),
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = P(context, (float) outline.WidthPoints),
+            IsAntialias = true
+        };
+        canvas.DrawPath(clip, strokePaint);
     }
 
     // The picture's a:ln, stroked after the bitmap (PlacedImage.Outline) as a band lying entirely

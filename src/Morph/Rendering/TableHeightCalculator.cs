@@ -453,28 +453,19 @@ static class TableHeightCalculator
             // Between consecutive paragraphs Word charges max(after, before), not the sum
             // (verified against Word XPS baselines), so only the excess of this paragraph's
             // before over the previous paragraph's after adds height. w:contextualSpacing
-            // removes that gap ENTIRELY between two same-style contextual paragraphs, exactly
-            // as the placement path does (Fragmenter's cell arm). Measuring without the
-            // collapse sized the row as if every suppressed gap were paid while the render drew
-            // the paragraphs tight, so the row carried the difference as dead space below its
-            // content: letters/04's four 18pt-after RecipientAddress lines left 54pt of it, and
-            // the salutation and everything under it — down to the footer contact strip, which
-            // landed in the navy band — shifted down the page by that much.
-            var contextualCollapse = i > 0 &&
-                                     !separatedFromPrevious.Contains(i) &&
-                                     props.ContextualSpacing &&
-                                     previousContextual &&
-                                     props.StyleId == previousStyleId;
-            if (contextualCollapse)
-            {
-                // The boundary contributes nothing at all, so take back the previous
-                // paragraph's after rather than adding a before on top of it.
-                height -= previousAfter;
-            }
-            else
-            {
-                height += Math.Max(0, (float) props.SpacingBeforePoints - previousAfter);
-            }
+            // drops a paragraph's own half of that gap against a same-style neighbour, exactly
+            // as the placement path does (ParagraphGap, Fragmenter's cell arm). Measuring
+            // without the collapse sized the row as if every suppressed gap were paid while the
+            // render drew the paragraphs tight, so the row carried the difference as dead space
+            // below its content: letters/04's four 18pt-after RecipientAddress lines left 54pt
+            // of it, and the salutation and everything under it — down to the footer contact
+            // strip, which landed in the navy band — shifted down the page by that much.
+            var previousIsParagraph = i > 0 && !separatedFromPrevious.Contains(i);
+            var (keptAfter, keptBefore) = ParagraphGap.Between(previousAfter, previousContextual, previousStyleId, previousIsParagraph, props);
+
+            // The previous paragraph's after is already in the height; what it does not keep
+            // against this one comes back out.
+            height += keptAfter - previousAfter + keptBefore;
 
             foreach (var lineHeight in lines)
             {
@@ -496,6 +487,13 @@ static class TableHeightCalculator
                     height += (float) (BorderStroke.Extent(paragraphBorders.Top.Style, paragraphBorders.Top.WidthPoints) + props.BorderTopSpacePoints);
                 }
 
+                // A member continuing the group under a w:between rule pays the rule and its space on
+                // either side (ParagraphProperties.BorderBetweenReservePoints).
+                if (!opensGroup)
+                {
+                    height += (float) props.BorderBetweenReservePoints;
+                }
+
                 var closesGroup = i == paragraphs.Count - 1 ||
                                   separatedFromPrevious.Contains(i + 1) ||
                                   !props.SharesBorderGroupWith(paragraphs[i + 1].Properties);
@@ -515,7 +513,15 @@ static class TableHeightCalculator
             height += (float) props.SpacingAfterPoints;
             previousAfter = (float) props.SpacingAfterPoints;
             previousContextual = props.ContextualSpacing;
-            previousStyleId = props.StyleId;
+            previousStyleId = ParagraphGap.StyleKey(props);
+        }
+
+        // The paragraph that ends the cell gives its after up to contextual spacing like any other:
+        // against the next cell's first paragraph, or the row's own end mark
+        // (ParagraphGap.DropsCellEndAfter).
+        if (paragraphs.Count > 0 && ParagraphGap.DropsCellEndAfter(row, cell))
+        {
+            height -= previousAfter;
         }
 
         return height;
