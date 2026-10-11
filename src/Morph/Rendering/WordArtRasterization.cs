@@ -19,6 +19,7 @@ interface IWordArtVisual
     bool HasReflection { get; }
     bool HasGlow { get; }
     WordArtTransform Transform { get; }
+    double? WarpAdjust { get; }
     WordArtInsets Insets { get; }
     TextAlignment TextAlignment { get; }
 }
@@ -123,6 +124,7 @@ static class WordArtRasterPage
             HasReflection = visual.HasReflection,
             HasGlow = visual.HasGlow,
             Transform = visual.Transform,
+            WarpAdjust = visual.WarpAdjust,
             Insets = visual.Insets,
             TextAlignment = visual.TextAlignment
         };

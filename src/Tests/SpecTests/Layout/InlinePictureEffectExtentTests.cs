@@ -27,7 +27,9 @@ public class InlinePictureEffectExtentTests
                     InlineImageEffectExtent = effectExtent
                 }
             ],
-            Properties = new()
+            // Single-spaced, so the line is the box alone: a multiple adds its own leading under a
+            // picture (InlineImageLineTests), which is not what these tests read.
+            Properties = new() { LineSpacingMultiplier = 1 }
         };
 
     [Test]

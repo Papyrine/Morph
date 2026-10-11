@@ -547,6 +547,51 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         return clipped;
     }
 
+    readonly Dictionary<(byte[] Data, int Width, int Height, ImageTile Tile, ImageRecolor? Recolor, double Opacity), Image<Rgba32>?> tiledImageCache = [];
+
+    /// <summary>The most tiles one fill is composed of; a fill that would take more is stretched instead.</summary>
+    const int maxTiles = 4096;
+
+    /// <summary>
+    /// A box-sized picture made of a tiled fill's picture repeated at the tile's size from the tile's
+    /// origin (<see cref="ImageTile.Corners"/>). Each tile is resized to the whole pixels between its
+    /// own two edges, so neighbours meet without a gap or an overlap. Cached and disposed with the
+    /// context; callers must not mutate or dispose the result. Null when the picture cannot be
+    /// decoded or the fill has too many tiles to be worth composing.
+    /// </summary>
+    public Image<Rgba32>? GetTiledImage(byte[] data, int width, int height, ImageTile tile, double boxWidthPoints, double boxHeightPoints, ImageRecolor? recolor, double opacity)
+    {
+        var key = (data, width, height, tile, recolor, opacity);
+        if (tiledImageCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        Image<Rgba32>? composed = null;
+        var corners = tile.Corners(boxWidthPoints, boxHeightPoints).Take(maxTiles + 1).ToList();
+        if (corners.Count is > 0 and <= maxTiles && width > 0 && height > 0)
+        {
+            composed = new(width, height);
+            foreach (var (cornerX, cornerY) in corners)
+            {
+                var left = (int) Math.Round(PointsToPixels((float) cornerX));
+                var top = (int) Math.Round(PointsToPixels((float) cornerY));
+                var right = (int) Math.Round(PointsToPixels((float) (cornerX + tile.WidthPoints)));
+                var bottom = (int) Math.Round(PointsToPixels((float) (cornerY + tile.HeightPoints)));
+                if (right <= left || bottom <= top ||
+                    GetProcessedImage(data, right - left, bottom - top, null, recolor, 0, opacity: opacity) is not { } piece)
+                {
+                    continue;
+                }
+
+                composed.Mutate(_ => _.DrawImage(piece, new Point(left, top), 1f));
+            }
+        }
+
+        tiledImageCache[key] = composed;
+        return composed;
+    }
+
     // Keyed by the picture and the model's own contour list (null for an ellipse), both by reference.
     readonly Dictionary<(Image<Rgba32> Source, object? Contours, bool FlipHorizontal, bool FlipVertical), Image<Rgba32>?> outlineClippedCache = [];
 
@@ -656,6 +701,11 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
             image?.Dispose();
         }
         outlineClippedCache.Clear();
+        foreach (var image in tiledImageCache.Values)
+        {
+            image?.Dispose();
+        }
+        tiledImageCache.Clear();
     }
 
     public void Dispose()

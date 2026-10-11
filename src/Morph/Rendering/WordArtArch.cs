@@ -1,6 +1,6 @@
 /// <summary>
-/// The geometry of Word's <c>textArchUp</c> / <c>textArchDown</c> warps, shared by the Skia and
-/// ImageSharp drawers so the two place every glyph identically.
+/// The geometry of Word's <c>textArchUp</c> / <c>textArchDown</c> / <c>textCircle</c> warps, shared by
+/// the Skia and ImageSharp drawers so the two place every glyph identically.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -24,6 +24,16 @@
 /// 0.218 em on Impact (fitted 0.223), 0.177 em on Arial Bold (fitted 0.178).</item>
 /// </list>
 /// <para>
+/// <c>textCircle</c> is the same construction on the whole ellipse, run clockwise from its left end
+/// (<c>_probe_circle_*</c>, 2026-10-11, read the same way): centred text sits about the right end
+/// and reads downward, left-aligned text climbs from the left end. Its scale takes the LONGER side
+/// of the text rect where the arches take the width — 36pt Arial is drawn at 30.73pt in a 300x300,
+/// a 300x150 and a 200x300 box alike. Impact in a square box and Arial in an oblong one land
+/// within 0.7pt and 0.3 degrees of Word's glyphs. Arial in a SQUARE box does not: Word sets it
+/// about 3.7 degrees back along the path, its glyphs 2.7% closer at 36pt and 0.6% at 18pt. That
+/// is unexplained and unmodelled.
+/// </para>
+/// <para>
 /// The glyph tops therefore stand above the box on an arch up — Word draws 36pt Impact 7.5pt above a
 /// 432x108 box — which is why the raster page carries padding. The earlier chord-sagitta circle fitted
 /// to the text width drew the text at its declared size on a far tighter curve, its baseline on the
@@ -38,6 +48,17 @@ static class WordArtArch
     /// </summary>
     public static float Scale(float textRectWidth, float inkHeight) =>
         textRectWidth > 0 && inkHeight > 0 ? textRectWidth / (textRectWidth + 2 * inkHeight) : 1;
+
+    /// <summary>
+    /// The side of the text rect <see cref="Scale"/> is taken on: the width for an arch, the longer
+    /// side for a circle.
+    /// </summary>
+    public static float ScaleSide(WordArtTransform transform, float textRectWidth, float textRectHeight) =>
+        transform == WordArtTransform.Circle ? Math.Max(textRectWidth, textRectHeight) : textRectWidth;
+
+    /// <summary>Whether <paramref name="transform"/> is one of the warps laid along the ellipse.</summary>
+    public static bool Covers(WordArtTransform transform) =>
+        transform is WordArtTransform.ArchUp or WordArtTransform.ArchDown or WordArtTransform.Circle;
 
     /// <summary>
     /// How far the baseline sits below the path, as a fraction of the drawn em: the font's
@@ -69,7 +90,8 @@ static class WordArtArch
     /// The baseline origin and rotation of each glyph, for glyph advances already at the drawn size.
     /// The text rect is given in the drawing unit (left, top, width, height); <paramref name="scale"/>
     /// is <see cref="Scale"/> and <paramref name="baselineDepth"/> is <see cref="BaselineDepthEm"/>
-    /// times the drawn em. The angle is in degrees, clockwise in a y-down space.
+    /// times the drawn em. <paramref name="transform"/> picks the path: the upper half ellipse, the
+    /// lower, or the whole of it. The angle is in degrees, clockwise in a y-down space.
     /// </summary>
     public static IReadOnlyList<(float X, float Y, float AngleDegrees)> Place(
         IReadOnlyList<float> advances,
@@ -77,15 +99,19 @@ static class WordArtArch
         float scale,
         float baselineDepth,
         TextAlignment alignment,
-        bool down)
+        WordArtTransform transform)
     {
+        var down = transform == WordArtTransform.ArchDown;
+        // An arch is half the ellipse; a circle is all of it, travelled the way an arch up is.
+        var sweep = transform == WordArtTransform.Circle ? 2 * Math.PI : Math.PI;
         var semiWidth = scale * width / 2;
         var semiHeight = scale * height / 2;
         var centreX = left + width / 2;
         var centreY = top + height / 2;
 
-        // The parametric angle runs from the left end (pi) to the right end: through the top
-        // (pi -> 0) for an arch up, through the bottom (pi -> 2pi) for an arch down.
+        // The parametric angle runs from the left end (pi): through the top to the right end
+        // (pi -> 0) for an arch up, on round to the left end again for a circle, and through the
+        // bottom (pi -> 2pi) for an arch down.
         const int segments = 720;
         var angles = new double[segments + 1];
         var lengths = new double[segments + 1];
@@ -97,7 +123,7 @@ static class WordArtArch
         for (var i = 1; i <= segments; i++)
         {
             var fraction = (double) i / segments;
-            angles[i] = down ? Math.PI + Math.PI * fraction : Math.PI - Math.PI * fraction;
+            angles[i] = down ? Math.PI + sweep * fraction : Math.PI - sweep * fraction;
             var point = Point(angles[i]);
             lengths[i] = lengths[i - 1] + Math.Sqrt((point.X - previous.X) * (point.X - previous.X) + (point.Y - previous.Y) * (point.Y - previous.Y));
             previous = point;

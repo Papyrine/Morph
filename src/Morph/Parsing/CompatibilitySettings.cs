@@ -37,4 +37,12 @@ sealed class CompatibilitySettings
     /// behavior). In mode 15 it keeps none. The Word probe is on <c>Fragmenter.PlaceParagraph</c>.
     /// </summary>
     public bool KeepsSpacingBeforeAfterPageBreakBefore => CompatibilityMode <= 14;
+
+    /// <summary>
+    /// <c>w:doNotUseHTMLParagraphAutoSpacing</c>: a paragraph whose spacing is "Auto"
+    /// (<c>w:beforeAutospacing</c> / <c>w:afterAutospacing</c>) takes the amount declared beside the
+    /// flag, everywhere, where a document without the setting gives it 14pt and nothing at a cell's
+    /// edge or inside a list. The probe is on <c>DocumentParser.ResolveAutoSpacing</c>.
+    /// </summary>
+    public bool UsesFixedAutoSpacing { get; init; }
 }

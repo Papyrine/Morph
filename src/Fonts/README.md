@@ -1,6 +1,6 @@
 # Bundled test fonts
 
-192 font files used by the test suite so rendering is deterministic across machines. Nothing here ships in a
+200 font files used by the test suite so rendering is deterministic across machines. Nothing here ships in a
 NuGet package, and no project file references the directory: the tests point at it at run time through
 `ProjectFonts.Directory`, which the scenario tests pass as `ConversionOptions.FontDirectory`. A render that
 resolved fonts from the host would drift between a developer machine, CI, and the pinned `linux/amd64`
@@ -17,8 +17,8 @@ Family_Weight[_Italic].ttf
 ```
 
 `Weight` is the OS/2 `usWeightClass` of the face — 300 Light, 400 Regular, 500 Medium, 600 Semibold, 700
-Bold, 900 Black. The current spread is 98 regular, 68 bold, 8 light, 5 semibold, 3 black, one each at 350 and
-500, plus 59 italics among them. A handful of files carry a trailing `__Token` (for example
+Bold, 900 Black. The current spread is 101 regular, 71 bold, 9 light, 6 semibold, 3 black, one each at 350 and
+500, plus 61 italics among them. A handful of files carry a trailing `__Token` (for example
 `Bodoni_MT_400__BOD_R.ttf`) to break a collision where two distinct faces share a family and weight.
 
 Several files predate the convention and keep their original names (`msyh.ttc`, `cambria.ttc`,
@@ -51,7 +51,7 @@ outside the test harness, the per-file records above are the thing to check.
 
 ## Known gap: missing bold faces
 
-27 families are used by a **bold** run somewhere in `src/Tests/Inputs/` but resolve to a face below weight
+24 families are used by a **bold** run somewhere in `src/Tests/Inputs/` but resolve to a face below weight
 700. Skia then approximates bold by dilating the regular outline and ImageSharp renders at normal weight, so
 the two backends disagree and neither matches Word.
 
@@ -65,8 +65,10 @@ family with a scenario that uses it, and fails equally on a new entry or a stale
 face into this directory closes an entry with no code change, because both backends gate synthesis on the
 resolved weight; the test then fails until the entry is deleted.
 
-Most are proprietary (Microsoft, Monotype/ITC, Linotype) and cannot be redistributed here. Playfair Display,
-Work Sans, Lato and Source Sans are the exceptions, being under open licences.
+Most are proprietary (Microsoft, Monotype/ITC, Linotype) and cannot be redistributed here. The families under
+open licences are bundled as far as the Office cloud-font cache holds them: Playfair Display and Work Sans
+with their bold faces, Source Sans Pro in light, semibold and bold, and Karla in regular beside its bold
+(SIL OFL, each file's own name record says so). Lato is open too, but the cache holds only its Light face.
 
 That test reads weights from OS/2 `usWeightClass` through `OpenTypeReader`, never from a loaded
 `SKTypeface.FontStyle.Weight`, because **Skia's reported weight is platform-dependent** for any family whose

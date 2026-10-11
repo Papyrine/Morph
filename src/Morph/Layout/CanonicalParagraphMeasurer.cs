@@ -70,7 +70,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 var ascent = (float) CanonicalTextMeasurer.LineAscentPoints(
                     NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch);
-                height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]));
+                height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]), wrapped[i].Pitch);
+
+                // A picture alone on its line has no pitch of its own in the wrap, so the leading a
+                // multiple adds under it (ImageLineHeight) is taken off the MARK's pitch here, as
+                // LayoutLineContents takes it. The mark's own line is deliberately not made a floor
+                // for the measured height the way it is for the placed one: in a cell the mark's
+                // font is not resolved (ParseParagraphProperties omits it there), and floored on the
+                // stand-in an icon's row came out taller than Word's (cover-letters/06, resumes/19).
+                if (wrapped[i].Segments.Count == 0 && props.LineSpacingRule == LineSpacingRule.Auto)
+                {
+                    var markPitch = MarkPitch(paragraph);
+                    height += (float) CanonicalTextMeasurer.LineHeightPoints(markPitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints) - markPitch;
+                }
             }
 
             result[i] = new(wrapped[i].Width, height);
@@ -150,14 +162,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             var hasText = HasText(wrapped[i]);
-            var lineHeight = maxImageHeight > 0 ? ImageLineHeight(textHeight, textAscent, maxImageHeight, props.LineSpacingRule, hasText) : textHeight;
+            var lineHeight = maxImageHeight > 0 ? ImageLineHeight(textHeight, textAscent, maxImageHeight, props.LineSpacingRule, hasText, naturalPitch) : textHeight;
 
             // A line holding only images puts its baseline on the line BOTTOM — the image sits on the
             // bottom of a line that is max(mark pitch, image) tall, not on the mark font's baseline.
             // XPS-read on _probe_r12 (2026-09-05): a 3.6pt inline rectangle alone in a 12pt Calibri
             // Light paragraph has its baseline 14.8pt under the line top (the full 14.65 pitch), where a
             // text line's sits 11.4; resumes/12's coral rule sat 9px high on the mark ascent.
-            var ascent = maxImageHeight > 0 && !hasText ? lineHeight : Math.Max(textAscent, maxImageHeight);
+            // The leading a multiple adds lies under that image, as it lies under a line of text.
+            var imageOnlyLeading = props.LineSpacingRule == LineSpacingRule.Auto ? Math.Max(0f, textHeight - naturalPitch) : 0f;
+            var ascent = maxImageHeight > 0 && !hasText ? lineHeight - imageOnlyLeading : Math.Max(textAscent, maxImageHeight);
 
             // The leading an expanding multiple adds under the baseline may hang past the bottom margin;
             // the natural box above it has to fit (see Fragmenter's fit loop for the probe). It never
@@ -191,12 +205,28 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// resumes/11 each stack image-only paragraphs (card art, label icons, short inline rules), and
     /// charging a descent to every one drifted them further from Word than the plain image height
     /// did (skia +0.03 AE on cards/16), while icon_with_text's text-bearing line still needs it.</para>
+    ///
+    /// <para>A line-spacing MULTIPLE adds to a picture line what it adds to the mark's own line, not
+    /// a share of the picture: the line is the single-spaced one plus <c>(multiple − 1)</c> of the
+    /// mark font's pitch, under the picture. Word-probed 2026-10-11 (<c>_probe_picline</c>: a 72pt
+    /// picture alone in a paragraph between exact-pitch references, baselines off the XPS): under a
+    /// 10pt Arial mark (11.5pt pitch) the line is 71.9 single, 77.9 at 1.5 and 83.9 double; under a
+    /// 30pt mark (34.5) it is 71.9, 89.3 and 106.7, and 65.3 at 0.8, the multiple taking its share
+    /// off as readily as adding it. Beside two letters of text the same three read 74.3, 79.7 and
+    /// 113.3, the descent kept as above. The image-only line took the larger of the multiplied mark
+    /// line and the picture, so under any multiple a tall picture lost the leading: 5.3pt under
+    /// business-plans/02's page-wide photos, whose Normal style is spaced at 1.4.</para>
     /// </summary>
-    static float ImageLineHeight(float textHeight, float textAscent, float tallestImage, LineSpacingRule rule, bool hasText)
+    static float ImageLineHeight(float textHeight, float textAscent, float tallestImage, LineSpacingRule rule, bool hasText, float naturalPitch)
     {
         if (rule == LineSpacingRule.Exactly)
         {
             return textHeight;
+        }
+
+        if (!hasText && rule == LineSpacingRule.Auto)
+        {
+            return Math.Max(naturalPitch, tallestImage) + (textHeight - naturalPitch);
         }
 
         var descent = hasText ? Math.Max(0f, textHeight - textAscent) : 0f;
@@ -1221,8 +1251,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // run's inline-image extent, since the two are mutually exclusive.
             if (run.InlineShapeGroup is { } shapeGroup)
             {
-                var groupWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
-                var groupHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
+                // A straight connector is a box with no height (or no width) at all, and that is its
+                // size on the line: it stands on the baseline and adds nothing to the line's height.
+                // The 12pt stand-in is for a group that declares no size either way. Giving a rule
+                // 12pt of height drew it at the top of that box, 7pt above the baseline Word rules
+                // (resumes/11's three divider lines).
+                var sized = run.InlineImageWidthPoints > 0 || run.InlineImageHeightPoints > 0;
+                var groupWidth = (float) (sized ? run.InlineImageWidthPoints : 12);
+                var groupHeight = (float) (sized ? run.InlineImageHeightPoints : 12);
                 var group = new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: shapeGroup, EffectExtent: run.InlineImageEffectExtent);
                 pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(group.BoxWidth), 0, "", run.Properties, group, false, false));
                 continue;

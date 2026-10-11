@@ -377,7 +377,12 @@ static class ImageSharpPainter
 
         var width = (int) Math.Round(P(context, image.Width));
         var height = (int) Math.Round(P(context, image.Height));
-        var processed = context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
+        // A tiled fill is composed into a picture of the box's size first (see SkiaPainter.DrawPicture);
+        // one too finely tiled to compose falls back to the stretch.
+        var processed = image.Tile is { } tile && Math.Abs(image.RotationDegrees) <= 0.01
+            ? context.GetTiledImage(data, width, height, tile, image.Width, image.Height, image.Recolor, image.Opacity)
+            : null;
+        processed ??= context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
         if (processed == null)
         {
             return;
@@ -535,7 +540,7 @@ static class ImageSharpPainter
             fill = null;
         }
 
-        var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, Math.Max(0.5, shape.LineWidthPoints ?? 1))) : null;
+        var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, ShapeStroke.WidthPoints(shape.LineWidthPoints))) : null;
         if (fill == null && line == null)
         {
             return;

@@ -77,6 +77,9 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     /// <summary>The preset text transform/warp type.</summary>
     public WordArtTransform Transform { get; init; } = WordArtTransform.None;
 
+    /// <inheritdoc cref="WordArtElement.WarpAdjust"/>
+    public double? WarpAdjust { get; init; }
+
     /// <inheritdoc cref="WordArtElement.Insets"/>
     public WordArtInsets Insets { get; init; } = WordArtInsets.Default;
 
@@ -127,6 +130,7 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
             HasReflection = HasReflection,
             HasGlow = HasGlow,
             Transform = Transform,
+            WarpAdjust = WarpAdjust,
             Insets = Insets,
             TextAlignment = TextAlignment,
         };
