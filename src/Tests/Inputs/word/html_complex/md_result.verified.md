@@ -4,9 +4,7 @@
 
 ## 1. Formatted Text Section
 
-This section contains **bold**, *italic*, <u>underlined</u>, and\
-colored text. We also have\
-superscript and subscript content.
+This section contains **bold**, *italic*, <u>underlined</u>, and colored text. We also have superscript and subscript content.
 
 ## 2. Data Table
 

@@ -14,15 +14,15 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "CSS text alignment:\nLeft aligned text (default)\nCenter aligned text\nRight aligned text\nJustified text - this paragraph has enough content to demonstrate how text is stretched to fill the entire line\nwidth from left to right margins creating even edges on both sides.\nTable cell vertical alignment:\nTop aligned Middle aligned Bottom aligned"
+        "Text": "CSS text alignment:\nLeft aligned text (default)\nCenter aligned text\nRight aligned text\nJustified text - this paragraph has enough content to demonstrate how text is stretched to fill the\nentire line width from left to right margins creating even edges on both sides.\nTable cell vertical alignment:\nTop aligned Middle aligned Bottom aligned"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0263,
-      "Ssim": 0.9425,
+      "ErrorMetric": 0.0238,
+      "Ssim": 0.9571,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

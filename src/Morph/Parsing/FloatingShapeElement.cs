@@ -73,6 +73,10 @@ sealed class FloatingShapeElement : DocumentElement
     /// stretched over the box.</summary>
     public ImageCrop? ImageCrop { get; init; }
 
+    /// <summary>The fill's <c>a:tile</c>: the picture repeats at its own size instead of stretching
+    /// over the box. Null for a stretched fill.</summary>
+    public ImageTile? ImageTile { get; init; }
+
     /// <summary>Stroke color for the shape outline (hex RGB, no #). Null when no outline is drawn.</summary>
     public string? LineColorHex { get; init; }
 
@@ -171,6 +175,7 @@ sealed class FloatingShapeElement : DocumentElement
             ImageContentType = ImageContentType,
             ImageOpacity = ImageOpacity,
             ImageCrop = ImageCrop,
+            ImageTile = ImageTile,
             LineColorHex = LineColorHex,
             LineWidthPoints = LineWidthPoints,
             LineAlpha = LineAlpha,

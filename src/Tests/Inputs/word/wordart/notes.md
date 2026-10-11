@@ -15,31 +15,18 @@ the text) drew the text at full size on a far tighter curve, over the subtitle.
 
 ### Circle
 
-`textCircle` wraps the right side of an inscribed circle. Short text covers a small arc centred on 3
-o'clock and reads downward, as Word's does: the bbox diameter sizes the circle and the text sits on the
-right hemisphere. The path is sized to the rendered text width and centred on 3 o'clock, so it does not
-depend on path-text alignment options. Neither ImageSharp's `RichTextOptions.HorizontalAlignment` nor
-Skia's `SKTextAlign.Center` centres text the way the obvious reading suggests. See each drawer's
-`TryRenderWordArtOnPath`.
+`textCircle` is the arch construction on the whole ellipse (`WordArtArch.Place`), run clockwise from its
+left end: centred text sits about the right end and reads downward. Its scale takes the longer side of
+the text rect. Read off Word's XPS on `_probe_circle_*`; `docs/word-features.md`, WordArt Transforms,
+has the numbers and the one case that does not fit (Arial in a square box).
 
-### Wave + Chevron also use path-based rendering
+### Wave, chevron, slant, fade and triangle are envelope warps
 
-`textChevron` / `textChevronInverted` ride a chord-sagitta arc (bbox width as chord, height as sagitta, `R = (W² + 4H²) / (8H)`), because Word's chevron renders as a single-peak smooth arch, not a sharp ^. (A literal polyline ^/v path causes per-glyph overlap at the discontinuous apex regardless of fillet size.)
-
-`textWave1` uses a 64-segment polyline approximation of one full cosine period across the rendered text width: `y = midY - amplitude·cos(2π·t/textWidth)`. Amplitude is bbox H/4 (not H/2) so the wave excursion stays gentle relative to glyph height, matching Word.
-
-### Slant uses a straight diagonal path
-
-`textSlantUp` / `textSlantDown` route through a straight diagonal `LineTo` path with slope ±H/W. Path-text rendering rotates each glyph to match the line angle, so letters lean at the slant angle (Word keeps glyphs upright on a slanted baseline — close approximation, not pixel-identical, but visually distinct from flat).
-
-### Fade and Triangle use per-glyph rendering
-
-`textFadeRight` / `textFadeLeft` / `textTriangle` are *envelope warps* — each glyph is vertically scaled relative to its position along the text. Implemented by drawing one `DrawText` per character with a `Scale(1, sy)` transform anchored at the baseline, so glyph bottoms align and tops shrink toward the baseline. Per-glyph rendering is slower than a single DrawText so the path-based warps are tried first.
-
-Scale curves:
-- FadeRight: `1.0 → 0.35` (full at left, reduced at right)
-- FadeLeft: `0.35 → 1.0`
-- Triangle: peaks at 1.0 mid-text, drops to 0.35 at edges (diamond envelope)
+Each is a top and a bottom guide drawn in the text rect by the preset's own definition, and the line's
+INK box is stretched between them (`WordArtEnvelope`, `TryRenderEnvelope` in both drawers). So every
+one of them fills its box edge to edge whatever size the text declares, as Word's does; the text-on-path
+and per-glyph scaling this page used before drew the text at its declared size, less than half the width
+Word fills. `../wordart-envelope/notes.md` has the guides of the four warps that fixture covers.
 
 ### Vertical positioning vs Word
 
@@ -47,9 +34,5 @@ The drift once recorded here was the layout's, not the warps': an inline WordArt
 paragraph's spacing, and the arch-up paragraph declares 10pt after, so every warp below it sat that much
 high and two of them a page early. The WordArt now carries its paragraph's spacing. The line it takes is
 exactly the box height (`_probe_archflow`: consecutive 72pt boxes 72pt apart at a 12pt and a 48pt
-paragraph font), so every warp now starts on Word's page at Word's box top. What remains between the
-warps and Word is each warp's own geometry.
-
-### `textInflate` / `textDeflate` / `textCan*`
-
-Now handled — see [`../wordart-envelope/notes.md`](../wordart-envelope/notes.md). Top+bottom envelope warps render as per-glyph affine scale (anchor varies by warp), with the text stretched to fill the bbox and the peak glyph sized to fit the bbox height.
+paragraph font), so every warp now starts on Word's page at Word's box top. A box carried to a fresh
+page keeps its paragraph's space-after as well, which the wave at the head of page 3 had lost.

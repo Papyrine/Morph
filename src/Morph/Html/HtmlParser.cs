@@ -12,10 +12,29 @@ sealed class HtmlParser
         this.containerFontFamily = containerFontFamily;
     }
 
+    /// <summary>
+    /// The size HTML text is set at when nothing sizes it: CSS's <c>medium</c>, 16px, which is 12pt.
+    /// Word imports at it too — XPS-read 2026-10-11 off html_complex's own AltChunk
+    /// (<c>_probe_htmlsize</c>): paragraphs, table cells and list items all draw at an em of 12.00,
+    /// headings at 24.02 and 18.02, superscripts at 7.80. The model's own default of 11pt stood in
+    /// here until then, which set every HTML line 8% narrow: paragraphs that wrap in Word did not,
+    /// and rows and pages ran short of Word's by the same share.
+    /// </summary>
+    const double defaultFontSizePoints = 12;
+
+    /// <summary>
+    /// What every paragraph built here starts from: single line spacing. The model's own default
+    /// multiple is 1.08, Word's for a document with no styles, and an HTML paragraph, list item or
+    /// cell is set on its font's own line (<see cref="defaultFontSizePoints"/> has the probe: list
+    /// items 14.4pt apart at 12pt).
+    /// </summary>
+    static ParagraphProperties BlockProperties { get; } = new() {LineSpacingMultiplier = 1.0};
+
     RunProperties DefaultRunProps() =>
         new()
         {
-            FontFamily = defaultFontFamily
+            FontFamily = defaultFontFamily,
+            FontSizePoints = defaultFontSizePoints
         };
 
     // Table cells and list items take the HOST document's default font, not the browser-default
@@ -27,7 +46,8 @@ sealed class HtmlParser
     RunProperties ContainerRunProps() =>
         new()
         {
-            FontFamily = containerFontFamily
+            FontFamily = containerFontFamily,
+            FontSizePoints = defaultFontSizePoints
         };
 
     public static List<DocumentElement> Parse(string html) =>
@@ -144,6 +164,7 @@ sealed class HtmlParser
                     elements.Add(
                         new ParagraphElement
                         {
+                            Properties = BlockProperties,
                             Runs =
                             [
                                 new()
@@ -191,7 +212,7 @@ sealed class HtmlParser
                 }
 
                 var style = ParseInlineStyle(element);
-                var para = CreateParagraph(element, 11, false, style);
+                var para = CreateParagraph(element, defaultFontSizePoints, false, style);
                 elements.Add(para);
                 break;
 
@@ -228,7 +249,7 @@ sealed class HtmlParser
                                 Properties = DefaultRunProps()
                             }
                         ],
-                        Properties = new()
+                        Properties = BlockProperties with
                         {
                             SpacingAfterPoints = 0
                         }
@@ -275,7 +296,7 @@ sealed class HtmlParser
                                 }
                             }
                         ],
-                        Properties = new()
+                        Properties = BlockProperties with
                         {
                             SpacingAfterPoints = 8
                         }
@@ -300,7 +321,7 @@ sealed class HtmlParser
                             childEl,
                             DefaultRunProps() with
                             {
-                                FontSizePoints = 11,
+                                FontSizePoints = defaultFontSizePoints,
                                 Italic = true
                             });
                         elements.Add(
@@ -315,12 +336,12 @@ sealed class HtmlParser
                                             Text = "",
                                             Properties = DefaultRunProps() with
                                             {
-                                                FontSizePoints = 11,
+                                                FontSizePoints = defaultFontSizePoints,
                                                 Italic = true
                                             }
                                         }
                                     ],
-                                Properties = new()
+                                Properties = BlockProperties with
                                 {
                                     SpacingAfterPoints = 8
                                 }
@@ -339,7 +360,7 @@ sealed class HtmlParser
                     element,
                     DefaultRunProps() with
                     {
-                        FontSizePoints = 11,
+                        FontSizePoints = defaultFontSizePoints,
                         Italic = true
                     });
                 elements.Add(
@@ -354,12 +375,12 @@ sealed class HtmlParser
                                     Text = "",
                                     Properties = DefaultRunProps() with
                                     {
-                                        FontSizePoints = 11,
+                                        FontSizePoints = defaultFontSizePoints,
                                         Italic = true
                                     }
                                 }
                             ],
-                        Properties = new()
+                        Properties = BlockProperties with
                         {
                             SpacingAfterPoints = 8
                         }
@@ -391,7 +412,7 @@ sealed class HtmlParser
                 // For other elements, try to extract content
                 if (!string.IsNullOrWhiteSpace(element.TextContent))
                 {
-                    var defaultPara = CreateParagraph(element, 11, false);
+                    var defaultPara = CreateParagraph(element, defaultFontSizePoints, false);
                     elements.Add(defaultPara);
                 }
 
@@ -558,7 +579,10 @@ sealed class HtmlParser
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
                 LeftIndentPoints = style?.MarginLeftPoints ?? 0,
                 RightIndentPoints = style?.MarginRightPoints ?? 0,
-                LineSpacingMultiplier = style?.LineHeight ?? 1.08,
+                // Single spacing: Word's two-line HTML paragraph sets its baselines 13.8pt apart,
+                // 12pt Times New Roman's own line (_probe_htmlsize). 1.08 stood here while the text
+                // was set at 11pt, which made nearly the same pitch out of the wrong size.
+                LineSpacingMultiplier = style?.LineHeight ?? 1.0,
                 BackgroundColorHex = style?.BackgroundColor,
                 Borders = style?.Borders,
                 BorderTopSpacePoints = style?.BorderTopSpacePoints ?? 0,
@@ -642,7 +666,9 @@ sealed class HtmlParser
             switch (node)
             {
                 case IText textNode:
-                    var text = textNode.TextContent;
+                    var text = PreservesWhitespace(textNode)
+                        ? textNode.TextContent
+                        : CollapseWhitespace(textNode.TextContent, runs);
                     if (!string.IsNullOrEmpty(text))
                     {
                         runs.Add(
@@ -660,6 +686,61 @@ sealed class HtmlParser
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// HTML's own whitespace rule for running text: any run of spaces, tabs and line ends is ONE
+    /// space, and none at all where the text before it already ended in one. The source's line
+    /// ends are how the markup was typed, not breaks in the paragraph — Word and every browser set
+    /// two words typed on two source lines as two words on one line. Left in, each line end became
+    /// a break of its own, and html_complex's two-line intro (typed over three source lines) took
+    /// three.
+    /// </summary>
+    static string CollapseWhitespace(string text, List<Run> runs)
+    {
+        // A text node that follows one ending in a space opens after that space.
+        var afterSpace = runs.Count > 0 &&
+                         runs[^1] is {InlineImageData: null, InlineShapeGroup: null, IsTab: false, Text.Length: > 0} previous &&
+                         previous.Text[^1] == ' ';
+        var builder = new StringBuilder(text.Length);
+        foreach (var character in text)
+        {
+            if (character is ' ' or '\t' or '\r' or '\n' or '\f')
+            {
+                if (!afterSpace)
+                {
+                    builder.Append(' ');
+                }
+
+                afterSpace = true;
+                continue;
+            }
+
+            builder.Append(character);
+            afterSpace = false;
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>Whether a text node stands inside an element that keeps its whitespace as typed.</summary>
+    static bool PreservesWhitespace(INode node)
+    {
+        for (var parent = node.ParentElement; parent != null; parent = parent.ParentElement)
+        {
+            if (parent.LocalName is "pre" or "textarea" or "listing" or "xmp")
+            {
+                return true;
+            }
+
+            var style = parent.GetAttribute("style");
+            if (style != null && style.Contains("white-space", StringComparison.OrdinalIgnoreCase))
+            {
+                return style.Contains("pre", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        return false;
     }
 
     static void ParseInlineElement(IElement element, List<Run> runs, RunProperties props)
@@ -1250,7 +1331,7 @@ sealed class HtmlParser
                     Properties = ContainerRunProps()
                 }
             ],
-            Properties = new()
+            Properties = BlockProperties with
             {
                 LeftIndentPoints = textIndent,
                 HangingIndentPoints = hangingIndent,
@@ -1584,6 +1665,10 @@ sealed class HtmlParser
                     cellElements.Add(
                         new ParagraphElement
                         {
+                            // A cell's paragraph keeps the model's 1.08 line: Word's rows stand further
+                            // apart than a single-spaced line and the cell padding account for
+                            // (html_table in src/todo.md), and until that is decomposed the looser line
+                            // is the nearer of the two.
                             Properties = cellAlignment is { } alignment
                                 ? new()
                                 {
@@ -2000,10 +2085,10 @@ sealed class HtmlParser
             switch (child.LocalName)
             {
                 case "dt":
-                    elements.Add(CreateParagraph(child, 11, true));
+                    elements.Add(CreateParagraph(child, defaultFontSizePoints, true));
                     break;
                 case "dd":
-                    var ddPara = CreateParagraph(child, 11, false);
+                    var ddPara = CreateParagraph(child, defaultFontSizePoints, false);
                     elements.Add(
                         new ParagraphElement
                         {

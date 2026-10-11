@@ -75,8 +75,6 @@ public class BundledBoldCoverageTests
         ["Lucida Sans Typewriter"] = 600,
         // 1 scenario, business-plans/06
         ["Neue Haas Grotesk Text Pro"] = 400,
-        // 1 scenario, business-plans/04
-        ["Playfair Display"] = 400,
         // 1 scenario, cards/19
         ["Source Sans Pro Light"] = 400,
         // 1 scenario, newsletters/04
@@ -86,9 +84,7 @@ public class BundledBoldCoverageTests
         // 1 scenario, business-plans/02
         ["Trade Gothic Next Cond"] = 400,
         // 1 scenario, agendas-minutes/02
-        ["Tw Cen MT"] = 400,
-        // 1 scenario, business-plans/06
-        ["Work Sans"] = 400
+        ["Tw Cen MT"] = 400
     };
 
     [Test]

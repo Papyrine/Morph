@@ -9,6 +9,17 @@ sealed record ParagraphProperties
     public double SpacingAfterPoints { get; init; }
 
     /// <summary>
+    /// Whether the space before is Word's "Auto" (<c>w:spacing/@w:beforeAutospacing</c>). The
+    /// declared amount is then not used: <see cref="SpacingBeforePoints"/> already holds what Auto
+    /// came to for this paragraph where it stands (see <c>DocumentParser.ResolveAutoSpacing</c>). The
+    /// flag is kept so a style hands it down to the paragraphs and styles based on it.
+    /// </summary>
+    internal bool SpacingBeforeAuto { get; init; }
+
+    /// <inheritdoc cref="SpacingBeforeAuto"/>
+    internal bool SpacingAfterAuto { get; init; }
+
+    /// <summary>
     /// Line spacing multiplier for Auto mode (1.0 = single, 1.5 = 1.5 lines, 2.0 = double).
     /// Only used when LineSpacingRule is Auto.
     /// </summary>

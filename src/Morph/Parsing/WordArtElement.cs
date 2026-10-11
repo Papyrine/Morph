@@ -100,6 +100,12 @@ sealed class WordArtElement : DocumentElement, IWordArtVisual
     public WordArtTransform Transform { get; init; } = WordArtTransform.None;
 
     /// <summary>
+    /// The warp's first adjust value (<c>a:prstTxWarp/a:avLst</c>) as a fraction of the text rect —
+    /// how deep a chevron rises, how far a fade closes — or null for the preset's own default.
+    /// </summary>
+    public double? WarpAdjust { get; init; }
+
+    /// <summary>
     /// The text rect's insets from the box (<c>wps:bodyPr</c>). An arched warp lays its path in the
     /// text rect, so the insets set the arch's width.
     /// </summary>

@@ -139,24 +139,24 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0334,
-      "Ssim": 0.9545,
+      "ErrorMetric": 0.0285,
+      "Ssim": 0.9612,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.2181,
-      "Ssim": 0.8345,
+      "ErrorMetric": 0.073,
+      "Ssim": 0.9294,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.1545,
-      "Ssim": 0.8795,
+      "ErrorMetric": 0.0968,
+      "Ssim": 0.9392,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
