@@ -3,6 +3,27 @@
 /// </summary>
 static class ShapeStroke
 {
+    /// <summary>
+    /// A preset dash as lengths in the painter's own units: the pattern is declared in multiples of the
+    /// line width (<see cref="FloatingShapeElement.LineDashPattern"/>), so each length is that many
+    /// stroke widths. Null for a solid stroke, or one too thin to dash.
+    /// </summary>
+    public static float[]? DashLengths(IReadOnlyList<double>? pattern, double strokeWidth)
+    {
+        if (pattern is not {Count: >= 2} || strokeWidth <= 0)
+        {
+            return null;
+        }
+
+        var lengths = new float[pattern.Count];
+        for (var index = 0; index < pattern.Count; index++)
+        {
+            lengths[index] = (float) (pattern[index] * strokeWidth);
+        }
+
+        return lengths;
+    }
+
     /// <summary>The width of an outline that declares none: DrawingML's default line, 9525 EMU.</summary>
     const double defaultPoints = 0.75;
 

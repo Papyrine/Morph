@@ -16,6 +16,17 @@ sealed class InlineShapeGroup
     /// <summary>Rotation applied to the whole group (degrees, clockwise).</summary>
     public double RotationDegrees { get; init; }
 
+    /// <summary>
+    /// How far right and down of its frame on the line the group is drawn, in points. Zero in
+    /// compatibility modes 14 and 15; in mode 12, and in a document that declares no mode, Word draws
+    /// an inline group its left and top effect edges (<c>wp:effectExtent</c>) further in than the
+    /// frame the line reserves for it (see <c>DocumentParser.ParseInlineShapeGroupRun</c>).
+    /// </summary>
+    public double DrawOffsetXPoints { get; init; }
+
+    /// <inheritdoc cref="DrawOffsetXPoints"/>
+    public double DrawOffsetYPoints { get; init; }
+
     /// <summary>Component shapes in document order — the renderer paints them back to front.</summary>
     public required IReadOnlyList<GroupShape> Shapes { get; init; }
 }
@@ -47,6 +58,13 @@ sealed class GroupShape
 
     /// <summary>Stroke opacity, 0.0 (fully transparent) to 1.0 (fully opaque). Defaults to 1.0.</summary>
     public double LineAlpha { get; init; } = 1.0;
+
+    /// <summary>
+    /// The stroke's dash as alternating on/off lengths in multiples of the line width
+    /// (<c>a:ln/a:prstDash</c>, see <see cref="FloatingShapeElement.LineDashPattern"/>), or null for a
+    /// solid stroke.
+    /// </summary>
+    public IReadOnlyList<double>? LineDashPattern { get; init; }
 
     /// <summary>True when the shape is flipped vertically (a:xfrm/@flipV="1").</summary>
     public bool FlipVertical { get; init; }
@@ -92,7 +110,11 @@ sealed class GroupShape
     /// <summary>MIME type of <see cref="ImageData"/>, e.g. <c>image/svg+xml</c> or <c>image/png</c>.</summary>
     public string? ImageContentType { get; init; }
 
-    /// <summary>Raster blob to draw when the backend cannot rasterize an SVG <see cref="ImageData"/>.</summary>
+    /// <summary>
+    /// Raster blob the ImageSharp and PDF painters draw when an SVG <see cref="ImageData"/> is one
+    /// the SVG reader gives up (<see cref="SvgDrawing.For"/>). Skia hands a group's SVG to Svg.Skia
+    /// whatever is in it, and does not use this.
+    /// </summary>
     public byte[]? ImageRasterFallbackData { get; init; }
 
     /// <summary>Source-rectangle crop (<c>a:srcRect</c>) applied to <see cref="ImageData"/>. Null when uncropped.</summary>

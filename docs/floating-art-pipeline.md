@@ -298,7 +298,9 @@ business-plans/08's accent rule).
   Only a line that STARTS past the bottom is dropped — a line the edge cuts stays, since a line
   measured a point taller than Word's must not lose text Word draws. Whether Word clips a cut line
   at the box edge is unprobed. Slide and sheet text boxes leave the flag off: PowerPoint shows
-  overflow. The HTML export does not apply it yet.
+  overflow. The HTML export applies it as `overflow: hidden` on the box, which is placed
+  absolutely at its declared height (`HtmlExporter.WriteAbsoluteTextBox`, 2026-10-12); a browser
+  clips at the box edge, so a line the edge cuts is cut there.
 - **Anchor.** A text box records its anchor paragraph (`AnchorParagraph`, stamped with the shapes
   and pictures of the same `ParseParagraph` call) and goes through `EmitBodyFloat` like them, so a
   paragraph-relative offset resolves against the paragraph's pre-spacing top and the box waits for
@@ -443,6 +445,21 @@ Do not re-attempt these as-is; each needs the recorded blocker resolved first.
    hexagon outlines back to Word's measured 3px from 1–2px. newsletters/03 p2 posts +0.0009 AE
    for that — a textbook new-ink offset penalty, since the now-correct outline sits ~3px off
    Word's position.
+8. **Drawing an inline group further in by its effect extents, for every document** — three
+   forms tried and reverted 2026-10-12 before the rule was probed. `inline_shape_arrows` drew
+   its arrows 13pt left of and 12pt above Word's, the size of the group's left and top
+   `wp:effectExtent` edges, which read as the offset being applied once where Word applies it
+   twice. Doubling it in `Fragmenter.MapImages` for every group made brochures/04 worse;
+   doubling the parser's padding instead broke rotated groups and business-plans/12; and a
+   separate unconditional draw offset regressed business-plans/12 by +0.6 on every one of its
+   pages while fixing `inline_shape_arrows`. The two documents hold the SAME arrows and Word
+   draws them differently, so the variable was not in the drawing. `_probe_arrowmode15` /
+   `14` / `12` isolated it: the compatibility mode. Modes 14 and 15 draw the group at the
+   inner box of its frame; mode 12, and a document declaring no mode, draws it the left and
+   top edges further in again, on an unchanged frame. LANDED as
+   `InlineShapeGroup.DrawOffsetXPoints` / `DrawOffsetYPoints`, set only below mode 14: of the
+   whole corpus only `inline_shape_arrows` moves, 3.86 to 0.47. See *Inline Shape Groups* in
+   `word-features.md` for the measured positions.
 
 ## See also
 

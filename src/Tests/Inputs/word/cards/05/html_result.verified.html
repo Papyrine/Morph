@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -33,6 +36,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: 'Sagona ExtraLight', sans-serif; max-width: 756pt; padding: 18pt; position: relative">
 <header class="doc-header">
+<div style="position: relative"><svg style="position: absolute; left: 377.75pt; top: -18pt; width: 0.5pt; height: 612pt; z-index: 1; overflow: visible" viewBox="0 0 0.5 612" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line x1="0.25" y1="0" x2="0.25" y2="612" stroke="#d9d9d9" stroke-width="0.5" /></svg></div>
+<div style="position: relative"><svg style="position: absolute; left: -18pt; top: 287.75pt; width: 792pt; height: 0.5pt; z-index: 1; overflow: visible" viewBox="0 0 792 0.5" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0.25" x2="792" y2="0.25" stroke="#d9d9d9" stroke-width="0.5" stroke-dasharray="2 1.5" /></svg></div>
 <p style="text-align: center; margin-bottom: 0pt; margin-left: 21.6pt; margin-right: 50.4pt; line-height: 1">&nbsp;</p>
 </header>
 <p style="text-align: center; margin-bottom: 0pt; margin-left: 21.6pt; margin-right: 50.4pt; line-height: 1.15">&nbsp;</p>

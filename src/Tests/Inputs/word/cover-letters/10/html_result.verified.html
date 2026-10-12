@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -33,8 +36,8 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </head>
 <body style="font-family: Bahnschrift, sans-serif; max-width: 453.6pt; padding: 50.4pt 79.2pt 36pt; position: relative">
 <header class="doc-header">
-<div style="position: relative"><svg style="position: absolute; left: -79.2pt; top: 150.05pt; width: 612pt; height: 641.95pt; z-index: -1" viewBox="0 0 612 641.95" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="641.95" fill="#e5d4bc" fill-opacity="0.1" /></svg></div>
-<div style="position: relative"><svg style="position: absolute; left: -79.2pt; top: 0pt; width: 612pt; height: 215.47pt; z-index: -1" viewBox="0 0 612 215.47" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="215.47" fill="#262626" /></svg></div>
+<div style="position: relative"><svg style="position: absolute; left: -79.2pt; top: 150.05pt; width: 612pt; height: 641.95pt; z-index: -1; overflow: visible" viewBox="0 0 612 641.95" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="641.95" fill="#e5d4bc" fill-opacity="0.1" /></svg></div>
+<div style="position: relative"><svg style="position: absolute; left: -79.2pt; top: 0pt; width: 612pt; height: 215.47pt; z-index: -1; overflow: visible" viewBox="0 0 612 215.47" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="612" height="215.47" fill="#262626" /></svg></div>
 <p style="margin-bottom: 12pt; line-height: 1">&nbsp;</p>
 </header>
 <p style="margin-bottom: 0pt; line-height: 1">&nbsp;</p>

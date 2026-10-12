@@ -21,7 +21,7 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.004,
+      "ErrorMetric": 0.0039,
       "Ssim": 0.9914,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",

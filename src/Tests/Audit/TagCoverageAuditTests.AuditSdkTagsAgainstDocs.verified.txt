@@ -2,10 +2,10 @@
 
 SDK element types catalogued: 1727
 SDK attribute names catalogued: 394
-Tags mentioned in docs: 675
+Tags mentioned in docs: 677
 SDK namespaces seen: a, a14, a15, c, cdr, cx, dgm, m, o, pic, v, w, w10, w14, w15, w16cur, wp, wp14, wpc, wpg, wps
 
-## SDK tags missing from both word-features.md and missingTags.md (1135)
+## SDK tags missing from both word-features.md and missingTags.md (1134)
 
 These elements are recognised by the OpenXml SDK but not documented anywhere — either coverage gaps to add to `missingTags.md`, or genuinely uninteresting plumbing tags. Triage and either document or explicitly accept.
 
@@ -129,7 +129,6 @@ These elements are recognised by the OpenXml SDK but not documented anywhere —
 - `a:effectStyleLst`
 - `a:end`
 - `a:endCxn`
-- `a:extLst`
 - `a:extraClrScheme`
 - `a:extrusionClr`
 - `a:fgClr`
@@ -1145,12 +1144,13 @@ These elements are recognised by the OpenXml SDK but not documented anywhere —
 - `wps:extLst`
 - `wps:linkedTxbx`
 
-## Tags mentioned in docs but unknown to the SDK (20)
+## Tags mentioned in docs but unknown to the SDK (21)
 
 These are typos, invented names, or extension-namespace tags the SDK doesn't model (e.g. `a14:`, `c16r3:`, `int2:`, `adec:`, `ask:`). Worth a manual scan for typos. Attributes already known to the SDK are filtered out.
 
 - `a16:creationId`
 - `adec:decorative`
+- `asvg:svgBlip`
 - `c14:style`
 - `c16:uniqueId`
 - `c16r3:dataDisplayOptions16`

@@ -2033,7 +2033,7 @@ sealed class HtmlParser
         ["yellowgreen"] = "9ACD32"
     };
 
-    static string? NormalizeColor(string color)
+    public static string? NormalizeColor(string color)
     {
         if (string.IsNullOrEmpty(color))
         {

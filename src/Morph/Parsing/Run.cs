@@ -23,8 +23,8 @@ sealed class Run
     public string? InlineImageDescription { get; init; }
 
     /// <summary>Raster bytes from the primary <c>a:blip r:embed</c>, retained when
-    /// <see cref="InlineImageData"/> holds the SVG variant so backends without SVG
-    /// support can use this fallback.</summary>
+    /// <see cref="InlineImageData"/> holds the SVG variant: what the painters draw when the
+    /// SVG reader gives the document up (<see cref="SvgDrawing.For"/>).</summary>
     public byte[]? InlineImageRasterFallbackData { get; init; }
 
     /// <summary>Content type for <see cref="InlineImageRasterFallbackData"/>.</summary>

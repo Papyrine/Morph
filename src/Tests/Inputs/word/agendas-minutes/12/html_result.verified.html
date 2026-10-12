@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -49,12 +52,12 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 </table>
 <h1 id="attending" style="font-size: 20pt; margin-top: 24pt; margin-bottom: 1pt"><span style="font-weight: normal; color: #1d675e;">Attending</span></h1>
 <p style="margin-top: 3pt; margin-bottom: 0pt; line-height: 1.04"><span style="color: #595959;"><strong>[Name 1]</strong></span></p>
-<p style="margin-top: 3pt; margin-bottom: 0pt; line-height: 1.04"><span style="color: #595959;"><strong>[Name 2]</strong></span></p>
+<p style="margin-bottom: 0pt; line-height: 1.04"><span style="color: #595959;"><strong>[Name 2]</strong></span></p>
 <h2 id="announcements" style="font-size: 17pt; margin-top: 21pt; margin-bottom: 1pt"><span style="font-weight: normal; color: #262626;">Announcements</span></h2>
 <p><span style="color: #595959;">[List all announcements made at the meeting. For example, new members, change of event, and so forth.]</span></p>
 <ul style="list-style-type: disc">
-  <li><span style="color: #595959;">[Need a heading? On the Home tab, in the Styles gallery, just tap the heading style you want.]</span></li>
-  <li><span style="color: #595959;">[Notice other styles in that gallery as well, such as for a numbered list, or a bulleted list like this one.]</span></li>
+  <li style="color: #595959">[Need a heading? On the Home tab, in the Styles gallery, just tap the heading style you want.]</li>
+  <li style="color: #595959">[Notice other styles in that gallery as well, such as for a numbered list, or a bulleted list like this one.]</li>
 </ul>
 <h2 id="discussion" style="font-size: 17pt; margin-top: 21pt; margin-bottom: 1pt"><span style="font-weight: normal; color: #262626;">Discussion</span></h2>
 <p><span style="color: #595959;">[Summarize the discussion for each issue, state the outcome, and assign any action items.]</span></p>

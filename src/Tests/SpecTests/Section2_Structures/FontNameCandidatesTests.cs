@@ -5,10 +5,9 @@
 public class FontNameCandidatesTests
 {
     [Test]
-    public async Task GetCandidateNames_PlainFont_EffectiveEqualsOriginal()
+    public async Task GetCandidateNames_PlainFont_HasNoStrippedName()
     {
-        var candidates = FontHelpers.GetCandidateNames("Arial", false);
-        await Assert.That(candidates.Effective).IsEqualTo("Arial");
+        var candidates = FontHelpers.GetCandidateNames("Arial");
         await Assert.That(candidates.Original).IsEqualTo("Arial");
         await Assert.That(candidates.Stripped).IsNull();
     }
@@ -16,34 +15,32 @@ public class FontNameCandidatesTests
     [Test]
     public async Task GetCandidateNames_BoldSuffix_StrippedIsBaseName()
     {
-        var candidates = FontHelpers.GetCandidateNames("Avenir Next LT Pro Bold", false);
-        await Assert.That(candidates.Effective).IsEqualTo("Avenir Next LT Pro Bold");
+        var candidates = FontHelpers.GetCandidateNames("Avenir Next LT Pro Bold");
+        await Assert.That(candidates.Original).IsEqualTo("Avenir Next LT Pro Bold");
         await Assert.That(candidates.Stripped).IsEqualTo("Avenir Next LT Pro");
     }
 
     [Test]
     public async Task GetCandidateNames_LightSuffix_StrippedIsBaseName()
     {
-        var candidates = FontHelpers.GetCandidateNames("Calibri Light", false);
-        await Assert.That(candidates.Effective).IsEqualTo("Calibri Light");
+        var candidates = FontHelpers.GetCandidateNames("Calibri Light");
+        await Assert.That(candidates.Original).IsEqualTo("Calibri Light");
         await Assert.That(candidates.Stripped).IsEqualTo("Calibri");
     }
 
     [Test]
-    public async Task GetCandidateNames_BoldWithMediumSuffix_EffectiveIsStripped()
+    public async Task GetCandidateNames_MediumSuffix_NamedFamilyThenBase()
     {
-        // bold=true + medium weight suffix → effective is the base name
-        var candidates = FontHelpers.GetCandidateNames("Aptos Medium", true);
-        await Assert.That(candidates.Effective).IsEqualTo("Aptos");
+        // The family as named comes first whether or not the run is bold; the base name is the fallback.
+        var candidates = FontHelpers.GetCandidateNames("Aptos Medium");
         await Assert.That(candidates.Original).IsEqualTo("Aptos Medium");
-        // Stripped equals effective, so it should be null to avoid redundancy
-        await Assert.That(candidates.Stripped).IsNull();
+        await Assert.That(candidates.Stripped).IsEqualTo("Aptos");
     }
 
     [Test]
     public async Task FindFallback_DirectMatch_ReturnsFallback()
     {
-        var candidates = FontHelpers.GetCandidateNames("Avenir Next LT Pro", false);
+        var candidates = FontHelpers.GetCandidateNames("Avenir Next LT Pro");
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsEqualTo("Century Gothic");
     }
@@ -52,7 +49,7 @@ public class FontNameCandidatesTests
     public async Task FindFallback_MatchViaStrippedName_ReturnsFallback()
     {
         // "AvenirNext LT Pro Bold" → stripped to "AvenirNext LT Pro" → has fallback
-        var candidates = FontHelpers.GetCandidateNames("AvenirNext LT Pro Bold", false);
+        var candidates = FontHelpers.GetCandidateNames("AvenirNext LT Pro Bold");
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsEqualTo("Century Gothic");
     }
@@ -60,7 +57,7 @@ public class FontNameCandidatesTests
     [Test]
     public async Task FindFallback_NoMatch_ReturnsNull()
     {
-        var candidates = FontHelpers.GetCandidateNames("Arial", false);
+        var candidates = FontHelpers.GetCandidateNames("Arial");
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsNull();
     }

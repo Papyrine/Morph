@@ -61,6 +61,43 @@ public class InlinePictureEffectExtentTests
     }
 
     [Test]
+    public async Task A_group_is_drawn_its_draw_offset_further_in_on_an_unchanged_frame()
+    {
+        // _probe_arrowmode: an arrow group with effect edges of 13.5pt left and 12pt top has its ink
+        // from x=72.0, y=94.6 in compatibility modes 14 and 15 and from x=85.4, y=106.6 in mode 12,
+        // while a second arrow starts 75.4pt after the first in every mode. The parser hands the
+        // mode-12 move over as the group's draw offset; the frame the line reserves is not its
+        // business.
+        ParagraphElement Group(double offsetX, double offsetY) => new()
+        {
+            Runs =
+            [
+                new()
+                {
+                    Text = "",
+                    Properties = new() { FontFamily = "Aptos", FontSizePoints = 12 },
+                    InlineShapeGroup = new() { ChildExtentX = 100, ChildExtentY = 100, Shapes = [], DrawOffsetXPoints = offsetX, DrawOffsetYPoints = offsetY },
+                    InlineImageWidthPoints = 100,
+                    InlineImageHeightPoints = 60,
+                    InlineImageEffectExtent = new(13.5, 12, 4, 6)
+                }
+            ],
+            Properties = new() { LineSpacingMultiplier = 1 }
+        };
+
+        PlacedLine Line(double offsetX, double offsetY) =>
+            new Fragmenter(LayoutTestFonts.Measurer).Layout([Group(offsetX, offsetY)], page).Pages[0].Items.OfType<PlacedLine>().Single();
+
+        var plain = Line(0, 0);
+        var moved = Line(13.5, 12);
+
+        await Assert.That(moved.Images[0].X - plain.Images[0].X).IsEqualTo(13.5f).Within(0.01f);
+        await Assert.That(moved.Images[0].Y - plain.Images[0].Y).IsEqualTo(12f).Within(0.01f);
+        await Assert.That(moved.Height).IsEqualTo(plain.Height).Within(0.01f);
+        await Assert.That(moved.Y).IsEqualTo(plain.Y).Within(0.01f);
+    }
+
+    [Test]
     public async Task A_following_paragraph_starts_below_the_whole_box()
     {
         var caption = new ParagraphElement { Runs = [new() { Text = "cap", Properties = new() { FontFamily = "Aptos", FontSizePoints = 12 } }], Properties = new() };

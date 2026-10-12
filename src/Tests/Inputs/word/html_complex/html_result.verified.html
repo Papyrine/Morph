@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -68,15 +71,15 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
 <h2 id="3-lists" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1"><span style="color: #4472c4;">3. Lists</span></h2>
 <p style="margin-bottom: 14pt; line-height: 1"><span style="font-size: 12pt;">Key features:</span></p>
 <ul style="list-style-type: disc">
-  <li><span style="font-family: Calibri, sans-serif; font-size: 12pt;">Easy to use interface</span></li>
-  <li><span style="font-family: Calibri, sans-serif; font-size: 12pt;">Multiple format support</span>
+  <li style="font-family: Calibri, sans-serif; font-size: 12pt">Easy to use interface</li>
+  <li style="font-family: Calibri, sans-serif; font-size: 12pt">Multiple format support
     <ul style="list-style-type: '◦ '">
-      <li><span style="font-family: Calibri, sans-serif; font-size: 12pt;">PDF export</span></li>
-      <li><span style="font-family: Calibri, sans-serif; font-size: 12pt;">HTML export</span></li>
-      <li><span style="font-family: Calibri, sans-serif; font-size: 12pt;">Image export</span></li>
+      <li>PDF export</li>
+      <li>HTML export</li>
+      <li>Image export</li>
     </ul>
   </li>
-  <li><span style="font-family: Calibri, sans-serif; font-size: 12pt;">Cross-platform compatibility</span></li>
+  <li style="font-family: Calibri, sans-serif; font-size: 12pt">Cross-platform compatibility</li>
 </ul>
 <h2 id="4-image-and-link" style="font-size: 18pt; margin-top: 0pt; margin-bottom: 12pt; line-height: 1"><span style="color: #4472c4;">4. Image and Link</span></h2>
 <p style="text-align: center; margin-bottom: 14pt; line-height: 1"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABLCAYAAACGGCK3AAAABHNCSVQICAgIfAhkiAAAAopJREFUeJztnNuOwyAMRCn//81pnyq5LaRcDDM2fojEButEHnU9mu6Gx5UezyvldKWcnumRvtele6O1uqycLshz17Ly+wdZJK/6fk/t/X7fc9/35p9butCsHIJwsbKHJvax1k+FfFdwoiD3++v1yCEIFyv3wTib8MT6MXWLTaxl7Z0KP6Z+uiC/+3v1KJr6yYKgWQ3BkL8JT6zhYMjUhD4LNxVIg+G5Y7ISDM8VBM2qBENbTfhgCQ+x24S+IBqsmalAFAw5BEHrIX5DQhAGljB1u01YZZVq/wZDtiZ0WdipUKoFB8MYk9/7asHQiyBoVsOXi/xN2GLd1xaDIV8T+wRBTwVAMOQWBP1hmwqGHgVBs27/68RKE+ysntrin3AZmtBlYcdkT+2mYBi+0crqDobeBUGzuoMhYxOMrLEPrutgaMc3PkzdqyBWx2RTMDxJEDSrKRiyN8HCGvUNuXYWDG36xoeHeBLEw5isBsNTBUGzqsHQUhNIloZvyLWDYGjfN+SlEAzDNzRZE++p+xQEzaq+QWWpid0sbd+QdUaDoS/fkPuDwTB8YxWr8z11/4KgWZ3vqXM2Yd035D1DwdCvb8h1RzAM39jB6giGvE14Yk0HQ4YmrPuGXJMHwzN8Q+79CYbhG7tZf4KhjSY8sYaCIVsTmiyEb8iLMBie5xvyXiEYhm8gWYVgaK8J66wPD7HaxCpBECx5kQRDHkHQrImTrcM3VrBIDzDzz6rVGjvZer0gu1i1WmAw5BQEzVIJhuEbeiyiA8z8s1pqDZxsvVeQlayW2s3BkF8QNGs4GIZvrGHFydaLWb3PdR8MLfiGvLchGNoSBM3qCobhG+tZcbL1AtbMmHQZDK35hly/AIlST0bBwFyPAAAAAElFTkSuQmCC" width="150" height="112" alt="" /></p>

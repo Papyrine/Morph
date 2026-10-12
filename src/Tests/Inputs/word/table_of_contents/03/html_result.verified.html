@@ -21,7 +21,10 @@ h6 { font-size: 11pt; }
 ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
 li { margin: 0; }
 table { border-collapse: collapse; margin: 0 0 8pt; }
-td, th { padding: 4pt 7pt; vertical-align: top; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
 /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
    the runs and cells. Without this, the browser's th defaults bolded and centred header
    cells Word renders regular and left-aligned. */
@@ -37,7 +40,7 @@ footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding:
   <tbody>
     <tr>
       <td style="width: 243pt;border: 0.5pt solid #cccccc"><span style="color: #888888; font-size: 10pt;"><em>(decorative panel)</em></span></td>
-      <td style="width: 225pt;border: 0.5pt solid #cccccc"><p style="margin: 0pt 0 6pt"><span style="font-size: 12pt;"><strong>Contents</strong></span></p><p style="margin: 0pt 0 4pt"><span style="font-size: 10pt;">Introduction</span> <span style="font-size: 10pt;">1</span></p><p style="margin: 0pt 0 4pt"><span style="font-size: 10pt;">Background</span> <span style="font-size: 10pt;">4</span></p><p style="margin: 0pt 0 4pt"><span style="font-size: 10pt;">Long entry that spans more space</span> <span style="font-size: 10pt;">9</span></p><p style="margin: 0pt 0 4pt"><span style="font-size: 10pt;">Method</span> <span style="font-size: 10pt;">15</span></p><p style="margin: 0pt 0 4pt"><span style="font-size: 10pt;">Conclusion</span> <span style="font-size: 10pt;">27</span></p></td>
+      <td style="width: 225pt;border: 0.5pt solid #cccccc"><p style="margin: 0pt 0 6pt"><span style="font-size: 12pt;"><strong>Contents</strong></span></p><p style="display: flex; margin-bottom: 4pt; line-height: 1.16"><span><span style="font-size: 10pt;">Introduction</span></span><span style="flex: 1; border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.28em"></span><span><span style="font-size: 10pt;">1</span></span></p><p style="display: flex; margin-bottom: 4pt; line-height: 1.16"><span><span style="font-size: 10pt;">Background</span></span><span style="flex: 1; border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.28em"></span><span><span style="font-size: 10pt;">4</span></span></p><p style="display: flex; margin-bottom: 4pt; line-height: 1.16"><span><span style="font-size: 10pt;">Long entry that spans more space</span></span><span style="flex: 1; border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.28em"></span><span><span style="font-size: 10pt;">9</span></span></p><p style="display: flex; margin-bottom: 4pt; line-height: 1.16"><span><span style="font-size: 10pt;">Method</span></span><span style="flex: 1; border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.28em"></span><span><span style="font-size: 10pt;">15</span></span></p><p style="display: flex; margin-bottom: 4pt; line-height: 1.16"><span><span style="font-size: 10pt;">Conclusion</span></span><span style="flex: 1; border-bottom: 1pt dotted currentColor; margin: 0 2pt 0.28em"></span><span><span style="font-size: 10pt;">27</span></span></p></td>
     </tr>
   </tbody>
 </table>

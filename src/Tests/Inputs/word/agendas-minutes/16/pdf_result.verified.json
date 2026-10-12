@@ -14,15 +14,15 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "Minutes\nBoard meeting\nDATE September 30th\nTIME 10:00 AM\nMEETING CALLED TO ORDER BY Gael Torres\nIN ATTENDANCE\nGael Torres, Jeff Hay, Carlota Melgar, Diego Sagese, Chanchal Sharma, Anita Rajput, Benito Dellucci\nAPPROVAL OF MINUTES\nThe minutes were read from the August meeting and approved.\nBOARD\nCarlota Melgar was nominated as the new secretary. A motion to elect Carlota was made by Jeff Hay and seconded by\nGael Torres. All present voted in favor, and Carlota was confirmed as the new secretary.\nREPORTS\nPresident Jeff Hay presented his report.\nNew business.\n• Review of upcoming fiscal year\n• Employee education programs – trainings & opportunities\n• Patent application process – in progress\nANNOUNCEMENTS\nDate and venue for the company holiday party have been confirmed. More details coming soon.\nNEXT MEETING\nOctober 28th, conference room A"
+        "Text": "Minutes\nBoard meeting\nDATE September 30th\nTIME 10:00 AM\nMEETING CALLED TO ORDER BY Gael Torres\nI N A T T E N D A N C E\nGael Torres, Jeff Hay, Carlota Melgar, Diego Sagese, Chanchal Sharma, Anita Rajput, Benito Dellucci\nA P PR O V A L O F M I N U T E S\nThe minutes were read from the August meeting and approved.\nB O A R D\nCarlota Melgar was nominated as the new secretary. A motion to elect Carlota was made by Jeff Hay and seconded by\nGael Torres. All present voted in favor, and Carlota was confirmed as the new secretary.\nRE P O RT S\nPresident Jeff Hay presented his report.\nNew business.\n• Review of upcoming fiscal year\n• Employee education programs – trainings & opportunities\n• Patent application process – in progress\nA N N O U N C E M E N T S\nDate and venue for the company holiday party have been confirmed. More details coming soon.\nN EXT M E E T I N G\nOctober 28th, conference room A"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0796,
-      "Ssim": 0.9122,
+      "ErrorMetric": 0.0781,
+      "Ssim": 0.919,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

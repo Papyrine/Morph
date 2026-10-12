@@ -65,17 +65,6 @@
         " Cond"
     ];
 
-    // Weight suffixes that are "medium-weight" - when Bold is requested on these fonts,
-    // we should look for the Bold variant of the base family instead
-    static string[] mediumWeightSuffixes =
-    [
-        " Semibold",
-        " Demi",
-        " Medium",
-        " Regular",
-        " Book"
-    ];
-
     /// <summary>
     /// Maps weight-name suffixes to OS/2 <c>usWeightClass</c> values, so a request for
     /// <c>"Segoe UI Semilight"</c> can be scored against face metadata as weight 350
@@ -187,19 +176,6 @@
         return best;
     }
 
-    internal static bool HasMediumWeightSuffix(string fontFamily)
-    {
-        foreach (var suffix in mediumWeightSuffixes)
-        {
-            if (fontFamily.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     internal static string StripWeightSuffixes(string fontFamily)
     {
         // Slice rather than substring: "Calibri Light Italic" strips twice, and every intermediate
@@ -251,32 +227,27 @@
     }
 
     /// <summary>
-    /// Computes the candidate font family names to try when resolving a font.
-    /// Returns distinct names in priority order: effectiveFontFamily, original fontFamily, stripped name.
+    /// Computes the candidate font family names to try when resolving a font, in priority order:
+    /// the family as named, then the name with its weight and style words stripped.
     /// </summary>
-    internal static FontNameCandidates GetCandidateNames(string fontFamily, bool bold)
+    /// <remarks>
+    /// A bold request keeps the family it names. Word treats a weight-named family ("Franklin Gothic
+    /// Book", "Calibri Light", "Franklin Gothic Demi") as a family of its own, and where that family
+    /// has no bold face it emboldens the named face rather than borrowing a bold from the family the
+    /// name is built on: Word-probed on `_probe_synbold`, where every such family drew bold in its own
+    /// face with the XPS bold simulation. The stripped name is only reached when the named family is
+    /// not indexed at all.
+    /// </remarks>
+    internal static FontNameCandidates GetCandidateNames(string fontFamily)
     {
-        var effectiveFontFamily = fontFamily;
-        if (bold &&
-            HasMediumWeightSuffix(fontFamily))
-        {
-            var baseName = StripWeightSuffixes(fontFamily);
-            if (!string.IsNullOrEmpty(baseName) &&
-                baseName != fontFamily)
-            {
-                effectiveFontFamily = baseName;
-            }
-        }
-
         var strippedName = StripWeightSuffixes(fontFamily);
         if (string.IsNullOrEmpty(strippedName) ||
-            strippedName == fontFamily ||
-            strippedName == effectiveFontFamily)
+            strippedName == fontFamily)
         {
             strippedName = null;
         }
 
-        return new(effectiveFontFamily, fontFamily, strippedName);
+        return new(fontFamily, strippedName);
     }
 
     /// <summary>
@@ -324,13 +295,7 @@
     /// </summary>
     internal static string? FindFallback(FontNameCandidates candidates)
     {
-        if (FontFallbacks.TryGetValue(candidates.Effective, out var fallback))
-        {
-            return fallback;
-        }
-
-        if (candidates.Effective != candidates.Original &&
-            FontFallbacks.TryGetValue(candidates.Original, out fallback))
+        if (FontFallbacks.TryGetValue(candidates.Original, out var fallback))
         {
             return fallback;
         }
