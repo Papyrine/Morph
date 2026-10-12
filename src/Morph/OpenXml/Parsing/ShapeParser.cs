@@ -1111,6 +1111,34 @@ static class ShapeParser
         return null;
     }
 
+    // The a:blip extension that carries the vector original of a picture (asvg:svgBlip).
+    const string svgBlipExtensionUri = "{96DAC541-7B7A-43D3-8B79-37D633B846F1}";
+
+    /// <summary>
+    /// The picture a <c>pic</c> element's blip fill shows, in the model's terms: when the blip
+    /// carries an <c>asvg:svgBlip</c> the SVG is the picture and the blip's own raster the fallback
+    /// beside it, exactly as <c>DocumentParser.ReadBlipImage</c> has it for a Word picture;
+    /// without one the raster is the picture. The raster is optional beside an SVG — PowerPoint
+    /// saves pictures whose <c>a:blip</c> has no <c>r:embed</c> at all, only the extension — and
+    /// such a picture was dropped outright while this read <see cref="ExtractBlipFillImage"/>
+    /// alone.
+    /// </summary>
+    public static (byte[]? Data, string? ContentType, byte[]? RasterFallbackData, string? RasterFallbackContentType) ExtractPicture(OpenXmlElement blipFill, OpenXmlPart hostPart, Func<OpenXmlPart, byte[]> partBytes)
+    {
+        var (raster, rasterContentType) = ExtractBlipFillImage(blipFill, hostPart, partBytes);
+        var extension = blipFill.GetFirstChild<A.Blip>()?
+            .Descendants()
+            .FirstOrDefault(_ => _.LocalName == "ext" && _.AttributeValue("uri") == svgBlipExtensionUri);
+        if (extension?.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip")?.AttributeValue("embed") is not { } svgEmbed ||
+            !hostPart.TryGetPartById(svgEmbed, out var svgPart) ||
+            partBytes(svgPart) is not {Length: > 0} svg)
+        {
+            return (raster, rasterContentType, null, null);
+        }
+
+        return (svg, SvgDrawing.ContentType, raster, rasterContentType);
+    }
+
     /// <summary>
     /// Extracts image data from a blip fill element. <paramref name="partBytes"/> is the
     /// caller's per-parse part-buffer cache, so repeated references share one array.

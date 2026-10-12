@@ -1075,7 +1075,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         PlaceTable(table, KeepAfter(elements, index));
                         break;
 
-                    case FloatingImageElement image when DecodableImageBytes(image) is {Length: > 0}:
+                    case FloatingImageElement image when IsDrawable(image):
                         EmitBodyFloat(image, image.VerticalAnchor, image.AnchorParagraph);
                         break;
 
@@ -1820,11 +1820,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             switch (element)
             {
-                case FloatingImageElement image when DecodableImageBytes(image) is { Length: > 0 } data:
+                case FloatingImageElement image when IsDrawable(image):
                 {
                     var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
                     var imageY = AnchoredY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
-                    AddBodyFloat(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    AddBodyFloat(PlaceImage(image, imageX, imageY), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
                     RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
                     break;
                 }
@@ -2443,16 +2443,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
         }
 
-        // The bytes a backend can actually decode: SVG artwork carries a raster equivalent (PdfSharp, like
-        // ImageSharp, cannot rasterize SVG), so fall back to it when the primary data is SVG.
-        static byte[] DecodableImageBytes(FloatingImageElement image)
+        // What a painter can draw of a floating picture. A raster picture is its bytes. An SVG picture is
+        // two things: the drawing the reader made of it — null when the document uses something the
+        // reader does not draw — and the raster Office saved beside it, which is what is painted then
+        // (and which a file holding only the SVG does not have).
+        static (byte[]? Data, SvgDrawing? Vector) Drawable(FloatingImageElement image)
         {
-            if (image is {ContentType: "image/svg+xml", RasterFallbackData: {Length: > 0} fallback})
+            if (image.ContentType != SvgDrawing.ContentType)
             {
-                return fallback;
+                return (image.ImageData, null);
             }
 
-            return image.ImageData;
+            return (image.RasterFallbackData, SvgDrawing.For(image.ImageData, image.ContentType));
+        }
+
+        static bool IsDrawable(FloatingImageElement image) =>
+            Drawable(image) is {Data.Length: > 0} or {Vector: not null};
+
+        // A floating picture placed at a point, with everything the painter turns, crops, cuts and
+        // recolours it by.
+        static PlacedImage PlaceImage(FloatingImageElement image, float x, float y)
+        {
+            var (data, vector) = Drawable(image);
+            return new(x, y, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline, Vector: vector);
         }
 
         // The flow space a border edge occupies: its own width plus the w:space gap it holds open between
@@ -3710,6 +3723,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     ? LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment, row)
                     : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge);
 
+                content = CutPicturesAtCellEdge(content, boxX + boxWidth);
+
                 // Behind-text floats (a label template's coloured cell background and freeform blobs) paint
                 // before the cell's paragraphs, and outside any clip (PlacedCell.Floats); in-front ones
                 // join the content after the paragraphs, so they paint over the text.
@@ -3773,6 +3788,60 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         static (float Left, float Right) SideInsets(CellSpacing padding, CellBorders? borders) =>
             ((float) Math.Max(padding.Left, TableLayout.HalfBorder(borders?.Left)),
                 (float) Math.Max(padding.Right, TableLayout.HalfBorder(borders?.Right)));
+
+        // An inline picture wider than its cell is cut off at the cell's right edge. Word-probed
+        // (_probe_widepic): a picture declared 300pt wide in a fixed 200pt cell is drawn at its own scale
+        // from the cell's left content edge and ends at the cell's border, in a one-cell table and in the
+        // first of two cells alike (nothing of it shows in the cell beside it), with 20pt cell margins as
+        // with the default ones (the cut is at the border, past the right margin), and right-aligned as
+        // left-aligned. An autofit table grows its column to the picture instead, and a body paragraph
+        // lets a 600pt picture run to the page's edge. The cut is made as a crop of the picture's right
+        // side, which every painter already draws; a turned picture and a shape group are left whole.
+        static IReadOnlyList<PlacedItem> CutPicturesAtCellEdge(IReadOnlyList<PlacedItem> content, float cellRight)
+        {
+            List<PlacedItem>? cut = null;
+            for (var index = 0; index < content.Count; index++)
+            {
+                if (content[index] is not PlacedLine {Images.Count: > 0} line)
+                {
+                    continue;
+                }
+
+                PlacedImage[]? images = null;
+                for (var imageIndex = 0; imageIndex < line.Images.Count; imageIndex++)
+                {
+                    var image = line.Images[imageIndex];
+                    var over = image.X + image.Width - cellRight;
+                    if (over <= 0.5f ||
+                        (image.Data == null && image.Vector == null) ||
+                        image.RotationDegrees != 0 ||
+                        image.X >= cellRight)
+                    {
+                        continue;
+                    }
+
+                    // The crop is in fractions of the source picture, of which an earlier crop may
+                    // already show only a part.
+                    var crop = image.Crop ?? ImageCrop.None;
+                    var shown = 1 - crop.Left - crop.Right;
+                    var kept = (cellRight - image.X) / image.Width;
+                    images ??= [.. line.Images];
+                    images[imageIndex] = image with
+                    {
+                        Width = cellRight - image.X,
+                        Crop = crop with {Right = crop.Right + shown * (1 - kept)}
+                    };
+                }
+
+                if (images != null)
+                {
+                    cut ??= [.. content];
+                    cut[index] = line with {Images = images};
+                }
+            }
+
+            return cut ?? content;
+        }
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
         // cell's top-left (Word anchors these to the cell frame). Solid, gradient, outline and image
@@ -4341,32 +4410,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Moves a placed line (and its inline images) down the page by an offset, for cell vertical
         // alignment. Runs carry no Y of their own — the painter draws them at the line's baseline — so
         // shifting Y and Baseline moves the text with the box.
-        static PlacedItem ShiftDown(PlacedItem item, float offset)
-        {
-            if (item is PlacedLine line)
-            {
-                return ShiftLine(line, 0, offset);
-            }
-
-            // A paragraph-border box, and the shading behind it, ride with the lines they wrap.
-            if (item is PlacedBorder border)
-            {
-                return border with {Y = border.Y + offset};
-            }
-
-            if (item is PlacedShading shading)
-            {
-                return shading with {Y = shading.Y + offset};
-            }
-
-            // A nested table's rows, with their cells and content.
-            if (item is PlacedTableRow)
-            {
-                return ShiftItem(item, offset);
-            }
-
-            return item;
-        }
+        //
+        // Everything the cell's flow placed moves: its lines, a paragraph's border box and shading, a
+        // nested table's rows, and the box of an inline text box. The last was left where it stood, so
+        // a framed word in a bottom-aligned cell kept its frame at the cell's top while its text went
+        // down without it (brochures/08's "Contoso Logo", 39pt out of its frame).
+        static PlacedItem ShiftDown(PlacedItem item, float offset) =>
+            ShiftItem(item, offset);
 
         // Shifts a placed line and everything it carries — its runs and inline images — by (dx, dy). Moving a
         // line into another column (dx) when balancing and dropping it for cell vertical alignment (dy only)
@@ -4724,10 +4774,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // is right for shapes: the band paints before the body, and header art sits above the
                 // body's top margin, so front/behind ordering against body text almost never arises.
                 if (element is FloatingImageElement image &&
-                    DecodableImageBytes(image) is { Length: > 0 } data)
+                    IsDrawable(image))
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
-                    items.Add(new PlacedImage(imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline));
+                    items.Add(PlaceImage(image, imageX, imageY));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -5148,7 +5198,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // text edge, so the marker offsets back from there.
         PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float lineLeft)
         {
-            var markerProperties = CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering);
+            var markerProperties = measurer.Drawn(CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering));
             var markerWidth = measurer.MeasureRunWidth(numbering.Text, markerProperties);
             var hanging = (float) paragraph.Properties.HangingIndentPoints;
 
@@ -5195,9 +5245,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The layout box (extent + effectExtent) sits with its bottom on the baseline; the
                 // picture draws inside it, offset by the left and top effect edges (ImageEffectExtent).
-                var effectLeft = (float) (image.EffectExtent?.Left ?? 0);
-                var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0);
-                images[imageIndex] = new(lineLeft + image.X + effectLeft, baseline - effectBottom - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline);
+                var effectLeft = (float) (image.EffectExtent?.Left ?? 0) + (float) (image.ShapeGroup?.DrawOffsetXPoints ?? 0);
+                var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0) - (float) (image.ShapeGroup?.DrawOffsetYPoints ?? 0);
+                images[imageIndex] = new(lineLeft + image.X + effectLeft, baseline - effectBottom - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
             }
 
             return images;

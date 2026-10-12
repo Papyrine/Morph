@@ -105,21 +105,10 @@ public class FontFileCacheTests
     }
 
     [Test]
-    public async Task TryGet_FontNameCandidates_TriesEffectiveFirst()
+    public async Task TryGet_FontNameCandidates_TriesTheNamedFamilyFirst()
     {
-        var cache = Build(("a.ttf", "Arial"));
-        var candidates = new FontNameCandidates("Arial", "Arial Semibold", "Arial");
-        var found = cache.TryGet(candidates, out var faces);
-        await Assert.That(found).IsTrue();
-        await Assert.That(faces!.Single().Path).IsEqualTo("a.ttf");
-    }
-
-    [Test]
-    public async Task TryGet_FontNameCandidates_FallsBackToOriginal()
-    {
-        // Effective miss, Original matches directly
-        var cache = Build(("a.ttf", "Georgia"));
-        var candidates = new FontNameCandidates("Missing", "Georgia", null);
+        var cache = Build(("a.ttf", "Arial Semibold"), ("b.ttf", "Arial"));
+        var candidates = new FontNameCandidates("Arial Semibold", "Arial");
         var found = cache.TryGet(candidates, out var faces);
         await Assert.That(found).IsTrue();
         await Assert.That(faces!.Single().Path).IsEqualTo("a.ttf");
@@ -128,9 +117,9 @@ public class FontFileCacheTests
     [Test]
     public async Task TryGet_FontNameCandidates_FallsBackToStripped()
     {
-        // Effective miss, Original miss, Stripped matches
+        // The named family misses, the stripped name matches
         var cache = Build(("a.ttf", "Futura"));
-        var candidates = new FontNameCandidates("Futura Light", "Futura Light", "Futura");
+        var candidates = new FontNameCandidates("Futura Light", "Futura");
         var found = cache.TryGet(candidates, out var faces);
         await Assert.That(found).IsTrue();
         await Assert.That(faces!.Single().Path).IsEqualTo("a.ttf");
@@ -140,42 +129,26 @@ public class FontFileCacheTests
     public async Task TryGet_FontNameCandidates_NoneMatch_ReturnsFalse()
     {
         var cache = Build(("a.ttf", "Arial"));
-        var candidates = new FontNameCandidates("Zapfino", "Zapfino", null);
+        var candidates = new FontNameCandidates("Zapfino", null);
         var found = cache.TryGet(candidates, out var faces);
         await Assert.That(found).IsFalse();
         await Assert.That(faces).IsNull();
     }
 
     [Test]
-    public async Task EnumerateCandidateNames_Effective_Only_WhenOthersAreSame()
+    public async Task EnumerateCandidateNames_NamedFamilyOnly_WhenNothingIsStripped()
     {
-        var candidates = new FontNameCandidates("Arial", "Arial", null);
+        var candidates = new FontNameCandidates("Arial", null);
         var names = FontFileCache.EnumerateCandidateNames(candidates).ToList();
         await Assert.That(names).IsEquivalentTo(["Arial"]);
     }
 
     [Test]
-    public async Task EnumerateCandidateNames_IncludesOriginalWhenDifferent()
+    public async Task EnumerateCandidateNames_NamedFamilyThenStripped()
     {
-        var candidates = new FontNameCandidates("Arial", "Arial Medium", null);
-        var names = FontFileCache.EnumerateCandidateNames(candidates).ToList();
-        await Assert.That(names).IsEquivalentTo(["Arial", "Arial Medium"]);
-    }
-
-    [Test]
-    public async Task EnumerateCandidateNames_IncludesStrippedWhenSet()
-    {
-        var candidates = new FontNameCandidates("Futura Light", "Futura Light", "Futura");
+        var candidates = new FontNameCandidates("Futura Light", "Futura");
         var names = FontFileCache.EnumerateCandidateNames(candidates).ToList();
         await Assert.That(names).IsEquivalentTo(["Futura Light", "Futura"]);
-    }
-
-    [Test]
-    public async Task EnumerateCandidateNames_FullySpecified_YieldsAllThree()
-    {
-        var candidates = new FontNameCandidates("Arial", "Arial Medium", "Arial");
-        var names = FontFileCache.EnumerateCandidateNames(candidates).ToList();
-        await Assert.That(names).IsEquivalentTo(["Arial", "Arial Medium", "Arial"]);
     }
 
     [Test]

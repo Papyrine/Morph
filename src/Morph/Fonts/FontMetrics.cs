@@ -102,6 +102,19 @@ sealed record FontMetrics
     public bool UseTypoMetrics { get; init; }
 
     /// <summary>
+    /// <c>OS/2.usWeightClass</c> — 400 for a regular face, 700 for a bold one. Zero when the font declares
+    /// no <c>OS/2</c> table. It decides whether a bold run is drawn in a bold face or has to be emboldened
+    /// (<see cref="BoldSimulation"/>).
+    /// </summary>
+    public int Weight { get; init; }
+
+    /// <summary>
+    /// The font carries an <c>fvar</c> table: it is a variable font, and the metrics here are those of
+    /// its default instance.
+    /// </summary>
+    public bool IsVariable { get; init; }
+
+    /// <summary>
     /// The strikethrough stroke (<c>OS/2</c> <c>yStrikeoutPosition</c> / <c>yStrikeoutSize</c>), in
     /// font units: how far the stroke's top sits above the baseline, and its thickness. Zero when the
     /// font declares no <c>OS/2</c> table. Word draws a footnote separator as exactly this stroke of the

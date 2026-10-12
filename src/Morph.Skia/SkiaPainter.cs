@@ -234,6 +234,24 @@ static class SkiaPainter
         var y = P(context, baseline);
         var kernShifts = KernShifts(context, text, properties);
 
+        // A bold run in a face that is not bold: the glyphs are filled and stroked, which thickens every
+        // stem by the stroke's width (BoldSimulation). The paint is shared, so it is put back after.
+        if (properties.SyntheticBold != SyntheticBold.None)
+        {
+            paint.Style = SKPaintStyle.StrokeAndFill;
+            paint.StrokeWidth = P(context, BoldSimulation.StrokeWidthPoints(properties.SyntheticBold, VerticalRunPosition.RenderSizePoints(properties), 72.0 / context.Dpi));
+            paint.StrokeJoin = SKStrokeJoin.Miter;
+            DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
+            paint.Style = SKPaintStyle.Fill;
+            paint.StrokeWidth = 0;
+            return;
+        }
+
+        DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
+    }
+
+    static void DrawSpaced(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, float y, SKFont font, SKPaint paint, double[]? kernShifts)
+    {
         if ((properties.CharacterSpacingPoints == 0 && kernShifts == null) || text.Length <= 1)
         {
             canvas.DrawText(text, P(context, penX), y, font, paint);
@@ -387,7 +405,12 @@ static class SkiaPainter
             return;
         }
 
-        if (image.Data is not { } data || context.GetBitmap(data) is not { } bitmap)
+        // A picture stored as SVG is drawn from the drawing the reader made of it (PlacedImage.Vector),
+        // and its raster fallback is then never decoded. Until 2026-10-12 this painter drew the
+        // fallback for every inline and floating picture: the layout engine handed it nothing else,
+        // so icons_multiple's red and green stars — whose fallbacks are one blue PNG — came out blue.
+        SKBitmap? bitmap = null;
+        if (image.Vector == null && (image.Data is not { } data || (bitmap = context.GetBitmap(data)) == null))
         {
             return;
         }
@@ -454,8 +477,20 @@ static class SkiaPainter
     // The picture into its box: stretched over it through its crop, or - a tiled fill - repeated at
     // the tile's size from the tile's origin. The tiles are one shader fill of the box, so
     // neighbours meet without a seam and the clip already set cuts them like any other picture.
-    static void DrawPicture(SkiaRenderContext context, SKCanvas canvas, SKBitmap bitmap, SKRect box, PlacedImage image, SKPaint? paint)
+    static void DrawPicture(SkiaRenderContext context, SKCanvas canvas, SKBitmap? bitmap, SKRect box, PlacedImage image, SKPaint? paint)
     {
+        // The vector form of an SVG picture, or with none the bitmap PaintImage decoded.
+        if (image.Vector is { } vector)
+        {
+            SkiaVectorDrawing.Draw(canvas, vector, box, image.Crop, image.Recolor, image.Opacity);
+            return;
+        }
+
+        if (bitmap == null)
+        {
+            return;
+        }
+
         if (image.Tile is not { } tile)
         {
             SkiaShapeDrawing.DrawCropped(canvas, bitmap, box, image.Crop, paint);
@@ -602,6 +637,7 @@ static class SkiaPainter
                     StrokeCap = SKStrokeCap.Square,
                     IsAntialias = true
                 };
+                using var lineDash = Dash(linePaint, shape.LineDashPattern);
                 canvas.DrawLine(startX, startY, endX, endY, linePaint);
                 continue;
             }
@@ -663,6 +699,7 @@ static class SkiaPainter
                     StrokeCap = shape.RoundCap ? SKStrokeCap.Round : SKStrokeCap.Butt,
                     IsAntialias = true
                 };
+                using var strokeDash = Dash(strokePaint, shape.LineDashPattern);
                 if (shape.OpenOutline && SkiaShapeDrawing.BuildGroupShapePath(shape, rect, close: false) is { } openPath)
                 {
                     canvas.DrawPath(openPath, strokePaint);
@@ -686,6 +723,22 @@ static class SkiaPainter
     // subpath geometry) or its preset rect/ellipse box. Fill is a solid colour or a linear gradient
     // (built the same way as the production SkiaPageRenderer). Image-fill shapes never reach here — the
     // Fragmenter routes them to PlacedImage — so ImageData is a defensive skip.
+    // Gives a stroke its preset dash (a:prstDash): the pattern is in multiples of the stroke's own
+    // width, and a dashed stroke ends each dash flat, as Word draws it. Returns the effect for the
+    // caller to dispose, or null for a solid stroke.
+    static SKPathEffect? Dash(SKPaint paint, IReadOnlyList<double>? pattern)
+    {
+        if (ShapeStroke.DashLengths(pattern, paint.StrokeWidth) is not { } lengths)
+        {
+            return null;
+        }
+
+        var effect = SKPathEffect.CreateDash(lengths, 0);
+        paint.PathEffect = effect;
+        paint.StrokeCap = SKStrokeCap.Butt;
+        return effect;
+    }
+
     static void PaintShape(SkiaRenderContext context, SKCanvas canvas, PlacedShape placed)
     {
         var shape = placed.Shape;
@@ -708,6 +761,10 @@ static class SkiaPainter
         // accent tint that reads as near-white, not a solid panel. SkiaShapeDrawing.ParseColor applies the alpha.
         var fill = gradientFill ?? (shape.FillColorHex is { } fillHex ? context.GetReusableFillPaint(SkiaShapeDrawing.ParseColor(fillHex, shape.FillAlpha), antialias: true) : null);
         var line = shape.LineColorHex is { } lineHex ? context.GetReusableRulePaint(SkiaShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, ShapeStroke.WidthPoints(shape.LineWidthPoints))) : null;
+
+        // The outline's preset dash. The paint is the context's shared one, so the effect comes off it
+        // again below, before it is disposed.
+        var lineDash = line == null ? null : Dash(line, shape.LineDashPattern);
 
         if (fill != null || line != null)
         {
@@ -763,6 +820,12 @@ static class SkiaPainter
                     canvas.Restore();
                 }
             }
+        }
+
+        if (lineDash != null)
+        {
+            line!.PathEffect = null;
+            lineDash.Dispose();
         }
 
         if (gradientFill != null)

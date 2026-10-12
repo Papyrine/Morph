@@ -13,9 +13,8 @@ sealed class ImageElement : DocumentElement
     public string? Description { get; init; }
 
     /// <summary>
-    /// Raster fallback for backends that don't render <see cref="ContentType"/> = "image/svg+xml".
-    /// OOXML stores both an SVG and a raster equivalent for high-DPI artwork; ImageSharp lacks
-    /// SVG support so it falls back to this when present.
+    /// The raster Office saved beside the picture when <see cref="ContentType"/> is "image/svg+xml";
+    /// see <see cref="FloatingImageElement.RasterFallbackData"/>.
     /// </summary>
     public byte[]? RasterFallbackData { get; init; }
 

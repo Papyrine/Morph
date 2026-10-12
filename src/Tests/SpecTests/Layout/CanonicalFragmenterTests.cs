@@ -2863,8 +2863,10 @@ public class CanonicalFragmenterTests
 
         var placed = fragmenter.Layout([image, P("body")], Page(200)).Pages[0].Items.OfType<PlacedImage>().Single();
 
-        // PdfSharp cannot rasterize SVG, so the float carries the raster equivalent, not the SVG bytes.
+        // These bytes are no SVG the reader can take, so the float carries the raster equivalent and no
+        // drawing (SvgPictureLayoutTests covers the SVG that is taken).
         await Assert.That(Encoding.ASCII.GetString(placed.Data!)).IsEqualTo("PNG");
+        await Assert.That(placed.Vector).IsNull();
     }
 
     [Test]

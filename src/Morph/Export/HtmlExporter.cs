@@ -46,7 +46,10 @@ static class HtmlExporter
         ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
         li { margin: 0; }
         table { border-collapse: collapse; margin: 0 0 8pt; }
-        td, th { padding: 4pt 7pt; vertical-align: top; }
+        /* border-box because w:tcW is the whole cell, its side margins included. Read as the
+           content box, every column with a declared width came out wider than Word's by its
+           padding: html_table_styled's 75pt column measured 91pt. */
+        td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
         /* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
            the runs and cells. Without this, the browser's th defaults bolded and centred header
            cells Word renders regular and left-aligned. */
@@ -73,7 +76,7 @@ static class HtmlExporter
         {
             var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, pageFieldsPreEvaluated: document.PageFieldsPreEvaluated);
             WriteHeaderFooter(fragmentWriter, headerContent, "header", "doc-header");
-            fragmentWriter.WriteElements(document.Elements, 0);
+            fragmentWriter.WriteBody(document.Elements);
             fragmentWriter.WriteNoteDefinitions();
             WriteHeaderFooter(fragmentWriter, footerContent, "footer", "doc-footer");
             fragmentWriter.WriteRecolorFilters();
@@ -148,7 +151,7 @@ static class HtmlExporter
         doc.Append(">\n");
         var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated);
         WriteHeaderFooter(writer, headerContent, "header", "doc-header");
-        writer.WriteElements(document.Elements, 0);
+        writer.WriteBody(document.Elements);
         writer.WriteNoteDefinitions();
         WriteHeaderFooter(writer, footerContent, "footer", "doc-footer");
         writer.WriteRecolorFilters();
@@ -170,7 +173,15 @@ static class HtmlExporter
         }
 
         writer.WriteRaw($"<{tag} class=\"{className}\">\n");
-        writer.WriteElements(content.Elements, 0);
+        if (tag == "footer")
+        {
+            writer.WriteFooter(content.Elements);
+        }
+        else
+        {
+            writer.WriteElements(content.Elements, 0);
+        }
+
         writer.WriteRaw($"</{tag}>\n");
     }
 
@@ -204,7 +215,7 @@ static class HtmlExporter
         DocumentExportHelpers.IsBlank(paragraph, lineBreaksRender: true);
 
     // Whether a flow holds anything the writer places absolutely: a floating shape, or a floating
-    // image that neither wraps nor displaces (see WriteFloatingImage).
+    // image or text box that neither wraps nor displaces (see WriteFloatingImage).
     static bool HasAbsoluteFloat(IReadOnlyList<DocumentElement>? elements)
     {
         if (elements == null)
@@ -216,7 +227,8 @@ static class HtmlExporter
         {
             if (element is
                 FloatingShapeElement or
-                FloatingImageElement {WrapType: WrapType.None})
+                FloatingImageElement {WrapType: WrapType.None} or
+                FloatingTextBoxElement {WrapType: WrapType.None})
             {
                 return true;
             }
@@ -354,6 +366,15 @@ static class HtmlExporter
         // Mirrors the stylesheet's heading sizes (h1=16pt … h6=11pt); index = level - 1.
         static readonly double[] headingFontSizePoints = [16, 13, 12, 11, 11, 11];
 
+        // What the element a run is written into already sets for its text, so that the run
+        // carries only what differs: a heading is bold and has its own size, and a list item
+        // takes the weight, size, colour and face of its marker. Colour and family are null where
+        // the element sets none of its own — black, and the body's font.
+        readonly record struct TextContext(bool Bold, double FontSizePoints, string? Color = null, string? FontFamily = null)
+        {
+            public static TextContext Body { get; } = new(false, defaultBodyFontSizePoints);
+        }
+
         // Full-document exports pass their prelude-seeded builder so the body streams straight
         // into the final output instead of being materialized and copied once more at the end.
         readonly StringBuilder builder = output ?? new();
@@ -381,21 +402,213 @@ static class HtmlExporter
         readonly List<(int Number, string Text)> notes = [];
         readonly Dictionary<string, int> noteNumbers = [];
 
+        // How far down the page the flow being written starts, where that is not the top margin:
+        // set while the footer is written (see WriteFooter).
+        double? flowPageTop;
+
         public override string ToString() => builder.ToString();
 
         /// <summary>Appends already-escaped markup (the header/footer wrapper elements).</summary>
         public void WriteRaw(string markup) => builder.Append(markup);
 
-        public void WriteElements(IReadOnlyList<DocumentElement> elements, int depth)
+        /// <summary>
+        /// Writes the footer's content. The footer follows the body, so its place in the flow
+        /// stands for where the page's content ENDS, and a page-relative drawing in it is
+        /// measured from there rather than from the top margin. Measured from the top, letters/11's
+        /// footer rule — declared 720pt down the page, at the foot — was placed 655pt below the
+        /// footer, under a page of blank paper.
+        /// </summary>
+        public void WriteFooter(IReadOnlyList<DocumentElement> elements)
         {
-            for (var index = 0; index < elements.Count; index++)
+            flowPageTop = pageSettings.HeightPoints - pageSettings.MarginBottom;
+            WriteElements(elements, 0);
+            flowPageTop = null;
+        }
+
+        /// <summary>
+        /// Writes the document body, one page at a time where the author ended a page: at a page
+        /// break, a section break that starts a new page, or a paragraph that breaks before
+        /// itself. The export still reflows and never paginates — nothing is known of where a
+        /// page fills up — but an authored break is content, and two things hang off it that a
+        /// flat walk loses:
+        ///
+        /// <list type="bullet">
+        /// <item>A page's floating art is placed from where its page starts, and reaches as far
+        /// down the page as it was drawn however little text the page holds. With nothing holding
+        /// the room open, the next page's content started under it: agendas-minutes/08's footer
+        /// band ran across NEW BUSINESS, business-plans/09's cover wash cut through the first
+        /// table, cover-letters/05's corner art sat on the next copy's phone line. So a page is
+        /// at least as tall as its art reaches (<see cref="PageReserve"/>), and one that opens
+        /// with art reaching up into the top margin gets that margin back.</item>
+        /// <item>A picture the text wraps round stops wrapping at the end of its page;
+        /// image_wrap_square's second paragraph of the next page ran on beside the first page's
+        /// picture.</item>
+        /// </list>
+        ///
+        /// A page that needs neither is written bare, so a document with no floating art reads
+        /// exactly as it would without this.
+        /// </summary>
+        public void WriteBody(IReadOnlyList<DocumentElement> elements)
+        {
+            var start = 0;
+            var wrapOpen = false;
+            while (start < elements.Count)
+            {
+                var end = PageEnd(elements, start);
+                var (above, below) = PageReserve(elements, start, end, first: start == 0, last: end == elements.Count);
+                var styles = new List<string>();
+                if (wrapOpen)
+                {
+                    styles.Add("clear: both");
+                }
+
+                if (above > 0.01)
+                {
+                    styles.Add($"padding-top: {Length(above)}");
+                }
+
+                if (below > 0.01)
+                {
+                    styles.Add($"min-height: {Length(below)}");
+                }
+
+                if (styles.Count == 0)
+                {
+                    WriteElements(elements, 0, start, end);
+                }
+                else
+                {
+                    Indent(0).Append("<div style=\"").Append(string.Join("; ", styles)).Append("\">\n");
+                    WriteElements(elements, 1, start, end);
+                    Indent(0).Append("</div>\n");
+                }
+
+                wrapOpen = false;
+                for (var index = start; index < end; index++)
+                {
+                    if (elements[index] is FloatingImageElement {WrapType: WrapType.Square or WrapType.Tight or WrapType.Through})
+                    {
+                        wrapOpen = true;
+                        break;
+                    }
+                }
+
+                start = end;
+            }
+        }
+
+        // The index one past the page that starts at `start`: just after the break that ends it,
+        // or at the paragraph that breaks before itself — less the floating art declared directly
+        // ahead of that paragraph, which is its own (the parser writes a drawing just before the
+        // paragraph it is anchored to) and so belongs to the page it starts. A continuous section
+        // break and a column break end no page.
+        static int PageEnd(IReadOnlyList<DocumentElement> elements, int start)
+        {
+            for (var index = start; index < elements.Count; index++)
+            {
+                switch (elements[index])
+                {
+                    case PageBreakElement:
+                    case SectionBreakElement {BreakType: SectionBreakType.NextPage or SectionBreakType.EvenPage or SectionBreakType.OddPage}:
+                        return index + 1;
+                    case ParagraphElement {Properties.PageBreakBefore: true}:
+                        var boundary = index;
+                        while (boundary > start &&
+                               elements[boundary - 1] is FloatingShapeElement or FloatingImageElement or FloatingTextBoxElement or FloatingWordArtElement)
+                        {
+                            boundary--;
+                        }
+
+                        if (boundary > start)
+                        {
+                            return boundary;
+                        }
+
+                        break;
+                }
+            }
+
+            return elements.Count;
+        }
+
+        /// <summary>
+        /// The room a page's floating art needs beyond what its text takes: how far above the
+        /// page's first content it reaches, and how far below. Both are measured from the art's
+        /// own place in the flow, which is where its page's content starts for the art a page
+        /// opens with — the template shape, every drawing hung off the first paragraph — and
+        /// further down for the rest, so the reach below is a lower bound: the page is never held
+        /// open further than its art goes. Only the art a page opens with counts upward, since
+        /// anything anchored lower reaches up into its own page.
+        ///
+        /// The first page has the body's top padding for what reaches up, and the last has its
+        /// bottom padding for what reaches into the bottom margin, so neither is reserved twice.
+        /// </summary>
+        (double Above, double Below) PageReserve(IReadOnlyList<DocumentElement> elements, int start, int end, bool first, bool last)
+        {
+            var above = 0.0;
+            var below = 0.0;
+            var opening = true;
+            for (var index = start; index < end; index++)
+            {
+                if (AbsoluteExtent(elements[index]) is not { } extent)
+                {
+                    opening = false;
+                    continue;
+                }
+
+                below = Math.Max(below, extent.Bottom);
+                if (opening)
+                {
+                    above = Math.Max(above, -extent.Top);
+                }
+            }
+
+            if (last)
+            {
+                below = Math.Min(below, pageSettings.HeightPoints - pageSettings.MarginTop - pageSettings.MarginBottom);
+            }
+
+            return (first ? 0 : Math.Min(above, pageSettings.MarginTop), below);
+        }
+
+        // Where a body-level element placed absolutely starts and ends, from its place in the
+        // flow, or null for anything that takes part in the flow. Mirrors the boxes WriteShape,
+        // WriteAbsoluteImage and WriteAbsoluteTextBox position.
+        (double Top, double Bottom)? AbsoluteExtent(DocumentElement element)
+        {
+            switch (element)
+            {
+                case FloatingShapeElement shape:
+                {
+                    var (pageLeft, pageTop, _, height) = ShapeBox(shape, pageSettings);
+                    var top = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor).Top;
+                    return (top, top + height);
+                }
+                case FloatingImageElement {WrapType: WrapType.None} image:
+                {
+                    var top = FloatOrigin(0, PageTop(image.VerticalAnchor, image.VerticalPositionPoints), image.VerticalAnchor).Top;
+                    return (top, top + image.HeightPoints);
+                }
+                case FloatingTextBoxElement {WrapType: WrapType.None} textBox:
+                    return AbsoluteExtent(TextBoxShape(textBox));
+                default:
+                    return null;
+            }
+        }
+
+        public void WriteElements(IReadOnlyList<DocumentElement> elements, int depth) =>
+            WriteElements(elements, depth, 0, elements.Count);
+
+        void WriteElements(IReadOnlyList<DocumentElement> elements, int depth, int start, int end)
+        {
+            for (var index = start; index < end; index++)
             {
                 var element = elements[index];
 
                 if (element is ParagraphElement {Properties.Numbering: not null})
                 {
                     var items = new List<ParagraphElement>();
-                    while (index < elements.Count &&
+                    while (index < end &&
                            elements[index] is ParagraphElement {Properties.Numbering: not null} listItem)
                     {
                         items.Add(listItem);
@@ -411,7 +624,7 @@ static class HtmlExporter
                     DocumentExportHelpers.IsQuote(quoteParagraph.Properties))
                 {
                     var quoteItems = new List<ParagraphElement>();
-                    while (index < elements.Count &&
+                    while (index < end &&
                            elements[index] is ParagraphElement candidate &&
                            DocumentExportHelpers.IsQuote(candidate.Properties))
                     {
@@ -424,38 +637,67 @@ static class HtmlExporter
                     continue;
                 }
 
-                // w:contextualSpacing collapses the gap between same-style neighbours — Word's
-                // tight recipient/address blocks whose paragraphs declare a generous after-spacing
-                // that never shows between them (letters/10's 18pt-after lines render tight).
-                // The raster path already honours it; the export drops the margin-bottom on a
-                // contextual paragraph whose next sibling shares its style.
-                borderGroupPrevious = index > 0 ? (elements[index - 1] as ParagraphElement)?.Properties : null;
-                borderGroupNext = index + 1 < elements.Count ? (elements[index + 1] as ParagraphElement)?.Properties : null;
-
-                if (element is ParagraphElement {Properties.ContextualSpacing: true} contextual &&
-                    index + 1 < elements.Count &&
-                    elements[index + 1] is ParagraphElement next &&
-                    string.Equals(next.Properties.StyleId, contextual.Properties.StyleId, StringComparison.OrdinalIgnoreCase))
-                {
-                    WriteParagraph(
-                        new()
-                        {
-                            Runs = contextual.Runs,
-                            Properties = contextual.Properties with {SpacingAfterPoints = 0},
-                            IsAnchorOnlyMark = contextual.IsAnchorOnlyMark,
-                            IsCollapsedCellMark = contextual.IsCollapsedCellMark,
-                            IsSectionBreakMark = contextual.IsSectionBreakMark
-                        },
-                        depth);
-                    borderGroupPrevious = null;
-                    borderGroupNext = null;
-                    continue;
-                }
-
-                WriteBlock(element, depth);
+                var previous = index > start ? elements[index - 1] as ParagraphElement : null;
+                var next = index + 1 < end ? elements[index + 1] as ParagraphElement : null;
+                borderGroupPrevious = previous?.Properties;
+                borderGroupNext = next?.Properties;
+                WriteBlock(element is ParagraphElement paragraph ? WithContextualSpacing(paragraph, previous, next) : element, depth);
                 borderGroupPrevious = null;
                 borderGroupNext = null;
             }
+        }
+
+        /// <summary>
+        /// The paragraph with what <c>w:contextualSpacing</c> leaves of its spacing against its
+        /// neighbours, by the rule the layout engine was probed to (<see cref="ParagraphGap"/>):
+        /// a paragraph that opts in drops its space-after against a following paragraph of its
+        /// own style and its space-before against a preceding one, whether or not the neighbour
+        /// opts in. Only the after half was dropped here, so a style that sets its lines apart
+        /// with a large space-BEFORE kept it between them: business-plans/10's two cover lines
+        /// each carry 342pt before, and the second fell off the cover art onto the white page
+        /// beneath it, white on white.
+        ///
+        /// A browser collapses the margins that are left to the larger of the two, which is
+        /// Word's <c>max(after, before)</c>. Word takes that maximum over the first paragraph's
+        /// DECLARED after even where it was dropped, so the second paragraph's before is cut
+        /// down by it.
+        /// </summary>
+        static ParagraphElement WithContextualSpacing(ParagraphElement paragraph, ParagraphElement? previous, ParagraphElement? next)
+        {
+            var properties = paragraph.Properties;
+            var before = properties.SpacingBeforePoints;
+            var after = properties.SpacingAfterPoints;
+            var styleKey = ParagraphGap.StyleKey(properties);
+            if (previous != null && ParagraphGap.StyleKey(previous.Properties) == styleKey)
+            {
+                if (properties.ContextualSpacing)
+                {
+                    before = 0;
+                }
+                else if (previous.Properties.ContextualSpacing)
+                {
+                    before = Math.Max(0, before - previous.Properties.SpacingAfterPoints);
+                }
+            }
+
+            if (properties.ContextualSpacing && next != null && ParagraphGap.StyleKey(next.Properties) == styleKey)
+            {
+                after = 0;
+            }
+
+            if (before == properties.SpacingBeforePoints && after == properties.SpacingAfterPoints)
+            {
+                return paragraph;
+            }
+
+            return new()
+            {
+                Runs = paragraph.Runs,
+                Properties = properties with {SpacingBeforePoints = before, SpacingAfterPoints = after},
+                IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
+                IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
+                IsSectionBreakMark = paragraph.IsSectionBreakMark
+            };
         }
 
         void WriteBlock(DocumentElement element, int depth)
@@ -480,13 +722,15 @@ static class HtmlExporter
                 case HorizontalRuleElement:
                     Indent(depth).Append("<hr />\n");
                     break;
+                case FloatingTextBoxElement {WrapType: WrapType.None} floatingTextBox:
+                    WriteAbsoluteTextBox(floatingTextBox, depth);
+                    break;
                 case FloatingTextBoxElement textBox:
                     // In-flow placement (the reflowable export's model for wrapped text boxes),
                     // but with the box's own chrome — its fill and frame are what make a quote
                     // box or panel read as one (they were dropped, leaving bare paragraphs).
-                    // A box with nothing visible in it stays a bare div: labels/11 carries thirty
-                    // EMPTY white label boxes whose 0.25pt near-white outlines and insets
-                    // otherwise stripe the page and push the flow ~350px down.
+                    // A box with nothing visible in it stays a bare div, so an empty one costs
+                    // the flow nothing.
                     var hasVisibleContent = textBox.Content.Any(_ => _ is not ParagraphElement contentParagraph || !IsBlankForHtml(contentParagraph));
                     Indent(depth).Append(hasVisibleContent ? TextBoxOpenTag(textBox, positionStyle: null) : "<div>").Append('\n');
                     WriteElements(textBox.Content, depth + 1);
@@ -554,7 +798,7 @@ static class HtmlExporter
                 return;
             }
 
-            if (TryWriteTabbedParagraph(paragraph, depth))
+            if (TryWriteTabbedParagraph(paragraph, depth, pageSettings.ContentWidth))
             {
                 return;
             }
@@ -574,7 +818,13 @@ static class HtmlExporter
         // Tabs pair with stops in declaration order (the common authoring shape — each of the
         // corpus fixtures declares exactly one stop per tab); a paragraph with more tabs than
         // stops, or a mid-line right/decimal stop that is not the final tab, keeps the fallback.
-        bool TryWriteTabbedParagraph(ParagraphElement paragraph, int depth)
+        //
+        // `measure` is the width the paragraph is set in — the page's content width in the flow,
+        // the cell's inside a table — which is what decides whether a right stop stands at the
+        // right edge. Word draws a stop past that edge AT the edge, so anything from 40pt short
+        // of it outward is the edge. A paragraph in a cell (`inCell`) is written without the
+        // flow's indent and line break, as the rest of a cell's content is.
+        bool TryWriteTabbedParagraph(ParagraphElement paragraph, int depth, double measure, bool inCell = false)
         {
             if (paragraph.Properties.TabStops.Count == 0)
             {
@@ -626,7 +876,7 @@ static class HtmlExporter
                 // independent of any tab characters, and the tabs themselves ride the default
                 // grid — approximated as a fixed gap, since a reflowing export cannot know where
                 // the grid lands. The rules are absolutely positioned children of the paragraph.
-                Indent(depth).Append("<p");
+                OpenTabbedParagraph(depth, inCell);
                 AppendParagraphStyle(paragraph.Properties, extraStyle: "position: relative");
                 builder.Append('>');
                 foreach (var bar in barStops)
@@ -645,15 +895,17 @@ static class HtmlExporter
                     }
                 }
 
-                builder.Append("</p>\n");
+                builder.Append(inCell ? "</p>" : "</p>\n");
                 return true;
             }
 
             var tabCount = segments.Count - 1;
-            if (tabCount == 0 || tabCount > stops.Count)
+            if (tabCount == 0 || ReachableStops(segments, stops, paragraph.Properties) is not { } reached)
             {
                 return false;
             }
+
+            stops = reached;
 
             // A right/decimal stop short of the right edge right-justifies the FOLLOWING segment
             // inside the span up to the stop, consuming two segments at once — only supportable
@@ -661,23 +913,33 @@ static class HtmlExporter
             for (var i = 0; i < tabCount - 1; i++)
             {
                 if (stops[i].Alignment is TabAlignment.Right or TabAlignment.Decimal &&
-                    stops[i].PositionPoints < pageSettings.ContentWidth - 40)
+                    stops[i].PositionPoints < measure - 40)
                 {
                     return false;
                 }
             }
 
-            Indent(depth).Append("<p");
+            OpenTabbedParagraph(depth, inCell);
             AppendParagraphStyle(paragraph.Properties, extraStyle: "display: flex");
             builder.Append('>');
-            WriteTabbedSegments(segments, stops);
-            builder.Append("</p>\n");
+            WriteTabbedSegments(segments, stops, TextContext.Body, measure);
+            builder.Append(inCell ? "</p>" : "</p>\n");
             return true;
+        }
+
+        void OpenTabbedParagraph(int depth, bool inCell)
+        {
+            if (!inCell)
+            {
+                Indent(depth);
+            }
+
+            builder.Append("<p");
         }
 
         // The flex-item spans of a tabbed paragraph, written into an already-opened
         // `display: flex` element (a <p> or a heading).
-        void WriteTabbedSegments(List<List<Run>> segments, List<TabStop> stops, bool inHeading = false, double inheritedFontSizePoints = defaultBodyFontSizePoints)
+        void WriteTabbedSegments(List<List<Run>> segments, List<TabStop> stops, TextContext context, double measure)
         {
             var start = 0.0;
             var index = 0;
@@ -687,7 +949,7 @@ static class HtmlExporter
                 if (isLastSegment)
                 {
                     builder.Append("<span>");
-                    AppendInline(segments[index], inHeading, inheritedFontSizePoints);
+                    AppendInline(segments[index], context);
                     builder.Append("</span>");
                     index++;
                     continue;
@@ -696,12 +958,12 @@ static class HtmlExporter
                 var stop = stops[index];
                 if (stop.Alignment is TabAlignment.Right or TabAlignment.Decimal)
                 {
-                    if (stop.PositionPoints >= pageSettings.ContentWidth - 40)
+                    if (stop.PositionPoints >= measure - 40)
                     {
                         // The stop sits at (or near) the content's right edge: a stretching filler
                         // pushes the rest of the line flush right, carrying the leader as a rule.
                         builder.Append("<span>");
-                        AppendInline(segments[index], inHeading, inheritedFontSizePoints);
+                        AppendInline(segments[index], context);
                         builder.Append("</span><span style=\"flex: 1; ").Append(LeaderStyle(stop.Leader)).Append("\"></span>");
                         start = stop.PositionPoints;
                         index++;
@@ -716,9 +978,9 @@ static class HtmlExporter
                         builder.Append("<span style=\"display: inline-flex; justify-content: space-between; min-width: ")
                             .Append(Length(stop.PositionPoints - start))
                             .Append("\"><span>");
-                        AppendInline(segments[index], inHeading, inheritedFontSizePoints);
+                        AppendInline(segments[index], context);
                         builder.Append("</span><span>");
-                        AppendInline(segments[index + 1], inHeading, inheritedFontSizePoints);
+                        AppendInline(segments[index + 1], context);
                         builder.Append("</span></span>");
                         start = stop.PositionPoints;
                         index += 2;
@@ -731,7 +993,7 @@ static class HtmlExporter
                     builder.Append("<span style=\"min-width: ")
                         .Append(Length(stop.PositionPoints - start))
                         .Append("\">");
-                    AppendInline(segments[index], inHeading, inheritedFontSizePoints);
+                    AppendInline(segments[index], context);
                     builder.Append("</span>");
                     start = stop.PositionPoints;
                     index++;
@@ -785,10 +1047,12 @@ static class HtmlExporter
             }
 
             var tabCount = segments.Count - 1;
-            if (tabCount == 0 || tabCount > stops.Count)
+            if (tabCount == 0 || ReachableStops(segments, stops, paragraph.Properties) is not { } reached)
             {
                 return null;
             }
+
+            stops = reached;
 
             for (var i = 0; i < tabCount - 1; i++)
             {
@@ -801,6 +1065,55 @@ static class HtmlExporter
 
             return (segments, stops);
         }
+
+        /// <summary>
+        /// The stops a paragraph's tabs go to, one per tab in order, or null when a tab has no
+        /// declared stop left to go to. A tab advances to the first stop PAST the pen, so a stop the
+        /// text before it has already passed is skipped. The export measures nothing, so the pen
+        /// is a lower bound — <see cref="leastAdvanceEm"/> an em for every character — and only a
+        /// stop the text has certainly passed is skipped; one it may or may not have reached is
+        /// taken, as every stop was before. business-plans/13's contents style declares four
+        /// stops, the first two 22pt and 25pt in for a number the entries do not carry: paired
+        /// with the first, each entry's page number was boxed to the left of where its title
+        /// ends and ran on against it.
+        /// </summary>
+        static List<TabStop>? ReachableStops(List<List<Run>> segments, List<TabStop> stops, ParagraphProperties properties)
+        {
+            var reached = new List<TabStop>();
+            var pen = properties.LeftIndentPoints;
+            var next = 0;
+            for (var index = 0; index < segments.Count - 1; index++)
+            {
+                foreach (var run in segments[index])
+                {
+                    if (!run.Properties.Hidden)
+                    {
+                        pen += run.Text.Length * run.Properties.FontSizePoints * leastAdvanceEm;
+                    }
+                }
+
+                while (next < stops.Count && stops[next].PositionPoints <= pen)
+                {
+                    next++;
+                }
+
+                if (next == stops.Count)
+                {
+                    return null;
+                }
+
+                reached.Add(stops[next]);
+                pen = stops[next].PositionPoints;
+                next++;
+            }
+
+            return reached;
+        }
+
+        // The least a character of running text can be taken to advance, in ems: under the
+        // narrowest letters of a proportional face, so that a width built from it is never more
+        // than the text really sets.
+        const double leastAdvanceEm = 0.2;
 
         // The flex filler that stands in for a leader tab: a rule along the gap, lifted to sit
         // near the baseline. A leaderless tab keeps a minimum gap so the two sides never touch.
@@ -849,11 +1162,11 @@ static class HtmlExporter
             builder.Append('>');
             if (tabPlan is { } plan)
             {
-                WriteTabbedSegments(plan.Segments, plan.Stops, inHeading: true, effectiveSize);
+                WriteTabbedSegments(plan.Segments, plan.Stops, new(true, effectiveSize), pageSettings.ContentWidth);
             }
             else
             {
-                AppendInline(paragraph.Runs, inHeading: true, effectiveSize);
+                AppendInline(paragraph.Runs, new(true, effectiveSize));
             }
 
             builder.Append($"</h{level}>");
@@ -1081,9 +1394,10 @@ static class HtmlExporter
                 return;
             }
 
-            var pageLeft = (image.HorizontalAnchor == HorizontalAnchor.Page ? 0 : pageSettings.MarginLeft) + image.HorizontalPositionPoints;
-            var pageTop = (image.VerticalAnchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop) + image.VerticalPositionPoints;
-            var (left, top) = FloatOrigin(pageLeft, pageTop, image.VerticalAnchor);
+            var (left, top) = FloatOrigin(
+                PageLeft(image.HorizontalAnchor, image.HorizontalPositionPoints),
+                PageTop(image.VerticalAnchor, image.VerticalPositionPoints),
+                image.VerticalAnchor);
             var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}{EllipseClip(image)}";
 
             Indent(depth).Append("""<div style="position: relative">""");
@@ -1093,6 +1407,76 @@ static class HtmlExporter
                 ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), image.Opacity);
             builder.Append("</div>\n");
         }
+
+        /// <summary>
+        /// A text box the text does not wrap round floats over the page like a wrap-NONE picture,
+        /// so it is placed the same way: absolutely, at its anchor offsets, at its own size, and
+        /// out of the flow. Every body-level text box of the corpus is one of these, and written
+        /// into the flow each took the room of its text where Word gives it none — which pushed
+        /// everything after it down against the art placed around it. labels/06's twenty ADMIT
+        /// ONE stubs stacked as a column at the head of the sheet, cards/02's two code boxes
+        /// opened the page above the first ticket, cards/13's page-sized wash drew as a strip
+        /// one line tall, and labels/10 and labels/11 ran a label late against their artwork.
+        ///
+        /// The box is laid out as the layout engine lays it (Fragmenter.PlaceTextBox): its fill
+        /// and frame are a shape of the box's size and geometry behind the text, a box of fixed
+        /// size hides what falls outside it, and a rotated box turns about its centre with its
+        /// text.
+        /// </summary>
+        void WriteAbsoluteTextBox(FloatingTextBoxElement textBox, int depth)
+        {
+            var box = TextBoxShape(textBox);
+            if (box.FillColorHex != null || box.LineColorHex != null)
+            {
+                WriteShape(box, depth);
+            }
+
+            if (textBox.Content.All(_ => _ is ParagraphElement paragraph && IsBlankForHtml(paragraph)))
+            {
+                return;
+            }
+
+            var (pageLeft, pageTop, _, _) = ShapeBox(box, pageSettings);
+            var (left, top) = FloatOrigin(pageLeft, pageTop, box.VerticalAnchor);
+            var style = new StringBuilder();
+            style.Append($"position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(textBox.WidthPoints)}; ");
+            style.Append(textBox.HidesOverflow
+                ? $"height: {Length(textBox.HeightPoints)}; overflow: hidden; "
+                : $"min-height: {Length(textBox.HeightPoints)}; ");
+            if (Math.Abs(textBox.RotationDegrees) > 0.01)
+            {
+                style.Append($"transform: rotate({Number(textBox.RotationDegrees)}deg); ");
+            }
+
+            style.Append($"z-index: {(textBox.BehindText ? "-1" : "1")}");
+            Indent(depth).Append("""<div style="position: relative">""").Append('\n');
+            Indent(depth + 1).Append($"""<div style="{style}">""").Append('\n');
+            WriteElements(textBox.Content, depth + 2);
+            Indent(depth + 1).Append("</div>\n");
+            Indent(depth).Append("</div>\n");
+        }
+
+        // A text box's own box as a shape: where it stands, its size, and the fill and frame
+        // drawn behind its text.
+        static FloatingShapeElement TextBoxShape(FloatingTextBoxElement textBox) =>
+            new()
+            {
+                WidthPoints = textBox.WidthPoints,
+                HeightPoints = textBox.HeightPoints,
+                HorizontalPositionPoints = textBox.HorizontalPositionPoints,
+                VerticalPositionPoints = textBox.VerticalPositionPoints,
+                HorizontalAnchor = textBox.HorizontalAnchor,
+                VerticalAnchor = textBox.VerticalAnchor,
+                HorizontalPositionPercent = textBox.HorizontalPositionPercent,
+                VerticalPositionPercent = textBox.VerticalPositionPercent,
+                BehindText = textBox.BehindText,
+                FillColorHex = textBox.BackgroundColorHex,
+                LineColorHex = textBox.LineWidthPoints > 0 ? textBox.LineColorHex : null,
+                LineWidthPoints = textBox.LineWidthPoints > 0 ? textBox.LineWidthPoints : null,
+                LineAlpha = textBox.LineAlpha,
+                Subpaths = textBox.Subpaths,
+                RotationDegrees = textBox.RotationDegrees
+            };
 
         // A picture cropped to its pic:spPr geometry, as the raster painters clip it. An ellipse
         // (a:prstGeom prst="ellipse") is the oval inscribed in the box, which a 50% radius on each
@@ -1126,13 +1510,27 @@ static class HtmlExporter
         /// document-origin placement mis-positions the majority and, worse, stacks every page's
         /// background art on page one — the HTML export has no pages to separate them. The wrapper
         /// is empty and zero-height, so it collapses through and costs the flow nothing.
-        /// A page-relative anchor keeps its offset, treating the anchor point as its page top; that
-        /// is exact for art anchored at a page's first paragraph (the common template shape) and an
-        /// approximation elsewhere, which beats collapsing pages together.
+        /// A page-relative anchor takes the wrapper for where its page's CONTENT starts, one top
+        /// margin down the page; that is exact for art anchored at a page's first paragraph (the
+        /// common template shape) and an approximation elsewhere, which beats collapsing pages
+        /// together. The wrapper stood for the page's top EDGE until 2026-10-12, which set every
+        /// page-relative drawing one top margin low against the text of its own page:
+        /// business/02's shaded panel started under the COMPANY NAME heading it backs, and
+        /// agendas-minutes/14's two top stripes lay across the title they sit above. What reaches
+        /// up into the margin has the body's top padding to draw in on the first page and the
+        /// room <see cref="WriteBody"/> reserves on a later one.
         /// </summary>
-        (double Left, double Top) FloatOrigin(double pageLeft, double pageTop, VerticalAnchor verticalAnchor) =>
+        (double Left, double Top) FloatOrigin(double pageLeft, double pageTop, VerticalAnchor anchor) =>
             (pageLeft - pageSettings.MarginLeft,
-                pageTop - (verticalAnchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop));
+                pageTop - (anchor is VerticalAnchor.Page or VerticalAnchor.Margin ? flowPageTop ?? pageSettings.MarginTop : pageSettings.MarginTop));
+
+        // A float's offset from the page's top-left corner: a page-relative anchor measures from
+        // the paper edge, anything else from the margin.
+        double PageLeft(HorizontalAnchor anchor, double offsetPoints) =>
+            (anchor == HorizontalAnchor.Page ? 0 : pageSettings.MarginLeft) + offsetPoints;
+
+        double PageTop(VerticalAnchor anchor, double offsetPoints) =>
+            (anchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop) + offsetPoints;
 
         void WriteContentControl(ContentControlElement contentControl, int depth)
         {
@@ -1303,7 +1701,10 @@ static class HtmlExporter
             }
         }
 
-        void WriteList(IReadOnlyList<ListNode> nodes, int depth)
+        void WriteList(IReadOnlyList<ListNode> nodes, int depth) =>
+            WriteList(nodes, depth, TextContext.Body);
+
+        void WriteList(IReadOnlyList<ListNode> nodes, int depth, TextContext context)
         {
             // Consecutive siblings of the same kind (ordered vs unordered) share one list element.
             var index = 0;
@@ -1349,7 +1750,7 @@ static class HtmlExporter
                 builder.Append(">\n");
                 while (index < nodes.Count && nodes[index].Ordered == ordered)
                 {
-                    WriteListItem(nodes[index], depth + 1);
+                    WriteListItem(nodes[index], depth + 1, context);
                     index++;
                 }
 
@@ -1357,18 +1758,79 @@ static class HtmlExporter
             }
         }
 
-        void WriteListItem(ListNode node, int depth)
+        /// <summary>
+        /// A browser draws a list item's marker in the item's own font, size and colour, so the
+        /// marker's formatting goes on the <c>&lt;li&gt;</c> and the runs inside carry only what
+        /// differs from it. Left on the runs alone, the marker took the body's 11pt black
+        /// whatever the item's text was: business-plans/08 and business-plans/12 numbered their
+        /// 20pt and 22pt section headings with a body-sized "3.", and resumes/10's accent
+        /// bullets and business-plans/12's SWOT bullets drew black.
+        /// </summary>
+        void WriteListItem(ListNode node, int depth, TextContext context)
         {
-            Indent(depth).Append("<li>");
-            AppendInline(node.Paragraph.Runs);
+            var item = MarkerContext(node.Paragraph, context);
+            var parts = new List<string>();
+            if (item.Bold != context.Bold)
+            {
+                parts.Add(item.Bold ? "font-weight: bold" : "font-weight: normal");
+            }
+
+            if (item.FontFamily != context.FontFamily)
+            {
+                parts.Add($"font-family: {CssFontFamily(item.FontFamily ?? bodyFont ?? "sans-serif")}, sans-serif");
+            }
+
+            if (item.Color != context.Color)
+            {
+                parts.Add($"color: {item.Color ?? "#000000"}");
+            }
+
+            if (Math.Abs(item.FontSizePoints - context.FontSizePoints) > 0.01)
+            {
+                parts.Add($"font-size: {Length(item.FontSizePoints)}");
+            }
+
+            Indent(depth).Append("<li");
+            if (parts.Count > 0)
+            {
+                builder.Append(" style=\"").Append(string.Join("; ", parts)).Append('"');
+            }
+
+            builder.Append('>');
+            AppendInline(node.Paragraph.Runs, item);
             if (node.Children.Count > 0)
             {
                 builder.Append('\n');
-                WriteList(node.Children, depth + 1);
+                WriteList(node.Children, depth + 1, item);
                 Indent(depth);
             }
 
             builder.Append("</li>\n");
+        }
+
+        // What a list item sets for its text: its marker's formatting, by the layout engine's
+        // rule (CanonicalParagraphMeasurer.MarkerProperties) — the paragraph's first run, with
+        // the numbering level's own size and colour over it. A glyph bullet is drawn from the
+        // bullet face whatever the text's, so it takes neither the run's weight nor its family.
+        // An item with no runs has nothing to read a marker from and keeps what it inherits.
+        TextContext MarkerContext(ParagraphElement paragraph, TextContext context)
+        {
+            if (paragraph.Properties.Numbering is not { } numbering ||
+                paragraph.Runs.Count == 0)
+            {
+                return context;
+            }
+
+            var marker = CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering);
+            var glyph = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily);
+            var color = DocumentExportHelpers.NormalizeColor(marker.ColorHex);
+            var sameFamily = string.IsNullOrEmpty(marker.FontFamily) ||
+                             string.Equals(marker.FontFamily, context.FontFamily ?? bodyFont, StringComparison.OrdinalIgnoreCase);
+            return new(
+                glyph ? context.Bold : marker.Bold,
+                marker.FontSizePoints > 0 ? marker.FontSizePoints : context.FontSizePoints,
+                color == "#000000" ? null : color,
+                glyph || sameFamily ? context.FontFamily : marker.FontFamily);
         }
 
         // The CSS list-style-type for an ordered level's counter style, or null for Decimal (the
@@ -1561,7 +2023,7 @@ static class HtmlExporter
 
                 builder.Append('>');
                 AppendCellFloats(cell);
-                AppendCellContent(cell.Content, depth + 1);
+                AppendCellContent(cell.Content, depth + 1, CellMeasure(properties, table.Properties));
                 builder.Append($"</{tag}>\n");
                 gridColumn += span;
             }
@@ -1815,7 +2277,21 @@ static class HtmlExporter
             };
         }
 
-        void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth)
+        // The width a cell's paragraphs are set in: its declared width less its side margins, or
+        // the page's content width where the cell declares none (a percentage or an autofit
+        // column, whose width only the browser will know).
+        double CellMeasure(TableCellProperties properties, TableProperties tableProperties)
+        {
+            if (properties.WidthPoints is not > 0)
+            {
+                return pageSettings.ContentWidth;
+            }
+
+            var padding = properties.Padding ?? tableProperties.DefaultCellPadding;
+            return Math.Max(0, properties.WidthPoints.Value - padding.Left - padding.Right);
+        }
+
+        void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth, double measure)
         {
             // Cell paragraphs render inline (separated by <br />) except heading-styled ones, which
             // emit as real <hN> blocks — a heading inside a table cell stays a heading
@@ -1859,6 +2335,15 @@ static class HtmlExporter
                             AppendHeading(paragraph, level.Value);
                             borderGroupPrevious = null;
                             borderGroupNext = null;
+                            separatorPending = false;
+                        }
+                        else if (TryWriteTabbedParagraph(paragraph, depth, measure, inCell: true))
+                        {
+                            // A cell paragraph set against its own tab stops is a block of flex
+                            // boxes like one in the flow. Joined inline with the rest of the cell
+                            // each tab was a single space: table_of_contents/03's entries and the
+                            // contents panels of brochures/05 and business-plans/13 ran their page
+                            // numbers on after the titles, with no leader.
                             separatorPending = false;
                         }
                         else if (paragraph.Properties.SpacingBeforePoints > 0.01 ||
@@ -2023,7 +2508,10 @@ static class HtmlExporter
             }
         }
 
-        void AppendInline(IReadOnlyList<Run> sourceRuns, bool inHeading = false, double inheritedFontSizePoints = defaultBodyFontSizePoints)
+        void AppendInline(IReadOnlyList<Run> sourceRuns) =>
+            AppendInline(sourceRuns, TextContext.Body);
+
+        void AppendInline(IReadOnlyList<Run> sourceRuns, TextContext context)
         {
             var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var index = 0;
@@ -2040,7 +2528,7 @@ static class HtmlExporter
                     while (index < runs.Count &&
                            runs[index].HyperlinkUrl == url)
                     {
-                        AppendRun(runs[index], inHeading, inheritedFontSizePoints);
+                        AppendRun(runs[index], context);
                         index++;
                     }
 
@@ -2048,12 +2536,12 @@ static class HtmlExporter
                     continue;
                 }
 
-                AppendRun(run, inHeading, inheritedFontSizePoints);
+                AppendRun(run, context);
                 index++;
             }
         }
 
-        void AppendRun(Run run, bool inHeading, double inheritedFontSizePoints)
+        void AppendRun(Run run, TextContext context)
         {
             if (run.InlineShapeGroup is {} shapeGroup)
             {
@@ -2094,7 +2582,7 @@ static class HtmlExporter
             }
 
             var properties = run.Properties;
-            var tags = AppendOpenTags(properties, inHeading, inheritedFontSizePoints);
+            var tags = AppendOpenTags(properties, context);
 
             // A page-numbering field in a pageless export evaluates as a one-page document —
             // "Page 1 of 1" — rather than shipping whatever total the source cached ("Page 1 of
@@ -2163,9 +2651,9 @@ static class HtmlExporter
         // Opens the run's formatting tags directly into the output; the returned flags drive
         // AppendCloseTags (exact reverse order). Replaces a per-run pair of StringBuilders
         // that assembled the same fixed tag strings via Insert(0).
-        RunTags AppendOpenTags(RunProperties properties, bool inHeading, double inheritedFontSizePoints)
+        RunTags AppendOpenTags(RunProperties properties, TextContext context)
         {
-            var style = InlineStyle(properties, inHeading, bodyFont, inheritedFontSizePoints);
+            var style = InlineStyle(properties, context, bodyFont);
             if (style != null)
             {
                 builder.Append($"""<span style="{style}">""");
@@ -2175,7 +2663,7 @@ static class HtmlExporter
             // UA default — so a <strong> inside one is redundant and is skipped, mirroring the
             // Markdown exporter's heading bold suppression. A run that is explicitly non-bold in a
             // heading is still honoured: InlineStyle emits font-weight: normal for it.
-            var strong = properties.Bold && !inHeading;
+            var strong = properties.Bold && !context.Bold;
             if (strong)
             {
                 builder.Append("<strong>");
@@ -2267,11 +2755,13 @@ static class HtmlExporter
             }
         }
 
-        static string? InlineStyle(RunProperties properties, bool inHeading, string? bodyFontFamily, double inheritedFontSizePoints)
+        static string? InlineStyle(RunProperties properties, TextContext context, string? bodyFontFamily)
         {
-            var color = DocumentExportHelpers.NormalizeColor(properties.ColorHex);
-            // Black is the default text colour; emitting a span for it is just noise.
-            if (color == "#000000")
+            // The element's own colour is what a run inherits — black unless a list item took its
+            // marker's — so a run of that colour carries none, and a black run inside a coloured
+            // item has to say so.
+            var color = DocumentExportHelpers.NormalizeColor(properties.ColorHex) ?? "#000000";
+            if (color == (context.Color ?? "#000000"))
             {
                 color = null;
             }
@@ -2281,17 +2771,18 @@ static class HtmlExporter
             // Only a run that deviates from the size its element already establishes needs an
             // inline size — 11pt from the body stylesheet in flow content, the heading's effective
             // size (stylesheet default or the lifted uniform run size) inside an <hN>.
-            var hasFontSize = Math.Abs(properties.FontSizePoints - inheritedFontSizePoints) > 0.01 &&
+            var hasFontSize = Math.Abs(properties.FontSizePoints - context.FontSizePoints) > 0.01 &&
                               properties.FontSizePoints > 0;
 
             // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared
             // for:" label styled Heading 2, say) must override back to normal weight to match Word.
-            var overrideWeight = inHeading && !properties.Bold;
+            var overrideWeight = context.Bold && !properties.Bold;
 
-            // Only a run whose font differs from the document's <body> font needs an inline family;
-            // the common case (run matches the body font) inherits and stays clean.
+            // Only a run whose font differs from the one its element sets — the document's <body>
+            // font, or a list item's marker face — needs an inline family; the common case (run
+            // matches the body font) inherits and stays clean.
             var hasFont = !string.IsNullOrEmpty(properties.FontFamily) &&
-                          !string.Equals(properties.FontFamily, bodyFontFamily, StringComparison.OrdinalIgnoreCase);
+                          !string.Equals(properties.FontFamily, context.FontFamily ?? bodyFontFamily, StringComparison.OrdinalIgnoreCase);
 
             // Expanded / condensed tracking (w:spacing on the run) — template heading and body
             // styles lean on it heavily, and without it text wraps at a different measure than
@@ -2476,6 +2967,13 @@ static class HtmlExporter
                 return;
             }
 
+            // An ellipse box is the oval inscribed in it, as the painters draw it: wedding/08's
+            // "&" badge is a circle and came out as the square it is inscribed in.
+            if (wordArt.BoxIsEllipse)
+            {
+                boxStyle.Append("border-radius: 50%; ");
+            }
+
             boxStyle.Append($"width: {Length(wordArt.WidthPoints)}; min-height: {Length(wordArt.HeightPoints)}; ");
             boxStyle.Append("display: flex; align-items: center; justify-content: center; ");
             if (wordArt.Alignment == TextAlignment.Center)
@@ -2509,29 +3007,38 @@ static class HtmlExporter
         void WriteShape(FloatingShapeElement shape, int depth)
         {
             var (pageLeft, pageTop, width, height) = ShapeBox(shape, pageSettings);
+            var (left, top) = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor);
             if (width <= 0.01 || height <= 0.01)
             {
+                WriteLineShape(shape, depth, left, top, width, height);
                 return;
             }
 
-            var (left, top) = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor);
+            // overflow: visible because nothing in DrawingML clips a shape to its own box: an
+            // outline is stroked centred on the geometry, so half of it lies outside, and a rotated
+            // shape turns about its centre out of the box it was declared in. Clipped to the
+            // viewport, agendas-minutes/08's 15pt ring lost its outer half and read as a rounded
+            // square, and business-plans/08's accent rule (a 374pt bar turned a quarter) kept only
+            // the 2pt of it that crossed its unrotated box.
             var shapeId = shapeIndex++;
             Indent(depth).Append("""<div style="position: relative">""");
-            builder.Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: {(shape.BehindText ? "-1" : "1")}" viewBox="0 0 {Number(width)} {Number(height)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
+            builder.Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: {(shape.BehindText ? "-1" : "1")}; overflow: visible" viewBox="0 0 {Number(width)} {Number(height)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
 
-            if (shape is {ImageData: {} imageData, FillColorHex: null, Gradient: null})
+            if (shape.ImageData is {Length: > 0} imageData)
             {
-                // Image-filled shape: draw the bitmap stretched to the box (geometry clipping for
-                // image fills is rare and not worth a clipPath here). The fill's a:alphaModFix
-                // transparency rides on the element, which is where brochures/08's photos get the
-                // navy of the panel behind them.
-                var source = ResolveImageSource(imageData, shape.ImageContentType, width, height);
-                if (source != null)
+                // A picture fill wins over a fill colour the shape also resolved (a style's
+                // fillRef under an explicit a:blipFill), as it does in the layout engine: tested
+                // the other way round, newsletters/08's cover photo, newsletters/13's arch and
+                // newsletters/14's portrait each drew as a block of that colour.
+                if (ResolveImageSource(imageData, shape.ImageContentType, width, height) is { } source)
                 {
-                    var translucent = shape.ImageOpacity < 1
-                        ? $" opacity=\"{Number(Math.Clamp(shape.ImageOpacity, 0, 1))}\""
-                        : "";
-                    builder.Append($"""<image href="{EncodeAttribute(source)}" width="{Number(width)}" height="{Number(height)}" preserveAspectRatio="none"{translucent}{ShapeTransformAttribute(shape, width, height)} />""");
+                    AppendShapePicture(shape, source, width, height, shapeId);
+                }
+
+                if (ShapeStrokeAttributes(shape) is { } outline)
+                {
+                    AppendShapeOutline(shape, width, height);
+                    builder.Append(" fill=\"none\"").Append(outline).Append(ShapeTransformAttribute(shape, width, height)).Append(" />");
                 }
             }
             else
@@ -2555,29 +3062,132 @@ static class HtmlExporter
             builder.Append("</svg></div>\n");
         }
 
+        // A shape with no extent on one axis is a line connector: the parser keeps the line's
+        // length on the other axis and its a:ln as the stroke, and the painters stroke that
+        // degenerate box. An <svg> with a zero width or height renders nothing at all, so the
+        // line gets a viewport as thick as its own stroke, centred on where the line runs. They
+        // were dropped whole, which is every fold, cut and tear guide of the card and label
+        // sheets (cards/12, cards/15, cards/18, labels/03), cards/06's divider between the two
+        // halves of an invitation and agendas-minutes/14's 10pt stripes.
+        void WriteLineShape(FloatingShapeElement shape, int depth, double left, double top, double width, double height)
+        {
+            var horizontal = width > 0.01;
+            if (horizontal == height > 0.01 ||
+                ShapeStrokeAttributes(shape) is not { } stroke)
+            {
+                return;
+            }
+
+            var thickness = ShapeStroke.WidthPoints(shape.LineWidthPoints);
+            var length = horizontal ? width : height;
+            var (boxLeft, boxTop, boxWidth, boxHeight) = horizontal
+                ? (left, top - thickness / 2, length, thickness)
+                : (left - thickness / 2, top, thickness, length);
+            var (startX, startY, endX, endY) = horizontal
+                ? (0.0, thickness / 2, length, thickness / 2)
+                : (thickness / 2, 0.0, thickness / 2, length);
+
+            Indent(depth).Append("""<div style="position: relative">""");
+            builder.Append($"""<svg style="position: absolute; left: {Length(boxLeft)}; top: {Length(boxTop)}; width: {Length(boxWidth)}; height: {Length(boxHeight)}; z-index: {(shape.BehindText ? "-1" : "1")}; overflow: visible" viewBox="0 0 {Number(boxWidth)} {Number(boxHeight)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
+            builder.Append("<line x1=\"").Append(Number(startX)).Append("\" y1=\"").Append(Number(startY))
+                .Append("\" x2=\"").Append(Number(endX)).Append("\" y2=\"").Append(Number(endY)).Append('"')
+                .Append(stroke)
+                .Append(" /></svg></div>\n");
+        }
+
+        // DrawingML states a preset dash in multiples of the line's width; SVG wants lengths.
+        static string? DashArray(IReadOnlyList<double>? pattern, double thickness)
+        {
+            if (pattern is not {Count: > 0})
+            {
+                return null;
+            }
+
+            return string.Join(' ', pattern.Select(_ => Number(_ * thickness)));
+        }
+
+        // The stroke attributes of a shape's outline, or null when it has none. The width follows
+        // the painters (ShapeStroke): an outline that declares no width takes DrawingML's default
+        // and one that declares zero is a hairline, where requiring a positive width here drew
+        // neither.
+        static string? ShapeStrokeAttributes(FloatingShapeElement shape)
+        {
+            if (DocumentExportHelpers.NormalizeColor(shape.LineColorHex) is not { } stroke)
+            {
+                return null;
+            }
+
+            var thickness = ShapeStroke.WidthPoints(shape.LineWidthPoints);
+            var attributes = new StringBuilder();
+            attributes.Append(" stroke=\"").Append(stroke)
+                .Append("\" stroke-width=\"").Append(Number(thickness)).Append('"');
+            if (shape.LineAlpha < 0.999)
+            {
+                attributes.Append(" stroke-opacity=\"").Append(Number(shape.LineAlpha)).Append('"');
+            }
+
+            if (DashArray(shape.LineDashPattern, thickness) is { } dashes)
+            {
+                attributes.Append(" stroke-dasharray=\"").Append(dashes).Append('"');
+            }
+
+            return attributes.ToString();
+        }
+
+        // A picture-filled shape is the picture cut to the shape, as Fragmenter.ShapeImage hands
+        // it to the painters: the part of the picture the fill shows (a:srcRect folded with
+        // a:fillRect) stretched over the box, or the picture repeated at its own size (a:tile),
+        // and the shape's contours or its ellipse as the clip. Drawn as the whole bitmap squeezed
+        // into the box, a photo cut to an arch or a freeform came out as a rectangle.
+        void AppendShapePicture(FloatingShapeElement shape, string source, double width, double height, int shapeId)
+        {
+            var translucent = shape.ImageOpacity < 1
+                ? $" opacity=\"{Number(Math.Clamp(shape.ImageOpacity, 0, 1))}\""
+                : "";
+            var transform = ShapeTransformAttribute(shape, width, height);
+            if (shape.ImageTile is {WidthPoints: > 0, HeightPoints: > 0} tile)
+            {
+                var (originX, originY) = tile.Origin(width, height);
+                builder.Append($"""<defs><pattern id="shape-tile-{shapeId}" patternUnits="userSpaceOnUse" x="{Number(originX)}" y="{Number(originY)}" width="{Number(tile.WidthPoints)}" height="{Number(tile.HeightPoints)}"><image href="{EncodeAttribute(source)}" width="{Number(tile.WidthPoints)}" height="{Number(tile.HeightPoints)}" preserveAspectRatio="none" /></pattern></defs>""");
+                AppendShapeOutline(shape, width, height);
+                builder.Append($""" fill="url(#shape-tile-{shapeId})"{translucent}{transform} />""");
+                return;
+            }
+
+            var box = shape.ImageCrop?.Expand(0, 0, width, height) ?? (0, 0, width, height);
+            var cropped = box != (0, 0, width, height);
+            var clipped = cropped || shape.Subpaths is {Count: > 0} || shape.Preset == PresetShape.Ellipse;
+            if (clipped)
+            {
+                builder.Append($"""<defs><clipPath id="shape-clip-{shapeId}">""");
+                AppendShapeOutline(shape, width, height);
+                builder.Append($""" /></clipPath></defs><g clip-path="url(#shape-clip-{shapeId})"{transform}>""");
+                transform = "";
+            }
+
+            builder.Append($"""<image href="{EncodeAttribute(source)}" x="{Number(box.X)}" y="{Number(box.Y)}" width="{Number(box.Width)}" height="{Number(box.Height)}" preserveAspectRatio="none"{translucent}{transform} />""");
+            if (clipped)
+            {
+                builder.Append("</g>");
+            }
+        }
+
         void AppendShapeGeometry(FloatingShapeElement shape, double width, double height, string fill)
         {
-            var attributes = new StringBuilder();
-            attributes.Append(" fill=\"").Append(fill).Append('"');
+            AppendShapeOutline(shape, width, height);
+            builder.Append(" fill=\"").Append(fill).Append('"');
             if (shape.FillAlpha < 0.999)
             {
-                attributes.Append(" fill-opacity=\"").Append(Number(shape.FillAlpha)).Append('"');
+                builder.Append(" fill-opacity=\"").Append(Number(shape.FillAlpha)).Append('"');
             }
 
-            var stroke = DocumentExportHelpers.NormalizeColor(shape.LineColorHex);
-            if (stroke != null && shape.LineWidthPoints is > 0 and var lineWidth)
-            {
-                attributes.Append(" stroke=\"").Append(stroke)
-                    .Append("\" stroke-width=\"").Append(Number(lineWidth)).Append('"');
-                if (shape.LineAlpha < 0.999)
-                {
-                    attributes.Append(" stroke-opacity=\"").Append(Number(shape.LineAlpha)).Append('"');
-                }
-            }
+            builder.Append(ShapeStrokeAttributes(shape)).Append(ShapeTransformAttribute(shape, width, height)).Append(" />");
+        }
 
-            attributes.Append(ShapeTransformAttribute(shape, width, height));
-            var common = attributes.ToString();
-
+        // The shape's outline as an SVG element left open, like AppendGroupGeometry, so the
+        // caller appends the paint: its contours, its ellipse, or its box.
+        void AppendShapeOutline(FloatingShapeElement shape, double width, double height)
+        {
             if (shape.Subpaths is {Count: > 0} subpaths)
             {
                 // One SVG sub-path (M…L…Z) per contour; the default nonzero fill-rule matches
@@ -2610,15 +3220,19 @@ static class HtmlExporter
                     builder.Append(" Z");
                 }
 
-                builder.Append('"').Append(common).Append(" />");
+                builder.Append('"');
             }
             else if (shape.Preset == PresetShape.Ellipse)
             {
-                builder.Append($"""<ellipse cx="{Number(width / 2)}" cy="{Number(height / 2)}" rx="{Number(width / 2)}" ry="{Number(height / 2)}"{common} />""");
+                builder.Append("<ellipse cx=\"").Append(Number(width / 2))
+                    .Append("\" cy=\"").Append(Number(height / 2))
+                    .Append("\" rx=\"").Append(Number(width / 2))
+                    .Append("\" ry=\"").Append(Number(height / 2)).Append('"');
             }
             else
             {
-                builder.Append($"""<rect x="0" y="0" width="{Number(width)}" height="{Number(height)}"{common} />""");
+                builder.Append("<rect x=\"0\" y=\"0\" width=\"").Append(Number(width))
+                    .Append("\" height=\"").Append(Number(height)).Append('"');
             }
         }
 

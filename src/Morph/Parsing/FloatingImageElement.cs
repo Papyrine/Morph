@@ -21,9 +21,10 @@ sealed class FloatingImageElement : DocumentElement
     public string? Description { get; init; }
 
     /// <summary>
-    /// Raster fallback for backends that don't render <see cref="ContentType"/> = "image/svg+xml".
-    /// OOXML stores both an SVG and a raster equivalent for high-DPI artwork; ImageSharp lacks
-    /// SVG support so it falls back to this when present.
+    /// The raster Office saved beside the picture when <see cref="ContentType"/> is "image/svg+xml".
+    /// The painters draw the SVG itself (<see cref="SvgDrawing"/>) and fall back to this only for a
+    /// document the SVG reader gives up. Null for a raster picture, and for the PowerPoint pictures
+    /// that are stored as SVG alone.
     /// </summary>
     public byte[]? RasterFallbackData { get; init; }
 

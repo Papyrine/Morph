@@ -190,8 +190,45 @@ public class TableAutofitTests
         var measurer = new ProportionalMeasurer();
         var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 200, measurer);
 
-        // Grid shape retained, grown to the container as the grid branch has always done.
+        // Grid shape retained.
         await Assert.That(widths[0] / widths[1]).IsEqualTo(50f / 150).Within(0.001f);
+    }
+
+    [Test]
+    public async Task CalculateColumnWidths_AutofitWithEveryColumnDeclared_DoesNotGrowToTheContainer()
+    {
+        // agendas-minutes/14: a w:tblW="auto" table whose cells declare 461.8pt between them on a
+        // 468pt column is drawn 461.8pt wide by Word, and table_text_direction's 300pt of cells
+        // stay 300pt on a 451pt column. The declared widths are the table's size.
+        var table = MakeTable(
+            isAutoFit: true,
+            cellWidths: [[60, 140]],
+            gridWidths: [60, 140],
+            preferredTableWidth: null,
+            ["a", "b"]);
+
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 400, new ProportionalMeasurer());
+
+        await Assert.That(widths[0]).IsEqualTo(60).Within(0.001f);
+        await Assert.That(widths[1]).IsEqualTo(140).Within(0.001f);
+    }
+
+    [Test]
+    public async Task CalculateColumnWidths_AutofitWithAColumnUndeclared_StillGrowsToTheContainer()
+    {
+        // A grid with no cell widths behind one of its columns is a shape, not a size: the
+        // table fills its container as before.
+        var table = MakeTable(
+            isAutoFit: true,
+            cellWidths: [[60, null]],
+            gridWidths: [60, 140],
+            preferredTableWidth: null,
+            ["a", "b"]);
+
+        var widths = TableLayout.CalculateColumnWidths(table, colCount: 2, availableWidth: 400, new ProportionalMeasurer());
+
+        await Assert.That(widths.Sum()).IsEqualTo(400).Within(0.01f);
+        await Assert.That(widths[0] / widths[1]).IsEqualTo(60f / 140).Within(0.001f);
     }
 
     [Test]

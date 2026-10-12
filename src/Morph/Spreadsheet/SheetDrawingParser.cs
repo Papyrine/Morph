@@ -127,7 +127,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
             return null;
         }
 
-        var (data, contentType) = ShapeParser.ExtractBlipFillImage(blipFill, drawingsPart, partBytes);
+        var (data, contentType, rasterFallback, rasterFallbackContentType) = ShapeParser.ExtractPicture(blipFill, drawingsPart, partBytes);
         if (data is not { Length: > 0 })
         {
             return null;
@@ -139,6 +139,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
         {
             ImageData = data,
             ContentType = contentType,
+            RasterFallbackData = rasterFallback,
+            RasterFallbackContentType = rasterFallbackContentType,
             WidthPoints = placed.Width,
             HeightPoints = placed.Height,
             HorizontalPositionPoints = placed.X,

@@ -136,9 +136,9 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             return rawHit;
         }
 
-        var candidates = FontHelpers.GetCandidateNames(fontFamily, bold);
+        var candidates = FontHelpers.GetCandidateNames(fontFamily);
         var targetWeight = FontHelpers.ResolveTargetWeight(fontFamily, bold);
-        var key = (candidates.Effective, targetWeight, italic);
+        var key = (candidates.Original, targetWeight, italic);
 
         if (cache.TryGetValue(key, out var font))
         {
@@ -179,7 +179,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             (font == null ||
              weightDelta >= weightFallbackThreshold))
         {
-            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
             var fallback = TryResolveFromCache(allFontsCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
                            ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic)
@@ -208,7 +208,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             (font == null ||
              weightDelta >= weightFallbackThreshold))
         {
-            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
             var fallback = TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
                            ?? TryResolveEmbedded(fallbackCandidates, fallbackWeight, targetItalic);
@@ -230,7 +230,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
             throw new InvalidOperationException($"Font '{fontFamily}' not found in '{fontDirectory}'.");
         }
 
-        var lastFallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+        var lastFallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
         var lastFallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
         return TryResolveFromCache(directoryCache, lastFallbackCandidates, lastFallbackWeight, targetItalic) ??
                TryResolveEmbedded(lastFallbackCandidates, lastFallbackWeight, targetItalic);
@@ -243,7 +243,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     /// <c>FontFallback</c> of <c>"Aptos"</c> missed on any host without Aptos installed.
     /// </summary>
     TFont? TryResolveEmbedded(FontNameCandidates candidates, int targetWeight, bool targetItalic) =>
-        cache.TryGetValue((candidates.Effective, targetWeight, targetItalic), out var font) &&
+        cache.TryGetValue((candidates.Original, targetWeight, targetItalic), out var font) &&
         seededFonts.Contains(font)
             ? font
             : null;

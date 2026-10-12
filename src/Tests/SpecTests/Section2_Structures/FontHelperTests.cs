@@ -1,5 +1,5 @@
 /// <summary>
-/// Comprehensive tests for FontHelpers: ImpliesBold, HasMediumWeightSuffix,
+/// Comprehensive tests for FontHelpers: ImpliesBold,
 /// StripWeightSuffixes, GetCandidateNames, FindFallback, and FontFallbacks.
 /// </summary>
 public class FontHelperTests
@@ -36,28 +36,6 @@ public class FontHelperTests
         // "Medium" as substring triggers ImpliesBold even in unexpected positions
         await Assert.That(FontHelpers.ImpliesBold("MediumWeight Custom")).IsTrue();
         await Assert.That(FontHelpers.ImpliesBold("MyBoldFont")).IsTrue();
-    }
-
-    // === HasMediumWeightSuffix ===
-
-    [Test]
-    [Arguments("Aptos Medium", true)]
-    [Arguments("Aptos Semibold", true)]
-    [Arguments("Aptos Demi", true)]
-    [Arguments("Aptos Regular", true)]
-    [Arguments("Aptos Book", true)]
-    [Arguments("Aptos Bold", false)]
-    [Arguments("Aptos Light", false)]
-    [Arguments("Aptos", false)]
-    [Arguments("Arial", false)]
-    public async Task HasMediumWeightSuffix_VariousFonts(string fontFamily, bool expected) =>
-        await Assert.That(FontHelpers.HasMediumWeightSuffix(fontFamily)).IsEqualTo(expected);
-
-    [Test]
-    public async Task HasMediumWeightSuffix_CaseInsensitive()
-    {
-        await Assert.That(FontHelpers.HasMediumWeightSuffix("Aptos MEDIUM")).IsTrue();
-        await Assert.That(FontHelpers.HasMediumWeightSuffix("Aptos medium")).IsTrue();
     }
 
     // === StripWeightSuffixes ===
@@ -104,8 +82,7 @@ public class FontHelperTests
     [Test]
     public async Task GetCandidateNames_PlainFont_AllFieldsMatch()
     {
-        var c = FontHelpers.GetCandidateNames("Arial", false);
-        await Assert.That(c.Effective).IsEqualTo("Arial");
+        var c = FontHelpers.GetCandidateNames("Arial");
         await Assert.That(c.Original).IsEqualTo("Arial");
         await Assert.That(c.Stripped).IsNull();
     }
@@ -113,46 +90,35 @@ public class FontHelperTests
     [Test]
     public async Task GetCandidateNames_WithSuffix_NoBold_StrippedSet()
     {
-        var c = FontHelpers.GetCandidateNames("Calibri Light", false);
-        await Assert.That(c.Effective).IsEqualTo("Calibri Light");
+        var c = FontHelpers.GetCandidateNames("Calibri Light");
         await Assert.That(c.Original).IsEqualTo("Calibri Light");
         await Assert.That(c.Stripped).IsEqualTo("Calibri");
     }
 
     [Test]
-    public async Task GetCandidateNames_MediumWeight_NoBold_EffectiveIsOriginal()
+    public async Task GetCandidateNames_MediumWeight_NamedFamilyComesFirst()
     {
-        // Without bold request, medium weight suffix is NOT stripped for Effective
-        var c = FontHelpers.GetCandidateNames("Aptos Medium", false);
-        await Assert.That(c.Effective).IsEqualTo("Aptos Medium");
+        // A weight-named family is tried as named, bold or not: Word emboldens "Aptos Medium" itself
+        // rather than borrowing Aptos Bold (BoldSimulation). The base family is only the fallback.
+        var c = FontHelpers.GetCandidateNames("Aptos Medium");
+        await Assert.That(c.Original).IsEqualTo("Aptos Medium");
         await Assert.That(c.Stripped).IsEqualTo("Aptos");
     }
 
     [Test]
-    public async Task GetCandidateNames_MediumWeight_WithBold_EffectiveIsBase()
+    public async Task GetCandidateNames_Semibold_NamedFamilyComesFirst()
     {
-        // With bold request, medium weight suffix IS stripped for Effective
-        var c = FontHelpers.GetCandidateNames("Aptos Medium", true);
-        await Assert.That(c.Effective).IsEqualTo("Aptos");
-        await Assert.That(c.Original).IsEqualTo("Aptos Medium");
-        // Stripped would equal Effective, so it's null
-        await Assert.That(c.Stripped).IsNull();
-    }
-
-    [Test]
-    public async Task GetCandidateNames_SemiboldWithBold_EffectiveIsBase()
-    {
-        var c = FontHelpers.GetCandidateNames("Segoe UI Semibold", true);
-        await Assert.That(c.Effective).IsEqualTo("Segoe UI");
+        var c = FontHelpers.GetCandidateNames("Segoe UI Semibold");
         await Assert.That(c.Original).IsEqualTo("Segoe UI Semibold");
+        await Assert.That(c.Stripped).IsEqualTo("Segoe UI");
     }
 
     [Test]
     public async Task GetCandidateNames_BoldSuffix_NoBoldRequest_StrippedSet()
     {
-        // " Bold" suffix is stripped for Stripped, but Effective stays as-is
-        var c = FontHelpers.GetCandidateNames("Calibri Bold", false);
-        await Assert.That(c.Effective).IsEqualTo("Calibri Bold");
+        // " Bold" suffix is stripped for Stripped, but the name as written stays first
+        var c = FontHelpers.GetCandidateNames("Calibri Bold");
+        await Assert.That(c.Original).IsEqualTo("Calibri Bold");
         await Assert.That(c.Stripped).IsEqualTo("Calibri");
     }
 
@@ -173,7 +139,7 @@ public class FontHelperTests
     [Arguments("Sagona Light", "Georgia")]
     public async Task FindFallback_AllKnownMappings(string fontFamily, string expectedFallback)
     {
-        var candidates = FontHelpers.GetCandidateNames(fontFamily, false);
+        var candidates = FontHelpers.GetCandidateNames(fontFamily);
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsEqualTo(expectedFallback);
     }
@@ -181,7 +147,7 @@ public class FontHelperTests
     [Test]
     public async Task FindFallback_CaseInsensitive()
     {
-        var candidates = FontHelpers.GetCandidateNames("SEGOE UI VARIABLE", false);
+        var candidates = FontHelpers.GetCandidateNames("SEGOE UI VARIABLE");
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsEqualTo("Segoe UI");
     }
@@ -190,7 +156,7 @@ public class FontHelperTests
     public async Task FindFallback_ViaStrippedName()
     {
         // "AvenirNext LT Pro Bold" → stripped to "AvenirNext LT Pro" → fallback exists
-        var candidates = FontHelpers.GetCandidateNames("AvenirNext LT Pro Bold", false);
+        var candidates = FontHelpers.GetCandidateNames("AvenirNext LT Pro Bold");
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsEqualTo("Century Gothic");
     }
@@ -198,13 +164,13 @@ public class FontHelperTests
     [Test]
     public async Task FindFallback_NoMatch()
     {
-        var candidates = FontHelpers.GetCandidateNames("Arial", false);
+        var candidates = FontHelpers.GetCandidateNames("Arial");
         await Assert.That(FontHelpers.FindFallback(candidates)).IsNull();
 
-        candidates = FontHelpers.GetCandidateNames("Calibri", false);
+        candidates = FontHelpers.GetCandidateNames("Calibri");
         await Assert.That(FontHelpers.FindFallback(candidates)).IsNull();
 
-        candidates = FontHelpers.GetCandidateNames("Times New Roman", false);
+        candidates = FontHelpers.GetCandidateNames("Times New Roman");
         await Assert.That(FontHelpers.FindFallback(candidates)).IsNull();
     }
 
@@ -315,7 +281,7 @@ public class FontHelperTests
     {
         // The repair must never displace a name that resolves on its own, so it comes after every
         // other candidate. "ArialMT" is a real bundled family; splitting it would be wrong.
-        var candidates = FontHelpers.GetCandidateNames("ArialMT", false);
+        var candidates = FontHelpers.GetCandidateNames("ArialMT");
         var order = FontFileCache.EnumerateCandidateNames(candidates).ToList();
 
         await Assert.That(order.First()).IsEqualTo("ArialMT");
@@ -375,8 +341,8 @@ public class FontHelperTests
         // Regression: " Semilight" suffix used to be missing from StyleSuffixes,
         // leaving Stripped=null and breaking resolver fallback when SkiaSharp
         // collapses "Segoe UI Semilight" to "Segoe UI" weight 400.
-        var c = FontHelpers.GetCandidateNames("Segoe UI Semilight", false);
-        await Assert.That(c.Effective).IsEqualTo("Segoe UI Semilight");
+        var c = FontHelpers.GetCandidateNames("Segoe UI Semilight");
+        await Assert.That(c.Original).IsEqualTo("Segoe UI Semilight");
         await Assert.That(c.Original).IsEqualTo("Segoe UI Semilight");
         await Assert.That(c.Stripped).IsEqualTo("Segoe UI");
     }

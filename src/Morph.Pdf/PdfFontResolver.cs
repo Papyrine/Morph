@@ -20,7 +20,9 @@ sealed class PdfFontResolver : IFontResolver
     public static PdfFontResolver Instance { get; } = new();
 
     Lock gate = new();
-    Dictionary<string, string> faceToPath = new(StringComparer.OrdinalIgnoreCase);
+    // Keyed by the face name handed to PdfSharp: a file's path, or "path|index" for a member of a
+    // collection, which GetFont lifts out into a font of its own.
+    Dictionary<string, (string Path, int? CollectionIndex)> faceSources = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, List<FontFace>> index = [];
     HashSet<string> scannedDirectories = [with(StringComparer.OrdinalIgnoreCase)];
     string? defaultFace;
@@ -41,7 +43,7 @@ sealed class PdfFontResolver : IFontResolver
                 Italic = false
             }
         ];
-        faceToPath[bulletsFaceKey] = bulletsFaceKey;
+        faceSources[bulletsFaceKey] = (bulletsFaceKey, null);
     }
 
     /// <summary>Registers the resolver globally (idempotent) and indexes <paramref name="directory"/>.</summary>
@@ -76,10 +78,17 @@ sealed class PdfFontResolver : IFontResolver
             // Without this the same FontDirectory embeds different fallback fonts on different
             // filesystems (e.g. a Windows bind mount vs CI's ext4), so the generated PDF bytes differ
             // across machines despite an identical container image.
-            foreach (var path in Directory.EnumerateFiles(full, "*.ttf", SearchOption.AllDirectories)
+            foreach (var path in Directory.EnumerateFiles(full, "*.tt?", SearchOption.AllDirectories)
                          .OrderBy(_ => _, StringComparer.Ordinal))
             {
-                IndexFile(path);
+                if (path.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
+                {
+                    IndexFile(path);
+                }
+                else if (path.EndsWith(".ttc", StringComparison.OrdinalIgnoreCase))
+                {
+                    IndexCollection(path);
+                }
             }
         }
     }
@@ -110,7 +119,7 @@ sealed class PdfFontResolver : IFontResolver
 
         var family = string.Join(' ', parts[..end]);
 
-        faceToPath[path] = path;
+        faceSources[path] = (path, null);
 
         // Index faces with the OS/2 weight/width/italic OpenTypeReader captured, so resolution can
         // score candidates exactly like the shared FontResolver. A file it can't parse still
@@ -150,6 +159,33 @@ sealed class PdfFontResolver : IFontResolver
         }
 
         defaultFace ??= path;
+    }
+
+    /// <summary>
+    /// Indexes each member of a collection under the names it declares. A collection's file name says
+    /// nothing about its members (<c>cambria.ttc</c> holds Cambria and Cambria Math), so there is no
+    /// file-name key here, and a collection that cannot be parsed is not indexed at all. Without this
+    /// a family whose regular face ships only inside a collection resolved to whichever of its other
+    /// faces was a file of its own: Cambria drew bold throughout, its only stand-alone upright being
+    /// <c>Cambria_700.ttf</c>.
+    /// </summary>
+    void IndexCollection(string path)
+    {
+        foreach (var (face, declaredNames) in ReadFaces(path))
+        {
+            var key = $"{path}|{face.Index}";
+            faceSources[key] = (path, face.Index);
+
+            // FontFace.Path is the face name PdfSharp is given, which GetFont turns back into bytes.
+            var member = face with {Path = key};
+            foreach (var declaredName in declaredNames)
+            {
+                if (!string.IsNullOrEmpty(declaredName))
+                {
+                    AddFace(declaredName, member);
+                }
+            }
+        }
     }
 
     static IEnumerable<(FontFace Face, IReadOnlyList<string> Names)> ReadFaces(string path)
@@ -192,13 +228,17 @@ sealed class PdfFontResolver : IFontResolver
     {
         lock (gate)
         {
-            if (TryResolve(familyName, isBold, isItalic, out var face, out _))
+            if (TryResolve(familyName, isBold, isItalic, out var face, out _, out var faceWeight))
             {
                 // Deliberately NOT PdfSharp's mustSimulateItalic for an italic request served
                 // by a non-italic face: its simulation skews by sin 20° (0.342, PDFium-measured),
                 // 2.5x Word's oblique. PdfPainter shears the text matrix itself instead, with the
                 // Word-measured FontHelpers.SyntheticItalicSkew (see ResolvesToItalicFace).
-                return new(face);
+                //
+                // A bold request served by a face that is not bold IS simulated, as Word simulates it
+                // (BoldSimulation): PdfSharp fills and strokes the glyphs, which is the same
+                // construction the raster painters use.
+                return new(face, BoldSimulation.Applies(isBold, faceWeight), false);
             }
         }
 
@@ -216,9 +256,9 @@ sealed class PdfFontResolver : IFontResolver
             // raster backends fall back to - rather than an arbitrary bundled file (the ordinally
             // first used to be Aharoni_700, a bold face, which made every unresolved family render
             // heavy and wide).
-            if (TryResolve(DefaultFontSettings.DefaultFont, isBold, isItalic, out var fallbackFace, out _))
+            if (TryResolve(DefaultFontSettings.DefaultFont, isBold, isItalic, out var fallbackFace, out _, out var fallbackWeight))
             {
-                return new(fallbackFace);
+                return new(fallbackFace, BoldSimulation.Applies(isBold, fallbackWeight), false);
             }
 
             if (defaultFace == null)
@@ -274,12 +314,15 @@ sealed class PdfFontResolver : IFontResolver
         // the delegate would fire for Arial or Calibri on a machine that has them. PdfSharp's own
         // PlatformFontResolver throws unless called from inside a font-resolution callback, so ask
         // Morph's host index instead; it answers the same question from the same font files.
-        return HostFontIndex.Contains(familyName, isBold);
+        return HostFontIndex.Contains(familyName);
     }
 
-    bool TryResolve(string familyName, bool bold, bool italic, out string face, out bool faceItalic)
+    bool TryResolve(string familyName, bool bold, bool italic, out string face, out bool faceItalic) =>
+        TryResolve(familyName, bold, italic, out face, out faceItalic, out _);
+
+    bool TryResolve(string familyName, bool bold, bool italic, out string face, out bool faceItalic, out int faceWeight)
     {
-        var candidates = FontHelpers.GetCandidateNames(familyName, bold);
+        var candidates = FontHelpers.GetCandidateNames(familyName);
         var targetWeight = FontHelpers.ResolveTargetWeight(familyName, bold);
         var direct = BestFace(candidates, targetWeight, italic, out var directDelta);
 
@@ -289,13 +332,14 @@ sealed class PdfFontResolver : IFontResolver
         var fallbackName = FontHelpers.FindFallback(candidates);
         if (fallbackName != null && (direct == null || directDelta >= weightFallbackThreshold))
         {
-            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName, bold);
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
             var fallback = BestFace(fallbackCandidates, fallbackWeight, italic, out var fallbackDelta);
             if (fallback != null && (direct == null || fallbackDelta < directDelta))
             {
                 face = fallback.Path;
                 faceItalic = fallback.Italic;
+                faceWeight = fallback.Weight;
                 return true;
             }
         }
@@ -304,11 +348,13 @@ sealed class PdfFontResolver : IFontResolver
         {
             face = direct.Path;
             faceItalic = direct.Italic;
+            faceWeight = direct.Weight;
             return true;
         }
 
         face = "";
         faceItalic = false;
+        faceWeight = 0;
         return false;
     }
 
@@ -358,14 +404,21 @@ sealed class PdfFontResolver : IFontResolver
             return EmbeddedFonts.Bullets;
         }
 
+        (string Path, int? CollectionIndex) source;
         lock (gate)
         {
-            if (faceToPath.TryGetValue(faceName, out var path))
+            if (!faceSources.TryGetValue(faceName, out source))
             {
-                return File.ReadAllBytes(path);
+                return null;
             }
-
-            return null;
         }
+
+        var bytes = File.ReadAllBytes(source.Path);
+        if (source.CollectionIndex is { } index)
+        {
+            return FontCollectionFace.Extract(bytes, index);
+        }
+
+        return bytes;
     }
 }

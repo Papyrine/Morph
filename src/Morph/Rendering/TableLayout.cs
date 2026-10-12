@@ -542,13 +542,21 @@ static class TableLayout
                 }
             }
             else if ((isAutoFit || table.Properties.FillContainer) && totalWidth > 0 &&
-                     table.Properties.PreferredWidthPoints == null)
+                     table.Properties.PreferredWidthPoints == null &&
+                     (table.Properties.FillContainer || !explicitWidthsCoverAllColumns))
             {
                 // Same grow rule for grid-only widths — autofit tables grow to the container
                 // (the long-standing behaviour), pct tables of ANY layout grow to their pct
                 // target (see the explicit-widths branch). Skip when the table set an
                 // explicit w:tblW dxa width — that's a fixed size, not a "fill to container"
                 // hint, so growing the columns would override the user's intent.
+                //
+                // Nor does an autofit table grow when every column's cells declare a width: the
+                // declared widths are then the table's size. agendas-minutes/14's centred
+                // w:tblW="auto" table declares 461.8pt of w:tcW on a 468pt column and Word draws
+                // it 461.8pt wide, centred, 3.1pt in from each margin; table_text_direction's
+                // 300pt of cells on a 451pt column likewise stays 300pt. Growing them moved every
+                // column edge and the wraps with it.
                 var target = table.Properties.FillContainer
                     ? (float) (outdented * (table.Properties.PreferredWidthFraction ?? 1.0))
                     : availableWidth;

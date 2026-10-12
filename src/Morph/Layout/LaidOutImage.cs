@@ -1,6 +1,7 @@
 /// <summary>
 /// An inline box on a wrapped line as the canonical measurer lays it out — either an image (drawable
-/// <see cref="Data"/>: raster bytes or an SVG's raster fallback) or an inline <see cref="ShapeGroup"/>
+/// <see cref="Data"/>: raster bytes or an SVG's raster fallback, with the SVG itself as
+/// <see cref="Vector"/> when the reader could take it) or an inline <see cref="ShapeGroup"/>
 /// (grouped drawing painted from its child shapes; then <see cref="Data"/> is null). Display
 /// <see cref="Width"/>/<see cref="Height"/> in points are the picture's extent — the drawn size —
 /// and <see cref="X"/> the offset of its layout box from the line's left edge. The layout box is the
@@ -10,7 +11,7 @@
 /// width counts toward the line width and its height can grow the line. Positioned with its bottom on
 /// the text baseline by the fragmenter.
 /// </summary>
-readonly record struct LaidOutImage(float X, float Width, float Height, byte[]? Data, double RotationDegrees = 0, bool FlipHorizontal = false, bool FlipVertical = false, ImageCrop? Crop = null, InlineShapeGroup? ShapeGroup = null, ImageRecolor? Recolor = null, double Opacity = 1, ImageOutline? Outline = null, ImageEffectExtent? EffectExtent = null)
+readonly record struct LaidOutImage(float X, float Width, float Height, byte[]? Data, double RotationDegrees = 0, bool FlipHorizontal = false, bool FlipVertical = false, ImageCrop? Crop = null, InlineShapeGroup? ShapeGroup = null, ImageRecolor? Recolor = null, double Opacity = 1, ImageOutline? Outline = null, ImageEffectExtent? EffectExtent = null, SvgDrawing? Vector = null)
 {
     public float BoxWidth => Width + (float) ((EffectExtent?.Left ?? 0) + (EffectExtent?.Right ?? 0));
 

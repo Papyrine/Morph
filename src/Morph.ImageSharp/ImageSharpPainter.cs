@@ -228,9 +228,15 @@ static class ImageSharpPainter
                 });
         }
 
+        // A bold run in a face that is not bold: the glyphs are filled and their outlines stroked, which
+        // thickens every stem by the pen's width (BoldSimulation).
+        var pen = properties.SyntheticBold == SyntheticBold.None
+            ? null
+            : Pens.Solid(ImageSharpRenderContext.ParseColor(properties.ColorHex), P(context, BoldSimulation.StrokeWidthPoints(properties.SyntheticBold, VerticalRunPosition.RenderSizePoints(properties), 72.0 / context.Dpi)));
+
         if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
         {
-            canvas.DrawText(Options(context, font, P(context, penX), baselineY, properties), text.AsSpan(), brush, null);
+            canvas.DrawText(Options(context, font, P(context, penX), baselineY, properties), text.AsSpan(), brush, pen);
         }
         else
         {
@@ -240,7 +246,7 @@ static class ImageSharpPainter
             {
                 var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
                 var piece = text.Substring(i, length);
-                canvas.DrawText(Options(context, font, x, baselineY, properties), piece.AsSpan(), brush, null);
+                canvas.DrawText(Options(context, font, x, baselineY, properties), piece.AsSpan(), brush, pen);
                 x += P(context, context.MeasureText(font, piece)) + trackingPixels;
                 i += length - 1;
             }
@@ -362,6 +368,24 @@ static class ImageSharpPainter
                 (int) Math.Round(P(context, wordArt.Y - pad))));
     }
 
+    // A pen for a stroke with a preset dash (a:prstDash), or null for a solid stroke. ImageSharp takes
+    // the pattern as the format declares it, in multiples of the stroke's width.
+    static Pen? DashedPen(Color color, float strokeWidth, IReadOnlyList<double>? pattern)
+    {
+        if (pattern is not {Count: >= 2} || strokeWidth <= 0)
+        {
+            return null;
+        }
+
+        var lengths = new float[pattern.Count];
+        for (var index = 0; index < pattern.Count; index++)
+        {
+            lengths[index] = (float) pattern[index];
+        }
+
+        return new PatternPen(new PenOptions(color, strokeWidth, lengths));
+    }
+
     static void PaintImage(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage image)
     {
         if (image.ShapeGroup is { } group)
@@ -370,19 +394,25 @@ static class ImageSharpPainter
             return;
         }
 
-        if (image.Data is not { } data)
-        {
-            return;
-        }
-
         var width = (int) Math.Round(P(context, image.Width));
         var height = (int) Math.Round(P(context, image.Height));
-        // A tiled fill is composed into a picture of the box's size first (see SkiaPainter.DrawPicture);
-        // one too finely tiled to compose falls back to the stretch.
-        var processed = image.Tile is { } tile && Math.Abs(image.RotationDegrees) <= 0.01
-            ? context.GetTiledImage(data, width, height, tile, image.Width, image.Height, image.Recolor, image.Opacity)
-            : null;
-        processed ??= context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
+        Image<Rgba32>? processed = null;
+        if (image.Vector is { } vector)
+        {
+            // A picture stored as SVG is rasterised from the drawing the reader made of it, at this
+            // box's own size, and its raster fallback is never decoded (see SkiaPainter.PaintImage).
+            processed = context.GetVectorImage(vector, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
+        }
+        else if (image.Data is { } data)
+        {
+            // A tiled fill is composed into a picture of the box's size first (see SkiaPainter.DrawPicture);
+            // one too finely tiled to compose falls back to the stretch.
+            processed = image.Tile is { } tile && Math.Abs(image.RotationDegrees) <= 0.01
+                ? context.GetTiledImage(data, width, height, tile, image.Width, image.Height, image.Recolor, image.Opacity)
+                : null;
+            processed ??= context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
+        }
+
         if (processed == null)
         {
             return;
@@ -396,7 +426,21 @@ static class ImageSharpPainter
             processed = context.GetClippedImage(processed, image.ClipSubpaths, image.FlipHorizontal, image.FlipVertical) ?? processed;
         }
 
-        canvas.DrawImage(processed, new((int) Math.Round(P(context, image.X)), (int) Math.Round(P(context, image.Y))));
+        var left = (int) Math.Round(P(context, image.X));
+        var top = (int) Math.Round(P(context, image.Y));
+        if (Math.Abs(image.RotationDegrees) > 0.01)
+        {
+            // A turned picture's bitmap is its turned bounds — larger than the box, or at a quarter
+            // turn the box with its sides swapped — so it is laid with its centre on the box's, the
+            // point the picture turns about. Laid from the box's corner like an unturned one, it sat
+            // down and right of its place by half of what the turn added: letters/13's third page
+            // lost the whole strip down its left edge, a 612x52pt picture turned 90° whose unturned
+            // corner is 280pt left of the page.
+            left = (int) Math.Round(P(context, image.X + image.Width / 2) - processed.Width / 2f);
+            top = (int) Math.Round(P(context, image.Y + image.Height / 2) - processed.Height / 2f);
+        }
+
+        canvas.DrawImage(processed, new(left, top));
 
         // The picture's a:ln (see SkiaPainter.PaintImageOutline): a band outside the unrotated box.
         if (image.Outline is { } outline && !cut)
@@ -451,14 +495,16 @@ static class ImageSharpPainter
                 }
 
                 var strokeWidth = (float) (shape.LineWidthEmu > 0 ? shape.LineWidthEmu / OoxmlUnits.EmusPerPointF : 0.75) * context.Scale;
-                var linePen = new SolidPen(new PenOptions(ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha), strokeWidth)
-                {
-                    StrokeOptions = new()
-                    {
-                        LineCap = LineCap.Square,
-                        LineJoin = LineJoin.Bevel
-                    }
-                });
+                var lineColor = ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha);
+                var linePen = DashedPen(lineColor, strokeWidth, shape.LineDashPattern) ??
+                              new SolidPen(new PenOptions(lineColor, strokeWidth)
+                              {
+                                  StrokeOptions = new()
+                                  {
+                                      LineCap = LineCap.Square,
+                                      LineJoin = LineJoin.Bevel
+                                  }
+                              });
                 canvas.DrawLine(linePen, new PointF(startX, startY), new PointF(endX, endY));
                 continue;
             }
@@ -496,9 +542,10 @@ static class ImageSharpPainter
                 var strokePath = shape.OpenOutline
                     ? ImageSharpShapeDrawing.BuildGroupShapePath(shape, x1, y1, width, height, close: false) ?? path
                     : path;
-                var pen = shape.RoundCap
-                    ? new SolidPen(new PenOptions(strokeColor, strokeWidth) {StrokeOptions = new() {LineCap = LineCap.Round}})
-                    : context.GetPen(strokeColor, strokeWidth);
+                var pen = DashedPen(strokeColor, strokeWidth, shape.LineDashPattern) ??
+                          (shape.RoundCap
+                              ? new SolidPen(new PenOptions(strokeColor, strokeWidth) {StrokeOptions = new() {LineCap = LineCap.Round}})
+                              : context.GetPen(strokeColor, strokeWidth));
                 canvas.Draw(pen, strokePath);
             }
         }
@@ -540,7 +587,14 @@ static class ImageSharpPainter
             fill = null;
         }
 
-        var line = shape.LineColorHex is { } lineHex ? context.GetPen(ImageSharpShapeDrawing.ParseColor(lineHex, shape.LineAlpha), P(context, ShapeStroke.WidthPoints(shape.LineWidthPoints))) : null;
+        Pen? line = null;
+        if (shape.LineColorHex is { } lineHex)
+        {
+            var lineColor = ImageSharpShapeDrawing.ParseColor(lineHex, shape.LineAlpha);
+            var lineWidth = P(context, ShapeStroke.WidthPoints(shape.LineWidthPoints));
+            line = DashedPen(lineColor, lineWidth, shape.LineDashPattern) ?? context.GetPen(lineColor, lineWidth);
+        }
+
         if (fill == null && line == null)
         {
             return;

@@ -150,8 +150,7 @@ sealed class FloatingShapeElement : DocumentElement
     /// </summary>
     /// <summary>
     /// Stroke dash pattern as alternating on/off lengths in MULTIPLES of the line width
-    /// (DrawingML's preset-dash convention), or null for a solid stroke. Only line connectors
-    /// carry it today (labels/03's sysDot tear lines).
+    /// (DrawingML's preset-dash convention), or null for a solid stroke.
     /// </summary>
     public IReadOnlyList<double>? LineDashPattern { get; init; }
 

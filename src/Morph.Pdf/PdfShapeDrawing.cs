@@ -54,12 +54,13 @@ static class PdfShapeDrawing
 
     internal static void DrawGroupPicture(PdfRenderContext context, XGraphics graphics, GroupShape shape, double x, double y, double width, double height, bool clipToEllipse)
     {
-        // PDFsharp can't decode SVG, so an icon graphic falls back to the raster blip the parser
-        // kept behind it.
+        // An SVG icon is placed as a form of the paths the core reader made of it; one the reader
+        // gave up falls back to the raster blip the parser kept behind it.
+        var vector = SvgDrawing.For(shape.ImageData, shape.ImageContentType);
         var data = shape.ImageContentType == "image/svg+xml"
             ? shape.ImageRasterFallbackData
             : shape.ImageData;
-        if (data == null)
+        if (vector == null && data == null)
         {
             return;
         }
@@ -86,7 +87,7 @@ static class PdfShapeDrawing
                 graphics.IntersectClip(new XRect(x, y, width, height));
             }
 
-            graphics.DrawImage(context.GetImage(data), image.X, image.Y, image.Width, image.Height);
+            graphics.DrawImage(vector != null ? context.GetVectorForm(vector) : context.GetImage(data!), image.X, image.Y, image.Width, image.Height);
         }
         catch
         {
@@ -102,7 +103,7 @@ static class PdfShapeDrawing
     internal static XPen StrokePen(GroupShape shape, double widthPoints)
     {
         var rgb = PdfRenderContext.ParseColor(shape.ColorHex);
-        return new(XColor.FromArgb(AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.4, widthPoints))
+        var pen = new XPen(XColor.FromArgb(AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), Math.Max(0.4, widthPoints))
         {
             // Square end caps extend each line half a stroke-width past its endpoints — that's how
             // Word's icon-style arrow glyphs (perpendicular connector lines) fuse into a clean L
@@ -110,6 +111,23 @@ static class PdfShapeDrawing
             // leaves notches and slivers where the assembled arrow pieces meet.
             LineCap = XLineCap.Square
         };
+        Dash(pen, shape.LineDashPattern);
+        return pen;
+    }
+
+    /// <summary>
+    /// Gives a pen its preset dash (<c>a:prstDash</c>). PdfSharp's pattern is in multiples of the pen's
+    /// width, which is how the format declares it; a dashed stroke ends each dash flat.
+    /// </summary>
+    internal static void Dash(XPen pen, IReadOnlyList<double>? pattern)
+    {
+        if (pattern is not {Count: >= 2})
+        {
+            return;
+        }
+
+        pen.DashPattern = [.. pattern];
+        pen.LineCap = XLineCap.Flat;
     }
 
     internal static int AlphaByte(double alpha) =>

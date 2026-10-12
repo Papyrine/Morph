@@ -913,7 +913,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 }
             }
 
-            lines.Add(new((float) CanonicalTextMeasurer.PixelsToPoints(endPixels), linearWidth, linePitch, segments, images, footnoteIds, endnoteIds));
+            var width = (float) CanonicalTextMeasurer.PixelsToPoints(endPixels);
+            if (extraGapPixels == 0 && images.Count == 0 && !HasTab(linePieces))
+            {
+                width += WidenEmboldened(segments, CanonicalTextMeasurer.PixelsToPoints(measurePixels - endPixels - lineFit));
+            }
+
+            lines.Add(new(width, linearWidth, linePitch, segments, images, footnoteIds, endnoteIds));
         }
 
         var index = 0;
@@ -1062,7 +1068,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // it, its Width the pen distance to the next boundary — the same rounding as the line width, so a
     // painter draws each font (and each image) at the right offset and strokes decorations across the
     // right span. An image breaks any running text segment.
-    static (IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(
+    static (List<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(
         List<Piece> linePieces,
         double extraGapPixels,
         IReadOnlyList<TabStop> tabStops,
@@ -1231,14 +1237,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 var data = run.InlineImageContentType == "image/svg+xml"
                     ? run.InlineImageRasterFallbackData
                     : run.InlineImageData ?? run.InlineImageRasterFallbackData;
-                if (data is { Length: > 0 })
+
+                // An SVG picture carries its drawing too, when the reader could take the whole document:
+                // the painters draw that and leave the fallback alone. It is also what lets a picture
+                // stored as SVG only — no fallback to decode — take its place on the line at all.
+                var vector = SvgDrawing.For(run.InlineImageData, run.InlineImageContentType);
+                if (data is { Length: > 0 } || vector != null)
                 {
                     var imageWidth = (float) (run.InlineImageWidthPoints > 0 ? run.InlineImageWidthPoints : 12);
                     var imageHeight = (float) (run.InlineImageHeightPoints > 0 ? run.InlineImageHeightPoints : 12);
 
                     // The line reserves the picture's layout box — the extent plus its wp:effectExtent on
                     // every side (ImageEffectExtent) — and the picture draws inside it.
-                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent);
+                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent, Vector: vector);
                     pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(image.BoxWidth), 0, "", run.Properties, image, false, false));
                 }
 
@@ -1288,6 +1299,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var noteFootnoteId = run.FootnoteReferenceId;
             var noteEndnoteId = run.EndnoteReferenceId;
 
+            // A bold run in a face that is not bold is emboldened by the painters (BoldSimulation). One
+            // copy of the properties per run, so its pieces still coalesce into one segment.
+            var emboldened = BoldSimulation.For(run.Properties.Bold, metrics);
+            var drawn = emboldened == SyntheticBold.None
+                ? run.Properties
+                : run.Properties with {SyntheticBold = emboldened};
+
             // A superscript or subscript measures at its reduced size and carries its shift; the line
             // pitch stays the run's declared size, since the reduced glyphs sit inside the full box.
             var size = VerticalRunPosition.RenderSizePoints(run.Properties);
@@ -1316,7 +1334,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 : 0;
             if (insetPixels > 0)
             {
-                pieces.Add(new(false, insetPixels, pitch, "", run.Properties, null, false, false, IsInset: true, FitPixels: insetFitPixels));
+                pieces.Add(new(false, insetPixels, pitch, "", drawn, null, false, false, IsInset: true, FitPixels: insetFitPixels));
             }
 
             // w:spacing tracking widens every character's advance (letter-spacing), so it enters the wrap
@@ -1333,7 +1351,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 if (partIndex > 0)
                 {
-                    pieces.Add(new(false, 0, pitch, "", run.Properties, null, true, false));
+                    pieces.Add(new(false, 0, pitch, "", drawn, null, true, false));
                 }
 
                 var kerning = KerningEnabled(run.Properties);
@@ -1368,7 +1386,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                     // A note reference rides on the run's first piece — the line that takes it opens the
                     // note's page-bottom area (Fragmenter.CommitFootnotes).
-                    pieces.Add(new(isSpace, advance, pitch, text, run.Properties, null, false, false, null, breaksBefore, baselineShift, FootnoteReferenceId: noteFootnoteId, EndnoteReferenceId: noteEndnoteId, BorderInside: borderInside));
+                    pieces.Add(new(isSpace, advance, pitch, text, drawn, null, false, false, null, breaksBefore, baselineShift, FootnoteReferenceId: noteFootnoteId, EndnoteReferenceId: noteEndnoteId, BorderInside: borderInside));
                     noteFootnoteId = null;
                     noteEndnoteId = null;
                 }
@@ -1376,11 +1394,96 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
             if (insetPixels > 0)
             {
-                pieces.Add(new(false, insetPixels, pitch, "", run.Properties, null, false, false, IsInset: true, FitPixels: insetFitPixels, Closes: true));
+                pieces.Add(new(false, insetPixels, pitch, "", drawn, null, false, false, IsInset: true, FitPixels: insetFitPixels, Closes: true));
             }
         }
 
         return pieces;
+    }
+
+    /// <summary>
+    /// The properties a run outside a paragraph's own text is drawn with (a list marker): flagged for
+    /// the bold simulation when it asks for bold in a face that is not bold, as <see cref="Flatten"/>
+    /// flags a paragraph's runs.
+    /// </summary>
+    internal RunProperties Drawn(RunProperties properties)
+    {
+        if (!properties.Bold || properties.SyntheticBold != SyntheticBold.None)
+        {
+            return properties;
+        }
+
+        var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
+        if (metrics == null)
+        {
+            return properties;
+        }
+
+        var emboldened = BoldSimulation.For(properties.Bold, metrics);
+        if (emboldened == SyntheticBold.None)
+        {
+            return properties;
+        }
+
+        return properties with {SyntheticBold = emboldened};
+    }
+
+    // Draws a line's emboldened runs as wide as Word draws them: each glyph BoldSimulation.AdvancePoints
+    // wider, with everything after it on the line moved along. Only where the line has the room, and
+    // then by no more than the room: Word breaks the line on the regular advances and narrows the spaces
+    // of one that would overrun, so a line that already fills its measure is left as it was laid out.
+    // A justified or squeezed line has had its room given to its spaces, and a line with a tab or an
+    // inline picture places things at positions this would have to move with it; those stay as they are.
+    // A variable font's bold is not the simulation and keeps the regular advances. Returns the points
+    // the line grew by.
+    static float WidenEmboldened(List<WrapSegment> segments, double roomPoints)
+    {
+        var glyphs = 0;
+        foreach (var segment in segments)
+        {
+            if (segment.Leader != TabLeader.None)
+            {
+                return 0;
+            }
+
+            if (segment.Properties.SyntheticBold == SyntheticBold.Simulated)
+            {
+                glyphs += new StringInfo(segment.Text).LengthInTextElements;
+            }
+        }
+
+        if (glyphs == 0 || roomPoints <= 0)
+        {
+            return 0;
+        }
+
+        var perGlyph = Math.Min(BoldSimulation.AdvancePoints, roomPoints / glyphs);
+        if (perGlyph < 0.05)
+        {
+            return 0;
+        }
+
+        var shift = 0f;
+        for (var index = 0; index < segments.Count; index++)
+        {
+            var segment = segments[index];
+            if (segment.Properties.SyntheticBold != SyntheticBold.Simulated)
+            {
+                segments[index] = segment with {X = segment.X + shift};
+                continue;
+            }
+
+            var grown = (float) (perGlyph * new StringInfo(segment.Text).LengthInTextElements);
+            segments[index] = segment with
+            {
+                X = segment.X + shift,
+                Width = segment.Width + grown,
+                Properties = segment.Properties with {CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + perGlyph}
+            };
+            shift += grown;
+        }
+
+        return shift;
     }
 
     // A runless paragraph that exists only to carry a section break's sectPr contributes its spacing but

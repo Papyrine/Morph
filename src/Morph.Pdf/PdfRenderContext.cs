@@ -231,6 +231,29 @@ sealed class PdfRenderContext : RenderContextBase
         return image;
     }
 
+    // One form per drawing and treatment, as imageCache is one XImage per source array: a form is
+    // an indirect object, so every page that draws the picture refers to the same one.
+    readonly Dictionary<(SvgDrawing Vector, ImageRecolor? Recolor, double Opacity), XForm> vectorFormCache = [];
+
+    /// <summary>
+    /// A picture stored as SVG, as a form of path operators (<see cref="PdfVectorDrawing"/>) — the
+    /// vector counterpart of <see cref="GetImage"/>, and placed by the same calls. The recolour is
+    /// applied to the drawing's colours. Transparency can only be folded into each path's own
+    /// alpha, which is the picture faded as one image just when its paths keep clear of each other;
+    /// the painter therefore asks for it only where the picture has no raster to bake it into.
+    /// </summary>
+    public XForm GetVectorForm(SvgDrawing vector, ImageRecolor? recolor = null, double opacity = 1)
+    {
+        var key = (vector, recolor, opacity);
+        if (!vectorFormCache.TryGetValue(key, out var form))
+        {
+            form = PdfVectorDrawing.BuildForm(Document, vector.Recolored(recolor), Math.Clamp(opacity, 0, 1));
+            vectorFormCache[key] = form;
+        }
+
+        return form;
+    }
+
     /// <summary>Disposes every cached image. Called once the document has been saved.</summary>
     public void DisposeImages()
     {
@@ -240,6 +263,12 @@ sealed class PdfRenderContext : RenderContextBase
         }
 
         imageCache.Clear();
+        foreach (var form in vectorFormCache.Values)
+        {
+            form.Dispose();
+        }
+
+        vectorFormCache.Clear();
     }
 
     public static XColor ParseColor(string? hex)

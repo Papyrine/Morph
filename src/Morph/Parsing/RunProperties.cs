@@ -41,6 +41,12 @@ sealed record RunProperties
     public double CharacterSpacingPoints { get; init; }
 
     /// <summary>
+    /// Set by the layout engine, never by a parser: this bold run resolved a face that is not bold, so a
+    /// painter emboldens the glyphs as Word does (<see cref="BoldSimulation"/>).
+    /// </summary>
+    public SyntheticBold SyntheticBold { get; init; }
+
+    /// <summary>
     /// Vertical alignment for subscript/superscript text.
     /// </summary>
     public VerticalRunAlignment VerticalAlignment { get; init; } = VerticalRunAlignment.Baseline;

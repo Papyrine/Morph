@@ -112,12 +112,12 @@ sealed class SkiaRenderContext(
     // dictionary hit — the typeface resolve and the synthetic-embolden weight check
     // (suffix scans over the family name) only run when a new combination appears.
     // Values are the same instances the typeface-keyed cache owns and disposes.
-    readonly Dictionary<(string Family, bool Bold, bool Italic, double Size, bool Reduced), SKFont> requestFontCache = [];
+    readonly Dictionary<(string Family, bool Bold, bool Italic, double Size, bool Reduced, bool Stroked), SKFont> requestFontCache = [];
 
     public SKFont CreateFont(RunProperties props)
     {
         var reduced = props.VerticalAlignment != VerticalRunAlignment.Baseline;
-        var requestKey = (props.FontFamily, props.Bold, props.Italic, props.FontSizePoints, reduced);
+        var requestKey = (props.FontFamily, props.Bold, props.Italic, props.FontSizePoints, reduced, props.SyntheticBold != SyntheticBold.None);
         if (requestFontCache.TryGetValue(requestKey, out var cached))
         {
             return cached;
@@ -133,7 +133,7 @@ sealed class SkiaRenderContext(
         }
 
         var scaledSize = fontSize * Scale;
-        var embolden = ShouldSyntheticallyEmbolden(typeface, props);
+        var embolden = props.SyntheticBold == SyntheticBold.None && ShouldSyntheticallyEmbolden(typeface, props);
         var oblique = props.Italic && typeface.FontStyle.Slant == SKFontStyleSlant.Upright;
         var font = GetOrCreateCachedFont(typeface, scaledSize, embolden, oblique);
         requestFontCache[requestKey] = font;
@@ -180,24 +180,13 @@ sealed class SkiaRenderContext(
     // synthetic emboldening so the rendered glyph has visibly heavier strokes. Without
     // this the font cache picks the closest-weight face but the user sees a normal-Bold
     // weight where Word would have rendered the heavier installed Arial Black.
-    static bool ShouldSyntheticallyEmbolden(SKTypeface typeface, RunProperties props)
-    {
-        var faceWeight = typeface.FontStyle.Weight;
-
-        // A bold run that resolved to a face which is not itself bold. Two ways in: the family
-        // has no bold member bundled ("Franklin Gothic Book" ships only the 400 face), or the
-        // family NAME carries a lighter weight, which deliberately outranks the bold flag for
-        // face selection (see FontHelpers.ResolveTargetWeight) and so left the target at that
-        // lighter weight. Either way Word draws the run bold, and without this it renders at
-        // normal weight — resumes/07's "Company, location" and SKILLS labels, which inherit
-        // Normal's w:b, came out regular against Word's bold.
-        if (props.Bold && faceWeight < FontHelpers.BoldWeight)
-        {
-            return true;
-        }
-
-        return FontHelpers.ResolveTargetWeight(props.FontFamily, props.Bold) - faceWeight >= 200;
-    }
+    //
+    // A bold run that resolved a face which is not bold is NOT this case: the layout flags it
+    // (RunProperties.SyntheticBold) and the painter strokes it by Word's own measure
+    // (BoldSimulation), the same on every backend. Skia's emboldening ran 44% over the regular
+    // face's ink on wedding/11's 19pt Franklin Gothic Book where Word's simulation adds 26%.
+    static bool ShouldSyntheticallyEmbolden(SKTypeface typeface, RunProperties props) =>
+        FontHelpers.ResolveTargetWeight(props.FontFamily, props.Bold) - typeface.FontStyle.Weight >= 200;
 
     public static SKPaint CreateTextPaint(RunProperties props) =>
         new()

@@ -28,6 +28,8 @@ static class FontMetricsReader
     const uint os2Tag = 0x4F532F32;
     // 'GPOS'
     const uint gposTag = 0x47504F53;
+    // 'fvar'
+    const uint fvarTag = 0x66766172;
 
     // Safety bound on the eagerly-expanded codepoint→glyph map, so a malformed cmap claiming a
     // group spanning the whole Unicode range can't allocate unbounded memory. Far above any real
@@ -154,6 +156,8 @@ static class FontMetricsReader
             TypoDescender = os2.TypoDescender,
             TypoLineGap = os2.TypoLineGap,
             UseTypoMetrics = os2.UseTypoMetrics,
+            Weight = os2.Weight,
+            IsVariable = tables.ContainsKey(fvarTag),
             StrikeoutPosition = os2.StrikeoutPosition,
             StrikeoutSize = os2.StrikeoutSize,
             EastAsian = os2.EastAsian,
@@ -236,18 +240,18 @@ static class FontMetricsReader
     /// pitch is <see cref="FontMetrics.LineBoxUnits"/>'s. Zeros when the font declares no <c>OS/2</c>
     /// table or a truncated one, which the model treats as "fall back to hhea".
     /// </summary>
-    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics, int StrikeoutPosition, int StrikeoutSize, bool EastAsian) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    static (int WinAscent, int WinDescent, int TypoAscender, int TypoDescender, int TypoLineGap, bool UseTypoMetrics, int StrikeoutPosition, int StrikeoutSize, bool EastAsian, int Weight) ReadOs2(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
     {
         if (!tables.TryGetValue(os2Tag, out var os2) || os2.Length < 78)
         {
-            return (0, 0, 0, 0, 0, false, 0, 0, false);
+            return (0, 0, 0, 0, 0, false, 0, 0, false, 0);
         }
 
         // ulCodePageRange1 (uint32 at offset 78) arrived with table version 1.
         var bytes = new byte[os2.Length >= 82 ? 82 : 78];
         if (!TryReadExactAt(stream, os2.Offset, bytes))
         {
-            return (0, 0, 0, 0, 0, false, 0, 0, false);
+            return (0, 0, 0, 0, 0, false, 0, 0, false, 0);
         }
 
         var fsSelection = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(62, 2));
@@ -262,7 +266,8 @@ static class FontMetricsReader
             (fsSelection & 0x80) != 0,
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(28, 2)),
             BinaryPrimitives.ReadInt16BigEndian(bytes.AsSpan(26, 2)),
-            (codePages & eastAsianCodePages) != 0);
+            (codePages & eastAsianCodePages) != 0,
+            BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(4, 2)));
     }
 
     // OS/2.ulCodePageRange1 bits 17 to 21: JIS, simplified Chinese (GB2312), Korean Wansung,

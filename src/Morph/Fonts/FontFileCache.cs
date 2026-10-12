@@ -126,7 +126,7 @@ sealed class FontFileCache
 
     /// <summary>
     /// Looks up faces by iterating the priority-ordered name candidates
-    /// (effective, original, stripped). Returns the first match.
+    /// (as named, then stripped). Returns the first match.
     /// </summary>
     public bool TryGet(FontNameCandidates candidates, [NotNullWhen(true)] out FontFace[]? faces)
     {
@@ -149,11 +149,7 @@ sealed class FontFileCache
     /// </summary>
     public static IEnumerable<string> EnumerateCandidateNames(FontNameCandidates candidates)
     {
-        yield return candidates.Effective;
-        if (candidates.Original != candidates.Effective)
-        {
-            yield return candidates.Original;
-        }
+        yield return candidates.Original;
 
         if (candidates.Stripped != null)
         {

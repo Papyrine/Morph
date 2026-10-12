@@ -20,7 +20,7 @@ public class CanonicalWrapAgreementTests
 
     static string? ResolvePath(string family, bool bold, bool italic)
     {
-        var candidates = FontHelpers.GetCandidateNames(family, bold);
+        var candidates = FontHelpers.GetCandidateNames(family);
         if (!fonts.TryGet(candidates, out var faces) || faces.Length == 0)
         {
             return null;
