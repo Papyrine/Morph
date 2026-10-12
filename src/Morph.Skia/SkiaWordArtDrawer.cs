@@ -86,8 +86,6 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         var scaleY = textBounds.Height > 0 ? pixelHeight / textBounds.Height : 1;
         var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
-        var transform = wordArt.Transform;
-        var fillColor = wordArt.FillColorHex;
         if (TryRenderArch(wordArt, x, y, width, pixelHeight, typeface, pixelFontSize))
         {
             return;
@@ -126,8 +124,6 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
         var scaleY = textBounds.Height > 0 ? pixelHeight / textBounds.Height : 1;
         var scale = Math.Min(Math.Min(scaleX, scaleY), 1f);
 
-        var transform = wordArt.Transform;
-        var fillColor = wordArt.FillColorHex;
         if (TryRenderArch(wordArt, pixelX, pixelY, width, pixelHeight, typeface, pixelFontSize))
         {
             return;

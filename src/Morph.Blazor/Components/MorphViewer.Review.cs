@@ -322,7 +322,7 @@ public partial class MorphViewer
 
     // Comments
 
-    async Task BeginCommentAsync()
+    Task BeginCommentAsync()
     {
         reviewNote = null;
         if (selection.Length != 4 ||
@@ -332,7 +332,7 @@ public partial class MorphViewer
             (start.Run == end.Run && start.Offset > end.Offset))
         {
             reviewNote = "Select some of the document's text to comment on it.";
-            return;
+            return Task.CompletedTask;
         }
 
         draft = new(ReviewDraftKind.Comment)
@@ -344,7 +344,7 @@ public partial class MorphViewer
         };
         activeKey = null;
         focusDraft = true;
-        await PushReviewAsync(false);
+        return PushReviewAsync(false);
     }
 
     string SelectedText()

@@ -5035,8 +5035,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     continue;
                 }
 
-                if (FlowParagraph(elements[next])?.Properties is { } following &&
-                    !following.PageBreakBefore &&
+                if (FlowParagraph(elements[next])?.Properties is
+                    {
+                        PageBreakBefore: false
+                    } following &&
                     properties.SharesBorderGroupWith(following))
                 {
                     return 0;

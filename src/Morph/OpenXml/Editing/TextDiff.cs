@@ -169,7 +169,11 @@ static class TextDiff
                 last.OldStart + last.OldLength == hunk.OldStart &&
                 last.NewStart + last.NewLength == hunk.NewStart)
             {
-                hunks[^1] = new(last.OldStart, last.OldLength + hunk.OldLength, last.NewStart, last.NewLength + hunk.NewLength);
+                hunks[^1] = last with
+                {
+                    OldLength = last.OldLength + hunk.OldLength,
+                    NewLength = last.NewLength + hunk.NewLength
+                };
             }
             else
             {
@@ -210,11 +214,11 @@ static class TextDiff
                 joined[^1] is var last &&
                 hunk.OldStart - (last.OldStart + last.OldLength) < minimumKept)
             {
-                joined[^1] = new(
-                    last.OldStart,
-                    hunk.OldStart + hunk.OldLength - last.OldStart,
-                    last.NewStart,
-                    hunk.NewStart + hunk.NewLength - last.NewStart);
+                joined[^1] = last with
+                {
+                    OldLength = hunk.OldStart + hunk.OldLength - last.OldStart,
+                    NewLength = hunk.NewStart + hunk.NewLength - last.NewStart
+                };
             }
             else
             {

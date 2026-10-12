@@ -295,17 +295,17 @@ public partial class MorphViewer
             });
 
     // Goes on editing where an edit left off.
-    async Task ResumeAsync(int paragraph, int offset)
+    Task ResumeAsync(int paragraph, int offset)
     {
         if (!editOpen ||
             handle is not { } viewer ||
             paragraph >= outline.Paragraphs.Count ||
             Block(paragraph, -1) is not { } block)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        await BeginAsync(viewer, outline.Paragraphs[paragraph], block, offset, offset);
+        return BeginAsync(viewer, outline.Paragraphs[paragraph], block, offset, offset);
     }
 
     async Task<EditOptions> EditOptionsAsync() =>

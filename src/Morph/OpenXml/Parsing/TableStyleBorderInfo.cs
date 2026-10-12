@@ -33,4 +33,4 @@ sealed record TableStyleBorderInfo(
     DeclaredRunProperties? RunProperties = null,
     double? IndentPoints = null,
     bool CannotSplit = false,
-    DocumentFormat.OpenXml.Wordprocessing.TableCellMargin? CellMargin = null);
+    TableCellMargin? CellMargin = null);
