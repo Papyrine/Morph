@@ -7,9 +7,15 @@ name: Deploy GH Pages
 # lives in src/Morph.Blazor, a plain Razor class library that has no such restriction — it builds and
 # packs with the rest of the solution, and arrives here as a project reference of the app.
 
+#
+# A pull request runs the build job only — compile, test and publish, with no Pages upload and no
+# deploy. Nothing else compiles Morph.Web.Tests, so without that a change to a type its tests stub
+# (an interface in Morph, say) first fails here, on main, after the merge.
+
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -17,9 +23,11 @@ permissions:
   pages: write
   id-token: write
 
+# Deploys queue behind one another and are never cancelled. A pull request gets a group of its own,
+# so it neither waits on a deploy nor holds one up, and a new push supersedes its previous run.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pages-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -65,20 +73,25 @@ jobs:
       # the base to "/Morph/"; the custom domain made that rewrite wrong.)
 
       - name: Add .nojekyll file
+        if: github.event_name != 'pull_request'
         run: touch publish/wwwroot/.nojekyll
 
       - name: Copy index.html to 404.html for SPA routing
+        if: github.event_name != 'pull_request'
         run: cp publish/wwwroot/index.html publish/wwwroot/404.html
 
       - name: Setup Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: publish/wwwroot
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
