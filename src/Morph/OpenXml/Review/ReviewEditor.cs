@@ -171,7 +171,7 @@ static class ReviewEditor
 
             case Inserted or Deleted when element.Parent is TableRowProperties {Parent: OoxmlTableRow row}:
                 element.Remove();
-                if ((element is Inserted) != accept)
+                if (element is Inserted != accept)
                 {
                     RemoveRow(row, removals);
                 }
@@ -180,7 +180,7 @@ static class ReviewEditor
 
             case CellInsertion or CellDeletion when element.Parent is OoxmlTableCellProperties {Parent: OoxmlTableCell cell}:
                 element.Remove();
-                if ((element is CellInsertion) != accept)
+                if (element is CellInsertion != accept)
                 {
                     RemoveCell(cell, removals);
                 }
@@ -223,7 +223,7 @@ static class ReviewEditor
     static void ApplyMark(OpenXmlElement mark, bool accept)
     {
         var paragraph = mark.Ancestors<Paragraph>().FirstOrDefault();
-        var goes = (mark is Deleted or MoveFrom) == accept;
+        var goes = mark is Deleted or MoveFrom == accept;
         mark.Remove();
         if (goes && paragraph != null)
         {
@@ -390,8 +390,7 @@ static class ReviewEditor
         table.Remove();
 
         // A cell has to end in a paragraph; the table that went may have been all that followed one.
-        if (parent is OoxmlTableCell cell &&
-            cell.LastChild is not Paragraph)
+        if (parent is OoxmlTableCell { LastChild: not Paragraph } cell)
         {
             cell.AppendChild(new Paragraph());
         }
@@ -415,7 +414,7 @@ static class ReviewEditor
             return;
         }
 
-        var after = (OpenXmlElement?) next.ParagraphProperties;
+        OpenXmlElement? after = next.ParagraphProperties;
         foreach (var child in paragraph.ChildElements.Where(_ => _ is not OoxmlParagraphProperties).ToList())
         {
             child.Remove();
@@ -1058,7 +1057,7 @@ static class ReviewEditor
             .OfType<string>()
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         long.TryParse(commentId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var seed);
-        var candidate = origin + (Math.Abs(seed) % 0x00FFFFFF) * 0x10;
+        var candidate = origin + Math.Abs(seed) % 0x00FFFFFF * 0x10;
         while (true)
         {
             var id = (candidate % 0x7FFFFFFF).ToString("X8", CultureInfo.InvariantCulture);

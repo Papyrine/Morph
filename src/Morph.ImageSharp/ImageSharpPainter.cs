@@ -383,7 +383,7 @@ static class ImageSharpPainter
             lengths[index] = (float) pattern[index];
         }
 
-        return new PatternPen(new PenOptions(color, strokeWidth, lengths));
+        return new PatternPen(new(color, strokeWidth, lengths));
     }
 
     static void PaintImage(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage image)
@@ -544,7 +544,10 @@ static class ImageSharpPainter
                     : path;
                 var pen = DashedPen(strokeColor, strokeWidth, shape.LineDashPattern) ??
                           (shape.RoundCap
-                              ? new SolidPen(new PenOptions(strokeColor, strokeWidth) {StrokeOptions = new() {LineCap = LineCap.Round}})
+                              ? new(new PenOptions(strokeColor, strokeWidth)
+                              {
+                                  StrokeOptions = new() {LineCap = LineCap.Round}
+                              })
                               : context.GetPen(strokeColor, strokeWidth));
                 canvas.Draw(pen, strokePath);
             }

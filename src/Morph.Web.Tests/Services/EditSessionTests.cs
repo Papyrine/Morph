@@ -107,12 +107,12 @@ public class EditSessionTests
         await Assert.That(content.Count).IsEqualTo(2);
         await Assert.That(content[0].Alignment).IsNull();
         await Assert.That(content[1].Alignment).IsEqualTo(TextAlignment.Right);
-        await Assert.That(content[0].Items[0]).IsEqualTo(new NewItem(0, "Second "));
-        await Assert.That(content[0].Items[1]).IsEqualTo(new NewItem(1, "bold", new(Italic: true)));
-        await Assert.That(content[1].Items[0]).IsEqualTo(new NewItem(2, " one, and more."));
+        await Assert.That(content[0].Items[0]).IsEqualTo(new(0, "Second "));
+        await Assert.That(content[0].Items[1]).IsEqualTo(new(1, "bold", new(Italic: true)));
+        await Assert.That(content[1].Items[0]).IsEqualTo(new(2, " one, and more."));
 
         // Like the bold run, and no longer bold.
-        await Assert.That(content[1].Items[1]).IsEqualTo(new NewItem(1, "!", new(Bold: false)));
+        await Assert.That(content[1].Items[1]).IsEqualTo(new(1, "!", new(Bold: false)));
     }
 
     [Test]

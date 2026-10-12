@@ -1661,7 +1661,7 @@ static class DocumentEditor
         {
             if (!ParagraphContent.Runs(first).Any())
             {
-                var after = (OpenXmlElement?) next.ParagraphProperties;
+                OpenXmlElement? after = next.ParagraphProperties;
                 foreach (var child in first.ChildElements.Where(_ => _ is not OoxmlParagraphProperties).ToList())
                 {
                     child.Remove();

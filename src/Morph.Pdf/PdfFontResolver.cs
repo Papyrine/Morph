@@ -266,7 +266,7 @@ sealed class PdfFontResolver : IFontResolver
                 return null;
             }
 
-            return new FontResolverInfo(defaultFace);
+            return new(defaultFace);
         }
     }
 
