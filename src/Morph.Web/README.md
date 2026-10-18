@@ -159,7 +159,9 @@ end-to-end.
 
 ## Test
 
-Tests live in `src/Morph.Web.Tests` (TUnit + bUnit + Verify + Playwright), mirroring GeoConvert:
+Tests live in `src/Morph.Web.Tests` (TUnit + bUnit + Verify + Playwright), mirroring GeoConvert. They run
+on **Windows only**, here and in CI: they are browser tests, and the screenshot snapshots are recorded on
+Windows.
 
 ```bash
 # Build (also publishes the Blazor app the Playwright tests serve) and run.
@@ -202,6 +204,6 @@ To reset a snapshot after an intentional change, review then rename the `*.recei
 
 ## Deploy
 
-`.github/workflows/deploy-blazor.yml` builds, tests, publishes (with the source `<base href="/">`, since
-the custom domain `morph.papyrine.org` serves the site at its root), and pushes to GitHub Pages on every
-push to `main`.
+`.github/workflows/deploy-blazor.yml` runs the tests in a Windows job, publishes in a Linux one (with the
+source `<base href="/">`, since the custom domain `morph.papyrine.org` serves the site at its root), and,
+once both have passed, pushes to GitHub Pages on every push to `main`.
