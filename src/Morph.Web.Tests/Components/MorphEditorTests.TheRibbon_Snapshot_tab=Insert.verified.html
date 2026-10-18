@@ -1,0 +1,80 @@
+﻿
+<div class="editor-ribbon" aria-busy="false">
+	<div class="editor-titlebar">
+		<div class="editor-tabs" role="tablist" aria-label="Ribbon">
+			<button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="32">Home</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="33">Insert</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="34">Table</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="35">Review</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="36">View</button>
+		</div>
+		<span class="editor-name" title="edit.docx">edit.docx</span>
+		<div class="editor-quick">
+			<label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+				</svg>
+				<span class="viewer-hidden-label">Open file</span>
+				<input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open file" type="file" blazor:elementreference="scrubbed">
+			</label>
+			<button type="button" class="viewer-button" title="Save a copy (Ctrl+S)" aria-label="Save a copy" aria-keyshortcuts="Control+S" blazor:onmousedown:preventdefault="" blazor:onclick="6">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+						<path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"></path>
+					</g>
+				</svg>
+			</button>
+		</div>
+	</div>
+	<div class="editor-tools" role="tabpanel" aria-label="Insert">
+		<div class="editor-group" role="group" aria-label="Pages">
+			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="37">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 16l-4 4l-4-4m-5-4h18M8 8l4-4l4 4"></path>
+				</svg>
+				Page break
+			</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Tables">
+			<button type="button" class="editor-tool" aria-haspopup="dialog" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="38">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M12 3v18"></path>
+						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
+						<path d="M3 9h18M3 15h18"></path>
+					</g>
+				</svg>
+				Table
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="editor-caret" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Illustrations">
+			<label class="editor-tool " blazor:onmousedown:preventdefault="" blazor:onclick="39">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M16 5h6m-3-3v6m2 3.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"></path>
+						<path d="m21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+						<circle cx="9" cy="9" r="2"></circle>
+					</g>
+				</svg>
+				Picture
+				<input class="file-input" accept=".png,.jpg,.jpeg,.gif,.bmp" aria-label="Picture" type="file" blazor:elementreference="scrubbed">
+			</label>
+		</div>
+		<div class="editor-group" role="group" aria-label="Links">
+			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="40">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+					</g>
+				</svg>
+				Link
+			</button>
+		</div>
+	</div>
+</div>

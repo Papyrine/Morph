@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using static EditDocuments;
 using static ReviewDocuments;
 
@@ -322,5 +323,97 @@ public class ParagraphFormatTests
         var heading = gallery.Single(_ => _.Id == "Heading1");
         await Assert.That((heading.SizePoints, heading.Bold, heading.ColorHex)).IsEqualTo((18d, true, "2E74B5"));
         await Assert.That(gallery.Single(_ => _.Id == "Byline").Italic).IsTrue();
+    }
+
+    // Tracked, every paragraph edit is a change to the paragraph's properties that rejecting puts back.
+
+    [Test]
+    public async Task AList_Tracked_IsAFormattingChange_ThatRejectingTakesAway()
+    {
+        var docx = Build(P(R("Milk")), styles: styles);
+
+        var edited = DocumentEditor.SetList(docx, [0], ListKind.Bullet, Tracked);
+
+        await Assert.That(Xml(edited)).Contains("<w:pPrChange w:author=\"Ann\" w:date=\"2026-09-27T14:30:45Z\" w:id=\"0\"><w:pPr /></w:pPrChange>");
+        await Assert.That(DocumentReview.Read(edited).Changes.Select(_ => _.Kind)).IsEquivalentTo([ReviewChangeKind.ParagraphFormatting]);
+        await Assert.That(Xml(ReviewEditor.ResolveAll(edited, accept: false))).IsEqualTo(Xml(docx));
+    }
+
+    [Test]
+    public async Task AnIndent_Tracked_IsAFormattingChange_ThatRejectingTakesAway()
+    {
+        var docx = Build("<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr>" + R("Indented") + "</w:p>", styles: styles);
+
+        var edited = DocumentEditor.Indent(docx, [0], 1, Tracked);
+
+        await Assert.That(Xml(edited)).StartsWith("<w:p><w:pPr><w:ind w:left=\"720\" /><w:jc w:val=\"center\" /><w:pPrChange");
+        await Assert.That(Xml(ReviewEditor.ResolveAll(edited, accept: false))).IsEqualTo(Xml(docx));
+        await Assert.That(Xml(ReviewEditor.ResolveAll(edited, accept: true))).StartsWith("<w:p><w:pPr><w:ind w:left=\"720\" /><w:jc w:val=\"center\" /></w:pPr>");
+    }
+
+    [Test]
+    public async Task Spacing_Tracked_IsAFormattingChange_ThatRejectingTakesAway()
+    {
+        var docx = Build(P(R("Spaced")), styles: styles);
+
+        var edited = DocumentEditor.Space(docx, [0], new(Line: 2, AfterPoints: 12), Tracked);
+
+        await Assert.That(Xml(edited)).StartsWith("<w:p><w:pPr><w:spacing w:after=\"240\" w:line=\"480\" w:lineRule=\"auto\" /><w:pPrChange");
+        await Assert.That(Xml(ReviewEditor.ResolveAll(edited, accept: false))).IsEqualTo(Xml(docx));
+    }
+
+    // A second change to a paragraph already changed under tracking keeps the first record: what
+    // rejecting gives back is the paragraph as it was before either.
+    [Test]
+    public async Task TwoChanges_Tracked_KeepOneRecordOfTheParagraphAsItWas()
+    {
+        var docx = Build("<w:p><w:pPr><w:jc w:val=\"right\"/></w:pPr>" + R("Twice") + "</w:p>", styles: styles);
+
+        var once = DocumentEditor.Indent(docx, [0], 1, Tracked);
+        var twice = DocumentEditor.SetStyle(once, [0], "Quote", Tracked);
+
+        await Assert.That(Regex.Matches(Xml(twice), "<w:pPrChange").Count).IsEqualTo(1);
+        await Assert.That(Xml(ReviewEditor.ResolveAll(twice, accept: false))).IsEqualTo(Xml(docx));
+    }
+
+    // A paragraph indented by a list level of the style's list says only the level; the list is
+    // still the style's.
+    [Test]
+    public async Task AParagraphListedByItsStyle_IsIndentedByLevelAlone()
+    {
+        const string listStyle =
+            "<w:style w:type=\"paragraph\" w:styleId=\"ListBullet\"><w:name w:val=\"List Bullet\"/><w:pPr><w:numPr><w:numId w:val=\"1\"/></w:numPr></w:pPr></w:style>";
+        var docx = Build("<w:p><w:pPr><w:pStyle w:val=\"ListBullet\"/></w:pPr>" + R("Milk") + "</w:p>", styles: styles + listStyle);
+
+        var edited = DocumentEditor.Indent(docx, [0], 1, Plain);
+
+        await Assert.That(Xml(edited)).StartsWith("<w:p><w:pPr><w:pStyle w:val=\"ListBullet\" /><w:numPr><w:ilvl w:val=\"1\" /></w:numPr></w:pPr>");
+    }
+
+    // A list's levels stop at nine.
+    [Test]
+    public async Task AListsDeepestLevel_GoesNoDeeper()
+    {
+        var docx = DocumentEditor.SetList(Build(P(R("Deep")), styles: styles), [0], ListKind.Number, Plain);
+        var deepest = DocumentEditor.Indent(docx, [0], 20, Plain);
+
+        var edited = DocumentEditor.Indent(deepest, [0], 1, Plain);
+
+        await Assert.That(Xml(deepest)).Contains("<w:ilvl w:val=\"8\" />");
+        await Assert.That(Xml(edited)).IsEqualTo(Xml(deepest));
+    }
+
+    // A document's numbering part keeps every definition ahead of every list, as the schema has it.
+    [Test]
+    public async Task ANewList_IsDefinedAheadOfTheListsAlreadyThere()
+    {
+        var docx = DocumentEditor.SetList(Build(P(R("One")) + P(R("Gap")) + P(R("Two")), styles: styles), [0], ListKind.Number, Plain);
+
+        var edited = DocumentEditor.SetList(docx, [2], ListKind.Bullet, Plain);
+
+        var numbering = Numbering(edited);
+        await Assert.That(numbering.IndexOf("w:abstractNumId=\"1\"", StringComparison.Ordinal)).IsLessThan(numbering.IndexOf("<w:num ", StringComparison.Ordinal));
+        await Assert.That(numbering).Contains("<w:num w:numId=\"2\"><w:abstractNumId w:val=\"1\" /></w:num>");
+        await Assert.That(numbering).Contains("<w:nsid w:val=\"4D4F9E37\" />");
     }
 }

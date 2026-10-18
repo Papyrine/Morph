@@ -504,10 +504,325 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(DocumentReview.Read(reported!).Comments.Single().Quote).IsEqualTo("Third");
     }
 
+    // A PNG 40 pixels by 20, made for 144 DPI: 20pt by 10pt on the page, near enough.
+    static byte[] Picture()
+    {
+        using var image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(40, 20);
+        image.Metadata.HorizontalResolution = 144;
+        image.Metadata.VerticalResolution = 144;
+        image.Metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
+        using var stream = new MemoryStream();
+        SixLabors.ImageSharp.ImageExtensions.SaveAsPng(image, stream);
+        return stream.ToArray();
+    }
+
+    [Test]
+    public async Task APicture_GoesWhereTheCaretWas_AtTheSizeItWasMadeFor()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(0, 6);
+        await ChooseTabAsync(cut, "Insert");
+
+        await cut.Find("label.editor-tool").ClickAsync(new());
+        cut.FindComponents<Microsoft.AspNetCore.Components.Forms.InputFile>()[^1].UploadFiles(InputFileContent.CreateFromBinary(Picture(), "dot.png", null, "image/png"));
+        cut.WaitForState(() => reported != null, TimeSpan.FromSeconds(30));
+
+        // A PNG says its resolution in pixels a metre: 144 DPI is written 5669, which is 143.99 DPI, and
+        // the picture a hair over 20pt by 10pt — as Word, which does not round it either, draws it.
+        var body = Body(reported!);
+        await Assert.That(body).Contains("<wp:extent cx=\"254013\" cy=\"127007\" />");
+        await Assert.That(body).Contains("descr=\"dot\"");
+        await Assert.That(DocumentOutline.Read(reported!).Paragraphs[0].Units.Select(_ => _.Kind)).IsEquivalentTo([EditUnitKind.Text, EditUnitKind.Drawing, EditUnitKind.Text]);
+        await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(7);
+    }
+
+    [Test]
+    public async Task AFileThatIsNotAPicture_IsRefused_AndSaysSo()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(0, 6);
+        await ChooseTabAsync(cut, "Insert");
+
+        await cut.Find("label.editor-tool").ClickAsync(new());
+        cut.FindComponents<Microsoft.AspNetCore.Components.Forms.InputFile>()[^1].UploadFiles(InputFileContent.CreateFromText("not a picture", "notes.png", null, "image/png"));
+        cut.WaitForState(() => cut.Find(".editor-status-note").TextContent.Length > 0, TimeSpan.FromSeconds(30));
+
+        await Assert.That(reported).IsNull();
+        await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("is not a picture");
+    }
+
+    // A caret in a link's text offers to take the link away, whole.
+    [Test]
+    public async Task RemoveLink_TakesTheLinkTheCaretIsIn()
+    {
+        var linked = Build(P("", "<w:hyperlink w:anchor=\"top\"><w:r><w:t>Linked</w:t></w:r></w:hyperlink>", R(" plain")));
+        byte[]? reported = null;
+        var cut = await OpenEditing(linked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var (block, offset) = Place(linked, 0, "Linked");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 5, block.Top + 2, offset + 2, offset + 2));
+        Caret(0, 2);
+        await ChooseTabAsync(cut, "Insert");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Contains("Remove link")).ClickAsync(new());
+
+        await Assert.That(Body(reported!)).DoesNotContain("hyperlink");
+        await Assert.That(Read(reported!)[0]).IsEqualTo("[Linked][ plain]");
+    }
+
+    static readonly byte[] Grid = Build(
+        "<w:tbl><w:tblGrid><w:gridCol w:w=\"2000\"/><w:gridCol w:w=\"2000\"/></w:tblGrid>" +
+        "<w:tr><w:tc><w:p><w:r><w:t>a</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>b</w:t></w:r></w:p></w:tc></w:tr>" +
+        "<w:tr><w:tc><w:p><w:r><w:t>c</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>d</w:t></w:r></w:p></w:tc></w:tr>" +
+        "</w:tbl>" + P("", R("After")));
+
+    // The Table tab is there while the caret is in a table, and its commands act on that table.
+    [Test]
+    [Arguments("Delete row", "[c] / [d] / [After]")]
+    [Arguments("Delete column", "[b] / [d] / [After]")]
+    [Arguments("Delete table", "[After]")]
+    public async Task TheTableTab_DeletesWhereTheCaretIs(string command, string expected)
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Grid, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var (block, offset) = Place(Grid, 0, "a");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+        Caret(0, 0);
+        await ChooseTabAsync(cut, "Table");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == command).ClickAsync(new());
+
+        await Assert.That(string.Join(" / ", Read(reported!))).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task TheTableTab_GoesWhenTheCaretLeavesTheTable()
+    {
+        var cut = await OpenEditing(Grid);
+        var (cell, inCell) = Place(Grid, 0, "a");
+        var (after, outside) = Place(Grid, 4, "After");
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, cell.Left + 2, cell.Top + 2, inCell, inCell));
+        await ChooseTabAsync(cut, "Table");
+        await Assert.That(cut.Find(".editor-tab[aria-selected=true]").TextContent.Trim()).IsEqualTo("Table");
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, after.Left + 2, after.Top + 2, outside, outside));
+
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Review View");
+        await Assert.That(cut.Find(".editor-tab[aria-selected=true]").TextContent.Trim()).IsEqualTo("Home");
+    }
+
+    // Space before and after are toggles, as Word's Add/Remove Space Before Paragraph is.
+    [Test]
+    public async Task SpaceBeforeAndAfter_GoOnAndComeOff()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var (block, offset) = Place(Paragraphs, 0, "First");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+        Caret(0, 0);
+
+        await cut.Find("[aria-label='Line and paragraph spacing']").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "Add space before paragraph").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:pPr><w:spacing w:before=\"240\" /></w:pPr>");
+
+        await cut.Find("[aria-label='Line and paragraph spacing']").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "Remove space before paragraph").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:pPr><w:spacing w:before=\"0\" /></w:pPr>");
+    }
+
+    [Test]
+    public async Task Replace_ReplacesTheCurrentMatch_AndGoesOnToTheNext()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        controller.Setup<int[]>("editTarget").SetResult([]);
+
+        await cut.InvokeAsync(() => cut.Instance.OnReplaceRequested());
+        await cut.Find(".viewer-find-input").InputAsync(new() {Value = "e"});
+
+        // Found as it is typed, once the reader pauses: Enter now would go on to the second match.
+        cut.WaitForState(() => cut.Find(".viewer-find-status").TextContent == "1 of 4", TimeSpan.FromSeconds(10));
+        await cut.Find(".viewer-replace input").InputAsync(new() {Value = "E"});
+        var replace = () => cut.FindAll(".viewer-text-button").First(_ => _.TextContent.Trim() == "Replace").ClickAsync(new());
+
+        await replace();
+        await Assert.That(Read(reported!)[0]).IsEqualTo("[First paragraph hEre.]");
+
+        // The "E" put in still matches "e", the case not matched; the next match is the one after it.
+        await Assert.That(cut.Find(".viewer-find-status").TextContent).IsEqualTo("2 of 4");
+
+        await replace();
+        await Assert.That(Read(reported!)[0]).IsEqualTo("[First paragraph hErE.]");
+    }
+
+    [Test]
+    public async Task Export_DownloadsTheDocumentAsTheFormatChosen()
+    {
+        var morph = JSInterop.SetupModule($"./{MorphAssets.Script}");
+        morph.Mode = JSRuntimeMode.Loose;
+        var cut = await OpenEditing(Paragraphs);
+
+        await cut.Find(".editor-file").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Markdown")).ClickAsync(new());
+
+        var download = morph.Invocations["download"].Single();
+        await Assert.That(download.Arguments[0]).IsEqualTo("edit.md");
+        await Assert.That(Encoding.UTF8.GetString((byte[]) download.Arguments[2]!)).Contains("First paragraph here.");
+        await Assert.That(cut.FindAll(".editor-menu")).IsEmpty();
+    }
+
+    // An edit not yet saved is shown, and Save a copy is what clears it.
+    [Test]
+    public async Task AnEdit_IsShownAsUnsaved_UntilSaved()
+    {
+        var morph = JSInterop.SetupModule($"./{MorphAssets.Script}");
+        morph.Mode = JSRuntimeMode.Loose;
+        var cut = await OpenEditing(Paragraphs);
+        await Assert.That(cut.FindAll(".editor-dirty")).IsEmpty();
+
+        Caret(1, 0);
+        await cut.Find("[aria-label=Numbering]").ClickAsync(new());
+        await Assert.That(cut.Find(".editor-dirty").TextContent).Contains("edited");
+
+        await cut.Find("button[aria-label='Save a copy']").ClickAsync(new());
+
+        await Assert.That(cut.FindAll(".editor-dirty")).IsEmpty();
+        await Assert.That(DocumentEditor.ListOf((byte[]) morph.Invocations["download"].Single().Arguments[2]!, 1)).IsEqualTo(ListKind.Number);
+    }
+
+    // A new document over an edit not saved asks first.
+    [Test]
+    public async Task ANewDocument_OverAnUnsavedEdit_AsksFirst()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        Caret(1, 0);
+        await cut.Find("[aria-label=Numbering]").ClickAsync(new());
+
+        await cut.Find(".editor-file").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("New blank document")).ClickAsync(new());
+
+        await Assert.That(cut.Find(".editor-dialog-title").TextContent).IsEqualTo("Start a new document?");
+        await cut.FindAll(".editor-dialog .editor-button").First(_ => _.TextContent == "Cancel").ClickAsync(new());
+
+        await Assert.That(cut.FindAll(".editor-dialog")).IsEmpty();
+        await Assert.That(cut.Find(".editor-name").TextContent).Contains("edit.docx");
+    }
+
+    // Snapshots of what the editor draws: the start page, each tab of the ribbon, each menu and
+    // dialog, and the status bar, over the three-paragraph fixture.
+
+    [Test]
+    public Task TheStartPage_Snapshot()
+    {
+        var cut = Render<MorphEditor>(_ => _.Add(component => component.ShowSamples, true));
+
+        return Verify(cut);
+    }
+
+    [Test]
+    [Arguments("Home")]
+    [Arguments("Insert")]
+    [Arguments("Table")]
+    [Arguments("Review")]
+    [Arguments("View")]
+    public async Task TheRibbon_Snapshot(string tab)
+    {
+        var cut = await OpenEditing(Grid);
+        var (cell, inCell) = Place(Grid, 0, "a");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, cell.Left + 2, cell.Top + 2, inCell, inCell));
+        await ChooseTabAsync(cut, tab);
+
+        await Verify(cut.Find(".editor-ribbon").Pretty(), "html");
+    }
+
+    [Test]
+    [Arguments("styles")]
+    [Arguments("spacing")]
+    [Arguments("table")]
+    [Arguments("file")]
+    public async Task AMenu_Snapshot(string name)
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 1, "Second");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+
+        switch (name)
+        {
+            case "styles":
+                await cut.Find(".editor-style-button").ClickAsync(new());
+                break;
+            case "spacing":
+                await cut.Find("[aria-label='Line and paragraph spacing']").ClickAsync(new());
+                break;
+            case "table":
+                await ChooseTabAsync(cut, "Insert");
+                await cut.FindAll(".editor-tool").First(_ => _.TextContent.Contains("Table")).ClickAsync(new());
+                await cut.Find(".editor-grid-cell[aria-label='3 by 4']").MouseOverAsync(new());
+                break;
+            default:
+                await cut.Find(".editor-file").ClickAsync(new());
+                break;
+        }
+
+        await Verify(cut.Find(".editor-menu").Pretty(), "html");
+    }
+
+    [Test]
+    [Arguments("link")]
+    [Arguments("count")]
+    [Arguments("discard")]
+    public async Task ADialog_Snapshot(string name)
+    {
+        var cut = await OpenEditing(Paragraphs);
+        switch (name)
+        {
+            case "link":
+                Selected(0, 6, 15);
+                await ChooseTabAsync(cut, "Insert");
+                await cut.FindAll(".editor-tool").First(_ => _.TextContent.Contains("Link")).ClickAsync(new());
+                break;
+            case "count":
+                await cut.Find(".editor-status-button").ClickAsync(new());
+                break;
+            default:
+                Caret(1, 0);
+                await cut.Find("[aria-label=Numbering]").ClickAsync(new());
+                await cut.Find(".editor-file").ClickAsync(new());
+                await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("New blank document")).ClickAsync(new());
+                break;
+        }
+
+        await Verify(cut.Find(".editor-dialog").Pretty(), "html");
+    }
+
+    [Test]
+    public async Task TheStatusBar_Snapshot()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        await cut.InvokeAsync(() => cut.Instance.OnEditCommand("track"));
+
+        await Verify(cut.Find(".editor-status").Pretty(), "html");
+    }
+
     static string Body(byte[] docx)
     {
         using var stream = new MemoryStream(docx);
         using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
         return package.MainDocumentPart!.Document!.Body!.InnerXml.Replace(" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
+    }
+}
+
+static class MarkupExtensions
+{
+    // An element's markup, indented a tag to a line, so a snapshot's diff shows what moved.
+    public static string Pretty(this AngleSharp.Dom.IElement element)
+    {
+        using var writer = new StringWriter();
+        element.ToHtml(writer, new AngleSharp.Html.PrettyMarkupFormatter());
+        return writer.ToString();
     }
 }

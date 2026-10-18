@@ -1,3 +1,5 @@
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using static EditDocuments;
 
 // The editor against every document of the corpus rather than the ones written to test it: real
@@ -54,6 +56,74 @@ public class EditCorpusTests
         using var stream = new MemoryStream(edited);
         var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
         await Assert.That(parsed.Elements.Count).IsGreaterThan(0);
+    }
+
+    // The ribbon's edits to a sample of each document's paragraphs — a style, a list, an indent, a
+    // spacing, alternately plain and tracked — and a page break, a table and a picture put in. None
+    // may change a paragraph's text; the document has to be one the parser still reads, and one the
+    // OpenXML schema finds nothing new wrong with: what Word refuses to open is the failure that matters.
+    [Test]
+    [MethodDataSource(nameof(Documents))]
+    public async Task EveryDocument_TakesTheRibbonsEdits(string scenario)
+    {
+        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var outline = DocumentOutline.Read(docx);
+        if (!outline.AllowsEditing ||
+            outline.Paragraphs.Count == 0)
+        {
+            return;
+        }
+
+        var before = Texts(outline);
+        var step = Math.Max(1, outline.Paragraphs.Count / sampled);
+        var edited = docx;
+        var turn = 0;
+        for (var index = 0; index < outline.Paragraphs.Count; index += step)
+        {
+            var options = turn % 2 == 0 ? Plain : Tracked;
+            edited = (turn++ % 4) switch
+            {
+                0 => DocumentEditor.SetStyle(edited, [index], "Heading2", options),
+                1 => DocumentEditor.SetList(edited, [index], ListKind.Bullet, options),
+                2 => DocumentEditor.Indent(edited, [index], 1, options),
+                _ => DocumentEditor.Space(edited, [index], new(Line: 1.5, BeforePoints: 12), options)
+            };
+        }
+
+        await Assert.That(string.Join('\n', Texts(DocumentOutline.Read(edited)))).IsEqualTo(string.Join('\n', before))
+            .Because($"a paragraph edit to {scenario} changed its text");
+
+        // Put in at the end of the last paragraph that is not in a table, so what follows is the body's.
+        var last = DocumentOutline.Read(edited).Paragraphs.LastOrDefault(_ => !_.InTable);
+        if (last != null)
+        {
+            edited = DocumentEditor.InsertPageBreak(edited, last.Ordinal, last.Length, Tracked).Document;
+            edited = DocumentEditor.InsertTable(edited, last.Ordinal, 0, 2, 2, Plain).Document;
+            edited = DocumentEditor.InsertPicture(edited, last.Ordinal, 0, new(Png, "image/png", 20, 10), Plain).Document;
+        }
+
+        using var stream = new MemoryStream(edited);
+        var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        await Assert.That(parsed.Elements.Count).IsGreaterThan(0);
+
+        var added = Errors(edited).Except(Errors(docx)).ToList();
+        await Assert.That(added).IsEmpty()
+            .Because($"the ribbon's edits made {scenario} invalid: {string.Join("; ", added.Take(3))}");
+    }
+
+    // A 1×1 PNG: the picture's bytes are only carried, never decoded.
+    static readonly byte[] Png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+    // What the schema finds wrong with the parts an edit writes: the body, the styles, the numbering.
+    static HashSet<string> Errors(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = WordprocessingDocument.Open(stream, false);
+        var validator = new DocumentFormat.OpenXml.Validation.OpenXmlValidator(FileFormatVersions.Microsoft365);
+        return validator.Validate(package)
+            .Where(_ => _.Part?.Uri.OriginalString is "/word/document.xml" or "/word/styles.xml" or "/word/numbering.xml")
+            .Select(_ => $"{_.Part!.Uri} {_.Description}")
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     // A paragraph as it is, with something typed after the last of its text.

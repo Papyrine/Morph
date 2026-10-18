@@ -363,6 +363,117 @@ public partial class SnapshotTests
         await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[A fresh start]");
     }
 
+    // A ribbon command after Enter has divided the paragraph acts on the half the caret is in: the
+    // script names it as the paragraph after the one it was divided from.
+    [Test]
+    public async Task Edit_ACommandAfterEnter_ActsOnTheNewParagraph()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Enter");
+        await page.Keyboard.TypeAsync("A new one");
+        await page.ClickAsync("[aria-label=Bullets]");
+        await page.WaitForSelectorAsync("[aria-label=Bullets][aria-pressed=true]", new() {Timeout = 60000});
+        await page.Keyboard.TypeAsync(".");
+        await HandInAsync(page);
+
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)).Take(3)))
+            .IsEqualTo("[First paragraph here.] / [A new one.] #ListParagraph •1.0 / [Second ][b:bold][ one.] (center)");
+    }
+
+    [Test]
+    public async Task Edit_APicture_FromTheRibbon()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await ChooseTabAsync(page, "Insert");
+        await page.SetInputFilesAsync(
+            ".editor-tool input[type=file]",
+            new FilePayload
+            {
+                Name = "dot.png",
+                MimeType = "image/png",
+                Buffer = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
+            });
+        await page.WaitForFunctionAsync(
+            "() => document.querySelector('.edit-box[contenteditable=true] .edit-atom') !== null",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        await Assert.That(DocumentOutline.Read(saved).Paragraphs[2].Units.Select(_ => _.Kind)).IsEquivalentTo([EditUnitKind.Text, EditUnitKind.Drawing]);
+    }
+
+    // What the editor looks like with a document open: the ribbon, the page, the status bar — on a
+    // desktop and a phone, light and dark. Screenshots of the editor alone, its fonts pinned, compared
+    // by SSIM like the home page's.
+    [Test]
+    [Arguments(false, false)]
+    [Arguments(true, false)]
+    [Arguments(false, true)]
+    [Arguments(true, true)]
+    public async Task Editor_Snapshot(bool dark, bool mobile)
+    {
+        var page = await NewPinnedPageAsync();
+        if (mobile)
+        {
+            await page.SetViewportSizeAsync(375, 667);
+        }
+
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        if (dark)
+        {
+            await page.EvaluateAsync("() => localStorage.setItem('selectedTheme', 'Dark')");
+            await page.ReloadAsync();
+        }
+
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
+    }
+
+    // The menus and the table picker drawn over the page.
+    [Test]
+    [Arguments("styles")]
+    [Arguments("file")]
+    [Arguments("table")]
+    public async Task Editor_Menu_Snapshot(string menu)
+    {
+        var page = await NewPinnedPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        switch (menu)
+        {
+            case "styles":
+                await page.ClickAsync(".editor-style-button");
+                break;
+            case "file":
+                await page.ClickAsync(".editor-file");
+                break;
+            default:
+                await ChooseTabAsync(page, "Insert");
+                await page.ClickAsync(".editor-tool:has-text('Table')");
+                await page.HoverAsync(".editor-grid-cell[aria-label='3 by 4']");
+                break;
+        }
+
+        await page.WaitForSelectorAsync(".editor-menu");
+        await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
+    }
+
     // Opens /edit on a file, once the page has painted and has its text, and editing is on.
     static async Task<IPage> OpenEditAsync(byte[] docx)
     {
@@ -390,6 +501,13 @@ public partial class SnapshotTests
     {
         var page = await browser!.NewPageAsync();
         await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, docx, name);
+        return page;
+    }
+
+    // Opens a file in the editor already on the page, and waits for its first page to be drawn.
+    static async Task LoadIntoAsync(IPage page, byte[] docx, string name)
+    {
         await page.WaitForSelectorAsync(
             ".viewer-open input[type=file]",
             new()
@@ -411,7 +529,6 @@ public partial class SnapshotTests
             {
                 Timeout = 120000
             });
-        return page;
     }
 
     // Clicks the first character of some text of the first page, and waits for the editor that

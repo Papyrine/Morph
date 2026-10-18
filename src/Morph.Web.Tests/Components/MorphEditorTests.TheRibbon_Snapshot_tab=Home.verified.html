@@ -1,0 +1,149 @@
+﻿
+<div class="editor-ribbon" aria-busy="false">
+	<div class="editor-titlebar">
+		<div class="editor-tabs" role="tablist" aria-label="Ribbon">
+			<button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="32">Home</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="33">Insert</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="34">Table</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="35">Review</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="36">View</button>
+		</div>
+		<span class="editor-name" title="edit.docx">edit.docx</span>
+		<div class="editor-quick">
+			<label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+				</svg>
+				<span class="viewer-hidden-label">Open file</span>
+				<input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open file" type="file" blazor:elementreference="scrubbed">
+			</label>
+			<button type="button" class="viewer-button" title="Save a copy (Ctrl+S)" aria-label="Save a copy" aria-keyshortcuts="Control+S" blazor:onmousedown:preventdefault="" blazor:onclick="6">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+						<path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"></path>
+					</g>
+				</svg>
+			</button>
+		</div>
+	</div>
+	<div class="editor-tools" role="tabpanel" aria-label="Home">
+		<div class="editor-group" role="group" aria-label="History">
+			<button type="button" class="viewer-button" data-edit-command="undo" title="Undo (Ctrl+Z)" aria-label="Undo" aria-keyshortcuts="Control+Z">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M9 14L4 9l5-5"></path>
+						<path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"></path>
+					</g>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="redo" title="Redo (Ctrl+Y)" aria-label="Redo" aria-keyshortcuts="Control+Y">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="m15 14l5-5l-5-5"></path>
+						<path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"></path>
+					</g>
+				</svg>
+			</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Styles">
+			<button type="button" class="editor-dropdown editor-style-button" title="Paragraph style" aria-haspopup="listbox" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="16">
+				<span class="editor-style-name">Normal</span>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Font">
+			<button type="button" class="viewer-button" data-edit-command="bold" title="Bold (Ctrl+B)" aria-label="Bold" aria-keyshortcuts="Control+B">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="italic" title="Italic (Ctrl+I)" aria-label="Italic" aria-keyshortcuts="Control+I">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 4h-9m4 16H5M15 4L9 20"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="underline" title="Underline (Ctrl+U)" aria-label="Underline" aria-keyshortcuts="Control+U">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4v6a6 6 0 0 0 12 0V4M4 20h16"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="strike" title="Strikethrough" aria-label="Strikethrough">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4H9a3 3 0 0 0-2.83 4M14 12a4 4 0 0 1 0 8H6m-2-8h16"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Paragraph">
+			<button type="button" class="viewer-button" title="Bullets" aria-label="Bullets" aria-pressed="false" blazor:onmousedown:preventdefault="" blazor:onclick="17">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h.01M3 12h.01M3 19h.01M8 5h13M8 12h13M8 19h13"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" title="Numbering" aria-label="Numbering" aria-pressed="false" blazor:onmousedown:preventdefault="" blazor:onclick="18">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h10m-10 7h10m-10 7h10M4 4h1v5M4 9h2m.5 11H3.4c0-1 2.6-1.925 2.6-3.5a1.5 1.5 0 0 0-2.6-1.02"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" title="Decrease indent" aria-label="Decrease indent" blazor:onmousedown:preventdefault="" blazor:onclick="19">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12H11m10 6H11M21 6H11M7 8l-4 4l4 4"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" title="Increase indent" aria-label="Increase indent" blazor:onmousedown:preventdefault="" blazor:onclick="20">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12H11m10 6H11M21 6H11M3 8l4 4l-4 4"></path>
+				</svg>
+			</button>
+			<span class="viewer-divider" aria-hidden="true"></span>
+			<button type="button" class="viewer-button" data-edit-command="align-left" title="Align left" aria-label="Align left">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 5H3m12 7H3m14 7H3"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="align-center" title="Centre" aria-label="Centre">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 5H3m14 7H7m12 7H5"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="align-right" title="Align right" aria-label="Align right">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 5H3m18 7H9m12 7H7"></path>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" data-edit-command="align-justify" title="Justify" aria-label="Justify">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h18M3 12h18M3 19h18"></path>
+				</svg>
+			</button>
+			<span class="viewer-divider" aria-hidden="true"></span>
+			<button type="button" class="viewer-button editor-dropdown-icon" title="Line and paragraph spacing" aria-label="Line and paragraph spacing" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="21">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h8m-8 7h8m-8 7h8m4-11l3-3l3 3m-6 8l3 3l3-3"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Editing">
+			<button type="button" class="viewer-button" title="Find (Ctrl+F)" aria-label="Find" aria-keyshortcuts="Control+F" aria-pressed="false" blazor:onclick="22">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="m21 21l-4.34-4.34"></path>
+						<circle cx="11" cy="11" r="8"></circle>
+					</g>
+				</svg>
+			</button>
+			<button type="button" class="viewer-button" title="Replace (Ctrl+H)" aria-label="Replace" aria-keyshortcuts="Control+H" aria-pressed="false" blazor:onclick="23">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M14 4a1 1 0 0 1 1-1m0 7a1 1 0 0 1-1-1m7-5a1 1 0 0 0-1-1m1 6a1 1 0 0 1-1 1M3 7l3 3l3-3"></path>
+						<path d="M6 10V5a2 2 0 0 1 2-2h2"></path>
+						<rect width="7" height="7" x="3" y="14" rx="1"></rect>
+					</g>
+				</svg>
+			</button>
+		</div>
+	</div>
+</div>

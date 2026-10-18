@@ -693,18 +693,31 @@ public partial class MorphViewer
         }
 
         var text = replaceText;
-        var page = matches[current].Page;
+        var replaced = matches[current];
         var options = await EditOptionsAsync();
         if (await ReviseAsync(_ => DocumentEditor.Replace(_, [range], text, options), relayout: true, () => activeKey))
         {
             replaceNote = null;
 
-            // The match after the one replaced is the first from where it was.
-            currentMatch = matches.Count == 0 ? -1 : Math.Min(current, matches.Count - 1);
-            if (currentMatch >= 0 &&
-                matches[currentMatch].Page < page)
+            // On to the first match after what was put in, as Word's Replace goes: the text put in
+            // can match itself — "e" replaced with "E", the case not matched — and is not found again.
+            var after = replaced.Start + text.Length;
+            currentMatch = -1;
+            for (var index = 0; index < matches.Count; index++)
             {
-                currentMatch = FirstMatchFrom(page);
+                var match = matches[index];
+                if (match.Page > replaced.Page ||
+                    (match.Page == replaced.Page && match.Start >= after))
+                {
+                    currentMatch = index;
+                    break;
+                }
+            }
+
+            if (currentMatch < 0 &&
+                matches.Count > 0)
+            {
+                currentMatch = 0;
             }
 
             if (handle is { } viewer)

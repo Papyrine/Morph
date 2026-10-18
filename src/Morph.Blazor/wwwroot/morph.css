@@ -1558,15 +1558,6 @@
         display: none;
     }
 
-    /* A phone's ribbon scrolls sideways rather than wrapping into a wall of buttons. */
-    .editor-tools {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-    }
-
-    .editor-group {
-        flex: none;
-    }
 
     /* A phone's toolbar: the side buttons share the first row, navigation and zoom take the next, wrapping
        rather than pushing a button out of the viewer's box. */
@@ -2147,5 +2138,30 @@
     .editor-ribbon,
     .editor-status {
         display: none;
+    }
+}
+
+/* A phone's ribbon scrolls sideways rather than wrapping into a wall of buttons, and so do its tabs,
+   leaving the quick buttons room. After the rules above, which it overrides. */
+@media (max-width: 640px) {
+    .editor-tools {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    .editor-group {
+        flex: none;
+    }
+
+    .editor-tabs {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+    }
+
+    .editor-file,
+    .editor-tab {
+        flex: none;
+        padding: 0.4rem 0.55rem;
     }
 }

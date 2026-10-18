@@ -267,4 +267,91 @@ public class InsertTests
 
         await Assert.That(() => DocumentEditor.Replace(docx, [new(0, 2, 5)], "x", Plain)).Throws<InvalidOperationException>();
     }
+
+    // A picture put in at the end of a link's text stands after the link, not in it.
+    [Test]
+    public async Task APicture_AtTheEndOfALink_StandsOutsideIt()
+    {
+        var docx = Build(P(R("Linked text")) + section);
+        var linked = DocumentEditor.Link(docx, At(0, 0), At(0, 6), "https://example.com/", Plain);
+
+        var result = DocumentEditor.InsertPicture(linked, 0, 3, Png(10, 10), Plain);
+
+        await Assert.That(Shape(result.Document)).IsEqualTo("<[Lin]>[▣]<[ked]>[ text] ¶");
+    }
+
+    // The drawing's id is one more than the highest any drawing has, headers included.
+    [Test]
+    public async Task APicture_TakesTheNextDrawingId()
+    {
+        var docx = Build(P(R("ab")) + section);
+        var first = DocumentEditor.InsertPicture(docx, 0, 1, Png(10, 10), Plain);
+
+        var second = DocumentEditor.InsertPicture(first.Document, 0, 0, Png(10, 10), Plain);
+
+        var body = Body(second.Document);
+        await Assert.That(body).Contains("<wp:docPr id=\"2\" name=\"Picture 2\"");
+        await Assert.That(body).Contains("<wp:docPr id=\"1\" name=\"Picture 1\"");
+        await Assert.That(Read(second.Document, _ => _.MainDocumentPart!.ImageParts.Count())).IsEqualTo(2);
+    }
+
+    // A section of two columns has a table as wide as one of them.
+    [Test]
+    public async Task ATable_InAColumnedSection_IsAsWideAsAColumn()
+    {
+        const string columned =
+            "<w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/><w:pgMar w:top=\"1440\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/><w:cols w:num=\"2\" w:space=\"708\"/></w:sectPr>";
+        var docx = Build("<w:p/>" + columned);
+
+        var result = DocumentEditor.InsertTable(docx, 0, 0, 1, 1, Plain);
+
+        // (9026 - 708) / 2, less the border.
+        await Assert.That(Body(result.Document)).Contains("<w:gridCol w:w=\"4149\" />");
+    }
+
+    [Test]
+    public async Task ATable_OfNoRows_IsRefused()
+    {
+        var docx = Build(P(R("x")) + section);
+
+        await Assert.That(() => DocumentEditor.InsertTable(docx, 0, 0, 0, 2, Plain)).Throws<InvalidOperationException>();
+    }
+
+    [Test]
+    public async Task ALink_ToSomethingThatIsNotAnAddress_IsRefused()
+    {
+        var docx = Build(P(R("Link here")) + section);
+
+        await Assert.That(() => DocumentEditor.Link(docx, At(0, 0), At(0, 4), "not an address", Plain)).Throws<InvalidOperationException>();
+    }
+
+    [Test]
+    public async Task ALink_Tracked_IsAFormattingChange()
+    {
+        var docx = Build(P(R("Link here")) + section);
+
+        var edited = DocumentEditor.Link(docx, At(0, 0), At(0, 4), "https://example.com/", Tracked);
+
+        await Assert.That(Shape(edited)).IsEqualTo("<[~:Link]>[ here] ¶");
+        await Assert.That(DocumentReview.Read(edited).Changes.Select(_ => _.Kind)).IsEquivalentTo([ReviewChangeKind.Formatting]);
+    }
+
+    // A replacement that empties a run takes the run with it.
+    [Test]
+    public async Task Replaced_WithNothing_DeletesTheText()
+    {
+        var docx = Build(P(R("keep "), R("drop", bold: true), R(" keep")) + section);
+
+        var edited = DocumentEditor.Replace(docx, [new(0, 5, 9)], "", Plain);
+
+        await Assert.That(Shape(edited)).IsEqualTo("[keep ][ keep] ¶");
+    }
+
+    [Test]
+    public async Task Replaced_StretchesThatOverlap_AreRefused()
+    {
+        var docx = Build(P(R("abcdef")) + section);
+
+        await Assert.That(() => DocumentEditor.Replace(docx, [new(0, 0, 3), new(0, 2, 4)], "x", Plain)).Throws<InvalidOperationException>();
+    }
 }

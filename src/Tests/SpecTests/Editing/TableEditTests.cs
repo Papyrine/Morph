@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using static EditDocuments;
 using static ReviewDocuments;
 
@@ -145,5 +146,72 @@ public class TableEditTests
         await Assert.That(Describe(accepted)).StartsWith("<c|d>");
         var rejected = ReviewEditor.ResolveAll(result.Document, accept: false);
         await Assert.That(Describe(rejected)).StartsWith("<a|b/c|d>");
+    }
+
+    // Tracked, a column added is a cell inserted in each row, and one deleted a cell deleted in each:
+    // the grid stays until the change is settled.
+
+    [Test]
+    public async Task AColumnAdded_Tracked_IsACellInsertedInEachRow()
+    {
+        var result = DocumentEditor.EditTable(Grid(), 0, TableEdit.InsertColumnRight, Tracked);
+
+        var xml = Xml(result.Document);
+        await Assert.That(Regex.Matches(xml, "<w:cellIns ").Count).IsEqualTo(2);
+        await Assert.That(DocumentReview.Read(result.Document).Changes.Select(_ => _.Kind)).Contains(ReviewChangeKind.CellInsertion);
+    }
+
+    [Test]
+    public async Task AColumnDeleted_Tracked_IsACellDeletedInEachRow_ItsTextStruckOut()
+    {
+        var result = DocumentEditor.EditTable(Grid(), 0, TableEdit.DeleteColumn, Tracked);
+
+        var xml = Xml(result.Document);
+        await Assert.That(Regex.Matches(xml, "<w:cellDel ").Count).IsEqualTo(2);
+        await Assert.That(Describe(result.Document)).StartsWith("<{-a-}¶-|b/{-c-}¶-|d>");
+        await Assert.That(Widths(result.Document)).IsEqualTo("2000,2000");
+    }
+
+    [Test]
+    public async Task ATableDeleted_Tracked_IsEveryRowDeleted_UntilAccepted()
+    {
+        var result = DocumentEditor.EditTable(Grid(), 0, TableEdit.DeleteTable, Tracked);
+
+        var changes = DocumentReview.Read(result.Document).Changes.Select(_ => _.Kind).ToList();
+        await Assert.That(changes.Count(_ => _ == ReviewChangeKind.RowDeletion)).IsGreaterThanOrEqualTo(1);
+        await Assert.That(Describe(ReviewEditor.ResolveAll(result.Document, accept: true))).IsEqualTo("After¶");
+        await Assert.That(Describe(ReviewEditor.ResolveAll(result.Document, accept: false))).StartsWith("<a|b/c|d>");
+    }
+
+    // A table that was all a cell held leaves the cell a paragraph to hold, as a cell has to.
+    [Test]
+    public async Task ATableNestedInACell_Deleted_LeavesTheCellAParagraph()
+    {
+        var docx = Build(
+            "<w:tbl><w:tblGrid><w:gridCol w:w=\"4000\"/></w:tblGrid><w:tr><w:tc>" +
+            "<w:tbl><w:tblGrid><w:gridCol w:w=\"2000\"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>inner</w:t></w:r></w:p></w:tc></w:tr></w:tbl>" +
+            "</w:tc></w:tr></w:tbl><w:p/>");
+
+        var result = DocumentEditor.EditTable(docx, 0, TableEdit.DeleteTable, Plain);
+
+        await Assert.That(Xml(result.Document)).IsEqualTo("<w:tbl><w:tblGrid><w:gridCol w:w=\"4000\" /></w:tblGrid><w:tr><w:tc><w:p /></w:tc></w:tr></w:tbl><w:p />");
+        await Assert.That(result.Paragraph).IsEqualTo(0);
+    }
+
+    // The middle column of a cell merged across all three goes: the merged cell narrows by one.
+    [Test]
+    public async Task AColumnDeleted_UnderAMergedCell_NarrowsIt()
+    {
+        var docx = Build(
+            "<w:tbl><w:tblGrid><w:gridCol w:w=\"1000\"/><w:gridCol w:w=\"1000\"/><w:gridCol w:w=\"1000\"/></w:tblGrid>" +
+            "<w:tr><w:tc><w:tcPr><w:gridSpan w:val=\"3\"/></w:tcPr><w:p><w:r><w:t>wide</w:t></w:r></w:p></w:tc></w:tr>" +
+            "<w:tr><w:tc><w:p><w:r><w:t>a</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>b</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>c</w:t></w:r></w:p></w:tc></w:tr>" +
+            "</w:tbl><w:p/>");
+
+        var result = DocumentEditor.EditTable(docx, 2, TableEdit.DeleteColumn, Plain);
+
+        await Assert.That(Describe(result.Document)).StartsWith("<wide/a|c>");
+        await Assert.That(Xml(result.Document)).Contains("<w:gridSpan w:val=\"2\" />");
+        await Assert.That(Widths(result.Document)).IsEqualTo("1000,1000");
     }
 }
