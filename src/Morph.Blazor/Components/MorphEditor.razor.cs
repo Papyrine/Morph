@@ -153,6 +153,11 @@ public partial class MorphEditor
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await FindDraftAsync();
+        }
+
         if (focusLink &&
             dialog == linkDialog)
         {
@@ -309,13 +314,24 @@ public partial class MorphEditor
         await NewDocumentAsync();
     }
 
-    Task DiscardThenNewAsync()
+    async Task DiscardThenNewAsync()
     {
         dialog = null;
-        return NewDocumentAsync();
+        await DropDraftAsync();
+        await NewDocumentAsync();
     }
 
     // Links
+
+    internal override Task KeyAsync(string name)
+    {
+        if (name == "link")
+        {
+            return OpenLinkAsync();
+        }
+
+        return base.KeyAsync(name);
+    }
 
     async Task OpenLinkAsync()
     {

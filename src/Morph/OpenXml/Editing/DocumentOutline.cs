@@ -85,6 +85,17 @@ sealed class DocumentOutline
         }
 
         var runs = SourceRuns.Index(root);
+        var styles = new Dictionary<string, Style>(StringComparer.Ordinal);
+        foreach (var style in document.MainDocumentPart.StyleDefinitionsPart?.Styles?.Elements<Style>() ?? [])
+        {
+            if (style.StyleId?.Value is { } id)
+            {
+                styles.TryAdd(id, style);
+            }
+        }
+
+        var defaultStyle = styles.Values
+            .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value ?? "Normal";
         var paragraphs = new List<EditParagraph>();
         var paragraphOfRun = new Dictionary<int, int>();
         foreach (var (paragraph, units) in ParagraphContent.ReadAll(root))
@@ -100,7 +111,9 @@ sealed class DocumentOutline
                 {
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
-                    InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
+                    InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any(),
+                    ListLevel = ListLevel(paragraph, styles, defaultStyle),
+                    NextStyle = NextStyle(paragraph, styles)
                 });
         }
 
@@ -119,10 +132,55 @@ sealed class DocumentOutline
                 .Where(_ => _.Length > 0 && !_.StartsWith('@'))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList() ?? [],
-            DefaultStyle = document.MainDocumentPart.StyleDefinitionsPart?.Styles?.Elements<Style>()
-                .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value ?? "Normal",
+            DefaultStyle = defaultStyle,
             paragraphOfRun = paragraphOfRun
         };
+    }
+
+    // The level of the list a paragraph is in: its own numbering's, or else its style's. A list id
+    // of 0 says the paragraph is in none, whatever its style says.
+    static int? ListLevel(Paragraph paragraph, Dictionary<string, Style> styles, string defaultStyle)
+    {
+        var own = paragraph.ParagraphProperties?.NumberingProperties;
+        var id = own?.NumberingId?.Val?.Value;
+        var level = own?.NumberingLevelReference?.Val?.Value;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var styleId = paragraph.ParagraphProperties?.ParagraphStyleId?.Val?.Value ?? defaultStyle;
+        while (seen.Add(styleId) &&
+               styles.TryGetValue(styleId, out var style))
+        {
+            var inherited = style.StyleParagraphProperties?.NumberingProperties;
+            id ??= inherited?.NumberingId?.Val?.Value;
+            level ??= inherited?.NumberingLevelReference?.Val?.Value;
+            if (style.BasedOn?.Val?.Value is not { } basedOn)
+            {
+                break;
+            }
+
+            styleId = basedOn;
+        }
+
+        if (id is not > 0)
+        {
+            return null;
+        }
+
+        return level ?? 0;
+    }
+
+    // The style w:next names for the paragraph's own, when it is another. w:next is the style's
+    // own, not inherited through w:basedOn, and a paragraph that names no style follows itself.
+    static string? NextStyle(Paragraph paragraph, Dictionary<string, Style> styles)
+    {
+        if (paragraph.ParagraphProperties?.ParagraphStyleId?.Val?.Value is not { } styleId ||
+            !styles.TryGetValue(styleId, out var style) ||
+            style.NextParagraphStyle?.Val?.Value is not { } next ||
+            next == styleId)
+        {
+            return null;
+        }
+
+        return next;
     }
 
     static EditUnit Unit(ParagraphContent.Unit unit, Dictionary<DocumentFormat.OpenXml.Wordprocessing.Run, int> runs) =>

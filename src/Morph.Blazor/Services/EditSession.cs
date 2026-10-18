@@ -173,6 +173,15 @@ sealed class EditSession
             json.WriteNumber("to", Math.Clamp(to, 0, Paragraph.Length));
             json.WriteBoolean("previous", Paragraph.HasPrevious);
             json.WriteBoolean("next", Paragraph.HasNext);
+            if (Paragraph.ListLevel is { } level)
+            {
+                json.WriteNumber("list", level);
+            }
+
+            if (Paragraph.NextStyle != null)
+            {
+                json.WriteBoolean("follow", true);
+            }
             json.WriteStartArray("u");
             for (var index = 0; index < Paragraph.Units.Count; index++)
             {

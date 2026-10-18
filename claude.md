@@ -319,6 +319,20 @@ where its caret was, in paragraph ordinals (`EditSession` gives the script each 
 A new document is `wwwroot/blank.docx`: Word's own blank document with its author, rsids and document
 ids taken out.
 
+Word's keys that change what a paragraph IS rather than what it says — Tab/Shift+Tab in a list, Enter
+in an empty list paragraph, Backspace at a list paragraph's start, Enter at a heading's end,
+Ctrl+Alt+1-3, Ctrl+K — are read by `onParagraphKey` in morph-edit.js and handed to .NET by name
+(`MorphViewer.OnEditKey`), which carries them out like a ribbon command; the session JSON says whether
+the paragraph is in a list (`list`) and whether its style names another to follow it (`follow`), from
+`EditParagraph.ListLevel` / `NextStyle`. What they do was **probed by sending keys to Word** (a visible
+Word window, with keys sent only while it is in the foreground — COM's `TypeParagraph` /
+`TypeBackspace` do not run Word's list rules); `ListKeyTests` records it.
+
+Unsaved work is kept by `MorphViewer.Drafts.cs` (the editor's alone, by `Editing`) and
+`wwwroot/morph-draft.js`: a `beforeunload` prompt while there are edits not saved, and a draft of the
+file in IndexedDB after each edit, which the start page offers back. One slot; saving or discarding
+drops it, and only a draft this session wrote is dropped.
+
 An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
 pages cannot disagree with what Download saves. **A change to `CanonicalParagraphMeasurer.Flatten` — what
 text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`

@@ -447,6 +447,7 @@ public partial class MorphViewer : IAsyncDisposable
             // The editor edits every Word document that allows it.
             editOpen = Editing && CanWrite;
             await viewer.SetEditModeAsync(editOpen);
+            await DocumentOpenedAsync(viewer);
         }
         catch (Exception exception)
         {
@@ -798,6 +799,7 @@ public partial class MorphViewer : IAsyncDisposable
         {
             await Interop.DownloadAsync(fileName ?? info.SampleFileName, info.ContentType, bytes);
             savedBytes = bytes;
+            await DocumentSavedAsync();
         }
         catch (Exception exception)
         {

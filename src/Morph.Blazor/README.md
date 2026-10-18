@@ -170,7 +170,11 @@ again, and the page redrawn.
 | --- | --- |
 | A click on a paragraph | Opens it with the caret where the click was. Text selected within one paragraph — a double click, a drag — opens it with that selected, so typing replaces it. |
 | Typing, Backspace, Delete, paste | Edit the text. What is pasted is pasted as plain text, a line to a paragraph. |
-| Enter, Shift+Enter, Tab | A new paragraph, formatted as the one it was split from; a line break; a tab. Enter at the end of a heading starts the style the heading names as its next, as Word does. |
+| Enter, Shift+Enter, Tab | A new paragraph, formatted as the one it was split from; a line break; a tab. Enter at the end of a heading starts the style the heading names as its next, as Word does, and what is typed there is in that style. |
+| Tab, Shift+Tab in a list | Moves the paragraph a level in or out of the list, wherever the caret is in it, as Word's keys do; no tab is typed. |
+| Enter in an empty paragraph of a list | Ends the list: the paragraph is taken out of it, at no indent. |
+| Backspace at the start of a list's paragraph | Takes its number or bullet off and leaves the text where it stood; a second Backspace joins it to the paragraph before. |
+| Ctrl+Alt+1, 2, 3; Ctrl+K | Heading 1, 2 or 3; a link on what is selected. |
 | Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
 | Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
 | ↑ ↓ ← → at the paragraph's edge | Goes on to the paragraph that way. |
@@ -192,6 +196,16 @@ cross-reference), a page break, a footnote's reference. The caret steps over it,
 or a selection deletes it whole — tracked, when tracking is on, so that rejecting the deletion puts it
 back. It cannot be typed into. Text a tracked change has deleted is **left in place**, to be settled in
 the review pane, and so is a field that begins in one paragraph and ends in another.
+
+### Unsaved work
+
+While the document has edits that have not been saved, the page asks before it is closed or reloaded,
+and the file is kept as a draft in the browser's own storage (IndexedDB) a moment after each edit. After
+a reload, a crash or a closed tab, the editor's start page offers it back: Recover opens it, still marked
+as edited; Discard lets it go. Saving a copy, or discarding the edits for a new document, removes the
+draft. There is one draft, the last document edited and not saved, and like the document it never
+leaves the device. Where the browser refuses storage — a private window, blocked site data — there is
+no draft, and the prompt before leaving is all there is.
 
 ## Review
 
@@ -233,9 +247,10 @@ Limits worth knowing:
   already there can be deleted but not typed into. A workbook or a deck is not edited.
 - A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the
   bundled Aptos faces whatever the font (see [Fonts](#fonts)); Word draws it in the font itself.
-- Enter at the end of a heading starts the heading's next style for a paragraph handed in empty; text
-  typed after it before the paragraph is handed in stays in the heading's style, as the paragraph it was
-  split from.
+- Tab at the start of a list's first paragraph moves it a level in, where Word moves the whole list
+  further in instead. A second Backspace at the start of a paragraph taken out of a list joins it to the
+  one before, where Word first steps its indent back.
+- Ctrl+Enter hands the paragraph in, so it is not a page break as in Word; Insert > Page break is.
 - Replace replaces text within a paragraph: a match running from one paragraph into the next, or across a
   picture or a field, is left as it is.
 - The editor is set in the face the page was drawn in, to the width the page set it, so its lines break

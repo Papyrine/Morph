@@ -42,6 +42,21 @@ static partial class DocumentEditor
             }).Document;
 
     /// <summary>
+    /// Takes a paragraph's number or bullet off and leaves its text where it stood, as Backspace at the
+    /// start of a list's paragraph does in Word: out of the list, indented as far as its text was, with
+    /// no hanging indent.
+    /// </summary>
+    public static byte[] Unnumber(byte[] docx, int paragraph, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                edit.Unnumber(edit.Find(paragraph));
+                return null;
+            }).Document;
+
+    /// <summary>
     /// Moves paragraphs in by <paramref name="steps"/> (out, when negative): a list's paragraph a level
     /// of the list, any other its left indent from one default tab stop to the next.
     /// </summary>
@@ -357,6 +372,51 @@ static partial class DocumentEditor
             }
 
             Unclutter(paragraph);
+        }
+
+        // Word-probed 2026-10-19 (keys sent to Word 365): Backspace at the start of a bulleted
+        // paragraph at level 1 (left 36pt, hanging 18pt) leaves it out of the list at left 36pt,
+        // hanging 0; at level 2 at left 54pt. Its text stays where it was drawn.
+        public void Unnumber(Paragraph paragraph)
+        {
+            if (Numbering(paragraph) is not {Id: > 0} numbering)
+            {
+                return;
+            }
+
+            var left = TextIndent(paragraph, numbering);
+            Unlist(paragraph);
+            if (left <= 0 &&
+                paragraph.ParagraphProperties?.Indentation == null)
+            {
+                return;
+            }
+
+            Reformat(paragraph).Indentation = new()
+            {
+                Left = left.ToString(CultureInfo.InvariantCulture)
+            };
+        }
+
+        // Where a list paragraph's text starts: its own indent, or else its level's, or else its style's.
+        int TextIndent(Paragraph paragraph, (int Id, int Level) numbering)
+        {
+            if (paragraph.ParagraphProperties?.Indentation is { } own &&
+                (own.Left ?? own.Start)?.Value is { } value &&
+                int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var twips))
+            {
+                return twips;
+            }
+
+            var level = Definition(numbering.Id)?.Elements<Level>().FirstOrDefault(_ => _.LevelIndex?.Value == numbering.Level);
+            if (level?.PreviousParagraphProperties?.Indentation is { } defined &&
+                (defined.Left ?? defined.Start)?.Value is { } levelValue &&
+                int.TryParse(levelValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var levelTwips))
+            {
+                return levelTwips;
+            }
+
+            return Left(paragraph);
         }
 
         // The list a block next to the paragraphs is in, if it is a paragraph in a list of the kind.

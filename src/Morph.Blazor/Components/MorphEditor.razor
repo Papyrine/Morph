@@ -651,6 +651,19 @@
         @<div class="viewer-empty editor-start">
             <p class="viewer-empty-title">Write a document</p>
             <p class="viewer-empty-note">Start a new Word document, or open a .docx to edit. Nothing leaves this device.</p>
+            @if (recovery is { } found)
+            {
+                <div class="editor-recover" role="group" aria-label="Unsaved document">
+                    <Iconify Value="Lucide.FileClock" aria-hidden="true" focusable="false" />
+                    <span class="editor-recover-text"><strong>@found.Name</strong> was edited on @recoveryTime and not saved.</span>
+                    <button type="button" class="editor-button editor-button-primary" @onclick="RecoverAsync">Recover</button>
+                    <button type="button" class="editor-button" @onclick="DiscardRecoveryAsync">Discard</button>
+                </div>
+            }
+            @if (recoveryNote is { } note)
+            {
+                <p class="viewer-empty-note" role="status">@note</p>
+            }
             <div class="editor-start-actions">
                 <button type="button" class="editor-start-new" @onclick="NewAsync">
                     <Iconify Value="Lucide.FilePlus2" aria-hidden="true" focusable="false" />

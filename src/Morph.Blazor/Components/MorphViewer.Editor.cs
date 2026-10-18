@@ -400,6 +400,39 @@ public partial class MorphViewer
         await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetList(_, target.Paragraphs, chosen, options));
     }
 
+    // Enter in an empty paragraph of a list ends the list there, as Word's does: the paragraph is
+    // left out of it, at no indent.
+    internal async Task EndListAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetList(_, [target.Paragraph], ListKind.None, options));
+    }
+
+    // Backspace at the start of a list's paragraph takes its number off, and leaves its text where it was.
+    internal async Task UnnumberAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.Unnumber(_, target.Paragraph, options));
+    }
+
+    // Enter at the end of a heading: the paragraph it began is in the file, in the style the heading
+    // names next (DocumentEditor.Rewrite gives it that), and typing goes on in it.
+    internal async Task FollowOnAsync()
+    {
+        if (await TargetAsync() is {Typing: true} target)
+        {
+            await ResumeAsync(target.Paragraph, target.Offset);
+        }
+    }
+
     internal async Task IndentAsync(int steps)
     {
         if (await RequireAsync() is not { } target)

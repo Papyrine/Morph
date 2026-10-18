@@ -2218,6 +2218,35 @@
     font-size: 0.8rem;
 }
 
+/* A document edited and not saved, kept by the browser, offered back. */
+.editor-recover {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 0.75rem;
+    max-width: 34rem;
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-left: 4px solid var(--morph-primary, #2b579a);
+    border-radius: 6px;
+    background: var(--morph-surface, #ffffff);
+    text-align: left;
+}
+
+.editor-recover > svg {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--morph-primary, #2b579a);
+}
+
+.editor-recover-text {
+    flex: 1 1 14rem;
+    overflow-wrap: anywhere;
+}
+
 .editor-start-actions {
     display: flex;
     flex-wrap: wrap;

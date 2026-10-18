@@ -818,6 +818,119 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(DocumentEditor.ListOf((byte[]) morph.Invocations["download"].Single().Arguments[2]!, 1)).IsEqualTo(ListKind.Number);
     }
 
+    // Word's keys in a list (Word-probed 2026-10-19): the script hands each to .NET by name, and it
+    // acts on the paragraph the caret is in.
+    [Test]
+    public async Task ListKeys_MoveALevel_EndTheList_AndTakeTheNumberOff()
+    {
+        var listed = DocumentEditor.SetList(Paragraphs, [0, 1, 2], ListKind.Bullet, new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        byte[]? reported = null;
+        var cut = await OpenEditing(listed, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Caret(1, 3);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("indent"));
+        await Assert.That(DocumentOutline.Read(reported!).Paragraphs[1].ListLevel).IsEqualTo(1);
+        await Assert.That(Session().GetProperty("list").GetInt32()).IsEqualTo(1);
+        await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(3);
+
+        Caret(1, 3);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("outdent"));
+        await Assert.That(DocumentOutline.Read(reported!).Paragraphs[1].ListLevel).IsEqualTo(0);
+
+        Caret(2, 0);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("end-list"));
+        await Assert.That(DocumentOutline.Read(reported!).Paragraphs[2].ListLevel).IsNull();
+        await Assert.That(Session().TryGetProperty("list", out _)).IsFalse();
+
+        Caret(0, 0);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("unnumber"));
+        await Assert.That(DocumentOutline.Read(reported!).Paragraphs[0].ListLevel).IsNull();
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:pPr><w:ind w:left=\"720\" /></w:pPr>");
+    }
+
+    // What the script is told of a paragraph, for its keys: its list level, and whether Enter at its
+    // end starts another style.
+    [Test]
+    public async Task TheSession_SaysWhetherTheParagraphIsInAList_OrIsFollowedByAnotherStyle()
+    {
+        var docx = DocumentEditor.SetStyle(DocumentEditor.SetList(Paragraphs, [2], ListKind.Number, new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false)), [0], "Heading1", new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        var cut = await OpenEditing(docx);
+
+        foreach (var (paragraph, text) in new[] {(0, "First"), (2, "Third")})
+        {
+            var (block, offset) = Place(docx, paragraph, text);
+            await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+            await Assert.That(Session().TryGetProperty("follow", out _)).IsEqualTo(paragraph == 0);
+            await Assert.That(Session().TryGetProperty("list", out _)).IsEqualTo(paragraph == 2);
+        }
+    }
+
+    // Ctrl+Alt+1 to 3, and Ctrl+K.
+    [Test]
+    public async Task HeadingKeys_SetTheStyle_AndCtrlK_AsksForALink()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Caret(2, 3);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("heading2"));
+        await Assert.That(Read(reported!)[2]).IsEqualTo("[Third and last.] #Heading2");
+
+        Selected(0, 6, 15);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("link"));
+        await Assert.That(cut.Find(".editor-dialog").TextContent).Contains("Insert link");
+    }
+
+    // An edit not saved is kept in the browser, and saving it lets the draft go.
+    [Test]
+    public async Task AnEdit_IsKeptAsADraft_UntilSaved()
+    {
+        var morph = JSInterop.SetupModule($"./{MorphAssets.Script}");
+        morph.Mode = JSRuntimeMode.Loose;
+        var cut = await OpenEditing(Paragraphs);
+        await Assert.That((bool) controller.Invocations["setUnsaved"].Single().Arguments[0]!).IsFalse();
+
+        Caret(1, 0);
+        await cut.Find("[aria-label=Numbering]").ClickAsync(new());
+
+        var kept = controller.Invocations["keepDraft"].Single();
+        await Assert.That(kept.Arguments[0]).IsEqualTo("edit.docx");
+        await Assert.That(DocumentEditor.ListOf((byte[]) kept.Arguments[1]!, 1)).IsEqualTo(ListKind.Number);
+        await Assert.That((bool) controller.Invocations["setUnsaved"][^1].Arguments[0]!).IsTrue();
+
+        await cut.Find("button[aria-label='Save a copy']").ClickAsync(new());
+
+        await Assert.That(controller.Invocations["dropDraft"].Count).IsEqualTo(1);
+        await Assert.That((bool) controller.Invocations["setUnsaved"][^1].Arguments[0]!).IsFalse();
+    }
+
+    // The start page offers the draft back. Recovering it is SnapshotTests.Edit_UnsavedWork_IsKept's:
+    // it fetches the bundled fonts, which only a browser serves.
+    [Test]
+    public async Task TheStartPage_OffersTheDraftBack()
+    {
+        controller.Setup<DraftInfo?>("describeDraft").SetResult(new("Notes.docx", 1760700000000));
+        controller.Setup<int>("zoneOffset").SetResult(600);
+        var cut = Render<MorphEditor>();
+
+        cut.WaitForElement(".editor-recover");
+
+        await Assert.That(cut.Find(".editor-recover-text").TextContent).IsEqualTo("Notes.docx was edited on 17 Oct at 21:20 and not saved.");
+    }
+
+    [Test]
+    public async Task ADraftDiscarded_FromTheStartPage_IsDropped()
+    {
+        controller.Setup<DraftInfo?>("describeDraft").SetResult(new("Notes.docx", 1760700000000));
+        var cut = Render<MorphEditor>();
+        cut.WaitForElement(".editor-recover");
+
+        await cut.FindAll(".editor-recover .editor-button").First(_ => _.TextContent == "Discard").ClickAsync(new());
+
+        await Assert.That(cut.FindAll(".editor-recover")).IsEmpty();
+        await Assert.That(controller.Invocations["dropDraft"].Count).IsEqualTo(1);
+    }
+
     // A new document over an edit not saved asks first.
     [Test]
     public async Task ANewDocument_OverAnUnsavedEdit_AsksFirst()

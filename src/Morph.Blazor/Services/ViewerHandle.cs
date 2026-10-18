@@ -87,6 +87,23 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask<int[]> EditTargetAsync() =>
         controller.InvokeAsync<int[]>("editTarget");
 
+    // The editor's draft (morph-draft.js): whether the page asks before it is left, the file kept in
+    // the browser's storage, and the draft read back.
+    public ValueTask SetUnsavedAsync(bool unsaved) =>
+        controller.InvokeVoidAsync("setUnsaved", unsaved);
+
+    public ValueTask KeepDraftAsync(string name, byte[] bytes) =>
+        controller.InvokeVoidAsync("keepDraft", name, bytes);
+
+    public ValueTask DropDraftAsync() =>
+        controller.InvokeVoidAsync("dropDraft");
+
+    public ValueTask<DraftInfo?> DescribeDraftAsync() =>
+        controller.InvokeAsync<DraftInfo?>("describeDraft");
+
+    public ValueTask<byte[]?> ReadDraftAsync() =>
+        controller.InvokeAsync<byte[]?>("readDraft");
+
     // The reader's time zone, in minutes east of UTC.
     public ValueTask<int> ZoneOffsetAsync() =>
         controller.InvokeAsync<int>("zoneOffset");

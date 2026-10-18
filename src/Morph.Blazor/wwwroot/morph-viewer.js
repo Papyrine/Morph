@@ -19,6 +19,7 @@
 
 import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt } from './morph-text.js';
 import { ParagraphEditor } from './morph-edit.js';
+import { DraftKeeper } from './morph-draft.js';
 
 // PDF.js's zoom steps.
 const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
@@ -62,6 +63,11 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setEditMode: on => viewer.setEditMode(on),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
+        setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
+        keepDraft: (name, bytes) => viewer.drafts().keep(name, bytes),
+        dropDraft: () => viewer.drafts().drop(),
+        describeDraft: () => viewer.drafts().describe(),
+        readDraft: () => viewer.drafts().read(),
         // Minutes east of UTC, which is the sign .NET's offsets take and the opposite of the browser's.
         zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
@@ -540,7 +546,15 @@ class Viewer {
         delete this.root.dataset.busy;
     }
 
+    // The editor's draft and its prompt before the page is left (morph-draft.js), made the first
+    // time the editor asks: a viewer that never edits leaves the page alone.
+    drafts() {
+        this.draftKeeper ??= new DraftKeeper(() => !!this.editor && !this.editor.closed && this.editor.changed);
+        return this.draftKeeper;
+    }
+
     dispose() {
+        this.draftKeeper?.dispose();
         this.cancelPrint();
         if (this.presenting) {
             this.exitPresentation();
@@ -1919,6 +1933,7 @@ class Viewer {
                 this.dotNet.invokeMethodAsync('OnEditCancel', id).catch(() => {});
             },
             state: state => this.showEditState(state),
+            key: name => this.editKey(name),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
     }
@@ -2025,8 +2040,20 @@ class Viewer {
 
     // Keys while editing is on and no paragraph is open. Says whether the key was one of them.
     onEditKey(event) {
+        if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
+            event.preventDefault();
+            this.editKey(`heading${event.code.slice(-1)}`);
+            return true;
+        }
+
         const command = (event.ctrlKey || event.metaKey) && !event.altKey;
         const key = event.key.toLowerCase();
+        if (command && key === 'k') {
+            event.preventDefault();
+            this.editKey('link');
+            return true;
+        }
+
         let name = null;
         if (command) {
             name = { b: 'bold', i: 'italic', u: 'underline', y: 'redo', z: event.shiftKey ? 'redo' : 'undo' }[key] ?? null;
@@ -2041,6 +2068,12 @@ class Viewer {
         event.preventDefault();
         this.editCommand(name);
         return true;
+    }
+
+    // A key whose command .NET carries out where the reader is (MorphViewer.OnEditKey): a list's
+    // level, a heading, a link. .NET asks editTarget() where that is, which hands in what is open.
+    editKey(name) {
+        this.dotNet.invokeMethodAsync('OnEditKey', name).catch(() => {});
     }
 
     pageOf(target) {

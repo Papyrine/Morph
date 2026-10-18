@@ -13,6 +13,15 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     /// <summary>Whether the paragraph is in a table's cell, which is what the table commands act on.</summary>
     public bool InTable { get; init; }
 
+    /// <summary>The paragraph's level in the list it is in — by its own numbering or its style's — or null.</summary>
+    public int? ListLevel { get; init; }
+
+    /// <summary>
+    /// The style a paragraph begun by Enter at this one's end is in, when it is not this one's own: the
+    /// style's <c>w:next</c>, as a heading names body text.
+    /// </summary>
+    public string? NextStyle { get; init; }
+
     /// <summary>
     /// How many places there are in the paragraph: one for each character of its text, and one for
     /// each thing in it that is not text.

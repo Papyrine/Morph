@@ -963,6 +963,14 @@ export class ParagraphEditor {
             return;
         }
 
+        // Word's Ctrl+Alt+1, 2 and 3: Heading 1, 2 and 3. By the key's place, since Alt changes what
+        // it types.
+        if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
+            event.preventDefault();
+            this.callbacks.key(`heading${event.code.slice(-1)}`);
+            return;
+        }
+
         const command = (event.ctrlKey || event.metaKey) && !event.altKey;
         const key = event.key.toLowerCase();
         if (command) {
@@ -990,8 +998,16 @@ export class ParagraphEditor {
                     event.preventDefault();
                     this.commit(0);
                     return;
+                case 'k':
+                    event.preventDefault();
+                    this.callbacks.key('link');
+                    return;
             }
 
+            return;
+        }
+
+        if (!event.altKey && this.onParagraphKey(event)) {
             return;
         }
 
@@ -1003,7 +1019,7 @@ export class ParagraphEditor {
                 return;
             case 'Tab':
                 event.preventDefault();
-                if (this.range()) {
+                if (this.range() && !event.shiftKey) {
                     this.replace(this.range(), '\t', 'type');
                 }
 
@@ -1018,6 +1034,64 @@ export class ParagraphEditor {
 
                 return;
         }
+    }
+
+    // Word's keys for a list's paragraph and a heading, which change what the paragraph is rather than
+    // what it says — the file's to do, so the paragraph is handed in and .NET carries them out.
+    // Word-probed 2026-10-19 by keys sent to Word 365: in a list, Tab anywhere moves the paragraph a
+    // level in and Shift+Tab a level out, with no tab typed; Enter in an empty paragraph takes it out
+    // of the list; Backspace at a paragraph's start takes its number off. Enter at the end of a
+    // heading starts the paragraph after in the style the heading names next, so text typed there
+    // is body text.
+    onParagraphKey(event) {
+        const selected = this.range();
+        if (!selected || event.ctrlKey || event.metaKey) {
+            return false;
+        }
+
+        const caret = same(selected.from, selected.to);
+        const listed = this.session.list !== undefined && this.session.list !== null;
+        let name = null;
+        switch (event.key) {
+            case 'Tab':
+                if (listed) {
+                    name = event.shiftKey ? 'outdent' : 'indent';
+                }
+
+                break;
+            case 'Enter':
+                if (event.shiftKey || !caret) {
+                    break;
+                }
+
+                if (listed && blockLength(this.blocks[selected.from.b]) === 0) {
+                    name = 'end-list';
+                } else if (this.session.follow &&
+                    selected.from.b === this.blocks.length - 1 &&
+                    selected.from.o === blockLength(this.blocks[selected.from.b]) &&
+                    selected.from.o > 0) {
+                    // The break is typed here, and the paragraph after it opened once the file has it.
+                    this.paragraphBreak(selected);
+                    name = 'follow-on';
+                }
+
+                break;
+            case 'Backspace':
+                if (listed && caret && !event.shiftKey && selected.from.o === 0 &&
+                    (selected.from.b > 0 || this.session.skip <= 0)) {
+                    name = 'unnumber';
+                }
+
+                break;
+        }
+
+        if (!name) {
+            return false;
+        }
+
+        event.preventDefault();
+        this.callbacks.key(name);
+        return true;
     }
 
     // An arrow key that would take the caret out of the paragraph takes the reader to the next one.

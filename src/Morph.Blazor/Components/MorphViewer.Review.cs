@@ -633,6 +633,7 @@ public partial class MorphViewer
             await PushReviewAsync(scroll && activeKey != null);
             emitted = bytes;
             await OnDocumentChanged.InvokeAsync(bytes);
+            await DocumentRevisedAsync();
             return true;
         }
         catch (OperationCanceledException)
