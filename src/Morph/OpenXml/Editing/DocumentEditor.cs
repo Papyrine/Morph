@@ -66,6 +66,22 @@ static partial class DocumentEditor
                 return null;
             }).Document;
 
+    /// <summary>
+    /// Takes the character formatting set on the text between two places off it, leaving it as its
+    /// paragraph's style has it. A character style stays — the Hyperlink style keeps a link a link.
+    /// Word-probed 2026-10-18: Clear Formatting on a word made bold, 20pt and red leaves no run
+    /// properties at all.
+    /// </summary>
+    public static byte[] ClearFormatting(byte[] docx, SourcePosition start, SourcePosition end, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                edit.ClearFormatting(start, end);
+                return null;
+            }).Document;
+
     /// <summary>Aligns paragraphs.</summary>
     public static byte[] Align(byte[] docx, IReadOnlyList<int> paragraphs, TextAlignment alignment, EditOptions options) =>
         Edit(
@@ -336,9 +352,18 @@ static partial class DocumentEditor
 
             // The text between the things that are not text is edited a stretch at a time: those
             // things stay where they are, and in their order, so stretch n of the new text is what
-            // stretch n of the old has become.
+            // stretch n of the old has become. One the new paragraph leaves out has been deleted —
+            // a picture, a page break, a field, a note's reference — and the text either side of it
+            // is one stretch.
+            const string fixedInPlace = "The paragraph's pictures, fields and notes have to stay in their order, and text a tracked change deleted has to stay.";
+            var kept = content
+                .SelectMany(_ => _.Items)
+                .Where(_ => _.Text == null)
+                .Select(_ => _.Unit)
+                .ToHashSet();
             var before = new List<List<Old>> {new()};
             var bounds = new List<Unit>();
+            var dropped = new List<Unit>();
             for (var index = 0; index < units.Count; index++)
             {
                 var unit = units[index];
@@ -346,14 +371,21 @@ static partial class DocumentEditor
                 {
                     before[^1].AddRange(unit.Cells.Select(_ => new Old(_, index)));
                 }
-                else
+                else if (kept.Contains(index))
                 {
                     bounds.Add(unit);
                     before.Add([]);
                 }
+                else if (Removable(unit))
+                {
+                    dropped.Add(unit);
+                }
+                else
+                {
+                    throw new InvalidOperationException(fixedInPlace);
+                }
             }
 
-            const string fixedInPlace = "The paragraph's pictures, fields and notes have to stay as they are, and in their order.";
             var after = new List<List<Fresh>> {new()};
             for (var index = 0; index < content.Count; index++)
             {
@@ -404,6 +436,11 @@ static partial class DocumentEditor
                 var ahead = index < bounds.Count ? bounds[index] : null;
                 var behind = index > 0 ? bounds[index - 1] : null;
                 Stretch(paragraph, units, before[index], after[index], behind, ahead, results);
+            }
+
+            foreach (var unit in dropped)
+            {
+                Drop(unit);
             }
 
             for (var index = 0; index < content.Count && index < results.Count; index++)
@@ -1444,6 +1481,34 @@ static partial class DocumentEditor
             }
         }
 
+        public void ClearFormatting(SourcePosition start, SourcePosition end)
+        {
+            foreach (var cells in Between(start, end).AsEnumerable().Reverse())
+            {
+                var run = Isolate(cells);
+                if (run.RunProperties is not { } existing ||
+                    !existing.ChildElements.Any(Direct))
+                {
+                    continue;
+                }
+
+                var properties = Rerun(run);
+                foreach (var child in properties.ChildElements.Where(Direct).ToList())
+                {
+                    child.Remove();
+                }
+
+                if (!properties.HasChildren)
+                {
+                    properties.Remove();
+                }
+            }
+
+            // Formatting set on the run, not a record of a revision or the run's character style.
+            static bool Direct(OpenXmlElement property) =>
+                property is not (RunStyle or RunPropertiesChange or Inserted or Deleted or MoveFrom or MoveTo);
+        }
+
         // The editable characters between two places, a unit's at a time, in document order.
         List<List<Cell>> Between(SourcePosition start, SourcePosition end)
         {
@@ -1564,6 +1629,71 @@ static partial class DocumentEditor
                 {
                     Val = underline ? UnderlineValues.Single : UnderlineValues.None
                 };
+            }
+
+            SetLook(properties, format);
+        }
+
+        // Word-probed 2026-10-18 (Word 16 over COM, each set on a word of its own): a font is
+        // w:rFonts for the ascii, hAnsi and cs scripts, East Asian left alone; a size is w:sz alone;
+        // a colour is w:color with no theme colour, and the automatic colour takes w:color away; a
+        // highlight is w:highlight; superscript and subscript are w:vertAlign.
+        static void SetLook(OoxmlRunProperties properties, RunFormat format)
+        {
+            if (format.Font is { } font)
+            {
+                var fonts = properties.RunFonts ?? new RunFonts();
+                fonts.Ascii = font;
+                fonts.HighAnsi = font;
+                fonts.ComplexScript = font;
+                fonts.AsciiTheme = null;
+                fonts.HighAnsiTheme = null;
+                fonts.ComplexScriptTheme = null;
+                properties.RunFonts = fonts;
+            }
+
+            if (format.SizePoints is { } size)
+            {
+                properties.FontSize = new()
+                {
+                    Val = ((int) Math.Round(size * 2)).ToString(CultureInfo.InvariantCulture)
+                };
+            }
+
+            if (format.Color is { } color)
+            {
+                properties.Color = null;
+                if (!string.Equals(color, "auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    properties.Color = new()
+                    {
+                        Val = color.ToUpperInvariant()
+                    };
+                }
+            }
+
+            if (format.Highlight is { } highlight)
+            {
+                properties.Highlight = null;
+                if (highlight != "none")
+                {
+                    properties.Highlight = new()
+                    {
+                        Val = new HighlightColorValues(highlight)
+                    };
+                }
+            }
+
+            if (format.Vertical is { } vertical)
+            {
+                properties.VerticalTextAlignment = null;
+                if (vertical != VerticalPositionValues.Baseline)
+                {
+                    properties.VerticalTextAlignment = new()
+                    {
+                        Val = vertical
+                    };
+                }
             }
         }
 
@@ -1801,9 +1931,17 @@ static partial class DocumentEditor
                 offset += unit.Editable ? unit.Cells.Count : 1;
             }
 
+            // What is not text between the two places goes with the text: a picture, a page
+            // break, a field, a note's reference.
+            var atoms = Atoms(chain, start, end);
             foreach (var cells in stretches.AsEnumerable().Reverse())
             {
                 Remove(cells[0].Run, cells);
+            }
+
+            foreach (var unit in atoms)
+            {
+                Drop(unit);
             }
 
             var standing = chain[^1];

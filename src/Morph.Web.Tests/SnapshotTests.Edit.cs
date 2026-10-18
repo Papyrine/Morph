@@ -165,7 +165,7 @@ public partial class SnapshotTests
     }
 
     // A field is shown and left alone: the caret steps over it as over one character, and what is
-    // typed either side of it goes either side of it in the file.
+    // typed either side of it goes either side of it in the file. Selected with the text, it goes.
     [Test]
     public async Task Edit_WhatIsNotText_StaysWhereItIs_WhileTheTextAroundItIsEdited()
     {
@@ -191,19 +191,88 @@ public partial class SnapshotTests
         await page.Keyboard.PressAsync("ArrowLeft");
         await page.Keyboard.TypeAsync("on ");
 
-        // Everything selected and deleted: the text goes, and the field stays.
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Dated on 1 May, by Ann!");
         await HandInAsync(page);
 
         await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[Dated on ][][][][1 May][][, by Ann!]");
 
+        // Everything selected and deleted: the field goes with the text.
         await ClickInAsync(page, "by Ann");
         await page.Keyboard.PressAsync("Control+a");
         await page.Keyboard.PressAsync("Delete");
-        await Assert.That((await page.InnerTextAsync(editor)).Trim()).IsEqualTo("1 May");
+        await Assert.That((await page.InnerTextAsync(editor)).Trim()).IsEqualTo("");
         await HandInAsync(page);
 
-        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[][][][1 May][]");
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("");
+    }
+
+    // Backspace just after a field deletes the field, whole, as Word's does; Delete just before a
+    // page break deletes the break.
+    [Test]
+    public async Task Edit_BackspaceAndDelete_BesideWhatIsNotText_DeleteIt()
+    {
+        const string field =
+            "<w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText xml:space=\"preserve\"> DATE </w:instrText></w:r>" +
+            "<w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>1 May</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r>";
+        var page = await OpenEditAsync(Build(P("", R("Dated "), field, R(" by Ann"))));
+
+        await ClickInAsync(page, "by Ann");
+        await page.Keyboard.PressAsync("Home");
+        for (var index = 0; index < "Dated ".Length + 1; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        await page.Keyboard.PressAsync("Backspace");
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Dated  by Ann");
+        await HandInAsync(page);
+
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[Dated ][ by Ann]");
+    }
+
+    // The Font group formats the word the caret is in, and the ribbon shows the size it now is.
+    [Test]
+    public async Task Edit_TheFontGroup_FormatsTheWordTheCaretIsIn()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("Home");
+        for (var index = 0; index < "First para".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        var size = await page.GetAttributeAsync("[data-edit-show=size]", "data-value");
+        await page.ClickAsync("[aria-label='Grow font']");
+        await page.WaitForFunctionAsync($"() => document.querySelector('[data-edit-show=size]').dataset.value !== '{size}'");
+
+        var session = await page.GetAttributeAsync(editor, "data-edit-session");
+        await page.ClickAsync("[aria-label='More font colours']");
+        await page.ClickAsync(".editor-swatch[aria-label='Blue']");
+        await page.WaitForSelectorAsync(".editor-swatch-button[style*='0070C0']");
+        await page.WaitForFunctionAsync(
+            $"() => document.querySelector('{editor}')?.dataset.editSession !== '{session}' && getSelection().toString() === 'paragraph'",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+
+        // The word is still selected, so typing replaces it.
+        await page.Keyboard.TypeAsync("text");
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        await Assert.That(Read(saved)[0]).IsEqualTo("[First ][text][ here.]");
+        await Assert.That(DocumentBody(saved)).Contains("<w:color w:val=\"0070C0\" /><w:sz w:val=\"28\" /></w:rPr><w:t xml:space=\"preserve\">text</w:t>");
+    }
+
+    static string DocumentBody(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        return package.MainDocumentPart!.Document!.Body!.InnerXml.Replace(" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
     }
 
     // Clicking another paragraph hands in the one that was open and opens the one clicked.
@@ -447,6 +516,7 @@ public partial class SnapshotTests
     [Arguments("styles")]
     [Arguments("file")]
     [Arguments("table")]
+    [Arguments("color")]
     public async Task Editor_Menu_Snapshot(string menu)
     {
         var page = await NewPinnedPageAsync();
@@ -462,6 +532,9 @@ public partial class SnapshotTests
                 break;
             case "file":
                 await page.ClickAsync(".editor-file");
+                break;
+            case "color":
+                await page.ClickAsync("[aria-label='More font colours']");
                 break;
             default:
                 await ChooseTabAsync(page, "Insert");

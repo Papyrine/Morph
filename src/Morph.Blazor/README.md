@@ -138,7 +138,7 @@ document, Open, and (with `ShowSamples`) the sample document. A workbook or a de
 | ribbon | what it does |
 | --- | --- |
 | File | New blank document (Word's own, as Word makes it), Open, Save a copy, Export as PNG, PDF, HTML, Markdown or plain text, Print. A new document over edits not yet saved asks first. |
-| Home | Undo, Redo; the paragraph style — every style the document offers and Word's own gallery, each drawn as it looks; bold, italic, underline, strikethrough; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
+| Home | Undo, Redo; the paragraph style — every style the document offers and Word's own gallery, each drawn as it looks; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
 | Insert | Page break; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link. |
 | Table | Shown while the caret is in a table: insert a row above or below, a column left or right; delete the row, the column or the table. |
 | Review | Track changes; New comment on what is selected; the comments and changes pane; Accept all, Reject all; Word count. |
@@ -172,9 +172,11 @@ again, and the page redrawn.
 | Typing, Backspace, Delete, paste | Edit the text. What is pasted is pasted as plain text, a line to a paragraph. |
 | Enter, Shift+Enter, Tab | A new paragraph, formatted as the one it was split from; a line break; a tab. Enter at the end of a heading starts the style the heading names as its next, as Word does. |
 | Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
+| Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
 | ↑ ↓ ← → at the paragraph's edge | Goes on to the paragraph that way. |
 | Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. |
 | Bold, Italic, Underline, Strikethrough (Ctrl+B / I / U) | Applies to what is selected in the open paragraph — or, with none open, to text selected across the pages. With nothing selected it applies to what is typed next. |
+| Font, size, grow and shrink, colour, highlight, superscript, subscript, clear formatting | Apply to what is selected — in the open paragraph or across the pages — or, with nothing selected, to the word the caret is in, as Word's do. The paragraph opens again with the same text selected. The font and size shown are those of the text at the caret. |
 | Align left, centre, right, justify | Aligns the open paragraph, or the paragraphs of the text selected on the pages. |
 | Delete with text selected on the pages | Deletes it, across paragraphs if need be, and joins what is left. |
 | Undo, Redo (Ctrl+Z / Y) | Within an open paragraph, what was typed there. Otherwise the last edit made to the file, whatever made it — typing, the ribbon, the review pane. |
@@ -185,9 +187,11 @@ pressed, and only what differs is changed in the file. Everything the editor doe
 the anchors of comments, a run's own spelling of its properties — stays exactly as it was, and a
 paragraph handed in unchanged leaves the file unchanged.
 
-What is not text is shown and **left in place**: a picture, a field (a date, a page number, a
-cross-reference), a footnote's reference, and text a tracked change has deleted. The text around them
-is edited; they cannot be typed into or deleted here.
+What is not text is shown as one character: a picture, a field (a date, a page number, a
+cross-reference), a page break, a footnote's reference. The caret steps over it, and Backspace, Delete
+or a selection deletes it whole — tracked, when tracking is on, so that rejecting the deletion puts it
+back. It cannot be typed into. Text a tracked change has deleted is **left in place**, to be settled in
+the review pane, and so is a field that begins in one paragraph and ends in another.
 
 ## Review
 
@@ -226,8 +230,9 @@ Limits worth knowing:
 - Text is edited in the document's body — its paragraphs, table cells and text boxes. Headers, footers
   and notes are other parts of the file, and are read only.
 - Pictures, tables, page breaks and links are put in from the ribbon; a picture, a field or a note
-  already there is kept in place while the text around it is typed, and cannot be typed into or deleted.
-  Fonts, sizes and colours are not changed, and a workbook or a deck is not edited.
+  already there can be deleted but not typed into. A workbook or a deck is not edited.
+- A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the
+  bundled Aptos faces whatever the font (see [Fonts](#fonts)); Word draws it in the font itself.
 - Enter at the end of a heading starts the heading's next style for a paragraph handed in empty; text
   typed after it before the paragraph is handed in stays in the heading's style, as the paragraph it was
   split from.

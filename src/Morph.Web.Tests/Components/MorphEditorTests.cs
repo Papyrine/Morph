@@ -333,6 +333,130 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find(".editor-style-name").TextContent).IsEqualTo("Heading 1");
     }
 
+    // The Font group: with the caret in a word, the word is what it formats, as Word's does.
+    [Test]
+    public async Task TheFontGroup_FormatsTheWordTheCaretIsIn()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Caret(2, 2);
+        await cut.Find(".editor-font-button").ClickAsync(new());
+        await cut.FindAll(".editor-font").First(_ => _.TextContent.Trim() == "Georgia").ClickAsync(new());
+
+        await Assert.That(Read(reported!)[2]).IsEqualTo("[Third][ and last.]");
+        await Assert.That(Body(reported!)).Contains("<w:rFonts w:ascii=\"Georgia\" w:hAnsi=\"Georgia\" w:cs=\"Georgia\" /></w:rPr><w:t xml:space=\"preserve\">Third</w:t>");
+
+        // The paragraph is open again with the word selected, and the ribbon shows its look.
+        await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(0);
+        await Assert.That(Session().GetProperty("to").GetInt32()).IsEqualTo(5);
+        await Assert.That(cut.Find("[data-edit-show='font']").GetAttribute("data-value")).IsEqualTo("Georgia");
+
+        Caret(2, 2);
+        await cut.Find(".editor-size-button").ClickAsync(new());
+        await cut.FindAll(".editor-sizes .editor-menu-item").First(_ => _.TextContent.Trim() == "18").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:sz w:val=\"36\" />");
+        await Assert.That(cut.Find("[data-edit-show='size']").GetAttribute("data-value")).IsEqualTo("18");
+
+        Caret(2, 2);
+        await cut.Find("[aria-label='Grow font']").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:sz w:val=\"40\" />");
+
+        Caret(2, 2);
+        await cut.Find("[aria-label='Superscript']").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:vertAlign w:val=\"superscript\" />");
+        await Assert.That(cut.Find("[aria-label='Superscript']").GetAttribute("aria-pressed")).IsEqualTo("true");
+
+        // Pressed again, it comes off.
+        Caret(2, 2);
+        await cut.Find("[aria-label='Superscript']").ClickAsync(new());
+        await Assert.That(Body(reported!)).DoesNotContain("vertAlign");
+
+        Caret(2, 2);
+        await cut.Find("[aria-label='Clear formatting']").ClickAsync(new());
+        await Assert.That(Body(reported!)).EndsWith("<w:p><w:r><w:t xml:space=\"preserve\">Third</w:t></w:r><w:r><w:t xml:space=\"preserve\"> and last.</w:t></w:r></w:p>");
+    }
+
+    // A colour chosen from the palette is the one the button applies after.
+    [Test]
+    public async Task TheColourButtons_ApplyTheColourLastChosen()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Selected(0, 6, 15);
+        await cut.Find("[aria-label='More font colours']").ClickAsync(new());
+        await cut.Find(".editor-swatch[aria-label='Blue']").ClickAsync(new());
+
+        await Assert.That(Read(reported!)[0]).IsEqualTo("[First ][paragraph][ here.]");
+        await Assert.That(Body(reported!)).Contains("<w:color w:val=\"0070C0\" /></w:rPr><w:t xml:space=\"preserve\">paragraph</w:t>");
+        await Assert.That(cut.Find("[aria-label='Font colour']").GetAttribute("style")).Contains("#0070C0");
+
+        Caret(2, 2);
+        await cut.Find("[aria-label='Font colour']").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:color w:val=\"0070C0\" /></w:rPr><w:t xml:space=\"preserve\">Third</w:t>");
+
+        Caret(2, 2);
+        await cut.Find("[aria-label='More font colours']").ClickAsync(new());
+        await cut.FindAll(".editor-palette .editor-menu-item").First(_ => _.TextContent.Trim() == "Automatic").ClickAsync(new());
+        await Assert.That(Body(reported!)).DoesNotContain("<w:color w:val=\"0070C0\" /></w:rPr><w:t xml:space=\"preserve\">Third</w:t>");
+
+        Selected(0, 6, 15);
+        await cut.Find("[aria-label='Highlight']").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:highlight w:val=\"yellow\" />");
+
+        Selected(0, 6, 15);
+        await cut.Find("[aria-label='More highlight colours']").ClickAsync(new());
+        await cut.FindAll(".editor-palette .editor-menu-item").First(_ => _.TextContent.Trim() == "No colour").ClickAsync(new());
+        await Assert.That(Body(reported!)).DoesNotContain("highlight");
+    }
+
+    // A caret between two words, or at a paragraph's end, is in no word: there is nothing to format.
+    [Test]
+    public async Task TheFontGroup_WithTheCaretInNoWord_SaysWhatToDo()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(2, 15);
+
+        await cut.Find("[aria-label='Grow font']").ClickAsync(new());
+
+        await Assert.That(reported).IsNull();
+        await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("Select the text to format, or click in a word.");
+    }
+
+    // Word's Grow Font and Shrink Font: along its list of sizes, and a point at a time past its ends.
+    [Test]
+    [Arguments(11, 1, 12)]
+    [Arguments(11, -1, 10.5)]
+    [Arguments(10.5, 1, 11)]
+    [Arguments(13, 1, 14)]
+    [Arguments(13, -1, 12)]
+    [Arguments(72, 1, 73)]
+    [Arguments(8, -1, 7)]
+    [Arguments(1, -1, 1)]
+    public async Task GrowAndShrink_StepAlongWordsSizes(double size, int steps, double expected) =>
+        await Assert.That(MorphViewer.Step(size, steps)).IsEqualTo(expected);
+
+    // What is not text, left out of what the script hands in — Backspace beside a field — is deleted.
+    [Test]
+    public async Task AFieldLeftOutOfWhatIsHandedIn_IsDeleted()
+    {
+        const string field =
+            "<w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText xml:space=\"preserve\"> DATE </w:instrText></w:r>" +
+            "<w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>1 May</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r>";
+        var dated = Build(P("", R("Dated "), field, R(" by Ann")));
+        byte[]? reported = null;
+        var cut = await OpenEditing(dated, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var (block, offset) = Place(dated, 0, "Dated");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditCommit(Session().GetProperty("id").GetInt32(), """[{"a":null,"i":[[0,"Dated ",0],[2," by Ann",0]]}]""", 0));
+
+        await Assert.That(Read(reported!)[0]).IsEqualTo("[Dated ][ by Ann]");
+        await Assert.That(Body(reported!)).DoesNotContain("fldChar");
+    }
+
     [Test]
     public async Task TheStyleMenu_ListsWordsStyles_EachDrawnAsItLooks()
     {
@@ -744,6 +868,10 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("spacing")]
     [Arguments("table")]
     [Arguments("file")]
+    [Arguments("font")]
+    [Arguments("size")]
+    [Arguments("color")]
+    [Arguments("highlight")]
     public async Task AMenu_Snapshot(string name)
     {
         var cut = await OpenEditing(Paragraphs);
@@ -762,6 +890,18 @@ public class MorphEditorTests : BunitTestContext
                 await ChooseTabAsync(cut, "Insert");
                 await cut.FindAll(".editor-tool").First(_ => _.TextContent.Contains("Table")).ClickAsync(new());
                 await cut.Find(".editor-grid-cell[aria-label='3 by 4']").MouseOverAsync(new());
+                break;
+            case "font":
+                await cut.Find(".editor-font-button").ClickAsync(new());
+                break;
+            case "size":
+                await cut.Find(".editor-size-button").ClickAsync(new());
+                break;
+            case "color":
+                await cut.Find("[aria-label='More font colours']").ClickAsync(new());
+                break;
+            case "highlight":
+                await cut.Find("[aria-label='More highlight colours']").ClickAsync(new());
                 break;
             default:
                 await cut.Find(".editor-file").ClickAsync(new());

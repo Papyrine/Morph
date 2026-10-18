@@ -256,7 +256,124 @@
                 }
             </div>
             <div class="editor-group" role="group" aria-label="Font">
+                @* The font and the size show what the caret is in: the script keeps data-value current
+                   as the caret moves (data-edit-show), and the stylesheet draws it. *@
+                <span class="editor-anchor">
+                    <button type="button" class="editor-dropdown editor-font-button" title="Font" aria-label="Font" aria-haspopup="listbox"
+                            aria-expanded="@Expanded(fontMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(fontMenu)">
+                        <span class="editor-shown" data-edit-show="font" data-value="@CurrentFont"></span>
+                        <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == fontMenu)
+                    {
+                        <div class="editor-menu editor-fonts" role="listbox" aria-label="Fonts" @onkeydown="OnMenuKeyDown">
+                            @if (DocumentFonts.Count > 0)
+                            {
+                                <div class="editor-menu-heading">In this document</div>
+                                @foreach (var each in DocumentFonts)
+                                {
+                                    @FontChoice(each)
+                                }
+                                <div class="editor-menu-separator" role="separator"></div>
+                            }
+                            <div class="editor-menu-heading">Fonts</div>
+                            @foreach (var each in CommonFonts)
+                            {
+                                @FontChoice(each)
+                            }
+                            <p class="editor-menu-note">The pages here are drawn in Aptos; the font chosen is kept in the file.</p>
+                        </div>
+                    }
+                </span>
+                <span class="editor-anchor">
+                    <button type="button" class="editor-dropdown editor-size-button" title="Font size" aria-label="Font size" aria-haspopup="listbox"
+                            aria-expanded="@Expanded(sizeMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(sizeMenu)">
+                        <span class="editor-shown" data-edit-show="size" data-value="@SizeLabel(CurrentSize)"></span>
+                        <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == sizeMenu)
+                    {
+                        <div class="editor-menu editor-sizes" role="listbox" aria-label="Font sizes" @onkeydown="OnMenuKeyDown">
+                            @foreach (var each in FontSizes)
+                            {
+                                var size = each;
+                                <button type="button" role="option" class="editor-menu-item" aria-selected="@Pressed(Math.Abs(CurrentSize - size) < 0.01)"
+                                        @onmousedown:preventDefault @onclick="() => SizeFromMenuAsync(size)">@SizeLabel(size)</button>
+                            }
+                        </div>
+                    }
+                </span>
+                <button type="button" class="viewer-button" title="Grow font" aria-label="Grow font"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => GrowAsync(1)">
+                    <Iconify Value="Lucide.AArrowUp" aria-hidden="true" focusable="false" />
+                </button>
+                <button type="button" class="viewer-button" title="Shrink font" aria-label="Shrink font"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => GrowAsync(-1)">
+                    <Iconify Value="Lucide.AArrowDown" aria-hidden="true" focusable="false" />
+                </button>
+                <span class="viewer-divider" aria-hidden="true"></span>
                 @CharacterButtons
+                <button type="button" class="viewer-button" title="Superscript" aria-label="Superscript" aria-pressed="@Pressed(IsSuperscript)"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="ToggleSuperscriptAsync">
+                    <Iconify Value="Lucide.Superscript" aria-hidden="true" focusable="false" />
+                </button>
+                <button type="button" class="viewer-button" title="Subscript" aria-label="Subscript" aria-pressed="@Pressed(IsSubscript)"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="ToggleSubscriptAsync">
+                    <Iconify Value="Lucide.Subscript" aria-hidden="true" focusable="false" />
+                </button>
+                <span class="viewer-divider" aria-hidden="true"></span>
+                <span class="editor-anchor">
+                    <button type="button" class="viewer-button editor-swatch-button" title="Font colour" aria-label="Font colour"
+                            style="--swatch: #@LastColor" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => SetColorAsync(LastColor)">
+                        <Iconify Value="Lucide.Baseline" aria-hidden="true" focusable="false" />
+                    </button>
+                    <button type="button" class="viewer-button editor-split-arrow" title="More font colours" aria-label="More font colours" aria-haspopup="dialog"
+                            aria-expanded="@Expanded(colorMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(colorMenu)">
+                        <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == colorMenu)
+                    {
+                        <div class="editor-menu editor-palette" role="dialog" aria-label="Font colour" @onkeydown="OnMenuKeyDown">
+                            <button type="button" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => ColorFromMenuAsync(automatic)">Automatic</button>
+                            <div class="editor-swatches">
+                                @foreach (var (hex, name) in TextColors)
+                                {
+                                    var color = hex;
+                                    <button type="button" class="editor-swatch" title="@name" aria-label="@name" style="background: #@color"
+                                            @onmousedown:preventDefault @onclick="() => ColorFromMenuAsync(color)"></button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </span>
+                <span class="editor-anchor">
+                    <button type="button" class="viewer-button editor-swatch-button" title="Highlight" aria-label="Highlight"
+                            style="--swatch: #@HighlightHex(LastHighlight)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => SetHighlightAsync(LastHighlight)">
+                        <Iconify Value="Lucide.Highlighter" aria-hidden="true" focusable="false" />
+                    </button>
+                    <button type="button" class="viewer-button editor-split-arrow" title="More highlight colours" aria-label="More highlight colours" aria-haspopup="dialog"
+                            aria-expanded="@Expanded(highlightMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(highlightMenu)">
+                        <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == highlightMenu)
+                    {
+                        <div class="editor-menu editor-palette" role="dialog" aria-label="Highlight" @onkeydown="OnMenuKeyDown">
+                            <div class="editor-swatches">
+                                @foreach (var (value, hex, name) in Highlights)
+                                {
+                                    var highlight = value;
+                                    <button type="button" class="editor-swatch" title="@name" aria-label="@name" style="background: #@hex"
+                                            @onmousedown:preventDefault @onclick="() => HighlightFromMenuAsync(highlight)"></button>
+                                }
+                            </div>
+                            <button type="button" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => HighlightFromMenuAsync(noHighlight)">No colour</button>
+                        </div>
+                    }
+                </span>
+                <button type="button" class="viewer-button" title="Clear formatting" aria-label="Clear formatting"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="ClearFormattingAsync">
+                    <Iconify Value="Lucide.RemoveFormatting" aria-hidden="true" focusable="false" />
+                </button>
             </div>
             <div class="editor-group" role="group" aria-label="Paragraph">
                 <button type="button" class="viewer-button" title="Bullets" aria-label="Bullets" aria-pressed="@Pressed(CurrentList == ListKind.Bullet)"
@@ -315,6 +432,11 @@
                 </button>
             </div>
         </text>;
+
+    // A font in the menu, drawn in itself where the browser has it.
+    RenderFragment FontChoice(string font) =>
+        @<button type="button" role="option" class="editor-menu-item editor-font" aria-selected="@Pressed(string.Equals(font, CurrentFont, StringComparison.OrdinalIgnoreCase))"
+                 style="font-family: '@font', sans-serif" @onmousedown:preventDefault @onclick="() => FontFromMenuAsync(font)">@font</button>;
 
     RenderFragment InsertTab =>
         @<text>

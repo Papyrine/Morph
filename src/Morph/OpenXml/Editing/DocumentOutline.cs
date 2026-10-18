@@ -32,6 +32,9 @@ sealed class DocumentOutline
     /// <summary>The style a paragraph that names none is in.</summary>
     public string DefaultStyle { get; init; } = "Normal";
 
+    /// <summary>The fonts the document's font table names, in its order, less the vertical (<c>@</c>) forms.</summary>
+    public IReadOnlyList<string> Fonts { get; init; } = [];
+
     public static DocumentOutline Empty { get; } = new()
     {
         Paragraphs = [],
@@ -110,6 +113,12 @@ sealed class DocumentOutline
                        tracking.Val?.Value != false,
             ForcesTracking = forces,
             Styles = StyleCatalog.Read(document.MainDocumentPart),
+            Fonts = document.MainDocumentPart.FontTablePart?.Fonts?.Elements<Font>()
+                .Select(_ => _.Name?.Value)
+                .OfType<string>()
+                .Where(_ => _.Length > 0 && !_.StartsWith('@'))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? [],
             DefaultStyle = document.MainDocumentPart.StyleDefinitionsPart?.Styles?.Elements<Style>()
                 .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value ?? "Normal",
             paragraphOfRun = paragraphOfRun

@@ -303,10 +303,16 @@ like any character. A page or column break is not.
 The ribbon's commands are `DocumentEditor` edits too, in partial files beside the typing ones:
 `DocumentEditor.Paragraphs.cs` (style, list, indent, spacing — each a `w:pPrChange` when tracked),
 `DocumentEditor.Inserts.cs` (page break, table, picture, link, replace) and `DocumentEditor.Tables.cs`
-(rows, columns, the table). Word's own markup for each was **probed over COM** and is recorded beside the
+(rows, columns, the table); the Font group's look (font, size, colour, highlight, vertical alignment)
+is `RunFormat` through the same `Format` as bold, and `ClearFormatting` takes a run's direct look off
+but leaves its character style. `DocumentEditor.Atoms.cs` deletes what is not text — a picture, a
+break, a field from its beginning to its end, a note's reference with its note — when a rewritten
+paragraph leaves it out or a deletion spans it; tracked, its runs are struck (`w:delText`,
+`w:delInstrText`) so rejecting puts it back. Word's own markup for each was **probed over COM** and is recorded beside the
 code: `BuiltInStyles` holds Word's definitions of the styles it builds in, added to a document the first
 time one is used, and `ListTemplates` Word's nine-level bullet and number lists. Their tests are
-`ParagraphFormatTests`, `InsertTests` and `TableEditTests` under `src/Tests/SpecTests/Editing/`. A command
+`ParagraphFormatTests`, `InsertTests`, `TableEditTests`, `CharacterFormatTests` and `AtomDeletionTests` under
+`src/Tests/SpecTests/Editing/`. A command
 acts where the reader is: `editTarget()` in morph-viewer.js hands in the paragraph being typed and says
 where its caret was, in paragraph ordinals (`EditSession` gives the script each paragraph's `p`), and
 `MorphViewer.Editor.cs` turns that into an `EditTarget`, falling back to the text selected on the pages.

@@ -9,6 +9,12 @@ sealed record EditTarget(int First, int Last, int Paragraph, int Offset, SourceP
     /// <summary>The selected text, as a comment on it quotes it.</summary>
     public string Quote { get; init; } = "";
 
+    /// <summary>Where the selection starts: its paragraph, and its place in it.</summary>
+    public int StartParagraph { get; init; } = -1;
+
+    /// <inheritdoc cref="StartParagraph"/>
+    public int StartOffset { get; init; }
+
     public IReadOnlyList<int> Paragraphs =>
         Enumerable.Range(First, Last - First + 1).ToList();
 

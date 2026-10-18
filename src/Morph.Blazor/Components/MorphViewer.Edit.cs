@@ -196,6 +196,13 @@ public partial class MorphViewer
     {
         session = new(++sessions, paragraph, block, editMap);
         caretParagraph = paragraph.Ordinal;
+        // The look shown is that of the character before a caret, or of the first one selected.
+        caretOffset = from;
+        if (to > from)
+        {
+            caretOffset = from + 1;
+        }
+
         try
         {
             await viewer.BeginEditAsync(documentId, session.Json(from, to));

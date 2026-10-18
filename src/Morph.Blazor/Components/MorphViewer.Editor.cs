@@ -1,3 +1,4 @@
+using VerticalPositionValues = DocumentFormat.OpenXml.Wordprocessing.VerticalPositionValues;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 using Image = SixLabors.ImageSharp.Image;
@@ -99,7 +100,9 @@ public partial class MorphViewer
 
         return new(place[0], place[1], place[2], caret, start, end, Typing: true)
         {
-            Quote = Text(place[4], place[5], place[6], place[7])
+            Quote = Text(place[4], place[5], place[6], place[7]),
+            StartParagraph = place[4],
+            StartOffset = place[5]
         };
     }
 
@@ -869,4 +872,269 @@ public partial class MorphViewer
             ReportError("Could not start a new document", exception);
         }
     }
+
+    // Character formatting: what the Font group of the ribbon sets. It acts on the text selected, or
+    // else on the word the caret is in, as Word's does; and the paragraph is open again afterwards
+    // with the same text selected.
+
+    // Word's font size list.
+    internal static readonly double[] FontSizes = [8, 9, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+
+    internal static readonly string[] CommonFonts =
+    [
+        "Aptos", "Aptos Display", "Arial", "Calibri", "Calibri Light", "Cambria", "Candara", "Consolas", "Constantia",
+        "Corbel", "Courier New", "Georgia", "Segoe UI", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana"
+    ];
+
+    // Word's standard colours, the row under its theme colours, and a row of greys.
+    internal static readonly (string Hex, string Name)[] TextColors =
+    [
+        ("C00000", "Dark red"), ("FF0000", "Red"), ("FFC000", "Orange"), ("FFFF00", "Yellow"), ("92D050", "Light green"),
+        ("00B050", "Green"), ("00B0F0", "Light blue"), ("0070C0", "Blue"), ("002060", "Dark blue"), ("7030A0", "Purple"),
+        ("000000", "Black"), ("404040", "Dark grey"), ("7F7F7F", "Grey"), ("BFBFBF", "Light grey"), ("FFFFFF", "White")
+    ];
+
+    // Word's highlight colours, by the names the file writes them under.
+    internal static readonly (string Value, string Hex, string Name)[] Highlights =
+    [
+        ("yellow", "FFFF00", "Yellow"), ("green", "00FF00", "Bright green"), ("cyan", "00FFFF", "Turquoise"),
+        ("magenta", "FF00FF", "Pink"), ("blue", "0000FF", "Blue"), ("red", "FF0000", "Red"),
+        ("darkBlue", "000080", "Dark blue"), ("darkCyan", "008080", "Teal"), ("darkGreen", "008000", "Green"),
+        ("darkMagenta", "800080", "Violet"), ("darkRed", "800000", "Dark red"), ("darkYellow", "808000", "Dark yellow"),
+        ("darkGray", "808080", "Grey 50%"), ("lightGray", "C0C0C0", "Grey 25%"), ("black", "000000", "Black")
+    ];
+
+    // Where the paragraph was opened, as a place whose character before it is the one the ribbon
+    // shows the look of.
+    int caretOffset;
+
+    internal string LastColor { get; set; } = "FF0000";
+
+    internal string LastHighlight { get; set; } = "yellow";
+
+    internal IReadOnlyList<string> DocumentFonts => outline.Fonts;
+
+    // The look of the text the caret is in: that of the character before it, or of the first at a
+    // paragraph's start.
+    RunProperties? CurrentRun
+    {
+        get
+        {
+            if (CurrentParagraph is not { } paragraph)
+            {
+                return null;
+            }
+
+            var at = 0;
+            RunProperties? found = null;
+            foreach (var unit in paragraph.Units)
+            {
+                var span = unit.Editable ? unit.Text.Length : 1;
+                if (unit.Editable &&
+                    editMap.Format(unit.Run) is { } format)
+                {
+                    found ??= format;
+                    if (caretOffset > at &&
+                        caretOffset <= at + span)
+                    {
+                        return format;
+                    }
+                }
+
+                at += span;
+            }
+
+            return found;
+        }
+    }
+
+    internal string CurrentFont => CurrentRun?.FontFamily ?? DefaultFontSettings.DefaultFont;
+
+    internal double CurrentSize => CurrentRun?.FontSizePoints ?? 11;
+
+    internal bool IsSuperscript => CurrentRun?.VerticalAlignment == VerticalRunAlignment.Superscript;
+
+    internal bool IsSubscript => CurrentRun?.VerticalAlignment == VerticalRunAlignment.Subscript;
+
+    // Word's Grow Font and Shrink Font: to the next size on the list, or past its ends a point at a time.
+    internal static double Step(double size, int steps)
+    {
+        if (steps > 0)
+        {
+            foreach (var each in FontSizes)
+            {
+                if (each > size + 0.01)
+                {
+                    return each;
+                }
+            }
+
+            return Math.Min(1638, Math.Floor(size) + 1);
+        }
+
+        for (var index = FontSizes.Length - 1; index >= 0; index--)
+        {
+            if (FontSizes[index] < size - 0.01)
+            {
+                return FontSizes[index];
+            }
+        }
+
+        return Math.Max(1, Math.Ceiling(size) - 1);
+    }
+
+    // What character formatting acts on: the text selected — in the paragraph open for typing, or
+    // across the pages — or the word the caret is in.
+    async Task<(EditTarget Target, SourcePosition Start, SourcePosition End, int From, int To)?> TextAsync()
+    {
+        const string note = "Select the text to format, or click in a word.";
+        if (await RequireAsync(note) is not { } target)
+        {
+            return null;
+        }
+
+        if (target is {HasSelection: true, Start: { } start, End: { } end})
+        {
+            return (target, start, end, target.StartOffset, target.Offset);
+        }
+
+        if (Word(target) is var (from, to) &&
+            outline.Paragraphs[target.Paragraph].PositionAt(from, ending: false) is { } first &&
+            outline.Paragraphs[target.Paragraph].PositionAt(to, ending: true) is { } last)
+        {
+            return (target with {StartParagraph = target.Paragraph}, first, last, from, to);
+        }
+
+        editNote = note;
+        StateHasChanged();
+        return null;
+    }
+
+    // The word a caret stands inside: letters and digits either side of it.
+    (int From, int To)? Word(EditTarget target)
+    {
+        if (target.Paragraph >= outline.Paragraphs.Count)
+        {
+            return null;
+        }
+
+        var text = new StringBuilder();
+        foreach (var unit in outline.Paragraphs[target.Paragraph].Units)
+        {
+            text.Append(unit.Editable ? unit.Text : "￼");
+        }
+
+        var caret = target.Offset;
+        if (caret <= 0 ||
+            caret >= text.Length ||
+            !Letter(text[caret - 1]) ||
+            !Letter(text[caret]))
+        {
+            return null;
+        }
+
+        var from = caret;
+        while (from > 0 &&
+               Letter(text[from - 1]))
+        {
+            from--;
+        }
+
+        var to = caret;
+        while (to < text.Length &&
+               Letter(text[to]))
+        {
+            to++;
+        }
+
+        return (from, to);
+
+        static bool Letter(char character) =>
+            char.IsLetterOrDigit(character) || character is '\'' or '’';
+    }
+
+    async Task FormatTextAsync(Func<SourcePosition, SourcePosition, EditOptions, Func<byte[], byte[]>> edit)
+    {
+        if (await TextAsync() is not var (target, start, end, from, to))
+        {
+            return;
+        }
+
+        var options = await EditOptionsAsync();
+        if (!await ReviseAsync(edit(start, end, options), relayout: true, () => activeKey) ||
+            !target.Typing)
+        {
+            return;
+        }
+
+        // Formatting changes no text: the paragraph opens again with the same text selected.
+        if (target.StartParagraph == target.Paragraph &&
+            handle is { } viewer &&
+            target.Paragraph < outline.Paragraphs.Count &&
+            Block(target.Paragraph, -1) is { } block)
+        {
+            await BeginAsync(viewer, outline.Paragraphs[target.Paragraph], block, from, to);
+            return;
+        }
+
+        await ResumeAsync(target.Paragraph, target.Offset);
+    }
+
+    internal Task FormatAsync(RunFormat format) =>
+        FormatTextAsync((start, end, options) => _ => DocumentEditor.Format(_, start, end, format, options));
+
+    internal Task SetFontAsync(string font) =>
+        FormatAsync(new(Font: font));
+
+    internal Task SetSizeAsync(double size) =>
+        FormatAsync(new(SizePoints: size));
+
+    internal Task GrowAsync(int steps) =>
+        SetSizeAsync(Step(CurrentSize, steps));
+
+    internal Task SetColorAsync(string color)
+    {
+        if (color != "auto")
+        {
+            LastColor = color;
+        }
+
+        return FormatAsync(new(Color: color));
+    }
+
+    internal Task SetHighlightAsync(string highlight)
+    {
+        if (highlight != "none")
+        {
+            LastHighlight = highlight;
+        }
+
+        return FormatAsync(new(Highlight: highlight));
+    }
+
+    // As Word's buttons do: on, unless the text the caret is in is that already.
+    internal Task ToggleSuperscriptAsync()
+    {
+        var vertical = VerticalPositionValues.Superscript;
+        if (IsSuperscript)
+        {
+            vertical = VerticalPositionValues.Baseline;
+        }
+
+        return FormatAsync(new(Vertical: vertical));
+    }
+
+    internal Task ToggleSubscriptAsync()
+    {
+        var vertical = VerticalPositionValues.Subscript;
+        if (IsSubscript)
+        {
+            vertical = VerticalPositionValues.Baseline;
+        }
+
+        return FormatAsync(new(Vertical: vertical));
+    }
+
+    internal Task ClearFormattingAsync() =>
+        FormatTextAsync((start, end, options) => _ => DocumentEditor.ClearFormatting(_, start, end, options));
 }

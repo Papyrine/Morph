@@ -18,6 +18,13 @@ public partial class MorphEditor
     const string stylesMenu = "styles";
     const string spacingMenu = "spacing";
     const string tableMenu = "table";
+    const string fontMenu = "font";
+    const string sizeMenu = "size";
+    const string colorMenu = "color";
+    const string highlightMenu = "highlight";
+
+    const string automatic = "auto";
+    const string noHighlight = "none";
 
     const string home = "Home";
     const string insert = "Insert";
@@ -215,6 +222,46 @@ public partial class MorphEditor
     {
         menu = null;
         return InsertTableAsync(rows, columns);
+    }
+
+    Task FontFromMenuAsync(string font)
+    {
+        menu = null;
+        return SetFontAsync(font);
+    }
+
+    Task SizeFromMenuAsync(double size)
+    {
+        menu = null;
+        return SetSizeAsync(size);
+    }
+
+    Task ColorFromMenuAsync(string color)
+    {
+        menu = null;
+        return SetColorAsync(color);
+    }
+
+    Task HighlightFromMenuAsync(string highlight)
+    {
+        menu = null;
+        return SetHighlightAsync(highlight);
+    }
+
+    static string SizeLabel(double size) =>
+        size.ToString("0.#", CultureInfo.InvariantCulture);
+
+    static string HighlightHex(string highlight)
+    {
+        foreach (var (value, hex, _) in Highlights)
+        {
+            if (value == highlight)
+            {
+                return hex;
+            }
+        }
+
+        return "FFFF00";
     }
 
     Task SaveFromMenuAsync()

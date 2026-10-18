@@ -1980,8 +1980,18 @@ class Viewer {
         }
     }
 
-    // Which of the editing bar's buttons are pressed: null when no paragraph is open.
+    // Which of the editing bar's buttons are pressed: null when no paragraph is open. The font and
+    // size the caret is in show in the ribbon (data-edit-show), as of the last place it was.
     showEditState(state) {
+        if (state) {
+            for (const shown of this.root.querySelectorAll('[data-edit-show]')) {
+                const value = state[shown.dataset.editShow];
+                if (value !== undefined && value !== null) {
+                    shown.dataset.value = typeof value === 'number' ? String(Math.round(value * 2) / 2) : value;
+                }
+            }
+        }
+
         for (const button of this.root.querySelectorAll('[data-edit-command]')) {
             const name = button.dataset.editCommand;
             if (name === 'track' || name === 'undo' || name === 'redo') {

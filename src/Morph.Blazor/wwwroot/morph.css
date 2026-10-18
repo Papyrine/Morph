@@ -1845,6 +1845,112 @@
     cursor: default;
 }
 
+/* The font and the size the caret is in, kept current by the script (data-edit-show). */
+.editor-shown::before {
+    content: attr(data-value);
+}
+
+.editor-shown {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-font-button {
+    min-width: 8.5rem;
+}
+
+.editor-size-button {
+    min-width: 3.75rem;
+}
+
+.editor-fonts {
+    min-width: 15rem;
+}
+
+.editor-font {
+    font-size: 0.95rem;
+}
+
+.editor-sizes {
+    min-width: 5rem;
+}
+
+.editor-menu-note {
+    max-width: 14rem;
+    margin: 0.35rem 0.6rem;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.75rem;
+    white-space: normal;
+}
+
+/* A dropdown and its menu, which opens under it rather than at the group's start. */
+.editor-anchor {
+    position: relative;
+    display: inline-flex;
+}
+
+.editor-anchor > .editor-menu {
+    left: 0;
+}
+
+/* A colour button carries the colour it applies, as a bar under its icon; its arrow opens the palette. */
+
+.editor-swatch-button {
+    flex-direction: column;
+    gap: 1px;
+}
+
+.editor-swatch-button::after {
+    content: "";
+    width: 1rem;
+    height: 3px;
+    border-radius: 1px;
+    background: var(--swatch);
+}
+
+.editor-swatch-button svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.viewer-button.editor-split-arrow {
+    width: 1rem;
+}
+
+.viewer-button.editor-split-arrow svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.editor-palette {
+    min-width: 0;
+    width: max-content;
+}
+
+.editor-swatches {
+    display: grid;
+    grid-template-columns: repeat(5, 1.4rem);
+    gap: 4px;
+    padding: 0.4rem 0.6rem;
+}
+
+.editor-swatch {
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.editor-swatch:hover,
+.editor-swatch:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: 1px;
+}
+
 .editor-style-name {
     max-width: 9rem;
     overflow: hidden;

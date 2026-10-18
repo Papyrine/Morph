@@ -529,7 +529,30 @@ export class ParagraphEditor {
         }
     }
 
-    // Takes out the text between two places. What is not text stays: it is not the editor's to delete.
+    // Whether an item that is not text can be deleted: a picture, a page break, a field or a note's
+    // reference can, and goes from the file when the paragraph is handed in. Text a tracked change
+    // deleted is settled in the review pane, and text the page never drew is not the reader's to see.
+    removable(item) {
+        const unit = this.session.u[item.u];
+        return item.atom === true && unit?.k === 1 && unit.s !== 'deleted';
+    }
+
+    // The item that takes up the place after o in a block, or null.
+    itemAt(b, o) {
+        let at = 0;
+        for (const item of this.blocks[b].items) {
+            const length = lengthOf(item);
+            if (o >= at && o < at + length) {
+                return item;
+            }
+
+            at += length;
+        }
+
+        return null;
+    }
+
+    // Takes out what is between two places: the text, and what is not text that can go.
     remove(from, to) {
         if (same(from, to)) {
             return;
@@ -539,18 +562,19 @@ export class ParagraphEditor {
         const first = this.blocks[from.b];
         if (from.b === to.b) {
             const end = this.divide(to);
-            first.items.splice(start, end - start, ...first.items.slice(start, end).filter(_ => _.atom));
+            first.items.splice(start, end - start, ...first.items.slice(start, end).filter(_ => _.atom && !this.removable(_)));
             return;
         }
 
-        const kept = first.items.slice(start).filter(_ => _.atom);
+        const stays = _ => _.atom && !this.removable(_);
+        const kept = first.items.slice(start).filter(stays);
         for (let index = from.b + 1; index < to.b; index++) {
-            kept.push(...this.blocks[index].items.filter(_ => _.atom));
+            kept.push(...this.blocks[index].items.filter(stays));
         }
 
         const last = this.blocks[to.b];
         const end = this.divide(to);
-        kept.push(...last.items.slice(0, end).filter(_ => _.atom), ...last.items.slice(end));
+        kept.push(...last.items.slice(0, end).filter(stays), ...last.items.slice(end));
         first.items.splice(start, first.items.length - start, ...kept);
         this.blocks.splice(from.b + 1, to.b - from.b);
     }
@@ -901,6 +925,15 @@ export class ParagraphEditor {
             return;
         }
 
+        // A browser that hands in no range around something that is not text: the place beside the
+        // caret is the one to go.
+        const beside = backward ? range.from.o - 1 : range.from.o;
+        const item = beside >= 0 ? this.itemAt(range.from.b, beside) : null;
+        if (item && this.removable(item)) {
+            this.replace({ from: { b: range.from.b, o: beside }, to: { b: range.from.b, o: beside + 1 } }, '', 'delete');
+            return;
+        }
+
         const last = this.blocks.length - 1;
         if (backward && range.from.b === 0 && range.from.o === 0) {
             if (this.session.previous && this.session.skip <= 0) {
@@ -1111,7 +1144,16 @@ export class ParagraphEditor {
             }
         }
 
+        // The font and size shown are those of the character before a caret, or of the first one selected.
+        let look = selected.from;
+        if (!same(selected.from, selected.to)) {
+            look = this.clamp({ b: selected.from.b, o: selected.from.o + 1 });
+        }
+
+        const unit = this.session.u[this.faceAt(look).u];
         this.callbacks.state({
+            font: unit?.n ?? this.session.font,
+            size: unit?.z ?? this.session.size,
             bold: (face & bold) !== 0,
             italic: (face & italic) !== 0,
             underline: (face & underline) !== 0,

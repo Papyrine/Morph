@@ -16,9 +16,9 @@ using System.Text.Json;
 /// <para>To the script (<c>v</c> 1), lengths in points:</para>
 /// <code>
 /// {"v":1,"id":3,"p":12,"page":0,"x":72,"y":80,"w":451.3,"h":29.2,"skip":0,"indent":0,"align":0,
-///  "line":14.6,"base":11.4,"size":11,"face":0,"color":"000000","fill":null,"from":5,"to":5,
+///  "line":14.6,"base":11.4,"size":11,"face":0,"font":"Aptos","color":"000000","fill":null,"from":5,"to":5,
 ///  "previous":true,"next":true,
-///  "u":[{"k":0,"t":"Hello ","z":11,"f":1,"c":"000000","a":5.9},{"k":1,"s":"note","t":"1","z":11,"v":1},…]}
+///  "u":[{"k":0,"t":"Hello ","z":11,"n":"Aptos","f":1,"c":"000000","a":5.9},{"k":1,"s":"note","t":"1","z":11,"v":1},…]}
 /// </code>
 /// <c>p</c> is the paragraph's ordinal, which the script names the place a ribbon command acts at in
 /// (<see cref="ViewerHandle.EditTargetAsync"/>). A unit's <c>k</c> is 0 for text to edit, 1 for
@@ -158,6 +158,7 @@ sealed class EditSession
             Number(json, "base", first.Baseline - first.Y);
             Number(json, "size", mark?.FontSizePoints ?? properties.ParagraphMarkFontSizePoints ?? Size());
             json.WriteNumber("face", (int) markFace);
+            json.WriteString("font", mark?.FontFamily ?? Font());
             json.WriteString("color", Color(mark));
             if (block.Fill is { } fill)
             {
@@ -199,6 +200,20 @@ sealed class EditSession
         return 11;
     }
 
+    // The face of the text around, for what has none of its own to go by.
+    string Font()
+    {
+        foreach (var unit in Paragraph.Units)
+        {
+            if (Map.Format(unit.Run) is { } format)
+            {
+                return format.FontFamily;
+            }
+        }
+
+        return DefaultFontSettings.DefaultFont;
+    }
+
     static string Color(RunProperties? properties) =>
         properties?.ColorHex ?? "000000";
 
@@ -219,6 +234,7 @@ sealed class EditSession
         json.WriteNumber("k", unit.Editable ? 0 : 1);
         json.WriteString("t", Shown(unit));
         Number(json, "z", format?.FontSizePoints ?? Size());
+        json.WriteString("n", format?.FontFamily ?? Font());
         var face = faces[index];
         var color = Color(format);
         switch (unit.Kind)
