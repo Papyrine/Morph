@@ -25,7 +25,7 @@ public class MainLayoutTests : BunitTestContext
 
     // The app shows one component per page: the converter at the root, the viewer at /view.
     [Test]
-    public async Task Header_LinksConvertAndView()
+    public async Task Header_LinksConvertViewAndEdit()
     {
         RenderFragment body = builder => builder.AddContent(0, "page");
 
@@ -33,11 +33,13 @@ public class MainLayoutTests : BunitTestContext
             .Add(_ => _.Body, body));
 
         var links = cut.FindAll(".app-nav a");
-        await Assert.That(links.Count).IsEqualTo(2);
+        await Assert.That(links.Count).IsEqualTo(3);
         await Assert.That(links[0].TextContent).IsEqualTo("Convert");
         await Assert.That(links[0].GetAttribute("href")).IsEqualTo("");
         await Assert.That(links[1].TextContent).IsEqualTo("View");
         await Assert.That(links[1].GetAttribute("href")).IsEqualTo("view");
+        await Assert.That(links[2].TextContent).IsEqualTo("Edit");
+        await Assert.That(links[2].GetAttribute("href")).IsEqualTo("edit");
     }
 
     [Test]

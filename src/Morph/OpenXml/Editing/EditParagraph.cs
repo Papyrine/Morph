@@ -10,6 +10,9 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     /// <summary>Whether the block before this paragraph is a paragraph that can be joined to it.</summary>
     public bool HasPrevious { get; init; }
 
+    /// <summary>Whether the paragraph is in a table's cell, which is what the table commands act on.</summary>
+    public bool InTable { get; init; }
+
     /// <summary>
     /// How many places there are in the paragraph: one for each character of its text, and one for
     /// each thing in it that is not text.
@@ -55,6 +58,50 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
         }
 
         return nearest;
+    }
+
+    /// <summary>
+    /// The position in one of the paragraph's runs of a place, counted as <see cref="Length"/> counts —
+    /// what <see cref="OffsetOf"/> turns back into the place. A selection starts at the first
+    /// character of text at or after its place, and ends (<paramref name="ending"/>) after the last
+    /// one before it; null where there is no such character.
+    /// </summary>
+    public SourcePosition? PositionAt(int place, bool ending)
+    {
+        var offset = 0;
+        SourcePosition? before = null;
+        foreach (var unit in Units)
+        {
+            var span = Span(unit);
+            if (unit.Editable &&
+                span > 0)
+            {
+                if (ending)
+                {
+                    if (place > offset &&
+                        place <= offset + span)
+                    {
+                        return new(unit.Run, unit.Start + place - offset);
+                    }
+
+                    if (offset + span < place)
+                    {
+                        before = new(unit.Run, unit.Start + span);
+                    }
+                }
+                else
+                {
+                    if (place < offset + span)
+                    {
+                        return new(unit.Run, unit.Start + Math.Max(place - offset, 0));
+                    }
+                }
+            }
+
+            offset += span;
+        }
+
+        return before;
     }
 
     static int Span(EditUnit unit)

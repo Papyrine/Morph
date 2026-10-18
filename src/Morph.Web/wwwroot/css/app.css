@@ -175,6 +175,17 @@ header p {
     transition: all 0.2s;
 }
 
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.theme-toggle-btn .icon {
+    width: 1rem;
+    height: 1rem;
+}
+
 .theme-toggle-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);

@@ -81,6 +81,12 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask BeginEditAsync(int documentId, string session) =>
         controller.InvokeVoidAsync("beginEdit", documentId, session);
 
+    // Where a command the ribbon runs is to act: what is being typed is handed in first, and the caret
+    // and the selection come back in paragraphs of the file (ParagraphEditor.target in morph-edit.js).
+    // Empty when no paragraph has been open since text was last selected on the pages.
+    public ValueTask<int[]> EditTargetAsync() =>
+        controller.InvokeAsync<int[]>("editTarget");
+
     // The reader's time zone, in minutes east of UTC.
     public ValueTask<int> ZoneOffsetAsync() =>
         controller.InvokeAsync<int>("zoneOffset");

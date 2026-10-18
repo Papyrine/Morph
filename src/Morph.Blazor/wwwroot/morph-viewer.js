@@ -61,6 +61,7 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         revealReviewCard: key => viewer.revealReviewCard(key),
         setEditMode: on => viewer.setEditMode(on),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
+        editTarget: () => viewer.editTarget(),
         // Minutes east of UTC, which is the sign .NET's offsets take and the opposite of the browser's.
         zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
@@ -507,6 +508,7 @@ class Viewer {
         this.clearReview();
         this.dropEditors();
         this.lastSelection = '';
+        this.lastTarget = null;
         this.visibleObserver.disconnect();
         this.nearObserver.disconnect();
         this.thumbObserver.disconnect();
@@ -1329,6 +1331,14 @@ class Viewer {
                     event.preventDefault();
                     this.call('OnFindRequested');
                     return;
+                case 'h':
+                    if (this.editMode) {
+                        event.preventDefault();
+                        this.call('OnReplaceRequested');
+                        return;
+                    }
+
+                    break;
                 case 's':
                     event.preventDefault();
                     // What is being typed is part of what is saved.
@@ -1760,6 +1770,12 @@ class Viewer {
         }
 
         this.lastSelection = key;
+
+        // Text selected on the pages is what a command acts on now, not where a caret last was.
+        if (selected) {
+            this.lastTarget = null;
+        }
+
         this.dotNet.invokeMethodAsync('OnReviewSelection', selected ?? []).catch(() => {});
     }
 
@@ -1845,6 +1861,7 @@ class Viewer {
 
         this.editMode = on;
         this.lastSelection = '';
+        this.lastTarget = null;
         if (on) {
             this.root.dataset.edit = 'on';
             this.onSelectionChange();
@@ -1892,13 +1909,35 @@ class Viewer {
 
         getSelection()?.removeAllRanges();
         this.editor = new ParagraphEditor(page.element.querySelector('.viewer-sheet'), page, session, {
-            commit: (editor, payload, then) => this.handIn(editor, payload, then),
+            commit: (editor, payload, then) => {
+                // A paragraph joined to its neighbour is not where it was.
+                this.lastTarget = then === 0 ? editor.target() ?? this.lastTarget : null;
+                return this.handIn(editor, payload, then);
+            },
             cancel: id => {
+                this.lastTarget = this.editor?.target() ?? this.lastTarget;
                 this.dotNet.invokeMethodAsync('OnEditCancel', id).catch(() => {});
             },
             state: state => this.showEditState(state),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
+    }
+
+    // Where a command .NET carries out itself — a style, a list, a table — is to act: in the paragraph
+    // being typed in, handed in first so that the command acts on the file as the reader left it; or
+    // else where the last one was left. In paragraphs of the file, as ParagraphEditor.target() says
+    // them; empty when no paragraph has been open since text was last selected on the pages.
+    async editTarget() {
+        const editor = this.editor;
+        if (editor && !editor.closed) {
+            const target = editor.target();
+            await editor.commit(0);
+            if (target) {
+                this.lastTarget = target;
+            }
+        }
+
+        return this.lastTarget ?? [];
     }
 
     // The editor stays where it is, showing what was typed, until the page under it shows the same.

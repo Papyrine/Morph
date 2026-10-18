@@ -15,13 +15,15 @@ using System.Text.Json;
 ///
 /// <para>To the script (<c>v</c> 1), lengths in points:</para>
 /// <code>
-/// {"v":1,"id":3,"page":0,"x":72,"y":80,"w":451.3,"h":29.2,"skip":0,"indent":0,"align":0,
+/// {"v":1,"id":3,"p":12,"page":0,"x":72,"y":80,"w":451.3,"h":29.2,"skip":0,"indent":0,"align":0,
 ///  "line":14.6,"base":11.4,"size":11,"face":0,"color":"000000","fill":null,"from":5,"to":5,
 ///  "previous":true,"next":true,
 ///  "u":[{"k":0,"t":"Hello ","z":11,"f":1,"c":"000000","a":5.9},{"k":1,"s":"note","t":"1","z":11,"v":1},…]}
 /// </code>
-/// A unit's <c>k</c> is 0 for text to edit, 1 for something shown and left alone (<c>s</c> says
-/// what: deleted, field, note, drawing, break) and 2 for something unseen; <c>f</c> is the
+/// <c>p</c> is the paragraph's ordinal, which the script names the place a ribbon command acts at in
+/// (<see cref="ViewerHandle.EditTargetAsync"/>). A unit's <c>k</c> is 0 for text to edit, 1 for
+/// something shown and left alone (<c>s</c> says what: deleted, field, note, drawing, break) and 2
+/// for something unseen; <c>f</c> is the
 /// <see cref="Face"/> bits, and <c>a</c> the room a character of it took on the page
 /// (<see cref="EditMap.Advance"/>), which the script spaces its own text out to. <c>from</c> and <c>to</c> are where the selection starts and ends, in
 /// places of the paragraph (<see cref="EditParagraph.Length"/>).
@@ -143,6 +145,7 @@ sealed class EditSession
             json.WriteStartObject();
             json.WriteNumber("v", 1);
             json.WriteNumber("id", Id);
+            json.WriteNumber("p", Paragraph.Ordinal);
             json.WriteNumber("page", block.Page);
             Number(json, "x", block.Left);
             Number(json, "y", block.Top);

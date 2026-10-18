@@ -43,7 +43,7 @@ public partial class MorphViewer
     [Parameter]
     public EventCallback<byte[]> OnDocumentChanged { get; set; }
 
-    const string guest = "Guest";
+    internal const string guest = "Guest";
 
     // Undo keeps whole files, so it is bounded by what they weigh rather than by how many there are.
     const long undoBudget = 64L * 1024 * 1024;
@@ -51,17 +51,17 @@ public partial class MorphViewer
     const int excerptLength = 280;
 
     ElementReference draftInput;
-    DocumentReview review = DocumentReview.Empty;
+    internal DocumentReview review = DocumentReview.Empty;
     ReviewMap reviewMap = ReviewMap.Empty;
     string[] pageTexts = [];
     IReadOnlyList<ReviewEntry> entries = [];
     ReviewFilter reviewFilter;
-    bool reviewOpen;
-    bool revising;
+    internal bool reviewOpen;
+    internal bool revising;
     string? activeKey;
     string? revealKey;
     string? reviewNote;
-    string authorName = "";
+    internal string authorName = "";
     ReviewDraft? draft;
     bool focusDraft;
 
@@ -74,18 +74,18 @@ public partial class MorphViewer
     string? fontDirectory;
     byte[]? emitted;
 
-    bool IsWord => sourceInfo?.Format == InputFormat.Docx;
+    internal bool IsWord => sourceInfo?.Format == InputFormat.Docx;
 
-    bool CanComment => !ReadOnly && review.AllowsComments;
+    internal bool CanComment => !ReadOnly && review.AllowsComments;
 
-    bool CanResolve => !ReadOnly && review.AllowsResolving;
+    internal bool CanResolve => !ReadOnly && review.AllowsResolving;
 
     bool CanEdit => CanComment || CanResolve;
 
     // What is left to deal with: every change, and every thread not yet resolved.
-    int OpenItems => review.Changes.Count + review.Comments.Count(_ => !_.Resolved);
+    internal int OpenItems => review.Changes.Count + review.Comments.Count(_ => !_.Resolved);
 
-    string OpenItemsLabel
+    internal string OpenItemsLabel
     {
         get
         {
@@ -163,7 +163,7 @@ public partial class MorphViewer
         }
     }
 
-    async Task ToggleReviewAsync()
+    internal async Task ToggleReviewAsync()
     {
         if (!IsWord ||
             handle is not { } viewer)
@@ -195,7 +195,7 @@ public partial class MorphViewer
         return PushReviewAsync(false);
     }
 
-    void OnAuthorInput(ChangeEventArgs args) =>
+    internal void OnAuthorInput(ChangeEventArgs args) =>
         authorName = args.Value as string ?? "";
 
     // What the script paints: the range of every comment listed and not yet resolved, and over them
@@ -285,7 +285,15 @@ public partial class MorphViewer
         {
             var had = selection.Length == 4;
             selection = range.Length == 4 ? range : [];
-            if (had != (selection.Length == 4))
+            if (selection.Length == 4 &&
+                Place(reviewMap.Before(selection[0], selection[1])) is var (first, _))
+            {
+                caretParagraph = first.Ordinal;
+            }
+
+            // The editor counts what is selected, so it hears of every change.
+            if (had != (selection.Length == 4) ||
+                Editing)
             {
                 StateHasChanged();
             }
@@ -514,7 +522,7 @@ public partial class MorphViewer
             scroll: true);
     }
 
-    Task ResolveAllAsync(bool accept) =>
+    internal Task ResolveAllAsync(bool accept) =>
         ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
 
     Task UndoAsync() =>

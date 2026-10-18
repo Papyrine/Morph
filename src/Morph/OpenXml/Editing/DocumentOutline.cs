@@ -26,6 +26,12 @@ sealed class DocumentOutline
     /// <summary>Whether the document's protection has every edit tracked, whatever the setting.</summary>
     public required bool ForcesTracking { get; init; }
 
+    /// <summary>The paragraph styles an editor offers for the document (<see cref="StyleCatalog"/>).</summary>
+    public IReadOnlyList<StyleChoice> Styles { get; init; } = [];
+
+    /// <summary>The style a paragraph that names none is in.</summary>
+    public string DefaultStyle { get; init; } = "Normal";
+
     public static DocumentOutline Empty { get; } = new()
     {
         Paragraphs = [],
@@ -90,7 +96,8 @@ sealed class DocumentOutline
                 new(ordinal, units.Select(_ => Unit(_, runs)).ToList())
                 {
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
-                    HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph
+                    HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
+                    InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
                 });
         }
 
@@ -102,6 +109,9 @@ sealed class DocumentOutline
             Tracking = document.MainDocumentPart.DocumentSettingsPart?.Settings?.GetFirstChild<TrackRevisions>() is { } tracking &&
                        tracking.Val?.Value != false,
             ForcesTracking = forces,
+            Styles = StyleCatalog.Read(document.MainDocumentPart),
+            DefaultStyle = document.MainDocumentPart.StyleDefinitionsPart?.Styles?.Elements<Style>()
+                .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value ?? "Normal",
             paragraphOfRun = paragraphOfRun
         };
     }
@@ -110,7 +120,8 @@ sealed class DocumentOutline
         new(unit.Kind, runs[unit.Run], unit.Start, unit.Text.ToString())
         {
             WidthPoints = unit.WidthPoints,
-            HeightPoints = unit.HeightPoints
+            HeightPoints = unit.HeightPoints,
+            Linked = unit.Run.Ancestors<Hyperlink>().Any()
         };
 
     // w:documentProtection restricts editing only while it is enforced. Tracked-changes protection

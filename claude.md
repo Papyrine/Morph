@@ -261,7 +261,16 @@ The viewer also **reviews** a Word document: a pane lists its comments and track
   text is the paragraph's text less the whitespace a wrap or a justified line dropped. It follows every
   line of the corpus; a paragraph it cannot follow is left unmapped, never guessed at.
 
-The viewer also **edits** a Word document's text, on the same footing and with the same split:
+`MorphEditor` is the package's third widget: a word processor in the image of Word — a File menu and a
+ribbon of tabs over the pages, a status bar under them. It **inherits** `MorphViewer` (`@inherits`) and
+draws the viewer's own fragments (`FindBar`, `Body`, `PageNavigation`, …, defined in `MorphViewer.razor`)
+under its ribbon; the members its markup binds to are `internal` for that. **Text editing exists only in
+the editor**: the viewer's `Editing` is false and MorphEditor's true, and the viewer has no edit toggle or
+editing bar. Every icon in the package and the app is Lucide's through IconifyBundle (`<Iconify
+Value="Lucide.X" />`); the pack's generator runs per project and sees `.razor` markup, compiling in only
+the icons named.
+
+The editor **edits** a Word document's text, on the same footing and with the same split:
 
 - **`src/Morph/OpenXml/Editing/`** (core, internal) works on the markup. `DocumentOutline` reads every
   paragraph of the main part as units — text that can be edited, and the things between it that are
@@ -291,14 +300,28 @@ The viewer also **edits** a Word document's text, on the same footing and with t
 A line break (`w:br`) is a position in `SourceRuns`' coordinates, like a tab: it is typed and deleted
 like any character. A page or column break is not.
 
+The ribbon's commands are `DocumentEditor` edits too, in partial files beside the typing ones:
+`DocumentEditor.Paragraphs.cs` (style, list, indent, spacing — each a `w:pPrChange` when tracked),
+`DocumentEditor.Inserts.cs` (page break, table, picture, link, replace) and `DocumentEditor.Tables.cs`
+(rows, columns, the table). Word's own markup for each was **probed over COM** and is recorded beside the
+code: `BuiltInStyles` holds Word's definitions of the styles it builds in, added to a document the first
+time one is used, and `ListTemplates` Word's nine-level bullet and number lists. Their tests are
+`ParagraphFormatTests`, `InsertTests` and `TableEditTests` under `src/Tests/SpecTests/Editing/`. A command
+acts where the reader is: `editTarget()` in morph-viewer.js hands in the paragraph being typed and says
+where its caret was, in paragraph ordinals (`EditSession` gives the script each paragraph's `p`), and
+`MorphViewer.Editor.cs` turns that into an `EditTarget`, falling back to the text selected on the pages.
+A new document is `wwwroot/blank.docx`: Word's own blank document with its author, rsids and document
+ids taken out.
+
 An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
 pages cannot disagree with what Download saves. **A change to `CanonicalParagraphMeasurer.Flatten` — what
 text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`
 fails if the two part ways.
 
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
-extracted into `Morph.Blazor` this project is only the shell — header with Convert | View links, theme
-toggle, footer — around `<MorphConverter />` at `/` and `<MorphViewer />` at `/view`. See
+extracted into `Morph.Blazor` this project is only the shell — header with Convert | View | Edit links,
+theme toggle, footer — around `<MorphConverter />` at `/`, `<MorphViewer />` at `/view` and
+`<MorphEditor />` at `/edit`. See
 `src/Morph.Web/README.md`.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render

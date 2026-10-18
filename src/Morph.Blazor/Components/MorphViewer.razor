@@ -4,40 +4,108 @@
 @* A document viewer in the image of a browser's PDF viewer: a toolbar, a thumbnail sidebar, and the pages
    stacked in a scrolling column with selectable text. The page column and the thumbnail list are
    rendered EMPTY — morph-viewer.js owns their contents, because page geometry has to change in the same
-   frame as a zoom or a resize. Blazor owns the chrome around them and the document itself. *@
+   frame as a zoom or a resize. Blazor owns the chrome around them and the document itself.
+
+   The viewer only shows a document: its text is edited in MorphEditor, which draws the same find bar,
+   pages and review pane — fragments of their own for that — under its ribbon. *@
 
 <div class="@RootClass" @ref="root" @attributes="AdditionalAttributes">
     <div class="viewer-toolbar" role="toolbar" aria-label="Document viewer">
         <div class="viewer-group viewer-group-start">
             <button type="button" class="viewer-button" title="Toggle sidebar" aria-label="Toggle sidebar"
                     aria-pressed="@(sidebarOpen ? "true" : "false")" disabled="@(!HasDocument)" @onclick="ToggleSidebarAsync">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Sidebar" /></svg>
+                <Iconify Value="Lucide.PanelLeft" aria-hidden="true" focusable="false" />
             </button>
             <button type="button" class="viewer-button" title="Find in document (Ctrl+F)" aria-label="Find in document"
                     aria-keyshortcuts="Control+F" aria-pressed="@(findOpen ? "true" : "false")" disabled="@(!HasDocument)" @onclick="ToggleFindAsync">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Search" /></svg>
+                <Iconify Value="Lucide.Search" aria-hidden="true" focusable="false" />
             </button>
             <span class="viewer-title" title="@fileName">@fileName</span>
         </div>
 
         <div class="viewer-group viewer-group-middle">
+            @PageNavigation
+            <span class="viewer-divider" aria-hidden="true"></span>
+            @ZoomControls
+            <span class="viewer-divider" aria-hidden="true"></span>
+            <button type="button" class="viewer-button" title="Rotate clockwise" aria-label="Rotate clockwise"
+                    disabled="@(!HasDocument)" @onclick="RotateAsync">
+                <Iconify Value="Lucide.RotateCw" aria-hidden="true" focusable="false" />
+            </button>
+        </div>
+
+        <div class="viewer-group viewer-group-end">
+            @if (ShowReview && IsWord)
+            {
+                <button type="button" class="viewer-button viewer-review-toggle" title="Comments and changes" aria-label="Comments and changes"
+                        aria-pressed="@(reviewOpen ? "true" : "false")" @onclick="ToggleReviewAsync">
+                    <Iconify Value="Lucide.MessageSquare" aria-hidden="true" focusable="false" />
+                    @if (OpenItems > 0)
+                    {
+                        <span class="viewer-badge" title="@($"{OpenItems} to review")">@OpenItemsLabel</span>
+                    }
+                </button>
+            }
+            @if (ShowOpenFile)
+            {
+                @OpenButton
+            }
+            @* Handled by the script, inside the click itself: fullscreen is only granted to a user gesture. *@
+            <button type="button" class="viewer-button" data-viewer-action="presentation" title="Presentation mode"
+                    aria-label="Presentation mode" aria-pressed="@(presenting ? "true" : "false")" disabled="@(!HasDocument)">
+                <Iconify Value="Lucide.Presentation" aria-hidden="true" focusable="false" />
+            </button>
+            @if (ShowPrint)
+            {
+                <button type="button" class="viewer-button" title="Print (Ctrl+P)" aria-label="Print" aria-keyshortcuts="Control+P"
+                        disabled="@(!HasDocument || printing)" @onclick="PrintAsync">
+                    <Iconify Value="Lucide.Printer" aria-hidden="true" focusable="false" />
+                </button>
+            }
+            @if (ShowDownload)
+            {
+                <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S"
+                        disabled="@(!HasDocument)" @onclick="DownloadAsync">
+                    <Iconify Value="Lucide.Download" aria-hidden="true" focusable="false" />
+                </button>
+            }
+        </div>
+    </div>
+
+    @FindBar
+
+    @if (errorMessage is not null)
+    {
+        <ErrorPanel Message="@errorMessage" IssueUrl="@issueUrl" />
+    }
+
+    @Body
+</div>
+
+@code {
+    // The pieces MorphEditor shares. Each is drawn as a member of this class, whichever component's
+    // markup it lands in, so what it binds to and the handlers it calls are the viewer's own.
+
+    internal RenderFragment PageNavigation =>
+        @<text>
             <button type="button" class="viewer-button" title="@($"Previous {PageNoun}")" aria-label="@($"Previous {PageNoun}")"
                     disabled="@(!HasDocument || currentPage <= 1)" @onclick="() => StepAsync(-1)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Up" /></svg>
+                <Iconify Value="Lucide.ChevronUp" aria-hidden="true" focusable="false" />
             </button>
             <input class="viewer-page-input" type="text" inputmode="numeric" aria-label="@($"{PageNounTitle} number")"
                    disabled="@(!HasDocument)" @bind="pageInput" @bind:after="OnPageInputAsync" />
             <span class="viewer-page-count">of @pageCount</span>
             <button type="button" class="viewer-button" title="@($"Next {PageNoun}")" aria-label="@($"Next {PageNoun}")"
                     disabled="@(!HasDocument || currentPage >= pageCount)" @onclick="() => StepAsync(1)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Down" /></svg>
+                <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
             </button>
+        </text>;
 
-            <span class="viewer-divider" aria-hidden="true"></span>
-
+    internal RenderFragment ZoomControls =>
+        @<text>
             <button type="button" class="viewer-button" title="Zoom out (Ctrl+-)" aria-label="Zoom out" aria-keyshortcuts="Control+-"
                     disabled="@(!HasDocument)" @onclick="() => ZoomByAsync(-1)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Minus" /></svg>
+                <Iconify Value="Lucide.Minus" aria-hidden="true" focusable="false" />
             </button>
             <select class="viewer-zoom" aria-label="Zoom" disabled="@(!HasDocument)" value="@ZoomValue" @onchange="OnZoomSelectedAsync">
                 @if (ZoomValue == "custom")
@@ -55,381 +123,295 @@
             </select>
             <button type="button" class="viewer-button" title="Zoom in (Ctrl++)" aria-label="Zoom in" aria-keyshortcuts="Control++"
                     disabled="@(!HasDocument)" @onclick="() => ZoomByAsync(1)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Plus" /></svg>
+                <Iconify Value="Lucide.Plus" aria-hidden="true" focusable="false" />
             </button>
+        </text>;
 
-            <span class="viewer-divider" aria-hidden="true"></span>
+    // The input sits inside its label, so a click anywhere on the button opens the picker with no id to
+    // collide with another component's. Ctrl+O and a dropped file go through the same input.
+    internal RenderFragment OpenButton =>
+        @<label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+            <Iconify Value="Lucide.FolderOpen" aria-hidden="true" focusable="false" />
+            <span class="viewer-hidden-label">Open file</span>
+            <InputFile OnChange="OnFileSelectedAsync" class="file-input" accept="@ConversionService.ReadableAccept" aria-label="Open file" />
+        </label>;
 
-            <button type="button" class="viewer-button" title="Rotate clockwise" aria-label="Rotate clockwise"
-                    disabled="@(!HasDocument)" @onclick="RotateAsync">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Rotate" /></svg>
-            </button>
-        </div>
-
-        <div class="viewer-group viewer-group-end">
-            @if (ShowEdit && IsWord && (CanWrite || editOpen))
+    internal RenderFragment FindBar =>
+        @<text>
+            @if (findOpen)
             {
-                <button type="button" class="viewer-button viewer-edit-toggle" title="Edit text" aria-label="Edit text"
-                        aria-pressed="@(editOpen ? "true" : "false")" disabled="@revising" @onclick="ToggleEditAsync">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Edit" /></svg>
-                </button>
-            }
-            @if (ShowReview && IsWord)
-            {
-                <button type="button" class="viewer-button viewer-review-toggle" title="Comments and changes" aria-label="Comments and changes"
-                        aria-pressed="@(reviewOpen ? "true" : "false")" @onclick="ToggleReviewAsync">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Review" /></svg>
-                    @if (OpenItems > 0)
+                <div class="viewer-findbar" role="search">
+                    <input @ref="findInput" class="viewer-find-input" type="search" placeholder="Find in document" aria-label="Find in document"
+                           value="@findQuery" @oninput="OnFindInput" @onkeydown="OnFindKeyDownAsync" />
+                    <button type="button" class="viewer-button" title="Previous match (Shift+Enter)" aria-label="Previous match"
+                            disabled="@(matches.Count == 0)" @onclick="() => StepMatchAsync(-1)">
+                        <Iconify Value="Lucide.ChevronUp" aria-hidden="true" focusable="false" />
+                    </button>
+                    <button type="button" class="viewer-button" title="Next match (Enter)" aria-label="Next match"
+                            disabled="@(matches.Count == 0)" @onclick="() => StepMatchAsync(1)">
+                        <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                    </button>
+                    <label class="viewer-find-option">
+                        <input type="checkbox" checked="@matchCase" @onchange="OnMatchCaseAsync" />
+                        Match case
+                    </label>
+                    <span class="viewer-find-status" role="status" aria-live="polite">@FindStatus</span>
+                    <button type="button" class="viewer-button viewer-find-close" title="Close find bar (Esc)" aria-label="Close find bar"
+                            @onclick="CloseFindAsync">
+                        <Iconify Value="Lucide.X" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (ReplaceShown)
                     {
-                        <span class="viewer-badge" title="@($"{OpenItems} to review")">@OpenItemsLabel</span>
+                        <div class="viewer-replace" role="group" aria-label="Replace">
+                            <input @ref="replaceInput" class="viewer-find-input" type="text" placeholder="Replace with" aria-label="Replace with"
+                                   value="@replaceText" @oninput="OnReplaceInput" @onkeydown="OnReplaceKeyDownAsync" />
+                            <button type="button" class="viewer-text-button" disabled="@(matches.Count == 0 || revising)" @onclick="ReplaceOneAsync">
+                                <Iconify Value="Lucide.Replace" aria-hidden="true" focusable="false" />
+                                Replace
+                            </button>
+                            <button type="button" class="viewer-text-button" disabled="@(matches.Count == 0 || revising)" @onclick="ReplaceAllAsync">
+                                <Iconify Value="Lucide.ReplaceAll" aria-hidden="true" focusable="false" />
+                                Replace all
+                            </button>
+                            @if (replaceNote is not null)
+                            {
+                                <span class="viewer-find-status" role="status">@replaceNote</span>
+                            }
+                        </div>
                     }
-                </button>
+                </div>
             }
+        </text>;
+
+    // What the viewer shows while nothing is open. MorphEditor offers a new document instead.
+    internal virtual RenderFragment EmptyState =>
+        @<div class="viewer-empty">
+            <p class="viewer-empty-title">Open a Word, Excel or PowerPoint file</p>
+            <p class="viewer-empty-note">.docx, .xlsx or .pptx — shown right here, with selectable text. Nothing leaves this device.</p>
             @if (ShowOpenFile)
             {
-                @* The input sits inside its label, so a click anywhere on the button opens the picker with no id
-                   to collide with another component's. Ctrl+O and a dropped file go through the same input. *@
-                <label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Open" /></svg>
-                    <span class="viewer-hidden-label">Open file</span>
-                    <InputFile OnChange="OnFileSelectedAsync" class="file-input" accept="@ConversionService.ReadableAccept" aria-label="Open file" />
-                </label>
+                <button type="button" class="viewer-empty-open" data-viewer-action="open">Choose a file</button>
+                <p class="viewer-empty-note">or drop one anywhere on the viewer</p>
             }
-            @* Handled by the script, inside the click itself: fullscreen is only granted to a user gesture. *@
-            <button type="button" class="viewer-button" data-viewer-action="presentation" title="Presentation mode"
-                    aria-label="Presentation mode" aria-pressed="@(presenting ? "true" : "false")" disabled="@(!HasDocument)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Presentation" /></svg>
-            </button>
-            @if (ShowPrint)
+            @if (ShowSamples)
             {
-                <button type="button" class="viewer-button" title="Print (Ctrl+P)" aria-label="Print" aria-keyshortcuts="Control+P"
-                        disabled="@(!HasDocument || printing)" @onclick="PrintAsync">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Print" /></svg>
-                </button>
-            }
-            @if (ShowDownload)
-            {
-                <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S"
-                        disabled="@(!HasDocument)" @onclick="DownloadAsync">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Download" /></svg>
-                </button>
-            }
-        </div>
-    </div>
-
-    @* The editing bar. Its buttons are the script's to handle (data-edit-command): while a paragraph is
-       open they act on what is selected in it, without a round trip, and otherwise on what is selected
-       on the pages. The script also sets which of them are pressed. *@
-    @if (editOpen && IsWord)
-    {
-        <div class="viewer-editbar" role="toolbar" aria-label="Editing" aria-busy="@(revising ? "true" : "false")">
-            <button type="button" class="viewer-button" data-edit-command="bold" title="Bold (Ctrl+B)" aria-label="Bold" aria-keyshortcuts="Control+B">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Bold" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="italic" title="Italic (Ctrl+I)" aria-label="Italic" aria-keyshortcuts="Control+I">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Italic" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="underline" title="Underline (Ctrl+U)" aria-label="Underline" aria-keyshortcuts="Control+U">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Underline" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="strike" title="Strikethrough" aria-label="Strikethrough">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Strike" /></svg>
-            </button>
-
-            <span class="viewer-divider" aria-hidden="true"></span>
-
-            <button type="button" class="viewer-button" data-edit-command="align-left" title="Align left" aria-label="Align left">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignLeft" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="align-center" title="Centre" aria-label="Centre">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignCenter" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="align-right" title="Align right" aria-label="Align right">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignRight" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="align-justify" title="Justify" aria-label="Justify">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.AlignJustify" /></svg>
-            </button>
-
-            <span class="viewer-divider" aria-hidden="true"></span>
-
-            <button type="button" class="viewer-button" data-edit-command="undo" title="Undo (Ctrl+Z)" aria-label="Undo" aria-keyshortcuts="Control+Z">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Undo" /></svg>
-            </button>
-            <button type="button" class="viewer-button" data-edit-command="redo" title="Redo (Ctrl+Y)" aria-label="Redo" aria-keyshortcuts="Control+Y">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Redo" /></svg>
-            </button>
-
-            <span class="viewer-divider" aria-hidden="true"></span>
-
-            <button type="button" class="viewer-button viewer-edit-track" data-edit-command="track" title="@TrackTitle" aria-label="Track changes"
-                    aria-pressed="@(Tracking ? "true" : "false")" disabled="@outline.ForcesTracking">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Track" /></svg>
-                <span class="viewer-edit-label">Track changes</span>
-            </button>
-            @if (Tracking && Author is not { Length: > 0 })
-            {
-                <label class="viewer-edit-signature">
-                    as
-                    <input type="text" class="review-signature-input" placeholder="@guest" autocomplete="name"
-                           aria-label="Your name" value="@authorName" @oninput="OnAuthorInput" />
-                </label>
-            }
-
-            <span class="viewer-edit-status" role="status" aria-live="polite">@(editNote ?? "Click a paragraph to type in it")</span>
-        </div>
-    }
-
-    @if (findOpen)
-    {
-        <div class="viewer-findbar" role="search">
-            <input @ref="findInput" class="viewer-find-input" type="search" placeholder="Find in document" aria-label="Find in document"
-                   value="@findQuery" @oninput="OnFindInput" @onkeydown="OnFindKeyDownAsync" />
-            <button type="button" class="viewer-button" title="Previous match (Shift+Enter)" aria-label="Previous match"
-                    disabled="@(matches.Count == 0)" @onclick="() => StepMatchAsync(-1)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Up" /></svg>
-            </button>
-            <button type="button" class="viewer-button" title="Next match (Enter)" aria-label="Next match"
-                    disabled="@(matches.Count == 0)" @onclick="() => StepMatchAsync(1)">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Down" /></svg>
-            </button>
-            <label class="viewer-find-option">
-                <input type="checkbox" checked="@matchCase" @onchange="OnMatchCaseAsync" />
-                Match case
-            </label>
-            <span class="viewer-find-status" role="status" aria-live="polite">@FindStatus</span>
-            <button type="button" class="viewer-button viewer-find-close" title="Close find bar (Esc)" aria-label="Close find bar"
-                    @onclick="CloseFindAsync">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Close" /></svg>
-            </button>
-        </div>
-    }
-
-    @if (errorMessage is not null)
-    {
-        <ErrorPanel Message="@errorMessage" IssueUrl="@issueUrl" />
-    }
-
-    <div class="viewer-body">
-        <div class="viewer-sidebar" role="navigation" aria-label="@($"{PageNounTitle} thumbnails")">
-            <div class="viewer-thumbs"></div>
-        </div>
-        <div class="viewer-main">
-            <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
-
-            @if (!HasDocument && !busy)
-            {
-                <div class="viewer-empty">
-                    <p class="viewer-empty-title">Open a Word, Excel or PowerPoint file</p>
-                    <p class="viewer-empty-note">.docx, .xlsx or .pptx — shown right here, with selectable text. Nothing leaves this device.</p>
-                    @if (ShowOpenFile)
+                <div class="sample-row">
+                    @foreach (var sample in ConversionService.ReadableFormats)
                     {
-                        <button type="button" class="viewer-empty-open" data-viewer-action="open">Choose a file</button>
-                        <p class="viewer-empty-note">or drop one anywhere on the viewer</p>
-                    }
-                    @if (ShowSamples)
-                    {
-                        <div class="sample-row">
-                            @foreach (var sample in ConversionService.ReadableFormats)
-                            {
-                                <button type="button" class="sample-btn" @onclick="() => LoadSampleAsync(sample)">
-                                    @sample.Icon Sample @sample.ShortName
-                                </button>
-                            }
-                        </div>
-                    }
-                </div>
-            }
-
-            @if (busy)
-            {
-                <div class="viewer-overlay">
-                    <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
-                    @if (printing)
-                    {
-                        <button type="button" class="viewer-overlay-cancel" @onclick="CancelPrint">Cancel</button>
-                    }
-                </div>
-            }
-        </div>
-
-        @* The review pane: a Word document's comments and tracked changes, down the document. Blazor owns
-           all of it; the script only paints the ranges on the pages and scrolls a card into view. *@
-        @if (reviewOpen && IsWord)
-        {
-            <div class="viewer-review" role="complementary" aria-label="Comments and changes" aria-busy="@(revising ? "true" : "false")">
-                <div class="review-head">
-                    <span class="review-title">Review</span>
-                    <select class="review-filter" aria-label="Show" value="@reviewFilter.ToString()" @onchange="OnReviewFilterAsync">
-                        <option value="@nameof(ReviewFilter.All)">Comments and changes</option>
-                        <option value="@nameof(ReviewFilter.Comments)">Comments</option>
-                        <option value="@nameof(ReviewFilter.Changes)">Changes</option>
-                    </select>
-                    @if (CanEdit)
-                    {
-                        <button type="button" class="viewer-button" title="Undo" aria-label="Undo"
-                                disabled="@(undo.Count == 0 || revising)" @onclick="UndoAsync">
-                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Undo" /></svg>
-                        </button>
-                        <button type="button" class="viewer-button" title="Redo" aria-label="Redo"
-                                disabled="@(redo.Count == 0 || revising)" @onclick="RedoAsync">
-                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Redo" /></svg>
+                        <button type="button" class="sample-btn" @onclick="() => LoadSampleAsync(sample)">
+                            <Iconify Value="sample.Icon" aria-hidden="true" focusable="false" />
+                            Sample @sample.ShortName
                         </button>
                     }
-                    <button type="button" class="viewer-button review-close" title="Close" aria-label="Close review pane" @onclick="ToggleReviewAsync">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Close" /></svg>
-                    </button>
                 </div>
+            }
+        </div>;
 
-                @if (CanEdit)
+    internal RenderFragment Body =>
+        @<div class="viewer-body">
+            <div class="viewer-sidebar" role="navigation" aria-label="@($"{PageNounTitle} thumbnails")">
+                <div class="viewer-thumbs"></div>
+            </div>
+            <div class="viewer-main">
+                <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
+
+                @if (!HasDocument && !busy)
                 {
-                    <div class="review-actions">
-                        @if (CanComment)
+                    @EmptyState
+                }
+
+                @if (busy)
+                {
+                    <div class="viewer-overlay">
+                        <ConversionProgress Label="@progressLabel" Detail="@progressDetail" />
+                        @if (printing)
                         {
-                            @* Keeping the press from moving focus keeps the selection the comment is for. *@
-                            <button type="button" class="review-action review-action-primary"
-                                    disabled="@(selection.Length != 4 || revising || draft is not null)"
-                                    title="Comment on the selected text"
-                                    @onmousedown:preventDefault @onclick="BeginCommentAsync">
-                                New comment
-                            </button>
-                        }
-                        @if (CanResolve && review.Changes.Count > 0)
-                        {
-                            <button type="button" class="review-action" disabled="@revising" @onclick="() => ResolveAllAsync(true)">Accept all</button>
-                            <button type="button" class="review-action" disabled="@revising" @onclick="() => ResolveAllAsync(false)">Reject all</button>
+                            <button type="button" class="viewer-overlay-cancel" @onclick="CancelPrint">Cancel</button>
                         }
                     </div>
-                    @if (CanComment && Author is not { Length: > 0 })
-                    {
-                        <label class="review-signature">
-                            Commenting as
-                            <input type="text" class="review-signature-input" placeholder="@guest" autocomplete="name"
-                                   value="@authorName" @oninput="OnAuthorInput" />
-                        </label>
-                    }
-                }
-                else if (review.Comments.Count > 0 || review.Changes.Count > 0)
-                {
-                    <p class="review-note">@(review.Editable ? "This document is read-only." : "This document's format can be read but not edited here.")</p>
-                }
-
-                @if (reviewNote is not null)
-                {
-                    <p class="review-note" role="status">@reviewNote</p>
-                }
-
-                <div class="review-list" role="list">
-                    @if (draft is { Kind: ReviewDraftKind.Comment })
-                    {
-                        <div class="review-card review-comment review-active review-new" role="listitem">
-                            <div class="review-meta">
-                                <span class="review-avatar" aria-hidden="true">@Initials(Signature)</span>
-                                <span class="review-name">@Signature</span>
-                            </div>
-                            @if (draft.Quote.Length > 0)
-                            {
-                                <p class="review-quote">@draft.Quote</p>
-                            }
-                            @DraftForm("Comment", "Post")
-                        </div>
-                    }
-
-                    @foreach (var entry in entries)
-                    {
-                        var item = entry;
-                        if (item.Change is { } change)
-                        {
-                            <div class="@CardClass(item, "review-change")" role="listitem" tabindex="0" data-review-key="@item.Key" data-kind="@change.Kind"
-                                 aria-current="@(item.Key == activeKey ? "true" : null)"
-                                 @key="item.Key" @onclick="() => SelectEntryAsync(item)" @onkeydown="_ => OnCardKeyDownAsync(_, item)">
-                                <div class="review-meta">
-                                    <span class="review-avatar" aria-hidden="true">@Initials(change.Author)</span>
-                                    <span class="review-name">@(change.Author ?? "Unknown")</span>
-                                    <span class="review-date">@When(change.Date)</span>
-                                </div>
-                                <p class="review-body">
-                                    <span class="review-kind">@KindLabel(change)</span>
-                                    @if (ChangeText(change) is { Length: > 0 } text)
-                                    {
-                                        @* Two inline elements: without a space between them a screen reader runs the words together. *@
-                                        @(" ")
-                                        <span class="review-text">@text</span>
-                                    }
-                                </p>
-                                @if (PartLabel(change) is { } where)
-                                {
-                                    <p class="review-where">@where</p>
-                                }
-                                @if (CanResolve)
-                                {
-                                    <div class="review-buttons" @onkeydown:stopPropagation>
-                                        <button type="button" class="review-button" disabled="@revising"
-                                                @onclick:stopPropagation @onclick="() => ResolveAsync(item, true)">
-                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Accept" /></svg>
-                                            Accept
-                                        </button>
-                                        <button type="button" class="review-button" disabled="@revising"
-                                                @onclick:stopPropagation @onclick="() => ResolveAsync(item, false)">
-                                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="@ViewerIcons.Close" /></svg>
-                                            Reject
-                                        </button>
-                                    </div>
-                                }
-                            </div>
-                        }
-                        else if (item.Comment is { } thread)
-                        {
-                            <div class="@CardClass(item, "review-comment")" role="listitem" tabindex="0" data-review-key="@item.Key"
-                                 aria-current="@(item.Key == activeKey ? "true" : null)"
-                                 @key="item.Key" @onclick="() => SelectEntryAsync(item)" @onkeydown="_ => OnCardKeyDownAsync(_, item)">
-                                @if (thread.Quote.Length > 0)
-                                {
-                                    <p class="review-quote">@Excerpt(thread.Quote)</p>
-                                }
-                                @CommentView(thread, thread)
-                                @foreach (var reply in thread.Replies)
-                                {
-                                    <div class="review-reply" @key="reply.Id">
-                                        @CommentView(thread, reply)
-                                    </div>
-                                }
-                                @if (draft is { Kind: ReviewDraftKind.Reply } && draft.ThreadId == thread.Id)
-                                {
-                                    <div class="review-reply">
-                                        @DraftForm("Reply", "Reply")
-                                    </div>
-                                }
-                                else if (CanComment && draft is null)
-                                {
-                                    <div class="review-buttons" @onkeydown:stopPropagation>
-                                        <button type="button" class="review-button" disabled="@revising"
-                                                @onclick:stopPropagation @onclick="() => BeginReply(thread)">Reply</button>
-                                        <button type="button" class="review-button" disabled="@revising"
-                                                @onclick:stopPropagation @onclick="() => SetResolvedAsync(thread, !thread.Resolved)">
-                                            @(thread.Resolved ? "Reopen" : "Resolve")
-                                        </button>
-                                    </div>
-                                }
-                                @if (thread.Resolved)
-                                {
-                                    <p class="review-where">Resolved</p>
-                                }
-                            </div>
-                        }
-                    }
-                </div>
-
-                @if (entries.Count == 0 && draft is null)
-                {
-                    <p class="review-empty">@EmptyReviewText</p>
                 }
             </div>
-        }
-    </div>
-</div>
 
-@code {
+            @ReviewPane
+        </div>;
+
+    // The review pane: a Word document's comments and tracked changes, down the document. Blazor owns
+    // all of it; the script only paints the ranges on the pages and scrolls a card into view.
+    RenderFragment ReviewPane =>
+        @<text>
+            @if (reviewOpen && IsWord)
+            {
+                <div class="viewer-review" role="complementary" aria-label="Comments and changes" aria-busy="@(revising ? "true" : "false")">
+                    <div class="review-head">
+                        <span class="review-title">Review</span>
+                        <select class="review-filter" aria-label="Show" value="@reviewFilter.ToString()" @onchange="OnReviewFilterAsync">
+                            <option value="@nameof(ReviewFilter.All)">Comments and changes</option>
+                            <option value="@nameof(ReviewFilter.Comments)">Comments</option>
+                            <option value="@nameof(ReviewFilter.Changes)">Changes</option>
+                        </select>
+                        @if (CanEdit)
+                        {
+                            <button type="button" class="viewer-button" title="Undo" aria-label="Undo"
+                                    disabled="@(undo.Count == 0 || revising)" @onclick="UndoAsync">
+                                <Iconify Value="Lucide.Undo2" aria-hidden="true" focusable="false" />
+                            </button>
+                            <button type="button" class="viewer-button" title="Redo" aria-label="Redo"
+                                    disabled="@(redo.Count == 0 || revising)" @onclick="RedoAsync">
+                                <Iconify Value="Lucide.Redo2" aria-hidden="true" focusable="false" />
+                            </button>
+                        }
+                        <button type="button" class="viewer-button review-close" title="Close" aria-label="Close review pane" @onclick="ToggleReviewAsync">
+                            <Iconify Value="Lucide.X" aria-hidden="true" focusable="false" />
+                        </button>
+                    </div>
+
+                    @if (CanEdit)
+                    {
+                        <div class="review-actions">
+                            @if (CanComment)
+                            {
+                                @* Keeping the press from moving focus keeps the selection the comment is for. *@
+                                <button type="button" class="review-action review-action-primary"
+                                        disabled="@(selection.Length != 4 || revising || draft is not null)"
+                                        title="Comment on the selected text"
+                                        @onmousedown:preventDefault @onclick="BeginCommentAsync">
+                                    New comment
+                                </button>
+                            }
+                            @if (CanResolve && review.Changes.Count > 0)
+                            {
+                                <button type="button" class="review-action" disabled="@revising" @onclick="() => ResolveAllAsync(true)">Accept all</button>
+                                <button type="button" class="review-action" disabled="@revising" @onclick="() => ResolveAllAsync(false)">Reject all</button>
+                            }
+                        </div>
+                        @if (CanComment && Author is not { Length: > 0 })
+                        {
+                            <label class="review-signature">
+                                Commenting as
+                                <input type="text" class="review-signature-input" placeholder="@guest" autocomplete="name"
+                                       value="@authorName" @oninput="OnAuthorInput" />
+                            </label>
+                        }
+                    }
+                    else if (review.Comments.Count > 0 || review.Changes.Count > 0)
+                    {
+                        <p class="review-note">@(review.Editable ? "This document is read-only." : "This document's format can be read but not edited here.")</p>
+                    }
+
+                    @if (reviewNote is not null)
+                    {
+                        <p class="review-note" role="status">@reviewNote</p>
+                    }
+
+                    <div class="review-list" role="list">
+                        @if (draft is { Kind: ReviewDraftKind.Comment })
+                        {
+                            <div class="review-card review-comment review-active review-new" role="listitem">
+                                <div class="review-meta">
+                                    <span class="review-avatar" aria-hidden="true">@Initials(Signature)</span>
+                                    <span class="review-name">@Signature</span>
+                                </div>
+                                @if (draft.Quote.Length > 0)
+                                {
+                                    <p class="review-quote">@draft.Quote</p>
+                                }
+                                @DraftForm("Comment", "Post")
+                            </div>
+                        }
+
+                        @foreach (var entry in entries)
+                        {
+                            var item = entry;
+                            if (item.Change is { } change)
+                            {
+                                <div class="@CardClass(item, "review-change")" role="listitem" tabindex="0" data-review-key="@item.Key" data-kind="@change.Kind"
+                                     aria-current="@(item.Key == activeKey ? "true" : null)"
+                                     @key="item.Key" @onclick="() => SelectEntryAsync(item)" @onkeydown="_ => OnCardKeyDownAsync(_, item)">
+                                    <div class="review-meta">
+                                        <span class="review-avatar" aria-hidden="true">@Initials(change.Author)</span>
+                                        <span class="review-name">@(change.Author ?? "Unknown")</span>
+                                        <span class="review-date">@When(change.Date)</span>
+                                    </div>
+                                    <p class="review-body">
+                                        <span class="review-kind">@KindLabel(change)</span>
+                                        @if (ChangeText(change) is { Length: > 0 } text)
+                                        {
+                                            @* Two inline elements: without a space between them a screen reader runs the words together. *@
+                                            @(" ")
+                                            <span class="review-text">@text</span>
+                                        }
+                                    </p>
+                                    @if (PartLabel(change) is { } where)
+                                    {
+                                        <p class="review-where">@where</p>
+                                    }
+                                    @if (CanResolve)
+                                    {
+                                        <div class="review-buttons" @onkeydown:stopPropagation>
+                                            <button type="button" class="review-button" disabled="@revising"
+                                                    @onclick:stopPropagation @onclick="() => ResolveAsync(item, true)">
+                                                <Iconify Value="Lucide.Check" aria-hidden="true" focusable="false" />
+                                                Accept
+                                            </button>
+                                            <button type="button" class="review-button" disabled="@revising"
+                                                    @onclick:stopPropagation @onclick="() => ResolveAsync(item, false)">
+                                                <Iconify Value="Lucide.X" aria-hidden="true" focusable="false" />
+                                                Reject
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else if (item.Comment is { } thread)
+                            {
+                                <div class="@CardClass(item, "review-comment")" role="listitem" tabindex="0" data-review-key="@item.Key"
+                                     aria-current="@(item.Key == activeKey ? "true" : null)"
+                                     @key="item.Key" @onclick="() => SelectEntryAsync(item)" @onkeydown="_ => OnCardKeyDownAsync(_, item)">
+                                    @if (thread.Quote.Length > 0)
+                                    {
+                                        <p class="review-quote">@Excerpt(thread.Quote)</p>
+                                    }
+                                    @CommentView(thread, thread)
+                                    @foreach (var reply in thread.Replies)
+                                    {
+                                        <div class="review-reply" @key="reply.Id">
+                                            @CommentView(thread, reply)
+                                        </div>
+                                    }
+                                    @if (draft is { Kind: ReviewDraftKind.Reply } && draft.ThreadId == thread.Id)
+                                    {
+                                        <div class="review-reply">
+                                            @DraftForm("Reply", "Reply")
+                                        </div>
+                                    }
+                                    else if (CanComment && draft is null)
+                                    {
+                                        <div class="review-buttons" @onkeydown:stopPropagation>
+                                            <button type="button" class="review-button" disabled="@revising"
+                                                    @onclick:stopPropagation @onclick="() => BeginReply(thread)">Reply</button>
+                                            <button type="button" class="review-button" disabled="@revising"
+                                                    @onclick:stopPropagation @onclick="() => SetResolvedAsync(thread, !thread.Resolved)">
+                                                @(thread.Resolved ? "Reopen" : "Resolve")
+                                            </button>
+                                        </div>
+                                    }
+                                    @if (thread.Resolved)
+                                    {
+                                        <p class="review-where">Resolved</p>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    @if (entries.Count == 0 && draft is null)
+                    {
+                        <p class="review-empty">@EmptyReviewText</p>
+                    }
+                </div>
+            }
+        </text>;
+
     // One comment of a thread: who and when, the text — or the form that edits it — and what can be done.
     RenderFragment CommentView(ReviewComment thread, ReviewComment comment) =>
         @<div class="review-entry" data-comment-id="@comment.Id">

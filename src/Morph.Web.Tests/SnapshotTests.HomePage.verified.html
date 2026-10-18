@@ -25,17 +25,21 @@
 
 <body>
     <div id="app"><!--!--><!--!--><!--!--><!--!--><header><!--!--><h1 tabindex="-1">Morph</h1>
-    <!--!--><p>Convert Word (.docx), Excel (.xlsx) and PowerPoint (.pptx) files to PNG, PDF, HTML, Markdown or plain text — entirely in your browser</p>
+    <!--!--><p>Convert, view and edit Word (.docx), Excel (.xlsx) and PowerPoint (.pptx) files — entirely in your browser</p>
     <nav class="app-nav" aria-label="Mode"><!--!--><a href="" class="active" aria-current="page">Convert</a><!--!-->
-        <!--!--><a href="view">View</a></nav><!--!-->
-    <!--!--><div class="theme-toggle"><button class="theme-toggle-btn" aria-label="Toggle theme"><!--!--><span class="icon">🌙</span><!--!--><span class="text"> Dark</span></button></div></header><!--!-->
+        <!--!--><a href="view">View</a><!--!-->
+        <!--!--><a href="edit">Edit</a></nav><!--!-->
+    <!--!--><div class="theme-toggle"><button class="theme-toggle-btn" aria-label="Toggle theme"><!--!--><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><!--!--><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg><!--!--><span class="text"> Dark</span></button></div></header><!--!-->
 
 <div class="container"><!--!--><!--!--><!--!--><!--!--><!--!-->
 
-<!--!--><div class="converter"><div class="upload-panel"><label class="file-drop" for="source-file"><span class="file-drop-icon">📄</span><!--!-->
+<!--!--><div class="converter"><div class="upload-panel"><label class="file-drop" for="source-file"><span class="file-drop-icon"><!--!--><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><!--!--><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5m-8 4v6m3-3l-3-3l-3 3"></path></g></svg></span><!--!-->
             <span class="file-drop-text"><!--!--><strong>Choose an Office file</strong>
                     <!--!--><span>Word .docx, Excel .xlsx or PowerPoint .pptx — converted to PNG, PDF, HTML, Markdown or plain text</span></span><!--!-->
-            <!--!--><input id="source-file" class="file-input" accept=".docx,.xlsx,.pptx" type="file" _bl_2="" style="caret-color: transparent !important;"></label><!--!--><div class="upload-or"><span>or</span></div><div class="sample-row"><button class="sample-btn">📄 Sample Word</button><button class="sample-btn">📊 Sample Excel</button><button class="sample-btn">📽️ Sample PowerPoint</button></div></div></div></div><!--!-->
+            <!--!--><input id="source-file" class="file-input" accept=".docx,.xlsx,.pptx" type="file" _bl_2="" style="caret-color: transparent !important;"></label><!--!--><div class="upload-or"><span>or</span></div><div class="sample-row"><button class="sample-btn"><!--!--><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><!--!--><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5M10 9H8m8 4H8m8 4H8"></path></g></svg><!--!-->
+                        Sample Word</button><button class="sample-btn"><!--!--><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><!--!--><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5M8 13h2m4 0h2m-8 4h2m4 0h2"></path></g></svg><!--!-->
+                        Sample Excel</button><button class="sample-btn"><!--!--><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><!--!--><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 3h20m-1 0v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3m4 18l5-5l5 5"></path></svg><!--!-->
+                        Sample PowerPoint</button></div></div></div></div><!--!-->
 
 <footer><!--!-->
     Powered by <!--!--><a href="https://github.com/Papyrine/Morph" target="_blank">Morph</a> — no data leaves your device

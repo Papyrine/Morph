@@ -100,7 +100,7 @@ public partial class MorphViewer : IAsyncDisposable
 
     static readonly double[] zoomPresets = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
 
-    ElementReference root;
+    internal ElementReference root;
     ElementReference findInput;
     DotNetObjectReference<MorphViewer>? selfReference;
     readonly TaskCompletionSource<ViewerHandle> attached = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -111,20 +111,20 @@ public partial class MorphViewer : IAsyncDisposable
     int generation;
     int documentId;
     byte[]? sourceBytes;
-    string? fileName;
-    InputFormatInfo? sourceInfo;
-    int pageCount;
+    internal string? fileName;
+    internal InputFormatInfo? sourceInfo;
+    internal int pageCount;
     double[] pageSizes = [];
 
     // The view as the script last reported it.
-    int currentPage = 1;
+    internal int currentPage = 1;
     string pageInput = "1";
-    double scale = 1;
+    internal double scale = 1;
     string zoomMode = "auto";
-    bool sidebarOpen;
-    bool presenting;
+    internal bool sidebarOpen;
+    internal bool presenting;
 
-    bool findOpen;
+    internal bool findOpen;
     bool focusFind;
     string findQuery = "";
     bool matchCase;
@@ -136,14 +136,14 @@ public partial class MorphViewer : IAsyncDisposable
     int[] renderQueue = [];
     bool rendering;
 
-    bool busy;
+    internal bool busy;
     string? progressLabel;
     string? progressDetail;
     bool printing;
     CancelSource? printCancel;
 
-    string? errorMessage;
-    string? issueUrl;
+    internal string? errorMessage;
+    internal string? issueUrl;
     string? userAgent;
     byte[]? openedSource;
     string? openedUrl;
@@ -152,7 +152,7 @@ public partial class MorphViewer : IAsyncDisposable
     // Cancelled on dispose, so a render loop parked between pages stops at once.
     readonly CancelSource lifetime = new();
 
-    bool HasDocument => document is not null;
+    internal bool HasDocument => document is not null;
 
     string RootClass
     {
@@ -169,7 +169,7 @@ public partial class MorphViewer : IAsyncDisposable
 
     string PageNoun => sourceInfo?.PageNoun ?? "page";
 
-    string PageNounTitle => char.ToUpperInvariant(PageNoun[0]) + PageNoun[1..];
+    internal string PageNounTitle => char.ToUpperInvariant(PageNoun[0]) + PageNoun[1..];
 
     string ZoomValue
     {
@@ -271,7 +271,15 @@ public partial class MorphViewer : IAsyncDisposable
         if (focusFind)
         {
             focusFind = false;
-            await findInput.FocusAsync();
+            if (focusReplace)
+            {
+                focusReplace = false;
+                await replaceInput.FocusAsync();
+            }
+            else
+            {
+                await findInput.FocusAsync();
+            }
         }
 
         if (focusDraft)
@@ -338,7 +346,7 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
-    async Task OnFileSelectedAsync(InputFileChangeEventArgs args)
+    internal async Task OnFileSelectedAsync(InputFileChangeEventArgs args)
     {
         var file = args.File;
         if (ConversionService.Detect(file.Name) is null)
@@ -365,7 +373,7 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
-    async Task LoadSampleAsync(InputFormatInfo info)
+    internal async Task LoadSampleAsync(InputFormatInfo info)
     {
         try
         {
@@ -412,6 +420,8 @@ public partial class MorphViewer : IAsyncDisposable
 
             Adopt(opened);
             sourceBytes = bytes;
+            savedBytes = bytes;
+            caretParagraph = null;
             fileName = name;
             sourceInfo = info;
             this.fontDirectory = fontDirectory;
@@ -434,8 +444,8 @@ public partial class MorphViewer : IAsyncDisposable
             await viewer.SetReviewModeAsync(reviewOpen);
             await PushReviewAsync(false);
 
-            // Editing stays on from one Word document to the next that allows it.
-            editOpen = editOpen && ShowEdit && CanWrite;
+            // The editor edits every Word document that allows it.
+            editOpen = Editing && CanWrite;
             await viewer.SetEditModeAsync(editOpen);
         }
         catch (Exception exception)
@@ -711,6 +721,11 @@ public partial class MorphViewer : IAsyncDisposable
     public Task OnFindRequested() =>
         InvokeAsync(OpenFindAsync);
 
+    /// <summary>Called from JavaScript for Ctrl+H inside the editor.</summary>
+    [JSInvokable]
+    public Task OnReplaceRequested() =>
+        InvokeAsync(OpenReplaceAsync);
+
     /// <summary>Called from JavaScript for Ctrl+P inside the viewer.</summary>
     [JSInvokable]
     public Task OnPrintRequested() =>
@@ -729,13 +744,13 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
-    Task ToggleSidebarAsync() =>
+    internal Task ToggleSidebarAsync() =>
         Call(_ => _.ToggleSidebarAsync(!sidebarOpen));
 
     Task StepAsync(int delta) =>
         Call(_ => _.StepPageAsync(delta));
 
-    Task ZoomByAsync(int steps) =>
+    internal Task ZoomByAsync(int steps) =>
         Call(_ => _.ZoomByAsync(steps));
 
     Task RotateAsync() =>
@@ -770,8 +785,9 @@ public partial class MorphViewer : IAsyncDisposable
         return Call(_ => _.SetZoomAsync(value));
     }
 
-    async Task DownloadAsync()
+    internal async Task DownloadAsync()
     {
+        await HandInAsync();
         if (sourceBytes is not { } bytes ||
             sourceInfo is not { } info)
         {
@@ -781,6 +797,7 @@ public partial class MorphViewer : IAsyncDisposable
         try
         {
             await Interop.DownloadAsync(fileName ?? info.SampleFileName, info.ContentType, bytes);
+            savedBytes = bytes;
         }
         catch (Exception exception)
         {
@@ -790,8 +807,9 @@ public partial class MorphViewer : IAsyncDisposable
 
     // Printing: every page rendered at the print resolution and streamed to the script, which lays them out
     // for print CSS and opens the browser's dialog.
-    async Task PrintAsync()
+    internal async Task PrintAsync()
     {
+        await HandInAsync();
         if (document is not { } current ||
             handle is not { } viewer ||
             printing)
@@ -890,7 +908,7 @@ public partial class MorphViewer : IAsyncDisposable
 
     // Find
 
-    Task ToggleFindAsync()
+    internal Task ToggleFindAsync()
     {
         if (findOpen)
         {
@@ -922,6 +940,8 @@ public partial class MorphViewer : IAsyncDisposable
     async Task CloseFindAsync()
     {
         findOpen = false;
+        replaceOpen = false;
+        replaceNote = null;
         searchDelay?.Cancel();
         searchPending = false;
         matches = [];

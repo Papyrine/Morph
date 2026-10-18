@@ -18,7 +18,7 @@ using Unit = ParagraphContent.Unit;
 /// Paragraphs are named by ordinal and places by <see cref="SourcePosition"/>, both as
 /// <see cref="DocumentOutline"/> read them from the same bytes.
 /// </summary>
-static class DocumentEditor
+static partial class DocumentEditor
 {
     const string wordNamespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const string placeholderStyle = "PlaceholderText";
@@ -266,7 +266,7 @@ static class DocumentEditor
     // one that came (New, ahead of the old character Old).
     readonly record struct Step(StepKind Kind, int Old, int New);
 
-    sealed class Editing(WordprocessingDocument document, EditOptions options)
+    sealed partial class Editing(WordprocessingDocument document, EditOptions options)
     {
         readonly MainDocumentPart main = MainPart(document);
 
@@ -1490,8 +1490,16 @@ static class DocumentEditor
                 .ToList();
         }
 
-        // Tracked, the run keeps a record of the properties it had: once, however often it is changed.
         void Change(OoxmlRun run, RunFormat format)
+        {
+            Rerun(run);
+            Set(run, format);
+        }
+
+        // A run's properties, about to be changed. Tracked, the run keeps a record of the properties
+        // it had: once, however often it is changed — and not at all in an insertion of the same
+        // author's, which is new whatever it looks like.
+        OoxmlRunProperties Rerun(OoxmlRun run)
         {
             if (options.Track &&
                 !(Insertion(run) is { } insertion && IsOwn(insertion)) &&
@@ -1508,7 +1516,7 @@ static class DocumentEditor
                 Properties(run).AppendChild(change);
             }
 
-            Set(run, format);
+            return Properties(run);
         }
 
         static OoxmlRunProperties Properties(OoxmlRun run)
@@ -1572,7 +1580,9 @@ static class DocumentEditor
             return toggle;
         }
 
-        public void Align(Paragraph paragraph, TextAlignment alignment)
+        // A paragraph's properties, about to be changed. Tracked, they keep a record of what they
+        // were: once, however often they are changed.
+        OoxmlParagraphProperties Reformat(Paragraph paragraph)
         {
             var properties = paragraph.ParagraphProperties;
             if (properties == null)
@@ -1598,6 +1608,12 @@ static class DocumentEditor
                 properties.AppendChild(change);
             }
 
+            return properties;
+        }
+
+        public void Align(Paragraph paragraph, TextAlignment alignment)
+        {
+            var properties = Reformat(paragraph);
             properties.Justification = new()
             {
                 Val = alignment switch

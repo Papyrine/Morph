@@ -1089,6 +1089,8 @@ export class ParagraphEditor {
             return;
         }
 
+        this.lastRange = selected;
+
         let face;
         if (same(selected.from, selected.to)) {
             face = this.pendingFace ?? this.faceAt(selected.from).f;
@@ -1116,6 +1118,27 @@ export class ParagraphEditor {
             strike: (face & strike) !== 0,
             align: this.blocks[selected.from.b].align ?? this.session.align
         });
+    }
+
+    /**
+     * Where the reader is in the paragraph, in the document's paragraphs rather than this editor's
+     * blocks: [first, last, caret paragraph, caret place, start paragraph, start place, end paragraph,
+     * end place]. Each block Enter divided off is the paragraph after the one before it, once the
+     * paragraph is handed in. Null when the reader has been nowhere in it.
+     */
+    target() {
+        const selected = (!this.closed && this.range()) || this.lastRange;
+        const p = this.session.p;
+        if (!selected || typeof p !== 'number') {
+            return null;
+        }
+
+        return [
+            p + selected.from.b, p + selected.to.b,
+            p + selected.to.b, selected.to.o,
+            p + selected.from.b, selected.from.o,
+            p + selected.to.b, selected.to.o
+        ];
     }
 
     // Handing in

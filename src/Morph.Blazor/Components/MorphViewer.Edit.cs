@@ -10,29 +10,28 @@ namespace Morph;
 //
 // Formatting and deleting also work on text selected across the pages, with no editor open: those
 // go straight to the file.
+//
+// The viewer only shows a document. All of this is MorphEditor's, which turns it on (Editing) for a
+// Word document that allows it; it lives here because it shares the viewer's document, pages and
+// edits from end to end.
 public partial class MorphViewer
 {
-    /// <summary>
-    /// Whether the toolbar offers editing for a Word document: typing into its paragraphs, and
-    /// formatting and aligning its text. Default true. <see cref="ReadOnly"/>, and a document's own
-    /// protection, turn it off whatever this says.
-    /// </summary>
-    [Parameter]
-    public bool ShowEdit { get; set; } = true;
+    /// <summary>Whether a Word document's text is edited where it stands: MorphEditor's, not the viewer's.</summary>
+    internal virtual bool Editing => false;
 
-    DocumentOutline outline = DocumentOutline.Empty;
+    internal DocumentOutline outline = DocumentOutline.Empty;
     EditMap editMap = EditMap.Empty;
     EditSession? session;
     int sessions;
     bool editOpen;
-    string? editNote;
+    internal string? editNote;
 
-    bool CanWrite => !ReadOnly && IsWord && outline.AllowsEditing;
+    internal bool CanWrite => !ReadOnly && IsWord && outline.AllowsEditing;
 
     // Whether edits are recorded as tracked changes.
-    bool Tracking => outline.Tracking || outline.ForcesTracking;
+    internal bool Tracking => outline.Tracking || outline.ForcesTracking;
 
-    string TrackTitle
+    internal string TrackTitle
     {
         get
         {
@@ -56,33 +55,6 @@ public partial class MorphViewer
         editMap = EditMap.Empty;
         session = null;
         editNote = null;
-    }
-
-    async Task ToggleEditAsync()
-    {
-        if (!IsWord ||
-            handle is not { } viewer)
-        {
-            return;
-        }
-
-        editNote = null;
-        if (editOpen)
-        {
-            // The script hands in what is being typed before it lets go.
-            await viewer.SetEditModeAsync(false);
-            editOpen = false;
-            session = null;
-            return;
-        }
-
-        if (!CanWrite)
-        {
-            return;
-        }
-
-        editOpen = true;
-        await viewer.SetEditModeAsync(true);
     }
 
     /// <summary>
@@ -223,6 +195,7 @@ public partial class MorphViewer
     async Task BeginAsync(ViewerHandle viewer, EditParagraph paragraph, EditBlock block, int from, int to)
     {
         session = new(++sessions, paragraph, block, editMap);
+        caretParagraph = paragraph.Ordinal;
         try
         {
             await viewer.BeginEditAsync(documentId, session.Json(from, to));
