@@ -4,7 +4,7 @@
 <div class="@RootClass" @attributes="AdditionalAttributes">
     <div class="upload-panel">
         <label class="file-drop" for="source-file">
-            <span class="file-drop-icon">@(sourceInfo?.Icon ?? "📄")</span>
+            <span class="file-drop-icon"><Iconify Value="@(sourceInfo?.Icon ?? Lucide.FileUp)" aria-hidden="true" focusable="false" /></span>
             <span class="file-drop-text">
                 @if (sourceName is null)
                 {
@@ -30,7 +30,8 @@
                 @foreach (var sample in ConversionService.ReadableFormats)
                 {
                     <button class="sample-btn" @onclick="() => LoadSample(sample)" disabled="@isBusy">
-                        @sample.Icon Sample @sample.ShortName
+                        <Iconify Value="sample.Icon" aria-hidden="true" focusable="false" />
+                        Sample @sample.ShortName
                     </button>
                 }
             </div>

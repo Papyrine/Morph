@@ -1,8 +1,8 @@
 using static EditFixtures;
 
-// Editing a Word document's text end to end, on the real WASM runtime in a real browser: that is where
-// the editor is laid over a paragraph, keys are turned into text, and what was typed is handed to .NET,
-// written into the file and drawn again.
+// Editing a Word document end to end in MorphEditor (/edit), on the real WASM runtime in a real
+// browser: that is where the editor is laid over a paragraph, keys are turned into text, what was typed
+// is handed to .NET, written into the file and drawn again — and where a ribbon press keeps the caret.
 //
 // The fixture is three paragraphs on one page, which the page's text layer holds as
 //   "First paragraph here." "Second bold one." "Third and last."
@@ -25,7 +25,7 @@ public partial class SnapshotTests
         await HandInAsync(page);
 
         await Assert.That(await LayerTextAsync(page)).Contains("First paragraph here. And more.");
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page))))
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page))))
             .IsEqualTo("[First paragraph here. And more.] / [Second ][b:bold][ one.] (center) / [Third and last.]");
     }
 
@@ -41,7 +41,7 @@ public partial class SnapshotTests
         await page.Keyboard.TypeAsync("short ");
         await HandInAsync(page);
 
-        await Assert.That(Read(await DownloadAsync(page))[0]).IsEqualTo("[First short paragraph here.]");
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[First short paragraph here.]");
     }
 
     [Test]
@@ -59,7 +59,7 @@ public partial class SnapshotTests
             {
                 State = WaitForSelectorState.Detached
             });
-        await Assert.That(Read(await DownloadAsync(page))[0]).IsEqualTo("[First paragraph here.]");
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[First paragraph here.]");
     }
 
     [Test]
@@ -74,7 +74,7 @@ public partial class SnapshotTests
         await page.Keyboard.TypeAsync("Fourth, ");
         await HandInAsync(page);
 
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page))))
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page))))
             .IsEqualTo("[First paragraph here.] / [Second ][b:bold][ one.] (center) / [Third ] / [Fourth, and last.]");
 
         // Backspace at the start of the new paragraph takes the break back out, and leaves the
@@ -92,7 +92,7 @@ public partial class SnapshotTests
         await page.Keyboard.TypeAsync("and ");
         await HandInAsync(page);
 
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page))))
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page))))
             .IsEqualTo("[First paragraph here.] / [Second ][b:bold][ one.] (center) / [Third and ][Fourth, and last.]");
     }
 
@@ -114,7 +114,7 @@ public partial class SnapshotTests
         await page.ClickAsync("[data-edit-command=align-right]");
         await HandInAsync(page);
 
-        await Assert.That(Read(await DownloadAsync(page))[0]).IsEqualTo("[bi:First][ paragraph here.] (right)");
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[bi:First][ paragraph here.] (right)");
     }
 
     // With no paragraph open, the toolbar is for what is selected on the pages.
@@ -131,14 +131,14 @@ public partial class SnapshotTests
         await page.ClickAsync("[data-edit-command=underline]");
         await WaitForTextAsync(page, "First paragraph here.");
 
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page))))
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page))))
             .IsEqualTo("[First paragraph ][u:here.] / [u:Second][ ][b:bold][ one.] (center) / [Third and last.]");
 
         // And Undo takes it back.
         await page.ClickAsync("[data-edit-command=undo]");
         await page.WaitForTimeoutAsync(300);
         await WaitForTextAsync(page, "First paragraph here.");
-        await Assert.That(Read(await DownloadAsync(page))[0]).IsEqualTo("[First paragraph here.]");
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[First paragraph here.]");
     }
 
     [Test]
@@ -146,6 +146,7 @@ public partial class SnapshotTests
     {
         var page = await OpenEditAsync(Paragraphs);
 
+        await ChooseTabAsync(page, "Review");
         await page.ClickAsync("[data-edit-command=track]");
         await page.WaitForSelectorAsync("[data-edit-command=track][aria-pressed=true]");
         await page.FillAsync(".viewer-edit-signature input", "Ann Lee");
@@ -154,7 +155,7 @@ public partial class SnapshotTests
         await page.Keyboard.TypeAsync(" Indeed.");
         await HandInAsync(page);
 
-        var saved = await DownloadAsync(page);
+        var saved = await SaveAsync(page);
         await Assert.That(Read(saved)[2]).IsEqualTo("[Third and last.]{+[ Indeed.]+}");
         var change = DocumentReview.Read(saved).Changes.Single();
         await Assert.That(change.Author).IsEqualTo("Ann Lee");
@@ -164,7 +165,7 @@ public partial class SnapshotTests
     }
 
     // A field is shown and left alone: the caret steps over it as over one character, and what is
-    // typed either side of it goes either side of it in the file.
+    // typed either side of it goes either side of it in the file. Selected with the text, it goes.
     [Test]
     public async Task Edit_WhatIsNotText_StaysWhereItIs_WhileTheTextAroundItIsEdited()
     {
@@ -190,19 +191,95 @@ public partial class SnapshotTests
         await page.Keyboard.PressAsync("ArrowLeft");
         await page.Keyboard.TypeAsync("on ");
 
-        // Everything selected and deleted: the text goes, and the field stays.
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Dated on 1 May, by Ann!");
         await HandInAsync(page);
 
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page)))).IsEqualTo("[Dated on ][][][][1 May][][, by Ann!]");
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[Dated on ][][][][1 May][][, by Ann!]");
 
+        // Everything selected and deleted: the field goes with the text.
         await ClickInAsync(page, "by Ann");
         await page.Keyboard.PressAsync("Control+a");
         await page.Keyboard.PressAsync("Delete");
-        await Assert.That((await page.InnerTextAsync(editor)).Trim()).IsEqualTo("1 May");
+        await Assert.That((await page.InnerTextAsync(editor)).Trim()).IsEqualTo("");
         await HandInAsync(page);
 
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page)))).IsEqualTo("[][][][1 May][]");
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("");
+    }
+
+    // Backspace just after a field deletes the field, whole, as Word's does; Delete just before a
+    // page break deletes the break.
+    [Test]
+    public async Task Edit_BackspaceAndDelete_BesideWhatIsNotText_DeleteIt()
+    {
+        const string field =
+            "<w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText xml:space=\"preserve\"> DATE </w:instrText></w:r>" +
+            "<w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>1 May</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r>";
+        var page = await OpenEditAsync(Build(P("", R("Dated "), field, R(" by Ann"))));
+
+        await ClickInAsync(page, "by Ann");
+        await page.Keyboard.PressAsync("Home");
+        for (var index = 0; index < "Dated ".Length + 1; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        await page.Keyboard.PressAsync("Backspace");
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Dated  by Ann");
+        await HandInAsync(page);
+
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[Dated ][ by Ann]");
+    }
+
+    // The Font group formats the word the caret is in, and the ribbon shows the size it now is.
+    [Test]
+    public async Task Edit_TheFontGroup_FormatsTheWordTheCaretIsIn()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("Home");
+        for (var index = 0; index < "First para".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        var size = await page.GetAttributeAsync("[data-edit-show=size]", "data-value");
+        await page.ClickAsync("[aria-label='Grow font']");
+        await page.WaitForFunctionAsync($"() => document.querySelector('[data-edit-show=size]').dataset.value !== '{size}'");
+
+        var session = await page.GetAttributeAsync(editor, "data-edit-session");
+        await page.ClickAsync("[aria-label='More font colours']");
+        await page.ClickAsync(".editor-swatch[aria-label='Blue']");
+        await page.WaitForSelectorAsync(".editor-swatch-button[style*='0070C0']");
+        await page.WaitForFunctionAsync(
+            $"() => document.querySelector('{editor}')?.dataset.editSession !== '{session}' && getSelection().toString() === 'paragraph'",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+
+        // The word is still selected, so typing replaces it.
+        await page.Keyboard.TypeAsync("text");
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        await Assert.That(Read(saved)[0]).IsEqualTo("[First ][text][ here.]");
+        await Assert.That(DocumentBody(saved)).Contains("<w:color w:val=\"0070C0\" /><w:sz w:val=\"28\" /></w:rPr><w:t xml:space=\"preserve\">text</w:t>");
+    }
+
+    static string DocumentNumbering(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        return package.MainDocumentPart!.NumberingDefinitionsPart!.Numbering!.InnerXml;
+    }
+
+    static string DocumentBody(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        return package.MainDocumentPart!.Document!.Body!.InnerXml.Replace(" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
     }
 
     // Clicking another paragraph hands in the one that was open and opens the one clicked.
@@ -220,7 +297,7 @@ public partial class SnapshotTests
         await page.Keyboard.TypeAsync(" Done.");
         await HandInAsync(page);
 
-        await Assert.That(string.Join(" / ", Read(await DownloadAsync(page))))
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page))))
             .IsEqualTo("[First paragraph here. More.] / [Second ][b:bold][ one.] (center) / [Third and last. Done.]");
     }
 
@@ -251,28 +328,424 @@ public partial class SnapshotTests
     }
 
     [Test]
-    public async Task Edit_IsNotOffered_ForAWorkbook_OrAProtectedDocument()
+    public async Task Edit_IsNotTurnedOn_ForAProtectedDocument()
     {
         var locked = Build(P("", R("Read only.")), "<w:documentProtection w:edit=\"readOnly\" w:enforcement=\"1\"/>");
 
         var page = await OpenFileAsync(locked, "locked.docx");
 
-        await Assert.That(await page.Locator(".viewer-edit-toggle").CountAsync()).IsEqualTo(0);
+        await Assert.That(await page.Locator(".viewer[data-edit=on]").CountAsync()).IsEqualTo(0);
+        await Assert.That(await page.InnerTextAsync(".editor-status")).Contains("Read-only");
     }
 
-    // Opens /view on a file and turns editing on, once the page has painted and has its text.
+    // The ribbon acts on the paragraph being typed in — what was typed is handed in first — and the
+    // reader goes on typing where they were.
+    [Test]
+    public async Task Edit_AStyleFromTheRibbon_AppliesToTheParagraphBeingTyped()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.TypeAsync(" Really");
+        await page.ClickAsync(".editor-style-button");
+        await page.ClickAsync(".editor-style:text-is('Heading 1')");
+        await page.WaitForFunctionAsync(
+            "() => document.querySelector('.edit-box[contenteditable=true]')?.innerText === 'Third and last. Really'",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await page.Keyboard.TypeAsync("!");
+        await HandInAsync(page);
+
+        await Assert.That(Read(await SaveAsync(page))[2]).IsEqualTo("[Third and last. Really!] #Heading1");
+        await Assert.That(await page.InnerTextAsync(".editor-style-name")).IsEqualTo("Heading 1");
+    }
+
+    [Test]
+    public async Task Edit_ListsAndAPageBreak_FromTheRibbon()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "and last");
+        await page.ClickAsync("[aria-label=Numbering]");
+        await page.WaitForSelectorAsync("[aria-label=Numbering][aria-pressed=true]", new() {Timeout = 60000});
+        await ClickBeforeAsync(page, "Second");
+        await page.WaitForFunctionAsync(
+            "() => document.querySelector('.edit-box[contenteditable=true]')?.innerText === 'Second bold one.'",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await ChooseTabAsync(page, "Insert");
+        await page.ClickAsync(".editor-tool:has-text('Page break')");
+        await page.WaitForSelectorAsync(".viewer-page[data-page-number='2']", new() {Timeout = 60000});
+
+        var saved = Read(await SaveAsync(page));
+        await Assert.That(string.Join(" / ", saved))
+            .IsEqualTo("[First paragraph here.] / [] / [Second ][b:bold][ one.] (center) / [Third and last.] #ListParagraph •1.0");
+    }
+
+    [Test]
+    public async Task Edit_ATable_FromTheRibbon_TakesTyping()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("End");
+        await ChooseTabAsync(page, "Insert");
+        await page.ClickAsync(".editor-tool:has-text('Table')");
+        await page.ClickAsync(".editor-grid-cell[aria-label='2 by 2']");
+        await page.WaitForSelectorAsync(".editor-tab:text-is('Table')", new() {Timeout = 60000});
+        await page.WaitForSelectorAsync(editor, new() {Timeout = 60000});
+        await page.Keyboard.TypeAsync("Cell one");
+        await HandInAsync(page);
+
+        var saved = Read(await SaveAsync(page));
+        await Assert.That(string.Join(" / ", saved.Take(3))).IsEqualTo("[First paragraph here.] / [Cell one] / ");
+    }
+
+    [Test]
+    public async Task Edit_FindAndReplace()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await page.Locator(".viewer-pages").ClickAsync(new() {Position = new() {X = 5, Y = 5}});
+        await page.Keyboard.PressAsync("Control+h");
+        await page.FillAsync(".viewer-findbar input[type=search]", "and");
+        await page.WaitForSelectorAsync(".viewer-find-status:has-text('1 of 1')", new() {Timeout = 30000});
+        await page.FillAsync(".viewer-replace input", "or");
+        await page.ClickAsync(".viewer-text-button:has-text('Replace all')");
+        await page.WaitForSelectorAsync(".viewer-replace:has-text('Replaced 1')", new() {Timeout = 60000});
+
+        await Assert.That(Read(await SaveAsync(page))[2]).IsEqualTo("[Third or last.]");
+    }
+
+    // A new document is Word's own blank one, open for typing.
+    [Test]
+    public async Task Edit_ANewDocument_IsBlank_AndTakesTyping()
+    {
+        var page = await browser!.NewPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await page.ClickAsync(".editor-start-new", new() {Timeout = 120000});
+        await page.WaitForSelectorAsync(editor, new() {Timeout = 120000});
+        await page.Keyboard.TypeAsync("A fresh start");
+        await HandInAsync(page);
+
+        await Assert.That(await page.InnerTextAsync(".editor-name")).Contains("Document1.docx");
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[A fresh start]");
+    }
+
+    // A ribbon command after Enter has divided the paragraph acts on the half the caret is in: the
+    // script names it as the paragraph after the one it was divided from.
+    [Test]
+    public async Task Edit_ACommandAfterEnter_ActsOnTheNewParagraph()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Enter");
+        await page.Keyboard.TypeAsync("A new one");
+        await page.ClickAsync("[aria-label=Bullets]");
+        await page.WaitForSelectorAsync("[aria-label=Bullets][aria-pressed=true]", new() {Timeout = 60000});
+        await page.Keyboard.TypeAsync(".");
+        await HandInAsync(page);
+
+        await Assert.That(string.Join(" / ", Read(await SaveAsync(page)).Take(3)))
+            .IsEqualTo("[First paragraph here.] / [A new one.] #ListParagraph •1.0 / [Second ][b:bold][ one.] (center)");
+    }
+
+    [Test]
+    public async Task Edit_APicture_FromTheRibbon()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await ChooseTabAsync(page, "Insert");
+        await page.SetInputFilesAsync(
+            ".editor-tool input[type=file]",
+            new FilePayload
+            {
+                Name = "dot.png",
+                MimeType = "image/png",
+                Buffer = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
+            });
+        await page.WaitForFunctionAsync(
+            "() => document.querySelector('.edit-box[contenteditable=true] .edit-atom') !== null",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        await Assert.That(DocumentOutline.Read(saved).Paragraphs[2].Units.Select(_ => _.Kind)).IsEquivalentTo([EditUnitKind.Text, EditUnitKind.Drawing]);
+    }
+
+    // Word's keys in a list (Word-probed 2026-10-19): Tab a level in, Enter in an empty paragraph out
+    // of the list, Backspace at a paragraph's start its number off. Each is carried out on the file,
+    // and typing goes on where it was.
+    [Test]
+    public async Task Edit_ListKeys_AsWordsDo()
+    {
+        var listed = DocumentEditor.SetList(Paragraphs, [0, 1, 2], ListKind.Bullet, new("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        var page = await OpenEditAsync(listed);
+
+        // In the list's first paragraph Tab moves the whole list in.
+        await ClickInAsync(page, "paragraph here");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Tab"));
+        await HandInAsync(page);
+
+        await ClickInAsync(page, "bold one");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Tab"));
+
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Enter");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Enter"));
+        await page.Keyboard.TypeAsync("Plain");
+        await HandInAsync(page);
+
+        // Backspace at the start of the last: its bullet goes, then the indent its style gives it,
+        // then it joins the paragraph before.
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("Home");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Backspace"));
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Backspace"));
+        await HandInAsync(page);
+        var unindented = Read(await SaveAsync(page));
+        await Assert.That(unindented[3]).IsEqualTo("[Third and last.]");
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("Home");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Backspace"));
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        var paragraphs = DocumentOutline.Read(saved).Paragraphs;
+        await Assert.That(paragraphs.Select(_ => _.ListLevel)).IsEquivalentTo(new int?[] {0, 1, null});
+        var read = Read(saved);
+        await Assert.That(read[0]).IsEqualTo("[First paragraph here.] #ListParagraph •1.0");
+        await Assert.That(read[1]).IsEqualTo("[Second ][b:bold][ one.] (center) #ListParagraph •1.1");
+        await Assert.That(read[2]).IsEqualTo("[Plain][Third and last.] (center)");
+        await Assert.That(DocumentNumbering(saved)).Contains("<w:ind w:left=\"1080\" w:hanging=\"360\" />");
+    }
+
+    // Enter at the end of a heading starts body text, which is what is typed after it; Ctrl+Alt+2 is
+    // Heading 2.
+    [Test]
+    public async Task Edit_EnterAtTheEndOfAHeading_StartsBodyText()
+    {
+        var headed = DocumentEditor.SetStyle(Paragraphs, [0], "Heading1", new("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        var page = await OpenEditAsync(headed);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("End");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Enter"));
+        await page.Keyboard.TypeAsync("Body text");
+        await HandInAsync(page);
+
+        await ClickInAsync(page, "and last");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Control+Alt+Digit2"));
+        await HandInAsync(page);
+
+        var read = Read(await SaveAsync(page));
+        await Assert.That(read[0]).IsEqualTo("[First paragraph here.] #Heading1");
+        await Assert.That(read[1]).IsEqualTo("[Body text] #Normal");
+        await Assert.That(read[3]).IsEqualTo("[Third and last.] #Heading2");
+    }
+
+    // An edit not saved is kept: the page asks before it is left, and after a reload the start page
+    // offers the document back, edited.
+    [Test]
+    public async Task Edit_UnsavedWork_IsKept()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+        var asked = new List<string>();
+        page.Dialog += (_, dialog) =>
+        {
+            asked.Add(dialog.Type);
+            dialog.AcceptAsync();
+        };
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.TypeAsync("!");
+        await HandInAsync(page);
+        await page.WaitForSelectorAsync(".editor-dirty");
+        await page.WaitForFunctionAsync(
+            """
+            async () => {
+                if (!(await indexedDB.databases()).some(_ => _.name === 'morph-editor')) {
+                    return false;
+                }
+
+                return await new Promise(resolve => {
+                    const opening = indexedDB.open('morph-editor');
+                    opening.onerror = () => resolve(false);
+                    opening.onsuccess = () => {
+                        const database = opening.result;
+                        if (!database.objectStoreNames.contains('drafts')) {
+                            database.close();
+                            resolve(false);
+                            return;
+                        }
+
+                        const reading = database.transaction('drafts').objectStore('drafts').get('last');
+                        reading.onsuccess = () => {
+                            database.close();
+                            resolve(!!reading.result);
+                        };
+                        reading.onerror = () => {
+                            database.close();
+                            resolve(false);
+                        };
+                    };
+                });
+            }
+            """,
+            null,
+            new()
+            {
+                Timeout = 30000
+            });
+
+        await page.ReloadAsync();
+        await Assert.That(asked).IsEquivalentTo(["beforeunload"]);
+
+        await page.WaitForSelectorAsync(
+            ".editor-recover",
+            new()
+            {
+                Timeout = 120000
+            });
+        await Assert.That(await page.InnerTextAsync(".editor-recover-text")).StartsWith("edit.docx was edited on");
+        await page.ClickAsync(".editor-recover .editor-button:text-is('Recover')");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+        await page.WaitForSelectorAsync(".editor-dirty");
+
+        await Assert.That(Read(await SaveAsync(page))[2]).IsEqualTo("[Third and last.!]");
+    }
+
+    // Runs what reopens the paragraph from .NET, and waits until it has: a new session, ready to type in.
+    static async Task ReopenedAsync(IPage page, Func<Task> act)
+    {
+        var session = await page.GetAttributeAsync(editor, "data-edit-session");
+        await act();
+        await page.WaitForFunctionAsync(
+            $"() => Number(document.querySelector('{editor}')?.dataset.editSession) > Number('{session}') && document.activeElement?.matches('{editor}')",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+    }
+
+    // What the editor looks like with a document open: the ribbon, the page, the status bar — on a
+    // desktop and a phone, light and dark. Screenshots of the editor alone, its fonts pinned, compared
+    // by SSIM like the home page's.
+    [Test]
+    [Arguments(false, false)]
+    [Arguments(true, false)]
+    [Arguments(false, true)]
+    [Arguments(true, true)]
+    public async Task Editor_Snapshot(bool dark, bool mobile)
+    {
+        var page = await NewPinnedPageAsync();
+        if (mobile)
+        {
+            await page.SetViewportSizeAsync(375, 667);
+        }
+
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        if (dark)
+        {
+            await page.EvaluateAsync("() => localStorage.setItem('selectedTheme', 'Dark')");
+            await page.ReloadAsync();
+        }
+
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
+    }
+
+    // The menus and the table picker drawn over the page.
+    [Test]
+    [Arguments("styles")]
+    [Arguments("file")]
+    [Arguments("table")]
+    [Arguments("color")]
+    public async Task Editor_Menu_Snapshot(string menu)
+    {
+        var page = await NewPinnedPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        switch (menu)
+        {
+            case "styles":
+                await page.ClickAsync(".editor-style-button");
+                break;
+            case "file":
+                await page.ClickAsync(".editor-file");
+                break;
+            case "color":
+                await page.ClickAsync("[aria-label='More font colours']");
+                break;
+            default:
+                await ChooseTabAsync(page, "Insert");
+                await page.ClickAsync(".editor-tool:has-text('Table')");
+                await page.HoverAsync(".editor-grid-cell[aria-label='3 by 4']");
+                break;
+        }
+
+        await page.WaitForSelectorAsync(".editor-menu");
+        await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
+    }
+
+    // Opens /edit on a file, once the page has painted and has its text, and editing is on.
     static async Task<IPage> OpenEditAsync(byte[] docx)
     {
         var page = await OpenFileAsync(docx, "edit.docx");
-        await page.ClickAsync(".viewer-edit-toggle");
-        await page.WaitForSelectorAsync(".viewer-editbar");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
         return page;
+    }
+
+    static Task ChooseTabAsync(IPage page, string name) =>
+        page.ClickAsync($".editor-tab:text-is('{name}')");
+
+    // Saves the document as edited, as the editor's Save a copy does.
+    static async Task<byte[]> SaveAsync(IPage page)
+    {
+        var download = await page.RunAndWaitForDownloadAsync(
+            () => page.ClickAsync("button[aria-label='Save a copy']"),
+            new()
+            {
+                Timeout = 30000
+            });
+        return await File.ReadAllBytesAsync(await download.PathAsync());
     }
 
     static async Task<IPage> OpenFileAsync(byte[] docx, string name)
     {
         var page = await browser!.NewPageAsync();
-        await page.GotoAsync($"http://localhost:{port}/view");
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, docx, name);
+        return page;
+    }
+
+    // Opens a file in the editor already on the page, and waits for its first page to be drawn.
+    static async Task LoadIntoAsync(IPage page, byte[] docx, string name)
+    {
         await page.WaitForSelectorAsync(
             ".viewer-open input[type=file]",
             new()
@@ -294,7 +767,6 @@ public partial class SnapshotTests
             {
                 Timeout = 120000
             });
-        return page;
     }
 
     // Clicks the first character of some text of the first page, and waits for the editor that
@@ -383,7 +855,7 @@ public partial class SnapshotTests
                 const page = document.querySelector('.viewer-page[data-page-number="1"][data-rendered-dpi]');
                 const layer = page?.querySelector('.text-layer[data-text-state=ready]');
                 return layer !== null && layer !== undefined && layer.textContent.includes(text) &&
-                    document.querySelector('.viewer-editbar')?.getAttribute('aria-busy') === 'false';
+                    document.querySelector('.editor-ribbon')?.getAttribute('aria-busy') === 'false';
             }
             """,
             text,

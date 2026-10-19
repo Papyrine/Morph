@@ -1,0 +1,84 @@
+﻿
+<div class="editor-menu editor-file-menu" role="menu" aria-label="File" blazor:onkeydown="36">
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="37">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"></path>
+				<path d="M14 2v4a2 2 0 0 0 2 2h4M3 15h6m-3-3v6"></path>
+			</g>
+		</svg>
+		New blank document
+	</button>
+	<label role="menuitem" class="editor-menu-item">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+		</svg>
+		Open…
+		<input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open" type="file" blazor:elementreference="scrubbed">
+	</label>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="38">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+				<path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"></path>
+			</g>
+		</svg>
+		Save a copy (.docx)
+	</button>
+	<div class="editor-menu-heading">Export as</div>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="39">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"></path>
+				<path d="M14 2v5a1 1 0 0 0 1 1h5M5 11l-3 3m3 3l-3-3h10"></path>
+			</g>
+		</svg>
+		PNG image (.png)
+	</button>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="40">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"></path>
+				<path d="M14 2v5a1 1 0 0 0 1 1h5M5 11l-3 3m3 3l-3-3h10"></path>
+			</g>
+		</svg>
+		PDF (.pdf)
+	</button>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="41">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"></path>
+				<path d="M14 2v5a1 1 0 0 0 1 1h5M5 11l-3 3m3 3l-3-3h10"></path>
+			</g>
+		</svg>
+		HTML (.html)
+	</button>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="42">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"></path>
+				<path d="M14 2v5a1 1 0 0 0 1 1h5M5 11l-3 3m3 3l-3-3h10"></path>
+			</g>
+		</svg>
+		Markdown (.md)
+	</button>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="43">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"></path>
+				<path d="M14 2v5a1 1 0 0 0 1 1h5M5 11l-3 3m3 3l-3-3h10"></path>
+			</g>
+		</svg>
+		Plain text (.txt)
+	</button>
+	<div class="editor-menu-separator" role="separator"></div>
+	<button type="button" role="menuitem" class="editor-menu-item" blazor:onmousedown:preventdefault="" blazor:onclick="44">
+		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+			<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+				<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"></path>
+				<rect width="12" height="8" x="6" y="14" rx="1"></rect>
+			</g>
+		</svg>
+		Print…
+	</button>
+</div>

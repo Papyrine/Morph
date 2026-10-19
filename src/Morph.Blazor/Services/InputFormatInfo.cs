@@ -8,7 +8,7 @@ namespace Morph;
 /// <param name="DisplayName">Human name for the source kind, e.g. "Word document".</param>
 /// <param name="Extension">The file extension, including the dot.</param>
 /// <param name="ContentType">MIME type, used when the file is handed back to the browser.</param>
-/// <param name="Icon">Emoji shown beside the format in the upload panel and sample buttons.</param>
+/// <param name="Icon">The Lucide icon shown beside the format in the upload panel and sample buttons.</param>
 /// <param name="ShortName">One-word label for the sample button, e.g. "Word".</param>
 /// <param name="PageNoun">What one rendered page is called — a deck renders slides, not pages.</param>
 public record InputFormatInfo(
@@ -16,7 +16,7 @@ public record InputFormatInfo(
     string DisplayName,
     string Extension,
     string ContentType,
-    string Icon,
+    Icon Icon,
     string ShortName,
     string PageNoun)
 {

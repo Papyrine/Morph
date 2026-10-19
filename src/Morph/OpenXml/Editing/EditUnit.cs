@@ -13,5 +13,8 @@ sealed record EditUnit(EditUnitKind Kind, int Run, int Start, string Text)
     /// <inheritdoc cref="WidthPoints"/>
     public double HeightPoints { get; init; }
 
+    /// <summary>Whether the unit is the text of a link.</summary>
+    public bool Linked { get; init; }
+
     public bool Editable => Kind == EditUnitKind.Text;
 }

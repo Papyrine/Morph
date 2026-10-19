@@ -30,9 +30,9 @@ public static class ConversionService
     /// <summary>The Office formats that can be read, in the order the upload panel offers them.</summary>
     public static IReadOnlyList<InputFormatInfo> ReadableFormats { get; } =
     [
-        new(InputFormat.Docx, "Word document", ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "📄", "Word", "page"),
-        new(InputFormat.Xlsx, "Excel workbook", ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "📊", "Excel", "page"),
-        new(InputFormat.Pptx, "PowerPoint presentation", ".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "📽️", "PowerPoint", "slide"),
+        new(InputFormat.Docx, "Word document", ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", Lucide.FileText, "Word", "page"),
+        new(InputFormat.Xlsx, "Excel workbook", ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", Lucide.FileSpreadsheet, "Excel", "page"),
+        new(InputFormat.Pptx, "PowerPoint presentation", ".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation", Lucide.Presentation, "PowerPoint", "slide"),
     ];
 
     /// <summary>The <c>accept</c> list for the file input — every readable extension.</summary>

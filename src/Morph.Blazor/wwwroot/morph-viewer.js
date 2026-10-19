@@ -19,6 +19,7 @@
 
 import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt } from './morph-text.js';
 import { ParagraphEditor } from './morph-edit.js';
+import { DraftKeeper } from './morph-draft.js';
 
 // PDF.js's zoom steps.
 const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
@@ -61,6 +62,12 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         revealReviewCard: key => viewer.revealReviewCard(key),
         setEditMode: on => viewer.setEditMode(on),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
+        editTarget: () => viewer.editTarget(),
+        setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
+        keepDraft: (name, bytes) => viewer.drafts().keep(name, bytes),
+        dropDraft: () => viewer.drafts().drop(),
+        describeDraft: () => viewer.drafts().describe(),
+        readDraft: () => viewer.drafts().read(),
         // Minutes east of UTC, which is the sign .NET's offsets take and the opposite of the browser's.
         zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
@@ -507,6 +514,7 @@ class Viewer {
         this.clearReview();
         this.dropEditors();
         this.lastSelection = '';
+        this.lastTarget = null;
         this.visibleObserver.disconnect();
         this.nearObserver.disconnect();
         this.thumbObserver.disconnect();
@@ -538,7 +546,15 @@ class Viewer {
         delete this.root.dataset.busy;
     }
 
+    // The editor's draft and its prompt before the page is left (morph-draft.js), made the first
+    // time the editor asks: a viewer that never edits leaves the page alone.
+    drafts() {
+        this.draftKeeper ??= new DraftKeeper(() => !!this.editor && !this.editor.closed && this.editor.changed);
+        return this.draftKeeper;
+    }
+
     dispose() {
+        this.draftKeeper?.dispose();
         this.cancelPrint();
         if (this.presenting) {
             this.exitPresentation();
@@ -1329,6 +1345,14 @@ class Viewer {
                     event.preventDefault();
                     this.call('OnFindRequested');
                     return;
+                case 'h':
+                    if (this.editMode) {
+                        event.preventDefault();
+                        this.call('OnReplaceRequested');
+                        return;
+                    }
+
+                    break;
                 case 's':
                     event.preventDefault();
                     // What is being typed is part of what is saved.
@@ -1760,6 +1784,12 @@ class Viewer {
         }
 
         this.lastSelection = key;
+
+        // Text selected on the pages is what a command acts on now, not where a caret last was.
+        if (selected) {
+            this.lastTarget = null;
+        }
+
         this.dotNet.invokeMethodAsync('OnReviewSelection', selected ?? []).catch(() => {});
     }
 
@@ -1845,6 +1875,7 @@ class Viewer {
 
         this.editMode = on;
         this.lastSelection = '';
+        this.lastTarget = null;
         if (on) {
             this.root.dataset.edit = 'on';
             this.onSelectionChange();
@@ -1892,13 +1923,36 @@ class Viewer {
 
         getSelection()?.removeAllRanges();
         this.editor = new ParagraphEditor(page.element.querySelector('.viewer-sheet'), page, session, {
-            commit: (editor, payload, then) => this.handIn(editor, payload, then),
+            commit: (editor, payload, then) => {
+                // A paragraph joined to its neighbour is not where it was.
+                this.lastTarget = then === 0 ? editor.target() ?? this.lastTarget : null;
+                return this.handIn(editor, payload, then);
+            },
             cancel: id => {
+                this.lastTarget = this.editor?.target() ?? this.lastTarget;
                 this.dotNet.invokeMethodAsync('OnEditCancel', id).catch(() => {});
             },
             state: state => this.showEditState(state),
+            key: name => this.editKey(name),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
+    }
+
+    // Where a command .NET carries out itself — a style, a list, a table — is to act: in the paragraph
+    // being typed in, handed in first so that the command acts on the file as the reader left it; or
+    // else where the last one was left. In paragraphs of the file, as ParagraphEditor.target() says
+    // them; empty when no paragraph has been open since text was last selected on the pages.
+    async editTarget() {
+        const editor = this.editor;
+        if (editor && !editor.closed) {
+            const target = editor.target();
+            await editor.commit(0);
+            if (target) {
+                this.lastTarget = target;
+            }
+        }
+
+        return this.lastTarget ?? [];
     }
 
     // The editor stays where it is, showing what was typed, until the page under it shows the same.
@@ -1941,8 +1995,18 @@ class Viewer {
         }
     }
 
-    // Which of the editing bar's buttons are pressed: null when no paragraph is open.
+    // Which of the editing bar's buttons are pressed: null when no paragraph is open. The font and
+    // size the caret is in show in the ribbon (data-edit-show), as of the last place it was.
     showEditState(state) {
+        if (state) {
+            for (const shown of this.root.querySelectorAll('[data-edit-show]')) {
+                const value = state[shown.dataset.editShow];
+                if (value !== undefined && value !== null) {
+                    shown.dataset.value = typeof value === 'number' ? String(Math.round(value * 2) / 2) : value;
+                }
+            }
+        }
+
         for (const button of this.root.querySelectorAll('[data-edit-command]')) {
             const name = button.dataset.editCommand;
             if (name === 'track' || name === 'undo' || name === 'redo') {
@@ -1976,8 +2040,20 @@ class Viewer {
 
     // Keys while editing is on and no paragraph is open. Says whether the key was one of them.
     onEditKey(event) {
+        if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
+            event.preventDefault();
+            this.editKey(`heading${event.code.slice(-1)}`);
+            return true;
+        }
+
         const command = (event.ctrlKey || event.metaKey) && !event.altKey;
         const key = event.key.toLowerCase();
+        if (command && key === 'k') {
+            event.preventDefault();
+            this.editKey('link');
+            return true;
+        }
+
         let name = null;
         if (command) {
             name = { b: 'bold', i: 'italic', u: 'underline', y: 'redo', z: event.shiftKey ? 'redo' : 'undo' }[key] ?? null;
@@ -1992,6 +2068,12 @@ class Viewer {
         event.preventDefault();
         this.editCommand(name);
         return true;
+    }
+
+    // A key whose command .NET carries out where the reader is (MorphViewer.OnEditKey): a list's
+    // level, a heading, a link. .NET asks editTarget() where that is, which hands in what is open.
+    editKey(name) {
+        this.dotNet.invokeMethodAsync('OnEditKey', name).catch(() => {});
     }
 
     pageOf(target) {

@@ -12,7 +12,7 @@ The converter itself is **not** in this project. It is the `MorphConverter` comp
 page preview, format picker, options, result pane and download, plus the conversion services, fonts,
 samples, stylesheet and JavaScript behind them, all shipped as static web assets.
 
-This project is the **shell** around it: the header with its Convert | View links, the light/dark theme
+This project is the **shell** around it: the header with its Convert | View | Edit links, the light/dark theme
 toggle ([`ThemePreferenceService`](Services/ThemePreferenceService.cs)), the footer's version /
 payload-size / RAM readouts, the routing, and the app-level stylesheet in `wwwroot/css/app.css`. Each page
 is three lines — the home page hosts the converter:
@@ -23,15 +23,30 @@ is three lines — the home page hosts the converter:
 <MorphConverter />
 ```
 
-and `/view` the package's `MorphViewer`, which shows a file the way a browser shows a PDF — pages rendered
+`/view` the package's `MorphViewer`, which shows a file the way a browser shows a PDF — pages rendered
 on demand with selectable text, a thumbnail sidebar, zoom, find, presentation mode and printing, and,
-for a Word document, editing of its text in place and a review pane for its comments and tracked changes:
+for a Word document, a review pane for its comments and tracked changes:
 
 ```razor
 @page "/view"
 <PageTitle>Morph — Office Viewer</PageTitle>
 <MorphViewer ShowSamples="true" />
 ```
+
+and `/edit` the package's `MorphEditor`, a word processor in the image of Word: a File menu (new, open,
+save, export, print), a ribbon (styles, lists, indent, alignment, spacing; page breaks, tables, pictures,
+links; a table's rows and columns; track changes and comments; find and replace; word count), the text
+typed where it stands on the page, and a status bar:
+
+```razor
+@page "/edit"
+<PageTitle>Morph — Word Editor</PageTitle>
+<MorphEditor ShowSamples="true" />
+```
+
+Every icon, the header's theme toggle included, is Lucide's through IconifyBundle. The app references
+`IconifyBundle.Lucide` itself as well as through the package: a pack's generator compiles in only the
+icons a project names, and it runs in each project that references the pack.
 
 The two stylesheets divide the same way: `_content/Morph.Blazor/morph.css` draws the converter,
 `css/app.css` draws the shell and maps this app's palette onto the package's `--morph-*` custom
@@ -144,7 +159,9 @@ end-to-end.
 
 ## Test
 
-Tests live in `src/Morph.Web.Tests` (TUnit + bUnit + Verify + Playwright), mirroring GeoConvert:
+Tests live in `src/Morph.Web.Tests` (TUnit + bUnit + Verify + Playwright), mirroring GeoConvert. They run
+on **Windows only**, here and in CI: they are browser tests, and the screenshot snapshots are recorded on
+Windows.
 
 ```bash
 # Build (also publishes the Blazor app the Playwright tests serve) and run.
@@ -175,16 +192,18 @@ they also drive the published app end to end.
   accepting every change redraws the page and downloads the edited file, and undo brings the changes
   back; text selected on a page becomes a comment on exactly that text; a click on revised text chooses
   its card. These are the only tests the viewer script's review code runs under.
-- **Playwright** editing tests (`SnapshotTests.Edit.cs`): a click opens the paragraph it is in with the
-  caret where the click was; what is typed changes the page and the downloaded file; Enter splits a
-  paragraph and Backspace at its start joins it back; the toolbar formats what is selected in the editor
-  and what is selected on the pages; typing under Track changes is a change in the review pane; an arrow
-  key at a paragraph's edge goes on to the next. These are the only tests `morph-edit.js` runs under.
+- **Playwright** editing tests (`SnapshotTests.Edit.cs`), in `/edit`: a click opens the paragraph it is
+  in with the caret where the click was; what is typed changes the page and the saved file; Enter splits
+  a paragraph and Backspace at its start joins it back; the ribbon formats what is selected in the editor
+  and what is selected on the pages; a style, a list, a page break and a table from the ribbon land where
+  the caret was and typing goes on there; find and replace; a new document is blank and takes typing;
+  typing under Track changes is a change in the review pane; an arrow key at a paragraph's edge goes on
+  to the next. These are the only tests `morph-edit.js` runs under.
 
 To reset a snapshot after an intentional change, review then rename the `*.received.*` to `*.verified.*`.
 
 ## Deploy
 
-`.github/workflows/deploy-blazor.yml` builds, tests, publishes (with the source `<base href="/">`, since
-the custom domain `morph.papyrine.org` serves the site at its root), and pushes to GitHub Pages on every
-push to `main`.
+`.github/workflows/deploy-blazor.yml` runs the tests in a Windows job, publishes in a Linux one (with the
+source `<base href="/">`, since the custom domain `morph.papyrine.org` serves the site at its root), and,
+once both have passed, pushes to GitHub Pages on every push to `main`.

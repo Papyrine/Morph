@@ -186,12 +186,13 @@ public class DocumentEditorTests
         await Assert.That(Shape(edited)).IsEqualTo("[From ][«][][|][1 May][»][ to ][«][][|][1 May][»][.] ¶");
     }
 
+    // What is not text keeps its order; left out, it is deleted (AtomDeletionTests).
     [Test]
-    public async Task WhatIsNotText_HasToStay_AndInItsOrder()
+    public async Task WhatIsNotText_StaysInItsOrder_OrGoes()
     {
         var docx = Build(P(R("Dated "), field, R(" by "), field));
 
-        await Assert.That(() => Rewrite(docx, 0, Plain, Reads(T(0, "Dated by ")))).Throws<InvalidOperationException>();
+        await Assert.That(Shape(Rewrite(docx, 0, Plain, Reads(T(0, "Dated by "))))).IsEqualTo("[Dated by ] ¶");
         await Assert.That(() => Rewrite(docx, 0, Plain, Reads(T(0, "Dated "), K(3), T(2, " by "), K(1)))).Throws<InvalidOperationException>();
         await Assert.That(() => Rewrite(docx, 0, Plain, Reads(T(1, "Dated "), K(1), K(3)))).Throws<InvalidOperationException>();
     }

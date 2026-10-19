@@ -37,6 +37,11 @@
          of the published site. -->
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <!-- The theme toggle's sun and moon. A pack's generator compiles in only the icons a project names,
+         and it runs in each project that references the pack, so this app references it as well as the
+         package does. -->
+    <PackageReference Include="IconifyBundle.Blazor" />
+    <PackageReference Include="IconifyBundle.Lucide" />
     <!-- The converter itself: components, conversion services, and the fonts / samples / stylesheet /
          script they need, all as static web assets. Drags in Morph.ImageSharp (PNG — pure-managed, so it
          runs in WebAssembly) and Morph.Pdf (PDF); Skia is deliberately avoided, it needs a native

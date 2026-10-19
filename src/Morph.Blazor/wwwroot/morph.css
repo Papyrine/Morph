@@ -54,8 +54,13 @@
 }
 
 .file-drop-icon {
-    font-size: 2.5rem;
-    line-height: 1;
+    display: flex;
+    color: var(--morph-primary, #2b579a);
+}
+
+.file-drop-icon svg {
+    width: 2.5rem;
+    height: 2.5rem;
 }
 
 .file-drop-text {
@@ -118,7 +123,11 @@
 }
 
 .sample-btn {
+    display: inline-flex;
     flex: 1 1 10rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     border: 1px solid var(--morph-border, #dee2e6);
     background: var(--morph-surface, #ffffff);
@@ -128,6 +137,12 @@
     font-size: 0.95rem;
     font-weight: 600;
     transition: border-color 0.2s, background 0.2s;
+}
+
+.sample-btn svg {
+    flex: none;
+    width: 1.15rem;
+    height: 1.15rem;
 }
 
 .sample-btn:hover:not(:disabled) {
@@ -599,8 +614,7 @@
 }
 
 .viewer-toolbar,
-.viewer-findbar,
-.viewer-editbar {
+.viewer-findbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -646,14 +660,11 @@
     cursor: pointer;
 }
 
+/* Icons are Lucide's, drawn with their own stroke in the button's text colour: the sheet sizes them. */
 .viewer-button svg {
+    flex: none;
     width: 1.15rem;
     height: 1.15rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
 }
 
 .viewer-button:hover:not(:disabled),
@@ -759,18 +770,6 @@
     margin-left: auto;
 }
 
-/* The editing bar. Which of its buttons are pressed is the script's to say, as the caret moves. */
-.viewer-button.viewer-edit-track {
-    gap: 0.35rem;
-    width: auto;
-    padding: 0 0.5rem;
-}
-
-.viewer-edit-label {
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-
 .viewer-edit-signature {
     display: inline-flex;
     align-items: center;
@@ -781,16 +780,6 @@
 
 .viewer-edit-signature .review-signature-input {
     width: 8rem;
-}
-
-.viewer-edit-status {
-    min-width: 0;
-    margin-left: auto;
-    overflow: hidden;
-    color: var(--morph-muted, #6c757d);
-    font-size: 0.85rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 /*
@@ -1249,11 +1238,10 @@
 .review-button svg {
     width: 0.9rem;
     height: 0.9rem;
-    fill: none;
-    stroke: currentColor;
+}
+
+.review-button svg g {
     stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
 }
 
 .review-signature {
@@ -1489,7 +1477,8 @@
 
 .viewer[data-presenting] .viewer-toolbar,
 .viewer[data-presenting] .viewer-findbar,
-.viewer[data-presenting] .viewer-editbar,
+.viewer[data-presenting] .editor-ribbon,
+.viewer[data-presenting] .editor-status,
 .viewer[data-presenting] .edit-layer,
 .viewer[data-presenting] .viewer-sidebar,
 .viewer[data-presenting] .viewer-review,
@@ -1564,10 +1553,11 @@
 @media (max-width: 640px) {
     .viewer-title,
     .viewer-divider,
-    .viewer-edit-label,
-    .viewer-edit-status {
+    .editor-name,
+    .editor-status-note {
         display: none;
     }
+
 
     /* A phone's toolbar: the side buttons share the first row, navigation and zoom take the next, wrapping
        rather than pushing a button out of the viewer's box. */
@@ -1628,5 +1618,685 @@
 
     .sample-row .sample-btn {
         flex: none;
+    }
+}
+
+/* Replace, under find, in the editor. */
+.viewer-replace {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.viewer-text-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.viewer-text-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/*
+    The editor (MorphEditor): the viewer's pages under a ribbon of tabs, as in Word, and a status bar
+    under them. The ribbon's own menus open within it; a backdrop under the ribbon catches the press
+    that closes one, and the File menu and the dialogs stand over everything.
+*/
+.viewer.editor {
+    height: 85vh;
+}
+
+.editor-ribbon {
+    position: relative;
+    z-index: 6;
+    background: var(--morph-surface, #ffffff);
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+}
+
+.editor-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem 0;
+}
+
+.editor-tabs {
+    display: flex;
+    flex: none;
+    align-items: flex-end;
+    gap: 0.1rem;
+}
+
+.editor-file,
+.editor-tab {
+    padding: 0.4rem 0.75rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.editor-file {
+    border-radius: 4px 4px 0 0;
+    background: var(--morph-primary, #2b579a);
+    color: white;
+    font-weight: 600;
+}
+
+.editor-tab[aria-selected="true"] {
+    border-bottom-color: var(--morph-primary, #2b579a);
+    color: var(--morph-primary, #2b579a);
+    font-weight: 600;
+}
+
+.editor-tab:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.editor-file:focus-visible,
+.editor-tab:focus-visible,
+.editor-tool:focus-visible,
+.editor-dropdown:focus-visible,
+.editor-menu-item:focus-visible,
+.editor-grid-cell:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: -2px;
+}
+
+.editor-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-dirty {
+    color: var(--morph-muted, #6c757d);
+    font-weight: 400;
+}
+
+.editor-quick {
+    display: flex;
+    flex: none;
+    gap: 0.15rem;
+}
+
+.editor-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0;
+    min-height: 2.75rem;
+    padding: 0.35rem 0.25rem;
+    border-top: 1px solid var(--morph-border, #dee2e6);
+}
+
+.editor-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0 0.5rem;
+    border-right: 1px solid var(--morph-border, #dee2e6);
+}
+
+.editor-group:last-child {
+    border-right: none;
+}
+
+.editor-tool {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.editor-tool:hover:not(:disabled),
+.editor-tool[aria-pressed="true"] {
+    border-color: var(--morph-border, #dee2e6);
+    background: var(--morph-background, #f8f9fa);
+}
+
+.editor-tool[aria-pressed="true"] {
+    color: var(--morph-primary, #2b579a);
+}
+
+.editor-tool:disabled,
+.editor-tool-disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.editor-tool-disabled {
+    pointer-events: none;
+}
+
+.editor-tool svg,
+.editor-menu-item svg,
+.viewer-text-button svg,
+.editor-start-new svg,
+.editor-dropdown svg {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.editor-tool svg.editor-caret,
+.editor-dropdown svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.editor-badge {
+    position: static;
+    margin-left: 0.15rem;
+}
+
+.editor-dropdown {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    min-width: 9.5rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.editor-dropdown:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* The font and the size the caret is in, kept current by the script (data-edit-show). */
+.editor-shown::before {
+    content: attr(data-value);
+}
+
+.editor-shown {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-font-button {
+    min-width: 8.5rem;
+}
+
+.editor-size-button {
+    min-width: 3.75rem;
+}
+
+.editor-fonts {
+    min-width: 15rem;
+}
+
+.editor-font {
+    font-size: 0.95rem;
+}
+
+.editor-sizes {
+    min-width: 5rem;
+}
+
+.editor-menu-note {
+    max-width: 14rem;
+    margin: 0.35rem 0.6rem;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.75rem;
+    white-space: normal;
+}
+
+/* A dropdown and its menu, which opens under it rather than at the group's start. */
+.editor-anchor {
+    position: relative;
+    display: inline-flex;
+}
+
+.editor-anchor > .editor-menu {
+    left: 0;
+}
+
+/* A colour button carries the colour it applies, as a bar under its icon; its arrow opens the palette. */
+
+.editor-swatch-button {
+    flex-direction: column;
+    gap: 1px;
+}
+
+.editor-swatch-button::after {
+    content: "";
+    width: 1rem;
+    height: 3px;
+    border-radius: 1px;
+    background: var(--swatch);
+}
+
+.editor-swatch-button svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.viewer-button.editor-split-arrow {
+    width: 1rem;
+}
+
+.viewer-button.editor-split-arrow svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.editor-palette {
+    min-width: 0;
+    width: max-content;
+}
+
+.editor-swatches {
+    display: grid;
+    grid-template-columns: repeat(5, 1.4rem);
+    gap: 4px;
+    padding: 0.4rem 0.6rem;
+}
+
+.editor-swatch {
+    width: 1.4rem;
+    height: 1.4rem;
+    padding: 0;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.editor-swatch:hover,
+.editor-swatch:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: 1px;
+}
+
+.editor-style-name {
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0.5rem;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    min-width: 13rem;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.25rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 6px;
+    background: var(--morph-surface, #ffffff);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.editor-file-menu {
+    top: 2.35rem;
+    left: 0.5rem;
+    min-width: 16rem;
+}
+
+.editor-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border: none;
+    border-left: 3px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.875rem;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.editor-menu-item:hover {
+    background: var(--morph-background, #f8f9fa);
+}
+
+.editor-menu-item[aria-checked="true"],
+.editor-menu-item[aria-selected="true"] {
+    border-left-color: var(--morph-primary, #2b579a);
+    background: var(--morph-background, #f8f9fa);
+}
+
+.editor-menu-heading {
+    padding: 0.45rem 0.6rem 0.2rem;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.editor-menu-separator {
+    height: 1px;
+    margin: 0.25rem 0;
+    background: var(--morph-border, #dee2e6);
+}
+
+.editor-styles {
+    min-width: 16rem;
+}
+
+/* Each style is drawn as its text is; on a dark theme a dark text colour would vanish, so it is let be. */
+.editor-style {
+    line-height: 1.3;
+}
+
+.editor-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1.1rem);
+    gap: 3px;
+    padding: 0.25rem 0.6rem 0.6rem;
+}
+
+.editor-grid-cell {
+    width: 1.1rem;
+    height: 1.1rem;
+    padding: 0;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 2px;
+    background: var(--morph-surface, #ffffff);
+    cursor: pointer;
+}
+
+.editor-grid-cell[data-lit] {
+    border-color: var(--morph-primary, #2b579a);
+    background: color-mix(in srgb, var(--morph-primary, #2b579a) 25%, transparent);
+}
+
+.editor-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+}
+
+.editor-file-menu {
+    z-index: 8;
+}
+
+.editor-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2rem;
+    padding: 0.15rem 0.75rem;
+    border-top: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.editor-status-button {
+    padding: 0.1rem 0.3rem;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.editor-status-button:hover {
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+}
+
+.editor-status-tracking {
+    color: var(--morph-change-accent, #d13438);
+}
+
+.editor-status-note {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.editor-status-zoom {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+    margin-left: auto;
+}
+
+.editor-status .viewer-button {
+    width: 1.6rem;
+    height: 1.6rem;
+}
+
+.editor-zoom-value {
+    min-width: 3rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.editor-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.editor-dialog {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    z-index: 10;
+    width: min(26rem, calc(100% - 2rem));
+    padding: 1rem 1.25rem;
+    transform: translateX(-50%);
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 8px;
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.editor-dialog-title {
+    margin: 0 0 0.75rem;
+    color: var(--morph-primary, #2b579a);
+    font-size: 1rem;
+}
+
+.editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.editor-input {
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+    font: inherit;
+}
+
+.editor-dialog-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.editor-button {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.editor-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.editor-button-primary {
+    border-color: var(--morph-primary, #2b579a);
+    background: var(--morph-primary, #2b579a);
+    color: white;
+}
+
+.editor-button-danger {
+    border-color: var(--morph-change-accent, #d13438);
+    color: var(--morph-change-accent, #d13438);
+}
+
+.editor-count {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.35rem 1.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.editor-count dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.editor-dialog-note {
+    margin: 0.75rem 0 0;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.8rem;
+}
+
+/* A document edited and not saved, kept by the browser, offered back. */
+.editor-recover {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem 0.75rem;
+    max-width: 34rem;
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-left: 4px solid var(--morph-primary, #2b579a);
+    border-radius: 6px;
+    background: var(--morph-surface, #ffffff);
+    text-align: left;
+}
+
+.editor-recover > svg {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--morph-primary, #2b579a);
+}
+
+.editor-recover-text {
+    flex: 1 1 14rem;
+    overflow-wrap: anywhere;
+}
+
+.editor-start-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.editor-start-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--morph-primary, #2b579a);
+    border-radius: 4px;
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-primary, #2b579a);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media print {
+    .editor-ribbon,
+    .editor-status {
+        display: none;
+    }
+}
+
+/* A phone's ribbon scrolls sideways rather than wrapping into a wall of buttons, and so do its tabs,
+   leaving the quick buttons room. After the rules above, which it overrides. */
+@media (max-width: 640px) {
+    .editor-tools {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    .editor-group {
+        flex: none;
+    }
+
+    .editor-tabs {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+    }
+
+    .editor-file,
+    .editor-tab {
+        flex: none;
+        padding: 0.4rem 0.55rem;
     }
 }

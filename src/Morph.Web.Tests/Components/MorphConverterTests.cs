@@ -33,7 +33,7 @@ public class MorphConverterTests : BunitTestContext
         await Assert.That(labels.Count).IsEqualTo(ConversionService.ReadableFormats.Count);
         foreach (var format in ConversionService.ReadableFormats)
         {
-            await Assert.That(labels).Contains($"{format.Icon} Sample {format.ShortName}");
+            await Assert.That(labels).Contains($"Sample {format.ShortName}");
         }
     }
 
