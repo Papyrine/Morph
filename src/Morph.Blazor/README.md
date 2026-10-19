@@ -171,9 +171,9 @@ again, and the page redrawn.
 | A click on a paragraph | Opens it with the caret where the click was. Text selected within one paragraph — a double click, a drag — opens it with that selected, so typing replaces it. |
 | Typing, Backspace, Delete, paste | Edit the text. What is pasted is pasted as plain text, a line to a paragraph. |
 | Enter, Shift+Enter, Tab | A new paragraph, formatted as the one it was split from; a line break; a tab. Enter at the end of a heading starts the style the heading names as its next, as Word does, and what is typed there is in that style. |
-| Tab, Shift+Tab in a list | Moves the paragraph a level in or out of the list, wherever the caret is in it, as Word's keys do; no tab is typed. |
+| Tab, Shift+Tab in a list | Moves the paragraph a level in or out of the list, wherever the caret is in it, as Word's keys do; no tab is typed. In the list's first paragraph they move the whole list a quarter inch in or out instead, as far as the margin. |
 | Enter in an empty paragraph of a list | Ends the list: the paragraph is taken out of it, at no indent. |
-| Backspace at the start of a list's paragraph | Takes its number or bullet off and leaves the text where it stood; a second Backspace joins it to the paragraph before. |
+| Backspace at the start of a list's paragraph, or an indented one | Takes its number or bullet off and leaves the text where it stood; then takes its indent off a step at a time, as Word does — first to where the paragraph above starts its first line, when the text lines up under that paragraph's — and only then joins it to the paragraph before. |
 | Ctrl+Alt+1, 2, 3; Ctrl+K | Heading 1, 2 or 3; a link on what is selected. |
 | Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
 | Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
@@ -247,9 +247,6 @@ Limits worth knowing:
   already there can be deleted but not typed into. A workbook or a deck is not edited.
 - A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the
   bundled Aptos faces whatever the font (see [Fonts](#fonts)); Word draws it in the font itself.
-- Tab at the start of a list's first paragraph moves it a level in, where Word moves the whole list
-  further in instead. A second Backspace at the start of a paragraph taken out of a list joins it to the
-  one before, where Word first steps its indent back.
 - Ctrl+Enter hands the paragraph in, so it is not a page break as in Word; Insert > Page break is.
 - Replace replaces text within a paragraph: a match running from one paragraph into the next, or across a
   picture or a field, is left as it is.

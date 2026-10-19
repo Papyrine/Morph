@@ -1040,7 +1040,8 @@ export class ParagraphEditor {
     // what it says — the file's to do, so the paragraph is handed in and .NET carries them out.
     // Word-probed 2026-10-19 by keys sent to Word 365: in a list, Tab anywhere moves the paragraph a
     // level in and Shift+Tab a level out, with no tab typed; Enter in an empty paragraph takes it out
-    // of the list; Backspace at a paragraph's start takes its number off. Enter at the end of a
+    // of the list; Backspace at a paragraph's start takes its number off, and at an indented one's a
+    // step of its indent (DocumentEditor.Unindent). Enter at the end of a
     // heading starts the paragraph after in the style the heading names next, so text typed there
     // is body text.
     onParagraphKey(event) {
@@ -1077,9 +1078,9 @@ export class ParagraphEditor {
 
                 break;
             case 'Backspace':
-                if (listed && caret && !event.shiftKey && selected.from.o === 0 &&
+                if (this.session.indented && caret && !event.shiftKey && selected.from.o === 0 &&
                     (selected.from.b > 0 || this.session.skip <= 0)) {
-                    name = 'unnumber';
+                    name = 'unindent';
                 }
 
                 break;

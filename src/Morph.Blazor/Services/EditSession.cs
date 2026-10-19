@@ -182,6 +182,11 @@ sealed class EditSession
             {
                 json.WriteBoolean("follow", true);
             }
+
+            if (Paragraph.Indented)
+            {
+                json.WriteBoolean("indented", true);
+            }
             json.WriteStartArray("u");
             for (var index = 0; index < Paragraph.Units.Count; index++)
             {

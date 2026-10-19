@@ -265,8 +265,9 @@ public partial class MorphViewer
     /// <summary>
     /// Called from JavaScript for a key whose command is carried out here, where the reader is: Tab
     /// and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty paragraph of one
-    /// (<c>end-list</c>), Backspace at the start of one (<c>unnumber</c>), Enter at the end of a heading
-    /// (<c>follow-on</c>), Ctrl+Alt+1 to 3 (<c>heading1</c> to <c>heading3</c>) and Ctrl+K (<c>link</c>).
+    /// (<c>end-list</c>), Backspace at the start of one or of an indented paragraph (<c>unindent</c>),
+    /// Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3 (<c>heading1</c> to
+    /// <c>heading3</c>) and Ctrl+K (<c>link</c>).
     /// </summary>
     [JSInvokable]
     public Task OnEditKey(string name) =>
@@ -288,10 +289,10 @@ public partial class MorphViewer
     internal virtual Task KeyAsync(string name) =>
         name switch
         {
-            "indent" => IndentAsync(1),
-            "outdent" => IndentAsync(-1),
+            "indent" => TabInListAsync(1),
+            "outdent" => TabInListAsync(-1),
             "end-list" => EndListAsync(),
-            "unnumber" => UnnumberAsync(),
+            "unindent" => UnindentAsync(),
             "follow-on" => FollowOnAsync(),
             "heading1" => ApplyStyleAsync("Heading1"),
             "heading2" => ApplyStyleAsync("Heading2"),

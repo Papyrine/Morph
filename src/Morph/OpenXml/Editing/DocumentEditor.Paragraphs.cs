@@ -57,6 +57,52 @@ static partial class DocumentEditor
             }).Document;
 
     /// <summary>
+    /// Backspace at the start of a paragraph that is in a list or indented, as Word's does: a list's
+    /// paragraph loses its number (<see cref="Unnumber(byte[], int, EditOptions)"/>), and an indented one
+    /// a step of its indent. The document is unchanged when the paragraph is neither, and Backspace is
+    /// then a join (<see cref="Unindents"/> says which).
+    /// </summary>
+    public static byte[] Unindent(byte[] docx, int paragraph, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                edit.Unindent(edit.Find(paragraph));
+                return null;
+            }).Document;
+
+    /// <summary>
+    /// Tab (<paramref name="steps"/> 1) or Shift+Tab (-1) in a list's paragraphs, as Word's keys do: the
+    /// list's first paragraph moves the whole list in or out, any other moves a level.
+    /// </summary>
+    public static byte[] TabInList(byte[] docx, IReadOnlyList<int> paragraphs, int steps, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                var shifted = new HashSet<int>();
+                foreach (var paragraph in edit.FindAll(paragraphs))
+                {
+                    edit.TabInList(paragraph, steps, shifted);
+                }
+
+                return null;
+            }).Document;
+
+    /// <summary>
+    /// Whether Backspace at the start of a paragraph of the document takes off its number or a step of its
+    /// indent (<see cref="Unindent"/>), rather than joining it to the paragraph before: whether it is in
+    /// a list, or indented.
+    /// </summary>
+    public static Func<Paragraph, bool> Unindents(WordprocessingDocument document)
+    {
+        var editing = new Editing(document, new("", DateTimeOffset.MinValue, false));
+        return editing.Unindents;
+    }
+
+    /// <summary>
     /// Moves paragraphs in by <paramref name="steps"/> (out, when negative): a list's paragraph a level
     /// of the list, any other its left indent from one default tab stop to the next.
     /// </summary>
@@ -100,6 +146,11 @@ static partial class DocumentEditor
 
     const int defaultTabStop = 720;
     const int maxLevel = 8;
+
+    // How far Tab moves a whole list: a quarter inch, as Word's does.
+    const int listStep = 360;
+
+    const string listParagraphStyle = "ListParagraph";
 
     sealed partial class Editing
     {
@@ -375,49 +426,310 @@ static partial class DocumentEditor
         }
 
         // Word-probed 2026-10-19 (keys sent to Word 365): Backspace at the start of a bulleted
-        // paragraph at level 1 (left 36pt, hanging 18pt) leaves it out of the list at left 36pt,
-        // hanging 0; at level 2 at left 54pt. Its text stays where it was drawn.
+        // paragraph takes its numbering off and keeps its style; its text stays where it was by an
+        // indent of its own where the style would put it elsewhere. At level 1 a List Paragraph's
+        // indent is the level's (0.5"), and nothing more is written; at level 2 w:ind left="1440".
         public void Unnumber(Paragraph paragraph)
         {
-            if (Numbering(paragraph) is not {Id: > 0} numbering)
+            if (Numbering(paragraph) is not {Id: > 0})
             {
                 return;
             }
 
-            var left = TextIndent(paragraph, numbering);
-            Unlist(paragraph);
-            if (left <= 0 &&
-                paragraph.ParagraphProperties?.Indentation == null)
+            var left = Indents(paragraph).Left;
+            var properties = Reformat(paragraph);
+            properties.NumberingProperties = null;
+            properties.Indentation = null;
+
+            // A list the paragraph's style puts it in is left by saying so.
+            if (Numbering(paragraph) is {Id: > 0})
             {
-                return;
+                properties.NumberingProperties = new(
+                    new NumberingId
+                    {
+                        Val = 0
+                    });
             }
 
-            Reformat(paragraph).Indentation = new()
+            if (Indents(paragraph).Left != left)
             {
-                Left = left.ToString(CultureInfo.InvariantCulture)
-            };
+                properties.Indentation = new()
+                {
+                    Left = Twips(left)
+                };
+            }
+
+            Unclutter(paragraph);
         }
 
-        // Where a list paragraph's text starts: its own indent, or else its level's, or else its style's.
-        int TextIndent(Paragraph paragraph, (int Id, int Level) numbering)
+        public bool Unindents(Paragraph paragraph) =>
+            Numbering(paragraph) is {Id: > 0} ||
+            Indents(paragraph) != (0, 0);
+
+        // Word-probed 2026-10-19 by keys sent to Word 365, Backspace at the start of a paragraph out of
+        // a list takes off one step of its indent, until there is none and Backspace joins it:
+        //   - a paragraph whose text stands where the text of the paragraph before does, and whose
+        //     first line starts further out, goes to where that first line starts — under a bullet at
+        //     level 1 (0.5", hanging 0.25") from 720 to 360, at level 2 from 1440 to 1080, at level 3
+        //     from 2160 to 1800 — and out of List Paragraph;
+        //   - otherwise its own indent goes, and List Paragraph with it: 36pt, 72pt, 100pt and 144pt
+        //     each go to 0 at once, as do a first-line indent and a hanging one;
+        //   - otherwise the indent its style gives it is overridden: left="0", or firstLine="0".
+        public void Unindent(Paragraph paragraph)
         {
-            if (paragraph.ParagraphProperties?.Indentation is { } own &&
-                (own.Left ?? own.Start)?.Value is { } value &&
-                int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var twips))
+            if (Numbering(paragraph) is {Id: > 0})
+            {
+                Unnumber(paragraph);
+                return;
+            }
+
+            var (left, first) = Indents(paragraph);
+            if ((left, first) == (0, 0))
+            {
+                return;
+            }
+
+            var listParagraph = paragraph.ParagraphProperties?.ParagraphStyleId?.Val?.Value == listParagraphStyle;
+            if (PreviousBlock(paragraph) is Paragraph previous)
+            {
+                var (text, offset) = Indents(previous);
+                var start = text + offset;
+                if (text == left &&
+                    start < left &&
+                    start >= 0)
+                {
+                    var aligned = Reformat(paragraph);
+                    if (listParagraph)
+                    {
+                        aligned.ParagraphStyleId = null;
+                    }
+
+                    aligned.Indentation = new()
+                    {
+                        Left = Twips(start)
+                    };
+                    return;
+                }
+            }
+
+            var own = paragraph.ParagraphProperties?.Indentation;
+            if (listParagraph ||
+                Indents(own) is (not (null or 0), _) or (_, not (null or 0)))
+            {
+                var properties = Reformat(paragraph);
+                properties.Indentation = null;
+                if (listParagraph)
+                {
+                    properties.ParagraphStyleId = null;
+                }
+
+                Unclutter(paragraph);
+                return;
+            }
+
+            var overriding = new Indentation();
+            if (left != 0)
+            {
+                overriding.Left = "0";
+            }
+
+            if (first != 0)
+            {
+                overriding.FirstLine = "0";
+            }
+
+            Reformat(paragraph).Indentation = overriding;
+        }
+
+        // Word-probed 2026-10-19 by keys sent to Word 365: Tab in a list's first paragraph, wherever the
+        // caret is in it, moves the whole list a quarter inch in — every level of the list's own
+        // definition, 720/1440/2160 to 1080/1800/2520 — and Shift+Tab a quarter inch out, until the
+        // first level's bullet stands at the margin; another list's definition is left alone. Nothing
+        // of it is tracked, whatever tracking says. Any other paragraph of a list moves a level.
+        public void TabInList(Paragraph paragraph, int steps, HashSet<int> shifted)
+        {
+            if (Numbering(paragraph) is {Id: > 0, Level: 0} numbering &&
+                FirstOfList(paragraph, numbering.Id))
+            {
+                if (shifted.Add(numbering.Id))
+                {
+                    ShiftList(numbering.Id, steps * listStep);
+                }
+
+                return;
+            }
+
+            Indent(paragraph, steps);
+        }
+
+        bool FirstOfList(Paragraph paragraph, int id)
+        {
+            foreach (var each in main.Document!.Body!.Descendants<Paragraph>())
+            {
+                if (ReferenceEquals(each, paragraph))
+                {
+                    return true;
+                }
+
+                if (Numbering(each)?.Id == id)
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
+        void ShiftList(int id, int shift)
+        {
+            var numbering = main.NumberingDefinitionsPart?.Numbering;
+            var instance = numbering?.Elements<NumberingInstance>().FirstOrDefault(_ => _.NumberID?.Value == id);
+            if (instance?.AbstractNumId?.Val?.Value is not { } abstractId ||
+                Definition(id) is not { } definition ||
+                definition.GetFirstChild<NumberingStyleLink>() != null)
+            {
+                return;
+            }
+
+            var levels = definition.Elements<Level>()
+                .Concat(instance.Elements<LevelOverride>().Select(_ => _.Level).OfType<Level>())
+                .Select(_ => _.PreviousParagraphProperties?.Indentation)
+                .OfType<Indentation>()
+                .ToList();
+
+            // Out no further than the margin, where the first level's number stands.
+            if (shift < 0 &&
+                levels.Any(_ => Indents(_) is var (left, offset) && (left ?? 0) + (offset ?? 0) + shift < 0))
+            {
+                return;
+            }
+
+            // A definition another list shares is that list's too: this one is given its own.
+            if (numbering!.Elements<NumberingInstance>().Count(_ => _.AbstractNumId?.Val?.Value == abstractId) > 1)
+            {
+                definition = Detach(instance, definition);
+                levels = definition.Elements<Level>()
+                    .Concat(instance.Elements<LevelOverride>().Select(_ => _.Level).OfType<Level>())
+                    .Select(_ => _.PreviousParagraphProperties?.Indentation)
+                    .OfType<Indentation>()
+                    .ToList();
+            }
+
+            foreach (var indentation in levels)
+            {
+                if (Twips(indentation.Left) is { } left)
+                {
+                    indentation.Left = Twips(left + shift);
+                }
+                else if (Twips(indentation.Start) is { } start)
+                {
+                    indentation.Start = Twips(start + shift);
+                }
+            }
+
+            foreach (var tab in definition.Elements<Level>()
+                         .Concat(instance.Elements<LevelOverride>().Select(_ => _.Level).OfType<Level>())
+                         .SelectMany(_ => _.PreviousParagraphProperties?.Tabs?.Elements<DocumentFormat.OpenXml.Wordprocessing.TabStop>() ?? []))
+            {
+                if (tab.Position?.Value is { } position)
+                {
+                    tab.Position = position + shift;
+                }
+            }
+        }
+
+        // A copy of a list's definition for it alone, in place of the one it shares.
+        AbstractNum Detach(NumberingInstance instance, AbstractNum shared)
+        {
+            var numbering = main.NumberingDefinitionsPart!.Numbering!;
+            var definitions = numbering.Elements<AbstractNum>().ToList();
+            var abstractId = definitions.Select(_ => _.AbstractNumberId?.Value ?? 0).Max() + 1;
+            var copy = (AbstractNum) shared.CloneNode(true);
+            copy.AbstractNumberId = abstractId;
+            copy.GetFirstChild<StyleLink>()?.Remove();
+            var taken = definitions
+                .Select(_ => _.Nsid?.Val?.Value)
+                .OfType<string>()
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var nsid = unchecked((int) (0x4D4F0000u + (uint) abstractId * 0x9E37u));
+            while (taken.Contains(nsid.ToString("X8", CultureInfo.InvariantCulture)))
+            {
+                nsid++;
+            }
+
+            copy.Nsid = new()
+            {
+                Val = nsid.ToString("X8", CultureInfo.InvariantCulture)
+            };
+            definitions[^1].InsertAfterSelf(copy);
+            instance.AbstractNumId = new()
+            {
+                Val = abstractId
+            };
+            return copy;
+        }
+
+        // Where a paragraph's text starts, and where its first line starts from there (negative for a
+        // hanging indent), in twips: its own indent, its list level's, its style's, the defaults'.
+        (int Left, int First) Indents(Paragraph paragraph)
+        {
+            int? left = null;
+            int? first = null;
+            Take(paragraph.ParagraphProperties?.Indentation);
+            if (Numbering(paragraph) is {Id: > 0} numbering)
+            {
+                Take(Definition(numbering.Id)?.Elements<Level>().FirstOrDefault(_ => _.LevelIndex?.Value == numbering.Level)?.PreviousParagraphProperties?.Indentation);
+            }
+
+            foreach (var style in Chain(paragraph.ParagraphProperties?.ParagraphStyleId?.Val?.Value))
+            {
+                Take(style.StyleParagraphProperties?.Indentation);
+            }
+
+            Take(main.StyleDefinitionsPart?.Styles?.DocDefaults?.ParagraphPropertiesDefault?.ParagraphPropertiesBaseStyle?.Indentation);
+            return (left ?? 0, first ?? 0);
+
+            void Take(Indentation? indentation)
+            {
+                var (ownLeft, ownFirst) = Indents(indentation);
+                left ??= ownLeft;
+                first ??= ownFirst;
+            }
+        }
+
+        // What one w:ind says of the two, and nothing of what it leaves unsaid.
+        static (int? Left, int? First) Indents(Indentation? indentation)
+        {
+            if (indentation == null)
+            {
+                return (null, null);
+            }
+
+            int? first = null;
+            if (Twips(indentation.Hanging) is { } hanging)
+            {
+                first = -hanging;
+            }
+            else if (Twips(indentation.FirstLine) is { } line)
+            {
+                first = line;
+            }
+
+            return (Twips(indentation.Left) ?? Twips(indentation.Start), first);
+        }
+
+        static int? Twips(StringValue? value)
+        {
+            if (int.TryParse(value?.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var twips))
             {
                 return twips;
             }
 
-            var level = Definition(numbering.Id)?.Elements<Level>().FirstOrDefault(_ => _.LevelIndex?.Value == numbering.Level);
-            if (level?.PreviousParagraphProperties?.Indentation is { } defined &&
-                (defined.Left ?? defined.Start)?.Value is { } levelValue &&
-                int.TryParse(levelValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var levelTwips))
-            {
-                return levelTwips;
-            }
-
-            return Left(paragraph);
+            return null;
         }
+
+        static string Twips(int twips) =>
+            twips.ToString(CultureInfo.InvariantCulture);
 
         // The list a block next to the paragraphs is in, if it is a paragraph in a list of the kind.
         int? Neighbour(OpenXmlElement? block, ListKind kind)

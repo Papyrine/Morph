@@ -827,6 +827,12 @@ public class MorphEditorTests : BunitTestContext
         byte[]? reported = null;
         var cut = await OpenEditing(listed, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
 
+        // In the list's first paragraph, Tab moves the whole list in, not the paragraph a level.
+        Caret(0, 2);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("indent"));
+        await Assert.That(DocumentOutline.Read(reported!).Paragraphs[0].ListLevel).IsEqualTo(0);
+        await Assert.That(Numbering(reported!)).Contains("<w:ind w:left=\"1080\" w:hanging=\"360\" />");
+
         Caret(1, 3);
         await cut.InvokeAsync(() => cut.Instance.OnEditKey("indent"));
         await Assert.That(DocumentOutline.Read(reported!).Paragraphs[1].ListLevel).IsEqualTo(1);
@@ -842,10 +848,39 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(DocumentOutline.Read(reported!).Paragraphs[2].ListLevel).IsNull();
         await Assert.That(Session().TryGetProperty("list", out _)).IsFalse();
 
+        // Backspace at the start: the number goes, then the indent List Paragraph gave it.
         Caret(0, 0);
-        await cut.InvokeAsync(() => cut.Instance.OnEditKey("unnumber"));
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("unindent"));
         await Assert.That(DocumentOutline.Read(reported!).Paragraphs[0].ListLevel).IsNull();
-        await Assert.That(Body(reported!)).StartsWith("<w:p><w:pPr><w:ind w:left=\"720\" /></w:pPr>");
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:pPr><w:pStyle w:val=\"ListParagraph\" /><w:ind w:left=\"1080\" /></w:pPr>");
+        await Assert.That(Session().GetProperty("indented").GetBoolean()).IsTrue();
+
+        Caret(0, 0);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("unindent"));
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:r>");
+        await Assert.That(Session().TryGetProperty("indented", out _)).IsFalse();
+    }
+
+    // With nothing to take off, Backspace at a paragraph's start joins it to the one before.
+    [Test]
+    public async Task Unindent_OfAParagraphNotIndented_JoinsIt()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Caret(2, 0);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("unindent"));
+
+        await Assert.That(Read(reported!)).Count().IsEqualTo(2);
+        await Assert.That(Text(Session())).IsEqualTo("Second bold one.Third and last.");
+        await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(16);
+    }
+
+    static string Numbering(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        return package.MainDocumentPart!.NumberingDefinitionsPart!.Numbering!.InnerXml.Replace(" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"", "");
     }
 
     // What the script is told of a paragraph, for its keys: its list level, and whether Enter at its

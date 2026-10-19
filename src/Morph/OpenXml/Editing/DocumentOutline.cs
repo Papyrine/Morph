@@ -97,6 +97,7 @@ sealed class DocumentOutline
         var defaultStyle = styles.Values
             .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value ?? "Normal";
         var paragraphs = new List<EditParagraph>();
+        var unindents = DocumentEditor.Unindents(document);
         var paragraphOfRun = new Dictionary<int, int>();
         foreach (var (paragraph, units) in ParagraphContent.ReadAll(root))
         {
@@ -113,6 +114,7 @@ sealed class DocumentOutline
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
                     InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any(),
                     ListLevel = ListLevel(paragraph, styles, defaultStyle),
+                    Indented = unindents(paragraph),
                     NextStyle = NextStyle(paragraph, styles)
                 });
         }

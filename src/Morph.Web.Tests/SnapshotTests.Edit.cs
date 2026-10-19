@@ -268,6 +268,13 @@ public partial class SnapshotTests
         await Assert.That(DocumentBody(saved)).Contains("<w:color w:val=\"0070C0\" /><w:sz w:val=\"28\" /></w:rPr><w:t xml:space=\"preserve\">text</w:t>");
     }
 
+    static string DocumentNumbering(byte[] docx)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        return package.MainDocumentPart!.NumberingDefinitionsPart!.Numbering!.InnerXml;
+    }
+
     static string DocumentBody(byte[] docx)
     {
         using var stream = new MemoryStream(docx);
@@ -490,6 +497,11 @@ public partial class SnapshotTests
         var listed = DocumentEditor.SetList(Paragraphs, [0, 1, 2], ListKind.Bullet, new("Ann", DateTimeOffset.UnixEpoch, Track: false));
         var page = await OpenEditAsync(listed);
 
+        // In the list's first paragraph Tab moves the whole list in.
+        await ClickInAsync(page, "paragraph here");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Tab"));
+        await HandInAsync(page);
+
         await ClickInAsync(page, "bold one");
         await ReopenedAsync(page, () => page.Keyboard.PressAsync("Tab"));
 
@@ -499,6 +511,16 @@ public partial class SnapshotTests
         await page.Keyboard.TypeAsync("Plain");
         await HandInAsync(page);
 
+        // Backspace at the start of the last: its bullet goes, then the indent its style gives it,
+        // then it joins the paragraph before.
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("Home");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Backspace"));
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Backspace"));
+        await HandInAsync(page);
+        var unindented = Read(await SaveAsync(page));
+        await Assert.That(unindented[3]).IsEqualTo("[Third and last.]");
+
         await ClickInAsync(page, "and last");
         await page.Keyboard.PressAsync("Home");
         await ReopenedAsync(page, () => page.Keyboard.PressAsync("Backspace"));
@@ -506,13 +528,12 @@ public partial class SnapshotTests
 
         var saved = await SaveAsync(page);
         var paragraphs = DocumentOutline.Read(saved).Paragraphs;
-        await Assert.That(paragraphs.Select(_ => _.ListLevel)).IsEquivalentTo(new int?[] {0, 1, null, null});
+        await Assert.That(paragraphs.Select(_ => _.ListLevel)).IsEquivalentTo(new int?[] {0, 1, null});
         var read = Read(saved);
         await Assert.That(read[0]).IsEqualTo("[First paragraph here.] #ListParagraph •1.0");
         await Assert.That(read[1]).IsEqualTo("[Second ][b:bold][ one.] (center) #ListParagraph •1.1");
-        await Assert.That(read[2]).IsEqualTo("[Plain] (center)");
-        await Assert.That(read[3]).IsEqualTo("[Third and last.]");
-        await Assert.That(DocumentBody(saved)).Contains("<w:p><w:pPr><w:ind w:left=\"720\" /></w:pPr><w:r><w:t xml:space=\"preserve\">Third and last.</w:t>");
+        await Assert.That(read[2]).IsEqualTo("[Plain][Third and last.] (center)");
+        await Assert.That(DocumentNumbering(saved)).Contains("<w:ind w:left=\"1080\" w:hanging=\"360\" />");
     }
 
     // Enter at the end of a heading starts body text, which is what is typed after it; Ctrl+Alt+2 is

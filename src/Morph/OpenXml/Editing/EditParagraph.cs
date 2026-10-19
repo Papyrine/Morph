@@ -17,6 +17,12 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     public int? ListLevel { get; init; }
 
     /// <summary>
+    /// Whether Backspace at the paragraph's start takes off its number or a step of its indent
+    /// (<see cref="DocumentEditor.Unindent"/>) rather than joining it to the paragraph before.
+    /// </summary>
+    public bool Indented { get; init; }
+
+    /// <summary>
     /// The style a paragraph begun by Enter at this one's end is in, when it is not this one's own: the
     /// style's <c>w:next</c>, as a heading names body text.
     /// </summary>

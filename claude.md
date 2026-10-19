@@ -326,7 +326,13 @@ Ctrl+Alt+1-3, Ctrl+K — are read by `onParagraphKey` in morph-edit.js and hande
 the paragraph is in a list (`list`) and whether its style names another to follow it (`follow`), from
 `EditParagraph.ListLevel` / `NextStyle`. What they do was **probed by sending keys to Word** (a visible
 Word window, with keys sent only while it is in the foreground — COM's `TypeParagraph` /
-`TypeBackspace` do not run Word's list rules); `ListKeyTests` records it.
+`TypeBackspace` do not run Word's list rules); `ListKeyTests` records it. Two of the rules turned on
+more than the paragraph itself, and were settled only by varying that too: Tab in a list's FIRST
+paragraph moves the whole list (every level of its own definition, 360 twips; untracked even under
+tracking) rather than the paragraph a level (`TabInList`), and Backspace at an indented paragraph's
+start steps its indent by what the paragraph BEFORE it is — to that paragraph's first-line position
+when the text lines up under its text, otherwise the paragraph's own indent and List Paragraph off at
+once, otherwise its style's indent overridden with 0 (`Unindent`).
 
 Unsaved work is kept by `MorphViewer.Drafts.cs` (the editor's alone, by `Editing`) and
 `wwwroot/morph-draft.js`: a `beforeunload` prompt while there are edits not saved, and a draft of the

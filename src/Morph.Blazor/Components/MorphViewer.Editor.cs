@@ -412,15 +412,53 @@ public partial class MorphViewer
         await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetList(_, [target.Paragraph], ListKind.None, options));
     }
 
-    // Backspace at the start of a list's paragraph takes its number off, and leaves its text where it was.
-    internal async Task UnnumberAsync()
+    // Backspace at the start of a list's paragraph takes its number off, and at an indented one's a
+    // step of its indent; with neither, it joins the paragraph to the one before, as anywhere else.
+    internal async Task UnindentAsync()
     {
         if (await RequireAsync() is not { } target)
         {
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.Unnumber(_, target.Paragraph, options));
+        if (outline.Paragraphs[target.Paragraph].Indented)
+        {
+            await EditParagraphsAsync(target, (_, options) => DocumentEditor.Unindent(_, target.Paragraph, options));
+            return;
+        }
+
+        if (target.Paragraph == 0 ||
+            !outline.Paragraphs[target.Paragraph].HasPrevious)
+        {
+            return;
+        }
+
+        var options = await EditOptionsAsync();
+        EditResult? result = null;
+        var joined = await ReviseAsync(
+            _ =>
+            {
+                result = DocumentEditor.Join(_, target.Paragraph - 1, options);
+                return result.Document;
+            },
+            relayout: true,
+            () => activeKey);
+        if (joined &&
+            result is {Paragraph: >= 0} met)
+        {
+            await ResumeAsync(met.Paragraph, met.Offset);
+        }
+    }
+
+    // Tab and Shift+Tab in a list: the list's first paragraph moves the whole list, any other a level.
+    internal async Task TabInListAsync(int steps)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.TabInList(_, target.Paragraphs, steps, options));
     }
 
     // Enter at the end of a heading: the paragraph it began is in the file, in the style the heading
