@@ -579,6 +579,20 @@
                     Page break
                 </button>
             </div>
+            <div class="editor-group" role="group" aria-label="Header, footer and notes">
+                <button type="button" class="editor-tool" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="() => EditHeaderAsync(false)">
+                    <Iconify Value="Lucide.PanelTop" aria-hidden="true" focusable="false" />
+                    Header
+                </button>
+                <button type="button" class="editor-tool" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="() => EditHeaderAsync(true)">
+                    <Iconify Value="Lucide.PanelBottom" aria-hidden="true" focusable="false" />
+                    Footer
+                </button>
+                <button type="button" class="editor-tool" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="InsertFootnoteAsync">
+                    <Iconify Value="Lucide.Superscript" aria-hidden="true" focusable="false" />
+                    Footnote
+                </button>
+            </div>
             <div class="editor-group" role="group" aria-label="Tables">
                 <button type="button" class="editor-tool" aria-haspopup="dialog" aria-expanded="@Expanded(tableMenu)" disabled="@(!CanWrite || revising)"
                         @onmousedown:preventDefault @onclick="() => ToggleMenu(tableMenu)">

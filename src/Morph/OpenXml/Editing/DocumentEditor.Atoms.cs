@@ -37,7 +37,7 @@ static partial class DocumentEditor
                 (start, end) = (end, start);
             }
 
-            var ordinals = SourceRuns.Index(main.Document!);
+            var ordinals = SourceRuns.IndexAll(Stories());
             var found = new List<Unit>();
             foreach (var paragraph in chain)
             {

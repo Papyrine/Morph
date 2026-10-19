@@ -488,6 +488,38 @@ public partial class SnapshotTests
         await Assert.That(DocumentOutline.Read(saved).Paragraphs[2].Units.Select(_ => _.Kind)).IsEquivalentTo([EditUnitKind.Text, EditUnitKind.Drawing]);
     }
 
+    // Header opens a header made for the document, typed into on the page; clicked again on the page,
+    // the header opens as the body does.
+    [Test]
+    public async Task Edit_AHeader_IsTypedIntoOnThePage()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "and last");
+        await ChooseTabAsync(page, "Insert");
+        await ReopenedAsync(page, () => page.ClickAsync(".editor-tool:has-text('Header')"));
+        await page.Keyboard.TypeAsync("Quarterly report");
+        await HandInAsync(page);
+        await page.WaitForFunctionAsync(
+            "() => [...document.querySelectorAll('.viewer-page .text-layer, .viewer-page [class*=layer]')].some(_ => _.textContent.includes('Quarterly report'))",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+
+        await ClickInAsync(page, "Quarterly report");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.TypeAsync(", draft");
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        using var stream = new MemoryStream(saved);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        await Assert.That(package.MainDocumentPart!.HeaderParts.Single().Header!.InnerText).IsEqualTo("Quarterly report, draft");
+        await Assert.That(Read(saved)).Count().IsEqualTo(3);
+    }
+
     // A picture clicked is framed, and its corner handle sizes it in proportion; let go, the file
     // takes the size.
     [Test]

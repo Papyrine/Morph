@@ -273,7 +273,8 @@ the icons named.
 The editor **edits** a Word document's text, on the same footing and with the same split:
 
 - **`src/Morph/OpenXml/Editing/`** (core, internal) works on the markup. `DocumentOutline` reads every
-  paragraph of the main part as units — text that can be edited, and the things between it that are
+  paragraph of the body, then of the headers, footers and notes (`SourceRuns.Stories`, the order
+  `RevisionElements.Roots` keeps, the body FIRST so its ordinals never move) as units — text that can be edited, and the things between it that are
   left as they are (a field, a picture, a note's reference, text a tracked change deleted) — and
   `DocumentEditor` takes a file's bytes and returns the edited file's. A paragraph is rewritten from
   what it NOW READS AS, not from the keys pressed: `TextDiff` works out what differs, per character and
@@ -305,7 +306,14 @@ The ribbon's commands are `DocumentEditor` edits too, in partial files beside th
 `DocumentEditor.Inserts.cs` (page break, table, picture, link, replace), `DocumentEditor.Tables.cs`
 (rows, columns, the table) and `DocumentEditor.TableFormat.cs` (borders, shading, merge and split,
 column widths and AutoFit — the cells a selection spans are the rectangle between its two ends, as in
-Word, and none of it is tracked); `DocumentEditor.Sections.cs` sets a section's margins, orientation and paper and breaks sections (a
+Word, and none of it is tracked); Paragraph and run ordinals run across those parts, and the parser stamps sources across them too
+when `captureSources` is on, which is all it takes for a header's, footer's or footnote's lines on a
+page to open like the body's (`EditMap` keys blocks by ordinal; a header repeated on every page is a
+block that starts the paragraph afresh, which `EditSession`'s skip has to know). An edit that makes a
+relationship — a picture's image, a link's address — makes it on the part the paragraph is in
+(`Editing.PartOf`). `DocumentEditor.Stories.cs` makes a section's header or footer and puts in
+footnotes, as Word writes them.
+`DocumentEditor.Sections.cs` sets a section's margins, orientation and paper and breaks sections (a
 section is the paragraphs up to the one whose `pPr` holds its `sectPr`; how a section starts is said
 in its OWN `sectPr`, so a continuous break marks the section after it);
 `DocumentEditor.Pictures.cs` sizes an inline picture (its

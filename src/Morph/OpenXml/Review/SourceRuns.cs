@@ -15,6 +15,38 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 /// </summary>
 static class SourceRuns
 {
+    /// <summary>
+    /// The parts an editor numbers paragraphs and runs across, one after another: the body, then the
+    /// headers, the footers, the footnotes and the endnotes, in the order <see cref="RevisionElements.Roots"/>
+    /// keeps. The body comes first, so its ordinals are the same whether or not the rest are counted.
+    /// </summary>
+    public static List<OpenXmlPartRootElement> Stories(WordprocessingDocument document) =>
+        RevisionElements.Roots(document).Select(_ => _.Root).ToList();
+
+    /// <summary>Every <c>w:p</c> under each of <paramref name="roots"/>, numbered in order across them.</summary>
+    public static Dictionary<Paragraph, int> IndexAllParagraphs(IEnumerable<OpenXmlElement> roots)
+    {
+        var ordinals = new Dictionary<Paragraph, int>(ReferenceEqualityComparer.Instance);
+        foreach (var paragraph in roots.SelectMany(_ => _.Descendants<Paragraph>()))
+        {
+            ordinals[paragraph] = ordinals.Count;
+        }
+
+        return ordinals;
+    }
+
+    /// <summary>Every <c>w:r</c> under each of <paramref name="roots"/>, numbered in order across them.</summary>
+    public static Dictionary<OoxmlRun, int> IndexAll(IEnumerable<OpenXmlElement> roots)
+    {
+        var ordinals = new Dictionary<OoxmlRun, int>(ReferenceEqualityComparer.Instance);
+        foreach (var run in roots.SelectMany(_ => _.Descendants<OoxmlRun>()))
+        {
+            ordinals[run] = ordinals.Count;
+        }
+
+        return ordinals;
+    }
+
     /// <summary>Every <c>w:p</c> under <paramref name="root"/>, numbered in document order.</summary>
     public static Dictionary<Paragraph, int> IndexParagraphs(OpenXmlElement root)
     {

@@ -143,7 +143,7 @@ static partial class DocumentEditor
             var editing = new Editing(document, options);
             if (edit(editing) is { } place)
             {
-                ordinal = MainPart(document).Document!.Descendants<Paragraph>().TakeWhile(_ => !ReferenceEquals(_, place.Paragraph)).Count();
+                ordinal = SourceRuns.Stories(document).SelectMany(_ => _.Descendants<Paragraph>()).TakeWhile(_ => !ReferenceEquals(_, place.Paragraph)).Count();
                 offset = place.Offset;
             }
         }
@@ -292,10 +292,17 @@ static partial class DocumentEditor
         readonly Dictionary<OpenXmlElement, List<Cell>> places = new(ReferenceEqualityComparer.Instance);
         long nextRevision = -1;
 
+        // The parts paragraphs are numbered across: the body, the headers and footers, the notes.
+        List<OpenXmlPartRootElement> Stories() =>
+            SourceRuns.Stories(document);
+
+        IEnumerable<Paragraph> AllParagraphs() =>
+            Stories().SelectMany(_ => _.Descendants<Paragraph>());
+
         public Paragraph Find(int ordinal)
         {
             if (ordinal >= 0 &&
-                main.Document!.Descendants<Paragraph>().ElementAtOrDefault(ordinal) is { } paragraph)
+                AllParagraphs().ElementAtOrDefault(ordinal) is { } paragraph)
             {
                 return paragraph;
             }
@@ -303,9 +310,17 @@ static partial class DocumentEditor
             throw new InvalidOperationException($"The document has no paragraph {ordinal}.");
         }
 
+        // The part a paragraph or anything else is in: the body's, or a header's, a footer's, the notes'.
+        OpenXmlPart PartOf(OpenXmlElement element)
+        {
+            var root = element as OpenXmlPartRootElement ?? element.Ancestors<OpenXmlPartRootElement>().FirstOrDefault();
+            return root?.OpenXmlPart ?? main;
+        }
+
         List<Unit> Units(Paragraph paragraph)
         {
-            foreach (var (candidate, units) in ParagraphContent.ReadAll(main.Document!))
+            var root = paragraph.Ancestors<OpenXmlPartRootElement>().FirstOrDefault() ?? (OpenXmlElement) main.Document!;
+            foreach (var (candidate, units) in ParagraphContent.ReadAll(root))
             {
                 if (ReferenceEquals(candidate, paragraph))
                 {
@@ -1601,9 +1616,9 @@ static partial class DocumentEditor
                 (start, end) = (end, start);
             }
 
-            var ordinals = SourceRuns.Index(main.Document!);
+            var ordinals = SourceRuns.IndexAll(Stories());
             var found = new List<(int Run, List<Cell> Cells)>();
-            foreach (var (_, units) in ParagraphContent.ReadAll(main.Document!))
+            foreach (var (_, units) in Stories().SelectMany(ParagraphContent.ReadAll))
             {
                 foreach (var unit in units)
                 {

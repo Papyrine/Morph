@@ -339,8 +339,9 @@ public class SourceIndexTests
     {
         using var stream = new MemoryStream(docx);
         using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
-        return package.MainDocumentPart!.Document!
-            .Descendants<DocumentFormat.OpenXml.Wordprocessing.Run>()
+        // The runs of every part sources are numbered across: the body, the headers and footers, the notes.
+        return SourceRuns.Stories(package)
+            .SelectMany(_ => _.Descendants<DocumentFormat.OpenXml.Wordprocessing.Run>())
             .Select(SourceRuns.Text)
             .ToList();
     }

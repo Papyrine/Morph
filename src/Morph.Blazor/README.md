@@ -139,7 +139,7 @@ document, Open, and (with `ShowSamples`) the sample document. A workbook or a de
 | --- | --- |
 | File | New blank document (Word's own, as Word makes it), Open, Save a copy, Export as PNG, PDF, HTML, Markdown or plain text, Print. A new document over edits not yet saved asks first. |
 | Home | Undo, Redo; the paragraph style — every style the document offers and Word's own gallery, each drawn as it looks; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
-| Insert | Page break; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link. |
+| Insert | Page break; Header and Footer, which open the section's for typing (made if it has none); Footnote, a note at the caret, opened for typing; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link. |
 | Layout | The page of the section the caret is in: margins (Word's Normal, Narrow, Moderate and Wide, or custom, in centimetres), portrait or landscape, the paper size; breaks — a page break, or a section break that starts the next section on a new page or on the same one. Page setup is not tracked. |
 | Table | Shown while the caret is in a table: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
 | Review | Track changes; New comment on what is selected; the comments and changes pane; Accept all, Reject all; Word count. |
@@ -243,8 +243,11 @@ and merged cells. Rejecting a formatting change puts back the formatting it repl
 
 Limits worth knowing:
 
-- Text is edited in the document's body — its paragraphs, table cells and text boxes. Headers, footers
-  and notes are other parts of the file, and are read only.
+- Text is edited where the pages show it — the body's paragraphs, table cells and text boxes, and
+  the headers, footers and footnotes, which a click on them opens as it opens the body. Comments go on
+  the body's text, and the word count is the body's. A header's or footer's look is set as the body's
+  is; a first-page or even-page header that a document has of its own is edited where the pages show
+  it, and the editor makes only the one every page shows.
 - Pictures, tables, page breaks and links are put in from the ribbon; a picture, a field or a note
   already there can be deleted but not typed into. A picture that floats beside the text, rather than
   standing in a line of it, is not sized here. A workbook or a deck is not edited.

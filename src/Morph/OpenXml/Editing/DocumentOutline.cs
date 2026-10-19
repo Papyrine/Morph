@@ -1,7 +1,7 @@
 /// <summary>
-/// A Word document read for someone about to edit its text: every paragraph of the main part with
-/// what it holds (<see cref="EditParagraph"/>), and what the document allows. Headers, footers and
-/// notes are other parts, and are not read.
+/// A Word document read for someone about to edit its text: every paragraph of the body, the headers
+/// and footers and the notes, with what it holds (<see cref="EditParagraph"/>), and what the document
+/// allows.
 ///
 /// Like <see cref="DocumentReview"/> this reads the markup rather than the model the parser builds:
 /// an edit is made to the markup, and has to name what it changes in the markup's own terms.
@@ -11,7 +11,10 @@ sealed class DocumentOutline
 {
     Dictionary<int, int> paragraphOfRun = [];
 
-    /// <summary>The main part's paragraphs, each at the index that is its ordinal.</summary>
+    /// <summary>
+    /// The paragraphs of the body, then of the headers and footers, then of the notes
+    /// (<see cref="SourceRuns.Stories"/>), each at the index that is its ordinal.
+    /// </summary>
     public required IReadOnlyList<EditParagraph> Paragraphs { get; init; }
 
     /// <summary>
@@ -84,7 +87,8 @@ sealed class DocumentOutline
             return Empty;
         }
 
-        var runs = SourceRuns.Index(root);
+        var stories = RevisionElements.Roots(document);
+        var runs = SourceRuns.IndexAll(stories.Select(_ => _.Root));
         var styles = new Dictionary<string, Style>(StringComparer.Ordinal);
         foreach (var style in document.MainDocumentPart.StyleDefinitionsPart?.Styles?.Elements<Style>() ?? [])
         {
@@ -99,7 +103,8 @@ sealed class DocumentOutline
         var paragraphs = new List<EditParagraph>();
         var unindents = DocumentEditor.Unindents(document);
         var paragraphOfRun = new Dictionary<int, int>();
-        foreach (var (paragraph, units) in ParagraphContent.ReadAll(root))
+        var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, _.Paragraph, _.Units)));
+        foreach (var (part, paragraph, units) in read)
         {
             var ordinal = paragraphs.Count;
             foreach (var (run, _, _) in ParagraphContent.Runs(paragraph))
@@ -110,6 +115,7 @@ sealed class DocumentOutline
             paragraphs.Add(
                 new(ordinal, units.Select(_ => Unit(_, runs)).ToList())
                 {
+                    Part = part,
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
                     InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any(),
