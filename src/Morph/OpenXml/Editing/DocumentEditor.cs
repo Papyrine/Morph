@@ -690,6 +690,16 @@ static partial class DocumentEditor
                 }
             }
 
+            if (Outside(units, beside, pieces) is { } outside)
+            {
+                for (var index = pieces.Count - 1; index >= 0; index--)
+                {
+                    outside = Add(outside, Unlinked(Run(paragraph, units, pieces[index])));
+                }
+
+                return;
+            }
+
             // Text typed into a run is that run's text: no new run is made for it. The last of
             // what was typed can be the start of the run that follows, and the first of it the end
             // of the run before.
@@ -747,6 +757,79 @@ static partial class DocumentEditor
                 var cell = beside.Left!.Value.Cell;
                 Into(cell.Run, cell.Child, cell.Index + 1, pieces[0]);
             }
+        }
+
+        // Word-probed 2026-10-19 by keys sent to Word 365: text typed at either end of a link is
+        // not the link's. Typed after "the site" in "See <the site> today", and at the end of a
+        // paragraph the link ends, it goes after the w:hyperlink; typed before it, before. It is
+        // formatted as the link's text is — after a bold link, bold — without the Hyperlink style.
+        // Typed inside a link, or in place of text of it, it is the link's.
+        //
+        // The place outside the link that text formatted as the link's text goes, when it is put in
+        // at one of the link's ends; null when the text goes where its formatting says.
+        static Point? Outside(List<Unit> units, Beside beside, List<List<Fresh>> pieces)
+        {
+            if (beside.Gone != null)
+            {
+                return null;
+            }
+
+            var left = LinkOf(beside.Left);
+            var right = LinkOf(beside.Right);
+            if (left == right)
+            {
+                return null;
+            }
+
+            Hyperlink? link = null;
+            foreach (var piece in pieces)
+            {
+                if (piece[0].Mark ||
+                    piece[0].Unit < 0 ||
+                    units[piece[0].Unit].Run.Ancestors<Hyperlink>().FirstOrDefault() is not { } own ||
+                    (link != null && own != link))
+                {
+                    return null;
+                }
+
+                link = own;
+            }
+
+            if (link == left)
+            {
+                return Point.Behind(link!);
+            }
+
+            if (link == right)
+            {
+                return Point.Ahead(link!);
+            }
+
+            return null;
+
+            static Hyperlink? LinkOf(Old? neighbour) =>
+                neighbour?.Cell.Run.Ancestors<Hyperlink>().FirstOrDefault();
+        }
+
+        // A run formatted as a link's text, less what makes it look a link.
+        static OoxmlRun Unlinked(OoxmlRun run)
+        {
+            if (run.RunProperties is not { } properties)
+            {
+                return run;
+            }
+
+            if (properties.RunStyle?.Val?.Value is "Hyperlink" or "FollowedHyperlink")
+            {
+                properties.RunStyle = null;
+            }
+
+            if (!properties.HasChildren)
+            {
+                properties.Remove();
+            }
+
+            return run;
         }
 
         // Whether text can simply join a run: it is formatted as the run is, and — tracked — the
