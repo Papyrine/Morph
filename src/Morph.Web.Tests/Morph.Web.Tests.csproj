@@ -19,7 +19,7 @@
 
   <!-- Publish the WOPI sample, its editor's WebAssembly app with it, for WopiSampleTests to run as a process. -->
   <Target Name="PublishWopiSampleForTests" AfterTargets="Build">
-    <MSBuild Projects="..\Morph.Wopi.Sample\Morph.Wopi.Sample.csproj" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(WopiSamplePublishDir)" />
+    <MSBuild Projects="..\Morph.Wopi.Sample\Morph.Wopi.Sample.csproj" Targets="Restore;Publish" Properties="Configuration=$(Configuration);PublishDir=$(WopiSamplePublishDir)" />
   </Target>
 
   <ItemGroup>
