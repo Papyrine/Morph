@@ -176,6 +176,7 @@ again, and the page redrawn.
 | Backspace at the start of a list's paragraph, or an indented one | Takes its number or bullet off and leaves the text where it stood; then takes its indent off a step at a time, as Word does — first to where the paragraph above starts its first line, when the text lines up under that paragraph's — and only then joins it to the paragraph before. |
 | Ctrl+Alt+1, 2, 3; Ctrl+K | Heading 1, 2 or 3; a link on what is selected. |
 | Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
+| A click on a picture in the line | Selects it and frames it: its corner handles size it in proportion, its side handles stretch it one way, and Reset size puts it back to the size its image was made for. Its size shows as it changes. |
 | Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
 | ↑ ↓ ← → at the paragraph's edge | Goes on to the paragraph that way. |
 | Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. |
@@ -244,7 +245,8 @@ Limits worth knowing:
 - Text is edited in the document's body — its paragraphs, table cells and text boxes. Headers, footers
   and notes are other parts of the file, and are read only.
 - Pictures, tables, page breaks and links are put in from the ribbon; a picture, a field or a note
-  already there can be deleted but not typed into. A workbook or a deck is not edited.
+  already there can be deleted but not typed into. A picture that floats beside the text, rather than
+  standing in a line of it, is not sized here. A workbook or a deck is not edited.
 - A pasted table's rows are pasted as paragraphs, their cells a tab apart, and a pasted picture is
   left out.
 - A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the

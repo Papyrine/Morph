@@ -865,6 +865,62 @@
     background-color: rgb(0 0 0 / 0.05);
 }
 
+/* A picture selected in the line: a frame its handles size it by, its size, and a way back to the
+   size it was made for. In the editing layer beside the box, so none of it is the paragraph's text. */
+.edit-frame {
+    position: absolute;
+    z-index: 3;
+    box-sizing: border-box;
+    border: 1px solid var(--morph-primary, #2b579a);
+    pointer-events: none;
+}
+
+.edit-handle {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    margin: -5px 0 0 -5px;
+    border: 1px solid var(--morph-primary, #2b579a);
+    border-radius: 50%;
+    background: #ffffff;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.edit-handle-nw { left: 0; top: 0; cursor: nwse-resize; }
+.edit-handle-n { left: 50%; top: 0; cursor: ns-resize; }
+.edit-handle-ne { left: 100%; top: 0; cursor: nesw-resize; }
+.edit-handle-e { left: 100%; top: 50%; cursor: ew-resize; }
+.edit-handle-se { left: 100%; top: 100%; cursor: nwse-resize; }
+.edit-handle-s { left: 50%; top: 100%; cursor: ns-resize; }
+.edit-handle-sw { left: 0; top: 100%; cursor: nesw-resize; }
+.edit-handle-w { left: 0; top: 50%; cursor: ew-resize; }
+
+.edit-frame-size,
+.edit-frame-reset {
+    position: absolute;
+    top: calc(100% + 6px);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font: 12px/1.6 var(--morph-font, system-ui, sans-serif);
+    white-space: nowrap;
+}
+
+.edit-frame-size {
+    left: 0;
+    background: var(--morph-primary, #2b579a);
+    color: #ffffff;
+}
+
+.edit-frame-reset {
+    right: 0;
+    border: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333333);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
 .edit-break {
     padding: 0 0.4em;
     border: 1px dashed var(--morph-muted, #6c757d);

@@ -166,6 +166,7 @@ export class ParagraphEditor {
     }
 
     render() {
+        this.unframe();
         const fragment = document.createDocumentFragment();
         this.blocks.forEach((block, index) => fragment.append(this.renderBlock(block, index)));
         this.box.replaceChildren(fragment);
@@ -851,12 +852,136 @@ export class ParagraphEditor {
             this.adopt();
         }, { signal });
         box.addEventListener('keydown', event => this.onKeyDown(event), { signal });
+        box.addEventListener('mousedown', event => this.onPictureDown(event), { signal });
         box.addEventListener('focusout', () => this.onFocusOut(), { signal });
         document.addEventListener('selectionchange', () => {
             if (!this.closed && !this.pending && this.box.contains(getSelection()?.anchorNode ?? null)) {
                 this.notify();
             }
         }, { signal });
+    }
+
+    // Pictures
+
+    // A picture in the line, clicked, is selected whole and framed, and its handles size it: a corner
+    // keeps its proportions, a side stretches it one way. Let go, the size is the file's to take
+    // (DocumentEditor.ResizePicture), in points.
+    onPictureDown(event) {
+        const span = event.target instanceof Element ? event.target.closest('.edit-drawing') : null;
+        if (!span || span.classList.contains('edit-hidden') || !this.box.contains(span) || this.pending) {
+            return;
+        }
+
+        event.preventDefault();
+        const b = Number(span.parentElement?.dataset.b);
+        const index = Number(span.dataset.i);
+        const block = this.blocks[b];
+        if (!block) {
+            return;
+        }
+
+        let o = 0;
+        for (let i = 0; i < index; i++) {
+            o += lengthOf(block.items[i]);
+        }
+
+        this.box.focus({ preventScroll: true });
+        this.select({ b, o }, { b, o: o + 1 });
+        this.framePicture(span, { b, o }, this.session.u[block.items[index].u]);
+    }
+
+    framePicture(span, place, unit) {
+        this.unframe();
+        if (!unit || !(unit.w > 0) || !(unit.e > 0)) {
+            return;
+        }
+
+        const element = document.createElement('div');
+        element.className = 'edit-frame';
+        const layer = this.layer.getBoundingClientRect();
+        const rect = span.getBoundingClientRect();
+        const scale = 100 / Math.max(1, layer.width);
+        element.style.left = `${((rect.left - layer.left) * scale).toFixed(4)}cqw`;
+        element.style.top = `${((rect.top - layer.top) * scale).toFixed(4)}cqw`;
+        for (const edge of ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']) {
+            const handle = document.createElement('span');
+            handle.className = `edit-handle edit-handle-${edge}`;
+            handle.addEventListener('pointerdown', event => this.onHandleDown(event, edge), { signal: this.abort.signal });
+            element.append(handle);
+        }
+
+        const label = document.createElement('span');
+        label.className = 'edit-frame-size';
+        const reset = document.createElement('button');
+        reset.type = 'button';
+        reset.className = 'edit-frame-reset';
+        reset.textContent = 'Reset size';
+        reset.addEventListener('mousedown', event => event.preventDefault(), { signal: this.abort.signal });
+        reset.addEventListener('click', () => {
+            this.unframe();
+            this.callbacks.key('reset-picture');
+        }, { signal: this.abort.signal });
+        element.append(label, reset);
+        this.layer.append(element);
+        this.frame = { element, label, place, w: unit.w, h: unit.e };
+        this.sizeFrame(unit.w, unit.e);
+    }
+
+    sizeFrame(w, h) {
+        const frame = this.frame;
+        frame.element.style.width = this.cq(w);
+        frame.element.style.height = this.cq(h);
+        frame.label.textContent = `${(w / 72 * 2.54).toFixed(1)} × ${(h / 72 * 2.54).toFixed(1)} cm`;
+    }
+
+    unframe() {
+        this.frame?.element.remove();
+        this.frame = null;
+    }
+
+    onHandleDown(event, edge) {
+        const frame = this.frame;
+        if (!frame || this.pending) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        const handle = event.currentTarget;
+        handle.setPointerCapture(event.pointerId);
+        const perPixel = this.page.width / Math.max(1, this.layer.getBoundingClientRect().width);
+        const start = { x: event.clientX, y: event.clientY, w: frame.w, h: frame.h };
+        const corner = edge.length === 2;
+        const move = moved => {
+            const dx = (moved.clientX - start.x) * perPixel * (edge.includes('w') ? -1 : 1);
+            const dy = (moved.clientY - start.y) * perPixel * (edge.includes('n') ? -1 : 1);
+            let w = start.w;
+            let h = start.h;
+            if (corner) {
+                const grow = Math.abs(dx / start.w) > Math.abs(dy / start.h) ? dx / start.w : dy / start.h;
+                w = Math.max(4, start.w * (1 + grow));
+                h = w * start.h / start.w;
+            } else if (edge === 'e' || edge === 'w') {
+                w = Math.max(4, start.w + dx);
+            } else {
+                h = Math.max(4, start.h + dy);
+            }
+
+            frame.w = w;
+            frame.h = h;
+            this.sizeFrame(w, h);
+        };
+        const up = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', up);
+            if (Math.abs(frame.w - start.w) > 0.5 || Math.abs(frame.h - start.h) > 0.5) {
+                this.callbacks.resize(Math.round(frame.w * 100) / 100, Math.round(frame.h * 100) / 100);
+            }
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
     }
 
     targetRange(event) {
@@ -1220,6 +1345,12 @@ export class ParagraphEditor {
             return;
         }
 
+        // The frame is a picture's while the picture is what is selected.
+        if (this.frame && !(same(selected.from, this.frame.place) &&
+            same(selected.to, { b: this.frame.place.b, o: this.frame.place.o + 1 }))) {
+            this.unframe();
+        }
+
         this.lastRange = selected;
 
         let face;
@@ -1227,6 +1358,7 @@ export class ParagraphEditor {
             face = this.pendingFace ?? this.faceAt(selected.from).f;
         } else {
             face = bold | italic | underline | strike;
+            let text = false;
             for (let b = selected.from.b; b <= selected.to.b; b++) {
                 let at = 0;
                 const from = b === selected.from.b ? selected.from.o : 0;
@@ -1235,10 +1367,16 @@ export class ParagraphEditor {
                     const length = lengthOf(item);
                     if (!item.atom && at < to && at + length > from) {
                         face &= item.f;
+                        text = true;
                     }
 
                     at += length;
                 }
+            }
+
+            // What is selected has no text — a picture alone — and looks as the text around it does.
+            if (!text) {
+                face = this.faceAt(selected.from).f;
             }
         }
 
