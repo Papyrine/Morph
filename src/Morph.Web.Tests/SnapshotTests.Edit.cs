@@ -633,7 +633,7 @@ public partial class SnapshotTests
     }
 
     // HTML on the clipboard — a heading, emphasis, a link — pasted with Ctrl+V into a new paragraph
-    // keeps what it was, and the paragraph opens again after it.
+    // keeps what it was, and typing goes on after it — outside the link it ends with.
     [Test]
     public async Task Edit_PastingHtml_KeepsItsHeadingsAndLinks()
     {
@@ -654,13 +654,43 @@ public partial class SnapshotTests
         await page.Keyboard.PressAsync("End");
         await page.Keyboard.PressAsync("Enter");
         await ReopenedAsync(page, () => page.Keyboard.PressAsync("Control+v"));
+        await page.Keyboard.TypeAsync("!");
         await HandInAsync(page);
 
         var saved = await SaveAsync(page);
         var read = Read(saved);
         await Assert.That(read[3]).IsEqualTo("[Pasted] #Heading2");
-        await Assert.That(read[4]).IsEqualTo("[with ][b:bold][ and ][a link]");
-        await Assert.That(DocumentBody(saved)).Contains("<w:hyperlink");
+        await Assert.That(read[4]).IsEqualTo("[with ][b:bold][ and ][a link][!]");
+        await Assert.That(DocumentBody(saved)).Contains("a link</w:t></w:r></w:hyperlink><w:r><w:t xml:space=\"preserve\">!</w:t></w:r>");
+    }
+
+    // Typed at either end of a link, text is not the link's (Word-probed 2026-10-19): it goes outside
+    // the link, as Word puts it.
+    [Test]
+    public async Task Edit_TypingAtALinksEnds_IsNotTheLinks()
+    {
+        const string link = "<w:hyperlink w:anchor=\"top\"><w:r><w:rPr><w:rStyle w:val=\"Hyperlink\"/></w:rPr><w:t>the site</w:t></w:r></w:hyperlink>";
+        var page = await OpenEditAsync(Build(P("", R("See "), link, R(" today"))));
+
+        await ClickInAsync(page, "today");
+        await page.Keyboard.PressAsync("Home");
+        for (var index = 0; index < "See the site".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        await page.Keyboard.TypeAsync(" now");
+        for (var index = 0; index < " nowthe site".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowLeft");
+        }
+
+        await page.Keyboard.TypeAsync("all of ");
+        await HandInAsync(page);
+
+        var body = DocumentBody(await SaveAsync(page));
+        await Assert.That(body).Contains("<w:t xml:space=\"preserve\">See all of </w:t></w:r><w:hyperlink w:anchor=\"top\">");
+        await Assert.That(body).Contains("the site</w:t></w:r></w:hyperlink><w:r><w:t xml:space=\"preserve\"> now</w:t></w:r>");
     }
 
     // Runs what reopens the paragraph from .NET, and waits until it has: a new session, ready to type in.
