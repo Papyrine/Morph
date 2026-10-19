@@ -79,7 +79,7 @@ static partial class DocumentEditor
         {
             var drawing = DrawingAt(ordinal, offset);
             if (drawing.Descendants<A.Blip>().FirstOrDefault()?.Embed?.Value is not { } id ||
-                main.GetPartById(id) is not ImagePart image)
+                PartOf(drawing).GetPartById(id) is not ImagePart image)
             {
                 return null;
             }

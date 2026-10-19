@@ -128,6 +128,8 @@ sealed class EditSession
 
         // A block that holds the rest of a paragraph shows its own lines: the ones on the pages
         // before are scrolled out of sight above it.
+        // A header or footer is the whole paragraph again on every page: a block that starts with the
+        // paragraph's first line starts it afresh.
         var skip = 0f;
         foreach (var earlier in Map.Blocks(block.Paragraph))
         {
@@ -136,7 +138,17 @@ sealed class EditSession
                 break;
             }
 
+            if (earlier.Lines[0].LineIndex == 0)
+            {
+                skip = 0;
+            }
+
             skip += earlier.Height;
+        }
+
+        if (first.LineIndex == 0)
+        {
+            skip = 0;
         }
 
         var buffer = new ArrayBufferWriter<byte>();

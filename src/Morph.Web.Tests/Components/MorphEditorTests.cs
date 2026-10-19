@@ -821,6 +821,50 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Body(reported!)).Contains("<w:tblW w:w=\"5000\" w:type=\"pct\" />");
     }
 
+    // Header and Footer open the section's, made if it has none, for typing; Footnote puts a note at
+    // the caret and opens it.
+    [Test]
+    public async Task HeaderFooterAndFootnote_OpenWhatTheyMake()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        await ChooseTabAsync(cut, "Insert");
+
+        Caret(0, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Header").ClickAsync(new());
+        await Assert.That(Package(reported!, _ => _.MainDocumentPart!.HeaderParts.Count())).IsEqualTo(1);
+        await Assert.That(Session().GetProperty("p").GetInt32()).IsEqualTo(3);
+
+        Caret(0, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Footer").ClickAsync(new());
+        await Assert.That(Package(reported!, _ => _.MainDocumentPart!.FooterParts.Count())).IsEqualTo(1);
+
+        Caret(0, 5);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Footnote").ClickAsync(new());
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:r><w:t xml:space=\"preserve\">First</w:t></w:r><w:r><w:rPr><w:rStyle w:val=\"FootnoteReference\" /></w:rPr><w:footnoteReference w:id=\"1\" /></w:r>");
+        var opened = DocumentOutline.Read(reported!).Paragraphs[Session().GetProperty("p").GetInt32()];
+        await Assert.That(opened.Part).IsEqualTo(ReviewPart.Footnotes);
+    }
+
+    // The word count is the body's, not the headers' or the notes'.
+    [Test]
+    public async Task TheWordCount_LeavesOutTheHeader()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var header = DocumentEditor.EditHeader(Paragraphs, 0, false, options);
+        var docx = DocumentEditor.Rewrite(header.Document, header.Paragraph, [new([new(-1, "Three header words")])], options).Document;
+        var cut = await OpenEditing(docx);
+
+        await Assert.That(cut.Find(".editor-status").TextContent).Contains("9 words");
+    }
+
+    static T Package<T>(byte[] docx, Func<DocumentFormat.OpenXml.Packaging.WordprocessingDocument, T> read)
+    {
+        using var stream = new MemoryStream(docx);
+        using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
+        return read(package);
+    }
+
     // The Layout tab: the page of the section the caret is in.
     [Test]
     public async Task TheLayoutTab_SetsThePage()

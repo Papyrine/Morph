@@ -116,11 +116,21 @@ sealed class PagedDocument : IDisposable
         lock (gate)
         {
             ObjectDisposedException.ThrowIf(disposed, this);
+            // A paragraph stands between the margins when it is the body's, a header's, a footer's or a
+            // note's, rather than a cell's or a text box's.
             var body = document.Elements
                 .OfType<ParagraphElement>()
                 .Select(_ => _.Source)
                 .OfType<int>()
                 .ToHashSet();
+            foreach (var paragraph in outline.Paragraphs)
+            {
+                if (paragraph.Part != ReviewPart.Body &&
+                    !paragraph.InTable)
+                {
+                    body.Add(paragraph.Ordinal);
+                }
+            }
             return EditMap.Build(laidOut, SourcesLocked(), _ => outline.ParagraphOf(_)?.Ordinal, body);
         }
     }

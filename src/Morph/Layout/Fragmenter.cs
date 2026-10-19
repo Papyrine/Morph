@@ -4705,6 +4705,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         Runs = runs,
                         Properties = paragraph.Properties,
+                        Source = paragraph.Source,
                         IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
                         IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
                         IsSectionBreakMark = paragraph.IsSectionBreakMark

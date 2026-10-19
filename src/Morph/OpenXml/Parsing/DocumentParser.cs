@@ -341,8 +341,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                    ?? throw new InvalidOperationException("Document has no body");
 
         lastRenderedPageBreakCount = body.Descendants<LastRenderedPageBreak>().Count();
-        runOrdinals = captureSources ? SourceRuns.Index(mainPart.Document) : null;
-        paragraphSources = captureSources ? SourceRuns.IndexParagraphs(mainPart.Document) : null;
+        // Sources are counted across the body, the headers and footers, and the notes, the body first,
+        // so that what an editor opens anywhere on a page can be found again in the markup.
+        var stories = captureSources ? SourceRuns.Stories(doc) : [];
+        runOrdinals = captureSources ? SourceRuns.IndexAll(stories) : null;
+        paragraphSources = captureSources ? SourceRuns.IndexAllParagraphs(stories) : null;
 
         DropRedefinedStyles(mainPart);
 

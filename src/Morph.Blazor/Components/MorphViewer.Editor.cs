@@ -153,6 +153,12 @@ public partial class MorphViewer
 
         if (selection.Length == 4)
         {
+            if (!InBody(reviewMap.Before(selection[0], selection[1])))
+            {
+                editNote = bodyOnly;
+                return;
+            }
+
             await OpenReviewAsync();
             await BeginCommentAsync();
             return;
@@ -161,6 +167,12 @@ public partial class MorphViewer
         if (await TargetAsync() is not {HasSelection: true, Start: { } start, End: { } end} target)
         {
             editNote = "Select the text to comment on first.";
+            return;
+        }
+
+        if (!InBody(start))
+        {
+            editNote = bodyOnly;
             return;
         }
 
@@ -575,6 +587,28 @@ public partial class MorphViewer
         }
 
         await EditAtAsync(target, (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
+    }
+
+    // Headers, footers and footnotes. A header or footer is opened for typing, made if the section
+    // has none; a footnote is put at the caret and its note opened.
+    internal async Task EditHeaderAsync(bool footer)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync(target, (_, options) => DocumentEditor.EditHeader(_, target.Paragraph, footer, options));
+    }
+
+    internal async Task InsertFootnoteAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync(target, (_, options) => DocumentEditor.InsertFootnote(_, target.Paragraph, target.Offset, options));
     }
 
     // A section's page: margins, which way up, the paper, and breaks between sections. They act on the
@@ -1116,6 +1150,14 @@ public partial class MorphViewer
         }
     }
 
+    const string bodyOnly = "Comments go on the body's text, not a header's, a footer's or a note's.";
+
+    // Whether a place is in the body, where comments are anchored; one the pages could not place is
+    // taken as in it.
+    bool InBody(SourcePosition? place) =>
+        place is not { } known ||
+        outline.ParagraphOf(known.Run)?.Part is null or ReviewPart.Body;
+
     // Counting
 
     internal DocumentCount Count()
@@ -1125,7 +1167,8 @@ public partial class MorphViewer
         var spaced = 0;
         var paragraphs = 0;
         var lines = 0;
-        foreach (var paragraph in outline.Paragraphs)
+        // The body's words, as Word's status bar counts them: not the headers', footers' or notes'.
+        foreach (var paragraph in outline.Paragraphs.Where(_ => _.Part == ReviewPart.Body))
         {
             var text = new StringBuilder();
             foreach (var unit in paragraph.Units)

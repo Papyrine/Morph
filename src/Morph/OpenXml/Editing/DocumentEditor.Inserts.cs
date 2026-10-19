@@ -346,7 +346,17 @@ static partial class DocumentEditor
                 point = Divide(point);
             }
 
-            var image = main.AddImagePart(picture.ContentType, NextRelationship());
+            // A picture's image belongs to the part it is drawn in: a header's own, in a header.
+            var owner = PartOf(paragraph);
+            var relationship = NextRelationship(owner);
+            var image = owner switch
+            {
+                HeaderPart header => header.AddImagePart(picture.ContentType, relationship),
+                FooterPart footer => footer.AddImagePart(picture.ContentType, relationship),
+                FootnotesPart footnotes => footnotes.AddImagePart(picture.ContentType, relationship),
+                EndnotesPart endnotes => endnotes.AddImagePart(picture.ContentType, relationship),
+                _ => main.AddImagePart(picture.ContentType, relationship)
+            };
             using (var data = new MemoryStream(picture.Data, writable: false))
             {
                 image.FeedData(data);
@@ -364,7 +374,7 @@ static partial class DocumentEditor
             var id = NextDrawing();
             var run = new OoxmlRun(
                 new OoxmlRunProperties(new NoProof()),
-                new Drawing(Inline(main.GetIdOfPart(image), id, (long) Math.Round(width * emuPerPoint), (long) Math.Round(height * emuPerPoint), picture.Description)));
+                new Drawing(Inline(relationship, id, (long) Math.Round(width * emuPerPoint), (long) Math.Round(height * emuPerPoint), picture.Description)));
             Add(point, run);
             return (paragraph, offset + 1);
         }
@@ -462,12 +472,15 @@ static partial class DocumentEditor
 
         // Word numbers a part's relationships rId1, rId2 and on, where the SDK draws an id at
         // random: the next number free keeps an edit making the same file each time.
-        string NextRelationship()
+        string NextRelationship() =>
+            NextRelationship(main);
+
+        static string NextRelationship(OpenXmlPart part)
         {
-            var taken = main.Parts.Select(_ => _.RelationshipId)
-                .Concat(main.ExternalRelationships.Select(_ => _.Id))
-                .Concat(main.HyperlinkRelationships.Select(_ => _.Id))
-                .Concat(main.DataPartReferenceRelationships.Select(_ => _.Id))
+            var taken = part.Parts.Select(_ => _.RelationshipId)
+                .Concat(part.ExternalRelationships.Select(_ => _.Id))
+                .Concat(part.HyperlinkRelationships.Select(_ => _.Id))
+                .Concat(part.DataPartReferenceRelationships.Select(_ => _.Id))
                 .ToHashSet(StringComparer.Ordinal);
             var number = 1;
             while (taken.Contains($"rId{number}"))
@@ -520,7 +533,8 @@ static partial class DocumentEditor
                     throw new InvalidOperationException($"'{target}' is not a web address.");
                 }
 
-                link.Id = main.AddHyperlinkRelationship(address, true, NextRelationship()).Id;
+                var owner = PartOf(runs[0]);
+                link.Id = owner.AddHyperlinkRelationship(address, true, NextRelationship(owner)).Id;
             }
 
             // Runs that follow one another in one place are one link; where the text is divided —
@@ -602,6 +616,7 @@ static partial class DocumentEditor
                     }
                 }
 
+                var owner = PartOf(link);
                 foreach (var child in link.ChildElements.ToList())
                 {
                     child.Remove();
@@ -609,22 +624,22 @@ static partial class DocumentEditor
                 }
 
                 link.Remove();
-                Release(link.Id?.Value);
+                Release(link.Id?.Value, owner);
             }
         }
 
-        // A relationship no link uses any longer goes with the last one.
-        void Release(string? relationship)
+        // A relationship no link of its part uses any longer goes with the last one.
+        static void Release(string? relationship, OpenXmlPart part)
         {
             if (relationship == null ||
-                main.Document!.Descendants<Hyperlink>().Any(_ => _.Id?.Value == relationship))
+                part.RootElement?.Descendants<Hyperlink>().Any(_ => _.Id?.Value == relationship) == true)
             {
                 return;
             }
 
-            if (main.HyperlinkRelationships.FirstOrDefault(_ => _.Id == relationship) is { } found)
+            if (part.HyperlinkRelationships.FirstOrDefault(_ => _.Id == relationship) is { } found)
             {
-                main.DeleteReferenceRelationship(found);
+                part.DeleteReferenceRelationship(found);
             }
         }
 

@@ -156,7 +156,7 @@ static partial class DocumentEditor
     {
         public List<Paragraph> FindAll(IReadOnlyList<int> ordinals)
         {
-            var all = main.Document!.Descendants<Paragraph>().ToList();
+            var all = AllParagraphs().ToList();
             var found = new List<Paragraph>();
             foreach (var ordinal in ordinals.Distinct().Order())
             {

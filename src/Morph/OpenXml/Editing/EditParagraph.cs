@@ -10,6 +10,9 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     /// <summary>Whether the block before this paragraph is a paragraph that can be joined to it.</summary>
     public bool HasPrevious { get; init; }
 
+    /// <summary>The part the paragraph is in: the body, a header or footer, the footnotes or endnotes.</summary>
+    public ReviewPart Part { get; init; }
+
     /// <summary>Whether the paragraph is in a table's cell, which is what the table commands act on.</summary>
     public bool InTable { get; init; }
 
