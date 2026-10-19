@@ -22,6 +22,9 @@ public partial class MorphEditor
     const string sizeMenu = "size";
     const string colorMenu = "color";
     const string highlightMenu = "highlight";
+    const string fitMenu = "fit";
+    const string bordersMenu = "borders";
+    const string shadingMenu = "shading";
 
     const string automatic = "auto";
     const string noHighlight = "none";
@@ -35,6 +38,7 @@ public partial class MorphEditor
     const string linkDialog = "link";
     const string countDialog = "count";
     const string discardDialog = "discard";
+    const string splitDialog = "split";
 
     const int gridRows = 8;
     const int gridColumns = 10;
@@ -227,6 +231,87 @@ public partial class MorphEditor
     {
         menu = null;
         return InsertTableAsync(rows, columns);
+    }
+
+    // Tables
+
+    // The lighter shades of Word's theme colours, which is what cells are mostly shaded in, and its
+    // standard colours.
+    internal static readonly (string Hex, string Name)[] ShadingColors =
+    [
+        ("F2F2F2", "White, darker 5%"), ("D9D9D9", "White, darker 15%"), ("BFBFBF", "White, darker 25%"), ("DAE9F8", "Blue, lighter 80%"), ("C1F0C8", "Green, lighter 80%"),
+        ("FBE2D5", "Orange, lighter 80%"), ("F2CEEF", "Purple, lighter 80%"), ("FFFF00", "Yellow"), ("92D050", "Light green"), ("00B0F0", "Light blue"),
+        ("FFC000", "Orange"), ("FF0000", "Red"), ("0070C0", "Blue"), ("7030A0", "Purple"), ("000000", "Black")
+    ];
+
+    string columnWidth = "";
+    int splitColumns = 2;
+    int splitRows = 1;
+
+    Task FitFromMenuAsync(TableFit fit)
+    {
+        menu = null;
+        return FitTableAsync(fit);
+    }
+
+    Task BordersFromMenuAsync(BorderPreset preset)
+    {
+        menu = null;
+        return SetTableBordersAsync(preset);
+    }
+
+    Task ShadingFromMenuAsync(string? fill)
+    {
+        menu = null;
+        return ShadeCellsAsync(fill);
+    }
+
+    Task OnColumnWidthAsync(ChangeEventArgs args)
+    {
+        columnWidth = args.Value?.ToString() ?? "";
+        if (!double.TryParse(columnWidth, NumberStyles.Float, CultureInfo.InvariantCulture, out var centimetres))
+        {
+            return Task.CompletedTask;
+        }
+
+        return SetColumnWidthAsync(centimetres);
+    }
+
+    Task OpenSplitAsync()
+    {
+        menu = null;
+        splitColumns = 2;
+        splitRows = 1;
+        dialog = splitDialog;
+        return Task.CompletedTask;
+    }
+
+    static int Count(ChangeEventArgs args, int fallback)
+    {
+        if (int.TryParse(args.Value?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var count))
+        {
+            return Math.Clamp(count, 1, 63);
+        }
+
+        return fallback;
+    }
+
+    Task SplitFromDialogAsync()
+    {
+        dialog = null;
+        return SplitCellAsync(splitColumns, splitRows);
+    }
+
+    async Task OnSplitKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" &&
+            splitColumns * splitRows > 1)
+        {
+            await SplitFromDialogAsync();
+            return;
+        }
+
+        OnDialogKeyDown(args);
     }
 
     Task FontFromMenuAsync(string font)

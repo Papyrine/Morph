@@ -720,6 +720,88 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(string.Join(" / ", Read(reported!))).IsEqualTo(expected);
     }
 
+    // Opens the table's first cell for typing, and shows the Table tab.
+    async Task<IRenderedComponent<MorphEditor>> OpenGridAsync(Action<byte[]> reported)
+    {
+        var cut = await OpenEditing(Grid, _ => _.Add(component => component.OnDocumentChanged, reported));
+        var (block, offset) = Place(Grid, 0, "a");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+        Caret(0, 0);
+        await ChooseTabAsync(cut, "Table");
+        return cut;
+    }
+
+    // Cells selected across the pages, from one to another, are merged into the first.
+    [Test]
+    public async Task TheTableTab_MergesTheCellsSelected()
+    {
+        byte[]? reported = null;
+        var cut = await OpenGridAsync(_ => reported = _);
+        var (_, a) = Place(Grid, 0, "a");
+        var (_, d) = Place(Grid, 3, "d");
+        controller.Setup<int[]>("editTarget").SetResult([]);
+        await cut.InvokeAsync(() => cut.Instance.OnReviewSelection([0, a, 0, d + 1]));
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Merge cells").ClickAsync(new());
+
+        await Assert.That(string.Join(" / ", Read(reported!))).IsEqualTo("[a] / [b] / [c] / [d] /  / [After]");
+        var body = Body(reported!);
+        await Assert.That(body).Contains("<w:gridSpan w:val=\"2\" /><w:vMerge w:val=\"restart\" />");
+        await Assert.That(body).Contains("<w:vMerge /></w:tcPr><w:p /></w:tc></w:tr>");
+    }
+
+    [Test]
+    public async Task TheTableTab_SplitsTheCaretsCell()
+    {
+        byte[]? reported = null;
+        var cut = await OpenGridAsync(_ => reported = _);
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Split cells").ClickAsync(new());
+        await cut.FindAll(".editor-dialog input")[0].InputAsync(new() {Value = "3"});
+        await cut.FindAll(".editor-dialog .editor-button").First(_ => _.TextContent == "Split").ClickAsync(new());
+
+        var body = Body(reported!);
+        await Assert.That(body).Contains("<w:tblGrid><w:gridCol w:w=\"666\" /><w:gridCol w:w=\"667\" /><w:gridCol w:w=\"667\" /><w:gridCol w:w=\"2000\" /></w:tblGrid>");
+        await Assert.That(body).Contains("<w:gridSpan w:val=\"3\" /></w:tcPr><w:p><w:r><w:t>c</w:t>");
+    }
+
+    [Test]
+    public async Task TheTableTab_DrawsBorders_AndShadesTheCell()
+    {
+        byte[]? reported = null;
+        var cut = await OpenGridAsync(_ => reported = _);
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Borders").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "1½ pt").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "Outside borders").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:top w:val=\"single\" w:color=\"auto\" w:sz=\"12\" w:space=\"0\" />");
+
+        Caret(0, 0);
+        await cut.Find("[aria-label='More shading colours']").ClickAsync(new());
+        await cut.Find(".editor-swatch[aria-label='Yellow']").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"FFFF00\" />");
+        await Assert.That(cut.Find("[aria-label='Shading']").GetAttribute("style")).Contains("#FFFF00");
+    }
+
+    [Test]
+    public async Task TheTableTab_SizesTheColumns()
+    {
+        byte[]? reported = null;
+        var cut = await OpenGridAsync(_ => reported = _);
+
+        await cut.Find(".editor-width-input").ChangeAsync(new() {Value = "2.54"});
+        await Assert.That(Body(reported!)).Contains("<w:tblGrid><w:gridCol w:w=\"1440\" /><w:gridCol w:w=\"2000\" /></w:tblGrid>");
+
+        Caret(0, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Distribute columns").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:tblGrid><w:gridCol w:w=\"1720\" /><w:gridCol w:w=\"1720\" /></w:tblGrid>");
+
+        Caret(0, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "AutoFit").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "AutoFit window").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:tblW w:w=\"5000\" w:type=\"pct\" />");
+    }
+
     [Test]
     public async Task TheTableTab_GoesWhenTheCaretLeavesTheTable()
     {
@@ -1055,8 +1137,32 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("size")]
     [Arguments("color")]
     [Arguments("highlight")]
+    [Arguments("borders")]
+    [Arguments("shading")]
+    [Arguments("fit")]
     public async Task AMenu_Snapshot(string name)
     {
+        // The Table tab's menus, with the caret in a table.
+        if (name is "borders" or "shading" or "fit")
+        {
+            var grid = await OpenGridAsync(_ => { });
+            switch (name)
+            {
+                case "borders":
+                    await grid.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Borders").ClickAsync(new());
+                    break;
+                case "shading":
+                    await grid.Find("[aria-label='More shading colours']").ClickAsync(new());
+                    break;
+                default:
+                    await grid.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "AutoFit").ClickAsync(new());
+                    break;
+            }
+
+            await Verify(grid.Find(".editor-menu").Pretty(), "html");
+            return;
+        }
+
         var cut = await OpenEditing(Paragraphs);
         var (block, offset) = Place(Paragraphs, 1, "Second");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
@@ -1098,8 +1204,17 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("link")]
     [Arguments("count")]
     [Arguments("discard")]
+    [Arguments("split")]
     public async Task ADialog_Snapshot(string name)
     {
+        if (name == "split")
+        {
+            var grid = await OpenGridAsync(_ => { });
+            await grid.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Split cells").ClickAsync(new());
+            await Verify(grid.Find(".editor-dialog").Pretty(), "html");
+            return;
+        }
+
         var cut = await OpenEditing(Paragraphs);
         switch (name)
         {

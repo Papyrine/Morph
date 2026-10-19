@@ -2163,6 +2163,24 @@
     font: inherit;
 }
 
+/* A column's width, in centimetres, on the Table tab. */
+.editor-size-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0 0.25rem;
+}
+
+.editor-size-field svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.editor-width-input {
+    width: 4.5rem;
+    padding: 0.25rem 0.4rem;
+}
+
 .editor-dialog-buttons {
     display: flex;
     flex-wrap: wrap;

@@ -577,6 +577,116 @@ public partial class MorphViewer
         await EditAtAsync(target, (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
     }
 
+    // A table's look and its cells: borders, shading, merging and splitting, widths. They act on the
+    // table the caret is in, and shading and merging on the cells from where a selection starts to
+    // where it ends.
+
+    // Word's border widths, in eighths of a point.
+    internal static readonly (int Size, string Name)[] BorderSizes = [(4, "½ pt"), (8, "1 pt"), (12, "1½ pt"), (18, "2¼ pt"), (24, "3 pt")];
+
+    internal int BorderSize { get; set; } = 4;
+
+    internal string LastShading { get; set; } = "D9D9D9";
+
+    const string tableNote = "Click in a table first.";
+
+    internal async Task SetTableBordersAsync(BorderPreset preset)
+    {
+        if (await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetTableBorders(_, target.Paragraph, preset, BorderSize, options));
+    }
+
+    internal async Task ShadeCellsAsync(string? fill)
+    {
+        if (fill != null)
+        {
+            LastShading = fill;
+        }
+
+        if (await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        var (first, last) = Cells(target);
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.ShadeCells(_, first, last, fill, options));
+    }
+
+    internal async Task MergeCellsAsync()
+    {
+        if (await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        var (first, last) = Cells(target);
+        await EditAtAsync(target, (_, options) => DocumentEditor.MergeCells(_, first, last, options));
+    }
+
+    internal async Task SplitCellAsync(int columns, int rows)
+    {
+        if (await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync(target, (_, options) => DocumentEditor.SplitCell(_, target.Paragraph, columns, rows, options));
+    }
+
+    // A width in centimetres, as the ribbon takes it: 567 twips to the centimetre.
+    internal async Task SetColumnWidthAsync(double centimetres)
+    {
+        if (centimetres <= 0 ||
+            await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        var twips = (int) Math.Round(centimetres * 1440 / 2.54);
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetColumnWidth(_, target.Paragraph, twips, options));
+    }
+
+    internal async Task DistributeColumnsAsync()
+    {
+        if (await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.DistributeColumns(_, target.Paragraph, options));
+    }
+
+    internal async Task FitTableAsync(TableFit fit)
+    {
+        if (await RequireAsync(tableNote) is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.FitTable(_, target.Paragraph, fit, options));
+    }
+
+    // Where a selection of cells starts and ends, in paragraphs; with none, the caret's cell.
+    static (int First, int Last) Cells(EditTarget target)
+    {
+        if (target.HasSelection &&
+            target.StartParagraph >= 0)
+        {
+            return (Math.Min(target.StartParagraph, target.Paragraph), Math.Max(target.StartParagraph, target.Paragraph));
+        }
+
+        if (target.First != target.Last)
+        {
+            return (target.First, target.Last);
+        }
+
+        return (target.Paragraph, target.Paragraph);
+    }
+
     // Where a picture goes is taken when the reader asks for one, before the file picker opens: by the
     // time a file is picked, focus has been elsewhere.
     Task<EditTarget?>? pictureTarget;
