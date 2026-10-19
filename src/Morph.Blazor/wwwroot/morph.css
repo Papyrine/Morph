@@ -2219,6 +2219,25 @@
     font: inherit;
 }
 
+/* A menu item with what it means under its name: a margin preset's sizes, a paper's. */
+.editor-menu-pair {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+}
+
+.editor-menu-detail {
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.75rem;
+}
+
+.editor-margin-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 0.75rem;
+}
+
 /* A column's width, in centimetres, on the Table tab. */
 .editor-size-field {
     display: inline-flex;

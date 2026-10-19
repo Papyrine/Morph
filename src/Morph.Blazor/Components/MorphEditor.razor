@@ -54,6 +54,9 @@
                     case insert:
                         @InsertTab
                         break;
+                    case layout:
+                        @LayoutTab
+                        break;
                     case table:
                         @TableTab
                         break;
@@ -181,6 +184,29 @@
                 {
                     <button type="button" class="editor-button editor-button-primary" disabled="@(linkAddress.Trim().Length == 0)" @onclick="InsertLinkAsync">Insert</button>
                 }
+                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+            </div>
+        </div>
+    }
+
+    @if (dialog == marginsDialog)
+    {
+        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-margins-title" @onkeydown="OnMarginsKeyDownAsync">
+            <h2 id="editor-margins-title" class="editor-dialog-title">Margins</h2>
+            <div class="editor-margin-fields">
+                @foreach (var side in marginSides)
+                {
+                    var name = side;
+                    <label class="editor-field">
+                        @name (cm)
+                        <input type="number" class="editor-input" min="0" max="50" step="0.1" value="@customMargins[name]"
+                               @oninput="args => customMargins[name] = args.Value?.ToString() ?? string.Empty" />
+                    </label>
+                }
+            </div>
+            <div class="editor-dialog-buttons">
+                <button type="button" class="editor-button editor-button-primary" disabled="@(CustomMargins() is null)" @onclick="MarginsFromDialogAsync">Apply</button>
                 <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
             </div>
         </div>
@@ -457,6 +483,93 @@
     RenderFragment FontChoice(string font) =>
         @<button type="button" role="option" class="editor-menu-item editor-font" aria-selected="@Pressed(string.Equals(font, CurrentFont, StringComparison.OrdinalIgnoreCase))"
                  style="font-family: '@font', sans-serif" @onmousedown:preventDefault @onclick="() => FontFromMenuAsync(font)">@font</button>;
+
+    RenderFragment LayoutTab =>
+        @<text>
+            <div class="editor-group" role="group" aria-label="Page setup">
+                <span class="editor-anchor">
+                    <button type="button" class="editor-tool" aria-haspopup="menu" aria-expanded="@Expanded(marginsMenu)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(marginsMenu)">
+                        <Iconify Value="Lucide.Scan" aria-hidden="true" focusable="false" />
+                        Margins
+                    </button>
+                    @if (menu == marginsMenu)
+                    {
+                        var current = CurrentPage;
+                        <div class="editor-menu" role="menu" aria-label="Margins" @onkeydown="OnMenuKeyDown">
+                            @foreach (var (name, top, right, bottom, left) in MarginPresets)
+                            {
+                                var margins = (top, right, bottom, left);
+                                <button type="button" role="menuitemradio" class="editor-menu-item editor-menu-pair"
+                                        aria-checked="@Pressed(current is { } now && (now.Top, now.Right, now.Bottom, now.Left) == margins)"
+                                        @onmousedown:preventDefault @onclick="() => MarginsFromMenuAsync(margins)">
+                                    <span>@name</span>
+                                    <span class="editor-menu-detail">@Centimetres(top) top, @Centimetres(left) left, @Centimetres(right) right</span>
+                                </button>
+                            }
+                            <div class="editor-menu-separator" role="separator"></div>
+                            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="OpenMargins">Custom margins…</button>
+                        </div>
+                    }
+                </span>
+                <span class="editor-anchor">
+                    <button type="button" class="editor-tool" aria-haspopup="menu" aria-expanded="@Expanded(orientationMenu)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(orientationMenu)">
+                        <Iconify Value="Lucide.RectangleVertical" aria-hidden="true" focusable="false" />
+                        Orientation
+                    </button>
+                    @if (menu == orientationMenu)
+                    {
+                        <div class="editor-menu" role="menu" aria-label="Orientation" @onkeydown="OnMenuKeyDown">
+                            <button type="button" role="menuitemradio" class="editor-menu-item" aria-checked="@Pressed(CurrentPage is {Landscape: false})"
+                                    @onmousedown:preventDefault @onclick="() => OrientationFromMenuAsync(false)">Portrait</button>
+                            <button type="button" role="menuitemradio" class="editor-menu-item" aria-checked="@Pressed(CurrentPage is {Landscape: true})"
+                                    @onmousedown:preventDefault @onclick="() => OrientationFromMenuAsync(true)">Landscape</button>
+                        </div>
+                    }
+                </span>
+                <span class="editor-anchor">
+                    <button type="button" class="editor-tool" aria-haspopup="menu" aria-expanded="@Expanded(sizeOfPageMenu)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(sizeOfPageMenu)">
+                        <Iconify Value="Lucide.File" aria-hidden="true" focusable="false" />
+                        Size
+                    </button>
+                    @if (menu == sizeOfPageMenu)
+                    {
+                        var current = CurrentPage;
+                        <div class="editor-menu" role="menu" aria-label="Paper size" @onkeydown="OnMenuKeyDown">
+                            @foreach (var (name, width, height) in PaperSizes)
+                            {
+                                var paper = (width, height);
+                                <button type="button" role="menuitemradio" class="editor-menu-item editor-menu-pair"
+                                        aria-checked="@Pressed(current is { } now && Math.Min(now.Width, now.Height) == width && Math.Max(now.Width, now.Height) == height)"
+                                        @onmousedown:preventDefault @onclick="() => PaperFromMenuAsync(paper)">
+                                    <span>@name</span>
+                                    <span class="editor-menu-detail">@Centimetres(width) × @Centimetres(height)</span>
+                                </button>
+                            }
+                        </div>
+                    }
+                </span>
+                <span class="editor-anchor">
+                    <button type="button" class="editor-tool" aria-haspopup="menu" aria-expanded="@Expanded(breaksMenu)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(breaksMenu)">
+                        <Iconify Value="Lucide.SeparatorHorizontal" aria-hidden="true" focusable="false" />
+                        Breaks
+                    </button>
+                    @if (menu == breaksMenu)
+                    {
+                        <div class="editor-menu" role="menu" aria-label="Breaks" @onkeydown="OnMenuKeyDown">
+                            <div class="editor-menu-heading">Page breaks</div>
+                            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="PageBreakFromMenuAsync">Page</button>
+                            <div class="editor-menu-heading">Section breaks</div>
+                            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => SectionBreakFromMenuAsync(false)">Next page</button>
+                            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => SectionBreakFromMenuAsync(true)">Continuous</button>
+                        </div>
+                    }
+                </span>
+            </div>
+        </text>;
 
     RenderFragment InsertTab =>
         @<text>

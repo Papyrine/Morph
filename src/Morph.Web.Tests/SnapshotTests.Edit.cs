@@ -801,6 +801,7 @@ public partial class SnapshotTests
     [Arguments("file")]
     [Arguments("table")]
     [Arguments("color")]
+    [Arguments("margins")]
     public async Task Editor_Menu_Snapshot(string menu)
     {
         var page = await NewPinnedPageAsync();
@@ -819,6 +820,10 @@ public partial class SnapshotTests
                 break;
             case "color":
                 await page.ClickAsync("[aria-label='More font colours']");
+                break;
+            case "margins":
+                await ChooseTabAsync(page, "Layout");
+                await page.ClickAsync(".editor-tool:has-text('Margins')");
                 break;
             default:
                 await ChooseTabAsync(page, "Insert");
