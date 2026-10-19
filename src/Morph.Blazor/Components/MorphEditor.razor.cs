@@ -23,6 +23,10 @@ public partial class MorphEditor
     const string colorMenu = "color";
     const string highlightMenu = "highlight";
     const string fitMenu = "fit";
+    const string marginsMenu = "margins";
+    const string orientationMenu = "orientation";
+    const string sizeOfPageMenu = "paper";
+    const string breaksMenu = "breaks";
     const string bordersMenu = "borders";
     const string shadingMenu = "shading";
 
@@ -31,6 +35,7 @@ public partial class MorphEditor
 
     const string home = "Home";
     const string insert = "Insert";
+    const string layout = "Layout";
     const string table = "Table";
     const string reviewTab = "Review";
     const string view = "View";
@@ -39,6 +44,7 @@ public partial class MorphEditor
     const string countDialog = "count";
     const string discardDialog = "discard";
     const string splitDialog = "split";
+    const string marginsDialog = "margins";
 
     const int gridRows = 8;
     const int gridColumns = 10;
@@ -73,6 +79,11 @@ public partial class MorphEditor
         {
             yield return home;
             yield return insert;
+            if (IsWord)
+            {
+                yield return layout;
+            }
+
             if (InTable && IsWord)
             {
                 yield return table;
@@ -231,6 +242,100 @@ public partial class MorphEditor
     {
         menu = null;
         return InsertTableAsync(rows, columns);
+    }
+
+    // Layout
+
+    static readonly string[] marginSides = ["Top", "Bottom", "Left", "Right"];
+
+    readonly Dictionary<string, string> customMargins = new();
+
+    // Twips as centimetres, to a tenth.
+    static string Centimetres(int twips) =>
+        (twips * 2.54 / 1440).ToString("0.##", CultureInfo.InvariantCulture) + " cm";
+
+    Task MarginsFromMenuAsync((int Top, int Right, int Bottom, int Left) margins)
+    {
+        menu = null;
+        return SetMarginsAsync(margins.Top, margins.Right, margins.Bottom, margins.Left);
+    }
+
+    Task OrientationFromMenuAsync(bool landscape)
+    {
+        menu = null;
+        return SetOrientationAsync(landscape);
+    }
+
+    Task PaperFromMenuAsync((int Width, int Height) paper)
+    {
+        menu = null;
+        return SetPaperSizeAsync(paper.Width, paper.Height);
+    }
+
+    Task PageBreakFromMenuAsync()
+    {
+        menu = null;
+        return InsertPageBreakAsync();
+    }
+
+    Task SectionBreakFromMenuAsync(bool continuous)
+    {
+        menu = null;
+        return InsertSectionBreakAsync(continuous);
+    }
+
+    void OpenMargins()
+    {
+        menu = null;
+        var current = CurrentPage ?? new PageSetup(11906, 16838, 1440, 1440, 1440, 1440, false);
+        customMargins["Top"] = Number(current.Top);
+        customMargins["Bottom"] = Number(current.Bottom);
+        customMargins["Left"] = Number(current.Left);
+        customMargins["Right"] = Number(current.Right);
+        dialog = marginsDialog;
+
+        static string Number(int twips) =>
+            (twips * 2.54 / 1440).ToString("0.##", CultureInfo.InvariantCulture);
+    }
+
+    // The margins typed, in twips; null while one of them is not a size.
+    (int Top, int Right, int Bottom, int Left)? CustomMargins()
+    {
+        var twips = new Dictionary<string, int>();
+        foreach (var side in marginSides)
+        {
+            if (!double.TryParse(customMargins.GetValueOrDefault(side), NumberStyles.Float, CultureInfo.InvariantCulture, out var centimetres) ||
+                centimetres is < 0 or > 50)
+            {
+                return null;
+            }
+
+            twips[side] = (int) Math.Round(centimetres * 1440 / 2.54);
+        }
+
+        return (twips["Top"], twips["Right"], twips["Bottom"], twips["Left"]);
+    }
+
+    Task MarginsFromDialogAsync()
+    {
+        if (CustomMargins() is not { } margins)
+        {
+            return Task.CompletedTask;
+        }
+
+        dialog = null;
+        return SetMarginsAsync(margins.Top, margins.Right, margins.Bottom, margins.Left);
+    }
+
+    async Task OnMarginsKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            await MarginsFromDialogAsync();
+            return;
+        }
+
+        OnDialogKeyDown(args);
     }
 
     // Tables

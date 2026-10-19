@@ -577,6 +577,104 @@ public partial class MorphViewer
         await EditAtAsync(target, (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
     }
 
+    // A section's page: margins, which way up, the paper, and breaks between sections. They act on the
+    // section the caret is in.
+
+    // Word's margin presets, in twips: top, right, bottom, left.
+    internal static readonly (string Name, int Top, int Right, int Bottom, int Left)[] MarginPresets =
+    [
+        ("Normal", 1440, 1440, 1440, 1440),
+        ("Narrow", 720, 720, 720, 720),
+        ("Moderate", 1440, 1080, 1440, 1080),
+        ("Wide", 1440, 2880, 1440, 2880)
+    ];
+
+    // Word's paper sizes, upright, in twips.
+    internal static readonly (string Name, int Width, int Height)[] PaperSizes =
+    [
+        ("Letter", 12240, 15840),
+        ("Legal", 12240, 20160),
+        ("Executive", 10440, 15120),
+        ("A3", 16838, 23811),
+        ("A4", 11906, 16838),
+        ("A5", 8391, 11906)
+    ];
+
+    byte[]? pageBytes;
+    int pageParagraph = -1;
+    PageSetup? page;
+
+    // The page of the section the caret is in, read once for each file and paragraph.
+    internal PageSetup? CurrentPage
+    {
+        get
+        {
+            var paragraph = session?.Paragraph.Ordinal ?? caretParagraph ?? 0;
+            if (sourceBytes is not { } bytes ||
+                !IsWord)
+            {
+                return null;
+            }
+
+            if (!ReferenceEquals(bytes, pageBytes) ||
+                paragraph != pageParagraph)
+            {
+                pageBytes = bytes;
+                pageParagraph = paragraph;
+                try
+                {
+                    page = DocumentEditor.PageSetupOf(bytes, paragraph);
+                }
+                catch (Exception)
+                {
+                    page = null;
+                }
+            }
+
+            return page;
+        }
+    }
+
+    internal async Task SetMarginsAsync(int top, int right, int bottom, int left)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetMargins(_, target.Paragraph, top, right, bottom, left, options));
+    }
+
+    internal async Task SetOrientationAsync(bool landscape)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetOrientation(_, target.Paragraph, landscape, options));
+    }
+
+    internal async Task SetPaperSizeAsync(int width, int height)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetPaperSize(_, target.Paragraph, width, height, options));
+    }
+
+    internal async Task InsertSectionBreakAsync(bool continuous)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync(target, (_, options) => DocumentEditor.InsertSectionBreak(_, target.Paragraph, target.Offset, continuous, options));
+    }
+
     // A picture sized: the one selected, or the one just before the caret.
     const string pictureNote = "Click a picture first.";
 

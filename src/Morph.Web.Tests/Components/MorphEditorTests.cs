@@ -66,7 +66,7 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(string.Join(' ', cut.FindAll(".editor-tools [data-edit-command]").Select(_ => _.GetAttribute("data-edit-command"))))
             .IsEqualTo("undo redo bold italic underline strike align-left align-center align-right align-justify");
         await Assert.That(cut.FindAll(".editor-tools [data-edit-command][disabled]")).IsEmpty();
-        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Review View");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout Review View");
     }
 
     // Text is edited in MorphEditor: the viewer only shows it.
@@ -538,7 +538,7 @@ public class MorphEditorTests : BunitTestContext
         await cut.Find(".editor-grid-cell[aria-label='2 by 3']").ClickAsync(new());
 
         await Assert.That(Read(reported!).Count).IsEqualTo(3 + 6 + 1);
-        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Table Review View");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout Table Review View");
 
         // The caret is in the first cell: a row goes in below it.
         Caret(3, 0);
@@ -821,6 +821,67 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Body(reported!)).Contains("<w:tblW w:w=\"5000\" w:type=\"pct\" />");
     }
 
+    // The Layout tab: the page of the section the caret is in.
+    [Test]
+    public async Task TheLayoutTab_SetsThePage()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(1, 0);
+        await ChooseTabAsync(cut, "Layout");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Margins").ClickAsync(new());
+        await Assert.That(cut.Find(".editor-menu-item[aria-checked=true]").TextContent).Contains("Normal");
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Narrow")).ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:pgMar w:top=\"720\" w:right=\"720\" w:bottom=\"720\" w:left=\"720\"");
+
+        Caret(1, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Orientation").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "Landscape").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:pgSz w:w=\"16838\" w:h=\"11906\" w:orient=\"landscape\" />");
+
+        Caret(1, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Size").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Letter")).ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:pgSz w:w=\"15840\" w:h=\"12240\" w:orient=\"landscape\" />");
+    }
+
+    [Test]
+    public async Task TheLayoutTab_BreaksTheSection()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(2, 5);
+        await ChooseTabAsync(cut, "Layout");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Breaks").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Trim() == "Continuous").ClickAsync(new());
+
+        await Assert.That(string.Join(" / ", Read(reported!))).IsEqualTo("[First paragraph here.] / [Second ][b:bold][ one.] (center) / [Third] / [ and last.]");
+        var body = Body(reported!);
+        await Assert.That(body).Contains("<w:t xml:space=\"preserve\">Third</w:t></w:r></w:p>".Replace("</w:r></w:p>", "</w:r></w:p>"));
+        await Assert.That(body).Contains("<w:type w:val=\"continuous\" />");
+        await Assert.That(Text(Session())).IsEqualTo(" and last.");
+    }
+
+    [Test]
+    public async Task CustomMargins_AreTypedInCentimetres()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(0, 0);
+        await ChooseTabAsync(cut, "Layout");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Margins").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Custom")).ClickAsync(new());
+        var inputs = cut.FindAll(".editor-dialog input");
+        await Assert.That(inputs[0].GetAttribute("value")).IsEqualTo("2.54");
+        await inputs[0].InputAsync(new() {Value = "5.08"});
+        await cut.FindAll(".editor-dialog .editor-button").First(_ => _.TextContent == "Apply").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).Contains("<w:pgMar w:top=\"2880\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\"");
+    }
+
     [Test]
     public async Task TheTableTab_GoesWhenTheCaretLeavesTheTable()
     {
@@ -834,7 +895,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, after.Left + 2, after.Top + 2, outside, outside));
 
-        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Review View");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout Review View");
         await Assert.That(cut.Find(".editor-tab[aria-selected=true]").TextContent.Trim()).IsEqualTo("Home");
     }
 
@@ -1134,6 +1195,7 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     [Arguments("Home")]
     [Arguments("Insert")]
+    [Arguments("Layout")]
     [Arguments("Table")]
     [Arguments("Review")]
     [Arguments("View")]
@@ -1159,8 +1221,30 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("borders")]
     [Arguments("shading")]
     [Arguments("fit")]
+    [Arguments("margins")]
+    [Arguments("orientation")]
+    [Arguments("paper")]
+    [Arguments("breaks")]
     public async Task AMenu_Snapshot(string name)
     {
+        // The Layout tab's menus.
+        if (name is "margins" or "orientation" or "paper" or "breaks")
+        {
+            var laid = await OpenEditing(Paragraphs);
+            Caret(0, 0);
+            await ChooseTabAsync(laid, "Layout");
+            var label = name switch
+            {
+                "margins" => "Margins",
+                "orientation" => "Orientation",
+                "paper" => "Size",
+                _ => "Breaks"
+            };
+            await laid.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == label).ClickAsync(new());
+            await Verify(laid.Find(".editor-menu").Pretty(), "html");
+            return;
+        }
+
         // The Table tab's menus, with the caret in a table.
         if (name is "borders" or "shading" or "fit")
         {
@@ -1224,8 +1308,20 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("count")]
     [Arguments("discard")]
     [Arguments("split")]
+    [Arguments("margins")]
     public async Task ADialog_Snapshot(string name)
     {
+        if (name == "margins")
+        {
+            var laid = await OpenEditing(Paragraphs);
+            Caret(0, 0);
+            await ChooseTabAsync(laid, "Layout");
+            await laid.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Margins").ClickAsync(new());
+            await laid.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Custom")).ClickAsync(new());
+            await Verify(laid.Find(".editor-dialog").Pretty(), "html");
+            return;
+        }
+
         if (name == "split")
         {
             var grid = await OpenGridAsync(_ => { });
