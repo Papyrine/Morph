@@ -1,0 +1,16 @@
+﻿
+<div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-split-title" blazor:onkeydown="80">
+	<h2 id="editor-split-title" class="editor-dialog-title">Split cells</h2>
+	<label class="editor-field">
+		Columns
+		<input type="number" class="editor-input" min="1" max="63" value="2" blazor:oninput="81">
+	</label>
+	<label class="editor-field">
+		Rows
+		<input type="number" class="editor-input" min="1" max="63" value="1" blazor:oninput="82">
+	</label>
+	<div class="editor-dialog-buttons">
+		<button type="button" class="editor-button editor-button-primary" blazor:onclick="83">Split</button>
+		<button type="button" class="editor-button" blazor:onclick="84">Cancel</button>
+	</div>
+</div>

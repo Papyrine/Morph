@@ -737,6 +737,31 @@ public partial class SnapshotTests
         await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
     }
 
+    // The Table tab, its Borders menu open, over a table of Word's own Table Grid style.
+    [Test]
+    public async Task Editor_TableTab_Snapshot()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var docx = DocumentEditor.InsertTable(Paragraphs, 2, 15, 2, 3, options).Document;
+        string[] cells = ["Cell one", "Cell two", "Cell three", "Cell four", "Cell five", "Cell six"];
+        for (var index = 0; index < cells.Length; index++)
+        {
+            docx = DocumentEditor.Rewrite(docx, 3 + index, [new([new(-1, cells[index])])], options).Document;
+        }
+
+        var page = await NewPinnedPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, docx, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+        await ClickInAsync(page, "Cell one");
+        await ChooseTabAsync(page, "Table");
+        await page.ClickAsync(".editor-tool:has-text('Borders')");
+        await page.WaitForSelectorAsync(".editor-menu");
+        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
+    }
+
     // The menus and the table picker drawn over the page.
     [Test]
     [Arguments("styles")]
