@@ -1,0 +1,70 @@
+@* A file a WOPI host opened: the host's breadcrumb and Close over the editor (or the viewer, for a file
+   that is only to be read), which saves the file back to the host. *@
+
+<div class="wopi @Class" @attributes="AdditionalAttributes">
+    @if (info is { } file)
+    {
+        <div class="wopi-bar">
+            <span class="wopi-crumbs">
+                @if (file.BrandName is { } brand)
+                {
+                    @if (file.BrandUrl is { } brandUrl)
+                    {
+                        <a class="wopi-crumb" href="@brandUrl" target="_top">@brand</a>
+                    }
+                    else
+                    {
+                        <span class="wopi-crumb">@brand</span>
+                    }
+                    <span class="wopi-separator" aria-hidden="true">›</span>
+                }
+                @if (file.FolderName is { } folder)
+                {
+                    @if (file.FolderUrl is { } folderUrl)
+                    {
+                        <a class="wopi-crumb" href="@folderUrl" target="_top">@folder</a>
+                    }
+                    else
+                    {
+                        <span class="wopi-crumb">@folder</span>
+                    }
+                    <span class="wopi-separator" aria-hidden="true">›</span>
+                }
+                <span class="wopi-crumb wopi-file">@file.BaseFileName</span>
+            </span>
+            <span class="wopi-status" role="status" aria-live="polite">@status</span>
+            @if (file.CloseUrl is not null)
+            {
+                <button type="button" class="wopi-close" @onclick="CloseAsync">
+                    <Iconify Value="Lucide.X" aria-hidden="true" focusable="false" />
+                    Close
+                </button>
+            }
+        </div>
+    }
+
+    @if (problem is not null)
+    {
+        <div class="wopi-message" role="alert">@problem</div>
+    }
+    else if (bytes is null)
+    {
+        <div class="wopi-message">
+            <div class="spinner"></div>
+            <p>Opening the file…</p>
+        </div>
+    }
+    else if (editing)
+    {
+        <MorphEditor Source="bytes" FileName="@info!.BaseFileName" Author="@info.UserFriendlyName"
+                     ReadOnly="readOnly" ShowOpenFile="false" ShowNew="false" ShowSamples="false"
+                     ShowDownload="!info.DisableExport" ShowPrint="!info.DisablePrint" ShowIssueLink="ShowIssueLink"
+                     OnSave="SaveCallback" OnDocumentChanged="OnChanged" />
+    }
+    else
+    {
+        <MorphViewer Source="bytes" FileName="@info!.BaseFileName" Author="@info.UserFriendlyName"
+                     ReadOnly="true" ShowOpenFile="false" ShowSamples="false"
+                     ShowDownload="!info.DisableExport" ShowPrint="!info.DisablePrint" ShowIssueLink="ShowIssueLink" />
+    }
+</div>

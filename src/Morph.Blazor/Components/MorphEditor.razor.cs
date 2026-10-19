@@ -57,6 +57,13 @@ public partial class MorphEditor
     bool focusLink;
     (int Rows, int Columns) hover = (1, 1);
 
+    /// <summary>
+    /// Whether the File menu offers a new blank document. Default true; a host that opened one file for
+    /// editing, as <see cref="MorphWopi"/> does, turns it off.
+    /// </summary>
+    [Parameter]
+    public bool ShowNew { get; set; } = true;
+
     internal override bool Editing => true;
 
     string EditorClass
@@ -465,6 +472,12 @@ public partial class MorphEditor
         return DownloadAsync();
     }
 
+    Task SaveInPlaceFromMenuAsync()
+    {
+        menu = null;
+        return SaveAsync();
+    }
+
     Task ExportFromMenuAsync(OutputFormat format)
     {
         menu = null;
@@ -500,7 +513,12 @@ public partial class MorphEditor
     async Task SaveThenNewAsync()
     {
         dialog = null;
-        await DownloadAsync();
+        await SaveAsync();
+        if (Dirty)
+        {
+            return;
+        }
+
         await NewDocumentAsync();
     }
 

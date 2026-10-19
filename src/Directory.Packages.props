@@ -15,6 +15,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
     <PackageVersion Include="bunit" Version="2.11.3" />
     <PackageVersion Include="Verify.Bunit" Version="14.1.0" />
@@ -57,5 +58,6 @@
     <PackageVersion Include="TUnit" Version="1.75.0" />
     <PackageVersion Include="Verify.TUnit" Version="33.3.3" />
     <PackageVersion Include="DiffEngine" Version="20.8.1" />
+    <PackageVersion Include="WopiServer" Version="0.1.0" />
   </ItemGroup>
 </Project>

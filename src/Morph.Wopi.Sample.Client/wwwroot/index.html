@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Morph</title>
+    <base href="/" />
+    <link rel="stylesheet" href="_content/Morph.Blazor/morph.css" />
+    <style>
+        html, body, #app {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+        }
+
+        .booting {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Morph.Wopi answers the WOPI action URL with this page, the file to open written in before </head>. -->
+    <div id="app">
+        <div class="booting">Loading Morph…</div>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>

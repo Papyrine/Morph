@@ -94,6 +94,36 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
         return await module.InvokeAsync<bool>("watchWide", reference, minWidth);
     }
 
+    /// <summary>
+    /// The launch Morph.Wopi wrote into the page, as its JSON, taken out of the page; null when there is none.
+    /// </summary>
+    internal async Task<string?> WopiLaunchAsync()
+    {
+        var module = await Module;
+        return await module.InvokeAsync<string?>("wopiLaunch");
+    }
+
+    /// <summary>Posts <paramref name="fields"/> to <paramref name="url"/> as a beacon when the page goes away.</summary>
+    internal async Task UnlockOnLeaveAsync(string url, Dictionary<string, string> fields)
+    {
+        var module = await Module;
+        await module.InvokeVoidAsync("unlockOnLeave", url, fields);
+    }
+
+    /// <summary>Drops the beacon of <see cref="UnlockOnLeaveAsync"/>.</summary>
+    internal async Task ForgetLeaveAsync()
+    {
+        var module = await Module;
+        await module.InvokeVoidAsync("forgetLeave");
+    }
+
+    /// <summary>Navigates the top window, out of the frame the editor runs in.</summary>
+    internal async Task NavigateTopAsync(string url)
+    {
+        var module = await Module;
+        await module.InvokeVoidAsync("navigateTop", url);
+    }
+
     /// <summary>The browser's user-agent string, for a bug report's environment block.</summary>
     public async Task<string?> UserAgentAsync()
     {

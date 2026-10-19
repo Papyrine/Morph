@@ -209,6 +209,27 @@ draft. There is one draft, the last document edited and not saved, and like the 
 leaves the device. Where the browser refuses storage — a private window, blocked site data — there is
 no draft, and the prompt before leaving is all there is.
 
+## WOPI
+
+`MorphWopi` is the editor as a [WOPI](https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/)
+client: the component a WOPI host's file opens in, as it would open in Office for the web or Collabora
+Online. It is the root component of a WebAssembly app that an ASP.NET Core application serves with
+[`Morph.Wopi`](/src/Morph.Wopi/README.md), which publishes the discovery the host reads, answers the action
+URL the host posts the access token to, and carries the editor's requests to the host, signed with a proof
+key.
+
+```csharp
+// the WebAssembly app's Program.cs
+builder.RootComponents.Add<MorphWopi>("#app");
+```
+
+A Word document opened to edit is locked while it is open, the lock refreshed every ten minutes, and
+Save puts it back over itself on the host; a lock that lapsed is taken again before a save. A file the
+user may not save, or that someone else has locked, opens read only, with the reason over the editor, and
+so do a workbook, a deck and any file opened to view. The host's breadcrumb (`BreadcrumbBrandName`,
+`BreadcrumbFolderName`) and its `CloseUrl` go in a bar over the editor; `DisablePrint` and `DisableExport`
+take Print and Download away. Leaving the page unlocks the file.
+
 ## Review
 
 A Word document's **comments** and **tracked changes** open in a pane beside the pages, one card each, in
@@ -287,6 +308,8 @@ Limits worth knowing:
 | `ReadOnly` | `false` | Shows the document, its comments and its tracked changes without offering to change any of them — in the editor, its text too. |
 | `Author` | — | The name new comments and tracked changes are signed with. Left unset, the reader is asked for one, and is "Guest" until they give it. |
 | `OnDocumentChanged` | — | Called with the file's bytes after every edit, undo and redo — in the viewer's review pane, or anywhere in the editor. Handing them back as `Source` does not reopen the file. |
+| `OnSave` | — | Saves the file where it came from. Given one, Save and Ctrl+S hand it the file instead of downloading it; the file counts as saved once it returns, and what it throws is shown, the file still edited. Download then saves a copy. |
+| `ShowNew` | `true` | `MorphEditor` only: offers a new blank document in the File menu. |
 | `InitialZoom` | `ViewerZoom.Auto` | The zoom a file opens at: `Auto`, `PageFit`, `PageWidth` or `ActualSize`. |
 | `InitialPage` | `1` | The page (or slide) a file opens at. |
 | `PrintDpi` | `150` | Print resolution, lowered automatically for a very long document. |

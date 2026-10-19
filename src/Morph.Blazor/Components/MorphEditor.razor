@@ -33,7 +33,14 @@
                 {
                     @OpenButton
                 }
-                @if (ShowDownload)
+                @if (SavesInPlace)
+                {
+                    <button type="button" class="viewer-button" title="Save (Ctrl+S)" aria-label="Save" aria-keyshortcuts="Control+S"
+                            disabled="@(!HasDocument || saving)" @onmousedown:preventDefault @onclick="SaveAsync">
+                        <Iconify Value="Lucide.Save" aria-hidden="true" focusable="false" />
+                    </button>
+                }
+                else if (ShowDownload)
                 {
                     <button type="button" class="viewer-button" title="Save a copy (Ctrl+S)" aria-label="Save a copy" aria-keyshortcuts="Control+S"
                             disabled="@(!HasDocument)" @onmousedown:preventDefault @onclick="DownloadAsync">
@@ -120,10 +127,13 @@
     @if (menu == fileMenu)
     {
         <div class="editor-menu editor-file-menu" role="menu" aria-label="File" @onkeydown="OnMenuKeyDown">
-            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="NewAsync">
-                <Iconify Value="Lucide.FilePlus2" aria-hidden="true" focusable="false" />
-                New blank document
-            </button>
+            @if (ShowNew)
+            {
+                <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="NewAsync">
+                    <Iconify Value="Lucide.FilePlus2" aria-hidden="true" focusable="false" />
+                    New blank document
+                </button>
+            }
             @if (ShowOpenFile)
             {
                 <label role="menuitem" class="editor-menu-item">
@@ -134,6 +144,13 @@
             }
             @if (HasDocument)
             {
+                @if (SavesInPlace)
+                {
+                    <button type="button" role="menuitem" class="editor-menu-item" disabled="@saving" @onmousedown:preventDefault @onclick="SaveInPlaceFromMenuAsync">
+                        <Iconify Value="Lucide.Save" aria-hidden="true" focusable="false" />
+                        Save
+                    </button>
+                }
                 @if (ShowDownload)
                 {
                     <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="SaveFromMenuAsync">
@@ -265,7 +282,7 @@
             <h2 id="editor-discard-title" class="editor-dialog-title">Start a new document?</h2>
             <p class="editor-dialog-note">@fileName has edits that have not been saved. They are lost unless you save a copy first.</p>
             <div class="editor-dialog-buttons">
-                <button type="button" class="editor-button" @onclick="SaveThenNewAsync">Save a copy first</button>
+                <button type="button" class="editor-button" @onclick="SaveThenNewAsync">@(SavesInPlace ? "Save first" : "Save a copy first")</button>
                 <button type="button" class="editor-button editor-button-danger" @onclick="DiscardThenNewAsync">Discard edits</button>
                 <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
             </div>

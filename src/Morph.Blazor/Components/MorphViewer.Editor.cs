@@ -33,6 +33,9 @@ public partial class MorphViewer
     // The bytes as last saved or opened, which is what tells an edit not yet saved.
     byte[]? savedBytes;
 
+    // A save handed to OnSave is under way.
+    internal bool saving;
+
     // The paragraph the ribbon shows the state of: the one open for typing, or where the selection on
     // the pages starts.
     int? caretParagraph;

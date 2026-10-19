@@ -176,6 +176,52 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(reported).IsNull();
     }
 
+    // Where the host saves the file (OnSave, as MorphWopi does), Save hands it the file as edited, and the
+    // file is no longer edited; nothing is downloaded.
+    [Test]
+    public async Task Save_HandsTheFileToOnSave()
+    {
+        byte[]? reported = null;
+        byte[]? saved = null;
+        var cut = await OpenEditing(
+            Paragraphs,
+            _ => _
+                .Add(component => component.OnDocumentChanged, bytes => reported = bytes)
+                .Add(component => component.OnSave, bytes => saved = bytes));
+        await CommitAsync(cut);
+        await Assert.That(cut.FindAll(".editor-dirty")).IsNotEmpty();
+
+        await cut.Find("button[aria-label='Save']").ClickAsync(new());
+
+        await Assert.That(saved).IsSameReferenceAs(reported);
+        await Assert.That(cut.FindAll(".editor-dirty")).IsEmpty();
+        await Assert.That(cut.FindAll("button[aria-label='Save a copy']")).IsEmpty();
+        await Assert.That(JSInterop.Invocations.Any(_ => _.Identifier == "download")).IsFalse();
+    }
+
+    // A save that fails says why, and the file stays edited.
+    [Test]
+    public async Task Save_ThatFails_KeepsTheFileEdited()
+    {
+        var cut = await OpenEditing(
+            Paragraphs,
+            _ => _.Add(component => component.OnSave, _ => throw new InvalidOperationException("The file is locked by someone else.")));
+        await CommitAsync(cut);
+
+        await cut.Find("button[aria-label='Save']").ClickAsync(new());
+
+        await Assert.That(cut.Find(".error-message").TextContent).IsEqualTo("Could not save the file: The file is locked by someone else.");
+        await Assert.That(cut.FindAll(".editor-dirty")).IsNotEmpty();
+    }
+
+    // An edit: the first paragraph typed into and handed in.
+    async Task CommitAsync(IRenderedComponent<MorphEditor> cut)
+    {
+        var (block, offset) = Place(Paragraphs, 0, "First");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
+        await cut.InvokeAsync(() => cut.Instance.OnEditCommit(Session().GetProperty("id").GetInt32(), """[{"a":null,"i":[[0,"First new paragraph here.",0]]}]""", 0));
+    }
+
     [Test]
     public async Task HandingInWhatCannotBeRead_ChangesNothing_AndSaysSo()
     {

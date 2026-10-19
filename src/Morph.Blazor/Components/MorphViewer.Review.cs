@@ -43,6 +43,14 @@ public partial class MorphViewer
     [Parameter]
     public EventCallback<byte[]> OnDocumentChanged { get; set; }
 
+    /// <summary>
+    /// Saves the file where it came from, as a WOPI host's storage (<see cref="MorphWopi"/>). Given one,
+    /// Save and Ctrl+S hand it the file instead of downloading it, and the file counts as saved once it
+    /// returns; a failure it throws is shown, and the file stays edited. Download still saves a copy.
+    /// </summary>
+    [Parameter]
+    public EventCallback<byte[]> OnSave { get; set; }
+
     internal const string guest = "Guest";
 
     // Undo keeps whole files, so it is bounded by what they weigh rather than by how many there are.

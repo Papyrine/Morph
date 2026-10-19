@@ -735,7 +735,7 @@ public partial class MorphViewer : IAsyncDisposable
     /// <summary>Called from JavaScript for Ctrl+S inside the viewer.</summary>
     [JSInvokable]
     public Task OnSaveRequested() =>
-        InvokeAsync(DownloadAsync);
+        InvokeAsync(SaveAsync);
 
     async Task Call(Func<ViewerHandle, ValueTask> action)
     {
@@ -786,6 +786,49 @@ public partial class MorphViewer : IAsyncDisposable
         return Call(_ => _.SetZoomAsync(value));
     }
 
+    internal bool SavesInPlace => OnSave.HasDelegate;
+
+    // Save: to where the file came from when the host takes it (OnSave), else a download.
+    internal async Task SaveAsync()
+    {
+        if (!SavesInPlace)
+        {
+            await DownloadAsync();
+            return;
+        }
+
+        await HandInAsync();
+        if (sourceBytes is not { } bytes ||
+            saving)
+        {
+            return;
+        }
+
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            await OnSave.InvokeAsync(bytes);
+            savedBytes = bytes;
+            // An edit made while it saved is still to be saved.
+            if (ReferenceEquals(sourceBytes, bytes))
+            {
+                await DocumentSavedAsync();
+            }
+        }
+        catch (Exception exception)
+        {
+            errorMessage = $"Could not save the file: {exception.Message}";
+            issueUrl = null;
+        }
+        finally
+        {
+            saving = false;
+            // Ctrl+S comes from the script, which renders nothing afterwards.
+            StateHasChanged();
+        }
+    }
+
     internal async Task DownloadAsync()
     {
         await HandInAsync();
@@ -798,6 +841,12 @@ public partial class MorphViewer : IAsyncDisposable
         try
         {
             await Interop.DownloadAsync(fileName ?? info.SampleFileName, info.ContentType, bytes);
+            // Where the host saves the file, a download is a copy: the file is no more saved for it.
+            if (SavesInPlace)
+            {
+                return;
+            }
+
             savedBytes = bytes;
             await DocumentSavedAsync();
         }
