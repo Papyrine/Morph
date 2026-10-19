@@ -861,6 +861,41 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Session().TryGetProperty("indented", out _)).IsFalse();
     }
 
+    // HTML pasted at the caret: the first paragraph ends the one pasted into, the last begins what
+    // followed the caret, and those between keep their heading and list. Typing goes on after it.
+    [Test]
+    public async Task HtmlPasted_KeepsItsHeadingsListsAndEmphasis()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(2, 5);
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditPaste("<p> <b>bold</b> words</p><h2>Head</h2><ul><li>item</li></ul><p>tail</p>", ""));
+
+        var read = Read(reported!);
+        await Assert.That(read[2]).IsEqualTo("[Third][b:bold][ words]");
+        await Assert.That(read[3]).IsEqualTo("[Head] #Heading2");
+        await Assert.That(read[4]).IsEqualTo("[item] #ListParagraph •1.0");
+        await Assert.That(read[5]).IsEqualTo("[tail and last.]");
+        await Assert.That(Text(Session())).IsEqualTo("tail and last.");
+        await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(4);
+    }
+
+    // HTML with nothing in it to read — a picture alone — pastes the clipboard's plain text.
+    [Test]
+    public async Task HtmlWithNothingToRead_PastesThePlainText()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(0, 0);
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditPaste("<img src=\"x.png\">", "one\ntwo "));
+
+        var read = Read(reported!);
+        await Assert.That(read[0]).IsEqualTo("[one]");
+        await Assert.That(read[1]).IsEqualTo("[two First paragraph here.]");
+    }
+
     // With nothing to take off, Backspace at a paragraph's start joins it to the one before.
     [Test]
     public async Task Unindent_OfAParagraphNotIndented_JoinsIt()

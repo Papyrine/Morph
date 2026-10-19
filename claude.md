@@ -334,6 +334,14 @@ start steps its indent by what the paragraph BEFORE it is — to that paragraph'
 when the text lines up under its text, otherwise the paragraph's own indent and List Paragraph off at
 once, otherwise its style's indent overridden with 0 (`Unindent`).
 
+HTML pasted into the editor goes to .NET rather than into the script's model: `PastedHtml` (core) reads
+it — browsers', Google Docs' and Word's own, the last writing list items as `mso-list` paragraphs —
+for what Merge Formatting keeps (paragraphs, headings, lists and levels, alignment, links, emphasis;
+never fonts, sizes or colours), and `DocumentEditor.Paste` writes it through `Rewrite` (so the split
+and tracking are typing's) before shaping the paragraphs the paste made whole and linking. Plain text
+stays in the script. The pages' text layer copies plain text only (morph-text.js), so text copied off
+the pages never arrives as positioned spans.
+
 Unsaved work is kept by `MorphViewer.Drafts.cs` (the editor's alone, by `Editing`) and
 `wwwroot/morph-draft.js`: a `beforeunload` prompt while there are edits not saved, and a draft of the
 file in IndexedDB after each edit, which the start page offers back. One slot; saving or discarding
