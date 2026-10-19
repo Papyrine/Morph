@@ -40,3 +40,44 @@ export function watchWide(dotNetReference, minWidth) {
 export function userAgent() {
     return navigator.userAgent;
 }
+
+// MorphWopi: the file a WOPI host opened Morph for, which Morph.Wopi writes into the page as JSON. Taken
+// out of the page once read, so the access token is not left in the document.
+export function wopiLaunch() {
+    const element = document.getElementById('morph-wopi');
+    if (!element) {
+        return null;
+    }
+
+    element.remove();
+    return element.textContent;
+}
+
+// Unlocks the file as the page goes away, when there is no time left to ask .NET: a beacon outlives the
+// page, and sends a form, which the proxy reads in place of its headers.
+let leaving = null;
+
+export function unlockOnLeave(url, fields) {
+    forgetLeave();
+    leaving = () => {
+        const form = new FormData();
+        for (const [name, value] of Object.entries(fields)) {
+            form.append(name, value);
+        }
+
+        navigator.sendBeacon(url, form);
+    };
+    window.addEventListener('pagehide', leaving);
+}
+
+export function forgetLeave() {
+    if (leaving) {
+        window.removeEventListener('pagehide', leaving);
+        leaving = null;
+    }
+}
+
+// Leaves the editor for the host's page (CloseUrl): the top window's, since the editor runs in its frame.
+export function navigateTop(url) {
+    window.top.location.href = url;
+}

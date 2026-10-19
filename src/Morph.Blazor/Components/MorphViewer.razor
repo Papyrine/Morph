@@ -62,7 +62,21 @@
                     <Iconify Value="Lucide.Printer" aria-hidden="true" focusable="false" />
                 </button>
             }
-            @if (ShowDownload)
+            @if (SavesInPlace)
+            {
+                <button type="button" class="viewer-button" title="Save (Ctrl+S)" aria-label="Save" aria-keyshortcuts="Control+S"
+                        disabled="@(!HasDocument || saving)" @onclick="SaveAsync">
+                    <Iconify Value="Lucide.Save" aria-hidden="true" focusable="false" />
+                </button>
+                @if (ShowDownload)
+                {
+                    <button type="button" class="viewer-button" title="Download a copy" aria-label="Download a copy"
+                            disabled="@(!HasDocument)" @onclick="DownloadAsync">
+                        <Iconify Value="Lucide.Download" aria-hidden="true" focusable="false" />
+                    </button>
+                }
+            }
+            else if (ShowDownload)
             {
                 <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S"
                         disabled="@(!HasDocument)" @onclick="DownloadAsync">

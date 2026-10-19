@@ -366,6 +366,21 @@ pages cannot disagree with what Download saves. **A change to `CanonicalParagrap
 text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`
 fails if the two part ways.
 
+**WOPI** (`src/Morph.Wopi/`, `Morph.Blazor`'s `MorphWopi`): the editor as a WOPI client, in two halves
+because the editor runs in the browser. `Morph.Wopi` is an ASP.NET Core library (`AddMorphWopi` /
+`MapMorphWopi`): the discovery a host reads (`/hosting/discovery`: docx view and edit, xlsx and pptx view,
+and the proof key as modulus, exponent and a CSP blob written out by hand, since only Windows exports
+one), the action URLs (`/morph/wopi/view|edit`), which answer the host's token POST with the
+WebAssembly app's own page (`MorphWopiOptions.Page`, read from the web root) with the launch written in
+as JSON, and the proxy (`/morph/wopi/proxy/{operation}`) the editor calls the host through: a browser can
+neither call another origin nor hold the proof key, so the proxy builds the WOPI request, signs it
+([MS-WOPI] 2.2.1) and hands back the status, the lock headers and the body. Both refuse a WOPISrc off
+`TrustedHosts`, which are also the only `frame-ancestors`. `MorphWopi` reads the launch, checks the file,
+locks it, refreshes the lock, saves through the editor's `OnSave` and unlocks with a beacon on
+`pagehide`. `src/Morph.Wopi.Sample` is a WopiServer host and the editor in one application on two ports;
+`WopiHostTests` run both halves against WopiServer in a test server with proofs required, and
+`WopiSampleTests` drive the published sample with Playwright.
+
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
 extracted into `Morph.Blazor` this project is only the shell — header with Convert | View | Edit links,
 theme toggle, footer — around `<MorphConverter />` at `/`, `<MorphViewer />` at `/view` and

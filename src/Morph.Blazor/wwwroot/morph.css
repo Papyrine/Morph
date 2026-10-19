@@ -2393,3 +2393,96 @@
         padding: 0.4rem 0.55rem;
     }
 }
+
+/* MorphWopi: a file a WOPI host opened, filling the frame the host put it in — the host's breadcrumb and
+   Close in a bar over the editor, which takes the rest. */
+.wopi {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+}
+
+.wopi > .viewer {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+}
+
+.wopi-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--morph-surface, #ffffff);
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+    font-size: 0.875rem;
+}
+
+.wopi-crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.wopi-crumb {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+a.wopi-crumb {
+    color: var(--morph-primary, #2b579a);
+    text-decoration: none;
+}
+
+a.wopi-crumb:hover {
+    text-decoration: underline;
+}
+
+.wopi-file {
+    font-weight: 600;
+}
+
+.wopi-separator {
+    color: var(--morph-muted, #6c757d);
+}
+
+.wopi-status {
+    white-space: nowrap;
+    color: var(--morph-muted, #6c757d);
+}
+
+.wopi-close {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.wopi-close:hover {
+    background: var(--morph-background, #f8f9fa);
+}
+
+.wopi-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex: 1;
+    padding: 2rem;
+    text-align: center;
+}
