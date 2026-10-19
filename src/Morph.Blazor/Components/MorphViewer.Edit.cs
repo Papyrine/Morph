@@ -286,6 +286,27 @@ public partial class MorphViewer
                 StateHasChanged();
             });
 
+    /// <summary>
+    /// Called from JavaScript for HTML pasted, or dropped, into the paragraph being typed: the clipboard's
+    /// HTML, and its plain text for when the HTML holds nothing to read.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditPaste(string html, string text) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    revising)
+                {
+                    return;
+                }
+
+                editNote = null;
+                await PasteAsync(html, text);
+                StateHasChanged();
+            });
+
     internal virtual Task KeyAsync(string name) =>
         name switch
         {

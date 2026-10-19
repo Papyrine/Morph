@@ -632,6 +632,37 @@ public partial class SnapshotTests
         await Assert.That(Read(await SaveAsync(page))[2]).IsEqualTo("[Third and last.!]");
     }
 
+    // HTML on the clipboard — a heading, emphasis, a link — pasted with Ctrl+V into a new paragraph
+    // keeps what it was, and the paragraph opens again after it.
+    [Test]
+    public async Task Edit_PastingHtml_KeepsItsHeadingsAndLinks()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+        await page.Context.GrantPermissionsAsync(["clipboard-read", "clipboard-write"]);
+        await page.EvaluateAsync(
+            """
+            async () => {
+                const html = '<h2>Pasted</h2><p>with <b>bold</b> and <a href="https://example.com/">a link</a></p>';
+                await navigator.clipboard.write([new ClipboardItem({
+                    'text/html': new Blob([html], { type: 'text/html' }),
+                    'text/plain': new Blob(['Pasted\nwith bold and a link'], { type: 'text/plain' })
+                })]);
+            }
+            """);
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Enter");
+        await ReopenedAsync(page, () => page.Keyboard.PressAsync("Control+v"));
+        await HandInAsync(page);
+
+        var saved = await SaveAsync(page);
+        var read = Read(saved);
+        await Assert.That(read[3]).IsEqualTo("[Pasted] #Heading2");
+        await Assert.That(read[4]).IsEqualTo("[with ][b:bold][ and ][a link]");
+        await Assert.That(DocumentBody(saved)).Contains("<w:hyperlink");
+    }
+
     // Runs what reopens the paragraph from .NET, and waits until it has: a new session, ready to type in.
     static async Task ReopenedAsync(IPage page, Func<Task> act)
     {

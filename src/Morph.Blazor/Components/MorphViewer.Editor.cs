@@ -450,6 +450,38 @@ public partial class MorphViewer
         }
     }
 
+    // Pasting HTML: what it keeps is PastedHtml's to say, and the text goes in where the caret was,
+    // which is where the editor is opened again — after it.
+    internal async Task PasteAsync(string html, string text)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var content = PastedHtml.Read(html);
+        if (content.Count == 0)
+        {
+            content = text.Replace("\r\n", "\n").Split('\n').Select(_ => new PastedParagraph([new(_)])).ToList();
+        }
+
+        var options = await EditOptionsAsync();
+        EditResult? result = null;
+        var pasted = await ReviseAsync(
+            _ =>
+            {
+                result = DocumentEditor.Paste(_, target.Paragraph, target.Offset, content, options);
+                return result.Document;
+            },
+            relayout: true,
+            () => activeKey);
+        if (pasted &&
+            result is { } end)
+        {
+            await ResumeAsync(end.Paragraph, end.Offset);
+        }
+    }
+
     // Tab and Shift+Tab in a list: the list's first paragraph moves the whole list, any other a level.
     internal async Task TabInListAsync(int steps)
     {

@@ -622,6 +622,26 @@ export class ParagraphEditor {
         this.select(place);
     }
 
+    // HTML on the clipboard is read by .NET (PastedHtml, DocumentEditor.Paste), which keeps its
+    // headings, lists, links and emphasis: what is selected goes here first, the caret is put where
+    // the paste goes, and the paragraph is handed in for the file to take the paste. Plain text — the
+    // pages' own copy, Ctrl+Shift+V — is typed in here like anything else.
+    pasteHtml(range, data) {
+        const html = data?.getData('text/html');
+        if (!html || !this.callbacks.paste) {
+            return false;
+        }
+
+        if (same(range.from, range.to)) {
+            this.select(range.from);
+        } else {
+            this.replace(range, '', 'delete');
+        }
+
+        this.callbacks.paste(html, data.getData('text/plain') ?? '');
+        return true;
+    }
+
     lineBreak(range) {
         this.record('break');
         const like = this.faceAt(range.from);
@@ -882,7 +902,10 @@ export class ParagraphEditor {
             case 'insertFromPaste':
             case 'insertFromPasteAsQuotation':
             case 'insertFromDrop':
-                this.replace(range, event.dataTransfer?.getData('text/plain') ?? event.data ?? '', 'paste');
+                if (!this.pasteHtml(range, event.dataTransfer)) {
+                    this.replace(range, event.dataTransfer?.getData('text/plain') ?? event.data ?? '', 'paste');
+                }
+
                 break;
             case 'insertParagraph':
                 this.paragraphBreak(range);

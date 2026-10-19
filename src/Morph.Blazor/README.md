@@ -169,7 +169,7 @@ again, and the page redrawn.
 | while editing | what it does |
 | --- | --- |
 | A click on a paragraph | Opens it with the caret where the click was. Text selected within one paragraph — a double click, a drag — opens it with that selected, so typing replaces it. |
-| Typing, Backspace, Delete, paste | Edit the text. What is pasted is pasted as plain text, a line to a paragraph. |
+| Typing, Backspace, Delete, paste | Edit the text. What is pasted from a web page, Google Docs or Word keeps its paragraphs and line breaks, headings, bulleted and numbered lists with their levels, alignment, links, and bold, italic, underline, strikethrough, superscript and subscript — but not its fonts, sizes or colours, which are the document's (as Word's Merge Formatting). A paragraph pasted into the middle of one joins it and takes its look; one the paste makes whole keeps its own. Plain text — Ctrl+Shift+V, or text copied off the pages — is pasted a line to a paragraph. |
 | Enter, Shift+Enter, Tab | A new paragraph, formatted as the one it was split from; a line break; a tab. Enter at the end of a heading starts the style the heading names as its next, as Word does, and what is typed there is in that style. |
 | Tab, Shift+Tab in a list | Moves the paragraph a level in or out of the list, wherever the caret is in it, as Word's keys do; no tab is typed. In the list's first paragraph they move the whole list a quarter inch in or out instead, as far as the margin. |
 | Enter in an empty paragraph of a list | Ends the list: the paragraph is taken out of it, at no indent. |
@@ -245,6 +245,8 @@ Limits worth knowing:
   and notes are other parts of the file, and are read only.
 - Pictures, tables, page breaks and links are put in from the ribbon; a picture, a field or a note
   already there can be deleted but not typed into. A workbook or a deck is not edited.
+- A pasted table's rows are pasted as paragraphs, their cells a tab apart, and a pasted picture is
+  left out.
 - A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the
   bundled Aptos faces whatever the font (see [Fonts](#fonts)); Word draws it in the font itself.
 - Ctrl+Enter hands the paragraph in, so it is not a page break as in Word; Insert > Page break is.
