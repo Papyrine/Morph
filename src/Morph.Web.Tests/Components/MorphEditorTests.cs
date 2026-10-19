@@ -661,6 +661,25 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(7);
     }
 
+    // The picture selected, sized by its handles (morph-edit.js hands the size in points), and back
+    // to the size its image was made for.
+    [Test]
+    public async Task APicture_IsSizedByItsHandles_AndReset()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 0, 6, new(Picture(), "image/png", 100, 50), options).Document;
+        byte[]? reported = null;
+        var cut = await OpenEditing(pictured, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Selected(0, 6, 7);
+        await cut.InvokeAsync(() => cut.Instance.OnEditResize(200, 100));
+        await Assert.That(Body(reported!)).Contains("<wp:extent cx=\"2540000\" cy=\"1270000\" />");
+
+        Selected(0, 6, 7);
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("reset-picture"));
+        await Assert.That(Body(reported!)).Contains("<wp:extent cx=\"254013\" cy=\"127007\" />");
+    }
+
     [Test]
     public async Task AFileThatIsNotAPicture_IsRefused_AndSaysSo()
     {

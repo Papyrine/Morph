@@ -305,7 +305,8 @@ The ribbon's commands are `DocumentEditor` edits too, in partial files beside th
 `DocumentEditor.Inserts.cs` (page break, table, picture, link, replace), `DocumentEditor.Tables.cs`
 (rows, columns, the table) and `DocumentEditor.TableFormat.cs` (borders, shading, merge and split,
 column widths and AutoFit — the cells a selection spans are the rectangle between its two ends, as in
-Word, and none of it is tracked); the Font group's look (font, size, colour, highlight, vertical alignment)
+Word, and none of it is tracked); `DocumentEditor.Pictures.cs` sizes an inline picture (its
+`wp:extent` and its own `a:ext`, as Word writes both), which morph-edit.js's frame and handles ask for; the Font group's look (font, size, colour, highlight, vertical alignment)
 is `RunFormat` through the same `Format` as bold, and `ClearFormatting` takes a run's direct look off
 but leaves its character style. `DocumentEditor.Atoms.cs` deletes what is not text — a picture, a
 break, a field from its beginning to its end, a note's reference with its note — when a rewritten

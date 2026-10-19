@@ -1935,6 +1935,7 @@ class Viewer {
             state: state => this.showEditState(state),
             key: name => this.editKey(name),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
+            resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
     }

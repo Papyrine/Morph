@@ -577,6 +577,51 @@ public partial class MorphViewer
         await EditAtAsync(target, (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
     }
 
+    // A picture sized: the one selected, or the one just before the caret.
+    const string pictureNote = "Click a picture first.";
+
+    internal async Task ResizePictureAsync(double width, double height)
+    {
+        if (await RequireAsync(pictureNote) is not { } target)
+        {
+            return;
+        }
+
+        var (paragraph, offset) = PictureAt(target);
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options));
+    }
+
+    // Back to the size its image was made for, as when it was put in.
+    internal async Task ResetPictureAsync()
+    {
+        if (await RequireAsync(pictureNote) is not { } target ||
+            sourceBytes is not { } bytes)
+        {
+            return;
+        }
+
+        var (paragraph, offset) = PictureAt(target);
+        if (DocumentEditor.PictureData(bytes, paragraph, offset) is not var (data, _) ||
+            Picture(data, "") is not { } natural)
+        {
+            editNote = "That picture's size could not be read.";
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.ResizePicture(_, paragraph, offset, natural.WidthPoints, natural.HeightPoints, options));
+    }
+
+    static (int Paragraph, int Offset) PictureAt(EditTarget target)
+    {
+        if (target.HasSelection &&
+            target.StartParagraph >= 0)
+        {
+            return (target.StartParagraph, target.StartOffset);
+        }
+
+        return (target.Paragraph, Math.Max(0, target.Offset - 1));
+    }
+
     // A table's look and its cells: borders, shading, merging and splitting, widths. They act on the
     // table the caret is in, and shading and merging on the cells from where a selection starts to
     // where it ends.

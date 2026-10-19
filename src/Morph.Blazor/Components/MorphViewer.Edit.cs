@@ -307,6 +307,27 @@ public partial class MorphViewer
                 StateHasChanged();
             });
 
+    /// <summary>
+    /// Called from JavaScript when the picture selected in the paragraph being typed has been sized
+    /// by its handles: its new width and height, in points.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditResize(double width, double height) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    revising)
+                {
+                    return;
+                }
+
+                editNote = null;
+                await ResizePictureAsync(width, height);
+                StateHasChanged();
+            });
+
     internal virtual Task KeyAsync(string name) =>
         name switch
         {
@@ -315,6 +336,7 @@ public partial class MorphViewer
             "end-list" => EndListAsync(),
             "unindent" => UnindentAsync(),
             "follow-on" => FollowOnAsync(),
+            "reset-picture" => ResetPictureAsync(),
             "heading1" => ApplyStyleAsync("Heading1"),
             "heading2" => ApplyStyleAsync("Heading2"),
             "heading3" => ApplyStyleAsync("Heading3"),

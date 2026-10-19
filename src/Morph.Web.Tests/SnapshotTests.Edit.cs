@@ -488,6 +488,39 @@ public partial class SnapshotTests
         await Assert.That(DocumentOutline.Read(saved).Paragraphs[2].Units.Select(_ => _.Kind)).IsEquivalentTo([EditUnitKind.Text, EditUnitKind.Drawing]);
     }
 
+    // A picture clicked is framed, and its corner handle sizes it in proportion; let go, the file
+    // takes the size.
+    [Test]
+    public async Task Edit_APicture_IsSizedByItsHandles()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var dot = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 2, 15, new(dot, "image/png", 100, 50), options).Document;
+        var page = await OpenEditAsync(pictured);
+
+        await ClickInAsync(page, "and last");
+        await page.ClickAsync($"{editor} .edit-drawing");
+        await page.WaitForSelectorAsync(".edit-frame .edit-handle-se");
+        await Assert.That(await page.InnerTextAsync(".edit-frame-size")).IsEqualTo("3.5 × 1.8 cm");
+
+        // A picture alone selected is not bold, nor anything else text is.
+        await Assert.That(await page.GetAttributeAsync("[data-edit-command=bold]", "aria-pressed")).IsEqualTo("false");
+
+        var handle = (await page.Locator(".edit-handle-se").BoundingBoxAsync())!;
+        await page.Mouse.MoveAsync(handle.X + handle.Width / 2, handle.Y + handle.Height / 2);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync(handle.X + handle.Width / 2 + 120, handle.Y + handle.Height / 2 + 10, new() {Steps = 6});
+        await ReopenedAsync(page, () => page.Mouse.UpAsync());
+        await HandInAsync(page);
+
+        var body = DocumentBody(await SaveAsync(page));
+        var extent = System.Text.RegularExpressions.Regex.Match(body, "<wp:extent cx=\"(\\d+)\" cy=\"(\\d+)\" />");
+        var width = long.Parse(extent.Groups[1].Value);
+        var height = long.Parse(extent.Groups[2].Value);
+        await Assert.That(width).IsGreaterThan(100 * 12700);
+        await Assert.That(Math.Abs(width - 2 * height)).IsLessThanOrEqualTo(2);
+    }
+
     // Word's keys in a list (Word-probed 2026-10-19): Tab a level in, Enter in an empty paragraph out
     // of the list, Backspace at a paragraph's start its number off. Each is carried out on the file,
     // and typing goes on where it was.
