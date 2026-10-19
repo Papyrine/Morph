@@ -326,6 +326,13 @@ static class ReviewEditor
         }
 
         change.Remove();
+
+        // A paragraph or a run that had no properties before the change has none again.
+        if (properties is OoxmlParagraphProperties or OoxmlRunProperties &&
+            !properties.HasChildren)
+        {
+            properties.Remove();
+        }
     }
 
     static bool Stays(OpenXmlElement change, OpenXmlElement property) =>

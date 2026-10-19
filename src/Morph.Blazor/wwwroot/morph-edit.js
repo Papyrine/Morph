@@ -529,7 +529,30 @@ export class ParagraphEditor {
         }
     }
 
-    // Takes out the text between two places. What is not text stays: it is not the editor's to delete.
+    // Whether an item that is not text can be deleted: a picture, a page break, a field or a note's
+    // reference can, and goes from the file when the paragraph is handed in. Text a tracked change
+    // deleted is settled in the review pane, and text the page never drew is not the reader's to see.
+    removable(item) {
+        const unit = this.session.u[item.u];
+        return item.atom === true && unit?.k === 1 && unit.s !== 'deleted';
+    }
+
+    // The item that takes up the place after o in a block, or null.
+    itemAt(b, o) {
+        let at = 0;
+        for (const item of this.blocks[b].items) {
+            const length = lengthOf(item);
+            if (o >= at && o < at + length) {
+                return item;
+            }
+
+            at += length;
+        }
+
+        return null;
+    }
+
+    // Takes out what is between two places: the text, and what is not text that can go.
     remove(from, to) {
         if (same(from, to)) {
             return;
@@ -539,18 +562,19 @@ export class ParagraphEditor {
         const first = this.blocks[from.b];
         if (from.b === to.b) {
             const end = this.divide(to);
-            first.items.splice(start, end - start, ...first.items.slice(start, end).filter(_ => _.atom));
+            first.items.splice(start, end - start, ...first.items.slice(start, end).filter(_ => _.atom && !this.removable(_)));
             return;
         }
 
-        const kept = first.items.slice(start).filter(_ => _.atom);
+        const stays = _ => _.atom && !this.removable(_);
+        const kept = first.items.slice(start).filter(stays);
         for (let index = from.b + 1; index < to.b; index++) {
-            kept.push(...this.blocks[index].items.filter(_ => _.atom));
+            kept.push(...this.blocks[index].items.filter(stays));
         }
 
         const last = this.blocks[to.b];
         const end = this.divide(to);
-        kept.push(...last.items.slice(0, end).filter(_ => _.atom), ...last.items.slice(end));
+        kept.push(...last.items.slice(0, end).filter(stays), ...last.items.slice(end));
         first.items.splice(start, first.items.length - start, ...kept);
         this.blocks.splice(from.b + 1, to.b - from.b);
     }
@@ -901,6 +925,15 @@ export class ParagraphEditor {
             return;
         }
 
+        // A browser that hands in no range around something that is not text: the place beside the
+        // caret is the one to go.
+        const beside = backward ? range.from.o - 1 : range.from.o;
+        const item = beside >= 0 ? this.itemAt(range.from.b, beside) : null;
+        if (item && this.removable(item)) {
+            this.replace({ from: { b: range.from.b, o: beside }, to: { b: range.from.b, o: beside + 1 } }, '', 'delete');
+            return;
+        }
+
         const last = this.blocks.length - 1;
         if (backward && range.from.b === 0 && range.from.o === 0) {
             if (this.session.previous && this.session.skip <= 0) {
@@ -927,6 +960,14 @@ export class ParagraphEditor {
 
     onKeyDown(event) {
         if (this.pending || this.closed || event.isComposing) {
+            return;
+        }
+
+        // Word's Ctrl+Alt+1, 2 and 3: Heading 1, 2 and 3. By the key's place, since Alt changes what
+        // it types.
+        if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
+            event.preventDefault();
+            this.callbacks.key(`heading${event.code.slice(-1)}`);
             return;
         }
 
@@ -957,8 +998,16 @@ export class ParagraphEditor {
                     event.preventDefault();
                     this.commit(0);
                     return;
+                case 'k':
+                    event.preventDefault();
+                    this.callbacks.key('link');
+                    return;
             }
 
+            return;
+        }
+
+        if (!event.altKey && this.onParagraphKey(event)) {
             return;
         }
 
@@ -970,7 +1019,7 @@ export class ParagraphEditor {
                 return;
             case 'Tab':
                 event.preventDefault();
-                if (this.range()) {
+                if (this.range() && !event.shiftKey) {
                     this.replace(this.range(), '\t', 'type');
                 }
 
@@ -985,6 +1034,65 @@ export class ParagraphEditor {
 
                 return;
         }
+    }
+
+    // Word's keys for a list's paragraph and a heading, which change what the paragraph is rather than
+    // what it says — the file's to do, so the paragraph is handed in and .NET carries them out.
+    // Word-probed 2026-10-19 by keys sent to Word 365: in a list, Tab anywhere moves the paragraph a
+    // level in and Shift+Tab a level out, with no tab typed; Enter in an empty paragraph takes it out
+    // of the list; Backspace at a paragraph's start takes its number off, and at an indented one's a
+    // step of its indent (DocumentEditor.Unindent). Enter at the end of a
+    // heading starts the paragraph after in the style the heading names next, so text typed there
+    // is body text.
+    onParagraphKey(event) {
+        const selected = this.range();
+        if (!selected || event.ctrlKey || event.metaKey) {
+            return false;
+        }
+
+        const caret = same(selected.from, selected.to);
+        const listed = this.session.list !== undefined && this.session.list !== null;
+        let name = null;
+        switch (event.key) {
+            case 'Tab':
+                if (listed) {
+                    name = event.shiftKey ? 'outdent' : 'indent';
+                }
+
+                break;
+            case 'Enter':
+                if (event.shiftKey || !caret) {
+                    break;
+                }
+
+                if (listed && blockLength(this.blocks[selected.from.b]) === 0) {
+                    name = 'end-list';
+                } else if (this.session.follow &&
+                    selected.from.b === this.blocks.length - 1 &&
+                    selected.from.o === blockLength(this.blocks[selected.from.b]) &&
+                    selected.from.o > 0) {
+                    // The break is typed here, and the paragraph after it opened once the file has it.
+                    this.paragraphBreak(selected);
+                    name = 'follow-on';
+                }
+
+                break;
+            case 'Backspace':
+                if (this.session.indented && caret && !event.shiftKey && selected.from.o === 0 &&
+                    (selected.from.b > 0 || this.session.skip <= 0)) {
+                    name = 'unindent';
+                }
+
+                break;
+        }
+
+        if (!name) {
+            return false;
+        }
+
+        event.preventDefault();
+        this.callbacks.key(name);
+        return true;
     }
 
     // An arrow key that would take the caret out of the paragraph takes the reader to the next one.
@@ -1089,6 +1197,8 @@ export class ParagraphEditor {
             return;
         }
 
+        this.lastRange = selected;
+
         let face;
         if (same(selected.from, selected.to)) {
             face = this.pendingFace ?? this.faceAt(selected.from).f;
@@ -1109,13 +1219,43 @@ export class ParagraphEditor {
             }
         }
 
+        // The font and size shown are those of the character before a caret, or of the first one selected.
+        let look = selected.from;
+        if (!same(selected.from, selected.to)) {
+            look = this.clamp({ b: selected.from.b, o: selected.from.o + 1 });
+        }
+
+        const unit = this.session.u[this.faceAt(look).u];
         this.callbacks.state({
+            font: unit?.n ?? this.session.font,
+            size: unit?.z ?? this.session.size,
             bold: (face & bold) !== 0,
             italic: (face & italic) !== 0,
             underline: (face & underline) !== 0,
             strike: (face & strike) !== 0,
             align: this.blocks[selected.from.b].align ?? this.session.align
         });
+    }
+
+    /**
+     * Where the reader is in the paragraph, in the document's paragraphs rather than this editor's
+     * blocks: [first, last, caret paragraph, caret place, start paragraph, start place, end paragraph,
+     * end place]. Each block Enter divided off is the paragraph after the one before it, once the
+     * paragraph is handed in. Null when the reader has been nowhere in it.
+     */
+    target() {
+        const selected = (!this.closed && this.range()) || this.lastRange;
+        const p = this.session.p;
+        if (!selected || typeof p !== 'number') {
+            return null;
+        }
+
+        return [
+            p + selected.from.b, p + selected.to.b,
+            p + selected.to.b, selected.to.o,
+            p + selected.from.b, selected.from.o,
+            p + selected.to.b, selected.to.o
+        ];
     }
 
     // Handing in

@@ -8,7 +8,8 @@ using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
 /// <summary>
 /// The small documents the editing tests type into, written as the markup under test, and the reading
 /// of an edited document back as its paragraphs: their text, a run per bracket, the way
-/// <c>[plain][b:bold]</c>, with an insertion and a deletion as <c>{+…+}</c> and <c>{-…-}</c>.
+/// <c>[plain][b:bold]</c>, with an insertion and a deletion as <c>{+…+}</c> and <c>{-…-}</c>, then the
+/// paragraph's alignment <c>(center)</c>, its style <c>#Heading1</c> and its list and level <c>•1.0</c>.
 /// </summary>
 static class EditFixtures
 {
@@ -66,6 +67,16 @@ static class EditFixtures
             if (alignment != null)
             {
                 builder.Append($" ({alignment})");
+            }
+
+            if (paragraph.ParagraphProperties?.ParagraphStyleId?.Val?.Value is { } style)
+            {
+                builder.Append($" #{style}");
+            }
+
+            if (paragraph.ParagraphProperties?.NumberingProperties is {NumberingId.Val.Value: var list} numbering)
+            {
+                builder.Append($" •{list}.{numbering.NumberingLevelReference?.Val?.Value ?? 0}");
             }
 
             paragraphs.Add(builder.ToString());

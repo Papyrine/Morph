@@ -10,29 +10,28 @@ namespace Morph;
 //
 // Formatting and deleting also work on text selected across the pages, with no editor open: those
 // go straight to the file.
+//
+// The viewer only shows a document. All of this is MorphEditor's, which turns it on (Editing) for a
+// Word document that allows it; it lives here because it shares the viewer's document, pages and
+// edits from end to end.
 public partial class MorphViewer
 {
-    /// <summary>
-    /// Whether the toolbar offers editing for a Word document: typing into its paragraphs, and
-    /// formatting and aligning its text. Default true. <see cref="ReadOnly"/>, and a document's own
-    /// protection, turn it off whatever this says.
-    /// </summary>
-    [Parameter]
-    public bool ShowEdit { get; set; } = true;
+    /// <summary>Whether a Word document's text is edited where it stands: MorphEditor's, not the viewer's.</summary>
+    internal virtual bool Editing => false;
 
-    DocumentOutline outline = DocumentOutline.Empty;
+    internal DocumentOutline outline = DocumentOutline.Empty;
     EditMap editMap = EditMap.Empty;
     EditSession? session;
     int sessions;
     bool editOpen;
-    string? editNote;
+    internal string? editNote;
 
-    bool CanWrite => !ReadOnly && IsWord && outline.AllowsEditing;
+    internal bool CanWrite => !ReadOnly && IsWord && outline.AllowsEditing;
 
     // Whether edits are recorded as tracked changes.
-    bool Tracking => outline.Tracking || outline.ForcesTracking;
+    internal bool Tracking => outline.Tracking || outline.ForcesTracking;
 
-    string TrackTitle
+    internal string TrackTitle
     {
         get
         {
@@ -56,33 +55,6 @@ public partial class MorphViewer
         editMap = EditMap.Empty;
         session = null;
         editNote = null;
-    }
-
-    async Task ToggleEditAsync()
-    {
-        if (!IsWord ||
-            handle is not { } viewer)
-        {
-            return;
-        }
-
-        editNote = null;
-        if (editOpen)
-        {
-            // The script hands in what is being typed before it lets go.
-            await viewer.SetEditModeAsync(false);
-            editOpen = false;
-            session = null;
-            return;
-        }
-
-        if (!CanWrite)
-        {
-            return;
-        }
-
-        editOpen = true;
-        await viewer.SetEditModeAsync(true);
     }
 
     /// <summary>
@@ -223,6 +195,14 @@ public partial class MorphViewer
     async Task BeginAsync(ViewerHandle viewer, EditParagraph paragraph, EditBlock block, int from, int to)
     {
         session = new(++sessions, paragraph, block, editMap);
+        caretParagraph = paragraph.Ordinal;
+        // The look shown is that of the character before a caret, or of the first one selected.
+        caretOffset = from;
+        if (to > from)
+        {
+            caretOffset = from + 1;
+        }
+
         try
         {
             await viewer.BeginEditAsync(documentId, session.Json(from, to));
@@ -281,6 +261,44 @@ public partial class MorphViewer
                     await ResumeAsync(joined.Paragraph, joined.Offset);
                 }
             });
+
+    /// <summary>
+    /// Called from JavaScript for a key whose command is carried out here, where the reader is: Tab
+    /// and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty paragraph of one
+    /// (<c>end-list</c>), Backspace at the start of one or of an indented paragraph (<c>unindent</c>),
+    /// Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3 (<c>heading1</c> to
+    /// <c>heading3</c>) and Ctrl+K (<c>link</c>).
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditKey(string name) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    revising)
+                {
+                    return;
+                }
+
+                editNote = null;
+                await KeyAsync(name);
+                StateHasChanged();
+            });
+
+    internal virtual Task KeyAsync(string name) =>
+        name switch
+        {
+            "indent" => TabInListAsync(1),
+            "outdent" => TabInListAsync(-1),
+            "end-list" => EndListAsync(),
+            "unindent" => UnindentAsync(),
+            "follow-on" => FollowOnAsync(),
+            "heading1" => ApplyStyleAsync("Heading1"),
+            "heading2" => ApplyStyleAsync("Heading2"),
+            "heading3" => ApplyStyleAsync("Heading3"),
+            _ => Task.CompletedTask
+        };
 
     /// <summary>Called from JavaScript when the reader abandons what they were typing.</summary>
     [JSInvokable]

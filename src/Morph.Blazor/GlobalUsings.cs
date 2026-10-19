@@ -10,6 +10,7 @@ global using System.Text;
 global using System.Threading.Tasks;
 global using AngleSharp.Dom;
 global using AngleSharp.Html.Parser;
+global using IconifyBundle;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Forms;
 global using Microsoft.AspNetCore.Components.Web;

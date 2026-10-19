@@ -8,9 +8,13 @@ name: Deploy GH Pages
 # packs with the rest of the solution, and arrives here as a project reference of the app.
 
 #
-# A pull request runs the build job only — compile, test and publish, with no Pages upload and no
-# deploy. Nothing else compiles Morph.Web.Tests, so without that a change to a type its tests stub
-# (an interface in Morph, say) first fails here, on main, after the merge.
+# The web tests run on Windows only, in a job of their own. They are browser tests, and their
+# screenshot snapshots are recorded on Windows: they assert on what the app does in a browser, which
+# another OS adds nothing to. The build job publishes on Linux, and the deploy waits for both.
+#
+# A pull request runs the build and test jobs only — compile, test and publish, with no Pages upload
+# and no deploy. Nothing else compiles Morph.Web.Tests, so without that a change to a type its tests
+# stub (an interface in Morph, say) first fails here, on main, after the merge.
 
 on:
   push:
@@ -30,6 +34,31 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  test:
+    runs-on: windows-latest
+    # As the build job below: no SponsorCheck credential is needed to compile and test.
+    env:
+      MORPH_TEST_CONTAINER: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # No wasm-tools workload: the publish the tests serve falls back to the prebuilt runtime, which
+      # runs the same, only larger.
+      - name: Build tests (also publishes the Blazor app for snapshot tests)
+        run: dotnet build src/Morph.Web.Tests --configuration Release
+
+      # TUnit ships as an executable on Microsoft.Testing.Platform; run it directly rather than via
+      # `dotnet test`, which rejects it under the VSTest path. The ModuleInitializer installs the
+      # Playwright browser (VerifyPlaywright.Initialize(installPlaywright: true)) on first run.
+      - name: Run tests
+        run: dotnet src/Morph.Web.Tests/bin/Release/net10.0/Morph.Web.Tests.dll
+
   build:
     runs-on: ubuntu-latest
     # SponsorCheck (referenced by every packable project — Morph, Morph.ImageSharp, Morph.Pdf,
@@ -54,15 +83,6 @@ jobs:
       # still correct, just larger — so installing it keeps the deployed bundle lean.
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
-
-      - name: Build tests (also publishes the Blazor app for snapshot tests)
-        run: dotnet build src/Morph.Web.Tests --configuration Release
-
-      # TUnit ships as an executable on Microsoft.Testing.Platform; run it directly rather than via
-      # `dotnet test`, which rejects it under the VSTest path. The ModuleInitializer installs the
-      # Playwright browser (VerifyPlaywright.Initialize(installPlaywright: true)) on first run.
-      - name: Run tests
-        run: dotnet src/Morph.Web.Tests/bin/Release/net10.0/Morph.Web.Tests.dll
 
       - name: Publish
         run: dotnet publish src/Morph.Web --configuration Release --output publish
@@ -96,7 +116,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, test]
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

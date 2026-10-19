@@ -2,11 +2,11 @@
     <button class="theme-toggle-btn" @onclick="ToggleTheme" aria-label="Toggle theme">
         @if (CurrentTheme == ThemeType.Light)
         {
-            <span class="icon">🌙</span><span class="text"> Dark</span>
+            <Iconify Value="Lucide.Moon" class="icon" aria-hidden="true" focusable="false" /><span class="text"> Dark</span>
         }
         else
         {
-            <span class="icon">☀️</span><span class="text"> Light</span>
+            <Iconify Value="Lucide.Sun" class="icon" aria-hidden="true" focusable="false" /><span class="text"> Light</span>
         }
     </button>
 </div>

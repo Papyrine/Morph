@@ -18,7 +18,7 @@ using Unit = ParagraphContent.Unit;
 /// Paragraphs are named by ordinal and places by <see cref="SourcePosition"/>, both as
 /// <see cref="DocumentOutline"/> read them from the same bytes.
 /// </summary>
-static class DocumentEditor
+static partial class DocumentEditor
 {
     const string wordNamespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const string placeholderStyle = "PlaceholderText";
@@ -63,6 +63,22 @@ static class DocumentEditor
             edit =>
             {
                 edit.Format(start, end, format);
+                return null;
+            }).Document;
+
+    /// <summary>
+    /// Takes the character formatting set on the text between two places off it, leaving it as its
+    /// paragraph's style has it. A character style stays — the Hyperlink style keeps a link a link.
+    /// Word-probed 2026-10-18: Clear Formatting on a word made bold, 20pt and red leaves no run
+    /// properties at all.
+    /// </summary>
+    public static byte[] ClearFormatting(byte[] docx, SourcePosition start, SourcePosition end, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                edit.ClearFormatting(start, end);
                 return null;
             }).Document;
 
@@ -266,7 +282,7 @@ static class DocumentEditor
     // one that came (New, ahead of the old character Old).
     readonly record struct Step(StepKind Kind, int Old, int New);
 
-    sealed class Editing(WordprocessingDocument document, EditOptions options)
+    sealed partial class Editing(WordprocessingDocument document, EditOptions options)
     {
         readonly MainDocumentPart main = MainPart(document);
 
@@ -336,9 +352,18 @@ static class DocumentEditor
 
             // The text between the things that are not text is edited a stretch at a time: those
             // things stay where they are, and in their order, so stretch n of the new text is what
-            // stretch n of the old has become.
+            // stretch n of the old has become. One the new paragraph leaves out has been deleted —
+            // a picture, a page break, a field, a note's reference — and the text either side of it
+            // is one stretch.
+            const string fixedInPlace = "The paragraph's pictures, fields and notes have to stay in their order, and text a tracked change deleted has to stay.";
+            var kept = content
+                .SelectMany(_ => _.Items)
+                .Where(_ => _.Text == null)
+                .Select(_ => _.Unit)
+                .ToHashSet();
             var before = new List<List<Old>> {new()};
             var bounds = new List<Unit>();
+            var dropped = new List<Unit>();
             for (var index = 0; index < units.Count; index++)
             {
                 var unit = units[index];
@@ -346,14 +371,21 @@ static class DocumentEditor
                 {
                     before[^1].AddRange(unit.Cells.Select(_ => new Old(_, index)));
                 }
-                else
+                else if (kept.Contains(index))
                 {
                     bounds.Add(unit);
                     before.Add([]);
                 }
+                else if (Removable(unit))
+                {
+                    dropped.Add(unit);
+                }
+                else
+                {
+                    throw new InvalidOperationException(fixedInPlace);
+                }
             }
 
-            const string fixedInPlace = "The paragraph's pictures, fields and notes have to stay as they are, and in their order.";
             var after = new List<List<Fresh>> {new()};
             for (var index = 0; index < content.Count; index++)
             {
@@ -404,6 +436,11 @@ static class DocumentEditor
                 var ahead = index < bounds.Count ? bounds[index] : null;
                 var behind = index > 0 ? bounds[index - 1] : null;
                 Stretch(paragraph, units, before[index], after[index], behind, ahead, results);
+            }
+
+            foreach (var unit in dropped)
+            {
+                Drop(unit);
             }
 
             for (var index = 0; index < content.Count && index < results.Count; index++)
@@ -1444,6 +1481,34 @@ static class DocumentEditor
             }
         }
 
+        public void ClearFormatting(SourcePosition start, SourcePosition end)
+        {
+            foreach (var cells in Between(start, end).AsEnumerable().Reverse())
+            {
+                var run = Isolate(cells);
+                if (run.RunProperties is not { } existing ||
+                    !existing.ChildElements.Any(Direct))
+                {
+                    continue;
+                }
+
+                var properties = Rerun(run);
+                foreach (var child in properties.ChildElements.Where(Direct).ToList())
+                {
+                    child.Remove();
+                }
+
+                if (!properties.HasChildren)
+                {
+                    properties.Remove();
+                }
+            }
+
+            // Formatting set on the run, not a record of a revision or the run's character style.
+            static bool Direct(OpenXmlElement property) =>
+                property is not (RunStyle or RunPropertiesChange or Inserted or Deleted or MoveFrom or MoveTo);
+        }
+
         // The editable characters between two places, a unit's at a time, in document order.
         List<List<Cell>> Between(SourcePosition start, SourcePosition end)
         {
@@ -1490,8 +1555,16 @@ static class DocumentEditor
                 .ToList();
         }
 
-        // Tracked, the run keeps a record of the properties it had: once, however often it is changed.
         void Change(OoxmlRun run, RunFormat format)
+        {
+            Rerun(run);
+            Set(run, format);
+        }
+
+        // A run's properties, about to be changed. Tracked, the run keeps a record of the properties
+        // it had: once, however often it is changed — and not at all in an insertion of the same
+        // author's, which is new whatever it looks like.
+        OoxmlRunProperties Rerun(OoxmlRun run)
         {
             if (options.Track &&
                 !(Insertion(run) is { } insertion && IsOwn(insertion)) &&
@@ -1508,7 +1581,7 @@ static class DocumentEditor
                 Properties(run).AppendChild(change);
             }
 
-            Set(run, format);
+            return Properties(run);
         }
 
         static OoxmlRunProperties Properties(OoxmlRun run)
@@ -1557,6 +1630,71 @@ static class DocumentEditor
                     Val = underline ? UnderlineValues.Single : UnderlineValues.None
                 };
             }
+
+            SetLook(properties, format);
+        }
+
+        // Word-probed 2026-10-18 (Word 16 over COM, each set on a word of its own): a font is
+        // w:rFonts for the ascii, hAnsi and cs scripts, East Asian left alone; a size is w:sz alone;
+        // a colour is w:color with no theme colour, and the automatic colour takes w:color away; a
+        // highlight is w:highlight; superscript and subscript are w:vertAlign.
+        static void SetLook(OoxmlRunProperties properties, RunFormat format)
+        {
+            if (format.Font is { } font)
+            {
+                var fonts = properties.RunFonts ?? new RunFonts();
+                fonts.Ascii = font;
+                fonts.HighAnsi = font;
+                fonts.ComplexScript = font;
+                fonts.AsciiTheme = null;
+                fonts.HighAnsiTheme = null;
+                fonts.ComplexScriptTheme = null;
+                properties.RunFonts = fonts;
+            }
+
+            if (format.SizePoints is { } size)
+            {
+                properties.FontSize = new()
+                {
+                    Val = ((int) Math.Round(size * 2)).ToString(CultureInfo.InvariantCulture)
+                };
+            }
+
+            if (format.Color is { } color)
+            {
+                properties.Color = null;
+                if (!string.Equals(color, "auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    properties.Color = new()
+                    {
+                        Val = color.ToUpperInvariant()
+                    };
+                }
+            }
+
+            if (format.Highlight is { } highlight)
+            {
+                properties.Highlight = null;
+                if (highlight != "none")
+                {
+                    properties.Highlight = new()
+                    {
+                        Val = new HighlightColorValues(highlight)
+                    };
+                }
+            }
+
+            if (format.Vertical is { } vertical)
+            {
+                properties.VerticalTextAlignment = null;
+                if (vertical != VerticalPositionValues.Baseline)
+                {
+                    properties.VerticalTextAlignment = new()
+                    {
+                        Val = vertical
+                    };
+                }
+            }
         }
 
         // On is the element alone, as Word writes it; off has to say so.
@@ -1572,7 +1710,9 @@ static class DocumentEditor
             return toggle;
         }
 
-        public void Align(Paragraph paragraph, TextAlignment alignment)
+        // A paragraph's properties, about to be changed. Tracked, they keep a record of what they
+        // were: once, however often they are changed.
+        OoxmlParagraphProperties Reformat(Paragraph paragraph)
         {
             var properties = paragraph.ParagraphProperties;
             if (properties == null)
@@ -1598,6 +1738,12 @@ static class DocumentEditor
                 properties.AppendChild(change);
             }
 
+            return properties;
+        }
+
+        public void Align(Paragraph paragraph, TextAlignment alignment)
+        {
+            var properties = Reformat(paragraph);
             properties.Justification = new()
             {
                 Val = alignment switch
@@ -1785,9 +1931,17 @@ static class DocumentEditor
                 offset += unit.Editable ? unit.Cells.Count : 1;
             }
 
+            // What is not text between the two places goes with the text: a picture, a page
+            // break, a field, a note's reference.
+            var atoms = Atoms(chain, start, end);
             foreach (var cells in stretches.AsEnumerable().Reverse())
             {
                 Remove(cells[0].Run, cells);
+            }
+
+            foreach (var unit in atoms)
+            {
+                Drop(unit);
             }
 
             var standing = chain[^1];

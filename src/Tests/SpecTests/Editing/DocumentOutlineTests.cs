@@ -132,4 +132,44 @@ public class DocumentOutlineTests
     [Arguments("<w:zoom w:percent=\"100\"/>", false)]
     public async Task Tracking_IsTheDocumentsOwnSetting(string settings, bool tracking) =>
         await Assert.That(DocumentOutline.Read(Build(P(R("Hello")), settings: settings)).Tracking).IsEqualTo(tracking);
+
+    // A place of a paragraph back as a position in one of its runs: a start at the first character at
+    // or after it, an end after the last character before it.
+    [Test]
+    public async Task APlace_IsAPositionInARun_EitherSideOfWhatIsNotText()
+    {
+        const string field =
+            "<w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText xml:space=\"preserve\"> DATE </w:instrText></w:r>" +
+            "<w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>1 May</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r>";
+        var docx = Build(P(R("On "), field, R("we"), R(" met", bold: true)));
+        var paragraph = DocumentOutline.Read(docx).Paragraphs[0];
+
+        // "On " is places 0-2, the field place 3, "we" 4-5, " met" 6-9.
+        await Assert.That(paragraph.PositionAt(1, ending: false)).IsEqualTo(new SourcePosition(0, 1));
+        await Assert.That(paragraph.PositionAt(3, ending: true)).IsEqualTo(new SourcePosition(0, 3));
+        await Assert.That(paragraph.PositionAt(3, ending: false)?.Offset).IsEqualTo(0);
+        await Assert.That(paragraph.PositionAt(6, ending: true)?.Offset).IsEqualTo(2);
+        await Assert.That(paragraph.PositionAt(6, ending: false)?.Offset).IsEqualTo(0);
+        await Assert.That(paragraph.PositionAt(10, ending: true)?.Offset).IsEqualTo(4);
+        await Assert.That(paragraph.PositionAt(10, ending: false)).IsNull();
+
+        foreach (var place in new[] {0, 2, 5, 8})
+        {
+            await Assert.That(paragraph.OffsetOf(paragraph.PositionAt(place, ending: false)!.Value)).IsEqualTo(place);
+        }
+    }
+
+    [Test]
+    public async Task AParagraph_SaysWhetherItIsInATable_AndAUnitWhetherItIsALink()
+    {
+        var docx = Build(
+            "<w:tbl><w:tr><w:tc><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>" +
+            "<w:p><w:hyperlink w:anchor=\"x\"><w:r><w:t>link</w:t></w:r></w:hyperlink><w:r><w:t> plain</w:t></w:r></w:p>");
+
+        var outline = DocumentOutline.Read(docx);
+
+        await Assert.That(outline.Paragraphs[0].InTable).IsTrue();
+        await Assert.That(outline.Paragraphs[1].InTable).IsFalse();
+        await Assert.That(outline.Paragraphs[1].Units.Select(_ => _.Linked)).IsEquivalentTo([true, false]);
+    }
 }

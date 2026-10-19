@@ -1,0 +1,67 @@
+﻿<div class="viewer editor" data-editor="" blazor:elementreference="scrubbed">
+  <div class="editor-ribbon" aria-busy="false">
+    <div class="editor-titlebar">
+      <div class="editor-tabs" role="tablist" aria-label="Ribbon">
+        <button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
+        <button type="button" role="tab" class="editor-tab" aria-selected="true" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="2">Home</button>
+        <button type="button" role="tab" class="editor-tab" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="3">Insert</button>
+        <button type="button" role="tab" class="editor-tab" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="4">Review</button>
+        <button type="button" role="tab" class="editor-tab" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="5">View</button>
+      </div>
+      <span class="editor-name"></span>
+      <div class="editor-quick">
+        <label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span class="viewer-hidden-label">Open file</span>
+          <input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open file" type="file" blazor:elementreference="scrubbed">
+        </label>
+        <button type="button" class="viewer-button" title="Save a copy (Ctrl+S)" aria-label="Save a copy" aria-keyshortcuts="Control+S" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+              <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"></path>
+            </g>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="viewer-body">
+    <div class="viewer-sidebar" role="navigation" aria-label="Page thumbnails">
+      <div class="viewer-thumbs"></div>
+    </div>
+    <div class="viewer-main">
+      <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
+      <div class="viewer-empty editor-start">
+        <p class="viewer-empty-title">Write a document</p>
+        <p class="viewer-empty-note">Start a new Word document, or open a .docx to edit. Nothing leaves this device.</p>
+        <div class="editor-start-actions">
+          <button type="button" class="editor-start-new" blazor:onclick="7">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"></path>
+                <path d="M14 2v4a2 2 0 0 0 2 2h4M3 15h6m-3-3v6"></path>
+              </g>
+            </svg>
+            Blank document
+          </button>
+          <button type="button" class="viewer-empty-open" data-viewer-action="open">Open a file</button>
+        </div>
+        <p class="viewer-empty-note">or drop one anywhere here</p>
+        <div class="sample-row">
+          <button type="button" class="sample-btn" blazor:onclick="8">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path>
+                <path d="M14 2v5a1 1 0 0 0 1 1h5M10 9H8m8 4H8m8 4H8"></path>
+              </g>
+            </svg>
+            Sample Word document
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
