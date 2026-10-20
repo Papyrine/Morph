@@ -90,7 +90,7 @@ slower, so read these as proportions:
 | --- | ---: | ---: | ---: |
 | `Rewrite` (edit + save) | 2.5ms | 3.7ms | **71ms** |
 | `Format` (bold a word) | 3.1ms | 3.6ms | 78ms |
-| `SetTracking` (no body edit) | 3.1ms | 3.0ms | **69ms** |
+| `SetTracking` (no body edit) | 3.1 → 0.6ms | 3.0 → 0.1ms | **69 → 3.0ms** |
 | `Open` (parse + layout) | 12.5ms | 9.4ms | 49ms |
 | `Outline` | 6.6ms | 4.2ms | 22ms |
 | `Review` | 4.4ms | 3.5ms | 21ms |
@@ -102,15 +102,21 @@ slower, so read these as proportions:
 
 `EditMap`, `SourceIndex`, the text layers and `TextDiff` are not worth touching. What is:
 
-### E2 — package save dominates on a document with media
+### E2 — a body edit re-parses and re-deflates the whole body
 
-`SetTracking` — one attribute in `settings.xml` — costs the same 69ms as a body rewrite on the newsletter:
-the cost is re-writing the zip, pictures included, not the edit. Every edit, undo entry and IndexedDB
-draft (`MorphViewer.Drafts.cs`, which also ships the whole file over interop) pays it.
+Probed 2026-10-20 on newsletters/03 (DocumentFormat.OpenXml 3.5.1). Media turned out to be irrelevant: the
+zip round trip with no DOM loaded is 3ms, since untouched entries are copied raw. The 5.5MB file is mostly
+`word/document.xml` itself — 2.7MB, ~2.5MB of it in two VML shapes (`v:rect`, `v:group`) carrying huge
+attributes. A body edit has to load that DOM (~50ms) and save writes it back, deflating at Optimal (~50ms;
+Fastest would be ~20ms). Every body edit pays that on such a file.
 
-**Fix to try:** copy unchanged zip entries raw (`System.IO.Compression` can't, without recompressing —
-needs measuring whether the SDK's save recompresses media, and whether `CompressionLevel.Fastest` /
-stored-for-media closes most of the gap).
+The part of it that was waste has landed: `SetTracking` validated the main part through `MainPart`, which
+loads the body, and so re-wrote it for an edit to `settings.xml` (see "Verified fine").
+
+**Left, and not cheap:** the SDK fixes an existing part's deflate level (`OpenXmlPackage.CompressionOption`
+applies only to new parts), so choosing Fastest means writing changed parts into the zip ourselves, beneath
+the SDK — and new parts and relationships still need its save. Worth it only if documents like this one
+show up in the editor in practice.
 
 ### E3 — paragraph lookup is linear per paragraph
 
@@ -137,6 +143,10 @@ ordinal list built once per `Editing` if select-all commands on long documents s
   20.5ms open it replaces. Part contents are identical with and without capture (only the zip container
   bytes differ); `EditCorpusTests.EveryDocument_ReadsTheSameCapturedAsAfresh` checks that and the reading
   over the whole corpus. Round trip now (default job): letter 8.1ms, twelve-pages 10.0ms, newsletter 94ms.
+- **`SetTracking` leaves the body unloaded** (landed 2026-10-20). It checked the main part through
+  `MainPart`, whose `Document` check loads the body DOM — which the save then re-serialized and
+  re-deflated. Newsletter 69 → 3.0ms, letter 3.1 → 0.6ms, twelve-pages 3.0 → 0.1ms. Under the viewer's
+  `Capture` the body is still read for the outline, but no longer written.
 
 - **The wrap memo** (`CanonicalParagraphMeasurer.wrapCache`, landed 2026-08-15). `Wrap` is a pure function
   of `(ParagraphElement, maxWidth)` and was being asked the same question repeatedly — the row-height and
