@@ -16,8 +16,8 @@ production renderers — `SkiaPageRenderer`, both `TextRenderer`s, `PdfTextEngin
 `PageRendererBase` — were deleted in 2026-08 when the layout engine became the only path to a rendered page
 (`docs/layout-engine.md`), so nearly every citation in that review pointed at a file that no longer exists.
 
-Every item of it had landed except the optional part of P4c and the PDF page-range item, restated below as
-L5 and L4. The caches the landed items added live on the render contexts rather than on the deleted
+Every item of it had landed except the optional part of P4c and the PDF page-range item, restated as L5
+(since landed) and L4. The caches the landed items added live on the render contexts rather than on the deleted
 renderers, so they survived the deletion intact — they are listed under "Verified fine" and must not be
 re-chased.
 
@@ -47,7 +47,7 @@ but raster spends most of its time in rasterization and PNG encode.
 **Counting first also sizes the prize before the work.** `BenchmarkDocs` has no table-heavy document and no
 header/footer table, which is why the corpus counters, not the benchmark set, settled all three. The same
 counters showed the table-geometry memo touching 6 of 330 scenarios — worth knowing before, not after. L4
-needs a page-range case; L5 is measurable on `ParseBenchmarks` as it stands.
+needs a page-range case.
 
 ---
 
@@ -62,20 +62,6 @@ it from `LaidOutDocument.Pages.Count`, which is why the second counting pass the
 see the comment at :8-14). Painting does not.
 
 **Fix:** thread the range into `PdfPainter.Paint` and skip the draw for out-of-range pages.
-
-## L5 — parser: ~9 independent whole-body walks in `ParseDocument`
-
-`DocumentParser.ParseDocument` (src/Morph/OpenXml/Parsing/DocumentParser.cs:276) still walks the entire body
-once per feature: `LastRenderedPageBreak` count (:284), `SectionProperties` (:314), `ExtractEmbeddedObjects`
-(:530), `ExtractFieldCodes` over every run (:869) and its `SimpleField` pass (:920), `ExtractTrackedChanges`
-(:976 and :986), `CommentRangeStart` (:1027), `BookmarkStart` (:1083), and `DetectAdvancedFeatures` (:457) —
-whose walk is an untyped `body.Descendants()` and so the most expensive of the set.
-
-The cheap halves of the original P4c landed: the paragraph-ordinal map is built at most once and only when
-bookmarks or comments are present (:401-416), and `DetectAdvancedFeatures` already folded two walks into one.
-
-**Fix:** fold the type-filtered extractors into the untyped walk `DetectAdvancedFeatures` already makes,
-dispatching on `LocalName` — the consolidation that method's own comment describes, applied across the rest.
 
 ---
 
@@ -147,6 +133,13 @@ ordinal list built once per `Editing` if select-all commands on long documents s
   `MainPart`, whose `Document` check loads the body DOM — which the save then re-serialized and
   re-deflated. Newsletter 69 → 3.0ms, letter 3.1 → 0.6ms, twelve-pages 3.0 → 0.1ms. Under the viewer's
   `Capture` the body is still read for the outline, but no longer written.
+- **One walk of the body for what the parser reads beside its blocks** (`BodyScan`, landed 2026-10-20, was
+  L5). Section breaks, fields, tracked changes, comment and bookmark anchors, embedded objects, anchors and
+  the feature flags were a dozen whole-body walks; one untyped walk switching on type gathers them all. The
+  prize was small and is what was measured: `ParseBenchmarks`, default job, Small 3.31→3.07ms,
+  ComplexTables 3.62→3.25ms, RepeatedImage 2.79→2.66ms, Watermark and Toc within noise, and Large (the
+  newsletter) flat at ~21ms across three back-to-back runs — its parse is the 2.7MB DOM load, not the walks.
+  Do not chase walks further: on a loaded body one walk is 0.03–0.2ms.
 
 - **The wrap memo** (`CanonicalParagraphMeasurer.wrapCache`, landed 2026-08-15). `Wrap` is a pure function
   of `(ParagraphElement, maxWidth)` and was being asked the same question repeatedly — the row-height and
@@ -207,5 +200,5 @@ ordinal list built once per `Editing` if select-all commands on long documents s
 
 ## Suggested order
 
-**L4** and **L5** are independent of each other and of everything landed. Both are self-contained; neither
-needs the layout work that preceded them.
+**L4** is independent of everything landed and self-contained. **E3** waits on select-all commands over long
+documents showing up; **E2**'s remainder on documents like the newsletter showing up in the editor.

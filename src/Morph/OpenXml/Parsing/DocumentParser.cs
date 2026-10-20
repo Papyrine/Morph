@@ -340,7 +340,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var body = mainPart.Document?.Body
                    ?? throw new InvalidOperationException("Document has no body");
 
-        lastRenderedPageBreakCount = body.Descendants<LastRenderedPageBreak>().Count();
+        var scan = new BodyScan(body);
+        lastRenderedPageBreakCount = scan.LastRenderedPageBreaks;
         // Sources are counted across the body, the headers and footers, and the notes, the body first,
         // so that what an editor opens anywhere on a page can be found again in the markup.
         var stories = captureSources ? SourceRuns.Stories(doc) : [];
@@ -388,7 +389,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // SectionProperties (sectPr) describes the section it belongs to, and the section break is stored
         // on the last paragraph of the section. The next section's properties are stored in the next sectPr.
-        var sectionPropsList = body.Descendants<SectionProperties>().ToList();
+        var sectionPropsList = scan.Sections;
         stylesById = null;
         hyperlinkUrlsByRelId = null;
         imagePartBytes.Clear();
@@ -413,7 +414,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // slightly off — acceptable: align-positioned art overwhelmingly sits in section 1
         // covers/headers, and multi-section documents rarely change the page box.
         anchorAlignmentPage = pageSettings;
-        FoldRelativeSizes(body, pageSettings);
+        if (scan.HasAnchors)
+        {
+            FoldRelativeSizes(body, pageSettings);
+        }
 
         // Extract style run properties (with theme color resolution)
         styleRunProperties = ExtractStyleRunProperties(mainPart);
@@ -489,35 +493,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var evenPageFooter = firstSection.EvenPageFooter;
         var hyphenation = ExtractHyphenationSettings(mainPart);
 
-        // Both bookmark and comment extraction anchor to paragraph ordinals; the map costs a
-        // full body walk, so it's built at most once and only when either feature is present.
-        Dictionary<Paragraph, int>? paragraphOrdinals = null;
-
-        Dictionary<Paragraph, int> ParagraphOrdinals()
-        {
-            if (paragraphOrdinals == null)
-            {
-                paragraphOrdinals = new();
-                var ordinal = 0;
-                foreach (var paragraph in body.Descendants<Paragraph>())
-                {
-                    paragraphOrdinals[paragraph] = ordinal++;
-                }
-            }
-
-            return paragraphOrdinals;
-        }
-
-        var bookmarks = ExtractBookmarks(body, ParagraphOrdinals);
-        var comments = ExtractComments(mainPart, body, ParagraphOrdinals);
-        var trackedChanges = ExtractTrackedChanges(body);
+        var bookmarks = ExtractBookmarks(scan);
+        var comments = ExtractComments(mainPart, scan);
+        var trackedChanges = ExtractTrackedChanges(scan);
         var protection = ExtractDocumentProtection(mainPart);
-        var fieldCodes = ExtractFieldCodes(body);
+        var fieldCodes = ExtractFieldCodes(scan);
         var (footnotes, footnoteSeparator, footnoteContinuation) = ExtractFootnotes(mainPart);
         var (endnotes, endnoteSeparator, endnoteContinuation) = ExtractEndnotes(mainPart);
-        var embeddedObjects = ExtractEmbeddedObjects(body);
+        var embeddedObjects = ExtractEmbeddedObjects(scan);
         var watermarks = ExtractWatermarks(mainPart);
-        var features = DetectAdvancedFeatures(body, watermarks.Count > 0);
+        var features = scan.Features(watermarks.Count > 0);
 
         return new()
         {
@@ -552,80 +537,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    static DocumentFeatures DetectAdvancedFeatures(Body body, bool hasWatermark)
-    {
-        var hasCharts = false;
-        var hasSmartArt = false;
-        var hasMath = false;
-        var hasGradients = false;
-        var hasBezier = false;
-        var has3d = false;
-        var hasConnectors = false;
-        var hasDuotone = false;
-
-        // Single descendant pass: every feature flag is OR'd from a switch on LocalName,
-        // so we don't need separate walks (the prior version did one for math + one for
-        // everything else, doubling DOM traversal cost on large documents).
-        foreach (var element in body.Descendants())
-        {
-            switch (element.LocalName)
-            {
-                case "oMath":
-                case "oMathPara":
-                    hasMath = true;
-                    break;
-                case "graphicData":
-                    var uri = element.AttributeValue("uri");
-                    if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
-                    {
-                        hasCharts = true;
-                    }
-                    else if (uri == "http://schemas.openxmlformats.org/drawingml/2006/diagram")
-                    {
-                        hasSmartArt = true;
-                    }
-
-                    break;
-                case "gradFill":
-                    hasGradients = true;
-                    break;
-                case "custGeom":
-                    hasBezier = true;
-                    break;
-                case "sp3d":
-                case "scene3d":
-                    has3d = true;
-                    break;
-                case "cxnSp":
-                    hasConnectors = true;
-                    break;
-                case "duotone":
-                case "clrChange":
-                    hasDuotone = true;
-                    break;
-            }
-        }
-
-        // hasWatermark is determined externally and passed in (extracted alongside the watermark list).
-
-        return new()
-        {
-            HasCharts = hasCharts,
-            HasSmartArt = hasSmartArt,
-            HasMath = hasMath,
-            HasWatermarks = hasWatermark,
-            HasGradientFills = hasGradients,
-            HasBezierShapes = hasBezier,
-            Has3dEffects = has3d,
-            HasConnectors = hasConnectors,
-            HasDuotoneEffects = hasDuotone
-        };
-    }
-
-    static List<EmbeddedObject> ExtractEmbeddedObjects(Body body)
+    static List<EmbeddedObject> ExtractEmbeddedObjects(BodyScan scan)
     {
         var result = new List<EmbeddedObject>();
-        foreach (var obj in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.EmbeddedObject>())
+        foreach (var obj in scan.EmbeddedObjects)
         {
             string? progId = null;
             string? relId = null;
@@ -1079,14 +994,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    static IReadOnlyList<FieldCode> ExtractFieldCodes(Body body)
+    static IReadOnlyList<FieldCode> ExtractFieldCodes(BodyScan scan)
     {
         var result = new List<FieldCode>();
         var instructionStack = new Stack<StringBuilder>();
         var resultStack = new Stack<StringBuilder>();
         var inResult = new Stack<bool>();
 
-        foreach (var run in body.Descendants<OoxmlRun>())
+        foreach (var run in scan.Runs)
         {
             foreach (var child in run.ChildElements)
             {
@@ -1138,7 +1053,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // Legacy w:fldSimple (single-element field). The instruction lives in @w:instr and the
         // cached result is the descendant text.
-        foreach (var simple in body.Descendants<SimpleField>())
+        foreach (var simple in scan.SimpleFields)
         {
             var rawInstruction = simple.Instruction?.Value;
             if (!rawInstruction.TryTrim(out var instruction))
@@ -1191,11 +1106,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    static List<TrackedChange> ExtractTrackedChanges(Body body)
+    static List<TrackedChange> ExtractTrackedChanges(BodyScan scan)
     {
         var result = new List<TrackedChange>();
 
-        foreach (var ins in body.Descendants<InsertedRun>())
+        foreach (var ins in scan.Insertions)
         {
             if (ins.Id?.Value is not { } id)
             {
@@ -1205,7 +1120,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             result.Add(BuildChange(id, ins.Author?.Value, ins.Date?.Value, TrackedChangeType.Insertion, ins));
         }
 
-        foreach (var del in body.Descendants<DeletedRun>())
+        foreach (var del in scan.Deletions)
         {
             if (del.Id?.Value is not { } id)
             {
@@ -1234,7 +1149,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
-    static List<Comment> ExtractComments(MainDocumentPart mainPart, Body body, Func<Dictionary<Paragraph, int>> getParagraphOrdinals)
+    static List<Comment> ExtractComments(MainDocumentPart mainPart, BodyScan scan)
     {
         var commentsPart = mainPart.WordprocessingCommentsPart;
         if (commentsPart?.Comments == null)
@@ -1246,14 +1161,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // shared with bookmark extraction and only materialized when a range start exists.
         Dictionary<Paragraph, int>? paragraphOrdinals = null;
         var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var rangeStart in body.Descendants<CommentRangeStart>())
+        foreach (var rangeStart in scan.CommentStarts)
         {
             if (rangeStart.Id?.Value is not { } rangeId)
             {
                 continue;
             }
 
-            paragraphOrdinals ??= getParagraphOrdinals();
+            paragraphOrdinals ??= scan.ParagraphOrdinals();
             for (var current = rangeStart.Parent; current != null; current = current.Parent)
             {
                 if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
@@ -1295,14 +1210,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return result;
     }
 
-    static List<Bookmark> ExtractBookmarks(Body body, Func<Dictionary<Paragraph, int>> getParagraphOrdinals)
+    static List<Bookmark> ExtractBookmarks(BodyScan scan)
     {
-        // The paragraph-ordinal map costs a full body walk; most documents have no bookmarks,
-        // so it's only materialized (shared with comment extraction) once a bookmark is found.
+        // Most documents have no bookmarks, so the paragraph-ordinal map is only built (shared with
+        // comment extraction) once a bookmark is found.
         Dictionary<Paragraph, int>? paragraphOrdinals = null;
 
         var result = new List<Bookmark>();
-        foreach (var start in body.Descendants<BookmarkStart>())
+        foreach (var start in scan.BookmarkStarts)
         {
             if (start.Id?.Value is not { } id ||
                 start.Name?.Value is not { } name)
@@ -1310,7 +1225,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
-            paragraphOrdinals ??= getParagraphOrdinals();
+            paragraphOrdinals ??= scan.ParagraphOrdinals();
 
             int? paragraphIndex = null;
             for (var current = start.Parent; current != null; current = current.Parent)
@@ -4541,11 +4456,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // ends at the paragraph carrying its w:sectPr, and the body's own w:sectPr is the last section's.
     void FoldRelativeSizes(Body body, PageSettings firstSection)
     {
-        if (!body.Descendants<DocumentFormat.OpenXml.Drawing.Wordprocessing.Anchor>().Any())
-        {
-            return;
-        }
-
         // Walked from the end, so that each element is under the section properties that close it.
         var page = body.GetFirstChild<SectionProperties>() is { } last ? ExtractPageSettings(last) : firstSection;
         for (var index = body.ChildElements.Count - 1; index >= 0; index--)
