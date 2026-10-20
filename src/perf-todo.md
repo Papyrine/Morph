@@ -72,7 +72,7 @@ Every edit that changes the pages goes file → parse → layout → reload (`Mo
 each stage on three documents; desktop CoreCLR, `--job short` — the WebAssembly runtime is several times
 slower, so read these as proportions:
 
-| stage | letter (1p) | twelve-pages | newsletter (5.5MB) |
+| stage | letter (1p) | twelve-pages | newsletter (2.8MB) |
 | --- | ---: | ---: | ---: |
 | `Rewrite` (edit + save) | 2.5ms | 3.7ms | **71ms** |
 | `Format` (bold a word) | 3.1ms | 3.6ms | 78ms |
@@ -87,22 +87,6 @@ slower, so read these as proportions:
 | **`RoundTrip`** | **13ms** | **20ms** | **236ms** |
 
 `EditMap`, `SourceIndex`, the text layers and `TextDiff` are not worth touching. What is:
-
-### E2 — a body edit re-parses and re-deflates the whole body
-
-Probed 2026-10-20 on newsletters/03 (DocumentFormat.OpenXml 3.5.1). Media turned out to be irrelevant: the
-zip round trip with no DOM loaded is 3ms, since untouched entries are copied raw. The 5.5MB file is mostly
-`word/document.xml` itself — 2.7MB, ~2.5MB of it in two VML shapes (`v:rect`, `v:group`) carrying huge
-attributes. A body edit has to load that DOM (~50ms) and save writes it back, deflating at Optimal (~50ms;
-Fastest would be ~20ms). Every body edit pays that on such a file.
-
-The part of it that was waste has landed: `SetTracking` validated the main part through `MainPart`, which
-loads the body, and so re-wrote it for an edit to `settings.xml` (see "Verified fine").
-
-**Left, and not cheap:** the SDK fixes an existing part's deflate level (`OpenXmlPackage.CompressionOption`
-applies only to new parts), so choosing Fastest means writing changed parts into the zip ourselves, beneath
-the SDK — and new parts and relationships still need its save. Worth it only if documents like this one
-show up in the editor in practice.
 
 ### E3 — paragraph lookup is linear per paragraph
 
@@ -133,6 +117,26 @@ ordinal list built once per `Editing` if select-all commands on long documents s
   `MainPart`, whose `Document` check loads the body DOM — which the save then re-serialized and
   re-deflated. Newsletter 69 → 3.0ms, letter 3.1 → 0.6ms, twelve-pages 3.0 → 0.1ms. Under the viewer's
   `Capture` the body is still read for the outline, but no longer written.
+- **An edit writes the parts it changed at Fastest** (`FastDeflate`, landed 2026-10-20, was E2). Probed on
+  newsletters/03, a 2.8MB file that is mostly its body: 2.6MB of XML, ~2.5MB of it in two VML shapes'
+  attributes. Media is irrelevant — untouched entries are copied raw, so a save with no DOM loaded is ~4ms.
+  A body edit is ~20ms loading the DOM and ~57ms saving it, and of the save ~4ms is serialization and the
+  rest Optimal deflate. The SDK gives an existing part no compression option (`CompressionOption` reaches
+  only new parts), but `ZipArchive` since .NET 9 rewrites an entry at the level its general-purpose flags
+  declare, so `DocumentReading.Edit` marks its copy's entries "fast" before opening it — two bytes per
+  entry, and the SDK's own save does the rest. `EditBenchmarks`, default job: newsletter `Rewrite`
+  70.6→39.0ms, `Format` 66.5→37.8ms, `RoundTrip` 94.2→65.6ms; letter `RoundTrip` 8.25→7.9ms; twelve-pages
+  flat. The newsletter's file grows 2.7→3.3MB (its body deflates to 2.4MB rather than 1.85MB); ordinary XML
+  barely does (the letter's file 29→30KB). `EditCorpusTests` checks part contents are unchanged by the
+  marking over the corpus, and `AnEdit_WritesTheBodyAtFastest` that the runtime still honours the flags.
+  Deflate per level and strategy, newsletter body / complex_tables body: Optimal 73ms 1851KB / 2KB,
+  Fastest 27ms 2423KB / 3KB, Huffman-only 14ms 1982KB / 29KB, stored 1.5ms 2607KB / 47KB — Huffman-only
+  wins only on this body's high-entropy attributes, and is ten times worse on ordinary XML.
+  **What is left** is the ~25ms Fastest still costs on such a body. The flags cannot ask for stored (the
+  "super fast" value maps to Fastest too, "maximum" to SmallestSize), so it means writing the changed parts
+  into the zip beneath the SDK (`OpenXmlPart.IsRootElementLoaded` / `UnloadRootElement` are public, so
+  serialize, unload, let the SDK save structure, then replace those entries), and either a file a third
+  larger or a repack on the way out (download, `OnSave`). Not worth it unless bodies like this are common.
 - **One walk of the body for what the parser reads beside its blocks** (`BodyScan`, landed 2026-10-20, was
   L5). Section breaks, fields, tracked changes, comment and bookmark anchors, embedded objects, anchors and
   the feature flags were a dozen whole-body walks; one untyped walk switching on type gathers them all. The
@@ -201,4 +205,4 @@ ordinal list built once per `Editing` if select-all commands on long documents s
 ## Suggested order
 
 **L4** is independent of everything landed and self-contained. **E3** waits on select-all commands over long
-documents showing up; **E2**'s remainder on documents like the newsletter showing up in the editor.
+documents showing up.

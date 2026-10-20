@@ -197,6 +197,58 @@ public class EditCorpusTests
         await Assert.That(Json(read)).IsEqualTo(Json(freshRead));
     }
 
+    // FastDeflate changes how hard the parts an edit writes back are compressed, never what they hold:
+    // every part loaded and saved holds the same marked as not.
+    [Test]
+    [MethodDataSource(nameof(Documents))]
+    public async Task EveryDocument_SavesTheSamePartsMarkedFast(string scenario)
+    {
+        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var marked = docx.ToArray();
+        FastDeflate.Mark(marked);
+
+        await Assert.That(Differing(Resaved(marked), Resaved(docx))).IsEmpty()
+            .Because($"marking {scenario} fast changed what its parts hold");
+    }
+
+    // An edit writes the parts it changed at Fastest, which is what the marking is for: a runtime that
+    // stopped honouring an entry's declared level would leave edits at Optimal, silently.
+    [Test]
+    public async Task AnEdit_WritesTheBodyAtFastest()
+    {
+        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
+        var paragraph = DocumentOutline.Read(docx).Paragraphs.First(_ => _.Units.Any(unit => unit.Editable));
+        var content = new NewParagraph[] { new(Items(paragraph, typed)) };
+        var edited = DocumentEditor.Rewrite(docx, paragraph.Ordinal, content, Tracked).Document;
+
+        using var archive = new System.IO.Compression.ZipArchive(new MemoryStream(edited));
+        var body = archive.GetEntry("word/document.xml")!;
+        using var fastest = new MemoryStream();
+        using (var deflate = new System.IO.Compression.DeflateStream(fastest, System.IO.Compression.CompressionLevel.Fastest, true))
+        {
+            deflate.Write(Entries(edited)["word/document.xml"]);
+        }
+
+        await Assert.That(body.CompressedLength).IsEqualTo(fastest.Length);
+    }
+
+    // The package with every part's DOM loaded and saved back, as an edit that touched them all would.
+    static byte[] Resaved(byte[] docx)
+    {
+        using var stream = new MemoryStream();
+        stream.Write(docx);
+        stream.Position = 0;
+        using (var document = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, true))
+        {
+            foreach (var part in document.GetAllParts())
+            {
+                _ = part.RootElement;
+            }
+        }
+
+        return stream.ToArray();
+    }
+
     // The parts whose content differs between two packages, or that one has and the other not.
     static List<string> Differing(byte[] first, byte[] second)
     {
