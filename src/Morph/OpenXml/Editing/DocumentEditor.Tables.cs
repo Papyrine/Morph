@@ -223,8 +223,7 @@ static partial class DocumentEditor
                 Follow(units);
                 foreach (var unit in units.AsEnumerable().Reverse())
                 {
-                    if (unit.Editable &&
-                        unit.Cells.Count > 0)
+                    if (unit is { Editable: true, Cells.Count: > 0 })
                     {
                         Remove(unit.Cells);
                     }

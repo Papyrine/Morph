@@ -192,12 +192,14 @@ public partial class MorphViewer
         await PushReviewAsync(false);
     }
 
-    async Task OpenReviewAsync()
+    Task OpenReviewAsync()
     {
         if (!reviewOpen)
         {
-            await ToggleReviewAsync();
+            return ToggleReviewAsync();
         }
+
+        return Task.CompletedTask;
     }
 
     EditTarget? FromSelection()
@@ -266,7 +268,7 @@ public partial class MorphViewer
     }
 
     // An edit that leaves the caret somewhere, and the paragraph open again there.
-    async Task EditAtAsync(EditTarget target, Func<byte[], EditOptions, EditResult> edit, bool resume = true)
+    async Task EditAtAsync(Func<byte[], EditOptions, EditResult> edit, bool resume = true)
     {
         var options = await EditOptionsAsync();
         EditResult? result = null;
@@ -569,7 +571,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.InsertPageBreak(_, target.Paragraph, target.Offset, options));
+        await EditAtAsync((_, options) => DocumentEditor.InsertPageBreak(_, target.Paragraph, target.Offset, options));
     }
 
     internal async Task InsertTableAsync(int rows, int columns)
@@ -579,7 +581,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.InsertTable(_, target.Paragraph, target.Offset, rows, columns, options));
+        await EditAtAsync((_, options) => DocumentEditor.InsertTable(_, target.Paragraph, target.Offset, rows, columns, options));
     }
 
     internal async Task EditTableAsync(TableEdit change)
@@ -589,7 +591,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
+        await EditAtAsync((_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
     }
 
     // Headers, footers and footnotes. A header or footer is opened for typing, made if the section
@@ -601,7 +603,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.EditHeader(_, target.Paragraph, footer, options));
+        await EditAtAsync((_, options) => DocumentEditor.EditHeader(_, target.Paragraph, footer, options));
     }
 
     internal async Task InsertFootnoteAsync()
@@ -611,7 +613,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.InsertFootnote(_, target.Paragraph, target.Offset, options));
+        await EditAtAsync((_, options) => DocumentEditor.InsertFootnote(_, target.Paragraph, target.Offset, options));
     }
 
     // A section's page: margins, which way up, the paper, and breaks between sections. They act on the
@@ -709,7 +711,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.InsertSectionBreak(_, target.Paragraph, target.Offset, continuous, options));
+        await EditAtAsync((_, options) => DocumentEditor.InsertSectionBreak(_, target.Paragraph, target.Offset, continuous, options));
     }
 
     // A picture sized: the one selected, or the one just before the caret.
@@ -748,8 +750,7 @@ public partial class MorphViewer
 
     static (int Paragraph, int Offset) PictureAt(EditTarget target)
     {
-        if (target.HasSelection &&
-            target.StartParagraph >= 0)
+        if (target is { HasSelection: true, StartParagraph: >= 0 })
         {
             return (target.StartParagraph, target.StartOffset);
         }
@@ -804,7 +805,7 @@ public partial class MorphViewer
         }
 
         var (first, last) = Cells(target);
-        await EditAtAsync(target, (_, options) => DocumentEditor.MergeCells(_, first, last, options));
+        await EditAtAsync((_, options) => DocumentEditor.MergeCells(_, first, last, options));
     }
 
     internal async Task SplitCellAsync(int columns, int rows)
@@ -814,7 +815,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(target, (_, options) => DocumentEditor.SplitCell(_, target.Paragraph, columns, rows, options));
+        await EditAtAsync((_, options) => DocumentEditor.SplitCell(_, target.Paragraph, columns, rows, options));
     }
 
     // A width in centimetres, as the ribbon takes it: 567 twips to the centimetre.
@@ -853,8 +854,11 @@ public partial class MorphViewer
     // Where a selection of cells starts and ends, in paragraphs; with none, the caret's cell.
     static (int First, int Last) Cells(EditTarget target)
     {
-        if (target.HasSelection &&
-            target.StartParagraph >= 0)
+        if (target is
+            {
+                HasSelection: true,
+                StartParagraph: >= 0
+            })
         {
             return (Math.Min(target.StartParagraph, target.Paragraph), Math.Max(target.StartParagraph, target.Paragraph));
         }
@@ -902,7 +906,7 @@ public partial class MorphViewer
                 return;
             }
 
-            await EditAtAsync(target, (_, options) => DocumentEditor.InsertPicture(_, target.Paragraph, target.Offset, picture, options));
+            await EditAtAsync((_, options) => DocumentEditor.InsertPicture(_, target.Paragraph, target.Offset, picture, options));
         }
         catch (IOException exception)
         {
@@ -980,11 +984,15 @@ public partial class MorphViewer
         return true;
     }
 
-    internal async Task LinkAsync(string address)
+    internal Task LinkAsync(string address)
     {
-        if (linkTarget is not {Start: { } start, End: { } end} target)
+        if (linkTarget is not
+            {
+                Start: { } start,
+                End: { } end
+            } target)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         linkTarget = null;
@@ -995,7 +1003,7 @@ public partial class MorphViewer
             address = $"https://{address}";
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.Link(_, start, end, address, options));
+        return EditParagraphsAsync(target, (_, options) => DocumentEditor.Link(_, start, end, address, options));
     }
 
     internal async Task UnlinkAsync()
@@ -1031,12 +1039,12 @@ public partial class MorphViewer
 
     // Find and replace
 
-    internal async Task OpenReplaceAsync()
+    internal Task OpenReplaceAsync()
     {
         replaceOpen = true;
         focusReplace = findQuery.Trim().Length > 0;
         replaceNote = null;
-        await OpenFindAsync();
+        return OpenFindAsync();
     }
 
     void OnReplaceInput(ChangeEventArgs args) =>

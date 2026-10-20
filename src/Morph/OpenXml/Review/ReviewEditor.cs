@@ -91,7 +91,7 @@ static class ReviewEditor
     // What an edit removed along the way, to tidy up after.
     sealed class Removals
     {
-        public HashSet<string> CommentIds { get; } = new(StringComparer.Ordinal);
+        public HashSet<string> CommentIds { get; } = [with(StringComparer.Ordinal)];
     }
 
     static void Resolve(WordprocessingDocument document, Dictionary<int, HashSet<int>>? ordinalsByPart, bool accept)

@@ -16,8 +16,8 @@ public class DrawingAndTableParseRulesTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new($"<w:document {wNs}><w:body>{body}</w:body></w:document>");
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {wNs}>{styles}</w:styles>");
+            main.Document = [with($"<w:document {wNs}><w:body>{body}</w:body></w:document>")];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {wNs}>{styles}</w:styles>")];
         }
 
         stream.Position = 0;
@@ -157,7 +157,7 @@ public class DrawingAndTableParseRulesTests
     [Test]
     public async Task A_dash_is_stroked_in_multiples_of_its_line_width()
     {
-        await Assert.That(ShapeStroke.DashLengths([4, 3], 2)).IsEquivalentTo(new[] {8f, 6f});
+        await Assert.That(ShapeStroke.DashLengths([4, 3], 2)).IsEquivalentTo([8f, 6f]);
         await Assert.That(ShapeStroke.DashLengths(null, 2)).IsNull();
         await Assert.That(ShapeStroke.DashLengths([4, 3], 0)).IsNull();
     }

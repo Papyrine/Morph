@@ -14,8 +14,8 @@ public class StyleDefinitionRulesTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new($"<w:document {wNs}><w:body>{body}</w:body></w:document>");
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {wNs}>{styles}</w:styles>");
+            main.Document = [with($"<w:document {wNs}><w:body>{body}</w:body></w:document>")];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {wNs}>{styles}</w:styles>")];
         }
 
         stream.Position = 0;

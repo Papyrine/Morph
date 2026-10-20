@@ -122,7 +122,7 @@ sealed class SpreadsheetParser(
                 // as nothing here, but drawn a sheet to an image it is still one of the sheets, and
                 // leaving it out would put every image after it against the wrong one. It is drawn
                 // as a sheet with nothing on it is.
-                worksheet = new(new S.SheetData());
+                worksheet = [with(new S.SheetData())];
             }
 
             AssignImpliedReferences(worksheet);

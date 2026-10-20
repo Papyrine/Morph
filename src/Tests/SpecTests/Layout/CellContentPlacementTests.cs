@@ -72,7 +72,7 @@ public class CellContentPlacementTests
     [Test]
     public async Task Bottom_alignment_moves_an_inline_text_boxs_frame_with_its_text()
     {
-        TableElement Boxed(CellVerticalAlignment alignment) => new()
+        static TableElement Boxed(CellVerticalAlignment alignment) => new()
         {
             Rows =
             [

@@ -117,7 +117,7 @@ public class SvgStyleTests
 
         await Assert.That(paths[0].FillColorHex).IsEqualTo("AA0000");
         await Assert.That(paths[0].EvenOdd).IsTrue();
-        await Assert.That(paths[0].Stroke).IsEqualTo(new SvgStroke("0000AA", 1, 3, SvgLineCap.Round, SvgLineJoin.Bevel, 8));
+        await Assert.That(paths[0].Stroke).IsEqualTo(new("0000AA", 1, 3, SvgLineCap.Round, SvgLineJoin.Bevel, 8));
         await Assert.That(paths[1].FillColorHex).IsNull();
         await Assert.That(paths[1].Stroke!.Width).IsEqualTo(1d);
         await Assert.That(paths[2].FillColorHex).IsEqualTo("AA0000");

@@ -41,7 +41,7 @@ static partial class DocumentEditor
                 var first = existing.Descendants<Paragraph>().FirstOrDefault();
                 if (first == null)
                 {
-                    first = new Paragraph();
+                    first = new();
                     existing.AppendChild(first);
                 }
 
@@ -58,7 +58,7 @@ static partial class DocumentEditor
             if (footer)
             {
                 var part = main.AddNewPart<FooterPart>(id);
-                part.Footer = new(paragraph);
+                part.Footer = [with(paragraph)];
                 section.PrependChild(new FooterReference
                 {
                     Type = HeaderFooterValues.Default,
@@ -68,7 +68,7 @@ static partial class DocumentEditor
             else
             {
                 var part = main.AddNewPart<HeaderPart>(id);
-                part.Header = new(paragraph);
+                part.Header = [with(paragraph)];
                 section.PrependChild(new HeaderReference
                 {
                     Type = HeaderFooterValues.Default,
@@ -122,10 +122,13 @@ static partial class DocumentEditor
                 id = 1;
             }
 
-            Add(point, new OoxmlRun(Referenced(), new FootnoteReference
-            {
-                Id = id
-            }));
+            Add(
+                point,
+                new(Referenced(),
+                    new FootnoteReference
+                    {
+                        Id = id
+                    }));
 
             var note = new Paragraph(
                 new DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties(new ParagraphStyleId
@@ -159,10 +162,12 @@ static partial class DocumentEditor
             return (note, int.MaxValue);
 
             static DocumentFormat.OpenXml.Wordprocessing.RunProperties Referenced() =>
-                new(new RunStyle
+            [
+                with(new RunStyle
                 {
                     Val = "FootnoteReference"
-                });
+                })
+            ];
         }
 
         // The footnotes, made with Word's two separators where the document has none.
@@ -174,9 +179,11 @@ static partial class DocumentEditor
                 return existing;
             }
 
-            part.Footnotes = new(
-                Separator(-1, FootnoteEndnoteValues.Separator, new SeparatorMark()),
-                Separator(0, FootnoteEndnoteValues.ContinuationSeparator, new ContinuationSeparatorMark()));
+            part.Footnotes =
+            [
+                with(Separator(-1, FootnoteEndnoteValues.Separator, new SeparatorMark()),
+                    Separator(0, FootnoteEndnoteValues.ContinuationSeparator, new ContinuationSeparatorMark()))
+            ];
             return part.Footnotes;
 
             static OoxmlFootnote Separator(int id, FootnoteEndnoteValues type, OpenXmlElement mark) =>

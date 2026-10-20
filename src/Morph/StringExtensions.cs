@@ -84,5 +84,5 @@ static class StringExtensions
             });
     }
 
-    static readonly System.Buffers.SearchValues<char> separators = System.Buffers.SearchValues.Create([lineSeparator, paragraphSeparator, '\n', '\r']);
+    static readonly System.Buffers.SearchValues<char> separators = System.Buffers.SearchValues.Create(lineSeparator, paragraphSeparator, '\n', '\r');
 }

@@ -264,7 +264,7 @@ sealed class SvgReader
             return (null, null, false);
         }
 
-        if (align.Length != 8 || words.Count > 2 || (words.Count == 2 && words[1] is not ("meet" or "slice")))
+        if (align.Length != 8 || words.Count > 2 || words is [_, not ("meet" or "slice")])
         {
             throw new UnsupportedException($"the preserveAspectRatio '{value}'");
         }
@@ -346,7 +346,7 @@ sealed class SvgReader
 
         // A translucent container's shapes are gathered apart, so that Fade can judge them together.
         var opacity = ReadOpacity(declared, "opacity");
-        var group = opacity < 1 ? new List<SvgPath>() : output;
+        var group = opacity < 1 ? new() : output;
         switch (name)
         {
             case "svg" when isRoot:
@@ -630,7 +630,7 @@ sealed class SvgReader
             return;
         }
 
-        if (group.Exists(_ => _.FillColorHex != null && _.Stroke != null) || Overlaps(group))
+        if (group.Exists(_ => _ is { FillColorHex: not null, Stroke: not null }) || Overlaps(group))
         {
             throw new UnsupportedException("opacity on a group of shapes that overlap");
         }

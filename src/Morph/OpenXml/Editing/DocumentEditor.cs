@@ -1512,17 +1512,23 @@ static partial class DocumentEditor
         // A run with nothing left in it goes, and so does what wrapped only it.
         static void Vacate(OpenXmlElement element)
         {
-            if (element is Paragraph ||
-                element.ChildElements.Any(_ => _ is not (OoxmlRunProperties or SdtProperties or SdtEndCharProperties)))
+            while (true)
             {
-                return;
-            }
+                if (element is Paragraph ||
+                    element.ChildElements.Any(_ => _ is not (OoxmlRunProperties or SdtProperties or SdtEndCharProperties)))
+                {
+                    return;
+                }
 
-            var parent = element.Parent;
-            element.Remove();
-            if (parent != null)
-            {
-                Vacate(parent);
+                var parent = element.Parent;
+                element.Remove();
+                if (parent != null)
+                {
+                    element = parent;
+                    continue;
+                }
+
+                break;
             }
         }
 

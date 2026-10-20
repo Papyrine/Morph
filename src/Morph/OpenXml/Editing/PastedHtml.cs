@@ -1,6 +1,3 @@
-using System.Text.RegularExpressions;
-using AngleSharp.Dom;
-
 /// <summary>
 /// Text pasted as HTML — from a browser, Google Docs, Word — read for what the editor keeps of it when
 /// it merges it into a document, as Word's Merge Formatting does: its paragraphs and line breaks, its
@@ -26,19 +23,21 @@ static partial class PastedHtml
     }
 
     // Elements whose content is not text the reader sees.
-    static readonly HashSet<string> unread = new(StringComparer.OrdinalIgnoreCase)
-    {
+    static readonly HashSet<string> unread =
+    [
+        with(StringComparer.OrdinalIgnoreCase),
         "head", "title", "script", "style", "meta", "link", "template", "noscript", "svg", "math", "iframe",
         "object", "embed", "canvas", "video", "audio", "img", "picture", "input", "select", "textarea",
         "button"
-    };
+    ];
 
-    static readonly HashSet<string> blocks = new(StringComparer.OrdinalIgnoreCase)
-    {
+    static readonly HashSet<string> blocks =
+    [
+        with(StringComparer.OrdinalIgnoreCase),
         "p", "div", "section", "article", "header", "footer", "main", "nav", "aside", "blockquote",
         "figure", "figcaption", "address", "center", "pre", "dd", "dt", "dl", "h1", "h2", "h3", "h4",
         "h5", "h6", "caption", "details", "summary", "form", "fieldset", "legend", "hr"
-    };
+    ];
 
     // Word's paragraph classes for the styles it builds in, as its HTML names them.
     static readonly Dictionary<string, string> wordClasses = new(StringComparer.OrdinalIgnoreCase)
@@ -55,7 +54,7 @@ static partial class PastedHtml
         bool Italic,
         bool Underline,
         bool Strike,
-        DocumentFormat.OpenXml.Wordprocessing.VerticalPositionValues? Vertical,
+        VerticalPositionValues? Vertical,
         string? Link,
         bool Preformatted);
 
@@ -354,7 +353,7 @@ static partial class PastedHtml
                 Bold: current.Bold ? true : null,
                 Italic: current.Italic ? true : null,
                 // A link's own style underlines it.
-                Underline: current.Underline && current.Link == null ? true : null,
+                Underline: current is { Underline: true, Link: null } ? true : null,
                 Strike: current.Strike ? true : null,
                 Vertical: current.Vertical);
             // Text that looks as the run before it does is that run's.
@@ -485,13 +484,13 @@ static partial class PastedHtml
             case "sup":
                 inline = inline with
                 {
-                    Vertical = DocumentFormat.OpenXml.Wordprocessing.VerticalPositionValues.Superscript
+                    Vertical = VerticalPositionValues.Superscript
                 };
                 break;
             case "sub":
                 inline = inline with
                 {
-                    Vertical = DocumentFormat.OpenXml.Wordprocessing.VerticalPositionValues.Subscript
+                    Vertical = VerticalPositionValues.Subscript
                 };
                 break;
             case "a":
@@ -541,8 +540,8 @@ static partial class PastedHtml
             {
                 Vertical = vertical switch
                 {
-                    "super" => DocumentFormat.OpenXml.Wordprocessing.VerticalPositionValues.Superscript,
-                    "sub" => DocumentFormat.OpenXml.Wordprocessing.VerticalPositionValues.Subscript,
+                    "super" => VerticalPositionValues.Superscript,
+                    "sub" => VerticalPositionValues.Subscript,
                     _ => null
                 }
             };
@@ -567,9 +566,7 @@ static partial class PastedHtml
 
     static string? StyleOf(IElement element, string name)
     {
-        if (name.Length == 2 &&
-            name[0] == 'h' &&
-            name[1] is >= '1' and <= '6')
+        if (name is ['h', >= '1' and <= '6'])
         {
             return $"Heading{name[1]}";
         }

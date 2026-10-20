@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO.Compression;
 
 // The WOPI sample as it is published, run as a process: its host page opens Report.docx in Morph's editor,

@@ -1,7 +1,3 @@
-using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
-using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
-using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
-
 // What a paragraph is, rather than what it says: its style, its place in a list, its indent and its
 // spacing. Each is a change to the paragraph's properties, so tracked, each is recorded the way
 // alignment is (w:pPrChange) and settled in the review pane like it.
@@ -373,15 +369,17 @@ static partial class DocumentEditor
                 }
 
                 var properties = Reformat(paragraph);
-                properties.NumberingProperties = new(
-                    new NumberingLevelReference
-                    {
-                        Val = level
-                    },
-                    new NumberingId
-                    {
-                        Val = list
-                    });
+                properties.NumberingProperties =
+                [
+                    with(new NumberingLevelReference
+                        {
+                            Val = level
+                        },
+                        new NumberingId
+                        {
+                            Val = list
+                        })
+                ];
 
                 // Word sets a list in List Paragraph, unless the paragraph is in a style of its own.
                 if (properties.ParagraphStyleId?.Val?.Value is not { } styleId ||
@@ -415,11 +413,13 @@ static partial class DocumentEditor
             // A list the paragraph's style puts it in is left by saying so.
             if (Numbering(paragraph) is {Id: > 0})
             {
-                properties.NumberingProperties = new(
-                    new NumberingId
+                properties.NumberingProperties =
+                [
+                    with(new NumberingId
                     {
                         Val = 0
-                    });
+                    })
+                ];
             }
 
             Unclutter(paragraph);
@@ -444,11 +444,13 @@ static partial class DocumentEditor
             // A list the paragraph's style puts it in is left by saying so.
             if (Numbering(paragraph) is {Id: > 0})
             {
-                properties.NumberingProperties = new(
-                    new NumberingId
+                properties.NumberingProperties =
+                [
+                    with(new NumberingId
                     {
                         Val = 0
-                    });
+                    })
+                ];
             }
 
             if (Indents(paragraph).Left != left)
@@ -877,11 +879,13 @@ static partial class DocumentEditor
 
                 var own = paragraph.ParagraphProperties?.NumberingProperties?.NumberingId?.Val?.Value;
                 var properties = Reformat(paragraph);
-                properties.NumberingProperties = new(
-                    new NumberingLevelReference
+                properties.NumberingProperties =
+                [
+                    with(new NumberingLevelReference
                     {
                         Val = level
-                    });
+                    })
+                ];
                 if (own is { } id)
                 {
                     properties.NumberingProperties.AppendChild(new NumberingId

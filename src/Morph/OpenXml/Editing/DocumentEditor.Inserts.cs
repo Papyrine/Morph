@@ -156,7 +156,7 @@ static partial class DocumentEditor
             paragraph.InsertBeforeSelf(breaking);
             Add(
                 Point.EndOf(breaking),
-                new OoxmlRun(
+                new(
                     new Break
                     {
                         Type = BreakValues.Page
@@ -268,14 +268,16 @@ static partial class DocumentEditor
                 Mark(paragraph).PrependChild(Stamp(new Inserted()));
             }
 
-            return new(
-                new OoxmlTableCellProperties(
-                    new TableCellWidth
-                    {
-                        Width = width.ToString(CultureInfo.InvariantCulture),
-                        Type = TableWidthUnitValues.Dxa
-                    }),
-                paragraph);
+            return
+            [
+                with(new OoxmlTableCellProperties(
+                        new TableCellWidth
+                        {
+                            Width = width.ToString(CultureInfo.InvariantCulture),
+                            Type = TableWidthUnitValues.Dxa
+                        }),
+                    paragraph)
+            ];
         }
 
         // How wide the text a paragraph is in runs, in twips: the cell's, in a table; otherwise the

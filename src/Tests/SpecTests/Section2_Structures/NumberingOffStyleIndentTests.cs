@@ -26,9 +26,9 @@ public class NumberingOffStyleIndentTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new($"""<w:document {wNs}><w:body><w:p><w:pPr><w:pStyle w:val="Probe"/></w:pPr><w:r><w:t>text</w:t></w:r></w:p></w:body></w:document>""");
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {wNs}>{numbered}{style}</w:styles>");
-            main.AddNewPart<NumberingDefinitionsPart>().Numbering = new($"<w:numbering {wNs}>{numbering}</w:numbering>");
+            main.Document = [with($"""<w:document {wNs}><w:body><w:p><w:pPr><w:pStyle w:val="Probe"/></w:pPr><w:r><w:t>text</w:t></w:r></w:p></w:body></w:document>""")];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {wNs}>{numbered}{style}</w:styles>")];
+            main.AddNewPart<NumberingDefinitionsPart>().Numbering = [with($"<w:numbering {wNs}>{numbering}</w:numbering>")];
         }
 
         stream.Position = 0;

@@ -121,7 +121,7 @@ internal class WordArtEnvelopeTests
                 Shape(1, """<a:prstTxWarp prst="textWave2"><a:avLst/></a:prstTxWarp>""") +
                 Shape(2, """<a:prstTxWarp prst="textTriangleInverted"><a:avLst><a:gd name="adj" fmla="val 30000"/></a:avLst></a:prstTxWarp>""") +
                 Shape(3, """<a:prstTxWarp prst="textDoubleWave1"><a:avLst><a:gd name="adj1" fmla="val 10000"/><a:gd name="adj2" fmla="val 0"/></a:avLst></a:prstTxWarp>""");
-            document.AddMainDocumentPart().Document = new($"<w:document {wNs}><w:body>{body}</w:body></w:document>");
+            document.AddMainDocumentPart().Document = [with($"<w:document {wNs}><w:body>{body}</w:body></w:document>")];
         }
 
         stream.Position = 0;
@@ -134,6 +134,6 @@ internal class WordArtEnvelopeTests
         await Assert.That(warps[1].WarpAdjust!.Value).IsEqualTo(0.3).Within(0.0001);
         await Assert.That(warps[2].Transform).IsEqualTo(WordArtTransform.DoubleWave);
         await Assert.That(warps[2].WarpAdjust!.Value).IsEqualTo(0.1).Within(0.0001);
-        await Assert.That(warps[1].Insets).IsEqualTo(new WordArtInsets(0, 0, 0, 0));
+        await Assert.That(warps[1].Insets).IsEqualTo(new(0, 0, 0, 0));
     }
 }

@@ -197,8 +197,11 @@ public partial class MorphWopi : IAsyncDisposable
 
     static string Problem(WopiReply reply)
     {
-        if (reply.Status == 409 &&
-            reply.Reason is {Length: > 0} reason)
+        if (reply is
+            {
+                Status: 409,
+                Reason: {Length: > 0} reason
+            })
         {
             return reason;
         }
@@ -207,12 +210,14 @@ public partial class MorphWopi : IAsyncDisposable
     }
 
     // The editor's page goes, and the beacon unlocks the file; a prompt for unsaved edits may stop it.
-    async Task CloseAsync()
+    Task CloseAsync()
     {
         if (info?.CloseUrl is { } url)
         {
-            await Interop.NavigateTopAsync(url);
+            return Interop.NavigateTopAsync(url);
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>Stops refreshing the lock, and unlocks the file.</summary>

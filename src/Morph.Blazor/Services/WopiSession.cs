@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace Morph;
@@ -178,7 +177,7 @@ sealed class WopiSession(HttpClient http, WopiLaunchInfo launch)
         }
 
         var body = new ByteArrayContent(content ?? []);
-        body.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+        body.Headers.ContentType = new("application/octet-stream");
         request.Content = body;
         return await http.SendAsync(request, cancel);
     }

@@ -1175,7 +1175,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // Emit the trailing page. At the document end anything placed keeps it — Word renders the page a
             // final empty paragraph overflows onto (see FinishPage).
-            FinishPage(false, documentEnd: true);
+            FinishPage(false);
 
             // A footnote still spilling past the last body page continues onto pages of its own.
             while (pendingNoteRows.Count > 0 || NoteAreaHeight(0) > 0)
@@ -1189,7 +1189,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Emits the in-progress page and starts a fresh one at its first column. A page is kept when
         // anything was placed on it, when it is a deliberate blank left by an explicit break (Word does
         // not absorb those), or when it is the only page.
-        void FinishPage(bool nextPageExplicit, bool documentEnd = false)
+        void FinishPage(bool nextPageExplicit)
         {
             // The page ends the open border run — and the box has to reach items before they are handed to
             // the page below.

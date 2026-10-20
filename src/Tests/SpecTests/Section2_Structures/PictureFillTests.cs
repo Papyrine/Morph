@@ -137,12 +137,12 @@ public class PictureFillTests
 
         // The first slice is the top right quarter of the ring: from the hole's rim to the circle's.
         var contour = first.Subpaths![0];
-        await Assert.That(contour.All(_ => _.X >= 0.5 - 1e-9 && _.Y <= 0.5 + 1e-9)).IsTrue();
+        await Assert.That(contour.All(_ => _ is { X: >= 0.5 - 1e-9, Y: <= 0.5 + 1e-9 })).IsTrue();
         var radii = contour.Select(_ => Math.Sqrt(Math.Pow(_.X - 0.5, 2) + Math.Pow(_.Y - 0.5, 2))).ToList();
         await Assert.That(radii.Max()).IsEqualTo(0.5).Within(1e-6);
         await Assert.That(radii.Min()).IsEqualTo(0.25).Within(1e-6);
 
         // Each is stroked in the white its c:dPt outline names.
-        await Assert.That(chart.Shapes.All(_ => _.LineWidthEmu == 19050 && _.ColorHex == "FFFFFF")).IsTrue();
+        await Assert.That(chart.Shapes.All(_ => _ is { LineWidthEmu: 19050, ColorHex: "FFFFFF" })).IsTrue();
     }
 }

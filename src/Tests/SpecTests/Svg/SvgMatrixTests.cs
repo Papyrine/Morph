@@ -46,8 +46,8 @@ public class SvgMatrixTests
 
     // The quarter turn minimalist-light-sales-pitch puts on a clip rectangle.
     [Test]
-    public async Task Office_writes_matrices_with_exponents_and_they_read() =>
-        await Maps("matrix(-1.83697e-16 1 -1 -1.83697e-16 993.878 235.92)", 100, 0, 993.878, 335.92);
+    public Task Office_writes_matrices_with_exponents_and_they_read() =>
+        Maps("matrix(-1.83697e-16 1 -1 -1.83697e-16 993.878 235.92)", 100, 0, 993.878, 335.92);
 
     [Test]
     public async Task Anything_else_does_not_parse()

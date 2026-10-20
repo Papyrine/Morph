@@ -68,7 +68,7 @@ public class InlinePictureEffectExtentTests
         // while a second arrow starts 75.4pt after the first in every mode. The parser hands the
         // mode-12 move over as the group's draw offset; the frame the line reserves is not its
         // business.
-        ParagraphElement Group(double offsetX, double offsetY) => new()
+        static ParagraphElement Group(double offsetX, double offsetY) => new()
         {
             Runs =
             [
@@ -85,7 +85,7 @@ public class InlinePictureEffectExtentTests
             Properties = new() { LineSpacingMultiplier = 1 }
         };
 
-        PlacedLine Line(double offsetX, double offsetY) =>
+        static PlacedLine Line(double offsetX, double offsetY) =>
             new Fragmenter(LayoutTestFonts.Measurer).Layout([Group(offsetX, offsetY)], page).Pages[0].Items.OfType<PlacedLine>().Single();
 
         var plain = Line(0, 0);

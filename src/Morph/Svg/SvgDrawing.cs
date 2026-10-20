@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 /// <summary>
 /// An SVG picture as a flat list of paths to fill and stroke, back to front — what
 /// <see cref="SvgReader"/> makes of a document, and what a painter draws with its own vector calls

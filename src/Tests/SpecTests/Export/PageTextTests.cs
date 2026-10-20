@@ -149,15 +149,16 @@ public class PageTextTests
     }
 
     static W.Paragraph Paragraph(string text) =>
-        new(new W.Run(new W.Text(text)));
+        [with(new W.Run(new W.Text(text)))];
 
     static W.Paragraph PageBreak() =>
-        new(
-            new W.Run(
-                new W.Break
-                {
-                    Type = W.BreakValues.Page
-                }));
+    [
+        with(new W.Run(
+            new W.Break
+            {
+                Type = W.BreakValues.Page
+            }))
+    ];
 
     static W.Table Table(params (string left, string right)[] rows)
     {

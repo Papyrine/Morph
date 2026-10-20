@@ -20,7 +20,7 @@ using OoxmlTableCell = DocumentFormat.OpenXml.Wordprocessing.TableCell;
 static partial class DocumentEditor
 {
     /// <summary>The page of the section the paragraph is in.</summary>
-    public static PageSetup? PageSetupOf(byte[] docx, int paragraph)
+    public static PageSetup PageSetupOf(byte[] docx, int paragraph)
     {
         using var stream = new MemoryStream(docx, writable: false);
         using var document = WordprocessingDocument.Open(stream, false);

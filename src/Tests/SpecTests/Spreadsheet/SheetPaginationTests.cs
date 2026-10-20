@@ -436,7 +436,7 @@ public class SheetPaginationTests
                         {
                             CellReference = $"{ColumnName(column)}{row}",
                             DataType = S.CellValues.String,
-                            CellValue = new("x")
+                            CellValue = [with("x")]
                         });
                 }
 
@@ -456,19 +456,20 @@ public class SheetPaginationTests
 
     // A two-cell anchor with nothing in it: where a drawing ends is all the range is widened by
     static XDR.WorksheetDrawing Drawing(int toColumn, int toRow, long toOffset) =>
-        new(
-            new XDR.TwoCellAnchor(
-                new XDR.FromMarker(
-                    new XDR.ColumnId("3"),
-                    new XDR.ColumnOffset("0"),
-                    new XDR.RowId("0"),
-                    new XDR.RowOffset("0")),
-                new XDR.ToMarker(
-                    new XDR.ColumnId(toColumn.ToString(CultureInfo.InvariantCulture)),
-                    new XDR.ColumnOffset(toOffset.ToString(CultureInfo.InvariantCulture)),
-                    new XDR.RowId(toRow.ToString(CultureInfo.InvariantCulture)),
-                    new XDR.RowOffset(toOffset.ToString(CultureInfo.InvariantCulture))),
-                new XDR.ClientData()));
+    [
+        with(new XDR.TwoCellAnchor(
+            new XDR.FromMarker(
+                new XDR.ColumnId("3"),
+                new XDR.ColumnOffset("0"),
+                new XDR.RowId("0"),
+                new XDR.RowOffset("0")),
+            new XDR.ToMarker(
+                new XDR.ColumnId(toColumn.ToString(CultureInfo.InvariantCulture)),
+                new XDR.ColumnOffset(toOffset.ToString(CultureInfo.InvariantCulture)),
+                new XDR.RowId(toRow.ToString(CultureInfo.InvariantCulture)),
+                new XDR.RowOffset(toOffset.ToString(CultureInfo.InvariantCulture))),
+            new XDR.ClientData()))
+    ];
 
     static string ColumnName(int column)
     {
