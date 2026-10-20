@@ -15,8 +15,11 @@ sealed record RunProperties
     /// </summary>
     public string? UnderlineColorHex { get; init; }
 
+    /// <summary>The underline's style (<c>w:u/@w:val</c>); meaningful only when <see cref="Underline"/> is set.</summary>
+    public UnderlineStyle UnderlineStyle { get; init; }
+
     /// <summary>Whether <c>w:u/@w:val</c> is <c>double</c> — two thin rules instead of one.</summary>
-    public bool DoubleUnderline { get; init; }
+    public bool DoubleUnderline => UnderlineStyle == UnderlineStyle.Double;
 
     /// <summary>
     /// Whether the run carries a tracked change (insertion or deletion). Word's markup view
@@ -24,6 +27,12 @@ sealed record RunProperties
     /// </summary>
     public bool IsRevisionMark { get; init; }
     public bool Strikethrough { get; init; }
+
+    /// <summary>
+    /// <c>w:dstrike</c> — two strike rules instead of one (<see cref="TextDecorations"/>). Word draws the
+    /// double alone when both are on.
+    /// </summary>
+    public bool DoubleStrikethrough { get; init; }
     public bool AllCaps { get; init; }
     public bool SmallCaps { get; init; }
     // null = black

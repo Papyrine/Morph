@@ -1446,7 +1446,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var bold = baseProps?.Bold ?? false;
                 var italic = baseProps?.Italic ?? false;
                 var underline = baseProps?.Underline ?? false;
+                var underlineStyle = baseProps?.UnderlineStyle ?? UnderlineStyle.Single;
                 var strikethrough = baseProps?.Strikethrough ?? false;
+                var doubleStrikethrough = baseProps?.DoubleStrikethrough ?? false;
                 var allCaps = baseProps?.AllCaps ?? false;
                 var smallCaps = baseProps?.SmallCaps ?? false;
                 var color = baseProps?.ColorHex ?? defaultRunColorHex;
@@ -1470,7 +1472,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         Bold = bold,
                         Italic = italic,
                         Underline = underline,
+                        UnderlineStyle = underlineStyle,
                         Strikethrough = strikethrough,
+                        DoubleStrikethrough = doubleStrikethrough,
                         AllCaps = allCaps,
                         SmallCaps = smallCaps,
                         ColorHex = color,
@@ -1532,6 +1536,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     underlineElement.Val?.Value != UnderlineValues.None)
                 {
                     underline = true;
+                    underlineStyle = UnderlineStyleOf(underlineElement);
                 }
 
                 // Strikethrough
@@ -1539,6 +1544,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 if (strikeElement != null)
                 {
                     strikethrough = strikeElement.IsOn();
+                }
+
+                var doubleStrikeElement = runProps.GetFirstChild<DoubleStrike>();
+                if (doubleStrikeElement != null)
+                {
+                    doubleStrikethrough = doubleStrikeElement.IsOn();
                 }
 
                 // All caps
@@ -1601,7 +1612,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     Bold = bold,
                     Italic = italic,
                     Underline = underline,
+                    UnderlineStyle = underlineStyle,
                     Strikethrough = strikethrough,
+                    DoubleStrikethrough = doubleStrikethrough,
                     AllCaps = allCaps,
                     SmallCaps = smallCaps,
                     ColorHex = color,
@@ -2140,6 +2153,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         /// (see <see cref="NumberingInfo.MarkerRightAligned"/> for the probe law).</summary>
         public bool RightAligned { get; init; }
 
+        public ListMarkerSuffix Suffix { get; init; }
+
         /// <summary>
         /// OOXML <c>w:lvlRestart</c>. <c>null</c> = default behaviour (restart whenever any
         /// shallower level increments). <c>0</c> = never restart. A positive value <c>K</c>
@@ -2238,6 +2253,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     StartNumber = startNumber,
                     NumberFormat = numFmt ?? NumberFormatValues.Decimal,
                     LevelRestart = lvlRestart,
+                    Suffix = MarkerSuffix(level),
                     RightAligned = rightAligned
                 };
             }
@@ -2287,7 +2303,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         IsBullet = baseDef.IsBullet,
                         StartNumber = startOverride.Value,
                         NumberFormat = baseDef.NumberFormat,
-                        RightAligned = baseDef.RightAligned
+                        RightAligned = baseDef.RightAligned,
+                        Suffix = baseDef.Suffix
                     };
                 }
             }
@@ -3351,6 +3368,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints,
             MarkerRightAligned = levelDef.RightAligned,
+            Suffix = levelDef.Suffix,
             Format = levelDef.IsBullet ? ListNumberFormat.Bullet : MapNumberFormat(levelDef.NumberFormat)
         };
     }
@@ -3552,6 +3570,65 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     const int maxGridSpan = 1000;
 
     static int ClampGridSpan(int value) => Math.Clamp(value, 1, maxGridSpan);
+
+    // w:u/@w:val as the style it draws in (TextDecorations); a value Word has and Morph does not, or
+    // none at all, draws single.
+    static UnderlineStyle UnderlineStyleOf(Underline underline)
+    {
+        if (underline.Val?.Value is { } value &&
+            underlineStyles.TryGetValue(value, out var style))
+        {
+            return style;
+        }
+
+        return UnderlineStyle.Single;
+    }
+
+    static readonly Dictionary<UnderlineValues, UnderlineStyle> underlineStyles = new()
+    {
+        [UnderlineValues.Words] = UnderlineStyle.Words,
+        [UnderlineValues.Double] = UnderlineStyle.Double,
+        [UnderlineValues.Thick] = UnderlineStyle.Thick,
+        [UnderlineValues.Dotted] = UnderlineStyle.Dotted,
+        [UnderlineValues.DottedHeavy] = UnderlineStyle.DottedHeavy,
+        [UnderlineValues.Dash] = UnderlineStyle.Dash,
+        [UnderlineValues.DashedHeavy] = UnderlineStyle.DashedHeavy,
+        [UnderlineValues.DashLong] = UnderlineStyle.DashLong,
+        [UnderlineValues.DashLongHeavy] = UnderlineStyle.DashLongHeavy,
+        [UnderlineValues.DotDash] = UnderlineStyle.DotDash,
+        [UnderlineValues.DashDotHeavy] = UnderlineStyle.DashDotHeavy,
+        [UnderlineValues.DotDotDash] = UnderlineStyle.DotDotDash,
+        [UnderlineValues.DashDotDotHeavy] = UnderlineStyle.DashDotDotHeavy,
+        [UnderlineValues.Wave] = UnderlineStyle.Wave,
+        [UnderlineValues.WavyHeavy] = UnderlineStyle.WavyHeavy,
+        [UnderlineValues.WavyDouble] = UnderlineStyle.WavyDouble
+    };
+
+    // w:lvl/w:suff — what follows a list marker; absent is a tab (ECMA-376 §17.9.29).
+    static ListMarkerSuffix MarkerSuffix(Level level)
+    {
+        var suffix = level.LevelSuffix?.Val?.Value;
+        if (suffix == LevelSuffixValues.Space)
+        {
+            return ListMarkerSuffix.Space;
+        }
+
+        if (suffix == LevelSuffixValues.Nothing)
+        {
+            return ListMarkerSuffix.Nothing;
+        }
+
+        return ListMarkerSuffix.Tab;
+    }
+
+    // w:trPr/w:gridBefore and w:gridAfter — grid columns the row leaves empty at either end (TableRow.GridBefore).
+    static (int Before, int After) RowGridSkips(OpenXmlElement row)
+    {
+        var properties = row.GetFirstChild<TableRowProperties>();
+        var before = properties?.GetFirstChild<GridBefore>()?.Val?.Value ?? 0;
+        var after = properties?.GetFirstChild<GridAfter>()?.Val?.Value ?? 0;
+        return (Math.Clamp(before, 0, maxGridSpan), Math.Clamp(after, 0, maxGridSpan));
+    }
 
     // A page dimension (w:pgSz w:w/@w:h) is an unbounded twips measure in the file. Left raw it scales
     // straight into each backend's raster surface (an SKBitmap's width is WidthPoints x DPI/72 at
@@ -4894,6 +4971,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var totalCols = gridColumnWidths?.Count ?? 0;
         if (totalCols == 0 && rowList.Count > 0)
         {
+            var (firstBefore, firstAfter) = RowGridSkips(rowList[0]);
+            totalCols = firstBefore + firstAfter;
             foreach (var cell in RowCells(rowList[0]))
             {
                 var span = ClampGridSpan(cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1);
@@ -4905,7 +4984,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             var row = rowList[rowIndex];
             var cells = new List<TableCell>();
-            var gridColIndex = 0;
+            var (gridBefore, gridAfter) = RowGridSkips(row);
+            var gridColIndex = gridBefore;
             var rowFlags = ParseConditionalFormatFlags(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<ConditionalFormatStyle>());
 
             foreach (var cell in RowCells(row))
@@ -5365,6 +5445,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 new()
                 {
                     Cells = cells,
+                    GridBefore = gridBefore,
+                    GridAfter = gridAfter,
                     HeightPoints = rowHeight,
                     IsExactHeight = isExactHeight,
                     IsHeader = isHeader,
@@ -12640,7 +12722,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var bold = styleDefaults?.Bold ?? false;
         var italic = styleDefaults?.Italic ?? false;
         var underline = styleDefaults?.Underline ?? false;
+        var underlineStyle = styleDefaults?.UnderlineStyle ?? UnderlineStyle.Single;
         var strikethrough = styleDefaults?.Strikethrough ?? false;
+        var doubleStrikethrough = styleDefaults?.DoubleStrikethrough ?? false;
         var allCaps = styleDefaults?.AllCaps ?? false;
         var smallCaps = styleDefaults?.SmallCaps ?? false;
         var color = styleDefaults?.ColorHex ?? defaultRunColorHex ?? automaticRunColorHex;
@@ -12690,6 +12774,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         Italic? italicElement = null;
         Underline? underlineElement = null;
         Strike? strikeElement = null;
+        DoubleStrike? doubleStrikeElement = null;
         Caps? capsElement = null;
         SmallCaps? smallCapsElement = null;
         Spacing? spacingElement = null;
@@ -12736,6 +12821,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     break;
                 case Strike element:
                     strikeElement ??= element;
+                    break;
+                case DoubleStrike element:
+                    doubleStrikeElement ??= element;
                     break;
                 case Caps element:
                     capsElement ??= element;
@@ -12841,11 +12929,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var underlineColorHex = (string?) null;
-        var doubleUnderline = false;
         if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
         {
             underline = true;
-            doubleUnderline = underlineElement.Val?.Value == UnderlineValues.Double;
+            underlineStyle = UnderlineStyleOf(underlineElement);
 
             // w:u/@w:color — the rule's own colour. "auto" (and absence) means the text colour,
             // which a null carries.
@@ -12860,6 +12947,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (strikeElement != null)
         {
             strikethrough = strikeElement.IsOn();
+        }
+
+        if (doubleStrikeElement != null)
+        {
+            doubleStrikethrough = doubleStrikeElement.IsOn();
         }
 
         if (capsElement != null)
@@ -13017,11 +13109,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (underlineElement == null && originalRPr?.GetFirstChild<Underline>() != null)
             {
                 underline = runStyleProps.Underline;
+                underlineStyle = runStyleProps.UnderlineStyle;
             }
 
             if (strikeElement == null && originalRPr?.GetFirstChild<Strike>() is { } styleStrike)
             {
                 strikethrough = styleStrike.IsOn() ? !strikethrough : false;
+            }
+
+            if (doubleStrikeElement == null && originalRPr?.GetFirstChild<DoubleStrike>() is { } styleDoubleStrike)
+            {
+                doubleStrikethrough = styleDoubleStrike.IsOn() ? !doubleStrikethrough : false;
             }
 
             if (capsElement == null && originalRPr?.GetFirstChild<Caps>() is { } styleCaps)
@@ -13135,7 +13233,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Italic = italic,
             Underline = underline,
             UnderlineColorHex = underlineColorHex,
-            DoubleUnderline = doubleUnderline,
+            UnderlineStyle = underlineStyle,
+            DoubleStrikethrough = doubleStrikethrough,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
             SmallCaps = smallCaps,

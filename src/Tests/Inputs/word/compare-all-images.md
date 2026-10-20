@@ -1,4 +1,4 @@
-# All scenarios (336)
+# All scenarios (339)
 
 <details>
 <summary>Contents</summary>
@@ -208,6 +208,7 @@
 - [line_spacing](#line_spacing)
 - [line_spacing_at_least](#line_spacing_at_least)
 - [line_spacing_exactly](#line_spacing_exactly)
+- [list_marker_suffix](#list_marker_suffix)
 - [long_paragraph](#long_paragraph)
 - [menus/01](#menus01)
 - [menus/02](#menus02)
@@ -306,6 +307,7 @@
 - [table_default_style_outer_borders](#table_default_style_outer_borders)
 - [table_diagonal_borders/01](#table_diagonal_borders01)
 - [table_explicit_heights](#table_explicit_heights)
+- [table_grid_before_after](#table_grid_before_after)
 - [table_grid_styling_padding](#table_grid_styling_padding)
 - [table_indent](#table_indent)
 - [table_layout_tall_row](#table_layout_tall_row)
@@ -323,6 +325,7 @@
 - [three_columns](#three_columns)
 - [tracked_changes/01](#tracked_changes01)
 - [two_columns](#two_columns)
+- [underline_styles](#underline_styles)
 - [underline_text](#underline_text)
 - [wedding/01](#wedding01)
 - [wedding/02](#wedding02)
@@ -2431,6 +2434,44 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0139 · SSIM: 0.9742** | **Page 1. ErrorMetric: 0.0139 · SSIM: 0.9742** |
 | <img src="line_spacing_exactly/expected_0001.png" width="500"> | <img src="line_spacing_exactly/skia_result%23page_0001.verified.png" width="500"> | <img src="line_spacing_exactly/imagesharp_result%23page_0001.verified.png" width="500"> |
 
+## list_marker_suffix
+
+Pins `w:lvl/w:suff` — what follows a list marker — and where the marker sits with no hanging
+indent.
+
+Eight one-level decimal lists, two items each, Arial 28pt for marker and text alike, page margin
+0.75in:
+
+| list | suff | left / hanging (twips) |
+| --- | --- | --- |
+| 1 | (absent) | 1440 / 720 |
+| 2 | tab | 1440 / 720 |
+| 3 | space | 1440 / 720 |
+| 4 | nothing | 1440 / 720 |
+| 5 | space | 2880 / 1440 |
+| 6 | nothing | 2880 / 1440 |
+| 7 | space | 720 / 0 |
+| 8 | tab | 720 / 0 |
+
+What Word does:
+
+* The marker always starts at the first line's own indent, left − hanging: 720 twips for lists
+  1-4, 7 and 8, and 1440 for 5 and 6.
+* **tab** (and an absent `w:suff`) sends the text to the hanging indent's stop at the left
+  indent, or, with no hanging indent (list 8), to the next default stop: "1." at 720 twips, its
+  text at 1440.
+* **space** sets the text one space after the marker, and **nothing** sets it against the marker,
+  whatever the indents. The left indent then plays no part on the first line.
+
+Before this fixture Morph ignored `w:suff`, and with no hanging indent it drew the marker ending
+3pt short of the left indent, with the text at the left indent, instead of starting the marker
+there.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="list_marker_suffix/expected_0001.png" width="500"> |  |  |
+
 ## long_paragraph
 
 | Expected (Word) | Skia | ImageSharp |
@@ -3395,6 +3436,37 @@ magnitude.
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0100 · SSIM: 0.9789** | **Page 1. ErrorMetric: 0.0100 · SSIM: 0.9793** |
 | <img src="table_explicit_heights/expected_0001.png" width="500"> | <img src="table_explicit_heights/skia_result%23page_0001.verified.png" width="500"> | <img src="table_explicit_heights/imagesharp_result%23page_0001.verified.png" width="500"> |
 
+## table_grid_before_after
+
+Pins `w:trPr/w:gridBefore` and `w:gridAfter` — grid columns a row leaves empty at either end.
+
+The same six rows twice, once `tblLayout="fixed"` and once autofit, over a 4-column grid of
+unequal widths (1440 / 2160 / 1440 / 2880 twips) with 3pt borders:
+
+| row | gridBefore | gridAfter | cells |
+| --- | --- | --- | --- |
+| 1 | | | A B C D |
+| 2 | 1 | | B C D |
+| 3 | | 2 | A B |
+| 4 | 1 | 1 | B C |
+| 5 | 2 | | C–D (`gridSpan=2`) |
+| 6 | 1 | | B C D (no `wBefore`) |
+
+What Word does, in both layouts:
+
+* A row's first cell starts at grid column `gridBefore`; the cells after it keep their grid
+  widths.
+* The skipped columns draw nothing — no border, no shading. Every cell draws its own edges, so a
+  row that stops short leaves the edges of the cells above and below it open.
+* `wBefore` / `wAfter` change nothing when the grid gives the widths.
+
+Before this fixture Morph read neither element and packed every row's cells from grid column 0.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0169 · SSIM: 0.9951** | **Page 1. ErrorMetric: 0.0174 · SSIM: 0.9946** |
+| <img src="table_grid_before_after/expected_0001.png" width="500"> | <img src="table_grid_before_after/skia_result%23page_0001.verified.png" width="500"> | <img src="table_grid_before_after/imagesharp_result%23page_0001.verified.png" width="500"> |
+
 ## table_grid_styling_padding
 
 | Expected (Word) | Skia | ImageSharp |
@@ -3521,6 +3593,53 @@ magnitude.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1119 · SSIM: 0.7905** | **Page 1. ErrorMetric: 0.1119 · SSIM: 0.7892** |
 | <img src="two_columns/expected_0001.png" width="500"> | <img src="two_columns/skia_result%23page_0001.verified.png" width="500"> | <img src="two_columns/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## underline_styles
+
+Pins every `w:u/@w:val` style, plus `w:strike`, `w:dstrike` and `w:dstrike` over `w:u="single"`.
+
+One paragraph per style, Arial at 48pt — amplified so a dash, a gap and a band thickness are each
+several pixels at 150 DPI. Each line is `HH HH ` plain then `HHH  HH` underlined, so `words` has
+two spaces to leave bare.
+
+Read from Word's XPS (`MORPH_KEEP_XPS=1`), and again from the same document at 24pt to separate
+laws that scale with the font from ones that do not. `p` is the single underline's offset below
+the baseline and `t` its thickness, both from the font (Arial: p = 5.04, t = 3.48 at 48pt;
+2.52 / 1.80 at 24pt). XPS values are quantised to 0.12pt.
+
+| style | Word draws | 48pt | 24pt |
+| --- | --- | --- | --- |
+| single, light dashes | band `[p, p+t]` | +5.04, 3.48 | +2.52, 1.80 |
+| words | the same, over non-space runs only | gap 26.64 = two spaces | |
+| double | two `t/2` rules filling `[p/2, p+t]` | +2.52 and +6.72, 1.80 each | +1.32 and +3.36, 0.96 each |
+| thick, every heavy | band `[p/2, p+t/2]` | +2.52, 4.20 | +1.32, 2.04 |
+| wave | 2.4pt period, top at `p/2`, stroke 0.24pt | crest-trough 2.88 | 1.32 |
+| wavyHeavy | as wave, stroke 0.96pt | | |
+| wavyDouble | two waves, the second 1.56 lower at 48pt | | |
+| strike | the font's strikeout band | -12.48, 2.40 | -6.24, 1.20 |
+| dstrike | two strike-thick rules, one thickness either side of the single's centre | -14.88 and -10.08 | -7.44 and -5.04 |
+
+Dash patterns are **fixed lengths in points** — identical at 24pt and 48pt — patterned from the
+run's start, and a heavy style keeps its light style's pattern:
+
+| style | on / off (pt) |
+| --- | --- |
+| dotted | 1.44 / 1.44 |
+| dash | 3.96 / 1.92 |
+| dashLong | 7.92 / 3.96 |
+| dotDash | 3.0 / .96 / .96 / .96 |
+| dotDotDash | 2.16 / .72 / .72 / .72 / .72 / .72 |
+
+Morph's single underline and strike keep their own placement (`size * 0.12` and `ascent * 0.3`);
+every other style is placed against those exactly as Word places it against the font's
+(`TextDecorations`).
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0346 · SSIM: 0.9539** | **Page 1. ErrorMetric: 0.0339 · SSIM: 0.9607** |
+| <img src="underline_styles/expected_0001.png" width="500"> | <img src="underline_styles/skia_result%23page_0001.verified.png" width="500"> | <img src="underline_styles/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0301 · SSIM: 0.9568** | **Page 2. ErrorMetric: 0.0299 · SSIM: 0.9617** |
+| <img src="underline_styles/expected_0002.png" width="500"> | <img src="underline_styles/skia_result%23page_0002.verified.png" width="500"> | <img src="underline_styles/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## underline_text
 
@@ -3696,7 +3815,7 @@ page keeps its paragraph's space-after as well, which the wave at the head of pa
 | <img src="wordart/expected_0007.png" width="500"> | <img src="wordart/skia_result%23page_0007.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0007.verified.png" width="500"> |
 | **Page 8**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 8. ErrorMetric: 0.0108 · SSIM: 0.9874** | **Page 8. ErrorMetric: 0.0112 · SSIM: 0.9889** |
 | <img src="wordart/expected_0008.png" width="500"> | <img src="wordart/skia_result%23page_0008.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0008.verified.png" width="500"> |
-| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.0179 · SSIM: 0.9753** | **Page 9. ErrorMetric: 0.0182 · SSIM: 0.9762** |
+| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.0170 · SSIM: 0.9764** | **Page 9. ErrorMetric: 0.0173 · SSIM: 0.9774** |
 | <img src="wordart/expected_0009.png" width="500"> | <img src="wordart/skia_result%23page_0009.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0009.verified.png" width="500"> |
 | **Page 10**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 10. ErrorMetric: 0.0130 · SSIM: 0.9861** | **Page 10. ErrorMetric: 0.0139 · SSIM: 0.9862** |
 | <img src="wordart/expected_0010.png" width="500"> | <img src="wordart/skia_result%23page_0010.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0010.verified.png" width="500"> |

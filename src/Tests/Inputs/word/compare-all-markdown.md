@@ -1,4 +1,4 @@
-# All Markdown export scenarios (336)
+# All Markdown export scenarios (338)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -308,6 +308,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [table_default_style_outer_borders](#table_default_style_outer_borders)
 - [table_diagonal_borders/01](#table_diagonal_borders01)
 - [table_explicit_heights](#table_explicit_heights)
+- [table_grid_before_after](#table_grid_before_after)
 - [table_grid_styling_padding](#table_grid_styling_padding)
 - [table_indent](#table_indent)
 - [table_layout_tall_row](#table_layout_tall_row)
@@ -325,6 +326,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [three_columns](#three_columns)
 - [tracked_changes/01](#tracked_changes01)
 - [two_columns](#two_columns)
+- [underline_styles](#underline_styles)
 - [underline_text](#underline_text)
 - [wedding/01](#wedding01)
 - [wedding/02](#wedding02)
@@ -2162,6 +2164,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="table_explicit_heights/expected_0001.png" width="500"> | <img src="table_explicit_heights/md_result.verified.png" width="500"> |
 
+## table_grid_before_after
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="table_grid_before_after/expected_0001.png" width="500"> | <img src="table_grid_before_after/md_result.verified.png" width="500"> |
+
 ## table_grid_styling_padding
 
 | Expected (Word) | Morph Markdown |
@@ -2263,6 +2271,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="two_columns/expected_0001.png" width="500"> | <img src="two_columns/md_result.verified.png" width="500"> |
+
+## underline_styles
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="underline_styles/expected_0001.png" width="500"><br><img src="underline_styles/expected_0002.png" width="500"> | <img src="underline_styles/md_result.verified.png" width="500"> |
 
 ## underline_text
 

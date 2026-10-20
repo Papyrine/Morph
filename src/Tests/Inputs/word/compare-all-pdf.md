@@ -1,4 +1,4 @@
-# All PDF export scenarios (336)
+# All PDF export scenarios (338)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -308,6 +308,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [table_default_style_outer_borders](#table_default_style_outer_borders)
 - [table_diagonal_borders/01](#table_diagonal_borders01)
 - [table_explicit_heights](#table_explicit_heights)
+- [table_grid_before_after](#table_grid_before_after)
 - [table_grid_styling_padding](#table_grid_styling_padding)
 - [table_indent](#table_indent)
 - [table_layout_tall_row](#table_layout_tall_row)
@@ -325,6 +326,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [three_columns](#three_columns)
 - [tracked_changes/01](#tracked_changes01)
 - [two_columns](#two_columns)
+- [underline_styles](#underline_styles)
 - [underline_text](#underline_text)
 - [wedding/01](#wedding01)
 - [wedding/02](#wedding02)
@@ -3842,6 +3844,16 @@ PDF: [Morph PDF](table_diagonal_borders/01/pdf_result.verified.pdf)
 PDF: [Morph PDF](table_explicit_heights/pdf_result.verified.pdf)
 
 
+## table_grid_before_after
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0212 · SSIM: 0.9938** |
+| <img src="table_grid_before_after/expected_0001.png" width="500"> | <img src="table_grid_before_after/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](table_grid_before_after/pdf_result.verified.pdf)
+
+
 ## table_grid_styling_padding
 
 | Expected (Word) | Morph PDF |
@@ -4020,6 +4032,18 @@ PDF: [Morph PDF](tracked_changes/01/pdf_result.verified.pdf)
 PDF: [Morph PDF](two_columns/pdf_result.verified.pdf)
 
 
+## underline_styles
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0336 · SSIM: 0.9634** |
+| <img src="underline_styles/expected_0001.png" width="500"> | <img src="underline_styles/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0301 · SSIM: 0.9627** |
+| <img src="underline_styles/expected_0002.png" width="500"> | <img src="underline_styles/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](underline_styles/pdf_result.verified.pdf)
+
+
 ## underline_text
 
 | Expected (Word) | Morph PDF |
@@ -4194,7 +4218,7 @@ PDF: [Morph PDF](wide_table/pdf_result.verified.pdf)
 | <img src="wordart/expected_0007.png" width="500"> | <img src="wordart/pdf_result%23page_0007.verified.png" width="500"> |
 | **Page 8**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 8. ErrorMetric: 0.0129 · SSIM: 0.9883** |
 | <img src="wordart/expected_0008.png" width="500"> | <img src="wordart/pdf_result%23page_0008.verified.png" width="500"> |
-| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.0215 · SSIM: 0.9742** |
+| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.0205 · SSIM: 0.9751** |
 | <img src="wordart/expected_0009.png" width="500"> | <img src="wordart/pdf_result%23page_0009.verified.png" width="500"> |
 | **Page 10**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 10. ErrorMetric: 0.0168 · SSIM: 0.9820** |
 | <img src="wordart/expected_0010.png" width="500"> | <img src="wordart/pdf_result%23page_0010.verified.png" width="500"> |

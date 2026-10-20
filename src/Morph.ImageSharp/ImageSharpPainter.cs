@@ -165,26 +165,9 @@ static class ImageSharpPainter
             var baseline = line.Baseline - run.BaselineShift;
             DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
 
-            var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
-            if (properties.Underline)
+            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
-                var underlineColor = properties.UnderlineColorHex == null
-                    ? color
-                    : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = P(context, baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), underlineY), new PointF(P(context, run.X + run.Width), underlineY));
-                if (properties.DoubleUnderline)
-                {
-                    var secondY = underlineY + strokeWidth * 2;
-                    canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), secondY), new PointF(P(context, run.X + run.Width), secondY));
-                }
-            }
-
-            if (properties.Strikethrough)
-            {
-                var strikeY = P(context, baseline - ascent * 0.3);
-                canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(P(context, run.X), strikeY), new PointF(P(context, run.X + run.Width), strikeY));
+                PaintDecorations(context, canvas, run, properties, color, (float) baseline, (float) ascent);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.
@@ -201,6 +184,37 @@ static class ImageSharpPainter
             PaintImage(context, canvas, image);
         }
     }
+
+    // The run's underline and strike rules — see SkiaPainter.PaintDecorations.
+    static void PaintDecorations(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedRun run, RunProperties properties, Color color, float baseline, float ascent)
+    {
+        var underlineColor = properties.UnderlineColorHex == null
+            ? color
+            : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
+        var rules = new List<TextDecorations.Rule>();
+        var waves = new List<TextDecorations.Wave>();
+        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => MeasurePrefix(context, properties, _), rules, waves);
+        foreach (var rule in rules)
+        {
+            var y = P(context, rule.Y);
+            canvas.DrawLine(context.GetPen(rule.IsStrike ? color : underlineColor, P(context, rule.Thickness)), new PointF(P(context, rule.X0), y), new PointF(P(context, rule.X1), y));
+        }
+
+        foreach (var wave in waves)
+        {
+            var points = new PointF[wave.Points.Count];
+            for (var index = 0; index < points.Length; index++)
+            {
+                points[index] = new(P(context, wave.Points[index].X), P(context, wave.Points[index].Y));
+            }
+
+            canvas.DrawLine(context.GetPen(underlineColor, P(context, wave.Thickness)), points);
+        }
+    }
+
+    // The drawn width in points of a prefix of a run's text, as DrawTracked advances it (kerning aside).
+    static float MeasurePrefix(ImageSharpRenderContext context, RunProperties properties, string prefix) =>
+        (float) (context.MeasureText(context.GetFont(properties), prefix) + properties.CharacterSpacingPoints * prefix.Length);
 
     // Text is anchored at the engine's baseline (TextBaseline.Alphabetic in Options) — the one place
     // ImageSharp used to diverge from Skia and PDF, which draw at PlacedLine.Baseline directly. The

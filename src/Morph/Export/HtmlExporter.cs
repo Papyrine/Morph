@@ -1915,7 +1915,7 @@ static class HtmlExporter
             var totalColumns = 0;
             foreach (var row in rows)
             {
-                var width = 0;
+                var width = row.GridBefore + row.GridAfter;
                 foreach (var cell in row.Cells)
                 {
                     width += Math.Max(1, cell.Properties.GridSpan);
@@ -1968,7 +1968,20 @@ static class HtmlExporter
             builder.Append(">\n");
 
             var cells = rows[rowIndex].Cells;
-            var gridColumn = 0;
+            var gridColumn = rows[rowIndex].GridBefore;
+
+            // w:gridBefore leaves grid columns empty ahead of the row's first cell; one bare cell keeps
+            // the rest in their columns.
+            if (gridColumn > 0)
+            {
+                Indent(depth + 1).Append("<td");
+                if (gridColumn > 1)
+                {
+                    builder.Append(" colspan=\"").Append(gridColumn).Append('"');
+                }
+
+                builder.Append("></td>\n");
+            }
             foreach (var cell in cells)
             {
                 var properties = cell.Properties;
@@ -2229,7 +2242,7 @@ static class HtmlExporter
 
         static bool ColumnIsVerticalContinue(TableRow row, int gridColumn)
         {
-            var column = 0;
+            var column = row.GridBefore;
             foreach (var cell in row.Cells)
             {
                 if (column == gridColumn)

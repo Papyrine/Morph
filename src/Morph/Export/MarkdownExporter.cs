@@ -246,7 +246,7 @@ static class MarkdownExporter
             var columnCount = 0;
             foreach (var row in table.Rows)
             {
-                var width = 0;
+                var width = row.GridBefore + row.GridAfter;
                 foreach (var cell in row.Cells)
                 {
                     width += Math.Max(1, cell.Properties.GridSpan);
@@ -292,6 +292,13 @@ static class MarkdownExporter
         {
             builder.Append('|');
             var column = 0;
+
+            // w:gridBefore columns are empty cells ahead of the row's first.
+            for (; column < row.GridBefore; column++)
+            {
+                builder.Append("  |");
+            }
+
             foreach (var cell in row.Cells)
             {
                 var span = Math.Max(1, cell.Properties.GridSpan);
@@ -403,7 +410,7 @@ static class MarkdownExporter
             var rows = table.Rows;
             for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
             {
-                var gridColumn = 0;
+                var gridColumn = rows[rowIndex].GridBefore;
                 foreach (var cell in rows[rowIndex].Cells)
                 {
                     var properties = cell.Properties;

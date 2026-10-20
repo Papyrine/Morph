@@ -6,6 +6,20 @@ sealed class TableRow
     public required IReadOnlyList<TableCell> Cells { get; init; }
 
     /// <summary>
+    /// Grid columns the row leaves empty before its first cell (<c>w:trPr/w:gridBefore</c>). Word-probed
+    /// (<c>_probe_grid_before_after</c>, 2026-10-21): the row's first cell starts at this grid column, the
+    /// skipped columns keep their grid widths, and nothing — no border, no shading — is drawn in them.
+    /// Every walk of a row's cells starts its grid cursor here.
+    /// </summary>
+    public int GridBefore { get; init; }
+
+    /// <summary>
+    /// Grid columns the row leaves empty after its last cell (<c>w:trPr/w:gridAfter</c>). Drawn as
+    /// nothing, like <see cref="GridBefore"/>; it counts only toward how many grid columns the row spans.
+    /// </summary>
+    public int GridAfter { get; init; }
+
+    /// <summary>
     /// Explicit row height in points, if specified in the document.
     /// Null means the height should be calculated from content.
     /// </summary>

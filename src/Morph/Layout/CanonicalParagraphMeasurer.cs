@@ -465,40 +465,75 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     }
 
     /// <summary>
-    /// How far the FIRST line's text starts right of the paragraph's LeftIndent when the list
-    /// marker overruns it. Word's numbering suffix is a tab: the text lands at the first stop
-    /// past the marker's end — the text indent itself when the marker ends before it (the
-    /// ordinary case, zero shift), else the next DEFAULT-interval stop. Probed at 24pt
-    /// (<c>_probe_numtab</c>): a "888." ending 96.5pt from the margin put its text at exactly
-    /// 108pt, the next 36pt multiple. A right-aligned marker ends AT the number position and
-    /// never overruns. Continuation lines stay at the LeftIndent.
+    /// How far the FIRST line's text starts right of the paragraph's LeftIndent (negative: left of
+    /// it), past the list marker. Continuation lines stay at the LeftIndent.
     /// </summary>
-    public float MarkerTextShift(ParagraphElement paragraph)
+    public float MarkerTextShift(ParagraphElement paragraph) =>
+        MarkerPlacement(paragraph).TextShift;
+
+    /// <summary>
+    /// Where a list paragraph's first line puts its marker and its text, both relative to the
+    /// paragraph's LeftIndent.
+    ///
+    /// The marker starts at the first line's own indent (left + firstLine − hanging), or ends there
+    /// when right-aligned. What follows it is the level's suffix (<c>w:lvl/w:suff</c>), Word-probed in
+    /// <c>_probe_list_suffix</c> at 28pt over three hanging indents:
+    /// * a tab runs to the first stop past the marker's end — the hanging indent's own stop at the
+    ///   LeftIndent when the marker ends before it (the ordinary case), else the next DEFAULT-interval
+    ///   stop. <c>_probe_numtab</c>: a "888." ending 96.5pt from the margin put its text at exactly 108pt,
+    ///   the next 36pt multiple. With no hanging indent there is no stop at the LeftIndent, so the text
+    ///   goes to the next default stop: "1." at 36pt with its text at 72pt.
+    /// * a space sets the text one space (in the marker's font) after the marker's end;
+    /// * nothing sets the text against it.
+    /// Custom tab stops are not consulted.
+    /// </summary>
+    public (float MarkerOffset, float TextShift) MarkerPlacement(ParagraphElement paragraph)
     {
         var properties = paragraph.Properties;
-        if (properties.Numbering is not { Text.Length: > 0 } numbering ||
-            numbering.MarkerRightAligned)
+        if (properties.Numbering is not { Text.Length: > 0 } numbering)
         {
-            return 0;
+            return (0, 0);
         }
 
+        var markerProperties = MarkerProperties(paragraph, numbering);
+        var markerWidth = MeasureRunWidth(numbering.Text, markerProperties);
         var hanging = (float) properties.HangingIndentPoints;
-        if (hanging <= 0.01f)
+        var start = (float) properties.FirstLineIndentPoints - hanging;
+
+        // w:lvlJc="right" anchors the marker's RIGHT edge at the number position, the numeral
+        // growing leftward into the margin so the periods of I./VIII./XVIII. line up —
+        // _probe_numtab's right edges landed within 3px of the position at two geometries.
+        float markerOffset;
+        float markerEnd;
+        if (numbering.MarkerRightAligned)
         {
-            // The no-hanging branch draws the marker to the LEFT of the text position.
-            return 0;
+            markerOffset = start - markerWidth;
+            markerEnd = start;
+        }
+        else
+        {
+            markerOffset = start;
+            markerEnd = start + markerWidth;
         }
 
-        var markerWidth = MeasureRunWidth(numbering.Text, MarkerProperties(paragraph, numbering));
-        var markerEnd = properties.LeftIndentPoints - hanging + markerWidth;
-        if (markerEnd <= properties.LeftIndentPoints - 0.01)
+        switch (numbering.Suffix)
         {
-            return 0;
+            case ListMarkerSuffix.Nothing:
+                return (markerOffset, markerEnd);
+            case ListMarkerSuffix.Space:
+                return (markerOffset, markerEnd + MeasureRunWidth(" ", markerProperties));
+        }
+
+        if (start < -0.01f &&
+            markerEnd <= -0.01f)
+        {
+            return (markerOffset, 0);
         }
 
         var interval = properties.DefaultTabStopPoints > 0.01 ? properties.DefaultTabStopPoints : 36.0;
-        var stop = (Math.Floor(markerEnd / interval) + 1) * interval;
-        return (float) (stop - properties.LeftIndentPoints);
+        var absoluteEnd = properties.LeftIndentPoints + markerEnd;
+        var stop = (Math.Floor(absoluteEnd / interval) + 1) * interval;
+        return (markerOffset, (float) (stop - properties.LeftIndentPoints));
     }
 
     // Word applies pair kerning to a run whose size reaches the resolved w:kern threshold; zero
