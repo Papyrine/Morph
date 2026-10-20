@@ -102,15 +102,6 @@ slower, so read these as proportions:
 
 `EditMap`, `SourceIndex`, the text layers and `TextDiff` are not worth touching. What is:
 
-### E1 — the edited file is still opened three times per edit
-
-`DocumentEditor.Edit` opens the package to edit it, `PagedDocument.Open` parses it, and `DocumentReading.Read`
-opens it once more for the review pane and the outline (that pair was two opens until 2026-10-20 — see
-"Verified fine").
-
-**Fix to try:** build outline and review from the editor's DOM before it saves, since it has the package
-open already — that would save the remaining ~4ms (letter) to ~22ms (newsletter) per edit.
-
 ### E2 — package save dominates on a document with media
 
 `SetTracking` — one attribute in `settings.xml` — costs the same 69ms as a body rewrite on the newsletter:
@@ -138,6 +129,14 @@ ordinal list built once per `Editing` if select-all commands on long documents s
   `Review` read is gone: letter 6.5→3.9ms, twelve-pages 4.7→2.8ms, newsletter 45.5→22ms, and newsletter
   allocation 26.6→14.1MB (`EditBenchmarks`, default job). If the shared read throws, each is read on its
   own as before, so a file readable for one still gets it.
+- **…and from the edit's own package** (`DocumentReading.Edit` / `Capture`, landed 2026-10-20). Every
+  editor and `ReviewEditor` opens through `DocumentReading.Edit`; under `Capture` (only `ShowAsync` asks)
+  it saves explicitly, reads review and outline off the open DOM with autosave off — so the reading cannot
+  write back the parts it loaded — and remembers them against the returned array, so the reload's read is a
+  lookup. Capture costs +1.9 / +0.6 / +4.8ms (letter / twelve-pages / newsletter) against the 3.5 / 2.8 /
+  20.5ms open it replaces. Part contents are identical with and without capture (only the zip container
+  bytes differ); `EditCorpusTests.EveryDocument_ReadsTheSameCapturedAsAfresh` checks that and the reading
+  over the whole corpus. Round trip now (default job): letter 8.1ms, twelve-pages 10.0ms, newsletter 94ms.
 
 - **The wrap memo** (`CanonicalParagraphMeasurer.wrapCache`, landed 2026-08-15). `Wrap` is a pure function
   of `(ParagraphElement, maxWidth)` and was being asked the same question repeatedly — the row-height and

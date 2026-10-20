@@ -164,4 +164,64 @@ public class EditCorpusTests
         outline.Paragraphs
             .Select(_ => string.Concat(_.Units.Where(unit => unit.Editable).Select(unit => unit.Text)))
             .ToList();
+
+    // What the viewer reads off an edit's own package (DocumentReading.Capture) has to be what reading
+    // the edited file afresh gives, and capturing must not change a byte of the file.
+    [Test]
+    [MethodDataSource(nameof(Documents))]
+    public async Task EveryDocument_ReadsTheSameCapturedAsAfresh(string scenario)
+    {
+        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var outline = DocumentOutline.Read(docx);
+        if (!outline.AllowsEditing ||
+            outline.Paragraphs.FirstOrDefault(_ => _.Units.Any(unit => unit.Editable)) is not { } paragraph)
+        {
+            return;
+        }
+
+        var content = new NewParagraph[] { new(Items(paragraph, typed)) };
+        var plain = DocumentEditor.Rewrite(docx, paragraph.Ordinal, content, Tracked).Document;
+        byte[] captured;
+        using (DocumentReading.Capture())
+        {
+            captured = DocumentEditor.Rewrite(docx, paragraph.Ordinal, content, Tracked).Document;
+        }
+
+        await Assert.That(Differing(captured, plain)).IsEmpty()
+            .Because($"capturing changed parts of {scenario}'s edit");
+
+        // A copy of the array is not remembered, so it is read from the bytes.
+        var (review, read) = DocumentReading.Read(captured);
+        var (freshReview, freshRead) = DocumentReading.Read(captured.ToArray());
+        await Assert.That(Json(review)).IsEqualTo(Json(freshReview));
+        await Assert.That(Json(read)).IsEqualTo(Json(freshRead));
+    }
+
+    // The parts whose content differs between two packages, or that one has and the other not.
+    static List<string> Differing(byte[] first, byte[] second)
+    {
+        var one = Entries(first);
+        var other = Entries(second);
+        return one.Keys.Union(other.Keys)
+            .Where(_ => !one.TryGetValue(_, out var a) || !other.TryGetValue(_, out var b) || !a.SequenceEqual(b))
+            .Order(StringComparer.Ordinal)
+            .ToList();
+    }
+
+    static Dictionary<string, byte[]> Entries(byte[] package)
+    {
+        using var archive = new System.IO.Compression.ZipArchive(new MemoryStream(package));
+        return archive.Entries.ToDictionary(
+            _ => _.FullName,
+            _ =>
+            {
+                using var stream = _.Open();
+                using var buffer = new MemoryStream();
+                stream.CopyTo(buffer);
+                return buffer.ToArray();
+            });
+    }
+
+    static string Json(object value) =>
+        System.Text.Json.JsonSerializer.Serialize(value, value.GetType());
 }
