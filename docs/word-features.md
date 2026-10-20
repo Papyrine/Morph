@@ -242,29 +242,53 @@ Italic style applied to text runs.
 
 #### Underline `DONE`
 
-Underline decoration on text. Rendered 2px below the text baseline. `w:u/@w:color` paints the
-rule in its own colour (absent or `auto` means the run's text colour), and `w:val="double"`
-draws a second rule one gap below the first — every backend, plus
+Underline decoration on text, in every `w:u/@w:val` style. `w:u/@w:color` paints the rule in its
+own colour (absent or `auto` means the run's text colour) — every backend, plus
 `text-decoration-color` / `text-decoration-style: double` in the HTML export.
 
-- **OOXML**: `w:u` with `w:val` (single, double, dotted, dash, etc.) and `w:color`
+- **OOXML**: `w:u` with `w:val` (single, words, double, thick, dotted, dash, dashLong, dotDash, dotDotDash, their heavy forms, wave, wavyHeavy, wavyDouble) and `w:color`
 - **Spec**: [Underline](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.underline)
-- **Model**: `RunProperties.Underline`, `RunProperties.UnderlineColorHex`, `RunProperties.DoubleUnderline`
-- **Test**: `underline_text/`, `wordart/` (page 9: red single + blue double)
+- **Model**: `RunProperties.Underline`, `RunProperties.UnderlineStyle`, `RunProperties.UnderlineColorHex`
+- **Render**: `TextDecorations.Collect`, stroked by each painter's `PaintDecorations`
+- **Test**: `underline_text/`, `underline_styles/`, `wordart/` (page 9: red single + blue double), `TextDecorationTests`
 
-> **Consumers**: Underline types beyond single/double (dotted, dash, wave, etc.) are detected but render as a single solid underline.
+> **Every style, Word-probed (2026-10-21, `underline_styles` at 48pt and again at 24pt, read from
+> the XPS).** Each style is placed against the single underline's band — offset `p` below the
+> baseline, thickness `t` — and every law held at both sizes:
+>
+> | style | Word draws |
+> | --- | --- |
+> | single, words, light dashes | band `[p, p+t]`; words leaves the spaces bare |
+> | double | two `t/2` rules filling `[p/2, p+t]` |
+> | thick, every heavy style | band `[p/2, p+t/2]` |
+> | wave / wavyHeavy | 2.4pt period, top at `p/2`, 0.06 em crest to trough, stroked 0.24pt / 0.96pt |
+> | wavyDouble | two waves at half that, the second 0.54 of a wave lower |
+>
+> Dashes are **fixed lengths in points**, identical at 24pt and 48pt, patterned from the run's
+> start: dotted 1.44/1.44, dash 3.96/1.92, dashLong 7.92/3.96, dotDash 3.0/.96/.96/.96,
+> dotDotDash 2.16 then .72 five times; a heavy style keeps its light style's pattern. Morph's
+> single underline keeps its own placement (`size * 0.12`, `size / 16` thick), and the other
+> styles are placed against it as Word places them against the font's. Before this, every style
+> but double drew a single solid rule, and double drew its second rule a full gap below the first.
+> A style also now survives a paragraph or character style: the cascade carried only whether there
+> was an underline, so a styled dotted underline drew solid.
 
 
 #### Strikethrough `DONE`
 
-Line through the middle of text. Rendered at 30% above the text baseline.
+Line through the middle of text. Rendered at 30% of the line's ascent above the text baseline.
 
 - **OOXML**: `w:strike`, `w:dstrike` (double strikethrough)
 - **Spec**: [Strikethrough](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.strikethrough)
-- **Model**: `RunProperties.Strikethrough`
-- **Test**: `strikethrough_text/`
+- **Model**: `RunProperties.Strikethrough`, `RunProperties.DoubleStrikethrough`
+- **Render**: `TextDecorations.Collect`
+- **Test**: `strikethrough_text/`, `underline_styles/` (page 2), `TextDecorationTests`
 
-> **Consumers**: Both single and double strikethrough are parsed; both render as single strikethrough.
+> **Double strikethrough (Word-probed 2026-10-21, `underline_styles`).** Word draws two rules of the
+> strike's own thickness, each one thickness above and below where the single strike's centre is:
+> at 48pt Arial the single band is -12.48 / 2.40 and the double's are -14.88 and -10.08; at 24pt
+> -6.24 / 1.20 against -7.44 and -5.04. `w:dstrike` is read through the style cascade and toggles
+> like `w:strike`. Before this it drew as a single strike.
 
 
 #### All Caps `DONE`
@@ -1189,6 +1213,28 @@ Lists with multiple indent levels, each with its own bullet or numbering style.
 >   width and to `Fragmenter.LineRuns`' placement so measure and paint agree; continuation lines
 >   stay at the LeftIndent.
 
+
+#### List Marker Suffix `DONE`
+
+What follows a list marker — a tab, a space, or nothing — and so where the first line's text
+starts.
+
+- **OOXML**: `w:lvl/w:suff` (`tab` when absent)
+- **Spec**: [Level Suffix](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.levelsuffix)
+- **Model**: `NumberingInfo.Suffix` (`ListMarkerSuffix`)
+- **Layout**: `CanonicalParagraphMeasurer.MarkerPlacement` — the marker's position and the first line's text shift, used by the wrap and by `Fragmenter.LineRuns` alike
+- **Test**: `list_marker_suffix/`, `ListMarkerSuffixTests`
+
+> **Word-probed (2026-10-21, `list_marker_suffix`, 28pt Arial over three indents).** The marker
+> starts at the first line's own indent, left + firstLine − hanging (a right-aligned marker ends
+> there). A **tab** runs to the hanging indent's stop when the marker ends before it, else to the
+> next default stop (the overflow law above); with **no hanging indent** there is no stop at the
+> left indent, so "1." at 36pt puts its text at 72pt. A **space** sets the text one space, in the
+> marker's font, after the marker; **nothing** sets it against the marker, whatever the indents.
+> Custom tab stops are not consulted. Before this, `w:suff` was not read, and with no hanging
+> indent the marker was drawn ending 3pt short of the left indent with the text at the left
+> indent.
+
 ---
 
 
@@ -1461,6 +1507,25 @@ Cells spanning multiple columns.
 
 - **OOXML**: `w:gridSpan` within `w:tcPr`
 - **Model**: `TableCellProperties.GridSpan`
+
+
+#### Skipped Grid Columns (gridBefore / gridAfter) `DONE`
+
+Grid columns a row leaves empty before its first cell or after its last.
+
+- **OOXML**: `w:trPr/w:gridBefore`, `w:trPr/w:gridAfter` (`w:wBefore` / `w:wAfter` are not read)
+- **Spec**: [GridBefore](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.gridbefore)
+- **Model**: `TableRow.GridBefore`, `TableRow.GridAfter`
+- **Layout**: every walk of a row's cells starts its grid cursor at `GridBefore` (`TableLayout`, `TableHeightCalculator`, `Fragmenter.BuildRow` / row splitting, which also offsets the first cell by `LeadingGridWidth`); the column count includes both skips
+- **Export**: HTML writes one empty cell spanning the skipped leading columns; Markdown pads them with empty cells
+- **Test**: `table_grid_before_after/`, `TableGridSkipTests`
+
+> **Word-probed (2026-10-21, `table_grid_before_after`, fixed and autofit, 3pt borders).** A row's
+> first cell starts at grid column `gridBefore`, every cell keeps its grid width, and the skipped
+> columns draw nothing — no border, no shading — so a short row leaves the edges of its neighbours
+> open. Fixed and autofit layouts agree, and `wBefore` / `wAfter` change nothing when the grid gives
+> the widths. Before this, neither element was read and every row's cells were packed from grid
+> column 0, so a stepped table collapsed into a ragged left-aligned one.
 
 
 #### Vertical Merge `DONE`
@@ -3447,8 +3512,8 @@ Read-only mode, form protection, and editing restrictions.
 |----------|------|---------|------|---------|-------|
 | 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
 | 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
-| 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
-| 4. Tables | 28 | 0 | 0 | 0 | 28 |
+| 3. Lists & Numbering | 7 | 0 | 0 | 0 | 7 |
+| 4. Tables | 29 | 0 | 0 | 0 | 29 |
 | 5. Page Layout & Sections | 20 | 0 | 0 | 0 | 20 |
 | 6. Graphics & Media | 22 | 3 | 1 | 1 | 27 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
@@ -3457,14 +3522,14 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **163** | **4** | **5** | **1** | **173** |
+| **Total** | **165** | **4** | **5** | **1** | **175** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 163
+    "Done" : 165
     "Partial" : 4
     "Todo" : 5
     "Wontfix" : 1

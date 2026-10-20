@@ -35,7 +35,7 @@ static class TableHeightCalculator
             // w:trHeight are applied verbatim in the second pass.
             float maxHeight = 0;
 
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
                 var cell = row.Cells[cellIndex];
@@ -126,7 +126,7 @@ static class TableHeightCalculator
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
@@ -297,7 +297,7 @@ static class TableHeightCalculator
         var row = table.Rows[rowIndex];
         var rowMargin = (float) TableLayout.RowVerticalPadding(row, table.Properties).Top;
         var inset = rowIndex > 0 ? Math.Max(rowMargin, RowEdgeWidth(table, colCount, rowIndex - 1, top: false)) : rowMargin;
-        var gridColIndex = 0;
+        var gridColIndex = row.GridBefore;
         for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
         {
             var properties = row.Cells[cellIndex].Properties;
@@ -314,7 +314,7 @@ static class TableHeightCalculator
     {
         var row = table.Rows[rowIndex];
         var width = 0f;
-        var gridColIndex = 0;
+        var gridColIndex = row.GridBefore;
         for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
         {
             var cell = row.Cells[cellIndex];

@@ -3523,8 +3523,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var row = table.Rows[rowIndex];
             var cells = new List<PlacedCell>();
             var continuations = new CellSplitPoint?[row.Cells.Count];
-            var cellX = tableX;
-            var gridColIndex = 0;
+            var cellX = tableX + LeadingGridWidth(colWidths, row.GridBefore);
+            var gridColIndex = row.GridBefore;
             var usedHeight = 0f;
             var anyContinues = false;
 
@@ -3643,13 +3643,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the
         // raster backend's grid — merge-continuation cells contribute nothing (the originating cell covers
         // them), and a merge-restart cell's box spans the merged rows' heights.
+        // The width of the grid columns a row's w:gridBefore leaves empty — where its first cell starts.
+        static float LeadingGridWidth(float[] colWidths, int gridBefore)
+        {
+            var width = 0f;
+            for (var column = 0; column < gridBefore && column < colWidths.Length; column++)
+            {
+                width += colWidths[column];
+            }
+
+            return width;
+        }
+
         PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
         {
             var row = table.Rows[rowIndex];
             var rowHeight = rowHeights[rowIndex];
             var cells = new List<PlacedCell>();
-            var cellX = tableX;
-            var gridColIndex = 0;
+            var cellX = tableX + LeadingGridWidth(colWidths, row.GridBefore);
+            var gridColIndex = row.GridBefore;
             var detached = table.Properties.CellSpacingPoints > 0;
 
             // The horizontal edges TableHeightCalculator charged this row: its top edge always (an exact
@@ -5185,11 +5197,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             if (lineIndex == 0 && paragraph.Properties.Numbering is { Text.Length: > 0 } numbering)
             {
-                // A marker that overruns the text indent pushes the FIRST line's text to the
-                // next tab stop (see CanonicalParagraphMeasurer.MarkerTextShift, which narrowed
-                // the wrap by the same amount); the marker itself stays in the gutter.
-                var shift = measurer.MarkerTextShift(paragraph);
-                return [MarkerRun(paragraph, numbering, lineLeft), .. MapRuns(line, lineLeft + shift)];
+                // The marker and the FIRST line's text where the level's suffix puts them
+                // (CanonicalParagraphMeasurer.MarkerPlacement, whose text shift the wrap
+                // narrowed the first line by).
+                var (markerOffset, shift) = measurer.MarkerPlacement(paragraph);
+                return [MarkerRun(paragraph, numbering, lineLeft + markerOffset), .. MapRuns(line, lineLeft + shift)];
             }
 
             return MapRuns(line, lineLeft);
@@ -5199,21 +5211,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // left of the text (or right-aligned just before it when there is no hanging indent). Font, colour
         // and position mirror PdfTextEngine's marker placement; the paragraph's LeftIndent already sets the
         // text edge, so the marker offsets back from there.
-        PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float lineLeft)
+        PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float markerX)
         {
             var markerProperties = measurer.Drawn(CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering));
             var markerWidth = measurer.MeasureRunWidth(numbering.Text, markerProperties);
-            var hanging = (float) paragraph.Properties.HangingIndentPoints;
-
-            // w:lvlJc="right" anchors the marker's RIGHT edge at the number position, the numeral
-            // growing leftward into the margin so the periods of I./VIII./XVIII. line up —
-            // _probe_numtab's right edges landed within 3px of the position at two geometries.
-            var markerX = hanging > 0.01f
-                ? numbering.MarkerRightAligned
-                    ? lineLeft - hanging - markerWidth
-                    : lineLeft - hanging
-                : lineLeft - markerWidth - 3f;
-
             return new(markerX, markerWidth, numbering.Text, markerProperties);
         }
 

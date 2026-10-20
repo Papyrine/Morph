@@ -184,26 +184,9 @@ static class SkiaPainter
             var baseline = line.Baseline - run.BaselineShift;
             DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
 
-            var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
-            if (properties.Underline)
+            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
-                var underlineColor = properties.UnderlineColorHex == null
-                    ? color
-                    : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = P(context, baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(P(context, run.X), underlineY, P(context, run.X + run.Width), underlineY, context.GetReusableRulePaint(underlineColor, strokeWidth));
-                if (properties.DoubleUnderline)
-                {
-                    var secondY = underlineY + strokeWidth * 2;
-                    canvas.DrawLine(P(context, run.X), secondY, P(context, run.X + run.Width), secondY, context.GetReusableRulePaint(underlineColor, strokeWidth));
-                }
-            }
-
-            if (properties.Strikethrough)
-            {
-                var strikeY = P(context, baseline - ascent * 0.3);
-                canvas.DrawLine(P(context, run.X), strikeY, P(context, run.X + run.Width), strikeY, context.GetReusableRulePaint(color, strokeWidth));
+                PaintDecorations(context, canvas, run, properties, color, (float) baseline, (float) ascent);
             }
 
             // w:bdr — a box around this run alone, over the glyphs like Word's, its rules the drawn
@@ -220,6 +203,41 @@ static class SkiaPainter
         {
             PaintImage(context, canvas, image);
         }
+    }
+
+    // The run's underline and strike rules (TextDecorations). w:u/@w:color paints the underline in its
+    // own colour; absent means the text colour, which the strike always takes.
+    static void PaintDecorations(SkiaRenderContext context, SKCanvas canvas, PlacedRun run, RunProperties properties, SKColor color, float baseline, float ascent)
+    {
+        var underlineColor = properties.UnderlineColorHex == null
+            ? color
+            : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
+        var rules = new List<TextDecorations.Rule>();
+        var waves = new List<TextDecorations.Wave>();
+        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => MeasurePrefix(context, properties, _), rules, waves);
+        foreach (var rule in rules)
+        {
+            var y = P(context, rule.Y);
+            canvas.DrawLine(P(context, rule.X0), y, P(context, rule.X1), y, context.GetReusableRulePaint(rule.IsStrike ? color : underlineColor, P(context, rule.Thickness)));
+        }
+
+        foreach (var wave in waves)
+        {
+            var paint = context.GetReusableRulePaint(underlineColor, P(context, wave.Thickness));
+            for (var index = 1; index < wave.Points.Count; index++)
+            {
+                var (x0, y0) = wave.Points[index - 1];
+                var (x1, y1) = wave.Points[index];
+                canvas.DrawLine(P(context, x0), P(context, y0), P(context, x1), P(context, y1), paint);
+            }
+        }
+    }
+
+    // The drawn width in points of a prefix of a run's text, as DrawTracked advances it (kerning aside).
+    static float MeasurePrefix(SkiaRenderContext context, RunProperties properties, string prefix)
+    {
+        var font = context.CreateFont(properties);
+        return (float) ((font.MeasureText(prefix) / context.Scale) + properties.CharacterSpacingPoints * prefix.Length);
     }
 
     // Draws text, spreading each character by w:spacing tracking and pulling each by its kern. The run's

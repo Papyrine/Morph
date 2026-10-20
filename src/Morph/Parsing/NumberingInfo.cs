@@ -51,6 +51,9 @@ sealed record NumberingInfo
     /// </summary>
     public bool MarkerRightAligned { get; init; }
 
+    /// <summary>What follows the marker (<c>w:lvl/w:suff</c>); a tab when the level declares none.</summary>
+    public ListMarkerSuffix Suffix { get; init; }
+
     /// <summary>
     /// The level's counter style (<c>w:numFmt</c>). Drives the ordered-list marker style in the
     /// HTML export so roman/letter lists don't collapse to decimal; <see cref="ListNumberFormat.Decimal"/>

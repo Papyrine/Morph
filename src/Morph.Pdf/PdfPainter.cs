@@ -257,28 +257,10 @@ static class PdfPainter
                 : context.GetFont(properties.FontFamily, false, properties.Italic, VerticalRunPosition.RenderSizePoints(properties));
             DrawTracked(graphics, run.Text, font, context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties), KernShifts(context, run.Text, properties), stepFont);
 
-            // Underline below the baseline, strike through the x-height — geometry carried over from the
-            // deleted PdfTextEngine.
-            var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
-            if (properties.Underline)
+            // Underline below the baseline, strike through the x-height (TextDecorations).
+            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
-                var underlineColor = properties.UnderlineColorHex == null
-                    ? color
-                    : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = baseline + properties.FontSizePoints * 0.12;
-                graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, underlineY, run.X + run.Width, underlineY);
-                if (properties.DoubleUnderline)
-                {
-                    var secondY = underlineY + strokeWidth * 2;
-                    graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, secondY, run.X + run.Width, secondY);
-                }
-            }
-
-            if (properties.Strikethrough)
-            {
-                var strikeY = baseline - ascent * 0.3;
-                graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
+                PaintDecorations(context, graphics, run, properties, color, (float) baseline, (float) ascent, stepFont);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.
@@ -293,6 +275,41 @@ static class PdfPainter
         foreach (var image in line.Images)
         {
             PaintImage(context, graphics, image);
+        }
+    }
+
+    // The run's underline and strike rules — see SkiaPainter.PaintDecorations. PDF space is points.
+    static void PaintDecorations(PdfRenderContext context, XGraphics graphics, PlacedRun run, RunProperties properties, XColor color, float baseline, float ascent, XFont stepFont)
+    {
+        var underlineColor = properties.UnderlineColorHex == null
+            ? color
+            : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
+        var rules = new List<TextDecorations.Rule>();
+        var waves = new List<TextDecorations.Wave>();
+        TextDecorations.Collect(
+            properties,
+            run.Text,
+            run.X,
+            run.Width,
+            baseline,
+            ascent,
+            _ => (float) (graphics.MeasureString(_, stepFont).Width + properties.CharacterSpacingPoints * _.Length),
+            rules,
+            waves);
+        foreach (var rule in rules)
+        {
+            graphics.DrawLine(context.GetPen(rule.IsStrike ? color : underlineColor, rule.Thickness), rule.X0, rule.Y, rule.X1, rule.Y);
+        }
+
+        foreach (var wave in waves)
+        {
+            var points = new XPoint[wave.Points.Count];
+            for (var index = 0; index < points.Length; index++)
+            {
+                points[index] = new(wave.Points[index].X, wave.Points[index].Y);
+            }
+
+            graphics.DrawLines(context.GetPen(underlineColor, wave.Thickness), points);
         }
     }
 

@@ -12,6 +12,7 @@
           "DoubleUnderline": false,
           "IsRevisionMark": false,
           "Strikethrough": false,
+          "DoubleStrikethrough": false,
           "AllCaps": false,
           "SmallCaps": false,
           "ColorHex": "FFA500",

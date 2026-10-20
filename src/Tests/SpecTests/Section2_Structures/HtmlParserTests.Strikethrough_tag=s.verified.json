@@ -12,6 +12,7 @@
           "DoubleUnderline": false,
           "IsRevisionMark": false,
           "Strikethrough": true,
+          "DoubleStrikethrough": false,
           "AllCaps": false,
           "SmallCaps": false,
           "Ligatures": "Standard",

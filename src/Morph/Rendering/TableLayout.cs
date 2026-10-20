@@ -13,7 +13,7 @@ static class TableLayout
         var maxSpan = 0;
         foreach (var row in table.Rows)
         {
-            var rowSpan = 0;
+            var rowSpan = row.GridBefore + row.GridAfter;
             foreach (var cell in row.Cells)
             {
                 rowSpan += cell.Properties.GridSpan;
@@ -231,11 +231,11 @@ static class TableLayout
         // A neighbour whose explicit facing edge is VISIBLE changes nothing here: both cells then
         // draw the same edge, which overdraws harmlessly.
         var span = Math.Max(1, cellProps.GridSpan);
-        var sameRow = row?.Cells;
+        var sameRow = row;
         var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex - 1)?.Borders, BorderSides.Right);
         var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex + span)?.Borders, BorderSides.Left);
-        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders, BorderSides.Bottom);
-        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders, BorderSides.Top);
+        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowAt(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders, BorderSides.Bottom);
+        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowAt(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders, BorderSides.Top);
 
         return new()
         {
@@ -256,9 +256,9 @@ static class TableLayout
     /// continuation up to its span head — the merged region is ONE cell, so its head's explicit
     /// borders speak for every row it covers.
     /// </summary>
-    static TableCellProperties? FacingCell(IReadOnlyList<TableRow>? rows, IReadOnlyList<TableCell>? cells, int rowIndex, int gridColumn)
+    static TableCellProperties? FacingCell(IReadOnlyList<TableRow>? rows, TableRow? cellsRow, int rowIndex, int gridColumn)
     {
-        var facing = CellCovering(cells, gridColumn);
+        var facing = CellCovering(cellsRow, gridColumn);
         if (facing is not {VerticalMerge: VerticalMergeType.Continue, Borders: null} || rows == null)
         {
             return facing;
@@ -266,7 +266,7 @@ static class TableLayout
 
         for (var above = rowIndex - 1; above >= 0; above--)
         {
-            var candidate = CellCovering(rows[above].Cells, gridColumn);
+            var candidate = CellCovering(rows[above], gridColumn);
             if (candidate == null)
             {
                 return facing;
@@ -281,26 +281,26 @@ static class TableLayout
         return facing;
     }
 
-    static IReadOnlyList<TableCell>? RowCells(IReadOnlyList<TableRow>? rows, int rowIndex)
+    static TableRow? RowAt(IReadOnlyList<TableRow>? rows, int rowIndex)
     {
         if (rows != null && rowIndex >= 0 && rowIndex < rows.Count)
         {
-            return rows[rowIndex].Cells;
+            return rows[rowIndex];
         }
 
         return null;
     }
 
     /// <summary>The cell whose grid span covers <paramref name="gridColumn"/>, or null.</summary>
-    static TableCellProperties? CellCovering(IReadOnlyList<TableCell>? cells, int gridColumn)
+    static TableCellProperties? CellCovering(TableRow? row, int gridColumn)
     {
-        if (cells == null || gridColumn < 0)
+        if (row == null || gridColumn < row.GridBefore)
         {
             return null;
         }
 
-        var start = 0;
-        foreach (var cell in cells)
+        var start = row.GridBefore;
+        foreach (var cell in row.Cells)
         {
             var width = Math.Max(1, cell.Properties.GridSpan);
             if (gridColumn < start + width)
@@ -373,7 +373,7 @@ static class TableLayout
 
         foreach (var row in table.Rows)
         {
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
                 var cell = row.Cells[cellIndex];
@@ -666,7 +666,7 @@ static class TableLayout
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
             foreach (var cell in row.Cells)
             {
                 if (gridColIndex >= colCount)
@@ -901,7 +901,7 @@ static class TableLayout
             for (var r = 0; r < keyTable.Rows.Count; r++)
             {
                 var starts = new HashSet<int>();
-                var col = 0;
+                var col = keyTable.Rows[r].GridBefore;
                 foreach (var cell in keyTable.Rows[r].Cells)
                 {
                     if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
@@ -961,7 +961,7 @@ static class TableLayout
         for (var rowIndex = startRowIndex; rowIndex <= endRowIndex; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            var properties = CellCovering(row.Cells, gridColIndex) ?? new TableCellProperties();
+            var properties = CellCovering(row, gridColIndex) ?? new TableCellProperties();
             var resolved = ResolveCellBorders(properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows) ?? new CellBorders();
             segments[rowIndex - startRowIndex] = resolved with
             {

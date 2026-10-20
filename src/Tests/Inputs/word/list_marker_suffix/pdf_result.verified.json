@@ -1,0 +1,31 @@
+﻿{
+  "target": {
+    "Document": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "1. Item text\n2. Item text\n1. Item text\n2. Item text\n1. Item text\n2. Item text\n1.Item text\n2.Item text\n1. Item text\n2. Item text\n1.Item text\n2.Item text\n1. Item text\n2. Item text\n1. Item text\n2. Item text"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0148,
+      "Ssim": 0.9917,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}
