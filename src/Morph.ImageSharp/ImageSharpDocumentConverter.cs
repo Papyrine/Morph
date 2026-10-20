@@ -16,7 +16,15 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
     internal static int RenderPagesCounted(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
         var laidOut = Layout(document, options);
-        using var context = CreateContext(document, options, laidOut.ContextSettings(document.PageSettings));
+        var settings = laidOut.ContextSettings(document.PageSettings);
+        var parallelism = Math.Min(options.MaxDegreeOfParallelism, laidOut.Pages.Count);
+        if (parallelism > 1)
+        {
+            ParallelPages.Paint(laidOut.Pages, parallelism, () => CreateContext(document, options, settings), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback);
+            return laidOut.Pages.Count;
+        }
+
+        using var context = CreateContext(document, options, settings);
         ImageSharpPainter.Paint(laidOut, context, options.Crop, pageCallback);
         return laidOut.Pages.Count;
     }

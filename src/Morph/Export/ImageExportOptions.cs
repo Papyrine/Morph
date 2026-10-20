@@ -49,4 +49,13 @@ public sealed record ImageExportOptions : ExportOptions
     /// value any page-anchored art that bleeds past the content box.</para>
     /// </summary>
     public PageCrop Crop { get; init; } = PageCrop.FullPage;
+
+    /// <summary>
+    /// How many pages are painted at once. The default, 1, paints them one after another and hands
+    /// each to the caller as it is finished. Above 1, pages are painted on that many threads — each
+    /// with its own render context, so the output is identical — and handed over in page order once
+    /// all are painted. Layout is unaffected; only the painting and PNG encoding are spread. Worth
+    /// raising for a document of many pages when nothing else is competing for the cores.
+    /// </summary>
+    public int MaxDegreeOfParallelism { get; init; } = 1;
 }

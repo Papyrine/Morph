@@ -30,7 +30,17 @@ public sealed class SkiaDocumentConverter : DocumentConverter
             .FitToContent(options.Dpi)
             .Restrict(options.Pages);
 
-        using var context = new SkiaRenderContext(laidOut.ContextSettings(document.PageSettings), options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
+        SkiaRenderContext CreateContext() =>
+            new(laidOut.ContextSettings(document.PageSettings), options.Dpi, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory, options.DeterministicRendering);
+
+        var parallelism = Math.Min(options.MaxDegreeOfParallelism, laidOut.Pages.Count);
+        if (parallelism > 1)
+        {
+            ParallelPages.Paint(laidOut.Pages, parallelism, CreateContext, (context, page, callback) => SkiaPainter.PaintPage(page, context, options.Crop, callback), pageCallback);
+            return laidOut.Pages.Count;
+        }
+
+        using var context = CreateContext();
         SkiaPainter.Paint(laidOut, context, options.Crop, pageCallback);
         return laidOut.Pages.Count;
     }
