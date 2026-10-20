@@ -110,7 +110,10 @@ static partial class DocumentEditor
             docx,
             document =>
             {
-                var main = MainPart(document);
+                // Not MainPart, whose check loads the body: a part whose DOM is loaded is written out
+                // again on save, and the body is all of a document's cost — 2.7MB of it, re-parsed and
+                // re-deflated, in newsletters/03 — for an edit to settings.xml.
+                var main = document.MainDocumentPart ?? throw new InvalidOperationException("Document has no main part");
                 var part = main.DocumentSettingsPart ?? main.AddNewPart<DocumentSettingsPart>();
                 var settings = part.Settings;
                 if (settings == null)
