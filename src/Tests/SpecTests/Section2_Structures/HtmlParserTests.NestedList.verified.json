@@ -31,6 +31,7 @@
     ],
     "Properties": {
       "LineSpacingMultiplier": 1.0,
+      "SnapToGrid": true,
       "LeftIndentPoints": 36.0,
       "HangingIndentPoints": 18.0,
       "ContextualSpacing": false,
@@ -94,6 +95,7 @@
     "Properties": {
       "SpacingAfterPoints": 14.0,
       "LineSpacingMultiplier": 1.0,
+      "SnapToGrid": true,
       "LeftIndentPoints": 72.0,
       "HangingIndentPoints": 18.0,
       "ContextualSpacing": false,

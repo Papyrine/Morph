@@ -44,6 +44,24 @@ sealed class CanonicalTextMeasurer
         };
 
     /// <summary>
+    /// A <c>lineRule="auto"</c> line on a document grid (<c>w:docGrid</c>): its natural pitch rounded up
+    /// to whole grid pitches, then the multiple, with the text centred in the box by its natural pitch.
+    /// Word-probed (2026-10-21, <c>_probe_grid_lines720</c> / <c>_probe_grid_lines500</c>, baselines from
+    /// the XPS): at a 36pt grid 12pt and 30pt Arial take one pitch, 40pt two and 72pt three, and at a 25pt
+    /// grid 30pt and 40pt take two and 72pt four; 1.5 and 2 lines take 54 and 72pt at 36pt and 37.5pt at
+    /// 25pt; every baseline lands within 0.15pt of the natural ascent plus half the box's slack. An exact
+    /// line ignores the grid and an at-least line keeps its own rule (both measured unchanged), and the
+    /// grid sets heights only — lines stack from wherever the block before them ended rather than from
+    /// grid lines fixed on the page.
+    /// </summary>
+    public static (double Height, double AscentShift) GridLine(double naturalPitchPoints, double gridPitchPoints, double multiplier)
+    {
+        var cells = Math.Max(1, Math.Ceiling(naturalPitchPoints / gridPitchPoints - 1e-6));
+        var height = cells * gridPitchPoints * multiplier;
+        return (height, (height - naturalPitchPoints) / 2);
+    }
+
+    /// <summary>
     /// Where the baseline sits inside a <c>lineRule="auto"</c> (multiple) line box. The box itself is
     /// always the natural pitch times the multiple — <see cref="LineHeightPoints(double,LineSpacingRule,double,double)"/>
     /// — but the two directions divide it differently, and Word-probed

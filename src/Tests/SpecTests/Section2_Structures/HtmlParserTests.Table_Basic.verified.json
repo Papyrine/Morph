@@ -37,6 +37,7 @@
                 ],
                 "Properties": {
                   "LineSpacingMultiplier": 1.08,
+                  "SnapToGrid": true,
                   "ContextualSpacing": false,
                   "SuppressLineNumbers": false,
                   "SuppressAutoHyphens": false,
@@ -100,6 +101,7 @@
                 ],
                 "Properties": {
                   "LineSpacingMultiplier": 1.08,
+                  "SnapToGrid": true,
                   "ContextualSpacing": false,
                   "SuppressLineNumbers": false,
                   "SuppressAutoHyphens": false,

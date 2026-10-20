@@ -645,10 +645,17 @@ Vertical space above and below a paragraph, in points.
 
 > **"Auto" spacing is 14pt, and nothing where the paragraph has no neighbour to be set off from (2026-10-11).** `w:spacing/@w:beforeAutospacing` and `@w:afterAutospacing` (what the HTML importer writes, what Normal (Web) carries, and what several template Title styles declare) replace the amount declared beside them. `DocumentParser.ResolveAutoSpacing` resolves the pair at parse, the flags cascading through `w:basedOn` like any other paragraph property (`ParagraphProperties.SpacingBeforeAuto` / `SpacingAfterAuto`). Word-probed on `_probe_autospace_a` to `_d` (one-line paragraphs of exact 20pt lines, baselines off the XPS, compatibility modes 12 and 15 identical): auto before with 5pt declared opens 14.2pt and with 40pt declared 13.6; auto after 14.2; an auto after against an auto before leaves 14.2, the two collapsing like any others. Three list items with auto on both sides stand 20.4 and 19.8 apart, 13.6 above the first and 14.2 under the last, so between two consecutive items of one list it is nothing. A cell's only paragraph sits on the baseline of the plain paragraph in the cell beside it and adds nothing under itself, and of three paragraphs in a cell the first takes no auto before, the last no auto after and the middle one 14.2 either side; an empty paragraph behaves the same. `w:compat/w:doNotUseHTMLParagraphAutoSpacing` (`CompatibilitySettings.UsesFixedAutoSpacing`) switches all of it off: the declared amounts stand, at a cell's edges and in lists too. Unmodelled: under that setting two auto spacings that meet are added, not collapsed (5 and 5 leave 10), and a 30pt paragraph on single line spacing took 19.5pt before and left 5.6 after. `newsletters/02`'s masthead Title, first in its cell, had been given its declared 5pt and the page stood 5pt low.
 
-- **OOXML**: `w:spacing` — `w:before`, `w:after` (in twentieths of a point)
+- **OOXML**: `w:spacing` — `w:before`, `w:after` (in twentieths of a point), `w:beforeLines`, `w:afterLines` (in hundredths of a line)
 - **Spec**: [Paragraph Spacing](http://officeopenxml.com/WPspacing.php)
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
-- **Test**: `paragraph_spacing/`
+- **Parse**: `DocumentParser.LineUnitsToPoints` at every spacing site (docDefaults, styles, declared table-style spacing, direct)
+- **Test**: `paragraph_spacing/`, `spacing_line_units/`, `document_grid_lines/`, `DocumentGridTests`
+
+> **Spacing in lines (Word-probed 2026-10-21, `spacing_line_units` / `document_grid_lines`).** A line
+> is the document grid's pitch (Document Grid, below), or 12pt off a grid: `beforeLines="100"` adds
+> 12pt with no grid and 36pt on a 36pt one. A positive value outranks the twips value beside it, and
+> `0` is ignored rather than zeroing the spacing — agendas-minutes/17's style declares
+> `afterLines="0"` beside `after="40"` and keeps its 2pt. Not read before.
 
 > **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in (with the 278/240 line multiplier) when nothing in the package has replaced the built-in Normal: no `styles.xml`, no `docDefaults`, or — refined 2026-08-19 — `docDefaults` present but with NO `w:pPrDefault` element at all and no default paragraph style defined (`even_odd_headers/02`'s footer line and `decimal_tabs/01`'s rows each sit exactly the built-in spacing below a zero-spacing render; the row pitch is 46.5px against the 25.5px bare line at 150 DPI). An EMPTY `<w:pPrDefault/>` is an explicit "no paragraph defaults" and reads as zero — `wordart` declares one and Word's reference is tight — as does a package that defines a default paragraph style (`resumes/13`, `cover-letters/03`, `letters/09`, `wedding/05`). The same extraction reads `pPrDefault/w:jc` into the base of the alignment cascade (card/label/menu templates centre every paragraph there; a style or paragraph `w:jc` — including an explicit "left" — still overrides).
 
@@ -734,6 +741,35 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 > **Where the baseline sits inside an `exact` or `atLeast` box** (settled 2026-08-19 by the fixtures themselves, which sweep 12/18/24/36pt against Word's references): an EXACT box hard-sets the baseline at **80% of the declared height**, whatever the font's natural ascent — the rule LibreOffice implements for Word compatibility (`itrform2.cxx`) — and an AT-LEAST box that grows past the natural pitch anchors its ink at the BOTTOM, the whole excess landing above the text. `CanonicalTextMeasurer.LineAscentPoints` carries both. Keeping the natural ascent left `line_spacing_exactly`'s band gaps at 42/54/67px against Word's 51/65/87 (the 0.8 rule predicts 51.7/64.2/86.7) and `line_spacing_at_least`'s at 47/55/66 against Word's 55/66/92 (bottom-anchoring predicts 54.1/66.7/91.7); with both rules the two fixtures match Word's band starts within 1px at every magnitude.
 >
 > **Consumers**: Single (1.0), 1.5, and Double (2.0) spacing all supported. Exactly mode fixes line height; AtLeast sets a minimum.
+
+
+#### Document Grid `DONE`
+
+A section's line grid: lines of text take whole grid pitches, as East Asian documents set them.
+
+- **OOXML**: `w:sectPr/w:docGrid` (`@w:type` `lines` / `linesAndChars` / `snapToChars`, `@w:linePitch`), `w:pPr/w:snapToGrid`, `w:compat/w:adjustLineHeightInTable`
+- **Spec**: [DocGrid](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.docgrid)
+- **Model**: `ParagraphProperties.SnapToGrid`, `ParagraphProperties.GridLinePitchPoints` (the pitch the paragraph's lines snap to, 0 when they do not)
+- **Parse**: `DocumentParser.GridLinePitchPoints`, `SnapsToGrid`
+- **Layout**: `CanonicalTextMeasurer.GridLine`, applied by `CanonicalParagraphMeasurer.OnGrid` to both `LayoutLines` and `LayoutLineContents`
+- **Test**: `document_grid_lines/`, `document_grid_table/`, `DocumentGridTests`
+
+> **Word-probed (2026-10-21, `document_grid_lines` at a 36pt pitch and again at 25pt and as
+> `linesAndChars`, `document_grid_table`, baselines from the XPS).** An auto line's natural height
+> rounds up to whole pitches, then takes its multiple, and the text is centred in the box by its
+> natural height: at 36pt, 12pt and 30pt Arial take one pitch, 40pt two and 72pt three; at 25pt,
+> 30pt and 40pt take two and 72pt four; 1.5 lines take 54pt at 36 and 37.5pt at 25. Every baseline
+> lands within 0.15pt of the natural ascent plus half the slack. Exact and at-least lines lay out
+> as off the grid, as does a `snapToGrid="0"` paragraph; spacing in twips is not rounded. The grid
+> sets heights only — lines stack from where the block before them ended, not from grid lines
+> fixed on the page. `linesAndChars` lays lines out exactly as `lines` (character pitch is not
+> modelled). A header's paragraphs never snap, and a table cell's only under
+> `adjustLineHeightInTable`; the parser keeps footers and notes off the grid too.
+>
+> Styles are resolved once for the document, so the grid every paragraph snaps to, and the line
+> its line units count in, is the body's own `w:sectPr`'s — exact for a document with one grid,
+> which no corpus document contradicts (none has a typed grid at all). An untyped
+> `<w:docGrid w:linePitch="360"/>` is Word's stored default and lays nothing out.
 
 
 #### Contextual Spacing `DONE`
@@ -3511,7 +3547,7 @@ Read-only mode, form protection, and editing restrictions.
 | Category | Done | Partial | Todo | Wontfix | Total |
 |----------|------|---------|------|---------|-------|
 | 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
-| 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
+| 2. Paragraph Formatting | 24 | 1 | 0 | 0 | 25 |
 | 3. Lists & Numbering | 7 | 0 | 0 | 0 | 7 |
 | 4. Tables | 29 | 0 | 0 | 0 | 29 |
 | 5. Page Layout & Sections | 20 | 0 | 0 | 0 | 20 |
@@ -3522,14 +3558,14 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **165** | **4** | **5** | **1** | **175** |
+| **Total** | **166** | **4** | **5** | **1** | **176** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 165
+    "Done" : 166
     "Partial" : 4
     "Todo" : 5
     "Wontfix" : 1

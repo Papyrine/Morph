@@ -51,8 +51,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var result = new MeasuredLine[wrapped.Count];
         for (var i = 0; i < wrapped.Count; i++)
         {
-            var height = (float) CanonicalTextMeasurer.LineHeightPoints(
-                wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints)
+            var grid = OnGrid(props, wrapped[i].Pitch);
+            var height = (grid?.Height ?? (float) CanonicalTextMeasurer.LineHeightPoints(
+                             wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints))
                          + 2 * RunBorderPad(wrapped[i]);
 
             // An inline image grows the line exactly as LayoutLineContents places it — measure and
@@ -69,7 +70,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             if (tallestImage > 0)
             {
                 var ascent = (float) CanonicalTextMeasurer.LineAscentPoints(
-                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch);
+                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch)
+                             + (grid?.AscentShift ?? 0);
                 height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]), wrapped[i].Pitch);
 
                 // A picture alone on its line has no pitch of its own in the wrap, so the leading a
@@ -144,6 +146,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
                 textAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
 
+            // On the document grid the box is whole grid pitches and the text is centred in it.
+            if (OnGrid(props, naturalPitch) is { } grid)
+            {
+                textHeight = grid.Height;
+                textAscent += grid.AscentShift;
+            }
+
             // A run border (w:bdr) reserves its stack plus w:space above and below the font's line box —
             // the line grows by twice the tallest such reserve and the baseline drops by it, exactly as
             // LayoutLines charged. See BorderStroke.RunBorderReserve for the Word measurements.
@@ -187,6 +196,21 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         }
 
         return result;
+    }
+
+    // The height a line takes on the document grid and how far its baseline drops for it
+    // (CanonicalTextMeasurer.GridLine); null when the paragraph is not on the grid or its line rule is
+    // not "auto", which Word lays out off the grid.
+    static (float Height, float AscentShift)? OnGrid(ParagraphProperties props, float naturalPitch)
+    {
+        if (props.GridLinePitchPoints <= 0 ||
+            props.LineSpacingRule != LineSpacingRule.Auto)
+        {
+            return null;
+        }
+
+        var (height, shift) = CanonicalTextMeasurer.GridLine(naturalPitch, props.GridLinePitchPoints, props.LineSpacingMultiplier);
+        return ((float) height, (float) shift);
     }
 
     /// <summary>

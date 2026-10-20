@@ -33,6 +33,7 @@
       "Alignment": "Justify",
       "SpacingAfterPoints": 14.0,
       "LineSpacingMultiplier": 1.0,
+      "SnapToGrid": true,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,
       "SuppressAutoHyphens": false,
