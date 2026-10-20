@@ -1094,6 +1094,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         EmitBodyFloat(textBox, textBox.VerticalAnchor, textBox.AnchorParagraph);
                         break;
 
+                    case FloatingChartElement chart:
+                        EmitBodyFloat(chart, chart.VerticalAnchor, chart.AnchorParagraph);
+                        break;
+
                     case WordArtElement wordArt:
                         PlaceWordArt(wordArt);
                         break;
@@ -1144,7 +1148,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The floats emitted since the last thing that is not one: what leads a sheet's grid
                 // (PlaceSheetUnderFloats).
-                if (element is not (FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement))
+                if (element is not (FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement or FloatingChartElement))
                 {
                     floatRunStart = bodyFloats.Count;
                 }
@@ -1840,6 +1844,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 case FloatingTextBoxElement textBox:
                     PlaceTextBox(textBox, AnchoredY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent));
                     break;
+
+                case FloatingChartElement chart:
+                    PlaceChart(chart, FloatX(chart.HorizontalAnchor, chart.HorizontalPositionPoints, null), AnchoredY(chart.VerticalAnchor, chart.VerticalPositionPoints, null));
+                    break;
+            }
+        }
+
+        // A chart is drawn here rather than at parse, where its labels could not be measured: its bars,
+        // rules and slices become placed shapes and its labels laid-out paragraphs (ChartComposer).
+        void PlaceChart(FloatingChartElement chart, float chartX, float chartY)
+        {
+            var composer = new ChartComposer(measurer, (content, x, boxY, width, height, alignment) => LayoutCellContent(new() { Content = content }, x, boxY, width, height, alignment));
+            foreach (var item in composer.Compose(chart.Chart, chartX, chartY, (float) chart.WidthPoints, (float) chart.HeightPoints, chart.Scale))
+            {
+                AddBodyFloat(item, false, IsAbsoluteY(chart.VerticalAnchor));
             }
         }
 

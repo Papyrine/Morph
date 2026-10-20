@@ -100,6 +100,7 @@ sealed class SpreadsheetParser(
         var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth);
         var drawings = new SheetDrawingParser(
             themeColors,
+            themeFonts,
             new(themeColors, themeFonts, defaultFont),
             GetPartBytes);
         var definedNames = DefinedNames.For(workbookPart);

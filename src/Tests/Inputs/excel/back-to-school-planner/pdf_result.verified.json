@@ -14,7 +14,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "Back to school planner\nTrack your shopping progress against the budget category amounts entered in budget breakdown.\nBudget summary Purchasing progress (1 of 6)\nBudget $1,500.00 17%\nShopping list total $365.00\nRemaining cash $1,135.00\nShopping list\nItem Category Qty To buy Cost Bought Total cost\nMath Textbooks 1 1 $55.00 1 $55.00\nEnglish Textbooks 1 1 $-\nBackpack Supplies 1 $30.00 $30.00\nCalculator Supplies 1 $-\nHighlighters Supplies 3 $-\nUniform Clothes 2 1 $100.00 $200.00\nShirt, button-up Clothes 4 $-\nShirt, t-shirts Clothes 5 $-\nShorts Clothes 2 $-\nSneakers Clothes 2 1 $-\nSocks Clothes 10 $-\nSpring jacket Clothes 1 1 $80.00 $80.00\nSweaters Clothes 1 $-\nSweatshirts Clothes 1 $-\nUnderwear Clothes 10 $-\nWinter jacket Clothes 1 1 $-"
+        "Text": "Back to school planner\nTrack your shopping progress against the budget category amounts entered in budget breakdown.\nBudget summary Purchasing progress (1 of 6)\nBudget $1,500.00 17%\nShopping list total $365.00\nRemaining cash $1,135.00\nShopping list\nItem Category Qty To buy Cost Bought Total cost\nMath Textbooks 1 1 $55.00 1 $55.00\nEnglish Textbooks 1 1 $-\nBackpack Supplies 1 $30.00 $30.00\nCalculator Supplies 1 $-\nHighlighters Supplies 3 $-\nUniform Clothes 2 1 $100.00 $200.00\nShirt, button-up Clothes 4 $-\nShirt, t-shirts Clothes 5 $-\nShorts Clothes 2 $-\nSneakers Clothes 2 1 $-\nSocks Clothes 10 $-\nSpring jacket Clothes 1 1 $80.00 $80.00\nSweaters Clothes 1 $-\nSweatshirts Clothes 1 $-\nUnderwear Clothes 10 $-\nWinter jacket Clothes 1 1 $-\n0% 25% 50% 75% 100%"
       },
       {
         "Number": 2,
@@ -22,23 +22,23 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "Budget breakdown\nAdd categories and budget amounts to track against in your shopping list.\nCategory Total cost\nClothes $280.00\nSupplies $30.00\nTextbooks $55.00"
+        "Text": "Budget breakdown\nAdd categories and budget amounts to track against in your shopping list.\nCategory Total cost\nClothes $280.00\nSupplies $30.00\nTextbooks $55.00 $-\n$50.00\n$100.00\n$150.00\n$200.00\n$250.00\n$300.00\nClothes Supplies Textbooks"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3499,
-      "Ssim": 0.6698,
+      "ErrorMetric": 0.3524,
+      "Ssim": 0.6676,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0518,
-      "Ssim": 0.9374,
+      "ErrorMetric": 0.0623,
+      "Ssim": 0.9196,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

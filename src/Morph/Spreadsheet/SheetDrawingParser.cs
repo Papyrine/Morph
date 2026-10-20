@@ -20,8 +20,13 @@ using XDR = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 /// sits at the content top when these are emitted. Anchoring X to the page instead drops the left
 /// margin and shifts every drawing off by it.
 /// </summary>
-sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser textParser, Func<OpenXmlPart, byte[]> partBytes)
+sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts, DrawingTextParser textParser, Func<OpenXmlPart, byte[]> partBytes)
 {
+    readonly ChartReader chartReader = new(themeColors, themeFonts);
+
+    // The scale of the sheet being parsed, which its charts draw their text and rules at.
+    double sheetScale = 1;
+
     /// <summary>
     /// The sheet's drawings as absolutely positioned floats, in document order (which is z-order).
     ///
@@ -40,6 +45,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
     /// </remarks>
     public List<DocumentElement> Parse(WorksheetPart worksheetPart, SheetGeometry geometry, double scale, uint firstOrdinal, double gridLeftPoints = 0, bool printed = false)
     {
+        sheetScale = scale;
         var elements = new List<DocumentElement>();
         var drawingsPart = worksheetPart.DrawingsPart;
         var root = drawingsPart?.WorksheetDrawing;
@@ -100,6 +106,15 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
 
                     break;
 
+                case XDR.GraphicFrame frame:
+                    if (ParseChart(frame, box, transform, drawingsPart, anchorIsRoot, ordinal, notPrinted) is { } chart)
+                    {
+                        elements.Add(chart);
+                        ordinal++;
+                    }
+
+                    break;
+
                 case XDR.GroupShape group:
                 {
                     // A group's children are authored in its own coordinate space, so the anchor
@@ -150,6 +165,46 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, DrawingTextParser text
             WrapType = WrapType.None,
             Description = picture.NonVisualPictureProperties?.NonVisualDrawingProperties?.Description?.Value,
             RelativeHeight = ordinal,
+            NotPrinted = notPrinted
+        };
+    }
+
+    // A graphic frame holding a chart (a:graphicData/c:chart): the chart part read into a model, drawn at
+    // layout in the frame's box.
+    DocumentElement? ParseChart(
+        XDR.GraphicFrame frame,
+        DrawingBox box,
+        SlideTransform transform,
+        DrawingsPart drawingsPart,
+        bool anchorIsRoot,
+        uint ordinal,
+        bool notPrinted)
+    {
+        var reference = frame.Descendants().FirstOrDefault(_ => _.LocalName == "chart");
+        var relationshipId = reference?.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value;
+        if (string.IsNullOrEmpty(relationshipId) ||
+            !drawingsPart.TryGetPartById(relationshipId, out var part) ||
+            chartReader.Read(part.RootElement) is not { } chart)
+        {
+            return null;
+        }
+
+        var transform2D = frame.Transform;
+        var placed = anchorIsRoot || transform2D == null
+            ? box
+            : Placement(new A.Transform2D(new A.Offset { X = transform2D.Offset?.X, Y = transform2D.Offset?.Y }, new A.Extents { Cx = transform2D.Extents?.Cx, Cy = transform2D.Extents?.Cy }), box, transform, anchorIsRoot);
+
+        return new FloatingChartElement
+        {
+            Chart = chart,
+            WidthPoints = placed.Width,
+            HeightPoints = placed.Height,
+            HorizontalPositionPoints = placed.X,
+            VerticalPositionPoints = placed.Y,
+            HorizontalAnchor = HorizontalAnchor.Margin,
+            VerticalAnchor = VerticalAnchor.Paragraph,
+            RelativeHeight = ordinal,
+            Scale = sheetScale,
             NotPrinted = notPrinted
         };
     }
