@@ -21,39 +21,45 @@ static class ImageSharpPainter
     {
         foreach (var laidOutPage in document.Pages)
         {
-            var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
-            using var image = new Image<Rgba32>(pageWidth, pageHeight);
-            using (var canvas = image.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
-            {
-                var background = laidOutPage.Settings.BackgroundColorHex;
-                var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
-                canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
-
-                foreach (var item in laidOutPage.Items)
-                {
-                    PaintItem(context, canvas, item);
-                }
-
-                // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
-                // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
-                if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
-                {
-                    var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                    PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
-                }
-            }
-
-            // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
-            // for why both painters do it this way. It has to follow the canvas's disposal above,
-            // since that is what flushes the deferred draw ops into the image.
-            var rect = context.PageRect(laidOutPage.Settings, crop);
-            if (rect is not { X: 0, Y: 0 } || rect.Width != pageWidth || rect.Height != pageHeight)
-            {
-                image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));
-            }
-
-            pageCallback(image.SaveAsPng);
+            PaintPage(laidOutPage, context, crop, pageCallback);
         }
+    }
+
+    // One page, drawn and encoded — see SkiaPainter.PaintPage.
+    public static void PaintPage(LaidOutPage laidOutPage, ImageSharpRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
+    {
+        var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
+        using var image = new Image<Rgba32>(pageWidth, pageHeight);
+        using (var canvas = image.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
+        {
+            var background = laidOutPage.Settings.BackgroundColorHex;
+            var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
+            canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
+
+            foreach (var item in laidOutPage.Items)
+            {
+                PaintItem(context, canvas, item);
+            }
+
+            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            {
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
+            }
+        }
+
+        // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
+        // for why both painters do it this way. It has to follow the canvas's disposal above,
+        // since that is what flushes the deferred draw ops into the image.
+        var rect = context.PageRect(laidOutPage.Settings, crop);
+        if (rect is not { X: 0, Y: 0 } || rect.Width != pageWidth || rect.Height != pageHeight)
+        {
+            image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));
+        }
+
+        pageCallback(image.SaveAsPng);
     }
 
     static float P(ImageSharpRenderContext context, double points) => context.PointsToPixels((float) points);

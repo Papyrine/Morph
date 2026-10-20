@@ -20,28 +20,35 @@ static class SkiaPainter
     {
         foreach (var laidOutPage in document.Pages)
         {
-            var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
-            using var bitmap = new SKBitmap(pageWidth, pageHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
-            using var canvas = new SKCanvas(bitmap);
-
-            var background = laidOutPage.Settings.BackgroundColorHex;
-            canvas.Clear(string.IsNullOrEmpty(background) ? SKColors.White : SkiaRenderContext.ParseColor(background));
-
-            foreach (var item in laidOutPage.Items)
-            {
-                PaintItem(context, canvas, item);
-            }
-
-            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
-            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
-            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
-            {
-                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
-            }
-
-            Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
+            PaintPage(laidOutPage, context, crop, pageCallback);
         }
+    }
+
+    // One page, drawn and encoded. Touches no state but the context's, so pages on different threads
+    // need only different contexts (ParallelPages).
+    public static void PaintPage(LaidOutPage laidOutPage, SkiaRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
+    {
+        var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
+        using var bitmap = new SKBitmap(pageWidth, pageHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bitmap);
+
+        var background = laidOutPage.Settings.BackgroundColorHex;
+        canvas.Clear(string.IsNullOrEmpty(background) ? SKColors.White : SkiaRenderContext.ParseColor(background));
+
+        foreach (var item in laidOutPage.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+        // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+        if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+        {
+            var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+            PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
+        }
+
+        Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
     }
 
     // The page is always painted whole and a rectangle of it emitted, rather than the canvas being
