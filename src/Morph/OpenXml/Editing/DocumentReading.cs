@@ -70,6 +70,7 @@ static class DocumentReading
         using var stream = new MemoryStream();
         stream.Write(docx);
         stream.Position = 0;
+        FastDeflate.Mark(stream.GetBuffer().AsSpan(0, docx.Length));
 
         // A Strict file is read through a rewrite, which the package open here is not.
         var capture = capturing && !StrictToTransitional.IsStrict(stream);
