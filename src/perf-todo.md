@@ -30,7 +30,8 @@ measure, and the table-geometry memo (see "Verified fine"). What remains open is
 ## Measurement
 
 `src/Benchmarks/` (BenchmarkDotNet, MemoryDiagnoser enabled) has `ParseBenchmarks`, `RenderBenchmarks`,
-`PdfBenchmarks`, `ExportBenchmarks`, `HtmlBenchmarks` and `InkBenchmarks`, plus the `-- smoke` sanity
+`PdfBenchmarks`, `ExportBenchmarks`, `HtmlBenchmarks`, `InkBenchmarks` and `EditBenchmarks` (the
+`MorphEditor` round trip, stage by stage), plus the `-- smoke` sanity
 harness. BenchmarkDotNet needs the working directory to be `src/Benchmarks` and an explicit `--artifacts`
 path.
 
@@ -78,7 +79,65 @@ dispatching on `LocalName` — the consolidation that method's own comment descr
 
 ---
 
+## Editor round trip (`EditBenchmarks`, 2026-10-20)
+
+Every edit that changes the pages goes file → parse → layout → reload (`MorphViewer.ShowAsync` →
+`MorphViewer.Open`), so committing one typed character pays for the whole chain. `EditBenchmarks` times
+each stage on three documents; desktop CoreCLR, `--job short` — the WebAssembly runtime is several times
+slower, so read these as proportions:
+
+| stage | letter (1p) | twelve-pages | newsletter (5.5MB) |
+| --- | ---: | ---: | ---: |
+| `Rewrite` (edit + save) | 2.5ms | 3.7ms | **71ms** |
+| `Format` (bold a word) | 3.1ms | 3.6ms | 78ms |
+| `SetTracking` (no body edit) | 3.1ms | 3.0ms | **69ms** |
+| `Open` (parse + layout) | 12.5ms | 9.4ms | 49ms |
+| `Outline` | 6.6ms | 4.2ms | 22ms |
+| `Review` | 4.4ms | 3.5ms | 21ms |
+| `ReviewAndOutline` (both, one open — what the viewer now runs) | 3.9ms | 2.8ms | 22ms |
+| `TextLayers` (over `Open`) | ~1ms | small | small |
+| `EditMap` | 5µs | 36µs | 11µs |
+| `Diff` | <1µs | <1µs | <1µs |
+| **`RoundTrip`** | **13ms** | **20ms** | **236ms** |
+
+`EditMap`, `SourceIndex`, the text layers and `TextDiff` are not worth touching. What is:
+
+### E1 — the edited file is still opened three times per edit
+
+`DocumentEditor.Edit` opens the package to edit it, `PagedDocument.Open` parses it, and `DocumentReading.Read`
+opens it once more for the review pane and the outline (that pair was two opens until 2026-10-20 — see
+"Verified fine").
+
+**Fix to try:** build outline and review from the editor's DOM before it saves, since it has the package
+open already — that would save the remaining ~4ms (letter) to ~22ms (newsletter) per edit.
+
+### E2 — package save dominates on a document with media
+
+`SetTracking` — one attribute in `settings.xml` — costs the same 69ms as a body rewrite on the newsletter:
+the cost is re-writing the zip, pictures included, not the edit. Every edit, undo entry and IndexedDB
+draft (`MorphViewer.Drafts.cs`, which also ships the whole file over interop) pays it.
+
+**Fix to try:** copy unchanged zip entries raw (`System.IO.Compression` can't, without recompressing —
+needs measuring whether the SDK's save recompresses media, and whether `CompressionLevel.Fastest` /
+stored-for-media closes most of the gap).
+
+### E3 — paragraph lookup is linear per paragraph
+
+`Editing.Find` is `AllParagraphs().ElementAtOrDefault(ordinal)`, and `Align`/`SetStyle`/`Indent`/…
+call it per selected paragraph, so a whole-document command is O(k·n). `Between` and `Atoms` re-index
+every run of every story (`SourceRuns.IndexAll`) per call. Invisible at a one-word selection; worth an
+ordinal list built once per `Editing` if select-all commands on long documents show up.
+
+---
+
 ## Verified fine — do not re-chase
+
+- **Review and outline read from one package open** (`DocumentReading.Read`, landed 2026-10-20). The viewer
+  read `DocumentReview` and `DocumentOutline` after every edit, each opening the package, normalizing Strict
+  markup and loading every part. One open now serves both and costs what `Outline` alone did, so the
+  `Review` read is gone: letter 6.5→3.9ms, twelve-pages 4.7→2.8ms, newsletter 45.5→22ms, and newsletter
+  allocation 26.6→14.1MB (`EditBenchmarks`, default job). If the shared read throws, each is read on its
+  own as before, so a file readable for one still gets it.
 
 - **The wrap memo** (`CanonicalParagraphMeasurer.wrapCache`, landed 2026-08-15). `Wrap` is a pure function
   of `(ParagraphElement, maxWidth)` and was being asked the same question repeatedly — the row-height and

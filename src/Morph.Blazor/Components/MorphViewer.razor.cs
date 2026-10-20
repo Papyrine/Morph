@@ -491,13 +491,32 @@ public partial class MorphViewer : IAsyncDisposable
                 sources[index] = layer.Sources;
             }
 
-            var outline = Outline(bytes, format);
-            return new(document, sizes, json, texts, Review(bytes, format), new(sources), outline, Edits(document, outline));
+            var (review, outline) = ReviewAndOutline(bytes, format);
+            return new(document, sizes, json, texts, review, new(sources), outline, Edits(document, outline));
         }
         catch
         {
             document.Dispose();
             throw;
+        }
+    }
+
+    // Both from one opening of the package. Should that fail, each is read on its own, so a document
+    // that can be read for one and not the other still gets the one.
+    static (DocumentReview Review, DocumentOutline Outline) ReviewAndOutline(byte[] bytes, InputFormat format)
+    {
+        if (format != InputFormat.Docx)
+        {
+            return (DocumentReview.Empty, DocumentOutline.Empty);
+        }
+
+        try
+        {
+            return DocumentReading.Read(bytes);
+        }
+        catch (Exception)
+        {
+            return (Review(bytes, format), Outline(bytes, format));
         }
     }
 
