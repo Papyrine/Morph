@@ -1,4 +1,4 @@
-# All scenarios (339)
+# All scenarios (342)
 
 <details>
 <summary>Contents</summary>
@@ -108,6 +108,8 @@
 - [decimal_tabs/01](#decimal_tabs01)
 - [deep_nested_list](#deep_nested_list)
 - [document_capture/01](#document_capture01)
+- [document_grid_lines](#document_grid_lines)
+- [document_grid_table](#document_grid_table)
 - [document_protection/01](#document_protection01)
 - [dot_points](#dot_points)
 - [embedded_font](#embedded_font)
@@ -288,6 +290,7 @@
 - [simple_paragraph](#simple_paragraph)
 - [simple_table](#simple_table)
 - [small_caps](#small_caps)
+- [spacing_line_units](#spacing_line_units)
 - [strikethrough_text](#strikethrough_text)
 - [subscript_superscript](#subscript_superscript)
 - [table_alignment/01](#table_alignment01)
@@ -1533,6 +1536,81 @@ column avoids the glyphs.
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0040 · SSIM: 0.9918** | **Page 1. ErrorMetric: 0.0042 · SSIM: 0.9913** |
 | <img src="document_capture/01/expected_0001.png" width="500"> | <img src="document_capture/01/skia_result%23page_0001.verified.png" width="500"> | <img src="document_capture/01/imagesharp_result%23page_0001.verified.png" width="500"> |
 
+## document_grid_lines
+
+Pins the document grid (`w:docGrid w:type="lines"`) at an amplified 36pt pitch (`linePitch="720"`).
+
+Cloned from Word's own blank document so the compatibility mode is modern. Every paragraph is
+one line of Arial carrying a label, so each one's height is the step from its baseline to the
+next, read from the XPS. The same document was also rendered at a 25pt pitch and as
+`linesAndChars`; those numbers are recorded here.
+
+| label | paragraph | 36pt grid | 25pt grid | no grid |
+| --- | --- | --- | --- | --- |
+| A | 12pt | 36 | 25 | 13.8 |
+| B | 30pt | 36 | 50 | 34.4 |
+| C | 40pt | 72 | 50 | 46.0 |
+| D | 72pt | 108 | 100 | 82.8 |
+| E | 12pt, `snapToGrid="0"` | 13.8 | 13.8 | 13.8 |
+| F | `line="360" auto` | 54 | 37.5 | 20.7 |
+| G | `line="480" auto` | 72 | | 27.6 |
+| H | `line="400" exact` | 20 | 20 | 20 |
+| I | `line="1000" atLeast` | 50 | 50 | 50 |
+| J | `before="240"` | 36 + 12 | 25 + 12 | 13.8 + 12 |
+| K | `beforeLines="100"` | 36 + 36 | 25 + 25 | 13.8 + 12 |
+| L | `afterLines="50"` | 36 + 18 | 25 + 12.5 | 13.8 + 6 |
+| M | `afterLines="0" after="480"` | 36 + 24 | 25 + 24 | 13.8 + 24 |
+| O | `before="480" beforeLines="50"` | 36 + 18 | 25 + 12.5 | 13.8 + 6 |
+
+The laws:
+
+* An auto line's natural height rounds UP to whole grid pitches, then takes its multiple, and the
+  text is centred in the box by its natural height: every baseline lands within 0.15pt of the
+  natural ascent plus half the box's slack.
+* Exact and at-least lines are laid out as off the grid, and so is a `snapToGrid="0"` paragraph.
+* `before` / `after` in twips are not rounded to the grid.
+* A line unit (`beforeLines` / `afterLines`, hundredths of a line) is the grid pitch, or 12pt off a
+  grid. A positive one outranks the twips value beside it; `0` is ignored.
+* The grid sets heights only: lines stack from wherever the block before them ended, not from
+  grid lines fixed on the page (`document_grid_table`).
+* `linesAndChars` lays lines out exactly as `lines` does — every baseline identical.
+
+Before this fixture Morph parsed the pitch and laid nothing out on it.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0086 · SSIM: 0.9947** | **Page 1. ErrorMetric: 0.0091 · SSIM: 0.9949** |
+| <img src="document_grid_lines/expected_0001.png" width="500"> | <img src="document_grid_lines/skia_result%23page_0001.verified.png" width="500"> | <img src="document_grid_lines/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0074 · SSIM: 0.9922** | **Page 2. ErrorMetric: 0.0076 · SSIM: 0.9928** |
+| <img src="document_grid_lines/expected_0002.png" width="500"> | <img src="document_grid_lines/skia_result%23page_0002.verified.png" width="500"> | <img src="document_grid_lines/imagesharp_result%23page_0002.verified.png" width="500"> |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.0072 · SSIM: 0.9971** | **Page 3. ErrorMetric: 0.0074 · SSIM: 0.9973** |
+| <img src="document_grid_lines/expected_0003.png" width="500"> | <img src="document_grid_lines/skia_result%23page_0003.verified.png" width="500"> | <img src="document_grid_lines/imagesharp_result%23page_0003.verified.png" width="500"> |
+
+## document_grid_table
+
+Pins where the document grid applies: in a table cell, and in a header.
+
+A 36pt `lines` grid (`linePitch="720"`) with `w:compat/w:adjustLineHeightInTable` set, a body
+paragraph, a one-cell table of three 12pt paragraphs, two more body paragraphs, and a two-line
+header. The same document without `adjustLineHeightInTable` was also rendered.
+
+| | with `adjustLineHeightInTable` | without |
+| --- | --- | --- |
+| body lines | 36 | 36 |
+| cell lines | 36 | 13.8 (natural) |
+| header lines | 13.8 | 13.8 |
+
+* A table cell's paragraphs snap to the grid only under `adjustLineHeightInTable`.
+* A header's paragraphs never snap (nor, by the same rule in the parser, a footer's or a note's).
+* Without the flag, the body paragraph after the table starts where the table ended and is
+  centred in its 36pt box from there: the grid sets line heights, not fixed positions on the
+  page.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0023 · SSIM: 0.9990** | **Page 1. ErrorMetric: 0.0024 · SSIM: 0.9994** |
+| <img src="document_grid_table/expected_0001.png" width="500"> | <img src="document_grid_table/skia_result%23page_0001.verified.png" width="500"> | <img src="document_grid_table/imagesharp_result%23page_0001.verified.png" width="500"> |
+
 ## document_protection/01
 
 | Expected (Word) | Skia | ImageSharp |
@@ -2469,8 +2547,8 @@ there.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="list_marker_suffix/expected_0001.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0155 · SSIM: 0.9891** | **Page 1. ErrorMetric: 0.0147 · SSIM: 0.9927** |
+| <img src="list_marker_suffix/expected_0001.png" width="500"> | <img src="list_marker_suffix/skia_result%23page_0001.verified.png" width="500"> | <img src="list_marker_suffix/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## long_paragraph
 
@@ -3302,6 +3380,28 @@ magnitude.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0071 · SSIM: 0.9867** | **Page 1. ErrorMetric: 0.0071 · SSIM: 0.9867** |
 | <img src="small_caps/expected_0001.png" width="500"> | <img src="small_caps/skia_result%23page_0001.verified.png" width="500"> | <img src="small_caps/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## spacing_line_units
+
+Pins paragraph spacing counted in lines (`w:spacing/@w:beforeLines`, `@w:afterLines`) off a
+document grid, beside the line rules for reference.
+
+The paragraphs of `document_grid_lines` under a bare `<w:docGrid w:linePitch="360"/>` with no
+`@w:type`, which Word writes into most documents as a stored default and lays nothing out on.
+
+* A line unit is 12pt off a grid: `beforeLines="100"` adds 12pt, `afterLines="50"` 6pt.
+* A positive line unit outranks the twips value beside it: `before="480" beforeLines="50"` adds
+  6pt, not 24.
+* `0` is ignored rather than zeroing the spacing: `afterLines="0" after="480"` adds 24pt.
+  agendas-minutes/17's style declares `afterLines="0"` beside `after="40"`, and keeps its 2pt.
+* The untyped `linePitch="360"` changes no line: a 12pt Arial line stays 13.8pt.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0128 · SSIM: 0.9903** | **Page 1. ErrorMetric: 0.0127 · SSIM: 0.9929** |
+| <img src="spacing_line_units/expected_0001.png" width="500"> | <img src="spacing_line_units/skia_result%23page_0001.verified.png" width="500"> | <img src="spacing_line_units/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0103 · SSIM: 0.9963** | **Page 2. ErrorMetric: 0.0105 · SSIM: 0.9968** |
+| <img src="spacing_line_units/expected_0002.png" width="500"> | <img src="spacing_line_units/skia_result%23page_0002.verified.png" width="500"> | <img src="spacing_line_units/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## strikethrough_text
 

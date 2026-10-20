@@ -1,4 +1,4 @@
-# All PDF export scenarios (338)
+# All PDF export scenarios (342)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -110,6 +110,8 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [decimal_tabs/01](#decimal_tabs01)
 - [deep_nested_list](#deep_nested_list)
 - [document_capture/01](#document_capture01)
+- [document_grid_lines](#document_grid_lines)
+- [document_grid_table](#document_grid_table)
 - [document_protection/01](#document_protection01)
 - [dot_points](#dot_points)
 - [embedded_font](#embedded_font)
@@ -210,6 +212,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [line_spacing](#line_spacing)
 - [line_spacing_at_least](#line_spacing_at_least)
 - [line_spacing_exactly](#line_spacing_exactly)
+- [list_marker_suffix](#list_marker_suffix)
 - [long_paragraph](#long_paragraph)
 - [menus/01](#menus01)
 - [menus/02](#menus02)
@@ -289,6 +292,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [simple_paragraph](#simple_paragraph)
 - [simple_table](#simple_table)
 - [small_caps](#small_caps)
+- [spacing_line_units](#spacing_line_units)
 - [strikethrough_text](#strikethrough_text)
 - [subscript_superscript](#subscript_superscript)
 - [table_alignment/01](#table_alignment01)
@@ -1640,6 +1644,30 @@ PDF: [Morph PDF](deep_nested_list/pdf_result.verified.pdf)
 PDF: [Morph PDF](document_capture/01/pdf_result.verified.pdf)
 
 
+## document_grid_lines
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0100 · SSIM: 0.9934** |
+| <img src="document_grid_lines/expected_0001.png" width="500"> | <img src="document_grid_lines/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0094 · SSIM: 0.9918** |
+| <img src="document_grid_lines/expected_0002.png" width="500"> | <img src="document_grid_lines/pdf_result%23page_0002.verified.png" width="500"> |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.0094 · SSIM: 0.9963** |
+| <img src="document_grid_lines/expected_0003.png" width="500"> | <img src="document_grid_lines/pdf_result%23page_0003.verified.png" width="500"> |
+
+PDF: [Morph PDF](document_grid_lines/pdf_result.verified.pdf)
+
+
+## document_grid_table
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0032 · SSIM: 0.9987** |
+| <img src="document_grid_table/expected_0001.png" width="500"> | <img src="document_grid_table/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](document_grid_table/pdf_result.verified.pdf)
+
+
 ## document_protection/01
 
 | Expected (Word) | Morph PDF |
@@ -2672,6 +2700,16 @@ PDF: [Morph PDF](line_spacing_at_least/pdf_result.verified.pdf)
 PDF: [Morph PDF](line_spacing_exactly/pdf_result.verified.pdf)
 
 
+## list_marker_suffix
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0148 · SSIM: 0.9917** |
+| <img src="list_marker_suffix/expected_0001.png" width="500"> | <img src="list_marker_suffix/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](list_marker_suffix/pdf_result.verified.pdf)
+
+
 ## long_paragraph
 
 | Expected (Word) | Morph PDF |
@@ -3652,6 +3690,18 @@ PDF: [Morph PDF](simple_table/pdf_result.verified.pdf)
 | <img src="small_caps/expected_0001.png" width="500"> | <img src="small_caps/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](small_caps/pdf_result.verified.pdf)
+
+
+## spacing_line_units
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0147 · SSIM: 0.9905** |
+| <img src="spacing_line_units/expected_0001.png" width="500"> | <img src="spacing_line_units/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0135 · SSIM: 0.9953** |
+| <img src="spacing_line_units/expected_0002.png" width="500"> | <img src="spacing_line_units/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](spacing_line_units/pdf_result.verified.pdf)
 
 
 ## strikethrough_text

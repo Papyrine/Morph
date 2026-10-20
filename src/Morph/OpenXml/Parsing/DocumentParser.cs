@@ -278,6 +278,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
 
+    // The document grid's line pitch (GridLinePitchPoints) from the body's own w:sectPr, 0 off a grid.
+    // Styles are resolved once for the whole document, so the line unit beforeLines / afterLines count
+    // in, and the grid paragraphs snap to, are the document's rather than each section's.
+    double documentGridPitchPoints;
+
+    // w:compat/w:adjustLineHeightInTable: table cells snap to the grid only when it is set.
+    bool adjustLineHeightInTable;
+
     // Note reference-mark number formats (settings.xml w:footnotePr / w:endnotePr). Word defaults:
     // decimal footnotes, lowercase-roman endnotes.
     NumberFormatValues footnoteNumberFormat = NumberFormatValues.Decimal;
@@ -366,6 +374,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
         automaticRunColorHex = ComputeAutomaticRunColor(documentBackgroundColor);
+
+        // The document grid, before anything resolves a spacing counted in lines.
+        documentGridPitchPoints = body.GetFirstChild<SectionProperties>() is { } bodySection ? GridLinePitchPoints(bodySection) : 0;
+        adjustLineHeightInTable = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<Compatibility>()?.GetFirstChild<AdjustLineHeightInTable>() != null;
 
         // Extract document default spacing from pPrDefault
         ExtractDefaultParagraphProperties(mainPart);
@@ -1632,7 +1645,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Reads what a single style's own <c>w:pPr</c> declares, leaving anything absent null.
     /// </summary>
-    static StyleParagraphSpacing ReadDeclaredSpacing(StyleParagraphProperties? pPr)
+    StyleParagraphSpacing ReadDeclaredSpacing(StyleParagraphProperties? pPr)
     {
         if (pPr == null)
         {
@@ -1646,8 +1659,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacing != null)
         {
             before = spacing.Before.TwipsToPoints() ?? before;
+            before = LineUnitsToPoints(spacing.BeforeLines) ?? before;
 
             after = spacing.After.TwipsToPoints() ?? after;
+            after = LineUnitsToPoints(spacing.AfterLines) ?? after;
 
             if (spacing.Line?.HasValue == true)
             {
@@ -1696,7 +1711,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// type. Table styles feed the table-style cascade step; paragraph styles say where that step
     /// is allowed to apply (a paragraph style that declares a value outranks the table style).
     /// </summary>
-    static Dictionary<string, StyleParagraphSpacing> ExtractDeclaredSpacing(
+    Dictionary<string, StyleParagraphSpacing> ExtractDeclaredSpacing(
         MainDocumentPart mainPart,
         StyleValues styleType)
     {
@@ -1899,7 +1914,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         TabStops = baseProps?.TabStops ?? [],
                         DefaultTabStopPoints = defaultTabStopPoints,
                         Frame = baseProps?.Frame,
-                        PageBreakBefore = pageBreakBefore
+                        PageBreakBefore = pageBreakBefore,
+                        SnapToGrid = baseProps?.SnapToGrid ?? true
                     };
                     processed.Add(styleId);
                     continue;
@@ -1942,8 +1958,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 if (spacing != null)
                 {
                     spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
+                    spacingBefore = LineUnitsToPoints(spacing.BeforeLines) ?? spacingBefore;
 
                     spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
+                    spacingAfter = LineUnitsToPoints(spacing.AfterLines) ?? spacingAfter;
                     spacingBeforeAuto = spacing.BeforeAutoSpacing?.Value ?? spacingBeforeAuto;
                     spacingAfterAuto = spacing.AfterAutoSpacing?.Value ?? spacingAfterAuto;
 
@@ -2125,7 +2143,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
                     DefaultTabStopPoints = defaultTabStopPoints,
                     Frame = frame,
-                    PageBreakBefore = pageBreakBefore
+                    PageBreakBefore = pageBreakBefore,
+                    SnapToGrid = paraProps.GetFirstChild<SnapToGrid>() is { } styleSnap ? styleSnap.IsOn() : baseProps?.SnapToGrid ?? true
                 };
                 processed.Add(styleId);
             }
@@ -3571,6 +3590,38 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     static int ClampGridSpan(int value) => Math.Clamp(value, 1, maxGridSpan);
 
+    // w:docGrid/@w:linePitch in points when @w:type puts the section on a grid, else 0. Word writes a
+    // bare <w:docGrid w:linePitch="360"/> with no @type into most documents as a stored default and
+    // lays nothing out on it.
+    static double GridLinePitchPoints(SectionProperties section)
+    {
+        var grid = section.GetFirstChild<DocGrid>();
+        if (grid?.LinePitch?.HasValue == true &&
+            grid.Type?.Value is { } type &&
+            type != DocGridValues.Default &&
+            grid.LinePitch.Value > 0)
+        {
+            return grid.LinePitch.Value / OoxmlUnits.TwipsPerPoint;
+        }
+
+        return 0;
+    }
+
+    // w:spacing/@w:beforeLines or @w:afterLines in points: hundredths of a line, a line being the
+    // document grid's pitch, or 12pt off a grid. Word-probed (_probe_grid_*, 2026-10-21): a positive
+    // value outranks the twips value beside it, and 0 is ignored — agendas-minutes/17's
+    // afterLines="0" beside after="40" keeps its 2pt.
+    double? LineUnitsToPoints(Int32Value? lines)
+    {
+        if (lines?.Value is not > 0)
+        {
+            return null;
+        }
+
+        var line = documentGridPitchPoints > 0 ? documentGridPitchPoints : 12;
+        return lines.Value / 100.0 * line;
+    }
+
     // w:u/@w:val as the style it draws in (TextDecorations); a value Word has and Morph does not, or
     // none at all, draws single.
     static UnderlineStyle UnderlineStyleOf(Underline underline)
@@ -3895,14 +3946,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // <w:docGrid w:linePitch="360"/> with no @type into most documents as a stored
         // default and applies no grid to layout. Treating that pitch as a per-line floor
         // inflated business-plans/13's 11pt body lines to 18pt, overflowing pages Word fits.
-        double documentGridLinePitchPoints = 0;
-        var docGrid = sectionProps.GetFirstChild<DocGrid>();
-        if (docGrid?.LinePitch?.HasValue == true &&
-            docGrid.Type?.Value is { } gridType &&
-            gridType != DocGridValues.Default)
-        {
-            documentGridLinePitchPoints = docGrid.LinePitch.Value / OoxmlUnits.TwipsPerPoint;
-        }
+        var documentGridLinePitchPoints = GridLinePitchPoints(sectionProps);
 
         // Parse page borders (w:pgBorders)
         var pageBorders = ParsePageBorders(sectionProps.GetFirstChild<OoxmlPageBorders>());
@@ -4367,8 +4411,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacing != null)
         {
             defaultSpacingAfterPoints = spacing.After.TwipsToPoints() ?? defaultSpacingAfterPoints;
+            defaultSpacingAfterPoints = LineUnitsToPoints(spacing.AfterLines) ?? defaultSpacingAfterPoints;
 
             defaultSpacingBeforePoints = spacing.Before.TwipsToPoints() ?? defaultSpacingBeforePoints;
+            defaultSpacingBeforePoints = LineUnitsToPoints(spacing.BeforeLines) ?? defaultSpacingBeforePoints;
 
             // w:line is a multiplier only under lineRule="auto" (absent defaults to auto); under
             // "exact"/"atLeast" it is a twip measurement and belongs to the per-paragraph path.
@@ -11848,8 +11894,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacing != null)
         {
             spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
+            spacingBefore = LineUnitsToPoints(spacing.BeforeLines) ?? spacingBefore;
 
             spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
+            spacingAfter = LineUnitsToPoints(spacing.AfterLines) ?? spacingAfter;
             spacingBeforeAuto = spacing.BeforeAutoSpacing?.Value ?? spacingBeforeAuto;
             spacingAfterAuto = spacing.AfterAutoSpacing?.Value ?? spacingAfterAuto;
 
@@ -11935,6 +11983,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
+        var snapToGrid = props.GetFirstChild<SnapToGrid>() is { } snapElement ? snapElement.IsOn() : styleDefaults?.SnapToGrid ?? true;
 
         // A mirror paragraph keeps its declared indents in the model. Which side each indent lands
         // on is a PAGE-PARITY question the Fragmenter answers at placement (Word-measured,
@@ -12137,8 +12186,38 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             DropCapLines = dropCapLines,
             Frame = frame,
             IsRightToLeft = paraRtl,
-            MirrorIndents = mirrorIndents
+            MirrorIndents = mirrorIndents,
+            SnapToGrid = snapToGrid,
+            GridLinePitchPoints = snapToGrid && SnapsToGrid(paragraph) ? documentGridPitchPoints : 0
         };
+    }
+
+    // Whether a paragraph in this place snaps to the document grid. Word-probed (_probe_grid_table /
+    // _probe_grid_table_adjust, 2026-10-21, 36pt grid): body paragraphs do, a header's do not, and a
+    // table cell's do only under w:adjustLineHeightInTable.
+    bool SnapsToGrid(Paragraph? paragraph)
+    {
+        if (documentGridPitchPoints <= 0 ||
+            paragraph == null)
+        {
+            return false;
+        }
+
+        foreach (var ancestor in paragraph.Ancestors())
+        {
+            switch (ancestor)
+            {
+                case DocumentFormat.OpenXml.Wordprocessing.Header:
+                case DocumentFormat.OpenXml.Wordprocessing.Footer:
+                case DocumentFormat.OpenXml.Wordprocessing.Footnote:
+                case DocumentFormat.OpenXml.Wordprocessing.Endnote:
+                    return false;
+                case DocumentFormat.OpenXml.Wordprocessing.TableCell when !adjustLineHeightInTable:
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

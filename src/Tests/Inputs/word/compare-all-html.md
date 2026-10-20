@@ -1,4 +1,4 @@
-# All HTML export scenarios (338)
+# All HTML export scenarios (342)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -110,6 +110,8 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [decimal_tabs/01](#decimal_tabs01)
 - [deep_nested_list](#deep_nested_list)
 - [document_capture/01](#document_capture01)
+- [document_grid_lines](#document_grid_lines)
+- [document_grid_table](#document_grid_table)
 - [document_protection/01](#document_protection01)
 - [dot_points](#dot_points)
 - [embedded_font](#embedded_font)
@@ -210,6 +212,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [line_spacing](#line_spacing)
 - [line_spacing_at_least](#line_spacing_at_least)
 - [line_spacing_exactly](#line_spacing_exactly)
+- [list_marker_suffix](#list_marker_suffix)
 - [long_paragraph](#long_paragraph)
 - [menus/01](#menus01)
 - [menus/02](#menus02)
@@ -289,6 +292,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [simple_paragraph](#simple_paragraph)
 - [simple_table](#simple_table)
 - [small_caps](#small_caps)
+- [spacing_line_units](#spacing_line_units)
 - [strikethrough_text](#strikethrough_text)
 - [subscript_superscript](#subscript_superscript)
 - [table_alignment/01](#table_alignment01)
@@ -976,6 +980,18 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="document_capture/01/expected_0001.png" width="500"> | <img src="document_capture/01/html_result.verified.png" width="500"> |
 
+## document_grid_lines
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="document_grid_lines/expected_0001.png" width="500"><br><img src="document_grid_lines/expected_0002.png" width="500"><br><img src="document_grid_lines/expected_0003.png" width="500"> | <img src="document_grid_lines/html_result.verified.png" width="500"> |
+
+## document_grid_table
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="document_grid_table/expected_0001.png" width="500"> | <img src="document_grid_table/html_result.verified.png" width="500"> |
+
 ## document_protection/01
 
 | Expected (Word) | Morph HTML |
@@ -1576,6 +1592,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="line_spacing_exactly/expected_0001.png" width="500"> | <img src="line_spacing_exactly/html_result.verified.png" width="500"> |
 
+## list_marker_suffix
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="list_marker_suffix/expected_0001.png" width="500"> | <img src="list_marker_suffix/html_result.verified.png" width="500"> |
+
 ## long_paragraph
 
 | Expected (Word) | Morph HTML |
@@ -2049,6 +2071,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="small_caps/expected_0001.png" width="500"> | <img src="small_caps/html_result.verified.png" width="500"> |
+
+## spacing_line_units
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="spacing_line_units/expected_0001.png" width="500"><br><img src="spacing_line_units/expected_0002.png" width="500"> | <img src="spacing_line_units/html_result.verified.png" width="500"> |
 
 ## strikethrough_text
 
