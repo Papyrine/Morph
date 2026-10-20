@@ -105,50 +105,44 @@ static partial class DocumentEditor
         Edit(docx, options, edit => edit.Delete(start, end));
 
     /// <summary>Turns the document's own change tracking on or off (<c>w:trackRevisions</c>).</summary>
-    public static byte[] SetTracking(byte[] docx, bool on)
-    {
-        using var stream = new MemoryStream();
-        stream.Write(docx);
-        stream.Position = 0;
-        using (var document = WordprocessingDocument.Open(stream, true))
-        {
-            var main = MainPart(document);
-            var part = main.DocumentSettingsPart ?? main.AddNewPart<DocumentSettingsPart>();
-            var settings = part.Settings;
-            if (settings == null)
+    public static byte[] SetTracking(byte[] docx, bool on) =>
+        DocumentReading.Edit(
+            docx,
+            document =>
             {
-                settings = new();
-                part.Settings = settings;
-            }
+                var main = MainPart(document);
+                var part = main.DocumentSettingsPart ?? main.AddNewPart<DocumentSettingsPart>();
+                var settings = part.Settings;
+                if (settings == null)
+                {
+                    settings = new();
+                    part.Settings = settings;
+                }
 
-            settings.RemoveAllChildren<TrackRevisions>();
-            if (on)
-            {
-                settings.AddChild(new TrackRevisions());
-            }
-        }
-
-        return stream.ToArray();
-    }
+                settings.RemoveAllChildren<TrackRevisions>();
+                if (on)
+                {
+                    settings.AddChild(new TrackRevisions());
+                }
+            });
 
     static EditResult Edit(byte[] docx, EditOptions options, Func<Editing, (Paragraph Paragraph, int Offset)?> edit)
     {
-        using var stream = new MemoryStream();
-        stream.Write(docx);
-        stream.Position = 0;
         var ordinal = -1;
         var offset = 0;
-        using (var document = WordprocessingDocument.Open(stream, true))
-        {
-            var editing = new Editing(document, options);
-            if (edit(editing) is { } place)
+        var edited = DocumentReading.Edit(
+            docx,
+            document =>
             {
-                ordinal = SourceRuns.Stories(document).SelectMany(_ => _.Descendants<Paragraph>()).TakeWhile(_ => !ReferenceEquals(_, place.Paragraph)).Count();
-                offset = place.Offset;
-            }
-        }
+                var editing = new Editing(document, options);
+                if (edit(editing) is { } place)
+                {
+                    ordinal = SourceRuns.Stories(document).SelectMany(_ => _.Descendants<Paragraph>()).TakeWhile(_ => !ReferenceEquals(_, place.Paragraph)).Count();
+                    offset = place.Offset;
+                }
+            });
 
-        return new(stream.ToArray(), ordinal, offset);
+        return new(edited, ordinal, offset);
     }
 
     static MainDocumentPart MainPart(WordprocessingDocument document)

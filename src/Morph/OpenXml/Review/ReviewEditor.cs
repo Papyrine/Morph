@@ -73,18 +73,8 @@ static class ReviewEditor
     public static byte[] DeleteComment(byte[] docx, string commentId) =>
         Edit(docx, document => DeleteComment(document, commentId));
 
-    static byte[] Edit(byte[] docx, Action<WordprocessingDocument> edit)
-    {
-        using var stream = new MemoryStream();
-        stream.Write(docx);
-        stream.Position = 0;
-        using (var document = WordprocessingDocument.Open(stream, true))
-        {
-            edit(document);
-        }
-
-        return stream.ToArray();
-    }
+    static byte[] Edit(byte[] docx, Action<WordprocessingDocument> edit) =>
+        DocumentReading.Edit(docx, edit);
 
     // Tracked changes
 

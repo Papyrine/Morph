@@ -89,6 +89,15 @@ public class EditBenchmarks
     public byte[] Rewrite() =>
         DocumentEditor.Rewrite(bytes, paragraph, typed, plain).Document;
 
+    /// <summary>The edit as the viewer makes it: reading the review and the outline off its package.</summary>
+    [Benchmark]
+    [BenchmarkCategory("Edit")]
+    public byte[] RewriteCaptured()
+    {
+        using var capture = DocumentReading.Capture();
+        return DocumentEditor.Rewrite(bytes, paragraph, typed, plain).Document;
+    }
+
     [Benchmark]
     [BenchmarkCategory("Edit")]
     public byte[] RewriteTracked() =>
@@ -161,7 +170,12 @@ public class EditBenchmarks
     [BenchmarkCategory("RoundTrip")]
     public int RoundTrip()
     {
-        var edited = DocumentEditor.Rewrite(bytes, paragraph, typed, plain).Document;
+        byte[] edited;
+        using (DocumentReading.Capture())
+        {
+            edited = DocumentEditor.Rewrite(bytes, paragraph, typed, plain).Document;
+        }
+
         using var document = PagedDocument.Open(edited, InputFormat.Docx, fontDirectory, traceSources: true);
         var length = 0;
         for (var index = 0; index < document.PageCount; index++)

@@ -601,7 +601,15 @@ public partial class MorphViewer
         StateHasChanged();
         try
         {
-            var bytes = await Task.Run(produce, lifetime.Token);
+            // The edit reads the review and the outline off its own package as it saves, which the
+            // reading of the edited file below then finds rather than opening the package again.
+            var bytes = await Task.Run(
+                () =>
+                {
+                    using var capture = DocumentReading.Capture();
+                    return produce();
+                },
+                lifetime.Token);
             if (relayout)
             {
                 var opening = ++generation;

@@ -95,7 +95,7 @@ static class StrictToTransitional
     // (Transitional, or an unexpected layout) passes straight through to the SDK, which handles it or
     // reports the canonical error. The test is the Strict marker PREFIX rather than the wordprocessing
     // namespace alone, so .pptx and .xlsx are covered by the same peek.
-    static bool IsStrict(Stream input)
+    public static bool IsStrict(Stream input)
     {
         var start = input.Position;
         try
