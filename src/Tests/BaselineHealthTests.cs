@@ -91,25 +91,6 @@ public class BaselineHealthTests
         "basic-business-invoice/skia_result#page_0002.verified.png",
         "basic-business-invoice/imagesharp_result#page_0002.verified.png",
         "basic-business-invoice/pdf_result#page_0002.verified.png",
-        // -- Known regressions (temporary — remove when fixed) --
-        // Horizontal pagination is not implemented. to-do-list spans columns A:Q and asks for no
-        // fitToPage, so Excel prints it at 100% across TWO page strips, left and right. Morph prints
-        // the left strip and clips the rest, then breaks vertically instead — which lands on the same
-        // page count for the wrong reason and leaves the second page nearly empty. Page 1 is a fair
-        // comparison; page 2 is the signature of the missing feature. Tracked in src/todo.md.
-        //
-        // ImageSharp is NOT listed, for the same reason as basic-business-invoice above: the sheet
-        // asks for verticalCentered, and once that landed (2026-08-14) the strip moved into the
-        // middle of the page, where ImageSharp anti-aliases its edges over enough extra levels to
-        // read 17 colours. Skia sees 8 and PDF 13 on the same page, and the content is unchanged in
-        // substance — still the same near-empty strip. Threshold moved, render did not. PDF left the
-        // list on 2026-09-05 for the same reason in the other direction: the grid-floored cell rules
-        // took its page-2 count past 16 with the strip unchanged — and came back the same day when
-        // an over-wide centred table stopped clamping at the margin and the strip slid a few pixels
-        // (13 colours again). The page IS the missing feature; listing it on Skia and PDF and leaving
-        // ImageSharp off is the threshold talking, not the render.
-        "to-do-list/skia_result#page_0002.verified.png",
-        "to-do-list/pdf_result#page_0002.verified.png",
         // weekly-lesson-planner carries its trailing empty rows onto a second page since trailing empty
         // table rows stopped being absorbed (2026-09-24, docs/word-features.md Multi-page Tables rule 8).
         // Excel prints that page too: its expected_0002.png is near-empty, and the page's AE against it

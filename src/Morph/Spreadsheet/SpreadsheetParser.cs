@@ -153,7 +153,7 @@ sealed class SpreadsheetParser(
             {
                 settings = PageSettingsFor(worksheet, useLetterPageSize);
 
-                var range = ResolveRange(worksheet, definedNames.PrintArea(name));
+                var range = ResolveRange(worksheetPart, worksheet, definedNames.PrintArea(name));
                 if (range is not { } printed || printed.IsEmpty)
                 {
                     continue;
@@ -240,7 +240,7 @@ sealed class SpreadsheetParser(
     /// The range to render: the sheet's declared print area when it has one, clipped to the cells
     /// that actually exist, else the used range from <c>dimension</c>.
     /// </summary>
-    static SheetRange? ResolveRange(S.Worksheet worksheet, string? printArea)
+    static SheetRange? ResolveRange(WorksheetPart? worksheetPart, S.Worksheet worksheet, string? printArea)
     {
         // dimension is a HINT, not a measurement: Excel writes the range it last tracked, keeping
         // columns and rows whose content has since gone, and it prints neither. Intersecting it with
@@ -260,7 +260,12 @@ sealed class SpreadsheetParser(
             return null;
         }
 
-        if (CellReference.ParseRange(printArea) is { } area)
+        // What a drawing stands over prints with it: back-to-school-planner's column chart reaches
+        // eleven rows below the last of its table's, and a grid stopping at the table cut the chart
+        // off there.
+        bounds = ExtendForDrawings(worksheetPart, bounds);
+
+        if (CellReference.ParseArea(printArea) is { } area)
         {
             var clipped = area.Intersect(bounds);
             if (clipped.IsEmpty)
@@ -332,7 +337,7 @@ sealed class SpreadsheetParser(
             worksheet.AppendChild(new S.SheetData());
         }
 
-        var used = ResolveRange(worksheet, null);
+        var used = ResolveRange(worksheetPart, worksheet, null);
         if (used is not { IsEmpty: false } bounds)
         {
             bounds = new(1, 1, 1, 1);

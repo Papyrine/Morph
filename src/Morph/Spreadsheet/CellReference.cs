@@ -77,6 +77,56 @@ static class CellReference
     }
 
     /// <summary>Parses an <c>A1:F19</c> range, or a single <c>A1</c>, into inclusive bounds.</summary>
+    /// <summary>
+    /// A print area, which besides a cell range may name whole columns (<c>$A:$K</c>) or whole rows
+    /// (<c>$1:$40</c>) — the full grid along the axis it leaves out. Excel writes whole columns when a
+    /// print area is set by selecting column headers: wedding-budget-template's <c>$A:$K</c> and
+    /// to-do-list's <c>$A:$M</c>. Read as no range at all, they let the sheet's formatted-but-empty
+    /// columns past the area print too: wedding-budget-template laid out 26 columns for Excel's 11.
+    /// The caller clips the result to the cells the sheet carries.
+    /// </summary>
+    public static SheetRange? ParseArea(string? reference)
+    {
+        if (ParseRange(reference) is { } range)
+        {
+            return range;
+        }
+
+        if (string.IsNullOrWhiteSpace(reference))
+        {
+            return null;
+        }
+
+        var bare = reference;
+        var bang = bare.LastIndexOf('!');
+        if (bang >= 0)
+        {
+            bare = bare[(bang + 1)..];
+        }
+
+        var parts = bare.Replace("$", string.Empty, StringComparison.Ordinal).Split(':');
+        if (parts.Length != 2)
+        {
+            return null;
+        }
+
+        if (parts.All(_ => _.Length > 0 && _.All(char.IsAsciiLetter)) &&
+            ColumnOf(parts[0] + "1") is > 0 and var firstColumn &&
+            ColumnOf(parts[1] + "1") is > 0 and var lastColumn)
+        {
+            return new(1, Math.Min(firstColumn, lastColumn), MaxRow, Math.Max(firstColumn, lastColumn));
+        }
+
+        if (parts.All(_ => _.Length > 0 && _.All(char.IsAsciiDigit)) &&
+            RowOf("A" + parts[0]) is > 0 and var firstRow &&
+            RowOf("A" + parts[1]) is > 0 and var lastRow)
+        {
+            return new(Math.Min(firstRow, lastRow), 1, Math.Max(firstRow, lastRow), MaxColumn);
+        }
+
+        return null;
+    }
+
     public static SheetRange? ParseRange(string? reference)
     {
         if (string.IsNullOrWhiteSpace(reference))
