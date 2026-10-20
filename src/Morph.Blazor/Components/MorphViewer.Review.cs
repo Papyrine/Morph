@@ -627,8 +627,20 @@ public partial class MorphViewer
             }
             else
             {
-                review = await Task.Run(() => DocumentReview.Read(bytes), lifetime.Token);
-                outline = await Task.Run(() => Outline(bytes, InputFormat.Docx), lifetime.Token);
+                (review, outline) = await Task.Run(
+                    () =>
+                    {
+                        try
+                        {
+                            return DocumentReading.Read(bytes);
+                        }
+                        catch (Exception)
+                        {
+                            // As read on their own: a review that cannot be read is this edit's failure.
+                            return (DocumentReview.Read(bytes), Outline(bytes, InputFormat.Docx));
+                        }
+                    },
+                    lifetime.Token);
             }
 
             sourceBytes = bytes;

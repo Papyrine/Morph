@@ -67,7 +67,7 @@ sealed class DocumentReview
         }
     }
 
-    static DocumentReview Read(WordprocessingDocument document, bool editable)
+    public static DocumentReview Read(WordprocessingDocument document, bool editable)
     {
         var changes = new List<(int Part, int Order, ReviewChange Change)>();
         Reader? body = null;

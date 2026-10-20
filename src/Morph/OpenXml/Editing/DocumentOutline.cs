@@ -80,7 +80,7 @@ sealed class DocumentOutline
         }
     }
 
-    static DocumentOutline Read(WordprocessingDocument document, bool editable)
+    public static DocumentOutline Read(WordprocessingDocument document, bool editable)
     {
         if (document.MainDocumentPart?.Document is not { })
         {
