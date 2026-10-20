@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <!-- ImageSharp renders PNG (pure-managed, so it runs in WebAssembly — Skia would need a native
-         browser-wasm build the NuGet assets don't ship); PdfSharp renders PDF. AngleSharp flattens
+         browser-wasm build the NuGet assets don't ship); Krilla renders PDF. AngleSharp flattens
          Morph's HTML export into plain text; it arrives transitively via Morph, and the explicit
          reference makes the dependency intentional rather than incidental. -->
     <!-- Morph itself is referenced directly, not only through the backends: the viewer and the selectable

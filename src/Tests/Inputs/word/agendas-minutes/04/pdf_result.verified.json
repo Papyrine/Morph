@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 1,
     "Pages": [
@@ -14,7 +11,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "MEETING AGENDA\nLocation: Room 914 B\nDate: January 9, 20XX\nTime: 2:15 PM\nAGENDA DETAI LS\nI. INTRODUCTIONS\na. Sarah will read the minutes from last month’s meeting\nb. John will take attendance\nII. NEW BUSINESS\na. Ordering new office chairs\nb. Holiday bonuses\nIII. OLD BUSINESS\na. Volunteers for holiday food drive\nIV. CONCLUSION\na. Next meeting will be held on February 6, 20XX"
+        "Text": "MEETING AGENDA\nLocation: Room 914 B\nDate: January 9, 20XX\nTime: 2:15 PM\nAGENDA DETAILS\nI. INTRODUCTIONS\na. Sarah will read the minutes from last month’s meeting\nb. John will take attendance\nII. NEW BUSINESS\na. Ordering new office chairs\nb. Holiday bonuses\nIII. OLD BUSINESS\na. Volunteers for holiday food drive\nIV. CONCLUSION\na. Next meeting will be held on February 6, 20XX"
       }
     ]
   },
@@ -22,7 +19,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.0287,
-      "Ssim": 0.9612,
+      "Ssim": 0.961,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

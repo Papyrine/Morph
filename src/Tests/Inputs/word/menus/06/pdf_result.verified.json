@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 3,
     "Pages": [
@@ -14,7 +11,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "BISTRO MENU\nD R INK S\nSODA – 3\nCola, Lemon-Lime, Orange, Grape,\nStrawberry\nLEMONADE – 3\nStrawberry, Mint, Blueberry,\nMango, Peach\nTEA – 2\nChamomile, Black, Earl Grey,\nMatcha, Jasmine, Chai, Fruit blend\nS A L A D S\nCOBB - 14\nMixed greens, avocado, grilled chicken, tomato, hard￾boiled egg, chives, blue cheese\nCAESAR – 13\nRomaine, grilled chicken, croutons, pine nuts, Parmesan\ncheese\nGREEK - 12\nIceberg, grape tomatoes, cucumbers, feta cheese, olives,\ncroutons\nE S T . 1 9 8 1\nENT R E E S\nBURGER - 16\n7oz custom ground beef patty, triple cream brie, alfalfa\nsprouts, caramelized onions\nPASTA - 15\nHand-made pasta, black truffle, olive oil, shaved\nParmesan\nGNOCCHI – 14\nPotato dumplings, roasted mushrooms, spinach\nGRILLED STEAK SANDWICH - 17\nCaramelized onions, roasted tomatoes, horseradish\nA P P E T I Z E R S\nPOTATO CAKES – 7\nFried potato, apple jelly, sour\ncream\nSPINACH DIP - 5\nSpinach, cream cheese, spices,\ntortilla chips\nOYSTERS - 13\nFreshly shucked oysters\nCHEESE FRIES - 4\nHand-cut fries, cheese, bacon,\nchives, jalapeno, sour cream\nONION RINGS - 7\nThick cut yellow onion, beer\nbattered, panko coated\nD E S S E R T S\nCARAMEL CHEESECAKE - 13\nCaramelized banana, cream\nAPPLE COBBLER - 12\nCinnamon crumble, vanilla ice cream, heirloom apples\nBROWNIE SUNDAE - 9\nDark chocolate, nuts, vanilla ice cream\nFLAN - 8\nVanilla custard with sweet caramel sauce"
+        "Text": "BISTRO MENU\nD R I N K S\nSODA – 3\nCola, Lemon-Lime, Orange, Grape,\nStrawberry\nLEMONADE – 3\nStrawberry, Mint, Blueberry,\nMango, Peach\nTEA – 2\nChamomile, Black, Earl Grey,\nMatcha, Jasmine, Chai, Fruit blend\nS A L A D S\nCOBB - 14\nMixed greens, avocado, grilled chicken, tomato, hard￾boiled egg, chives, blue cheese\nCAESAR – 13\nRomaine, grilled chicken, croutons, pine nuts, Parmesan\ncheese\nGREEK - 12\nIceberg, grape tomatoes, cucumbers, feta cheese, olives,\ncroutons\nE S T . 1 9 8 1\nE N T R E E S\nBURGER - 16\n7oz custom ground beef patty, triple cream brie, alfalfa\nsprouts, caramelized onions\nPASTA - 15\nHand-made pasta, black truffle, olive oil, shaved\nParmesan\nGNOCCHI – 14\nPotato dumplings, roasted mushrooms, spinach\nGRILLED STEAK SANDWICH - 17\nCaramelized onions, roasted tomatoes, horseradish\nA P P E T I Z E R S\nPOTATO CAKES – 7\nFried potato, apple jelly, sour\ncream\nSPINACH DIP - 5\nSpinach, cream cheese, spices,\ntortilla chips\nOYSTERS - 13\nFreshly shucked oysters\nCHEESE FRIES - 4\nHand-cut fries, cheese, bacon,\nchives, jalapeno, sour cream\nONION RINGS - 7\nThick cut yellow onion, beer\nbattered, panko coated\nD E S S E R T S\nCARAMEL CHEESECAKE - 13\nCaramelized banana, cream\nAPPLE COBBLER - 12\nCinnamon crumble, vanilla ice cream, heirloom apples\nBROWNIE SUNDAE - 9\nDark chocolate, nuts, vanilla ice cream\nFLAN - 8\nVanilla custard with sweet caramel sauce"
       },
       {
         "Number": 2,
@@ -37,24 +34,24 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.064,
-      "Ssim": 0.9183,
+      "ErrorMetric": 0.0642,
+      "Ssim": 0.9176,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0697,
-      "Ssim": 0.9143,
+      "ErrorMetric": 0.0698,
+      "Ssim": 0.9137,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0826,
-      "Ssim": 0.8842,
+      "ErrorMetric": 0.0828,
+      "Ssim": 0.8834,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"

@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 15,
     "Pages": [
@@ -131,16 +128,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0043,
-      "Ssim": 0.9958,
+      "ErrorMetric": 0.0041,
+      "Ssim": 0.9949,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0234,
-      "Ssim": 0.9702,
+      "ErrorMetric": 0.0237,
+      "Ssim": 0.9689,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
@@ -164,15 +161,15 @@
     {
       "Page": 5,
       "ErrorMetric": 0.0092,
-      "Ssim": 0.9887,
+      "Ssim": 0.9876,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0087,
-      "Ssim": 0.9866,
+      "ErrorMetric": 0.0089,
+      "Ssim": 0.9864,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
@@ -187,8 +184,8 @@
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.0129,
-      "Ssim": 0.9883,
+      "ErrorMetric": 0.0122,
+      "Ssim": 0.9861,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"
@@ -211,40 +208,40 @@
     },
     {
       "Page": 11,
-      "ErrorMetric": 0.0148,
-      "Ssim": 0.9797,
+      "ErrorMetric": 0.0146,
+      "Ssim": 0.9795,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"
     },
     {
       "Page": 12,
-      "ErrorMetric": 0.0075,
-      "Ssim": 0.9909,
+      "ErrorMetric": 0.0071,
+      "Ssim": 0.9901,
       "ExpectedFile": "expected_0012.png",
       "VerifiedFile": "pdf_result#page_0012.verified.png",
       "ReceivedFile": "pdf_result#page_0012.received.png"
     },
     {
       "Page": 13,
-      "ErrorMetric": 0.0051,
-      "Ssim": 0.9951,
+      "ErrorMetric": 0.0049,
+      "Ssim": 0.9952,
       "ExpectedFile": "expected_0013.png",
       "VerifiedFile": "pdf_result#page_0013.verified.png",
       "ReceivedFile": "pdf_result#page_0013.received.png"
     },
     {
       "Page": 14,
-      "ErrorMetric": 0.0177,
-      "Ssim": 0.9702,
+      "ErrorMetric": 0.0174,
+      "Ssim": 0.9693,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
     },
     {
       "Page": 15,
-      "ErrorMetric": 0.0147,
-      "Ssim": 0.9862,
+      "ErrorMetric": 0.0149,
+      "Ssim": 0.985,
       "ExpectedFile": "expected_0015.png",
       "VerifiedFile": "pdf_result#page_0015.verified.png",
       "ReceivedFile": "pdf_result#page_0015.received.png"

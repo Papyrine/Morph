@@ -90,7 +90,7 @@ public class PdfConverterTests
     }
 
     /// <summary>
-    /// When an image's primary content type is one PdfSharp can't decode (SVG) <em>and</em> its
+    /// When an image's primary content type is one the PDF backend can't decode (SVG) <em>and</em> its
     /// raster fallback is equally undecodable, <c>PdfPainter</c> must skip the image
     /// rather than hand the bytes to <c>XImage.FromStream</c> — which throws. Regression guard for
     /// the fallback check; without it this render throws instead of producing a PDF.
@@ -155,7 +155,7 @@ public class PdfConverterTests
                 FontDirectory = fontsDirectory
             });
 
-        using var document = PdfSharp.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
+        using var document = Morph.PDFium.PdfiumDocument.Load(pdf);
         await Assert.That(document.PageCount).IsGreaterThanOrEqualTo(2);
     }
 }

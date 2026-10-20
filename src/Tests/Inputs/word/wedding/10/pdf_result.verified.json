@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 5,
     "Pages": [
@@ -38,7 +35,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "4\n☐ Groom with groom’s family ☐ Groom with groom’s parents\n☐ Wedding couple with bride’s family ☐ Groom with mother\n☐ Wedding couple with groom’s family ☐ Groom with father\n☐ Wedding couple with both families ☐ Groom with groom’s grandparents\n☐ Bride with bride’s parents ☐ Wedding couple with groom’s\nparents\n☐ Bride with mother ☐ Wedding couple with groom’s\ngrandparents\n☐ Bride with father ☐ Couple with siblings\nATTENDANTS\n☐ Bride with maid of honor ☐ Groom with groomsmen\n☐ Groom with best man ☐ Wedding couple with groomsmen\n☐ Bride with wedding attendants ☐ Bride with child attendants\n☐ Groom with wedding attendants ☐ Groom with child attendants\n☐ Wedding couple with wedding\nattendants\n☐ Wedding couple with child\nattendants\n☐ Bride with groomsmen ☐ Lorem ipsum dolor sit amet\nRECEPT ION PHOTOS\n☐ Exterior of reception venue (empty) ☐ Groom’s dance with mother\n☐ Interior of reception venue (empty) ☐ Parents dancing"
+        "Text": "4\n☐ Groom with groom’s family ☐ Groom with groom’s parents\n☐ Wedding couple with bride’s family ☐ Groom with mother\n☐ Wedding couple with groom’s family ☐ Groom with father\n☐ Wedding couple with both families ☐ Groom with groom’s grandparents\n☐ Bride with bride’s parents ☐ Wedding couple with groom’s\nparents\n☐ Bride with mother ☐ Wedding couple with groom’s\ngrandparents\n☐ Bride with father ☐ Couple with siblings\nATTENDANTS\n☐ Bride with maid of honor ☐ Groom with groomsmen\n☐ Groom with best man ☐ Wedding couple with groomsmen\n☐ Bride with wedding attendants ☐ Bride with child attendants\n☐ Groom with wedding attendants ☐ Groom with child attendants\n☐ Wedding couple with wedding\nattendants\n☐ Wedding couple with child\nattendants\n☐ Bride with groomsmen ☐ Lorem ipsum dolor sit amet\nRECEPTION PHOTOS\n☐ Exterior of reception venue (empty) ☐ Groom’s dance with mother\n☐ Interior of reception venue (empty) ☐ Parents dancing"
       },
       {
         "Number": 5,
@@ -53,8 +50,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0799,
-      "Ssim": 0.9472,
+      "ErrorMetric": 0.08,
+      "Ssim": 0.9467,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
@@ -62,15 +59,15 @@
     {
       "Page": 2,
       "ErrorMetric": 0.0425,
-      "Ssim": 0.9588,
+      "Ssim": 0.9587,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0436,
-      "Ssim": 0.9475,
+      "ErrorMetric": 0.0437,
+      "Ssim": 0.9473,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
@@ -78,7 +75,7 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0467,
-      "Ssim": 0.9534,
+      "Ssim": 0.9533,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"

@@ -189,7 +189,7 @@ public static class ConversionService
 
     /// <summary>
     /// Exports the source as a vector-text PDF. <paramref name="fontDirectory"/> supplies the fonts to
-    /// PdfSharp — in the browser this is the in-memory directory <see cref="FontStore"/> populates, since
+    /// the PDF backend — in the browser this is the in-memory directory <see cref="FontStore"/> populates, since
     /// the PDF backend can't reach Morph's embedded fonts.
     /// </summary>
     public static byte[] ToPdf(byte[] bytes, InputFormat source, string fontDirectory)

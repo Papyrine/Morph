@@ -1,41 +1,36 @@
 ﻿/// <summary>
-/// Paints a backend-independent <see cref="LaidOutDocument"/> onto a PDF — the layout engine's first
-/// painter (<c>docs/layout-engine.md</c>, step 5). It performs **no** measurement and **no**
-/// pagination: every page size, line and run position comes from the tree the <c>Fragmenter</c> already
-/// produced, so a paint is a pure draw pass. This proves the tree drives real output.
+/// Paints a backend-independent <see cref="LaidOutDocument"/> onto a PDF through Krilla — the layout
+/// engine's first painter (<c>docs/layout-engine.md</c>, step 5). It performs **no** measurement and
+/// **no** pagination: every page size, line and run position comes from the tree the <c>Fragmenter</c>
+/// already produced, so a paint is a pure draw pass.
 ///
 /// <para>Draws paragraph text (one <see cref="PlacedRun"/> per source run at the line's baseline, in its
-/// resolved font and colour), tables (each <see cref="PlacedCell"/>'s shading, content and borders),
-/// run decorations, list markers, tabs and leaders, images, shapes and nested tables — the feature log
-/// is in the proposal doc. Still deferred: per-glyph advances (a run anchors at its canonical start and
-/// the font library fills it), image recolour/duotone, cell-anchored image-fill shapes (a body one is
-/// routed to a <see cref="PlacedImage"/> and draws), and foreground header/footer
-/// images. <c>PdfRenderer</c> routes every document here — this is the only PDF path since the
-/// 2026-08-06 flip and the step-8.3 deletion of <c>PdfTextEngine</c>/<c>PdfPageRenderer</c>.</para>
+/// resolved face and colour, each glyph at the advance the layout measured it at), tables (each
+/// <see cref="PlacedCell"/>'s shading, content and borders), run decorations, list markers, tabs and
+/// leaders, images, shapes and nested tables. <c>PdfRenderer</c> routes every document here.</para>
 /// </summary>
 static class PdfPainter
 {
     // Resolution the WordArt raster is produced at. PDF is vector, so the shape has no natural pixel size;
-    // 300 dpi keeps the embedded bitmap sharp in print without bloating the file — the same value the
-    // deleted production PdfPageRenderer embedded at.
+    // 300 dpi keeps the embedded bitmap sharp in print without bloating the file.
     const int wordArtRasterDpi = 300;
 
-
-    // Positions text by its baseline at the drawn point, matching how the tree records PlacedLine.Baseline.
-    static readonly XStringFormat baselineFormat = new()
+    /// <summary>
+    /// Paints at the default font settings. Prefer the overload taking a context when the conversion's
+    /// font settings matter.
+    /// </summary>
+    public static byte[] Paint(LaidOutDocument document, string? fontDirectory)
     {
-        LineAlignment = XLineAlignment.BaseLine
-    };
+        using var context = NewContext(document, compatibility: null, fontWidthScale: 1, fontFallback: null, fontDirectory);
+        Paint(document, context);
+        return context.Document.Finish();
+    }
 
     /// <summary>
-    /// The context is created once for the font resolver, cache and PdfDocument; its PageSettings is only a
+    /// The context is created once for the fonts, caches and Krilla document; its PageSettings is only a
     /// constructor formality here (each page's size comes from the tree, positions are absolute, and the
-    /// painter never measures), so the first page's settings serve. Prefer the overload taking a context when
-    /// the conversion's font settings matter — this one resolves at the defaults.
+    /// painter never measures), so the first page's settings serve.
     /// </summary>
-    public static PdfDocument Paint(LaidOutDocument document, string? fontDirectory) =>
-        Paint(document, NewContext(document, compatibility: null, fontWidthScale: 1, fontFallback: null, fontDirectory));
-
     public static PdfRenderContext NewContext(
         LaidOutDocument document,
         CompatibilitySettings? compatibility,
@@ -52,33 +47,41 @@ static class PdfPainter
     /// Draws the tree onto <paramref name="context"/>'s document. The caller owns the context so it can
     /// resolve fonts with the conversion's own width scale, fallback and compatibility settings — the
     /// measurer already does, and a painter resolving a different face would draw text off its measured
-    /// line — and so it can dispose the image cache after saving.
+    /// line. Only the pages in <paramref name="pages"/> (1-based, inclusive) are drawn, when given.
     /// </summary>
-    public static PdfDocument Paint(
+    public static void Paint(
         LaidOutDocument document,
         PdfRenderContext context,
         bool rasterizeWordArt = true,
-        Action<ExportWarning>? onWarning = null)
+        Action<ExportWarning>? onWarning = null,
+        PageRange? pages = null)
     {
-        foreach (var laidOutPage in document.Pages)
+        for (var index = 0; index < document.Pages.Count; index++)
         {
-            var page = context.Document.AddPage();
-            page.Width = XUnit.FromPoint(laidOutPage.Settings.WidthPoints);
-            page.Height = XUnit.FromPoint(laidOutPage.Settings.HeightPoints);
+            var number = index + 1;
+            if (pages is { } range && (number < range.Start || number > range.End))
+            {
+                continue;
+            }
 
-            using var graphics = XGraphics.FromPdfPage(page);
+            var laidOutPage = document.Pages[index];
+            var width = laidOutPage.Settings.WidthPoints;
+            var height = laidOutPage.Settings.HeightPoints;
+            using var page = context.Document.StartPage((float) width, (float) height);
+            var surface = page.Surface;
+            context.Surface = surface;
 
             // Page background fill (w:background) behind everything — without it a dark-themed page's
             // white text lands invisibly on white.
             var background = laidOutPage.Settings.BackgroundColorHex;
             if (!string.IsNullOrEmpty(background))
             {
-                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(background)), 0, 0, page.Width.Point, page.Height.Point);
+                PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(background), 0, 0, width, height);
             }
 
             foreach (var item in laidOutPage.Items)
             {
-                PaintItem(context, graphics, item, rasterizeWordArt, onWarning);
+                PaintItem(context, surface, item, rasterizeWordArt, onWarning);
             }
 
             // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
@@ -86,82 +89,75 @@ static class PdfPainter
             if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
             {
                 var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                PaintBorder(context, graphics, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges), BorderStroke.Scope.Page);
+                PaintBorder(context, surface, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges), BorderStroke.Scope.Page);
             }
-        }
 
-        return context.Document;
+            context.Surface = null;
+        }
     }
 
-    static void PaintItem(PdfRenderContext context, XGraphics graphics, PlacedItem item, bool rasterizeWordArt = true, Action<ExportWarning>? onWarning = null)
+    static void PaintItem(PdfRenderContext context, Surface surface, PlacedItem item, bool rasterizeWordArt = true, Action<ExportWarning>? onWarning = null)
     {
         switch (item)
         {
             case PlacedLine line:
-                PaintLine(context, graphics, line);
+                PaintLine(context, surface, line);
                 break;
             case PlacedTableRow row:
-                PaintTableRow(context, graphics, row);
+                PaintTableRow(context, surface, row);
                 break;
             case PlacedImage image:
-                PaintImage(context, graphics, image);
+                PaintImage(context, surface, image);
                 break;
             case PlacedShape shape:
-                PaintShape(graphics, shape);
+                PaintShape(context, surface, shape);
                 break;
             case PlacedWordArt wordArt:
-                PaintWordArt(context, graphics, wordArt, rasterizeWordArt, onWarning);
+                PaintWordArt(context, surface, wordArt, rasterizeWordArt, onWarning);
                 break;
             case PlacedShading shading:
-                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(shading.ColorHex)), shading.X, shading.Y, shading.Width, shading.Height);
+                PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(shading.ColorHex), shading.X, shading.Y, shading.Width, shading.Height);
                 break;
             case PlacedBorder border:
-                PaintBorder(context, graphics, border);
+                PaintBorder(context, surface, border);
                 break;
             case PlacedRotatedGroup group:
-                PaintRotatedGroup(context, graphics, group);
+                PaintRotatedGroup(context, surface, group);
                 break;
             case PlacedClipGroup clip:
-                PaintClipGroup(context, graphics, clip, rasterizeWordArt, onWarning);
+                PaintClipGroup(context, surface, clip, rasterizeWordArt, onWarning);
                 break;
         }
     }
 
     // See SkiaPainter.PaintClipGroup.
-    static void PaintClipGroup(PdfRenderContext context, XGraphics graphics, PlacedClipGroup clip, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
+    static void PaintClipGroup(PdfRenderContext context, Surface surface, PlacedClipGroup clip, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
     {
-        var state = graphics.Save();
-        graphics.IntersectClip(new XRect(clip.X, clip.Y, clip.Width, clip.Height));
+        using var layer = PdfShapeDrawing.ClipRectangle(surface, clip.X, clip.Y, clip.Width, clip.Height);
         foreach (var item in clip.Items)
         {
-            PaintItem(context, graphics, item, rasterizeWordArt, onWarning);
+            PaintItem(context, surface, item, rasterizeWordArt, onWarning);
         }
-
-        graphics.Restore(state);
     }
 
     // See SkiaPainter.PaintRotatedGroup.
-    static void PaintRotatedGroup(PdfRenderContext context, XGraphics graphics, PlacedRotatedGroup group)
+    static void PaintRotatedGroup(PdfRenderContext context, Surface surface, PlacedRotatedGroup group)
     {
-        var state = graphics.Save();
-        graphics.RotateAtTransform(group.RotationDegrees, new(group.X + group.Width / 2, group.Y + group.Height / 2));
+        using var layer = PdfShapeDrawing.RotateAt(surface, group.RotationDegrees, group.X + group.Width / 2, group.Y + group.Height / 2);
         foreach (var item in group.Items)
         {
-            PaintItem(context, graphics, item);
+            PaintItem(context, surface, item);
         }
-
-        graphics.Restore(state);
     }
 
-    // A warped WordArt figure. PdfSharp cannot draw the warp geometry, so — exactly as the deleted
-    // production TryEmbedWordArt did — a raster backend rasterizes the shape to a transparent PNG
-    // (discovered reflectively, so Morph.Pdf keeps no compile-time dependency on either engine) and the PNG
-    // is embedded. The PNG is the box surrounded by WordArtRasterPage.Padding on every side, since several
-    // warps draw past the declared box, so the draw origin steps back by that padding and the rectangle grows
-    // to match — leaving the box region at (X, Y) with the overflow spilling onto the page. When no raster
-    // backend is present the shape is dropped rather than drawn wrong; the caller reserved its height either
-    // way, so pagination is unaffected.
-    static void PaintWordArt(PdfRenderContext context, XGraphics graphics, PlacedWordArt wordArt, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
+    // A warped WordArt figure. Krilla cannot draw the warp geometry, so a raster backend rasterizes the
+    // shape to a transparent PNG (discovered reflectively, so Morph.Pdf keeps no compile-time dependency on
+    // either engine) and the PNG is embedded. The PNG is the box surrounded by WordArtRasterPage.Padding on
+    // every side, since several warps draw past the declared box, so the draw origin steps back by that
+    // padding and the rectangle grows to match — leaving the box region at (X, Y) with the overflow
+    // spilling onto the page. When no raster backend is present the shape is dropped rather than drawn
+    // wrong; the caller reserved its height either way, so pagination is unaffected.
+    static void PaintWordArt(PdfRenderContext context, Surface surface, PlacedWordArt wordArt, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
     {
         if (!rasterizeWordArt)
         {
@@ -205,10 +201,10 @@ static class PdfPainter
         }
 
         var pad = WordArtRasterPage.Padding(wordArt.Visual);
-        graphics.DrawImage(context.GetImage(png), wordArt.X - pad, wordArt.Y - pad, wordArt.Width + 2 * pad, wordArt.Height + 2 * pad);
+        PdfPicture.Of(context.GetImage(png))?.Draw(surface, wordArt.X - pad, wordArt.Y - pad, wordArt.Width + 2 * pad, wordArt.Height + 2 * pad);
     }
 
-    static void PaintLine(PdfRenderContext context, XGraphics graphics, PlacedLine line)
+    static void PaintLine(PdfRenderContext context, Surface surface, PlacedLine line)
     {
         var ascent = line.Baseline - line.Y;
         var revisionBarDrawn = false;
@@ -218,7 +214,7 @@ static class PdfPainter
             // underscore) instead of text — its Text is empty.
             if (run.Leader != TabLeader.None)
             {
-                DrawLeader(context, graphics, run, line.Baseline);
+                DrawLeader(context, surface, run, line.Baseline);
                 continue;
             }
 
@@ -232,7 +228,7 @@ static class PdfPainter
             {
                 revisionBarDrawn = true;
                 var barX = context.PageSettings.MarginLeft / 2;
-                graphics.DrawLine(context.GetPen(XColors.Black, 0.75), barX, line.Y, barX, line.Y + line.Height);
+                PdfShapeDrawing.StrokeLine(surface, context.GetStroke(PdfColor.Black, 0.75), barX, line.Y, barX, line.Y + line.Height);
             }
 
             var properties = run.Properties;
@@ -241,24 +237,14 @@ static class PdfPainter
             // Highlight (w:highlight / run shading) fills behind the glyphs, over the line box.
             if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
             {
-                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(properties.BackgroundColorHex)), run.X, line.Y, run.Width, line.Height);
+                PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(properties.BackgroundColorHex), run.X, line.Y, run.Width, line.Height);
             }
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            var font = context.GetFont(properties);
+            DrawTracked(context, surface, run.Text, properties, color, run.X, baseline);
 
-            // A bold run in a face that is not bold is drawn with PdfSharp's bold simulation
-            // (PdfFontResolver), which fills and strokes the glyphs. PdfSharp also MEASURES such a font
-            // wider, by 2% of the em a glyph, though it moves the pen no further for it, so a run
-            // drawn glyph by glyph steps by the regular face's advances.
-            var stepFont = properties.SyntheticBold == SyntheticBold.None
-                ? font
-                : context.GetFont(properties.FontFamily, false, properties.Italic, VerticalRunPosition.RenderSizePoints(properties));
-            DrawTracked(graphics, run.Text, font, context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties), KernShifts(context, run.Text, properties), stepFont);
-
-            // Underline below the baseline, strike through the x-height — geometry carried over from the
-            // deleted PdfTextEngine.
+            // Underline below the baseline, strike through the x-height.
             var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
             if (properties.Underline)
             {
@@ -266,19 +252,20 @@ static class PdfPainter
                 var underlineColor = properties.UnderlineColorHex == null
                     ? color
                     : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
+                var underline = context.GetStroke(underlineColor, strokeWidth);
                 var underlineY = baseline + properties.FontSizePoints * 0.12;
-                graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, underlineY, run.X + run.Width, underlineY);
+                PdfShapeDrawing.StrokeLine(surface, underline, run.X, underlineY, run.X + run.Width, underlineY);
                 if (properties.DoubleUnderline)
                 {
                     var secondY = underlineY + strokeWidth * 2;
-                    graphics.DrawLine(context.GetPen(underlineColor, strokeWidth), run.X, secondY, run.X + run.Width, secondY);
+                    PdfShapeDrawing.StrokeLine(surface, underline, run.X, secondY, run.X + run.Width, secondY);
                 }
             }
 
             if (properties.Strikethrough)
             {
                 var strikeY = baseline - ascent * 0.3;
-                graphics.DrawLine(context.GetPen(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
+                PdfShapeDrawing.StrokeLine(surface, context.GetStroke(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.
@@ -286,102 +273,100 @@ static class PdfPainter
                 BorderStroke.Draws(runBorder))
             {
                 var (boxX, boxY, boxWidth, boxHeight) = BorderStroke.RunBorderBox(runBorder, run.X, run.Width, line.Y, line.Height, BorderStroke.LinePad(line.Runs), !run.BorderInside);
-                PaintRunBorder(context, graphics, boxX, boxY, boxWidth, boxHeight, runBorder);
+                PaintRunBorder(context, surface, boxX, boxY, boxWidth, boxHeight, runBorder);
             }
         }
 
         foreach (var image in line.Images)
         {
-            PaintImage(context, graphics, image);
+            PaintImage(context, surface, image);
         }
     }
 
-    // Draws text, spreading each character by w:spacing tracking (letter-spacing) and pulling each by its
-    // kern. The run's placed width already includes both (the canonical measurer kerned and tracked the
-    // advances), so a following run starts past it; PdfSharp's DrawString takes no pair adjustment, so a
-    // kerned run is drawn glyph by glyph with the kern the layout measured added to each pen
-    // (CanonicalTextMeasurer.KernShiftsPoints). Per-glyph, so surrogate pairs stay intact.
-    static void DrawTracked(XGraphics graphics, string text, XFont font, XBrush brush, double penX, double baseline, double trackingPoints, bool syntheticItalic = false, double[]? kernShifts = null, XFont? stepFont = null)
+    // Draws a run's text as one glyph run, each glyph at the face's own advance for its character,
+    // spread by w:spacing tracking (letter-spacing) and pulled by its kern. The run's placed width already
+    // includes both (the canonical measurer kerned and tracked the advances), so a following run starts
+    // past it. Glyphs map one to one onto characters through the face's cmap, as the measurer reads them,
+    // so no shaping can move a glyph off the position the layout gave it.
+    static void DrawTracked(PdfRenderContext context, Surface surface, string text, RunProperties properties, PdfColor color, double penX, double baseline)
     {
-        // An italic run whose family bundles no italic face: shear the glyphs right about the
-        // baseline by the Word-measured oblique. PdfSharp's own mustSimulateItalic is deliberately
-        // not used — it skews by sin 20° (0.342), 2.5x Word's slant (see PdfFontResolver).
-        XGraphicsState? state = null;
-        if (syntheticItalic)
+        var face = context.GetFace(properties);
+        var sizePoints = VerticalRunPosition.RenderSizePoints(properties);
+        var kernShifts = KernShifts(face, text, properties, context.FontWidthScale);
+        var glyphs = Glyphs(face, text, properties.CharacterSpacingPoints, sizePoints, kernShifts);
+        if (glyphs.Count == 0)
         {
-            var skew = FontHelpers.SyntheticItalicSkew;
-            state = graphics.Save();
-            graphics.MultiplyTransform(new(1, 0, -skew, 1, skew * baseline, 0));
+            return;
         }
 
-        if ((trackingPoints == 0 && kernShifts == null) || text.Length <= 1)
+        surface.SetFill(context.GetFill(color));
+
+        // A bold run in a face that is not bold: the glyphs are filled and stroked, which thickens every
+        // stem by the stroke's width (BoldSimulation) — the construction the raster painters use.
+        if (properties.SyntheticBold != SyntheticBold.None)
         {
-            graphics.DrawString(text, font, brush, new XPoint(penX, baseline), baselineFormat);
+            var width = BoldSimulation.StrokeWidthPoints(properties.SyntheticBold, sizePoints, 0);
+            surface.SetStroke(context.GetStroke(color, width) with
+            {
+                LineJoin = LineJoin.Miter
+            });
         }
         else
         {
-            // Tracked text goes glyph by glyph; kerned text splits only where a pair adjusts.
-            var advanced = 0.0;
-            var i = 0;
-            while (i < text.Length)
-            {
-                var end = SegmentEnd(text, i, trackingPoints != 0, kernShifts);
-                var piece = text.Substring(i, end - i);
-                var x = penX + advanced;
-                if (kernShifts != null)
-                {
-                    x += kernShifts[i];
-                }
-
-                graphics.DrawString(piece, font, brush, new XPoint(x, baseline), baselineFormat);
-                advanced += graphics.MeasureString(piece, stepFont ?? font).Width + trackingPoints;
-                i = end;
-            }
+            surface.SetStroke(null);
         }
 
-        if (state != null)
+        // An italic run whose family bundles no italic face: shear the glyphs right about the
+        // baseline by the Word-measured oblique.
+        Layer? sheared = null;
+        if (context.NeedsSyntheticItalic(properties))
         {
-            graphics.Restore(state);
+            var skew = (float) FontHelpers.SyntheticItalicSkew;
+            sheared = surface.PushTransform(new(1, 0, -skew, 1, skew * (float) baseline, 0));
         }
+
+        surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);
+        sheared?.Dispose();
+        surface.SetStroke(null);
     }
 
-    // One glyph (a surrogate pair intact) for tracked text, else the stretch sharing one kern.
-    static int SegmentEnd(string text, int start, bool tracked, double[]? kernShifts)
+    // One glyph per character (a surrogate pair intact), advancing by the face's own advance plus the
+    // tracking; a kern is the glyph's offset from where the advances alone put it.
+    static List<Glyph> Glyphs(PdfFace face, string text, double trackingPoints, double sizePoints, double[]? kernShifts)
     {
-        if (tracked || kernShifts == null)
+        var metrics = face.Metrics;
+        var unitsPerEm = face.Font.UnitsPerEm;
+        var pointsToUnits = sizePoints > 0 ? unitsPerEm / sizePoints : 0;
+        var glyphs = new List<Glyph>(text.Length);
+        var i = 0;
+        while (i < text.Length)
         {
-            if (char.IsHighSurrogate(text[start]) && start + 1 < text.Length)
-            {
-                return start + 2;
-            }
-
-            return start + 1;
+            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            var codepoint = char.ConvertToUtf32(text, i);
+            var advance = metrics.AdvanceUnits(codepoint) * unitsPerEm / metrics.UnitsPerEm + trackingPoints * pointsToUnits;
+            var offset = kernShifts == null ? 0 : kernShifts[i] * pointsToUnits;
+            glyphs.Add(new(metrics.GlyphId(codepoint), (float) advance, i, length, (float) offset));
+            i += length;
         }
 
-        return CanonicalTextMeasurer.KernSegmentEnd(text, kernShifts, start);
+        return glyphs;
     }
 
     // The kern the layout gave each glyph of a run, at the face and size it was measured with (a
     // superscript's reduced size included), or null for a run that does not kern.
-    static double[]? KernShifts(PdfRenderContext context, string text, RunProperties properties)
+    static double[]? KernShifts(PdfFace face, string text, RunProperties properties, double fontWidthScale)
     {
         if (!CanonicalParagraphMeasurer.KerningEnabled(properties))
         {
             return null;
         }
 
-        var metrics = context.LayoutMetrics(properties.FontFamily, properties.Bold, properties.Italic);
-        if (metrics == null)
-        {
-            return null;
-        }
-
-        return CanonicalTextMeasurer.KernShiftsPoints(metrics, text, VerticalRunPosition.RenderSizePoints(properties), context.FontWidthScale);
+        return CanonicalTextMeasurer.KernShiftsPoints(face.Metrics, text, VerticalRunPosition.RenderSizePoints(properties), fontWidthScale);
     }
 
     // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the
-    // span (leaving ~one glyph of trailing padding).
-    static void DrawLeader(PdfRenderContext context, XGraphics graphics, PlacedRun run, double baseline)
+    // span.
+    static void DrawLeader(PdfRenderContext context, Surface surface, PlacedRun run, double baseline)
     {
         if (run.Width <= 0)
         {
@@ -394,7 +379,7 @@ static class PdfPainter
         if (run.Leader == TabLeader.Underscore)
         {
             var underscoreY = baseline + fontSize * 0.12;
-            graphics.DrawLine(context.GetPen(color, Math.Max(0.5, fontSize / 16)), run.X, underscoreY, run.X + run.Width, underscoreY);
+            PdfShapeDrawing.StrokeLine(surface, context.GetStroke(color, Math.Max(0.5, fontSize / 16)), run.X, underscoreY, run.X + run.Width, underscoreY);
             return;
         }
 
@@ -406,15 +391,14 @@ static class PdfPainter
             _ => '.'
         };
 
-        var font = context.GetFont(run.Properties);
-        var glyphWidth = graphics.MeasureString(leaderChar.ToString(), font).Width;
+        var face = context.GetFace(run.Properties);
+        var sizePoints = VerticalRunPosition.RenderSizePoints(run.Properties);
+        var glyphWidth = (double) face.Metrics.AdvanceUnits(leaderChar) / face.Metrics.UnitsPerEm * sizePoints;
         if (glyphWidth <= 0)
         {
             return;
         }
 
-        // Word spaces leader dots about a glyph-width apart, so tile at ~2x the advance and draw each glyph
-        // at its own X — adjacent glyphs read as a dense line, not the spaced dots Word draws.
         // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
         // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
         // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
@@ -424,102 +408,117 @@ static class PdfPainter
             return;
         }
 
-        var brush = context.GetBrush(color);
-        var glyph = leaderChar.ToString();
-        for (var index = 0; index < count; index++)
-        {
-            graphics.DrawString(glyph, font, brush, new XPoint(startX + index * glyphWidth, baseline), baselineFormat);
-        }
+        var text = new string(leaderChar, count);
+        var glyphs = Glyphs(face, text, 0, sizePoints, null);
+        surface.SetStroke(null)
+            .SetFill(context.GetFill(color))
+            .DrawGlyphs(new((float) startX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);
     }
 
-    static void PaintImage(PdfRenderContext context, XGraphics graphics, PlacedImage image)
+    static void PaintImage(PdfRenderContext context, Surface surface, PlacedImage image)
     {
         if (image.ShapeGroup is { } group)
         {
-            PaintInlineGroup(context, graphics, image, group);
+            PaintInlineGroup(context, surface, image, group);
             return;
         }
 
-        // A picture stored as SVG is placed as a form of the paths the reader made of it
+        // A picture stored as SVG is placed as a graphic of the paths the reader made of it
         // (PlacedImage.Vector), so it stays vector in the PDF and its raster fallback is not embedded
-        // (see SkiaPainter.PaintImage). A translucent one keeps to its fallback when it has one:
-        // PDFsharp can fade a bitmap as a whole but a form only path by path.
+        // (see SkiaPainter.PaintImage). A translucent one keeps to its fallback when it has one: a
+        // bitmap fades as a whole but a graphic only path by path.
         var vector = image.Opacity >= 1 || image.Data is not { Length: > 0 } ? image.Vector : null;
         if (vector == null && image.Data is not { Length: > 0 })
         {
             return;
         }
 
-        try
+        var picture = vector != null
+            ? PdfPicture.Of(context, vector, image.Recolor, image.Opacity)
+            : PdfPicture.Of(context.GetImage(image.Data!, image.Recolor, image.Opacity));
+        if (picture == null)
         {
-            var decoded = vector != null
-                ? context.GetVectorForm(vector, image.Recolor, image.Opacity)
-                : context.GetImage(image.Data!, image.Recolor, image.Opacity);
-            // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
-            // alternative (Word does not combine the two).
-            if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
+            // Undecodable image bytes: skip this image rather than fail the whole paint.
+            return;
+        }
+
+        // a:xfrm transforms happen about the box centre, then draw; an ellipse/freeform clip is an
+        // alternative (Word does not combine the two).
+        if (Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical)
+        {
+            var centerX = image.X + image.Width / 2;
+            var centerY = image.Y + image.Height / 2;
+            Layer? rotated = null;
+            if (Math.Abs(image.RotationDegrees) > 0.01)
             {
-                var centerX = image.X + image.Width / 2;
-                var centerY = image.Y + image.Height / 2;
-                var state = graphics.Save();
-                if (Math.Abs(image.RotationDegrees) > 0.01)
-                {
-                    graphics.RotateAtTransform(image.RotationDegrees, new(centerX, centerY));
-                }
-
-                if (image.FlipHorizontal || image.FlipVertical)
-                {
-                    graphics.TranslateTransform(centerX, centerY);
-                    graphics.ScaleTransform(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1);
-                    graphics.TranslateTransform(-centerX, -centerY);
-                }
-
-                DrawIntoBox(graphics, decoded, image);
-                PaintImageOutline(graphics, image);
-                graphics.Restore(state);
+                rotated = PdfShapeDrawing.RotateAt(surface, image.RotationDegrees, centerX, centerY);
             }
-            else if (image.ClipToEllipse || image.ClipSubpaths != null)
+
+            Layer? flipped = null;
+            if (image.FlipHorizontal || image.FlipVertical)
             {
-                var state = graphics.Save();
-                var clipPath = new XGraphicsPath();
+                flipped = surface.PushTransform(Matrix3x2.CreateScale(image.FlipHorizontal ? -1 : 1, image.FlipVertical ? -1 : 1, new(centerX, centerY)));
+            }
+
+            DrawIntoBox(surface, picture, image);
+            PaintImageOutline(context, surface, image);
+            flipped?.Dispose();
+            rotated?.Dispose();
+        }
+        else if (image.ClipToEllipse || image.ClipSubpaths != null)
+        {
+            using (var builder = new PathBuilder())
+            {
                 if (image.ClipToEllipse)
                 {
-                    clipPath.AddEllipse(image.X, image.Y, image.Width, image.Height);
+                    PdfShapeDrawing.AddEllipse(builder, image.X, image.Y, image.Width, image.Height);
                 }
                 else
                 {
                     foreach (var contour in image.ClipSubpaths!)
                     {
-                        var points = new XPoint[contour.Count];
+                        if (contour.Count == 0)
+                        {
+                            continue;
+                        }
+
                         for (var pointIndex = 0; pointIndex < contour.Count; pointIndex++)
                         {
                             var (unitX, unitY) = contour[pointIndex];
-                            points[pointIndex] = new(image.X + unitX * image.Width, image.Y + unitY * image.Height);
+                            var x = (float) (image.X + unitX * image.Width);
+                            var y = (float) (image.Y + unitY * image.Height);
+                            if (pointIndex == 0)
+                            {
+                                builder.MoveTo(x, y);
+                            }
+                            else
+                            {
+                                builder.LineTo(x, y);
+                            }
                         }
 
-                        clipPath.AddPolygon(points);
+                        builder.Close();
                     }
                 }
 
-                graphics.IntersectClip(clipPath);
-                DrawIntoBox(graphics, decoded, image);
-                graphics.Restore(state);
-                PaintImageOutline(graphics, image);
+                using var clipPath = builder.Build();
+                using (surface.PushClip(clipPath))
+                {
+                    DrawIntoBox(surface, picture, image);
+                }
             }
-            else
-            {
-                DrawIntoBox(graphics, decoded, image);
-                PaintImageOutline(graphics, image);
-            }
+
+            PaintImageOutline(context, surface, image);
         }
-        catch
+        else
         {
-            // Undecodable image bytes: skip this image rather than fail the whole paint.
+            DrawIntoBox(surface, picture, image);
+            PaintImageOutline(context, surface, image);
         }
     }
 
     // The picture's a:ln (see SkiaPainter.PaintImageOutline).
-    static void PaintImageOutline(XGraphics graphics, PlacedImage image)
+    static void PaintImageOutline(PdfRenderContext context, Surface surface, PlacedImage image)
     {
         if (image.Outline is not { } outline)
         {
@@ -527,15 +526,16 @@ static class PdfPainter
         }
 
         var half = outline.WidthPoints / 2;
-        var rgb = PdfRenderContext.ParseColor(outline.ColorHex);
-        var pen = new XPen(XColor.FromArgb(PdfShapeDrawing.AlphaByte(outline.Alpha), rgb.R, rgb.G, rgb.B), outline.WidthPoints);
-        graphics.DrawRectangle(pen, image.X - half, image.Y - half, image.Width + outline.WidthPoints, image.Height + outline.WidthPoints);
+        var color = PdfRenderContext.ParseColor(outline.ColorHex).WithAlpha(outline.Alpha);
+        PdfShapeDrawing.Stroke(
+            surface,
+            PdfShapeDrawing.Rectangle(image.X - half, image.Y - half, image.Width + outline.WidthPoints, image.Height + outline.WidthPoints),
+            context.GetStroke(color, outline.WidthPoints));
     }
 
-    // Draws the decoded image into its box, honouring a source-rectangle crop by enlarging the image so its
-    // visible sub-rectangle fills the box and clipping back (PdfSharp has no source-rect API) — the same
-    // technique the deleted production DrawRaster used.
-    static void DrawIntoBox(XGraphics graphics, XImage decoded, PlacedImage image)
+    // Draws the picture into its box, honouring a source-rectangle crop by enlarging the picture so its
+    // visible sub-rectangle fills the box and clipping back.
+    static void DrawIntoBox(Surface surface, PdfPicture picture, PlacedImage image)
     {
         // A tiled fill (see SkiaPainter.DrawPicture): the picture at the tile's size, corner after
         // corner, cut to the box. Each tile is drawn a hair past its own edges so a viewer's
@@ -547,14 +547,12 @@ static class PdfPainter
             var corners = tile.Corners(image.Width, image.Height).Take(maxTiles + 1).ToList();
             if (corners.Count is > 0 and <= maxTiles)
             {
-                var tiled = graphics.Save();
-                graphics.IntersectClip(new XRect(image.X, image.Y, image.Width, image.Height));
+                using var tiled = PdfShapeDrawing.ClipRectangle(surface, image.X, image.Y, image.Width, image.Height);
                 foreach (var (cornerX, cornerY) in corners)
                 {
-                    graphics.DrawImage(decoded, image.X + cornerX, image.Y + cornerY, tile.WidthPoints + overlap, tile.HeightPoints + overlap);
+                    picture.Draw(surface, image.X + cornerX, image.Y + cornerY, tile.WidthPoints + overlap, tile.HeightPoints + overlap);
                 }
 
-                graphics.Restore(tiled);
                 return;
             }
         }
@@ -562,34 +560,29 @@ static class PdfPainter
         if (image.Crop is { IsCropped: true } crop)
         {
             var (dx, dy, dw, dh) = crop.Expand(image.X, image.Y, image.Width, image.Height);
-            var state = graphics.Save();
-            graphics.IntersectClip(new XRect(image.X, image.Y, image.Width, image.Height));
-            graphics.DrawImage(decoded, dx, dy, dw, dh);
-            graphics.Restore(state);
+            using var clipped = PdfShapeDrawing.ClipRectangle(surface, image.X, image.Y, image.Width, image.Height);
+            picture.Draw(surface, dx, dy, dw, dh);
         }
         else
         {
-            graphics.DrawImage(decoded, image.X, image.Y, image.Width, image.Height);
+            picture.Draw(surface, image.X, image.Y, image.Width, image.Height);
         }
     }
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
-    // child coordinate space into the inline box, painted back to front. A verbatim port of
-    // the deleted PdfTextEngine.DrawShapeGroup, reusing the same contour/picture/pen/alpha helpers (now on
-    // PdfShapeDrawing), so the engine
-    // paints an inline group identically to production. PdfSharp is point-native, so the placed box (already
-    // in points, its top at Y = baseline − height) is drawn directly.
-    static void PaintInlineGroup(PdfRenderContext context, XGraphics graphics, PlacedImage placed, InlineShapeGroup group)
+    // child coordinate space into the inline box, painted back to front. The placed box is already in
+    // points, its top at Y = baseline − height, so it is drawn directly.
+    static void PaintInlineGroup(PdfRenderContext context, Surface surface, PlacedImage placed, InlineShapeGroup group)
     {
         var penX = placed.X;
         var top = placed.Y;
         var scaleX = placed.Width / group.ChildExtentX;
         var scaleY = placed.Height / group.ChildExtentY;
 
-        var state = graphics.Save();
+        Layer? rotated = null;
         if (group.RotationDegrees != 0)
         {
-            graphics.RotateAtTransform(group.RotationDegrees, new(penX + placed.Width / 2, top + placed.Height / 2));
+            rotated = PdfShapeDrawing.RotateAt(surface, group.RotationDegrees, penX + placed.Width / 2, top + placed.Height / 2);
         }
 
         foreach (var shape in group.Shapes)
@@ -616,88 +609,86 @@ static class PdfPainter
                 }
 
                 var strokeWidth = shape.LineWidthEmu > 0 ? shape.LineWidthEmu / OoxmlUnits.EmusPerPoint : 0.75;
-                graphics.DrawLine(PdfShapeDrawing.StrokePen(shape, strokeWidth), startX, startY, endX, endY);
+                PdfShapeDrawing.StrokeLine(surface, PdfShapeDrawing.StrokePen(context, shape, strokeWidth), startX, startY, endX, endY);
                 continue;
             }
 
             var isEllipse = shape.Geometry == GroupShapeGeometry.Ellipse;
-            var geometryPath = PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height);
 
             if (shape.Shadow is { } shadow)
             {
-                var shadowRgb = PdfRenderContext.ParseColor(shadow.ColorHex);
-                var shadowBrush = new XSolidBrush(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shadow.Alpha), shadowRgb.R, shadowRgb.G, shadowRgb.B));
+                var shadowColor = PdfRenderContext.ParseColor(shadow.ColorHex).WithAlpha(shadow.Alpha);
                 var shadowX = x + shadow.OffsetX * scaleX;
                 var shadowY = y + shadow.OffsetY * scaleY;
-                if (geometryPath != null)
+                if (GroupShapePath(shape, shadowX, shadowY, width, height, isEllipse) is { } shadowPath)
                 {
-                    graphics.DrawPath(shadowBrush, PdfShapeDrawing.BuildGroupShapePath(shape, shadowX, shadowY, width, height)!);
-                }
-                else if (isEllipse)
-                {
-                    graphics.DrawEllipse(shadowBrush, shadowX, shadowY, width, height);
-                }
-                else
-                {
-                    graphics.DrawRectangle(shadowBrush, shadowX, shadowY, width, height);
+                    PdfShapeDrawing.Fill(surface, shadowPath, context.GetFill(shadowColor, GroupFillRule(shape)));
                 }
             }
 
             if (shape.ImageData != null)
             {
-                PdfShapeDrawing.DrawGroupPicture(context, graphics, shape, x, y, width, height, isEllipse);
+                PdfShapeDrawing.DrawGroupPicture(context, surface, shape, x, y, width, height, isEllipse);
             }
-            else if (shape.FillColorHex is { } fillHex)
+            else if (shape.FillColorHex is { } fillHex &&
+                     GroupShapePath(shape, x, y, width, height, isEllipse) is { } fillPath)
             {
-                var rgb = PdfRenderContext.ParseColor(fillHex);
-                var brush = new XSolidBrush(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
-                if (geometryPath != null)
-                {
-                    graphics.DrawPath(brush, geometryPath);
-                }
-                else if (isEllipse)
-                {
-                    graphics.DrawEllipse(brush, x, y, width, height);
-                }
-                else
-                {
-                    graphics.DrawRectangle(brush, x, y, width, height);
-                }
+                var color = PdfRenderContext.ParseColor(fillHex).WithAlpha(shape.FillAlpha);
+                PdfShapeDrawing.Fill(surface, fillPath, context.GetFill(color, GroupFillRule(shape)));
             }
 
             if (shape.LineWidthEmu > 0)
             {
-                var pen = PdfShapeDrawing.StrokePen(shape, shape.LineWidthEmu / OoxmlUnits.EmusPerPoint);
+                var widthPoints = shape.LineWidthEmu / OoxmlUnits.EmusPerPoint;
                 if (shape.OpenOutline && PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height, close: false) is { } openPath)
                 {
                     // An open stroke shows its ends, so it takes the declared cap rather than the
                     // square one the connector pieces need.
-                    pen.LineCap = shape.RoundCap ? XLineCap.Round : XLineCap.Flat;
-                    graphics.DrawPath(pen, openPath);
+                    var pen = PdfShapeDrawing.StrokePen(context, shape, widthPoints, shape.RoundCap ? LineCap.Round : LineCap.Butt);
+                    PdfShapeDrawing.Stroke(surface, openPath, pen);
                 }
-                else if (geometryPath != null)
+                else if (GroupShapePath(shape, x, y, width, height, isEllipse) is { } outlinePath)
                 {
-                    graphics.DrawPath(pen, geometryPath);
-                }
-                else if (isEllipse)
-                {
-                    graphics.DrawEllipse(pen, x, y, width, height);
-                }
-                else
-                {
-                    graphics.DrawRectangle(pen, x, y, width, height);
+                    PdfShapeDrawing.Stroke(surface, outlinePath, PdfShapeDrawing.StrokePen(context, shape, widthPoints));
                 }
             }
         }
 
-        graphics.Restore(state);
+        rotated?.Dispose();
+    }
+
+    // The group shape's outline: its contours when it has them, else its ellipse or rectangle.
+    static PdfPath? GroupShapePath(GroupShape shape, double x, double y, double width, double height, bool isEllipse)
+    {
+        if (shape.Subpaths != null)
+        {
+            return PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height);
+        }
+
+        if (isEllipse)
+        {
+            return PdfShapeDrawing.Ellipse(x, y, width, height);
+        }
+
+        return PdfShapeDrawing.Rectangle(x, y, width, height);
+    }
+
+    // Contours fill even-odd, which keeps ring shapes (frame) hollow.
+    static FillRule GroupFillRule(GroupShape shape)
+    {
+        if (shape.Subpaths != null)
+        {
+            return FillRule.EvenOdd;
+        }
+
+        return FillRule.NonZero;
     }
 
     // A behind-text floating shape: fill and outline of either its freeform contours (subpaths, scaled from
     // the unit square into the box with flip/rotation baked in by BuildShapePath) or, absent those, its
-    // preset box (rect or ellipse). The fill is a linear gradient (reusing the production brush) or a solid
-    // colour. An image-fill shape is painted as a plain image by the body-float path, so it is skipped here.
-    static void PaintShape(XGraphics graphics, PlacedShape placed)
+    // preset box (rect or ellipse). The fill is a linear gradient or a solid colour. An image-fill shape is
+    // painted as a plain image by the body-float path, so it is skipped here.
+    static void PaintShape(PdfRenderContext context, Surface surface, PlacedShape placed)
     {
         var shape = placed.Shape;
         if (shape.ImageData is { Length: > 0 })
@@ -707,141 +698,121 @@ static class PdfPainter
 
         // Honour the shape's fill/line opacity (a:alpha) — e.g. cover-letters/10's header banner is a 10%
         // accent tint that reads as near-white, not a solid panel.
-        XBrush? fill;
+        Paint? gradientPaint = null;
+        Fill? fill;
         if (shape.Gradient is { } gradient)
         {
-            fill = PdfShapeDrawing.BuildGradientBrush(gradient, placed.X, placed.Y, placed.Width, placed.Height);
+            gradientPaint = PdfShapeDrawing.BuildGradientPaint(gradient, placed.X, placed.Y, placed.Width, placed.Height);
+            fill = new Fill(gradientPaint);
         }
         else if (shape.FillColorHex is { } fillHex)
         {
-            var rgb = PdfRenderContext.ParseColor(fillHex);
-            fill = new XSolidBrush(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.FillAlpha), rgb.R, rgb.G, rgb.B));
+            fill = context.GetFill(PdfRenderContext.ParseColor(fillHex).WithAlpha(shape.FillAlpha));
         }
         else
         {
             fill = null;
         }
 
-        XPen? pen = null;
+        Stroke? stroke = null;
         if (shape.LineColorHex is { } lineHex)
         {
-            var rgb = PdfRenderContext.ParseColor(lineHex);
-            pen = new(XColor.FromArgb(PdfShapeDrawing.AlphaByte(shape.LineAlpha), rgb.R, rgb.G, rgb.B), ShapeStroke.WidthPoints(shape.LineWidthPoints));
-            PdfShapeDrawing.Dash(pen, shape.LineDashPattern);
+            var color = PdfRenderContext.ParseColor(lineHex).WithAlpha(shape.LineAlpha);
+            stroke = PdfShapeDrawing.Dashed(context.GetStroke(color, ShapeStroke.WidthPoints(shape.LineWidthPoints)), shape.LineDashPattern);
         }
-        if (fill == null && pen == null)
+
+        if (fill == null && stroke == null)
         {
             return;
         }
 
         if (shape.Subpaths is { Count: > 0 })
         {
-            var path = PdfShapeDrawing.BuildShapePath(shape, placed.X, placed.Y, placed.Width, placed.Height);
-            if (fill != null)
-            {
-                graphics.DrawPath(fill, path);
-            }
-
-            if (pen != null)
-            {
-                graphics.DrawPath(pen, path);
-            }
-
+            Draw(PdfShapeDrawing.BuildShapePath(shape, placed.X, placed.Y, placed.Width, placed.Height));
+            gradientPaint?.Dispose();
             return;
         }
 
         // A preset box turns about its own centre (a contour has its rotation baked into its points).
         // Without this a rotated rectangle drew lying down: resumes/06's black strip up the page's left
         // edge, a 235x43pt rectangle turned 90°, came out as a wide bar across the top.
-        var box = new XRect(placed.X, placed.Y, placed.Width, placed.Height);
-        XGraphicsState? turned = null;
+        Layer? turned = null;
         if (shape.RotationDegrees != 0)
         {
-            turned = graphics.Save();
-            graphics.RotateAtTransform(shape.RotationDegrees, new(placed.X + placed.Width / 2, placed.Y + placed.Height / 2));
+            turned = PdfShapeDrawing.RotateAt(surface, shape.RotationDegrees, placed.X + placed.Width / 2, placed.Y + placed.Height / 2);
         }
 
         if (shape.Preset == PresetShape.Ellipse)
         {
-            if (fill != null)
-            {
-                graphics.DrawEllipse(fill, box);
-            }
-
-            if (pen != null)
-            {
-                graphics.DrawEllipse(pen, box);
-            }
+            Draw(PdfShapeDrawing.Ellipse(placed.X, placed.Y, placed.Width, placed.Height));
         }
         else
         {
-            if (fill != null)
-            {
-                graphics.DrawRectangle(fill, box);
-            }
-
-            if (pen != null)
-            {
-                graphics.DrawRectangle(pen, box);
-            }
+            Draw(PdfShapeDrawing.Rectangle(placed.X, placed.Y, placed.Width, placed.Height));
         }
 
-        if (turned != null)
+        turned?.Dispose();
+        gradientPaint?.Dispose();
+
+        void Draw(PdfPath path)
         {
-            graphics.Restore(turned);
+            using (path)
+            {
+                surface.SetFill(fill)
+                    .SetStroke(stroke)
+                    .DrawPath(path);
+            }
+
+            surface.SetStroke(null);
         }
     }
 
     // Each cell: shading first, then its content, then its borders on top — Word's cell paint order.
-    static void PaintTableRow(PdfRenderContext context, XGraphics graphics, PlacedTableRow row)
+    static void PaintTableRow(PdfRenderContext context, Surface surface, PlacedTableRow row)
     {
         foreach (var cell in row.Cells)
         {
             if (!string.IsNullOrEmpty(cell.BackgroundColorHex))
             {
-                graphics.DrawRectangle(context.GetBrush(PdfRenderContext.ParseColor(cell.BackgroundColorHex)), cell.X, cell.Y, cell.Width, cell.Height);
+                PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(cell.BackgroundColorHex), cell.X, cell.Y, cell.Width, cell.Height);
             }
 
             foreach (var floating in cell.Floats)
             {
-                PaintItem(context, graphics, floating);
+                PaintItem(context, surface, floating);
             }
 
             // See SkiaPainter.PaintTableRow — the clip bounds the content only, never the shading or
             // the borders.
-            var clipState = cell.ClipContent ? graphics.Save() : null;
-            if (clipState != null)
+            Layer? clip = null;
+            if (cell.ClipContent)
             {
-                XRect rect = cell.ClipHorizontally
-                    ? new(cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height)
-                    : new(-100000, cell.Y, 200000, cell.Height);
-                graphics.IntersectClip(rect);
+                clip = cell.ClipHorizontally
+                    ? PdfShapeDrawing.ClipRectangle(surface, cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height)
+                    : PdfShapeDrawing.ClipRectangle(surface, -100000, cell.Y, 200000, cell.Height);
             }
 
             foreach (var content in cell.Content)
             {
-                PaintItem(context, graphics, content);
+                PaintItem(context, surface, content);
             }
 
-            if (clipState != null)
-            {
-                graphics.Restore(clipState);
-            }
+            clip?.Dispose();
 
             if (cell.Borders is { } borders)
             {
-                PaintCellBorders(context, graphics, cell, borders);
+                PaintCellBorders(context, surface, cell, borders);
             }
 
             if (cell.Diagonals is {HasAny: true} diagonals)
             {
-                PaintCellDiagonals(context, graphics, cell, diagonals);
+                PaintCellDiagonals(context, surface, cell, diagonals);
             }
         }
     }
 
     // See SkiaPainter.PaintCellDiagonals.
-    static void PaintCellDiagonals(PdfRenderContext context, XGraphics graphics, PlacedCell cell, CellDiagonals diagonals)
+    static void PaintCellDiagonals(PdfRenderContext context, Surface surface, PlacedCell cell, CellDiagonals diagonals)
     {
         double left = cell.X, top = cell.Y, right = cell.X + cell.Width, bottom = cell.Y + cell.Height;
         Diagonal(diagonals.Down, left, top, right, bottom);
@@ -851,25 +822,25 @@ static class PdfPainter
         {
             if (BorderStroke.DiagonalThickness(edge) is > 0 and var thickness)
             {
-                graphics.DrawLine(EdgePen(context, edge, thickness, BorderStroke.DashPattern(edge.Style, edge.WidthPoints), 1), x0, y0, x1, y1);
+                PdfShapeDrawing.StrokeLine(surface, EdgeStroke(context, edge, thickness, BorderStroke.DashPattern(edge.Style, edge.WidthPoints), 1), x0, y0, x1, y1);
             }
         }
     }
 
     // See SkiaPainter.PaintCellEdges — Word's cell geometry (BorderStroke.CellEdgeLines), waves along the
     // box edge.
-    static void PaintCellBorders(PdfRenderContext context, XGraphics graphics, PlacedCell cell, CellBorders borders)
+    static void PaintCellBorders(PdfRenderContext context, Surface surface, PlacedCell cell, CellBorders borders)
     {
         foreach (var line in BorderStroke.CellEdgeLines(cell.X, cell.Y, cell.Width, cell.Height, borders, cell.BottomEdgeInset))
         {
-            var pen = EdgePen(context, line.Edge, line.Thickness, BorderStroke.DashPattern(line.Edge.Style, line.Edge.WidthPoints), line.Shade);
+            var stroke = EdgeStroke(context, line.Edge, line.Thickness, BorderStroke.DashPattern(line.Edge.Style, line.Edge.WidthPoints), line.Shade);
             if (line.Horizontal)
             {
-                graphics.DrawLine(pen, line.From, line.At, line.To, line.At);
+                PdfShapeDrawing.StrokeLine(surface, stroke, line.From, line.At, line.To, line.At);
             }
             else
             {
-                graphics.DrawLine(pen, line.At, line.From, line.At, line.To);
+                PdfShapeDrawing.StrokeLine(surface, stroke, line.At, line.From, line.At, line.To);
             }
         }
 
@@ -883,14 +854,14 @@ static class PdfPainter
         {
             if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
             {
-                StrokeWaves(context, graphics, edge, waves, horizontal, from, to, at, outward);
+                StrokeWaves(context, surface, edge, waves, horizontal, from, to, at, outward);
             }
         }
     }
 
     // A paragraph border box: stroke each visible edge around the box the Fragmenter already expanded by
     // the edge spaces. Same edge geometry as a table cell, just around a paragraph rather than a cell.
-    static void PaintBorder(PdfRenderContext context, XGraphics graphics, PlacedBorder border, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
+    static void PaintBorder(PdfRenderContext context, Surface surface, PlacedBorder border, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
     {
         float left = border.X, top = border.Y, right = border.X + border.Width, bottom = border.Y + border.Height;
         var borders = border.Borders;
@@ -902,58 +873,44 @@ static class PdfPainter
         var dr = BorderStroke.Draws(borders.Right);
         var dt = BorderStroke.Draws(borders.Top);
         var db = BorderStroke.Draws(borders.Bottom);
-        StrokeEdge(context, graphics, borders.Top, horizontal: true, left, right, top, scope, outward: -1, extendStart: dl, extendEnd: dr);
-        StrokeEdge(context, graphics, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1, extendStart: dl, extendEnd: dr);
-        StrokeEdge(context, graphics, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1, extendStart: dt, extendEnd: db);
-        StrokeEdge(context, graphics, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1, extendStart: dt, extendEnd: db);
+        StrokeEdge(context, surface, borders.Top, horizontal: true, left, right, top, scope, outward: -1, extendStart: dl, extendEnd: dr);
+        StrokeEdge(context, surface, borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1, extendStart: dl, extendEnd: dr);
+        StrokeEdge(context, surface, borders.Left, horizontal: false, top, bottom, left, scope, outward: -1, extendStart: dt, extendEnd: db);
+        StrokeEdge(context, surface, borders.Right, horizontal: false, top, bottom, right, scope, outward: 1, extendStart: dt, extendEnd: db);
     }
 
-    // The PDF painter's edge strokers take a PlacedBorder/PlacedCell rather than a bare rectangle,
-    // so a run border routes through this instead of reusing one of them.
     // See SkiaPainter.StrokeWaves.
-    static void StrokeWaves(PdfRenderContext context, XGraphics graphics, BorderEdge edge, BorderStroke.WaveBand[] waves, bool horizontal, double from, double to, double at, int outward)
+    static void StrokeWaves(PdfRenderContext context, Surface surface, BorderEdge edge, BorderStroke.WaveBand[] waves, bool horizontal, double from, double to, double at, int outward)
     {
         var color = PdfRenderContext.ParseColor(edge.ColorHex ?? "000000");
         foreach (var wave in waves)
         {
             var centre = at + outward * wave.Offset;
-            var pen = context.GetPen(color, Math.Max(0.5, wave.Thickness));
-            var points = new List<XPoint>();
+            var points = new List<(double X, double Y)>();
             foreach (var (along, across) in BorderStroke.WavePoints(from, to, wave.Period, wave.Amplitude))
             {
-                points.Add(horizontal ? new(along, centre + across) : new XPoint(centre + across, along));
+                points.Add(horizontal ? (along, centre + across) : (centre + across, along));
             }
 
-            if (points.Count > 1)
+            if (PdfShapeDrawing.Polyline(points) is { } path)
             {
-                graphics.DrawLines(pen, points.ToArray());
+                PdfShapeDrawing.Stroke(surface, path, context.GetStroke(color, Math.Max(0.5, wave.Thickness)));
             }
         }
     }
 
-    // See SkiaPainter.Shaded.
-    static XColor Shaded(XColor color, double shade)
-    {
-        if (shade >= 1)
-        {
-            return color;
-        }
-
-        return XColor.FromArgb((int) (color.A * 255), (int) (color.R * shade), (int) (color.G * shade), (int) (color.B * shade));
-    }
-
-    static void PaintRunBorder(PdfRenderContext context, XGraphics graphics, double x, double y, double width, double height, BorderEdge edge)
+    static void PaintRunBorder(PdfRenderContext context, Surface surface, double x, double y, double width, double height, BorderEdge edge)
     {
         double right = x + width, bottom = y + height;
-        StrokeEdge(context, graphics, edge, horizontal: true, x, right, y, outward: -1, extendStart: true, extendEnd: true);
-        StrokeEdge(context, graphics, edge, horizontal: true, x, right, bottom, outward: 1, extendStart: true, extendEnd: true);
-        StrokeEdge(context, graphics, edge, horizontal: false, y, bottom, x, outward: -1, extendStart: true, extendEnd: true);
-        StrokeEdge(context, graphics, edge, horizontal: false, y, bottom, right, outward: 1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, surface, edge, horizontal: true, x, right, y, outward: -1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, surface, edge, horizontal: true, x, right, bottom, outward: 1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, surface, edge, horizontal: false, y, bottom, x, outward: -1, extendStart: true, extendEnd: true);
+        StrokeEdge(context, surface, edge, horizontal: false, y, bottom, right, outward: 1, extendStart: true, extendEnd: true);
     }
 
     // See SkiaPainter.StrokeEdge: outward is -1 for top/left and +1 for bottom/right, and the span
     // grows by the same offset so the bands close into concentric rectangles.
-    static void StrokeEdge(PdfRenderContext context, XGraphics graphics, BorderEdge edge, bool horizontal, double from, double to, double at, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph, int outward = -1, bool extendStart = false, bool extendEnd = false)
+    static void StrokeEdge(PdfRenderContext context, Surface surface, BorderEdge edge, bool horizontal, double from, double to, double at, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph, int outward = -1, bool extendStart = false, bool extendEnd = false)
     {
         if (!BorderStroke.Draws(edge))
         {
@@ -962,7 +919,7 @@ static class PdfPainter
 
         if (BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
         {
-            StrokeWaves(context, graphics, edge, waves, horizontal, from, to, at, outward);
+            StrokeWaves(context, surface, edge, waves, horizontal, from, to, at, outward);
             return;
         }
 
@@ -976,38 +933,19 @@ static class PdfPainter
             var line = at + outward * offset;
             var start = from - offset - (extendStart ? half : 0);
             var end = to + offset + (extendEnd ? half : 0);
-            var pen = EdgePen(context, edge, band.Thickness, dash, band.Shade);
+            var stroke = EdgeStroke(context, edge, band.Thickness, dash, band.Shade);
             if (horizontal)
             {
-                graphics.DrawLine(pen, start, line, end, line);
+                PdfShapeDrawing.StrokeLine(surface, stroke, start, line, end, line);
             }
             else
             {
-                graphics.DrawLine(pen, line, start, line, end);
+                PdfShapeDrawing.StrokeLine(surface, stroke, line, start, line, end);
             }
         }
     }
 
-    static XPen EdgePen(PdfRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints, double shade)
-    {
-        var width = Math.Max(0.5, thickness);
-        var pen = context.GetPen(Shaded(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000"), shade), width);
-        if (dashPoints == null)
-        {
-            return pen;
-        }
-
-        // PdfSharp's DashPattern is in multiples of the pen width, like PDF's own `d` operator.
-        // The pen is cached and shared, so a dashed edge takes its own copy rather than leaving
-        // the pattern set on the cached instance for the next solid caller.
-        var dashed = new XPen(pen.Color, width);
-        var pattern = new double[dashPoints.Length];
-        for (var i = 0; i < dashPoints.Length; i++)
-        {
-            pattern[i] = dashPoints[i] / width;
-        }
-
-        dashed.DashPattern = pattern;
-        return dashed;
-    }
+    // The dash pattern is in points, as Krilla takes it.
+    static Stroke EdgeStroke(PdfRenderContext context, BorderEdge edge, double thickness, float[]? dashPoints, double shade) =>
+        context.GetStroke(PdfRenderContext.ParseColor(edge.ColorHex ?? "000000").Shaded(shade), Math.Max(0.5, thickness), dash: dashPoints);
 }

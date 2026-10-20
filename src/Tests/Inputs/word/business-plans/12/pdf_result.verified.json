@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 18,
     "Pages": [
@@ -22,7 +19,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "TABLE OF CONTENTS\nintroduction........................................................ 3\n1. executive summary.....................................4\n2. company overview......................................5\n3. business description................................... 6\n4. market analysis...........................................8\n5. operating plan...........................................10\n6. marketing and sales plan..........................11\n7. financial plan.............................................12\nAppendix..........................................................15\nInstructions for Getting Started with Estimated\nStart-Up Costs................................................. 16\nInstructions for Getting Started on Profit & Loss\nProjections....................................................... 18"
+        "Text": "TABLE OF CONTENTS\nintroduction........................................................ 3\n1. executive summary.....................................4\n2. company overview......................................5\n3. business description................................... 6\n4. market analysis...........................................8\n5. operating plan...........................................10\n6. marketing and sales plan..........................11\n7. financial plan.............................................12\nAppendix.......................................................... 15\nInstructions for Getting Started with Estimated\nStart-Up Costs................................................. 16\nInstructions for Getting Started on Profit & Loss\nProjections....................................................... 18"
       },
       {
         "Number": 3,
@@ -158,15 +155,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.4968,
-      "Ssim": 0.9023,
+      "Ssim": 0.9022,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.4794,
-      "Ssim": 0.8181,
+      "ErrorMetric": 0.4778,
+      "Ssim": 0.8045,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
@@ -182,7 +179,7 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0802,
-      "Ssim": 0.8895,
+      "Ssim": 0.8894,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -190,7 +187,7 @@
     {
       "Page": 5,
       "ErrorMetric": 0.1281,
-      "Ssim": 0.8086,
+      "Ssim": 0.8085,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
@@ -198,7 +195,7 @@
     {
       "Page": 6,
       "ErrorMetric": 0.1553,
-      "Ssim": 0.7698,
+      "Ssim": 0.7697,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
@@ -229,8 +226,8 @@
     },
     {
       "Page": 10,
-      "ErrorMetric": 0.1332,
-      "Ssim": 0.8042,
+      "ErrorMetric": 0.1331,
+      "Ssim": 0.8045,
       "ExpectedFile": "expected_0010.png",
       "VerifiedFile": "pdf_result#page_0010.verified.png",
       "ReceivedFile": "pdf_result#page_0010.received.png"
@@ -262,7 +259,7 @@
     {
       "Page": 14,
       "ErrorMetric": 0.2078,
-      "Ssim": 0.7352,
+      "Ssim": 0.7353,
       "ExpectedFile": "expected_0014.png",
       "VerifiedFile": "pdf_result#page_0014.verified.png",
       "ReceivedFile": "pdf_result#page_0014.received.png"
@@ -285,8 +282,8 @@
     },
     {
       "Page": 17,
-      "ErrorMetric": 0.0997,
-      "Ssim": 0.8409,
+      "ErrorMetric": 0.1005,
+      "Ssim": 0.8407,
       "ExpectedFile": "expected_0017.png",
       "VerifiedFile": "pdf_result#page_0017.verified.png",
       "ReceivedFile": "pdf_result#page_0017.received.png"

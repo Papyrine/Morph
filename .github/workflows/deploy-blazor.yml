@@ -48,8 +48,11 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # No wasm-tools workload: the publish the tests serve falls back to the prebuilt runtime, which
-      # runs the same, only larger.
+      # The app builds native (WasmBuildNative) to link Krilla's PDF archive into its .wasm, which needs
+      # the wasm-tools workload.
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
       - name: Build tests (also publishes the Blazor app for snapshot tests)
         run: dotnet build src/Morph.Web.Tests --configuration Release
 
@@ -78,9 +81,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # A Release publish relinks the WASM runtime with emcc (native-asset size optimisation), which
-      # lives in the wasm-tools workload. Without it the publish falls back to the prebuilt runtime —
-      # still correct, just larger — so installing it keeps the deployed bundle lean.
+      # The app builds native (WasmBuildNative) to link Krilla's PDF archive into its .wasm with emcc, which
+      # lives in the wasm-tools workload. Without it the build fails rather than shipping an app whose
+      # PDF export cannot load its native.
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 

@@ -179,15 +179,15 @@ public class ExportApiTests
                 FontDirectory = fontsDirectory
             });
 
-        using var trimmed = PdfSharp.Pdf.IO.PdfReader.Open(new MemoryStream(firstPageOnly), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
-        using var full = PdfSharp.Pdf.IO.PdfReader.Open(new MemoryStream(fullDocument), PdfSharp.Pdf.IO.PdfDocumentOpenMode.Import);
+        using var trimmed = Morph.PDFium.PdfiumDocument.Load(firstPageOnly);
+        using var full = Morph.PDFium.PdfiumDocument.Load(fullDocument);
 
         await Assert.That(trimmed.PageCount).IsEqualTo(1);
         await Assert.That(full.PageCount).IsGreaterThanOrEqualTo(2);
     }
 
     // A family that is neither bundled in src/Fonts nor plausibly installed on any host, so
-    // PdfFontResolver.CanResolve must miss on both the indexed faces and the platform resolver.
+    // the PDF context's font resolver must miss on it.
     const string unresolvableFamily = "Morph Test Nonexistent Family";
 
     static PdfRenderContext FallbackContext(Func<string, string?> fontFallback) =>
@@ -207,9 +207,8 @@ public class ExportApiTests
             fontDirectory: fontsDirectory);
 
     /// <summary>
-    /// PdfSharp resolves faces through a process-global <c>IFontResolver</c> that cannot see
-    /// per-conversion state, so <see cref="PdfExportOptions.FontFallback"/> is applied in
-    /// <c>PdfRenderContext</c> before the family reaches <c>XFont</c>. Guards that wiring.
+    /// <see cref="PdfExportOptions.FontFallback"/> reaches the font resolver
+    /// <c>PdfRenderContext</c> draws with. Guards that wiring.
     /// </summary>
     [Test]
     public async Task PdfFontFallback_SubstitutesUnresolvableFamily()
@@ -221,10 +220,10 @@ public class ExportApiTests
             return "Arial";
         });
 
-        var font = context.GetFont(unresolvableFamily, bold: false, italic: false, sizePoints: 12);
+        var face = context.GetFace(unresolvableFamily, bold: false, italic: false);
 
         await Assert.That(requested).Contains(unresolvableFamily);
-        await Assert.That(font.FontFamily.Name).IsEqualTo("Arial");
+        await Assert.That(face.Family).IsEqualTo("Arial");
     }
 
     /// <summary>
@@ -242,21 +241,21 @@ public class ExportApiTests
             return "Aptos";
         });
 
-        var font = context.GetFont("Arial", bold: false, italic: false, sizePoints: 12);
+        var face = context.GetFace("Arial", bold: false, italic: false);
 
         await Assert.That(requested).IsEmpty();
-        await Assert.That(font.FontFamily.Name).IsEqualTo("Arial");
+        await Assert.That(face.Family).IsEqualTo("Arial");
     }
 
-    /// <summary>A null return falls through to PdfFontResolver's own platform / default chain.</summary>
+    /// <summary>A null return falls through to the default font, the measurer's own last resort.</summary>
     [Test]
     public async Task PdfFontFallback_NullReturn_LeavesFamilyUnchanged()
     {
         var context = FallbackContext(_ => null);
 
-        var font = context.GetFont(unresolvableFamily, bold: false, italic: false, sizePoints: 12);
+        var face = context.GetFace(unresolvableFamily, bold: false, italic: false);
 
-        await Assert.That(font.FontFamily.Name).IsEqualTo(unresolvableFamily);
+        await Assert.That(face.Family).IsEqualTo(DefaultFontSettings.DefaultFont);
     }
 
     // PdfExportOptions.FontWidthScale reaches PDF wrapping through the shared canonical measurer

@@ -174,10 +174,12 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         //    re-resolve the alias through the same path. Also fires when we did find a
         //    face but its weight is far from what was asked (e.g. only Bold available
         //    when Light was requested) and a fallback to a closer-weight family exists.
-        var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
-        if (fallbackName != null &&
-            (font == null ||
-             weightDelta >= weightFallbackThreshold))
+        // The delegate is asked only when its answer could be used, so a family that resolves well
+        // never reaches it.
+        var fallbackName = font == null || weightDelta >= weightFallbackThreshold
+            ? FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily)
+            : null;
+        if (fallbackName != null)
         {
             var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
@@ -200,13 +202,13 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         var directoryCache = GetDirectoryCache(fontDirectory!);
         var font = TryResolveFromCache(directoryCache, candidates, targetWeight, targetItalic, out var weightDelta);
 
-        var fallbackName = FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily);
-
         // If the direct match is a poor weight match (e.g. only Bold available for Light
-        // request), prefer the configured fallback when it offers a closer weight.
-        if (fallbackName != null &&
-            (font == null ||
-             weightDelta >= weightFallbackThreshold))
+        // request), prefer the configured fallback when it offers a closer weight. The delegate is
+        // asked only when its answer could be used.
+        var fallbackName = font == null || weightDelta >= weightFallbackThreshold
+            ? FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily)
+            : null;
+        if (fallbackName != null)
         {
             var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
             var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);

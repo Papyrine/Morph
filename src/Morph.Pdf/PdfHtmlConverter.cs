@@ -1,7 +1,7 @@
 namespace Morph;
 
 /// <summary>
-/// Converts HTML content to vector-text PDF using PdfSharp. For parse-once / export-many
+/// Converts HTML content to vector-text PDF using Krilla. For parse-once / export-many
 /// workflows, prefer <see cref="HtmlDocument"/> plus its <c>ExportToPdf</c> extension.
 /// </summary>
 public sealed class PdfHtmlConverter
