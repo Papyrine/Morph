@@ -1075,7 +1075,7 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     public async Task ListKeys_MoveALevel_EndTheList_AndTakeTheNumberOff()
     {
-        var listed = DocumentEditor.SetList(Paragraphs, [0, 1, 2], ListKind.Bullet, new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        var listed = DocumentEditor.SetList(Paragraphs, [0, 1, 2], ListKind.Bullet, new("Ann", DateTimeOffset.UnixEpoch, Track: false));
         byte[]? reported = null;
         var cut = await OpenEditing(listed, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
 
@@ -1175,7 +1175,12 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     public async Task TheSession_SaysWhetherTheParagraphIsInAList_OrIsFollowedByAnotherStyle()
     {
-        var docx = DocumentEditor.SetStyle(DocumentEditor.SetList(Paragraphs, [2], ListKind.Number, new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false)), [0], "Heading1", new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        var list = DocumentEditor.SetList(
+            Paragraphs,
+            [2],
+            ListKind.Number,
+            new("Ann", DateTimeOffset.UnixEpoch, Track: false));
+        var docx = DocumentEditor.SetStyle(list, [0], "Heading1", new("Ann", DateTimeOffset.UnixEpoch, Track: false));
         var cut = await OpenEditing(docx);
 
         foreach (var (paragraph, text) in new[] {(0, "First"), (2, "Third")})

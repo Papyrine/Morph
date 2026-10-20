@@ -221,7 +221,7 @@ public class ParagraphFormatTests
         using (var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, true))
         {
             var part = package.MainDocumentPart!.AddNewPart<DocumentFormat.OpenXml.Packaging.NumberingDefinitionsPart>();
-            part.Numbering = new(numbering.Replace("<w:numbering>", "<w:numbering xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"));
+            part.Numbering = [with(numbering.Replace("<w:numbering>", "<w:numbering xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"))];
         }
 
         return stream.ToArray();

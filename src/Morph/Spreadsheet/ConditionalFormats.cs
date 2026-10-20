@@ -220,7 +220,7 @@ sealed class ConditionalFormats
 
         if (colors.Length >= 2)
         {
-            return new ColorScale(colors, values);
+            return new(colors, values);
         }
 
         return null;

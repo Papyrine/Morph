@@ -78,6 +78,6 @@ public class TextDiffTests
         var hunks = TextDiff.Compare(before, after);
 
         await Assert.That(hunks.Count).IsEqualTo(1);
-        await Assert.That(hunks[0]).IsEqualTo(new TextHunk(0, 3000, 0, 3000));
+        await Assert.That(hunks[0]).IsEqualTo(new(0, 3000, 0, 3000));
     }
 }

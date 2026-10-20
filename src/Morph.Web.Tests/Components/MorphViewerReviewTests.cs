@@ -604,12 +604,14 @@ public class MorphViewerReviewTests : BunitTestContext
         using (var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, true))
         {
             var part = package.MainDocumentPart!.DocumentSettingsPart ?? package.MainDocumentPart.AddNewPart<DocumentFormat.OpenXml.Packaging.DocumentSettingsPart>();
-            part.Settings = new(
-                new DocumentFormat.OpenXml.Wordprocessing.DocumentProtection
+            part.Settings =
+            [
+                with(new DocumentFormat.OpenXml.Wordprocessing.DocumentProtection
                 {
                     Edit = edit,
                     Enforcement = true
-                });
+                })
+            ];
         }
 
         return stream.ToArray();

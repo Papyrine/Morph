@@ -155,10 +155,10 @@ public partial class MorphViewer
         await viewer.SetUnsavedAsync(true);
     }
 
-    internal async Task DiscardRecoveryAsync()
+    internal Task DiscardRecoveryAsync()
     {
         recovery = null;
         draftOwned = true;
-        await DropDraftAsync();
+        return DropDraftAsync();
     }
 }

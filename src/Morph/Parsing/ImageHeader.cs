@@ -1,5 +1,3 @@
-using System.Buffers.Binary;
-
 /// <summary>
 /// Reads a raster picture's pixel size and declared resolution straight from its header, with no
 /// decoder: enough to know how large the picture is on paper, which a tiled fill is drawn at.
@@ -127,7 +125,7 @@ static class ImageHeader
                 continue;
             }
 
-            if (marker is 0xD8 or 0x01 or (>= 0xD0 and <= 0xD7))
+            if (marker is 0xD8 or 0x01 or >= 0xD0 and <= 0xD7)
             {
                 offset += 2;
                 continue;

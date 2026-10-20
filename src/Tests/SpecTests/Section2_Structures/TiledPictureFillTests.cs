@@ -14,7 +14,7 @@ public class TiledPictureFillTests
             var length = new byte[4];
             BinaryPrimitives.WriteUInt32BigEndian(length, (uint) payload.Length);
             data.AddRange(length);
-            data.AddRange(System.Text.Encoding.ASCII.GetBytes(type));
+            data.AddRange(Encoding.ASCII.GetBytes(type));
             data.AddRange(payload);
             data.AddRange(new byte[4]);
         }

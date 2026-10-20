@@ -27,7 +27,7 @@ static class StyleCatalog
             }
 
             var gallery = BuiltInStyles.Gallery.Contains(style.StyleId!.Value!) ||
-                          (style.PrimaryStyle != null && style.SemiHidden == null);
+                          style is { PrimaryStyle: not null, SemiHidden: null };
             if (!gallery &&
                 style.SemiHidden != null)
             {
@@ -74,7 +74,7 @@ static class StyleCatalog
         bool? italic = null;
         string? color = null;
         var seen = new HashSet<string>(StringComparer.Ordinal);
-        var current = (Style?) style;
+        var current = style;
         while (current != null &&
                seen.Add(current.StyleId?.Value ?? ""))
         {

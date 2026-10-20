@@ -76,7 +76,7 @@ public class JustifiedSqueezeTests
     public async Task The_last_line_of_a_paragraph_is_squeezed_too()
     {
         var paragraph = Justified("Calibri", 12, Words("nnnn", 16, tail: 0));
-        float Measure(int pixels) => (float) (pixels * 72.0 / CanonicalTextMeasurer.ReferenceDpi);
+        static float Measure(int pixels) => (float) (pixels * 72.0 / CanonicalTextMeasurer.ReferenceDpi);
 
         await Assert.That(squeezing.LayoutLineContents(paragraph, Measure(725)).Count).IsEqualTo(1);
         await Assert.That(squeezing.LayoutLineContents(paragraph, Measure(724)).Count).IsEqualTo(2);

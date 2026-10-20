@@ -149,9 +149,18 @@ public class AtomDeletionTests
         using (var package = WordprocessingDocument.Open(stream, true))
         {
             var part = package.MainDocumentPart!.AddNewPart<FootnotesPart>();
-            part.Footnotes = new(
-                new OoxmlFootnote(new Paragraph(new OoxmlRun(new Text("separator")))) {Id = -1},
-                new OoxmlFootnote(new Paragraph(new OoxmlRun(new Text("The note.")))) {Id = 1});
+            part.Footnotes =
+            [
+                with(
+                    new OoxmlFootnote(new Paragraph(new OoxmlRun(new Text("separator"))))
+                    {
+                        Id = -1
+                    },
+                    new OoxmlFootnote(new Paragraph(new OoxmlRun(new Text("The note."))))
+                    {
+                        Id = 1
+                    })
+            ];
         }
 
         return stream.ToArray();

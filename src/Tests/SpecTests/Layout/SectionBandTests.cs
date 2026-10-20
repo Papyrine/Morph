@@ -106,7 +106,7 @@ public class SectionBandTests
         };
 
     static HeaderFooterContent Band(int lines, string name) =>
-        new() {Elements = [.. Enumerable.Range(1, lines).Select(_ => (DocumentElement) Text($"{name} {_}"))]};
+        new() {Elements = [.. Enumerable.Range(1, lines).Select(DocumentElement (_) => Text($"{name} {_}"))]};
 
     static float BodyTop(LaidOutPage page, string text) =>
         page.Items.OfType<PlacedLine>().First(_ => string.Concat(_.Runs.Select(run => run.Text)) == text).Y;

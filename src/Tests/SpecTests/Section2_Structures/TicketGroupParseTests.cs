@@ -17,8 +17,8 @@ public class TicketGroupParseTests
         var shapes = (await Parse()).Elements.OfType<FloatingShapeElement>().ToList();
 
         // Six orange stars (three per ticket) and the two plaque tickets drew as their bounding boxes.
-        await Assert.That(shapes.Count(_ => _.FillColorHex == "ED7D31" && _.Subpaths is { Count: > 0 })).IsEqualTo(6);
-        await Assert.That(shapes.Count(_ => _.FillColorHex == "EDEBE7" && _.WidthPoints > 270 && _.Subpaths is { Count: > 0 })).IsEqualTo(2);
+        await Assert.That(shapes.Count(_ => _ is { FillColorHex: "ED7D31", Subpaths.Count: > 0 })).IsEqualTo(6);
+        await Assert.That(shapes.Count(_ => _ is { FillColorHex: "EDEBE7", WidthPoints: > 270, Subpaths.Count: > 0 })).IsEqualTo(2);
     }
 
     [Test]

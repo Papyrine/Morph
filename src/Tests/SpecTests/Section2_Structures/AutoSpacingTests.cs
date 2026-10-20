@@ -15,12 +15,12 @@ public class AutoSpacingTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new($"<w:document {wNs}><w:body>{body}</w:body></w:document>");
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {wNs}>{styles}</w:styles>");
-            main.AddNewPart<DocumentSettingsPart>().Settings = new($"<w:settings {wNs}><w:compat>{compat}</w:compat></w:settings>");
+            main.Document = [with($"<w:document {wNs}><w:body>{body}</w:body></w:document>")];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {wNs}>{styles}</w:styles>")];
+            main.AddNewPart<DocumentSettingsPart>().Settings = [with($"<w:settings {wNs}><w:compat>{compat}</w:compat></w:settings>")];
             if (numbering.Length > 0)
             {
-                main.AddNewPart<NumberingDefinitionsPart>().Numbering = new($"<w:numbering {wNs}>{numbering}</w:numbering>");
+                main.AddNewPart<NumberingDefinitionsPart>().Numbering = [with($"<w:numbering {wNs}>{numbering}</w:numbering>")];
             }
         }
 
@@ -29,7 +29,7 @@ public class AutoSpacingTests
     }
 
     static string Paragraph(string text, string spacing, string extra = "") =>
-        $"""<w:p><w:pPr>{extra}<w:spacing {spacing}/></w:pPr><w:r><w:t>{text}</w:t></w:r></w:p>""";
+        $"<w:p><w:pPr>{extra}<w:spacing {spacing}/></w:pPr><w:r><w:t>{text}</w:t></w:r></w:p>";
 
     const string autoBoth = """w:before="100" w:beforeAutospacing="1" w:after="100" w:afterAutospacing="1" """;
 
@@ -58,7 +58,7 @@ public class AutoSpacingTests
     {
         const string title = """<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:pPr><w:spacing w:before="100" w:beforeAutospacing="1"/></w:pPr></w:style>""";
         var document = Parse(
-            """<w:p><w:r><w:t>lead</w:t></w:r></w:p>""" +
+            "<w:p><w:r><w:t>lead</w:t></w:r></w:p>" +
             """<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>styled</w:t></w:r></w:p>""" +
             """<w:p><w:pPr><w:pStyle w:val="Title"/><w:spacing w:before="400" w:beforeAutospacing="0"/></w:pPr><w:r><w:t>overridden</w:t></w:r></w:p>""",
             title);

@@ -21,7 +21,7 @@ public class SectionTests
     {
         var setup = DocumentEditor.PageSetupOf(Document(), 0);
 
-        await Assert.That(setup).IsEqualTo(new PageSetup(11906, 16838, 1440, 1440, 1440, 1440, false));
+        await Assert.That(setup).IsEqualTo(new(11906, 16838, 1440, 1440, 1440, 1440, false));
     }
 
     [Test]

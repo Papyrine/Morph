@@ -77,8 +77,8 @@ public class KerningCascadeTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new($"<w:document {wNs}><w:body>{body}</w:body></w:document>");
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {wNs}>{styles}</w:styles>");
+            main.Document = [with($"<w:document {wNs}><w:body>{body}</w:body></w:document>")];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {wNs}>{styles}</w:styles>")];
         }
 
         stream.Position = 0;
@@ -131,8 +131,8 @@ public class KerningCascadeTests
 
     [Test]
     [MethodDataSource(nameof(KernedByDefaultCases))]
-    public async Task Kerning_in_docDefaults_holds_until_a_rung_switches_it_off(string body, bool kerned) =>
-        await AssertKerned(Parse(kernedByDefault, body), kerned);
+    public Task Kerning_in_docDefaults_holds_until_a_rung_switches_it_off(string body, bool kerned) =>
+        AssertKerned(Parse(kernedByDefault, body), kerned);
 
     public static IEnumerable<(string Body, bool Kerned)> UnkernedByDefaultCases() =>
     [
@@ -159,8 +159,8 @@ public class KerningCascadeTests
 
     [Test]
     [MethodDataSource(nameof(UnkernedByDefaultCases))]
-    public async Task Without_kerning_in_docDefaults_a_rung_has_to_switch_it_on(string body, bool kerned) =>
-        await AssertKerned(Parse(unkernedByDefault, body), kerned);
+    public Task Without_kerning_in_docDefaults_a_rung_has_to_switch_it_on(string body, bool kerned) =>
+        AssertKerned(Parse(unkernedByDefault, body), kerned);
 
     public static IEnumerable<(string Body, bool Kerned)> NoDocDefaultsCases() =>
     [
@@ -177,8 +177,8 @@ public class KerningCascadeTests
 
     [Test]
     [MethodDataSource(nameof(NoDocDefaultsCases))]
-    public async Task A_package_with_no_docDefaults_kerns_on_every_rung(string body, bool kerned) =>
-        await AssertKerned(Parse(noDocDefaults, body), kerned);
+    public Task A_package_with_no_docDefaults_kerns_on_every_rung(string body, bool kerned) =>
+        AssertKerned(Parse(noDocDefaults, body), kerned);
 
     // The threshold is the resolved rung's own number, not just on or off: business-plans/08 keeps its
     // w:kern on the Normal style, résumés like resumes/01 raise Normal's to 12pt over a 1pt default.

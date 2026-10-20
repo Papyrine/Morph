@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 /// <summary>
 /// Formats a cell value the way Excel would, from an ECMA-376 §18.8.30 format code.
 ///

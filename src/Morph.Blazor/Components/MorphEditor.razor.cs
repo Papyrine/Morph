@@ -568,19 +568,21 @@ public partial class MorphEditor
         return UnlinkAsync();
     }
 
-    async Task OnLinkKeyDownAsync(KeyboardEventArgs args)
+    Task OnLinkKeyDownAsync(KeyboardEventArgs args)
     {
         if (args.Key == "Escape")
         {
             CloseDialog();
-            return;
+            return Task.CompletedTask;
         }
 
         if (args.Key == "Enter" &&
             linkTarget is {HasSelection: true} &&
             linkAddress.Trim().Length > 0)
         {
-            await InsertLinkAsync();
+            return InsertLinkAsync();
         }
+
+        return Task.CompletedTask;
     }
 }

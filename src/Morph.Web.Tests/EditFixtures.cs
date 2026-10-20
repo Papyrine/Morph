@@ -39,10 +39,10 @@ static class EditFixtures
         using (var package = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
         {
             var main = package.AddMainDocumentPart();
-            main.Document = new($"<w:document xmlns:w=\"{wordNamespace}\"><w:body>{body}</w:body></w:document>");
+            main.Document = [with($"<w:document xmlns:w=\"{wordNamespace}\"><w:body>{body}</w:body></w:document>")];
             if (settings != null)
             {
-                main.AddNewPart<DocumentSettingsPart>().Settings = new($"<w:settings xmlns:w=\"{wordNamespace}\">{settings}</w:settings>");
+                main.AddNewPart<DocumentSettingsPart>().Settings = [with($"<w:settings xmlns:w=\"{wordNamespace}\">{settings}</w:settings>")];
             }
         }
 

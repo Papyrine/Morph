@@ -74,7 +74,7 @@ public class SvgPictureLayoutTests
                 case PlacedTableRow row:
                     foreach (var cell in row.Cells)
                     {
-                        images.AddRange(Images(cell.Floats ?? []));
+                        images.AddRange(Images(cell.Floats));
                         images.AddRange(Images(cell.Content));
                     }
 

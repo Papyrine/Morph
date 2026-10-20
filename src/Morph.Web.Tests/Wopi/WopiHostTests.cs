@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Security.Cryptography;
-using System.Xml.Linq;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Options;
 using WopiServer;
@@ -25,7 +24,7 @@ public class WopiHostTests
 
         public string Id => storage.GetFileId("Report.docx");
 
-        public Task<WopiServer.WopiLaunch> LaunchAsync(string action = "edit", string file = "Report.docx") =>
+        public Task<WopiLaunch> LaunchAsync(string action = "edit", string file = "Report.docx") =>
             app.Services.GetRequiredService<WopiLauncher>()
                 .Launch(
                     new(storage.GetFileId(file), "ann")
@@ -92,7 +91,7 @@ public class WopiHostTests
     }
 
     // What the action URL answers with: the editor's page, the launch written into it for MorphWopi.
-    static async Task<(HttpResponseMessage Response, WopiLaunchInfo? Launch)> PostAsync(HttpClient client, WopiServer.WopiLaunch launch)
+    static async Task<(HttpResponseMessage Response, WopiLaunchInfo? Launch)> PostAsync(HttpClient client, WopiLaunch launch)
     {
         var response = await client.PostAsync(
             launch.Url,
@@ -154,7 +153,7 @@ public class WopiHostTests
 
         await Assert.That((await session.LockAsync("mine")).Succeeded).IsTrue();
         await Assert.That((await session.RefreshLockAsync("mine")).Succeeded).IsTrue();
-        var saved = Encoding.UTF8.GetBytes("saved by Morph");
+        var saved = "saved by Morph"u8.ToArray();
         await Assert.That((await session.PutFileAsync(saved, "mine")).Succeeded).IsTrue();
         await Assert.That(await File.ReadAllBytesAsync(path)).IsEquivalentTo(saved);
 

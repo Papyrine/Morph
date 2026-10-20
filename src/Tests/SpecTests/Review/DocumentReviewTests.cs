@@ -151,13 +151,13 @@ public class DocumentReviewTests
     {
         var docx = Build(
             P(
-                $"<w:moveFromRangeStart w:id=\"10\" w:name=\"move1\" w:author=\"Ann\" w:date=\"2025-04-25T10:00:00Z\"/>",
+                "<w:moveFromRangeStart w:id=\"10\" w:name=\"move1\" w:author=\"Ann\" w:date=\"2025-04-25T10:00:00Z\"/>",
                 $"<w:moveFrom {By("Ann", 11)}>{R("moved")}</w:moveFrom>",
                 "<w:moveFromRangeEnd w:id=\"10\"/>",
                 R(" rest")) +
             P(
                 R("before "),
-                $"<w:moveToRangeStart w:id=\"12\" w:name=\"move1\" w:author=\"Ann\" w:date=\"2025-04-25T10:00:00Z\"/>",
+                "<w:moveToRangeStart w:id=\"12\" w:name=\"move1\" w:author=\"Ann\" w:date=\"2025-04-25T10:00:00Z\"/>",
                 $"<w:moveTo {By("Ann", 13)}>{R("moved")}</w:moveTo>",
                 "<w:moveToRangeEnd w:id=\"12\"/>"));
 

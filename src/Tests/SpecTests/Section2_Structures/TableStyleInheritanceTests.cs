@@ -29,7 +29,7 @@ public class TableStyleInheritanceTests
     static string Table(string style, string rows) =>
         $"""<w:tbl><w:tblPr><w:tblStyle w:val="{style}"/></w:tblPr><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid>{rows}</w:tbl>""";
 
-    const string textRow = """<w:tr><w:tc><w:p><w:r><w:t>text</w:t></w:r></w:p></w:tc></w:tr>""";
+    const string textRow = "<w:tr><w:tc><w:p><w:r><w:t>text</w:t></w:r></w:p></w:tc></w:tr>";
 
     // A row that lets itself split whatever its style says, holding an empty paragraph that names a
     // style the package does not define.
@@ -50,8 +50,8 @@ public class TableStyleInheritanceTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new(body);
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new(styles);
+            main.Document = [with(body)];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with(styles)];
         }
 
         stream.Position = 0;
@@ -85,7 +85,7 @@ public class TableStyleInheritanceTests
     [Test]
     public async Task The_nearest_cantSplit_on_the_basedOn_chain_wins()
     {
-        Style Style(string xml) => new(xml);
+        static Style Style(string xml) => [with(xml)];
         var lined = Style($"""<w:style {wNs} w:type="table" w:styleId="Lined"><w:trPr><w:cantSplit/></w:trPr></w:style>""");
         var silent = Style($"""<w:style {wNs} w:type="table" w:styleId="Silent"><w:basedOn w:val="Lined"/></w:style>""");
         var loose = Style($"""<w:style {wNs} w:type="table" w:styleId="Loose"><w:basedOn w:val="Silent"/><w:trPr><w:cantSplit w:val="0"/></w:trPr></w:style>""");

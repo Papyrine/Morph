@@ -109,7 +109,7 @@ static class BuiltInStyles
     {
         if (definitions.TryGetValue(styleId, out var xml))
         {
-            return new(xml);
+            return [with(xml)];
         }
 
         return null;

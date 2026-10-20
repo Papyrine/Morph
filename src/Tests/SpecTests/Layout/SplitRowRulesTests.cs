@@ -67,7 +67,7 @@ public class SplitRowRulesTests
     public async Task A_row_splits_only_where_its_declared_height_fits_what_is_left(int fillerLines, int? floor, int linesKept)
     {
         // 320pt of content area; filler of exact 20pt lines leaves 320 - 20n above the row.
-        var filler = Enumerable.Range(0, fillerLines).Select(_ => (DocumentElement) Paragraph($"fill {_}"));
+        var filler = Enumerable.Range(0, fillerLines).Select(DocumentElement (_) => Paragraph($"fill {_}"));
         var row = Table([.. Enumerable.Range(0, 12).Select(_ => Paragraph($"cell {_}"))], floor);
 
         var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([.. filler, row], page);

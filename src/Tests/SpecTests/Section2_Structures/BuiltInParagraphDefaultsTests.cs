@@ -46,8 +46,8 @@ public class BuiltInParagraphDefaultsTests
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
             var main = document.AddMainDocumentPart();
-            main.Document = new($"<w:document {wNs}><w:body><w:p>{paragraphStyle}<w:r><w:t>text</w:t></w:r></w:p></w:body></w:document>");
-            main.AddNewPart<StyleDefinitionsPart>().Styles = new($"<w:styles {wNs}>{defaults}{styles}</w:styles>");
+            main.Document = [with($"<w:document {wNs}><w:body><w:p>{paragraphStyle}<w:r><w:t>text</w:t></w:r></w:p></w:body></w:document>")];
+            main.AddNewPart<StyleDefinitionsPart>().Styles = [with($"<w:styles {wNs}>{defaults}{styles}</w:styles>")];
         }
 
         stream.Position = 0;

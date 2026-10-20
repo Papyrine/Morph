@@ -1674,7 +1674,7 @@ public class CanonicalFragmenterTests
         // The WordArt stands in for its paragraph, so that paragraph's spacing travels with it: its before
         // meets the previous after as any paragraph gap does (the larger wins), and its after opens the gap
         // below. wordart's arch-up paragraph declares 10pt after, and every warp below it sat that high.
-        WordArtElement WordArt(double before, double after) =>
+        static WordArtElement WordArt(double before, double after) =>
             new()
             {
                 Text = "LOGO",
@@ -1685,7 +1685,7 @@ public class CanonicalFragmenterTests
                 SpacingAfterPoints = after
             };
 
-        (float WordArtTop, float BelowTop) Layout(WordArtElement wordArt)
+        static (float WordArtTop, float BelowTop) Layout(WordArtElement wordArt)
         {
             var items = fragmenter.Layout([P("above", new() {SpacingAfterPoints = 6}), wordArt, P("below")], Page(400)).Pages[0].Items;
             return (items.OfType<PlacedWordArt>().Single().Y,
@@ -2584,7 +2584,7 @@ public class CanonicalFragmenterTests
 
         // Not on the behind-text Floats: it follows the content, so it paints over the text (brochures/06's
         // balloons).
-        await Assert.That((cell.Floats ?? []).OfType<PlacedShape>().Any()).IsFalse();
+        await Assert.That(cell.Floats.OfType<PlacedShape>().Any()).IsFalse();
         var content = cell.Content.ToList();
         var placed = content.OfType<PlacedShape>().Single();
         await Assert.That(placed.Shape.FillColorHex).IsEqualTo("0F3344");
@@ -3228,7 +3228,7 @@ public class CanonicalFragmenterTests
         // margin leaves a 180pt band, 9 lines.
         var exact = new ParagraphProperties { LineSpacingRule = LineSpacingRule.Exactly, LineSpacingPoints = 20 };
         var second = Page(400) with { MarginBottom = 200, ColumnCount = columns, ColumnSpacing = 20 };
-        var lines = Enumerable.Range(1, 60).Select(_ => (DocumentElement) P($"line{_}", exact));
+        var lines = Enumerable.Range(1, 60).Select(DocumentElement (_) => P($"line{_}", exact));
         var document = fragmenter.Layout(
             [P("first", exact), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = second }, .. lines],
             Page(400));

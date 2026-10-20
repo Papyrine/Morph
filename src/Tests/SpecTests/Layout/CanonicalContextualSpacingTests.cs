@@ -143,7 +143,7 @@ public class CanonicalContextualSpacingTests
             Spaced("S", 0, after, firstContextual),
             Spaced(sameStyle ? "S" : "T", before, 0, secondContextual));
 
-        await Assert.That(gaps[0]).IsEqualTo((float) expected).Within(0.05f);
+        await Assert.That(gaps[0]).IsEqualTo(expected).Within(0.05f);
     }
 
     // A dropped after still counts against the next paragraph's before: after 30 (opting in), then
@@ -186,6 +186,6 @@ public class CanonicalContextualSpacingTests
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         var top = document.Pages[1].Items.OfType<PlacedLine>().First().Y;
-        await Assert.That(top - (float) page.MarginTop).IsEqualTo((float) expected).Within(0.05f);
+        await Assert.That(top - (float) page.MarginTop).IsEqualTo(expected).Within(0.05f);
     }
 }
