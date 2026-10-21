@@ -267,6 +267,8 @@ public partial class SnapshotTests
                 for (let node = walker.nextNode(); node; node = walker.nextNode()) {
                     const next = start + node.data.length;
                     if (offset >= start && offset < next) {
+                        // Into view first: a click is where the text is drawn, which may be below the pages' fold.
+                        node.parentElement.scrollIntoView({ block: 'center' });
                         const range = document.createRange();
                         range.setStart(node, offset - start);
                         range.setEnd(node, offset - start + 1);

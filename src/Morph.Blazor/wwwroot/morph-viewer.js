@@ -17,7 +17,7 @@
 // (morph-edit.js lays an editor over the paragraph, and nothing crosses to .NET while the reader types);
 // which paragraph a click is in, what it holds and what becomes of it afterwards are .NET's.
 
-import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt } from './morph-text.js';
+import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt, setMarks as showMarks } from './morph-text.js';
 import { ParagraphEditor } from './morph-edit.js';
 import { DraftKeeper } from './morph-draft.js';
 
@@ -38,6 +38,9 @@ const maxImages = 24;
 // Text layers for every page are built in idle time, so the browser's own find can reach them all. Past
 // this many characters of layer data only the pages around the current one are built.
 const textBudget = 24000000;
+
+// The ribbon's Clipboard group: run by the script, inside the press, as the clipboard asks.
+const clipboardCommands = ['cut', 'copy', 'paste'];
 
 export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
     const viewer = new Viewer(root, dotNet, maxDpi, maxPagePixels);
@@ -61,6 +64,8 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setReview: (documentId, comments, current, scroll) => viewer.setReview(documentId, comments, current, scroll),
         revealReviewCard: key => viewer.revealReviewCard(key),
         setEditMode: on => viewer.setEditMode(on),
+        setMarks: on => showMarks(on),
+        setRuler: model => viewer.setRuler(model),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
         setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
@@ -990,6 +995,8 @@ class Viewer {
             return;
         }
 
+        this.drawRuler();
+
         if (this.zoomMode !== 'custom') {
             const scale = this.fitScale(this.zoomMode);
             if (Math.abs(scale - this.scale) > 0.001) {
@@ -1101,6 +1108,8 @@ class Viewer {
         if (this.presenting || !this.pages.length) {
             return;
         }
+
+        this.drawRuler();
 
         const box = this.scroller.getBoundingClientRect();
         const visibleArea = page => {
@@ -1335,6 +1344,13 @@ class Viewer {
         }
 
         const typing = isTyping(event.target);
+        // Word's Show/Hide ¶, typing or not.
+        if (this.editMode && (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === 'Digit8') {
+            event.preventDefault();
+            this.call('OnMarksRequested');
+            return;
+        }
+
         if (this.editMode && !typing && !this.presenting && this.onEditKey(event)) {
             return;
         }
@@ -1936,6 +1952,7 @@ class Viewer {
             key: name => this.editKey(name),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
+            note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
     }
@@ -2011,7 +2028,12 @@ class Viewer {
 
         for (const button of this.root.querySelectorAll('[data-edit-command]')) {
             const name = button.dataset.editCommand;
-            if (name === 'track' || name === 'undo' || name === 'redo') {
+            // The ribbon's Paste needs the clipboard API: without it, Ctrl+V is the way.
+            if (name === 'paste') {
+                button.hidden = !navigator.clipboard?.readText;
+            }
+
+            if (name === 'track' || name === 'undo' || name === 'redo' || clipboardCommands.includes(name)) {
                 continue;
             }
 
@@ -2035,9 +2057,159 @@ class Viewer {
             }
 
             await editor.commit(0);
+        } else if (clipboardCommands.includes(name)) {
+            // Text selected on the pages: copied as Ctrl+C copies it, and cut by deleting it after.
+            // There is nowhere to paste.
+            if (name === 'paste' || !this.selectedText()) {
+                return;
+            }
+
+            document.execCommand('copy');
+            if (name === 'copy') {
+                return;
+            }
+
+            name = 'delete';
         }
 
         this.dotNet.invokeMethodAsync('OnEditCommand', name).catch(() => {});
+    }
+
+    // Word's ruler, over the current page: the page's width in centimetres counted from its left margin,
+    // the margins grey, and the paragraph's markers — the first line's indent (top), the hanging indent
+    // (bottom), the left indent's box under it, which moves both, and the right indent. A marker is
+    // dragged in Word's 0.25 cm steps; let go, its indents go to .NET, which sets them as Word's
+    // Paragraph dialog does. The model is MorphEditor.RulerModel's, in points.
+    setRuler(model) {
+        this.ruler = model ? JSON.parse(model) : null;
+        this.drawRuler();
+    }
+
+    drawRuler() {
+        const element = this.root.querySelector('.editor-ruler');
+        if (!element) {
+            return;
+        }
+
+        const model = this.ruler;
+        const page = this.pages[this.current]?.element;
+        if (!model || !page) {
+            element.replaceChildren();
+            return;
+        }
+
+        const box = page.getBoundingClientRect();
+        const own = element.getBoundingClientRect();
+        const scale = box.width / model.w;
+        const at = points => box.left - own.left + points * scale;
+        const strip = document.createElement('div');
+        strip.className = 'ruler-strip';
+        strip.style.cssText = `left:${at(0)}px;width:${model.w * scale}px`;
+        for (const [from, to] of [[0, model.ml], [model.w - model.mr, model.w]]) {
+            const margin = document.createElement('div');
+            margin.className = 'ruler-margin';
+            margin.style.cssText = `left:${from * scale}px;width:${(to - from) * scale}px`;
+            strip.append(margin);
+        }
+
+        // A tick each quarter centimetre, longer at the half, and the count at each centimetre, counted
+        // out from the left margin both ways, as Word counts.
+        const quarter = 72 / 2.54 / 4;
+        const first = -Math.floor(model.ml / quarter);
+        const last = Math.floor((model.w - model.ml) / quarter);
+        for (let step = first; step <= last; step++) {
+            if (step === 0) {
+                continue;
+            }
+
+            const x = (model.ml + step * quarter) * scale;
+            if (step % 4 === 0) {
+                const label = document.createElement('span');
+                label.className = 'ruler-number';
+                label.textContent = String(Math.abs(step / 4));
+                label.style.left = `${x}px`;
+                strip.append(label);
+                continue;
+            }
+
+            const tick = document.createElement('span');
+            tick.className = step % 2 === 0 ? 'ruler-tick ruler-tick-half' : 'ruler-tick';
+            tick.style.left = `${x}px`;
+            strip.append(tick);
+        }
+
+        if (!model.t) {
+            const left = model.ml + model.l;
+            const markers = [
+                ['first', left + model.f, 'First line indent'],
+                ['hanging', left, 'Hanging indent'],
+                ['left', left, 'Left indent'],
+                ['right', model.w - model.mr - model.r, 'Right indent']
+            ];
+            for (const [kind, x, title] of markers) {
+                const marker = document.createElement('span');
+                marker.className = `ruler-marker ruler-${kind}`;
+                marker.dataset.marker = kind;
+                marker.title = title;
+                marker.style.left = `${x * scale}px`;
+                marker.addEventListener('pointerdown', event => this.onRulerDown(event, kind, model, scale, strip));
+                strip.append(marker);
+            }
+        }
+
+        element.replaceChildren(strip);
+    }
+
+    onRulerDown(event, kind, model, scale, strip) {
+        // The press must not take the focus from the paragraph being typed in.
+        event.preventDefault();
+        const marker = event.currentTarget;
+        marker.setPointerCapture(event.pointerId);
+        const quarter = 72 / 2.54 / 4;
+        const start = strip.getBoundingClientRect().left;
+        let moved = { l: model.l, r: model.r, f: model.f };
+        const move = moveEvent => {
+            let points = (moveEvent.clientX - start) / scale;
+            if (!moveEvent.altKey) {
+                points = model.ml + Math.round((points - model.ml) / quarter) * quarter;
+            }
+
+            points = Math.min(Math.max(points, 0), model.w);
+            const firstLine = model.ml + model.l + model.f;
+            switch (kind) {
+                case 'first':
+                    moved = { ...moved, f: points - model.ml - moved.l };
+                    break;
+                case 'hanging':
+                    // The text's left edge moves; the first line stays where it starts.
+                    moved = { ...moved, l: points - model.ml, f: firstLine - points };
+                    break;
+                case 'left':
+                    moved = { ...moved, l: points - model.ml };
+                    break;
+                default:
+                    moved = { ...moved, r: model.w - model.mr - points };
+                    break;
+            }
+
+            const left = model.ml + moved.l;
+            for (const each of strip.querySelectorAll('.ruler-marker')) {
+                const at = { first: left + moved.f, hanging: left, left, right: model.w - model.mr - moved.r }[each.dataset.marker];
+                each.style.left = `${at * scale}px`;
+            }
+        };
+        const up = () => {
+            marker.removeEventListener('pointermove', move);
+            marker.removeEventListener('pointerup', up);
+            marker.removeEventListener('pointercancel', up);
+            if (moved.l !== model.l || moved.r !== model.r || moved.f !== model.f) {
+                const round = value => Math.round(value * 100) / 100;
+                this.dotNet.invokeMethodAsync('OnRulerIndent', round(moved.l), round(moved.r), round(moved.f)).catch(() => {});
+            }
+        };
+        marker.addEventListener('pointermove', move);
+        marker.addEventListener('pointerup', up);
+        marker.addEventListener('pointercancel', up);
     }
 
     // Keys while editing is on and no paragraph is open. Says whether the key was one of them.

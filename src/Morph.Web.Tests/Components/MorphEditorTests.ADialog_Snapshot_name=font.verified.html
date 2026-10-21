@@ -1,0 +1,126 @@
+﻿
+<div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-font-title" blazor:onkeydown="71">
+	<h2 id="editor-font-title" class="editor-dialog-title">Font</h2>
+	<div class="editor-field-grid editor-field-grid-three">
+		<label class="editor-field">
+			Font
+			<input type="text" class="editor-input" list="editor-font-names" value="Calibri" blazor:oninput="72">
+			<datalist id="editor-font-names">
+				<option value="Aptos"></option>
+				<option value="Aptos Display"></option>
+				<option value="Arial"></option>
+				<option value="Calibri"></option>
+				<option value="Calibri Light"></option>
+				<option value="Cambria"></option>
+				<option value="Candara"></option>
+				<option value="Consolas"></option>
+				<option value="Constantia"></option>
+				<option value="Corbel"></option>
+				<option value="Courier New"></option>
+				<option value="Georgia"></option>
+				<option value="Segoe UI"></option>
+				<option value="Tahoma"></option>
+				<option value="Times New Roman"></option>
+				<option value="Trebuchet MS"></option>
+				<option value="Verdana"></option>
+			</datalist>
+		</label>
+		<label class="editor-field">
+			Font style
+			<select class="editor-input" value="bold" blazor:onchange="73">
+				<option value="regular">Regular</option>
+				<option value="italic">Italic</option>
+				<option value="bold" selected="">Bold</option>
+				<option value="bolditalic">Bold Italic</option>
+			</select>
+		</label>
+		<label class="editor-field">
+			Size
+			<input type="number" class="editor-input" min="1" max="1638" step="0.5" list="editor-font-sizes" value="12" blazor:oninput="74">
+			<datalist id="editor-font-sizes">
+				<option value="8"></option>
+				<option value="9"></option>
+				<option value="10"></option>
+				<option value="10.5"></option>
+				<option value="11"></option>
+				<option value="12"></option>
+				<option value="14"></option>
+				<option value="16"></option>
+				<option value="18"></option>
+				<option value="20"></option>
+				<option value="22"></option>
+				<option value="24"></option>
+				<option value="26"></option>
+				<option value="28"></option>
+				<option value="36"></option>
+				<option value="48"></option>
+				<option value="72"></option>
+			</datalist>
+		</label>
+		<label class="editor-field">
+			Font colour
+			<select class="editor-input" value="auto" blazor:onchange="75">
+				<option value="auto" selected="">Automatic</option>
+				<option value="C00000">Dark red</option>
+				<option value="FF0000">Red</option>
+				<option value="FFC000">Orange</option>
+				<option value="FFFF00">Yellow</option>
+				<option value="92D050">Light green</option>
+				<option value="00B050">Green</option>
+				<option value="00B0F0">Light blue</option>
+				<option value="0070C0">Blue</option>
+				<option value="002060">Dark blue</option>
+				<option value="7030A0">Purple</option>
+				<option value="000000">Black</option>
+				<option value="404040">Dark grey</option>
+				<option value="7F7F7F">Grey</option>
+				<option value="BFBFBF">Light grey</option>
+				<option value="FFFFFF">White</option>
+			</select>
+		</label>
+		<label class="editor-field">
+			Underline style
+			<select class="editor-input" value="none" blazor:onchange="76">
+				<option value="none" selected="">(none)</option>
+				<option value="single">Single</option>
+				<option value="words">Words only</option>
+				<option value="double">Double</option>
+				<option value="thick">Thick</option>
+				<option value="dotted">Dotted</option>
+				<option value="dash">Dashed</option>
+				<option value="wave">Wave</option>
+			</select>
+		</label>
+	</div>
+	<fieldset class="editor-fieldset editor-effects">
+		<legend>Effects</legend>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="77">
+			Strikethrough</label>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="78">
+			Small caps</label>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="79">
+			Double strikethrough</label>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="80">
+			All caps</label>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="81">
+			Superscript</label>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="82">
+			Hidden</label>
+		<label class="editor-check">
+			<input type="checkbox" blazor:onchange="83">
+			Subscript</label>
+	</fieldset>
+	<div class="editor-font-preview" aria-label="Preview">
+		<span style="font-family: 'Calibri', sans-serif; font-size: 12pt; font-weight: 700;">Calibri</span>
+	</div>
+	<div class="editor-dialog-buttons">
+		<button type="button" class="editor-button editor-button-primary" blazor:onclick="84">OK</button>
+		<button type="button" class="editor-button" blazor:onclick="85">Cancel</button>
+	</div>
+</div>

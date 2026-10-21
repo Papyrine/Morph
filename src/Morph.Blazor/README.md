@@ -135,15 +135,22 @@ viewer underneath — the same pages, sidebar, find bar and review pane — with
 edited where it stands. It takes every `MorphViewer` parameter; with nothing open it offers a new blank
 document, Open, and (with `ShowSamples`) the sample document. A workbook or a deck opens to be read.
 
+The ribbon is laid out as Word's: the tabs on a title band with the file's name and Save, the chosen
+tab open onto the ribbon under it; each tab's commands in named groups, a group's main command a large
+button with its name under its icon and the rest small buttons beside it. In a narrower window the
+groups give up room rather than wrap, as Word's do — the style gallery shows fewer styles, then Home's
+small buttons keep only their icons — and on a phone the ribbon scrolls sideways.
+
 | ribbon | what it does |
 | --- | --- |
 | File | New blank document (Word's own, as Word makes it), Open, Save a copy, Export as PNG, PDF, HTML, Markdown or plain text, Print. A new document over edits not yet saved asks first. |
-| Home | Undo, Redo; the paragraph style — every style the document offers and Word's own gallery, each drawn as it looks; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
-| Insert | Page break; Header and Footer, which open the section's for typing (made if it has none); Footnote, a note at the caret, opened for typing; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link. |
+| Home | Undo, Redo; Paste, Cut and Copy (Paste reads the clipboard, which the browser may ask the reader for; refused, the status bar says to use Ctrl+V); the style gallery — the styles of Word's gallery drawn as their text looks, two rows at a time with arrows to page through, and a button for every style the document offers; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; Show/Hide ¶ (Ctrl+Shift+8), Word's formatting marks over the pages — a dot for each space, an arrow for each tab, a pilcrow at each paragraph's end and ¤ at a cell's; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). The launchers at the foot of the Font and Paragraph groups open Word's dialogs: Font — the font, style, size, colour, underline style (single, words only, double, thick, dotted, dashed, wave) and effects (strikethrough, double strikethrough, superscript, subscript, small caps, all caps, hidden), with a preview; Paragraph (also the spacing menu's Line spacing options…) — alignment, left and right indents in centimetres, a first-line or hanging indent, space before and after in points, line spacing (single, 1.5, double, at least, exactly, multiple), and widow and orphan control, keep with next, keep lines together and page break before. A dialog sets only what was changed in it. |
+| Insert | Page break; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to one of the document's bookmarks (`#name`, which the address field offers), and Remove link; Bookmark, Word's dialog — a name for the caret's place or the text selected, the document's bookmarks listed to delete or go to; Header and Footer, which open the section's for typing (made if it has none). |
 | Layout | The page of the section the caret is in: margins (Word's Normal, Narrow, Moderate and Wide, or custom, in centimetres), portrait or landscape, the paper size; breaks — a page break, or a section break that starts the next section on a new page or on the same one. Page setup is not tracked. |
-| Table | Shown while the caret is in a table: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
-| Review | Track changes; New comment on what is selected; the comments and changes pane; Accept all, Reject all; Word count. |
-| View | Thumbnails; zoom; page navigation; presentation mode. |
+| References | Footnote and Endnote: a note at the caret, opened for typing. |
+| Table | Shown while the caret is in a table, after the other tabs, as Word's Table Layout is: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
+| Review | Word count; New comment on what is selected; the comments and changes pane; Track changes; Accept all, Reject all. |
+| View | Thumbnails; the Ruler — Word's, over the current page: the page in centimetres counted from the left margin, the margins grey, and the paragraph's first-line, hanging, left and right indent markers, dragged in quarter-centimetre steps (Alt for none) to set its indents; zoom; page navigation; presentation mode. |
 
 A ribbon press does not take the focus: it acts on the paragraph being typed in — what was typed is
 handed in first — and the caret is back where it was afterwards, the paragraph laid out again in its new
@@ -274,6 +281,10 @@ Limits worth knowing:
   standing in a line of it, is not sized here. A workbook or a deck is not edited.
 - A pasted table's rows are pasted as paragraphs, their cells a tab apart, and a pasted picture is
   left out.
+- An underline style other than single or double, and double strikethrough, are written to the file as
+  Word writes them, but the pages draw them as a single underline and no strikethrough.
+- The ruler leaves out its indent markers in a table, whose ruler in Word is the cell's, and shows no tab
+  stops.
 - A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the
   bundled Aptos faces whatever the font (see [Fonts](#fonts)); Word draws it in the font itself.
 - Ctrl+Enter hands the paragraph in, so it is not a page break as in Word; Insert > Page break is.
@@ -336,6 +347,8 @@ wins, whatever the stylesheet link order:
 | `--morph-text` | body text | `#333` |
 | `--morph-muted` | secondary text (captions, notes, progress labels) | `#6c757d` |
 | `--morph-border` | every border and divider | `#dee2e6` |
+| `--morph-band` | the editor's title band, which carries its tabs and the file's name | `--morph-primary`, darkened |
+| `--morph-on-band` | text and icons on the band | `#ffffff` |
 | `--morph-selection` | selected text on a rendered page | `rgb(0 96 223 / 0.3)` |
 | `--morph-find` | the viewer's find matches | `rgb(255 200 0 / 0.45)` |
 | `--morph-find-current` | the viewer's current find match | `rgb(255 110 0 / 0.55)` |

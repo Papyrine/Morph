@@ -356,7 +356,7 @@ public partial class MorphViewer
             });
 
     // Goes on editing where an edit left off.
-    Task ResumeAsync(int paragraph, int offset)
+    internal Task ResumeAsync(int paragraph, int offset)
     {
         if (!editOpen ||
             handle is not { } viewer ||
@@ -371,6 +371,16 @@ public partial class MorphViewer
 
     async Task<EditOptions> EditOptionsAsync() =>
         new(Signature, await ReaderClockAsync(), Tracking);
+
+    /// <summary>Called from JavaScript with a note for the status bar, as when the clipboard could not be read.</summary>
+    [JSInvokable]
+    public Task OnEditNote(string note) =>
+        InvokeAsync(
+            () =>
+            {
+                editNote = note;
+                StateHasChanged();
+            });
 
     /// <summary>
     /// Called from JavaScript for a toolbar button or a key pressed while no paragraph is open: the

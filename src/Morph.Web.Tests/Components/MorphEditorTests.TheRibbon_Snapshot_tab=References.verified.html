@@ -1,0 +1,52 @@
+﻿
+<div class="editor-ribbon" aria-busy="false">
+	<div class="editor-titlebar">
+		<div class="editor-tabs" role="tablist" aria-label="Ribbon">
+			<button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="69">Home</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="70">Insert</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="71">Layout</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="72">References</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="73">Review</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="74">View</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="75">Table</button>
+		</div>
+		<span class="editor-name" title="edit.docx">edit.docx</span>
+		<div class="editor-quick">
+			<label class="viewer-button viewer-open" title="Open file (Ctrl+O)">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 14l1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"></path>
+				</svg>
+				<span class="viewer-hidden-label">Open file</span>
+				<input class="file-input" accept=".docx,.xlsx,.pptx" aria-label="Open file" type="file" blazor:elementreference="scrubbed">
+			</label>
+			<button type="button" class="viewer-button" title="Save a copy (Ctrl+S)" aria-label="Save a copy" aria-keyshortcuts="Control+S" blazor:onmousedown:preventdefault="" blazor:onclick="6">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path>
+						<path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"></path>
+					</g>
+				</svg>
+			</button>
+		</div>
+	</div>
+	<div class="editor-tools" role="tabpanel" aria-label="References">
+		<div class="editor-group" role="group" aria-label="Footnotes">
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="76">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 19l8-8m0 8l-8-8m16 1h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06"></path>
+				</svg>
+				Footnote
+			</button>
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="77">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path>
+						<path d="M14 2v5a1 1 0 0 0 1 1h5m-8 10v-6m-3 3l3 3l3-3"></path>
+					</g>
+				</svg>
+				Endnote
+			</button>
+		</div>
+	</div>
+</div>

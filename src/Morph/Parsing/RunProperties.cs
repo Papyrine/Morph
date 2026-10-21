@@ -22,6 +22,20 @@ sealed record RunProperties
     public bool DoubleUnderline => UnderlineStyle == UnderlineStyle.Double;
 
     /// <summary>
+    /// The underline's kind as w:u writes it (<c>single</c>, <c>dotted</c>, <c>wave</c> …), when the
+    /// run's own properties name one; null when they do not. Read by the editor's Font dialog, which
+    /// shows what is set rather than what is inherited; rendering draws the resolved
+    /// <see cref="UnderlineStyle"/>.
+    /// </summary>
+    public string? DirectUnderline { get; init; }
+
+    /// <summary>
+    /// Double strikethrough (w:dstrike), when the run's own properties turn it on; null otherwise. Read by
+    /// the editor's Font dialog; rendering draws the resolved <see cref="DoubleStrikethrough"/>.
+    /// </summary>
+    public bool? DirectDoubleStrikethrough { get; init; }
+
+    /// <summary>
     /// Whether the run carries a tracked change (insertion or deletion). Word's markup view
     /// draws a vertical change bar in the left margin beside any line containing one.
     /// </summary>

@@ -751,6 +751,26 @@ public partial class MorphViewer : IAsyncDisposable
     public Task OnPrintRequested() =>
         InvokeAsync(PrintAsync);
 
+    /// <summary>Called from JavaScript for Ctrl+Shift+8 while editing: Word's Show/Hide ¶.</summary>
+    [JSInvokable]
+    public Task OnMarksRequested() =>
+        InvokeAsync(ToggleMarksAsync);
+
+    // Word's formatting marks, shown over the pages while editing.
+    internal bool marksShown;
+
+    internal async Task ToggleMarksAsync()
+    {
+        if (handle is not { } viewer)
+        {
+            return;
+        }
+
+        marksShown = !marksShown;
+        await viewer.SetMarksAsync(marksShown);
+        StateHasChanged();
+    }
+
     /// <summary>Called from JavaScript for Ctrl+S inside the viewer.</summary>
     [JSInvokable]
     public Task OnSaveRequested() =>
