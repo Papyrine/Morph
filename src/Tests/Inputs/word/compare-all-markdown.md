@@ -1,4 +1,4 @@
-# All Markdown export scenarios (344)
+# All Markdown export scenarios (346)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -80,6 +80,8 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [cards/18](#cards18)
 - [cards/19](#cards19)
 - [character_scale](#character_scale)
+- [chart_anchored](#chart_anchored)
+- [chart_column_line](#chart_column_line)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -801,6 +803,18 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="character_scale/expected_0001.png" width="500"> | <img src="character_scale/md_result.verified.png" width="500"> |
+
+## chart_anchored
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart_anchored/expected_0001.png" width="500"> | <img src="chart_anchored/md_result.verified.png" width="500"> |
+
+## chart_column_line
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart_column_line/expected_0001.png" width="500"> | <img src="chart_column_line/md_result.verified.png" width="500"> |
 
 ## colored_text
 

@@ -1,4 +1,4 @@
-# All scenarios (346)
+# All scenarios (347)
 
 <details>
 <summary>Contents</summary>
@@ -349,6 +349,7 @@
 - [wordart](#wordart)
 - [wordart-astral](#wordart-astral)
 - [wordart-envelope](#wordart-envelope)
+- [_probe_b06](#_probe_b06)
 
 </details>
 
@@ -846,7 +847,7 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 | <img src="business-plans/12/expected_0007.png" width="500"> | <img src="business-plans/12/skia_result%23page_0007.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0007.verified.png" width="500"> |
 | **Page 8**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 8. ErrorMetric: 0.1426 · SSIM: 0.7655** | **Page 8. ErrorMetric: 0.1430 · SSIM: 0.7722** |
 | <img src="business-plans/12/expected_0008.png" width="500"> | <img src="business-plans/12/skia_result%23page_0008.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0008.verified.png" width="500"> |
-| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.0914 · SSIM: 0.8628** | **Page 9. ErrorMetric: 0.0913 · SSIM: 0.8635** |
+| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.0912 · SSIM: 0.8636** | **Page 9. ErrorMetric: 0.0911 · SSIM: 0.8643** |
 | <img src="business-plans/12/expected_0009.png" width="500"> | <img src="business-plans/12/skia_result%23page_0009.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0009.verified.png" width="500"> |
 | **Page 10**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 10. ErrorMetric: 0.1167 · SSIM: 0.8152** | **Page 10. ErrorMetric: 0.1164 · SSIM: 0.8241** |
 | <img src="business-plans/12/expected_0010.png" width="500"> | <img src="business-plans/12/skia_result%23page_0010.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0010.verified.png" width="500"> |
@@ -1201,15 +1202,15 @@ start. Before this fixture `w:w` was not read.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="chart_anchored/expected_0001.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0515 · SSIM: 0.9280** | **Page 1. ErrorMetric: 0.0514 · SSIM: 0.9285** |
+| <img src="chart_anchored/expected_0001.png" width="500"> | <img src="chart_anchored/skia_result%23page_0001.verified.png" width="500"> | <img src="chart_anchored/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## chart_column_line
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="chart_column_line/expected_0001.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0498 · SSIM: 0.9072** | **Page 1. ErrorMetric: 0.0511 · SSIM: 0.9075** |
+| <img src="chart_column_line/expected_0001.png" width="500"> | <img src="chart_column_line/skia_result%23page_0001.verified.png" width="500"> | <img src="chart_column_line/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## colored_text
 
@@ -4074,4 +4075,11 @@ Word's height with a much deeper bow.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1158 · SSIM: 0.9416** | **Page 1. ErrorMetric: 0.1146 · SSIM: 0.9467** |
 | <img src="wordart-envelope/expected_0001.png" width="500"> | <img src="wordart-envelope/skia_result%23page_0001.verified.png" width="500"> | <img src="wordart-envelope/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## _probe_b06
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="_probe_b06/expected_0001.png" width="500"> |  |  |
 
