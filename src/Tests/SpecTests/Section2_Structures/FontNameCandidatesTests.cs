@@ -51,7 +51,7 @@ public class FontNameCandidatesTests
         // "AvenirNext LT Pro Bold" → stripped to "AvenirNext LT Pro" → has fallback
         var candidates = FontHelpers.GetCandidateNames("AvenirNext LT Pro Bold");
         var fallback = FontHelpers.FindFallback(candidates);
-        await Assert.That(fallback).IsEqualTo("Century Gothic");
+        await Assert.That(fallback).IsEqualTo("Calibri");
     }
 
     [Test]

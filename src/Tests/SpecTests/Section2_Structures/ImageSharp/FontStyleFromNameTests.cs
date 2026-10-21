@@ -96,16 +96,15 @@ public class FontStyleFromNameTests
     [Test]
     [Arguments("AvenirNext LT Pro Bold")]
     [Arguments("AvenirNext LT Pro Light")]
-    public async Task GetFontFamily_NameMissingASpace_PrefersRepairedFamilyOverFallback(string fontFamily)
+    public async Task GetFontFamily_NameMissingASpace_FallsBackAsWordDoes(string fontFamily)
     {
-        // "AvenirNext LT Pro" (no space) has a Century Gothic entry in FontFallbacks, for
-        // environments that lack Avenir Next. Here the family IS bundled, and
-        // FontFileCache.EnumerateCandidateNames restores the missing space as a last-resort
-        // candidate — so the real family wins and the approximation never fires.
-        // Uses the bundled font directory since neither family ships on Windows by default.
+        // "AvenirNext LT Pro" (no space) names no font, and Word does not repair it into the
+        // "Avenir Next LT Pro" beside it: newsletters/07's XPS embeds Calibri for such a run. So the
+        // bundled Avenir Next must not be found by restoring the space; FontFallbacks sends it to
+        // Calibri.
         using var context = CreateBundledFontContext();
         var family = context.GetFontFamily(fontFamily, false, false);
-        await Assert.That(family.Name).IsEqualTo("Avenir Next LT Pro");
+        await Assert.That(family.Name).IsEqualTo("Calibri");
     }
 
     [Test]

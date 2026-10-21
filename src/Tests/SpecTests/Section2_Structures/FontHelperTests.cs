@@ -130,8 +130,8 @@ public class FontHelperTests
     [Arguments("Segoe UI Variable Text", "Segoe UI")]
     [Arguments("Segoe UI Variable Small", "Segoe UI")]
     [Arguments("Avenir Next LT Pro", "Century Gothic")]
-    [Arguments("AvenirNext LT Pro", "Century Gothic")]
-    [Arguments("AvenirNext LT Pro Medium", "Century Gothic")]
+    [Arguments("AvenirNext LT Pro", "Calibri")]
+    [Arguments("AvenirNext LT Pro Medium", "Calibri")]
     [Arguments("Eras Light ITC", "Century Gothic")]
     [Arguments("Eras Medium ITC", "Century Gothic")]
     [Arguments("Sagona", "Georgia")]
@@ -158,7 +158,7 @@ public class FontHelperTests
         // "AvenirNext LT Pro Bold" → stripped to "AvenirNext LT Pro" → fallback exists
         var candidates = FontHelpers.GetCandidateNames("AvenirNext LT Pro Bold");
         var fallback = FontHelpers.FindFallback(candidates);
-        await Assert.That(fallback).IsEqualTo("Century Gothic");
+        await Assert.That(fallback).IsEqualTo("Calibri");
     }
 
     [Test]
@@ -252,41 +252,6 @@ public class FontHelperTests
     [Arguments("Arial", true, 700)]
     public async Task ResolveTargetWeight_FallsBackToBoldFlag(string fontFamily, bool bold, int expected) =>
         await Assert.That(FontHelpers.ResolveTargetWeight(fontFamily, bold)).IsEqualTo(expected);
-
-    // === InsertMissingSpaces ===
-
-    [Test]
-    // newsletters/07's typo
-    [Arguments("AvenirNext LT Pro Medium", "Avenir Next LT Pro Medium")]
-    [Arguments("TwCenMT", "Tw Cen MT")]
-    [Arguments("TimesNewRoman", "Times New Roman")]
-    // digit then upper also counts as a lost space
-    [Arguments("Segoe2UI", "Segoe2 UI")]
-    public async Task InsertMissingSpaces_RepairsLostSpaces(string fontFamily, string expected) =>
-        await Assert.That(FontHelpers.InsertMissingSpaces(fontFamily)).IsEqualTo(expected);
-
-    [Test]
-    [Arguments("Arial")]
-    [Arguments("Times New Roman")]
-    [Arguments("Franklin Gothic Book")]
-    // consecutive capitals are not a lost space
-    [Arguments("ARIAL")]
-    [Arguments("Segoe UI")]
-    [Arguments("")]
-    public async Task InsertMissingSpaces_LeavesWellFormedNamesAlone(string fontFamily) =>
-        await Assert.That(FontHelpers.InsertMissingSpaces(fontFamily)).IsEqualTo(fontFamily);
-
-    [Test]
-    public async Task RepairedNameIsTriedLast()
-    {
-        // The repair must never displace a name that resolves on its own, so it comes after every
-        // other candidate. "ArialMT" is a real bundled family; splitting it would be wrong.
-        var candidates = FontHelpers.GetCandidateNames("ArialMT");
-        var order = FontFileCache.EnumerateCandidateNames(candidates).ToList();
-
-        await Assert.That(order.First()).IsEqualTo("ArialMT");
-        await Assert.That(order.IndexOf("Arial MT")).IsEqualTo(order.Count - 1);
-    }
 
     // === ScoreFace / PickBestFace ===
 

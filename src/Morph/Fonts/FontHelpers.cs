@@ -15,8 +15,13 @@
         ["MS Mincho"] = "MS Gothic",
         ["MS PMincho"] = "MS PGothic",
         ["Avenir Next LT Pro"] = "Century Gothic",
-        ["AvenirNext LT Pro"] = "Century Gothic",
-        ["AvenirNext LT Pro Medium"] = "Century Gothic",
+        // A name one space short of Avenir Next's is no font at all, and Word does not repair it:
+        // newsletters/07 asks for "AvenirNext LT Pro Medium" on a machine where "Avenir Next LT Pro"
+        // is installed, and Word's XPS embeds Calibri for that body text (the package has no
+        // fontTable to suggest anything closer). Morph matched the bundled Avenir Next by restoring
+        // the space, which set every line wider than Word's.
+        ["AvenirNext LT Pro"] = "Calibri",
+        ["AvenirNext LT Pro Medium"] = "Calibri",
         ["Eras Light ITC"] = "Century Gothic",
         ["Eras Medium ITC"] = "Century Gothic",
         ["Sagona"] = "Georgia",
@@ -248,45 +253,6 @@
         }
 
         return new(fontFamily, strippedName);
-    }
-
-    /// <summary>
-    /// Re-inserts the spaces a family name lost between a lower-case letter or digit and the
-    /// upper-case letter that follows it, so <c>AvenirNext LT Pro</c> reads as
-    /// <c>Avenir Next LT Pro</c>. Returns the input unchanged when there is nothing to repair.
-    /// </summary>
-    /// <remarks>
-    /// Authoring tools sometimes write a family name with a space missing, and the run then
-    /// resolves to an unrelated face: <c>newsletters/07</c> asks for "AvenirNext LT Pro Medium"
-    /// and landed on Century Gothic, though "Avenir Next LT Pro" is present. This repair is only
-    /// ever tried as the LAST candidate (see <c>FontFileCache.EnumerateCandidateNames</c>), so a
-    /// name that resolves exactly is never affected, and a split that produces nonsense
-    /// ("SimSun" becoming "Sim Sun") simply matches nothing.
-    /// </remarks>
-    internal static string InsertMissingSpaces(string fontFamily)
-    {
-        if (string.IsNullOrEmpty(fontFamily))
-        {
-            return fontFamily;
-        }
-
-        StringBuilder? builder = null;
-        for (var i = 1; i < fontFamily.Length; i++)
-        {
-            var previous = fontFamily[i - 1];
-            if (!char.IsUpper(fontFamily[i]) ||
-                !(char.IsLower(previous) || char.IsDigit(previous)))
-            {
-                builder?.Append(fontFamily[i]);
-                continue;
-            }
-
-            builder ??= new StringBuilder(fontFamily.Length + 4)
-                .Append(fontFamily, 0, i);
-            builder.Append(' ').Append(fontFamily[i]);
-        }
-
-        return builder?.ToString() ?? fontFamily;
     }
 
     /// <summary>

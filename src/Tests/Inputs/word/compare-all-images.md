@@ -484,14 +484,14 @@ Pixel-level differences between Skia's SVG render and Word's renderer remain (gr
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1019 · SSIM: 0.9195** | **Page 1. ErrorMetric: 0.1019 · SSIM: 0.9198** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1018 · SSIM: 0.9195** | **Page 1. ErrorMetric: 0.1019 · SSIM: 0.9198** |
 | <img src="agendas-minutes/16/expected_0001.png" width="500"> | <img src="agendas-minutes/16/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/16/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/17
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0293 · SSIM: 0.9610** | **Page 1. ErrorMetric: 0.0300 · SSIM: 0.9633** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0292 · SSIM: 0.9610** | **Page 1. ErrorMetric: 0.0300 · SSIM: 0.9633** |
 | <img src="agendas-minutes/17/expected_0001.png" width="500"> | <img src="agendas-minutes/17/skia_result%23page_0001.verified.png" width="500"> | <img src="agendas-minutes/17/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## agendas-minutes/18
@@ -685,27 +685,27 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1467 · SSIM: 0.9462** | **Page 1. ErrorMetric: 0.5784 · SSIM: 0.9443** |
 | <img src="brochures/05/expected_0001.png" width="500"> | <img src="brochures/05/skia_result%23page_0001.verified.png" width="500"> | <img src="brochures/05/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0980 · SSIM: 0.9181** | **Page 2. ErrorMetric: 0.1006 · SSIM: 0.9203** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0980 · SSIM: 0.9181** | **Page 2. ErrorMetric: 0.1006 · SSIM: 0.9205** |
 | <img src="brochures/05/expected_0002.png" width="500"> | <img src="brochures/05/skia_result%23page_0002.verified.png" width="500"> | <img src="brochures/05/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1137 · SSIM: 0.8928** | **Page 3. ErrorMetric: 0.1170 · SSIM: 0.8919** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1137 · SSIM: 0.8928** | **Page 3. ErrorMetric: 0.1170 · SSIM: 0.8921** |
 | <img src="brochures/05/expected_0003.png" width="500"> | <img src="brochures/05/skia_result%23page_0003.verified.png" width="500"> | <img src="brochures/05/imagesharp_result%23page_0003.verified.png" width="500"> |
-| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.1375 · SSIM: 0.8953** | **Page 4. ErrorMetric: 0.1513 · SSIM: 0.8927** |
+| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.1374 · SSIM: 0.8953** | **Page 4. ErrorMetric: 0.1513 · SSIM: 0.8929** |
 | <img src="brochures/05/expected_0004.png" width="500"> | <img src="brochures/05/skia_result%23page_0004.verified.png" width="500"> | <img src="brochures/05/imagesharp_result%23page_0004.verified.png" width="500"> |
 
 ## brochures/06
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2687 · SSIM: 0.8773** | **Page 1. ErrorMetric: 0.2775 · SSIM: 0.8722** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2686 · SSIM: 0.8774** | **Page 1. ErrorMetric: 0.2774 · SSIM: 0.8726** |
 | <img src="brochures/06/expected_0001.png" width="500"> | <img src="brochures/06/skia_result%23page_0001.verified.png" width="500"> | <img src="brochures/06/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3652 · SSIM: 0.8087** | **Page 2. ErrorMetric: 0.3748 · SSIM: 0.8140** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3638 · SSIM: 0.8106** | **Page 2. ErrorMetric: 0.3733 · SSIM: 0.8156** |
 | <img src="brochures/06/expected_0002.png" width="500"> | <img src="brochures/06/skia_result%23page_0002.verified.png" width="500"> | <img src="brochures/06/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## brochures/07
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3782 · SSIM: 0.9082** | **Page 1. ErrorMetric: 0.3946 · SSIM: 0.9087** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3780 · SSIM: 0.9085** | **Page 1. ErrorMetric: 0.3944 · SSIM: 0.9092** |
 | <img src="brochures/07/expected_0001.png" width="500"> | <img src="brochures/07/skia_result%23page_0001.verified.png" width="500"> | <img src="brochures/07/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2616 · SSIM: 0.9187** | **Page 2. ErrorMetric: 0.3078 · SSIM: 0.9203** |
 | <img src="brochures/07/expected_0002.png" width="500"> | <img src="brochures/07/skia_result%23page_0002.verified.png" width="500"> | <img src="brochures/07/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -714,9 +714,9 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3350 · SSIM: 0.9002** | **Page 1. ErrorMetric: 0.3286 · SSIM: 0.8896** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3350 · SSIM: 0.9002** | **Page 1. ErrorMetric: 0.3286 · SSIM: 0.8898** |
 | <img src="brochures/08/expected_0001.png" width="500"> | <img src="brochures/08/skia_result%23page_0001.verified.png" width="500"> | <img src="brochures/08/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.4023 · SSIM: 0.8481** | **Page 2. ErrorMetric: 0.3757 · SSIM: 0.8604** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.4023 · SSIM: 0.8481** | **Page 2. ErrorMetric: 0.3759 · SSIM: 0.8608** |
 | <img src="brochures/08/expected_0002.png" width="500"> | <img src="brochures/08/skia_result%23page_0002.verified.png" width="500"> | <img src="brochures/08/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## bullet_list
@@ -830,7 +830,7 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.4950 · SSIM: 0.8910** | **Page 1. ErrorMetric: 0.4983 · SSIM: 0.9066** |
 | <img src="business-plans/12/expected_0001.png" width="500"> | <img src="business-plans/12/skia_result%23page_0001.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.4743 · SSIM: 0.8054** | **Page 2. ErrorMetric: 0.5018 · SSIM: 0.8061** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.4743 · SSIM: 0.8054** | **Page 2. ErrorMetric: 0.5020 · SSIM: 0.8061** |
 | <img src="business-plans/12/expected_0002.png" width="500"> | <img src="business-plans/12/skia_result%23page_0002.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0002.verified.png" width="500"> |
 | **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.0787 · SSIM: 0.8921** | **Page 3. ErrorMetric: 0.0785 · SSIM: 0.8979** |
 | <img src="business-plans/12/expected_0003.png" width="500"> | <img src="business-plans/12/skia_result%23page_0003.verified.png" width="500"> | <img src="business-plans/12/imagesharp_result%23page_0003.verified.png" width="500"> |
@@ -1035,19 +1035,19 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2982 · SSIM: 0.9389** | **Page 1. ErrorMetric: 0.3023 · SSIM: 0.9359** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2982 · SSIM: 0.9389** | **Page 1. ErrorMetric: 0.3023 · SSIM: 0.9361** |
 | <img src="cards/05/expected_0001.png" width="500"> | <img src="cards/05/skia_result%23page_0001.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0139 · SSIM: 0.9722** | **Page 2. ErrorMetric: 0.0152 · SSIM: 0.9729** |
 | <img src="cards/05/expected_0002.png" width="500"> | <img src="cards/05/skia_result%23page_0002.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.2993 · SSIM: 0.9528** | **Page 3. ErrorMetric: 0.3027 · SSIM: 0.9460** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.2993 · SSIM: 0.9528** | **Page 3. ErrorMetric: 0.3027 · SSIM: 0.9462** |
 | <img src="cards/05/expected_0003.png" width="500"> | <img src="cards/05/skia_result%23page_0003.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0003.verified.png" width="500"> |
 | **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.0139 · SSIM: 0.9722** | **Page 4. ErrorMetric: 0.0152 · SSIM: 0.9729** |
 | <img src="cards/05/expected_0004.png" width="500"> | <img src="cards/05/skia_result%23page_0004.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0004.verified.png" width="500"> |
-| **Page 5**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 5. ErrorMetric: 0.2960 · SSIM: 0.9380** | **Page 5. ErrorMetric: 0.3033 · SSIM: 0.9486** |
+| **Page 5**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 5. ErrorMetric: 0.2960 · SSIM: 0.9380** | **Page 5. ErrorMetric: 0.3032 · SSIM: 0.9487** |
 | <img src="cards/05/expected_0005.png" width="500"> | <img src="cards/05/skia_result%23page_0005.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0005.verified.png" width="500"> |
 | **Page 6**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 6. ErrorMetric: 0.0139 · SSIM: 0.9722** | **Page 6. ErrorMetric: 0.0152 · SSIM: 0.9729** |
 | <img src="cards/05/expected_0006.png" width="500"> | <img src="cards/05/skia_result%23page_0006.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0006.verified.png" width="500"> |
-| **Page 7**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 7. ErrorMetric: 0.2992 · SSIM: 0.9408** | **Page 7. ErrorMetric: 0.3029 · SSIM: 0.9506** |
+| **Page 7**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 7. ErrorMetric: 0.2992 · SSIM: 0.9408** | **Page 7. ErrorMetric: 0.3029 · SSIM: 0.9508** |
 | <img src="cards/05/expected_0007.png" width="500"> | <img src="cards/05/skia_result%23page_0007.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0007.verified.png" width="500"> |
 | **Page 8**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 8. ErrorMetric: 0.0139 · SSIM: 0.9722** | **Page 8. ErrorMetric: 0.0152 · SSIM: 0.9729** |
 | <img src="cards/05/expected_0008.png" width="500"> | <img src="cards/05/skia_result%23page_0008.verified.png" width="500"> | <img src="cards/05/imagesharp_result%23page_0008.verified.png" width="500"> |
@@ -1074,11 +1074,11 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3805 · SSIM: 0.9712** | **Page 1. ErrorMetric: 0.3808 · SSIM: 0.9834** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3805 · SSIM: 0.9712** | **Page 1. ErrorMetric: 0.3808 · SSIM: 0.9835** |
 | <img src="cards/08/expected_0001.png" width="500"> | <img src="cards/08/skia_result%23page_0001.verified.png" width="500"> | <img src="cards/08/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0063 · SSIM: 0.9870** | **Page 2. ErrorMetric: 0.0062 · SSIM: 0.9877** |
 | <img src="cards/08/expected_0002.png" width="500"> | <img src="cards/08/skia_result%23page_0002.verified.png" width="500"> | <img src="cards/08/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3732 · SSIM: 0.9725** | **Page 3. ErrorMetric: 0.3736 · SSIM: 0.9845** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.3732 · SSIM: 0.9725** | **Page 3. ErrorMetric: 0.3736 · SSIM: 0.9846** |
 | <img src="cards/08/expected_0003.png" width="500"> | <img src="cards/08/skia_result%23page_0003.verified.png" width="500"> | <img src="cards/08/imagesharp_result%23page_0003.verified.png" width="500"> |
 | **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.0063 · SSIM: 0.9870** | **Page 4. ErrorMetric: 0.0062 · SSIM: 0.9877** |
 | <img src="cards/08/expected_0004.png" width="500"> | <img src="cards/08/skia_result%23page_0004.verified.png" width="500"> | <img src="cards/08/imagesharp_result%23page_0004.verified.png" width="500"> |
@@ -1471,7 +1471,7 @@ column avoids the glyphs.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1538 · SSIM: 0.9005** | **Page 1. ErrorMetric: 0.1540 · SSIM: 0.9037** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1538 · SSIM: 0.9005** | **Page 1. ErrorMetric: 0.1540 · SSIM: 0.9038** |
 | <img src="cover-letters/06/expected_0001.png" width="500"> | <img src="cover-letters/06/skia_result%23page_0001.verified.png" width="500"> | <img src="cover-letters/06/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## cover-letters/07
@@ -2224,7 +2224,7 @@ negative `t="-168"`, which `ReadCrop` clamps away.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1381 · SSIM: 0.8546** | **Page 1. ErrorMetric: 0.1648 · SSIM: 0.8544** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1380 · SSIM: 0.8546** | **Page 1. ErrorMetric: 0.1648 · SSIM: 0.8545** |
 | <img src="inline_group_crop/expected_0001.png" width="500"> | <img src="inline_group_crop/skia_result%23page_0001.verified.png" width="500"> | <img src="inline_group_crop/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## inline_group_rotation
@@ -2342,7 +2342,7 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0969 · SSIM: 0.8496** | **Page 1. ErrorMetric: 0.0974 · SSIM: 0.8502** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0968 · SSIM: 0.8502** | **Page 1. ErrorMetric: 0.0973 · SSIM: 0.8508** |
 | <img src="labels/09/expected_0001.png" width="500"> | <img src="labels/09/skia_result%23page_0001.verified.png" width="500"> | <img src="labels/09/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## labels/10
@@ -2384,7 +2384,7 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1690 · SSIM: 0.7462** | **Page 1. ErrorMetric: 0.1647 · SSIM: 0.7834** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1643 · SSIM: 0.7571** | **Page 1. ErrorMetric: 0.1601 · SSIM: 0.7940** |
 | <img src="labels/15/expected_0001.png" width="500"> | <img src="labels/15/skia_result%23page_0001.verified.png" width="500"> | <img src="labels/15/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## labels/16
@@ -2675,7 +2675,7 @@ there.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1379 · SSIM: 0.8473** | **Page 1. ErrorMetric: 0.1650 · SSIM: 0.8466** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1379 · SSIM: 0.8474** | **Page 1. ErrorMetric: 0.1650 · SSIM: 0.8466** |
 | <img src="menus/07/expected_0001.png" width="500"> | <img src="menus/07/skia_result%23page_0001.verified.png" width="500"> | <img src="menus/07/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## menus/08
@@ -2776,18 +2776,18 @@ there.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3364 · SSIM: 0.8982** | **Page 1. ErrorMetric: 0.3827 · SSIM: 0.8478** |
 | <img src="newsletters/03/expected_0001.png" width="500"> | <img src="newsletters/03/skia_result%23page_0001.verified.png" width="500"> | <img src="newsletters/03/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3141 · SSIM: 0.9183** | **Page 2. ErrorMetric: 0.3255 · SSIM: 0.8661** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3078 · SSIM: 0.9276** | **Page 2. ErrorMetric: 0.3185 · SSIM: 0.8756** |
 | <img src="newsletters/03/expected_0002.png" width="500"> | <img src="newsletters/03/skia_result%23page_0002.verified.png" width="500"> | <img src="newsletters/03/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.2526 · SSIM: 0.8850** | **Page 3. ErrorMetric: 0.2473 · SSIM: 0.8633** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.2484 · SSIM: 0.8914** | **Page 3. ErrorMetric: 0.2424 · SSIM: 0.8699** |
 | <img src="newsletters/03/expected_0003.png" width="500"> | <img src="newsletters/03/skia_result%23page_0003.verified.png" width="500"> | <img src="newsletters/03/imagesharp_result%23page_0003.verified.png" width="500"> |
-| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.3858 · SSIM: 0.9327** | **Page 4. ErrorMetric: 0.4175 · SSIM: 0.8912** |
+| **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.3836 · SSIM: 0.9361** | **Page 4. ErrorMetric: 0.4151 · SSIM: 0.8947** |
 | <img src="newsletters/03/expected_0004.png" width="500"> | <img src="newsletters/03/skia_result%23page_0004.verified.png" width="500"> | <img src="newsletters/03/imagesharp_result%23page_0004.verified.png" width="500"> |
 
 ## newsletters/04
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2038 · SSIM: 0.8863** | **Page 1. ErrorMetric: 0.2137 · SSIM: 0.8955** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2038 · SSIM: 0.8863** | **Page 1. ErrorMetric: 0.2137 · SSIM: 0.8956** |
 | <img src="newsletters/04/expected_0001.png" width="500"> | <img src="newsletters/04/skia_result%23page_0001.verified.png" width="500"> | <img src="newsletters/04/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2444 · SSIM: 0.8026** | **Page 2. ErrorMetric: 0.2487 · SSIM: 0.8007** |
 | <img src="newsletters/04/expected_0002.png" width="500"> | <img src="newsletters/04/skia_result%23page_0002.verified.png" width="500"> | <img src="newsletters/04/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -2826,7 +2826,7 @@ there.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1502 · SSIM: 0.8358** | **Page 1. ErrorMetric: 0.2439 · SSIM: 0.8390** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1502 · SSIM: 0.8358** | **Page 1. ErrorMetric: 0.2440 · SSIM: 0.8390** |
 | <img src="newsletters/07/expected_0001.png" width="500"> | <img src="newsletters/07/skia_result%23page_0001.verified.png" width="500"> | <img src="newsletters/07/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2894 · SSIM: 0.7572** | **Page 2. ErrorMetric: 0.3052 · SSIM: 0.7638** |
 | <img src="newsletters/07/expected_0002.png" width="500"> | <img src="newsletters/07/skia_result%23page_0002.verified.png" width="500"> | <img src="newsletters/07/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -2844,7 +2844,7 @@ there.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2333 · SSIM: 0.7939** | **Page 1. ErrorMetric: 0.2322 · SSIM: 0.8002** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2333 · SSIM: 0.7939** | **Page 1. ErrorMetric: 0.2322 · SSIM: 0.8004** |
 | <img src="newsletters/09/expected_0001.png" width="500"> | <img src="newsletters/09/skia_result%23page_0001.verified.png" width="500"> | <img src="newsletters/09/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2304 · SSIM: 0.8250** | **Page 2. ErrorMetric: 0.2276 · SSIM: 0.8400** |
 | <img src="newsletters/09/expected_0002.png" width="500"> | <img src="newsletters/09/skia_result%23page_0002.verified.png" width="500"> | <img src="newsletters/09/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -2889,7 +2889,7 @@ there.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1991 · SSIM: 0.9359** | **Page 1. ErrorMetric: 0.2010 · SSIM: 0.9417** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1989 · SSIM: 0.9361** | **Page 1. ErrorMetric: 0.2009 · SSIM: 0.9418** |
 | <img src="newsletters/14/expected_0001.png" width="500"> | <img src="newsletters/14/skia_result%23page_0001.verified.png" width="500"> | <img src="newsletters/14/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.3008 · SSIM: 0.9526** | **Page 2. ErrorMetric: 0.3018 · SSIM: 0.9502** |
 | <img src="newsletters/14/expected_0002.png" width="500"> | <img src="newsletters/14/skia_result%23page_0002.verified.png" width="500"> | <img src="newsletters/14/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -3136,7 +3136,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7530 · SSIM: 0.9635** | **Page 1. ErrorMetric: 0.7883 · SSIM: 0.9641** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7530 · SSIM: 0.9635** | **Page 1. ErrorMetric: 0.7883 · SSIM: 0.9644** |
 | <img src="postcards/02/expected_0001.png" width="500"> | <img src="postcards/02/skia_result%23page_0001.verified.png" width="500"> | <img src="postcards/02/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0213 · SSIM: 0.9874** | **Page 2. ErrorMetric: 0.0215 · SSIM: 0.9878** |
 | <img src="postcards/02/expected_0002.png" width="500"> | <img src="postcards/02/skia_result%23page_0002.verified.png" width="500"> | <img src="postcards/02/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -3145,7 +3145,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7535 · SSIM: 0.9427** | **Page 1. ErrorMetric: 0.7543 · SSIM: 0.9470** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.7535 · SSIM: 0.9427** | **Page 1. ErrorMetric: 0.7542 · SSIM: 0.9471** |
 | <img src="postcards/03/expected_0001.png" width="500"> | <img src="postcards/03/skia_result%23page_0001.verified.png" width="500"> | <img src="postcards/03/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0200 · SSIM: 0.9874** | **Page 2. ErrorMetric: 0.0201 · SSIM: 0.9879** |
 | <img src="postcards/03/expected_0002.png" width="500"> | <img src="postcards/03/skia_result%23page_0002.verified.png" width="500"> | <img src="postcards/03/imagesharp_result%23page_0002.verified.png" width="500"> |
@@ -3156,9 +3156,9 @@ magnitude.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1317 · SSIM: 0.9686** | **Page 1. ErrorMetric: 0.1765 · SSIM: 0.9610** |
 | <img src="postcards/04/expected_0001.png" width="500"> | <img src="postcards/04/skia_result%23page_0001.verified.png" width="500"> | <img src="postcards/04/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1537 · SSIM: 0.9728** | **Page 2. ErrorMetric: 0.1997 · SSIM: 0.9711** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1537 · SSIM: 0.9728** | **Page 2. ErrorMetric: 0.1995 · SSIM: 0.9712** |
 | <img src="postcards/04/expected_0002.png" width="500"> | <img src="postcards/04/skia_result%23page_0002.verified.png" width="500"> | <img src="postcards/04/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1794 · SSIM: 0.9740** | **Page 3. ErrorMetric: 0.2221 · SSIM: 0.9709** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.1794 · SSIM: 0.9740** | **Page 3. ErrorMetric: 0.2221 · SSIM: 0.9712** |
 | <img src="postcards/04/expected_0003.png" width="500"> | <img src="postcards/04/skia_result%23page_0003.verified.png" width="500"> | <img src="postcards/04/imagesharp_result%23page_0003.verified.png" width="500"> |
 
 ## resumes/01
@@ -3218,7 +3218,7 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0888 · SSIM: 0.8159** | **Page 1. ErrorMetric: 0.0891 · SSIM: 0.8147** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0888 · SSIM: 0.8160** | **Page 1. ErrorMetric: 0.0891 · SSIM: 0.8151** |
 | <img src="resumes/08/expected_0001.png" width="500"> | <img src="resumes/08/skia_result%23page_0001.verified.png" width="500"> | <img src="resumes/08/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## resumes/09
@@ -3307,11 +3307,11 @@ magnitude.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0585 · SSIM: 0.8968** | **Page 1. ErrorMetric: 0.0586 · SSIM: 0.8993** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0585 · SSIM: 0.8968** | **Page 1. ErrorMetric: 0.0586 · SSIM: 0.8997** |
 | <img src="resumes/19/expected_0001.png" width="500"> | <img src="resumes/19/skia_result%23page_0001.verified.png" width="500"> | <img src="resumes/19/imagesharp_result%23page_0001.verified.png" width="500"> |
-| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0585 · SSIM: 0.8964** | **Page 2. ErrorMetric: 0.0586 · SSIM: 0.8989** |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0585 · SSIM: 0.8964** | **Page 2. ErrorMetric: 0.0586 · SSIM: 0.8994** |
 | <img src="resumes/19/expected_0002.png" width="500"> | <img src="resumes/19/skia_result%23page_0002.verified.png" width="500"> | <img src="resumes/19/imagesharp_result%23page_0002.verified.png" width="500"> |
-| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.0585 · SSIM: 0.8963** | **Page 3. ErrorMetric: 0.0586 · SSIM: 0.8989** |
+| **Page 3**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 3. ErrorMetric: 0.0585 · SSIM: 0.8963** | **Page 3. ErrorMetric: 0.0586 · SSIM: 0.8993** |
 | <img src="resumes/19/expected_0003.png" width="500"> | <img src="resumes/19/skia_result%23page_0003.verified.png" width="500"> | <img src="resumes/19/imagesharp_result%23page_0003.verified.png" width="500"> |
 
 ## rtl_paragraph
