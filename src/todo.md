@@ -71,6 +71,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
 
 - **#32** `newsletters/12` draws an olive stripe Word hides — verify against the DOCX before treating Word as wrong.
+- **#49** `brochures/07`'s reference was rendered with a regular Quire Sans that this machine no longer has. The theme sets Quire Sans for everything, and only its Bold (weight 700, `Quire_Sans.ttf` in both Windows font folders, byte-identical to `src/Fonts/Quire_Sans_700.ttf`) is installed. Word re-rendering the package today embeds only that 700 face and draws the body bold, wrapping exactly as the render does (checked 2026-10-21, crops of the lorem panel), where the committed `expected_0001.png` shows the lighter regular. So the "bolder than Word" body text is the reference, not the engine. Closing it needs the regular face, an Office cloud font, bundled, or the reference regenerated, which would give up the intended look.
 
 ---
 
@@ -111,9 +112,8 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### brochures/07
 
-- MEDIUM | all | p1,p2 | body text (lorem paragraphs, contact text, right-rail paragraphs) rendered visibly bolder/heavier than Word, with shifted wrap points
+- MEDIUM | all | p1,p2 | body text renders bolder than the reference, with shifted wrap points: the reference's regular Quire Sans is not bundled (#49), and Word on this machine draws it as the render does
 - MEDIUM | html | - | the ABOUT US quote now renders in its yellow panel (2026-10-01), but the lightbulb photo block overlaps the second column's LOREM IPSUM heading
-- MEDIUM | html | - | body text renders bold where Word shows regular weight
 
 ### business-plans/02
 
