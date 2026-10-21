@@ -3777,8 +3777,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // A cell's content is cut at its sides (labels/15's swash "f", PlacedCell), and a
                 // w:hRule="exact" row clips what its cells cannot hold below too — Word's reference for
                 // table_layout_tall_row shows two of the company cell's three lines in its 80pt row, the
-                // third hidden. Any other row grows to its content, so nothing runs out of its foot.
-                var clipVertically = cell.Properties.ClipOverflow || row.IsExactHeight;
+                // third hidden. Any other row grows to its content, so nothing runs out of its foot —
+                // except a rotated cell, whose text asks nothing of the row (MeasureVerticalCellHeight)
+                // and is cut at the box: _probe_rotated's 72pt "Header" alone in its row shows only the
+                // part of the "H" inside the row, where the render drew it up over the line above.
+                var clipVertically = cell.Properties.ClipOverflow || row.IsExactHeight || cell.Properties.TextDirection != CellTextDirection.LeftToRight;
 
                 // A vertical merge takes its top from the head, its bottom from its LAST cell and each
                 // row's stretch of its sides from that row's cell (TableLayout.MergeSegmentBorders).
