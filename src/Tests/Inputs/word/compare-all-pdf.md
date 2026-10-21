@@ -1,4 +1,4 @@
-# All PDF export scenarios (344)
+# All PDF export scenarios (346)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -80,6 +80,8 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [cards/18](#cards18)
 - [cards/19](#cards19)
 - [character_scale](#character_scale)
+- [chart_anchored](#chart_anchored)
+- [chart_column_line](#chart_column_line)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -914,7 +916,7 @@ PDF: [Morph PDF](business-plans/10/pdf_result.verified.pdf)
 | <img src="business-plans/12/expected_0007.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0007.verified.png" width="500"> |
 | **Page 8**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 8. ErrorMetric: 0.1614 · SSIM: 0.7534** |
 | <img src="business-plans/12/expected_0008.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0008.verified.png" width="500"> |
-| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.1020 · SSIM: 0.8549** |
+| **Page 9**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 9. ErrorMetric: 0.1019 · SSIM: 0.8556** |
 | <img src="business-plans/12/expected_0009.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0009.verified.png" width="500"> |
 | **Page 10**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 10. ErrorMetric: 0.1332 · SSIM: 0.8042** |
 | <img src="business-plans/12/expected_0010.png" width="500"> | <img src="business-plans/12/pdf_result%23page_0010.verified.png" width="500"> |
@@ -1324,6 +1326,26 @@ PDF: [Morph PDF](cards/19/pdf_result.verified.pdf)
 | <img src="character_scale/expected_0001.png" width="500"> | <img src="character_scale/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](character_scale/pdf_result.verified.pdf)
+
+
+## chart_anchored
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0513 · SSIM: 0.9276** |
+| <img src="chart_anchored/expected_0001.png" width="500"> | <img src="chart_anchored/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart_anchored/pdf_result.verified.pdf)
+
+
+## chart_column_line
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0520 · SSIM: 0.9073** |
+| <img src="chart_column_line/expected_0001.png" width="500"> | <img src="chart_column_line/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart_column_line/pdf_result.verified.pdf)
 
 
 ## colored_text
