@@ -1,4 +1,4 @@
-# All scenarios (347)
+# All scenarios (346)
 
 <details>
 <summary>Contents</summary>
@@ -349,7 +349,6 @@
 - [wordart](#wordart)
 - [wordart-astral](#wordart-astral)
 - [wordart-envelope](#wordart-envelope)
-- [_probe_b06](#_probe_b06)
 
 </details>
 
@@ -4075,11 +4074,4 @@ Word's height with a much deeper bow.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1158 · SSIM: 0.9416** | **Page 1. ErrorMetric: 0.1146 · SSIM: 0.9467** |
 | <img src="wordart-envelope/expected_0001.png" width="500"> | <img src="wordart-envelope/skia_result%23page_0001.verified.png" width="500"> | <img src="wordart-envelope/imagesharp_result%23page_0001.verified.png" width="500"> |
-
-## _probe_b06
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="_probe_b06/expected_0001.png" width="500"> |  |  |
 
