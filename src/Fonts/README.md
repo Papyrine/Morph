@@ -51,14 +51,14 @@ outside the test harness, the per-file records above are the thing to check.
 
 ## Known gap: missing bold faces
 
-24 families are used by a **bold** run somewhere in `src/Tests/Inputs/` but resolve to a face below weight
+23 families are used by a **bold** run somewhere in `src/Tests/Inputs/` but resolve to a face below weight
 700. Skia then approximates bold by dilating the regular outline and ImageSharp renders at normal weight, so
 the two backends disagree and neither matches Word.
 
 Two different causes land in that set. Usually no 700+ face is bundled at all. Sometimes the requested name
-carries its own weight suffix — `ResolveTargetWeight` lets that outrank the bold flag, so a bold run in
-"AvenirNext LT Pro Medium" targets 500 and picks the bundled 400 in preference to the 700 that the family
-does own.
+carries its own weight suffix — `ResolveTargetWeight` lets that outrank the bold flag, so a bold run in a
+"... Medium" or "... Semilight" family targets that weight and can pick a bundled 400 in preference to a
+700 that the family does own.
 
 The gap is pinned rather than asserted away — see `BundledBoldCoverageTests`, which lists every affected
 family with a scenario that uses it, and fails equally on a new entry or a stale one. Dropping a real bold

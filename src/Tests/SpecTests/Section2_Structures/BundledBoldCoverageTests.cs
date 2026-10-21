@@ -26,8 +26,7 @@ public class BundledBoldCoverageTests
     /// <item>The requested name carries its own weight suffix, which
     /// <see cref="FontHelpers.ResolveTargetWeight"/> deliberately lets outrank the bold flag so a
     /// bold run in "Segoe UI Semilight" keeps the Semilight face. The nearest bundled face to that
-    /// pinned target is then lighter than bold even when the family does own a 700 —
-    /// "AvenirNext LT Pro Medium" pins 500 and lands on the 400.</item>
+    /// pinned target is then lighter than bold even when the family does own a 700.</item>
     /// </list>
     ///
     /// Either way the backends see a sub-bold face and synthesise, so the entry belongs here; the
@@ -40,9 +39,6 @@ public class BundledBoldCoverageTests
                                                  // usWeightClass is 400 despite the name saying Bold
         // 2 scenarios, e.g. business-plans/13
         ["Avenir Next LT Pro Light"] = 400,
-        // 1 scenario, newsletters/07 — suffix pins 500, and
-        ["AvenirNext LT Pro Medium"] = 400,
-                                                 // the 400 face is nearer that than the bundled 700
         // 4 scenarios, e.g. cover-letters/07
         ["Bahnschrift"] = 400,
         // 2 scenarios, e.g. business-plans/05
