@@ -220,6 +220,17 @@ static class SkiaPainter
 
         foreach (var image in line.Images)
         {
+            // An inline chart arrives drawn: its shapes and labels, placed (PlacedImage.Composed).
+            if (image.Composed is { } composed)
+            {
+                foreach (var item in composed)
+                {
+                    PaintItem(context, canvas, item);
+                }
+
+                continue;
+            }
+
             PaintImage(context, canvas, image);
         }
     }

@@ -95,6 +95,14 @@ sealed class Run
     public InlineShapeGroup? InlineShapeGroup { get; init; }
 
     /// <summary>
+    /// An inline chart (<c>c:chart</c> in the run's drawing), read as the chart model a sheet's charts use.
+    /// The line reserves its box (<see cref="InlineImageWidthPoints"/> by <see cref="InlineImageHeightPoints"/>)
+    /// and layout composes the chart into it (<c>ChartComposer</c>). A pie or doughnut also keeps its slices
+    /// as <see cref="InlineShapeGroup"/>, which the HTML exporter draws.
+    /// </summary>
+    public ChartModel? InlineChart { get; init; }
+
+    /// <summary>
     /// When not <see cref="PageFieldKind.None"/>, this run is the result of a page-numbering
     /// field (PAGE / NUMPAGES / SECTIONPAGES). <see cref="Text"/> holds Word's cached value; the
     /// engine replaces it with the live value per page, and
@@ -151,6 +159,7 @@ sealed class Run
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
+            InlineChart = InlineChart,
             PageField = PageField,
             PageFieldNumberFormat = PageFieldNumberFormat,
             Source = Source
@@ -184,6 +193,7 @@ sealed class Run
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
+            InlineChart = InlineChart,
             Source = Source
         };
 }

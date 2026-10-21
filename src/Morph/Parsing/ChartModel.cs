@@ -88,6 +88,9 @@ sealed record ChartSeries
     /// <summary>Per-point fills (<c>c:dPt</c>).</summary>
     public IReadOnlyDictionary<int, string> PointFills { get; init; } = new Dictionary<int, string>();
 
+    /// <summary>Per-point outlines (<c>c:dPt/c:spPr/a:ln</c>), over the series' own <see cref="Line"/>.</summary>
+    public IReadOnlyDictionary<int, ChartStroke> PointLines { get; init; } = new Dictionary<int, ChartStroke>();
+
     public ChartDataLabels? Labels { get; init; }
 }
 
@@ -152,7 +155,11 @@ enum ChartLegendPosition
     Bottom
 }
 
-sealed record ChartText(string Text, ChartTextStyle Style);
+/// <summary>
+/// A title's text and look, and where its manual layout puts it (<c>c:title/c:layout</c>): its box's top-left
+/// as fractions of the chart, null where the title sits in its own place above the plot.
+/// </summary>
+sealed record ChartText(string Text, ChartTextStyle Style, ChartRect? Layout = null);
 
 sealed record ChartTextStyle(string FontFamily, double SizePoints, string ColorHex, bool Bold, bool Italic);
 

@@ -21,6 +21,10 @@
 /// An inline <see cref="ShapeGroup"/> (a grouped drawing embedded in a run) rides the same inline-image
 /// carrier: <see cref="Data"/> is then null and the painter draws the group's child shapes scaled into the
 /// box instead of decoding bytes. Floating images never set it.
+///
+/// An inline chart rides it too, already drawn: <see cref="Composed"/> holds the chart's shapes and
+/// laid-out labels at their places on the page (<c>ChartComposer</c>), and the painter paints those
+/// items in place of anything else.
 /// </summary>
 sealed record PlacedImage(
     float X,
@@ -39,4 +43,5 @@ sealed record PlacedImage(
     double Opacity = 1,
     ImageOutline? Outline = null,
     ImageTile? Tile = null,
-    SvgDrawing? Vector = null) : PlacedItem(X, Y, Width, Height);
+    SvgDrawing? Vector = null,
+    IReadOnlyList<PlacedItem>? Composed = null) : PlacedItem(X, Y, Width, Height);

@@ -7208,6 +7208,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     case FloatingTextBoxElement {AnchorParagraph: null} textBox:
                         textBox.AnchorParagraph = anchorParagraph;
                         break;
+                    case FloatingChartElement {AnchorParagraph: null} chart:
+                        chart.AnchorParagraph = anchorParagraph;
+                        break;
                 }
             }
         }
@@ -7906,15 +7909,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     }
 
     /// <summary>
-    /// An inline pie or doughnut chart, as an inline group of its slices: each slice a filled outline
-    /// in the plot circle's box, coloured and stroked as its <c>c:dPt</c> says (or from the theme's
-    /// accents in turn when the chart varies its colours and the point names none). Slices run
-    /// clockwise from <c>c:firstSliceAng</c> degrees past twelve o'clock, each a share of the circle
-    /// proportional to its cached value; the plot circle is the largest that fits the plot area's
-    /// manual layout (the whole chart when there is none), and a doughnut's hole is
-    /// <c>c:holeSize</c> percent of its diameter. business-plans/12's SWOT ring is the case: four
-    /// quarters around a half-width hole. Titles, legends and data labels are not drawn, and other
-    /// chart kinds are not read (null: the run then carries nothing, as before).
+    /// An inline chart: its box on the line, and the chart read as the model a sheet's charts use
+    /// (<see cref="ChartReader"/>), which layout composes into the box with its title, legend, axes and
+    /// data labels (<c>ChartComposer</c>) for every chart kind the reader knows. A pie or doughnut also
+    /// keeps its slices as an inline group (<see cref="PieSliceRun"/>), which is how the HTML exporter
+    /// draws it. A chart the reader cannot read keeps just those slices when it has any, as before.
     /// </summary>
     Run? ParseInlineChartRun(Drawing drawing, OpenXmlElement chartReference, OpenXmlPart hostPart, RunProperties runProps)
     {
@@ -7935,6 +7934,67 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
+        var slices = PieSliceRun(chartSpace, extent.Cx.Value, extent.Cy.Value, runProps);
+        if (new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
+        {
+            return slices;
+        }
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint,
+            InlineImageHeightPoints = extent.Cy.Value / OoxmlUnits.EmusPerPoint,
+            InlineShapeGroup = slices?.InlineShapeGroup,
+            InlineChart = model
+        };
+    }
+
+    /// <summary>
+    /// An anchored chart (<c>c:chart</c> under a <c>wp:anchor</c>): its box at the anchor's position, with the
+    /// chart read as the model a sheet's charts use, so it is composed and placed as they are. Null when the
+    /// drawing holds no chart, or one the reader cannot read.
+    /// </summary>
+    FloatingChartElement? AnchoredChart(Drawing drawing, DW.Anchor anchor, OpenXmlPart hostPart)
+    {
+        if (drawing.Descendants().FirstOrDefault(_ => _.LocalName == "chart" && _.Parent?.LocalName == "graphicData") is not { } chartReference ||
+            anchor.Extent is not { Cx: { } width, Cy: { } height } ||
+            width.Value <= 0 ||
+            height.Value <= 0 ||
+            chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value is not { Length: > 0 } relationshipId ||
+            hostPart.PartOrNull(relationshipId)?.RootElement is not { } chartSpace ||
+            new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
+        {
+            return null;
+        }
+
+        var positioning = anchor.ParsePositioning(0, 0, anchorAlignmentPage);
+        return new()
+        {
+            Chart = model,
+            WidthPoints = width.Value / OoxmlUnits.EmusPerPoint,
+            HeightPoints = height.Value / OoxmlUnits.EmusPerPoint,
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+            VerticalPositionPoints = positioning.VerticalPositionPoints,
+            HorizontalAnchor = positioning.HorizontalAnchor,
+            VerticalAnchor = positioning.VerticalAnchor,
+            RelativeHeight = positioning.RelativeHeight
+        };
+    }
+
+    /// <summary>
+    /// A pie or doughnut chart as an inline group of its slices: each slice a filled outline in the plot
+    /// circle's box, coloured and stroked as its <c>c:dPt</c> says (or from the theme's accents in turn
+    /// when the chart varies its colours and the point names none). Slices run clockwise from
+    /// <c>c:firstSliceAng</c> degrees past twelve o'clock, each a share of the circle proportional to its
+    /// cached value; the plot circle is the largest that fits the plot area's manual layout (the whole
+    /// chart when there is none), and a doughnut's hole is <c>c:holeSize</c> percent of its diameter.
+    /// business-plans/12's SWOT ring is the case: four quarters around a half-width hole. Null for any
+    /// other chart kind.
+    /// </summary>
+    Run? PieSliceRun(OpenXmlPartRootElement? chartSpace, long extentWidth, long extentHeight, RunProperties runProps)
+    {
         var plotArea = chartSpace?.Descendants().FirstOrDefault(_ => _.LocalName == "plotArea");
         var chart = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "doughnutChart" or "pieChart");
         var series = chart?.Elements().FirstOrDefault(_ => _.LocalName == "ser");
@@ -7981,10 +8041,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // The plot area's manual layout, as fractions of the chart; the whole chart without one.
         var layout = Child(Child(plotArea, "layout"), "manualLayout");
-        var plotX = (Value(Child(layout, "x")) ?? 0) * extent.Cx.Value;
-        var plotY = (Value(Child(layout, "y")) ?? 0) * extent.Cy.Value;
-        var plotWidth = (Value(Child(layout, "w")) ?? 1) * extent.Cx.Value;
-        var plotHeight = (Value(Child(layout, "h")) ?? 1) * extent.Cy.Value;
+        var plotX = (Value(Child(layout, "x")) ?? 0) * extentWidth;
+        var plotY = (Value(Child(layout, "y")) ?? 0) * extentHeight;
+        var plotWidth = (Value(Child(layout, "w")) ?? 1) * extentWidth;
+        var plotHeight = (Value(Child(layout, "h")) ?? 1) * extentHeight;
         var diameter = Math.Min(plotWidth, plotHeight);
         if (diameter <= 0)
         {
@@ -8029,12 +8089,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             Text = "",
             Properties = runProps,
-            InlineImageWidthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint,
-            InlineImageHeightPoints = extent.Cy.Value / OoxmlUnits.EmusPerPoint,
+            InlineImageWidthPoints = extentWidth / OoxmlUnits.EmusPerPoint,
+            InlineImageHeightPoints = extentHeight / OoxmlUnits.EmusPerPoint,
             InlineShapeGroup = new()
             {
-                ChildExtentX = extent.Cx.Value,
-                ChildExtentY = extent.Cy.Value,
+                ChildExtentX = extentWidth,
+                ChildExtentY = extentHeight,
                 Shapes = shapes
             }
         };
@@ -8926,6 +8986,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var result = new List<DocumentElement>();
 
         var anchor = drawing.GetFirstChild<DW.Anchor>();
+
+        // An anchored chart floats where its anchor puts it, composed at layout like a sheet's chart
+        // (Fragmenter.PlaceChart); an inline one is a run on its line (ParseInlineChartRun).
+        if (anchor != null &&
+            AnchoredChart(drawing, anchor, hostPart) is { } floatingChart)
+        {
+            result.Add(floatingChart);
+            return result;
+        }
 
         // Get the group transform if present (for coordinate system)
         long groupOffsetX = 0, groupOffsetY = 0;

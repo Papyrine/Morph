@@ -1,4 +1,4 @@
-# All scenarios (344)
+# All scenarios (346)
 
 <details>
 <summary>Contents</summary>
@@ -78,6 +78,8 @@
 - [cards/18](#cards18)
 - [cards/19](#cards19)
 - [character_scale](#character_scale)
+- [chart_anchored](#chart_anchored)
+- [chart_column_line](#chart_column_line)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -1194,6 +1196,20 @@ start. Before this fixture `w:w` was not read.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0172 · SSIM: 0.9898** | **Page 1. ErrorMetric: 0.0179 · SSIM: 0.9894** |
 | <img src="character_scale/expected_0001.png" width="500"> | <img src="character_scale/skia_result%23page_0001.verified.png" width="500"> | <img src="character_scale/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## chart_anchored
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="chart_anchored/expected_0001.png" width="500"> |  |  |
+
+## chart_column_line
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="chart_column_line/expected_0001.png" width="500"> |  |  |
 
 ## colored_text
 
