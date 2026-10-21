@@ -42,9 +42,9 @@ public class ExactRowTests
         var exactCell = new Fragmenter(LayoutTestFonts.Measurer).Layout([exact], page).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
         var atLeastCell = new Fragmenter(LayoutTestFonts.Measurer).Layout([atLeast], page).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
 
-        await Assert.That(exactCell.ClipContent).IsTrue();
+        await Assert.That(exactCell.ClipVertically).IsTrue();
         await Assert.That(exactCell.Height).IsEqualTo(10).Within(0.01f);
-        await Assert.That(atLeastCell.ClipContent).IsFalse();
+        await Assert.That(atLeastCell.ClipVertically).IsFalse();
         await Assert.That(atLeastCell.Height).IsGreaterThan(10);
     }
 

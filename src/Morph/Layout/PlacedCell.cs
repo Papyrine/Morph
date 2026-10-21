@@ -9,14 +9,16 @@
 ///
 /// <see cref="ClipContent"/> asks the painter to bound the content — and only the content, not the
 /// shading or the borders — to the box, which is Excel's rule for a cell whose text outgrows its
-/// column or its pinned row height (<see cref="TableCellProperties.ClipOverflow"/>), and Word's for a
-/// cell in a <c>w:hRule="exact"</c> row (table_layout_tall_row's reference hides the company cell's
-/// third line) — vertically only there (<see cref="ClipHorizontally"/> false): Word lets a glyph's ink
-/// overhang the cell sideways, as labels/15's "from" swash reaches into the neighbouring label.
-/// Every other DOCX and HTML cell keeps drawing its overflow as Word does. The clip is the box
-/// widened by <see cref="ClipSpillLeft"/> / <see cref="ClipSpillRight"/>, which are the empty
-/// neighbours the ink is allowed to run over (see <see cref="TableCellProperties.ClipSpillLeftPoints"/>);
-/// both are zero unless the content spills in a direction the box itself cannot cover.
+/// column or its pinned row height (<see cref="TableCellProperties.ClipOverflow"/>), and Word's for
+/// every cell sideways and, in a <c>w:hRule="exact"</c> row, downwards too (table_layout_tall_row's
+/// reference hides the company cell's third line). Elsewhere a Word cell's content runs on below its
+/// box (<see cref="ClipVertically"/> false), but never past its sides: labels/15's "from" swash has an
+/// "f" whose loop reaches 10pt left of its pen, and Word cuts it on a vertical line at the cell's
+/// left edge, in exact rows and (probed, the same sheet with every row <c>atLeast</c>) in rows that
+/// grow alike. The clip is the box widened by <see cref="ClipSpillLeft"/> / <see cref="ClipSpillRight"/>,
+/// which are the empty neighbours the ink is allowed to run over (see
+/// <see cref="TableCellProperties.ClipSpillLeftPoints"/>); both are zero unless the content spills in
+/// a direction the box itself cannot cover.
 ///
 /// <see cref="BottomEdgeInset"/> is how far above the box's bottom face the bottom border's stack
 /// starts, in points: the declared stack the row reserved inside itself when it is the table's last
@@ -43,7 +45,8 @@ sealed record PlacedCell(
     float BottomEdgeInset = 0,
     CellDiagonals? Diagonals = null,
     IReadOnlyList<PlacedItem>? Floats = null,
-    bool ClipHorizontally = true)
+    bool ClipHorizontally = true,
+    bool ClipVertically = true)
 {
     /// <summary>
     /// The cell's anchored behind-text art (a label template's coloured blob, a memo's corner

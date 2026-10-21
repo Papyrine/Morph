@@ -216,10 +216,11 @@ static class TextLayerBuilder
                 });
             }
 
-            if (cell.ClipContent)
+            // The painter's clip, where it bounds the cell below: the box widened by its spill. A cell that
+            // clips only at its sides (every other Word cell, PlacedCell) takes no frame, since a glyph's
+            // overhang does not move the text a reader selects.
+            if (cell is {ClipContent: true, ClipVertically: true})
             {
-                // The painter's clip: the box widened by its spill, or — for a Word exact-height row —
-                // vertical only, since Word lets ink overhang a cell sideways.
                 var clipX = cell.ClipHorizontally ? cell.X - cell.ClipSpillLeft : cell.X;
                 var clipWidth = cell.ClipHorizontally ? cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight : cell.Width;
                 nodes.Add(new FrameNode('c', clipX, cell.Y, clipWidth, cell.Height, 0, cell.ClipHorizontally, content));

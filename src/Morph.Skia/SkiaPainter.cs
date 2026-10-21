@@ -920,9 +920,9 @@ static class SkiaPainter
                 canvas.Save();
                 canvas.ClipRect(new(
                     cell.ClipHorizontally ? P(context, cell.X - cell.ClipSpillLeft) : float.MinValue / 2,
-                    P(context, cell.Y),
+                    cell.ClipVertically ? P(context, cell.Y) : float.MinValue / 2,
                     cell.ClipHorizontally ? P(context, cell.X + cell.Width + cell.ClipSpillRight) : float.MaxValue / 2,
-                    P(context, cell.Y + cell.Height)));
+                    cell.ClipVertically ? P(context, cell.Y + cell.Height) : float.MaxValue / 2));
             }
 
             foreach (var content in cell.Content)

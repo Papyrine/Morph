@@ -3774,10 +3774,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     content = [.. content, .. frontShapes];
                 }
 
-                // A w:hRule="exact" row clips what its cells cannot hold — Word's reference for
+                // A cell's content is cut at its sides (labels/15's swash "f", PlacedCell), and a
+                // w:hRule="exact" row clips what its cells cannot hold below too — Word's reference for
                 // table_layout_tall_row shows two of the company cell's three lines in its 80pt row, the
-                // third hidden. The engine had drawn the overflow (ClipContent was Excel's alone).
-                var clip = cell.Properties.ClipOverflow || row.IsExactHeight;
+                // third hidden. Any other row grows to its content, so nothing runs out of its foot.
+                var clipVertically = cell.Properties.ClipOverflow || row.IsExactHeight;
 
                 // A vertical merge takes its top from the head, its bottom from its LAST cell and each
                 // row's stretch of its sides from that row's cell (TableLayout.MergeSegmentBorders).
@@ -3800,7 +3801,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, clip, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipHorizontally: cell.Properties.ClipOverflow));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, true, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipVertically: clipVertically));
 
                 if (sideSegments != null)
                 {

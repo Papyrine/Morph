@@ -712,13 +712,13 @@ static class ImageSharpPainter
             if (clipped)
             {
                 canvas.Save();
-                canvas.Clip(cell.ClipHorizontally
-                    ? new RectanglePolygon(
-                        P(context, cell.X - cell.ClipSpillLeft),
-                        P(context, cell.Y),
-                        P(context, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight),
-                        P(context, cell.Height))
-                    : new RectanglePolygon(-100000f, P(context, cell.Y), 200000f, P(context, cell.Height)));
+                var (clipX, clipWidth) = cell.ClipHorizontally
+                    ? (P(context, cell.X - cell.ClipSpillLeft), P(context, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight))
+                    : (-100000f, 200000f);
+                var (clipY, clipHeight) = cell.ClipVertically
+                    ? (P(context, cell.Y), P(context, cell.Height))
+                    : (-100000f, 200000f);
+                canvas.Clip(new RectanglePolygon(clipX, clipY, clipWidth, clipHeight));
             }
 
             foreach (var content in cell.Content)
