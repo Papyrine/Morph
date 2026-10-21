@@ -28,6 +28,8 @@
   <Project Path="Tests/Tests.csproj" />
   <Project Path="StaticSettingTests/StaticSettingTests.csproj" />
   <Project Path="Benchmarks/Benchmarks.csproj" />
+  <!-- Published trimmed and run by scripts/aot-smoke.sh; a plain build only compiles it. -->
+  <Project Path="AotSmoke/AotSmoke.csproj" />
   <!--
     The Blazor WASM converter app and its bUnit/Playwright tests. Like RenderHelper above, these are
     excluded from Release solution builds: the canonical rendering suite builds inside a linux/amd64

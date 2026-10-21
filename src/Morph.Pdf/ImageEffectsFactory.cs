@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 /// Locates an <see cref="IImageEffects"/> from an optional raster backend so the PDF engine can
 /// apply Word's blip effects — the Recolor transforms and <c>a:alphaModFix</c> transparency —
@@ -23,7 +25,7 @@ static class ImageEffectsFactory
         {
             if (!probed)
             {
-                cached = Load("Morph.Skia") ?? Load("Morph.ImageSharp");
+                cached = Load(Type.GetType("SkiaImageEffects, Morph.Skia")) ?? Load(Type.GetType("ImageSharpImageEffects, Morph.ImageSharp"));
                 probed = true;
             }
         }
@@ -31,26 +33,25 @@ static class ImageEffectsFactory
         return cached;
     }
 
-    static IImageEffects? Load(string assemblyName)
+    // The backend's type is named literally, which is what lets a trimmed or native AOT app keep it: the
+    // trimmer reads the name, keeps the type's constructors when its assembly is deployed (the
+    // annotation below), and leaves null for one that is not. Scanning the assembly's types, as this did,
+    // found nothing once trimming had removed them, which no build reported.
+    static IImageEffects? Load([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? type)
     {
+        if (type == null)
+        {
+            return null;
+        }
+
         try
         {
-            var assembly = Assembly.Load(assemblyName);
-            foreach (var type in assembly.GetTypes())
-            {
-                if (type is {IsAbstract: false, IsInterface: false} &&
-                    typeof(IImageEffects).IsAssignableFrom(type))
-                {
-                    return (IImageEffects?)Activator.CreateInstance(type, true);
-                }
-            }
+            return (IImageEffects?) Activator.CreateInstance(type, true);
         }
         catch
         {
-            // Assembly not deployed (FileNotFoundException), a load/reflection failure, or a
-            // missing parameterless constructor — treat as "no raster backend available".
+            // A load or construction failure: treat as "no backend available here".
+            return null;
         }
-
-        return null;
     }
 }
