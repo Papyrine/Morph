@@ -36,6 +36,22 @@ public class PrintRangeTests
     public async Task Wedding_budget_prints_its_print_area_of_columns_A_to_K() =>
         await Assert.That(Grid("wedding-budget-template").Properties.GridColumnWidths!.Count).IsEqualTo(11);
 
+    // A whole-column print area's rows run to the last cell that shows something. Excel fits
+    // wedding-budget-template to rows 1-69 (its last value; the 34 rows under it carry only fonts and
+    // number formats), and prints to-do-list's filled but empty task rows past its last task (row 11).
+    [Test]
+    public async Task A_whole_column_print_area_runs_down_to_the_last_cell_that_shows_something()
+    {
+        await Assert.That(Grid("wedding-budget-template").Rows.Count).IsEqualTo(69);
+        await Assert.That(Grid("to-do-list").Rows.Count).IsGreaterThan(11);
+    }
+
+    // An area naming cells prints all of them: the invoice's $A$1:$G$37 keeps column G, which holds
+    // nothing but a style.
+    [Test]
+    public async Task A_print_area_naming_cells_prints_every_one_of_them() =>
+        await Assert.That(Grid("simple-corporate-yellow-standard-invoice").Properties.GridColumnWidths!.Count).IsEqualTo(7);
+
     // back-to-school-planner's second sheet charts its table in a column chart that reaches eleven
     // rows past the table's last; the grid runs to the chart's foot, or the chart is cut off there.
     [Test]
