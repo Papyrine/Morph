@@ -59,7 +59,10 @@ static class ImageSharpPainter
             image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));
         }
 
-        pageCallback(image.SaveAsPng);
+        // PngWriter picks the smallest PNG form the page's pixels allow (see SkiaPainter.Write).
+        var pixels = new byte[image.Width * image.Height * 4];
+        image.CopyPixelDataTo(pixels);
+        pageCallback(_ => PngWriter.Write(_, pixels, image.Width, image.Height, image.Width * 4));
     }
 
     static float P(ImageSharpRenderContext context, double points) => context.PointsToPixels((float) points);

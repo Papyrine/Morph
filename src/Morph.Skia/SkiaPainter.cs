@@ -72,11 +72,12 @@ static class SkiaPainter
         Write(cropped, pageCallback);
     }
 
+    // A page is opaque (its background is painted first), so premultiplied pixels are its colours as
+    // they stand, and PngWriter picks the smallest PNG form they allow.
     static void Write(SKBitmap bitmap, Action<Action<Stream>> pageCallback)
     {
         using var pixmap = bitmap.PeekPixels();
-        using var data = pixmap.Encode(SKEncodedImageFormat.Png, 100)!;
-        pageCallback(data.SaveTo);
+        pageCallback(_ => PngWriter.Write(_, pixmap.GetPixelSpan(), pixmap.Width, pixmap.Height, pixmap.RowBytes));
     }
 
     // Points (the tree's unit) to device pixels (Skia's unit).
