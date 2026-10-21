@@ -14,16 +14,17 @@
 public abstract class ExcelConverter
 {
     /// <summary>Converts an XLSX file to PNG images saved to <paramref name="outputDirectory"/>.</summary>
-    public ConversionResult ConvertToImages(string xlsxPath, string outputDirectory, ImageExportOptions? options = null)
+    public ConversionResult ConvertToImages(string xlsxPath, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
         using var stream = File.OpenRead(xlsxPath);
-        return ConvertToImages(stream, outputDirectory, options);
+        return ConvertToImages(stream, outputDirectory, options, cancel);
     }
 
     /// <summary>Converts an XLSX stream to PNG images saved to <paramref name="outputDirectory"/>.</summary>
-    public ConversionResult ConvertToImages(Stream xlsxStream, string outputDirectory, ImageExportOptions? options = null)
+    public ConversionResult ConvertToImages(Stream xlsxStream, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
+        options = (options ?? new()) with { Cancellation = cancel };
+        cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
         var document = Parse(xlsxStream, options);
         return PageSink.ToDirectory(
@@ -32,16 +33,17 @@ public abstract class ExcelConverter
     }
 
     /// <summary>Converts an XLSX file to PNG image data in memory.</summary>
-    public IReadOnlyList<byte[]> ConvertToImageData(string xlsxPath, ImageExportOptions? options = null)
+    public IReadOnlyList<byte[]> ConvertToImageData(string xlsxPath, ImageExportOptions? options = null, Cancel cancel = default)
     {
         using var stream = File.OpenRead(xlsxPath);
-        return ConvertToImageData(stream, options);
+        return ConvertToImageData(stream, options, cancel);
     }
 
     /// <summary>Converts an XLSX stream to PNG image data in memory.</summary>
-    public IReadOnlyList<byte[]> ConvertToImageData(Stream xlsxStream, ImageExportOptions? options = null)
+    public IReadOnlyList<byte[]> ConvertToImageData(Stream xlsxStream, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
+        options = (options ?? new()) with { Cancellation = cancel };
+        cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 
         var document = Parse(xlsxStream, options);

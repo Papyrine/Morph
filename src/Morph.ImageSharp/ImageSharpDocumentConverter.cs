@@ -16,16 +16,27 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
     internal static int RenderPagesCounted(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
         var laidOut = Layout(document, options);
+        var cancel = options.Cancellation;
+        cancel.ThrowIfCancellationRequested();
+
+        // A page too large for the pixel budget paints at the highest resolution that fits it
+        // (ImageExportOptions.MaxPagePixels).
+        var painting = options with { Dpi = options.EffectiveDpi(laidOut.Pages.Select(_ => _.Settings)) };
         var settings = laidOut.ContextSettings(document.PageSettings);
         var parallelism = Math.Min(options.MaxDegreeOfParallelism, laidOut.Pages.Count);
         if (parallelism > 1)
         {
-            ParallelPages.Paint(laidOut.Pages, parallelism, () => CreateContext(document, options, settings), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback);
+            ParallelPages.Paint(laidOut.Pages, parallelism, () => CreateContext(document, painting, settings), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback, cancel);
             return laidOut.Pages.Count;
         }
 
-        using var context = CreateContext(document, options, settings);
-        ImageSharpPainter.Paint(laidOut, context, options.Crop, pageCallback);
+        using var context = CreateContext(document, painting, settings);
+        foreach (var page in laidOut.Pages)
+        {
+            cancel.ThrowIfCancellationRequested();
+            ImageSharpPainter.PaintPage(page, context, options.Crop, pageCallback);
+        }
+
         return laidOut.Pages.Count;
     }
 
