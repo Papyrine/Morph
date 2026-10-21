@@ -349,7 +349,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureLongestTokenWidth(ParagraphElement paragraph) =>
         longestTokenCache.GetOrAdd(
             paragraph,
-            static (key, measurer) => WidestLine(measurer.BuildWrap(key, minimumMeasure, buildItems: false)),
+            static (key, measurer) => WidestLine(measurer.BuildWrap(key, minimumMeasure, buildItems: false, splitOverlong: false)),
             this);
 
     // 1pt: narrow enough that no word fits beside another, so every word breaks onto its own line.
@@ -771,7 +771,79 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // buildItems false skips BuildLineItems and leaves every line's segments and images empty. A line's
     // WIDTH is the accumulated pen pixels, quantized in CommitLine below — BuildLineItems only positions
     // what the line already contains — so the widths a caller reads are identical either way.
-    IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems)
+    /// <summary>
+    /// A word wider than the line breaks where it overflows, as Word breaks it: the corpus layout
+    /// invariants (LayoutInvariantTests) caught business-plans/13's "Marketing/Advertising", 7.8pt wider
+    /// than its 90pt cell, running on into the next column where Word sets "Marketing/Advertis" and
+    /// "ing" on two lines. A piece wider than <paramref name="widthPoints"/> is cut into the longest
+    /// prefixes that fit, each after the first marked as a break opportunity, so the wrap sets them on
+    /// lines of their own. A piece no wider than the line is left alone, as is one that is not text.
+    /// </summary>
+    List<Piece> SplitOverlong(List<Piece> pieces, float widthPoints)
+    {
+        // The wrap's own fit test, tolerance and all: a column autofit sized to its longest word holds
+        // that word only within the tolerance, and must not see it split.
+        bool Fits(double pixels) => LinearPoints(pixels) <= widthPoints + fitTolerancePoints;
+
+        bool Overlong(Piece piece) =>
+            !piece.IsSpace && piece.Image == null && !piece.IsTab && !piece.IsInset && piece.Text.Length > 1 && !Fits(piece.Pixels + piece.FitPixels);
+
+        if (widthPoints <= 0 || !pieces.Exists(Overlong))
+        {
+            return pieces;
+        }
+
+        var result = new List<Piece>(pieces.Count + 4);
+        foreach (var piece in pieces)
+        {
+            if (!Overlong(piece) ||
+                resolveFont(piece.Properties.FontFamily, piece.Properties.Bold, piece.Properties.Italic) is not { } metrics)
+            {
+                result.Add(piece);
+                continue;
+            }
+
+            var size = VerticalRunPosition.RenderSizePoints(piece.Properties);
+            var scale = WidthScale(piece.Properties);
+            var tracking = piece.Properties.CharacterSpacingPoints;
+            double Width(string text) =>
+                CanonicalTextMeasurer.LinearPixels(metrics, text, size, scale, false) +
+                (tracking != 0 ? CanonicalTextMeasurer.PixelsFromPoints((float) (tracking * text.Length)) : 0);
+
+            var text = piece.Text;
+            var first = true;
+            while (text.Length > 0)
+            {
+                // The longest prefix that fits, of at least one character so the line always advances.
+                var take = text.Length;
+                while (take > 1 && !Fits(Width(text[..take])))
+                {
+                    take--;
+                }
+
+                if (char.IsHighSurrogate(text[take - 1]) && take < text.Length)
+                {
+                    take++;
+                }
+
+                var chunk = text[..take];
+                result.Add(piece with
+                {
+                    Text = chunk,
+                    Pixels = take == text.Length && first ? piece.Pixels : Width(chunk),
+                    BreaksBefore = first ? piece.BreaksBefore : true,
+                    FootnoteReferenceId = first ? piece.FootnoteReferenceId : null,
+                    EndnoteReferenceId = first ? piece.EndnoteReferenceId : null
+                });
+                text = text[take..];
+                first = false;
+            }
+        }
+
+        return result;
+    }
+
+    IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems, bool splitOverlong = true)
     {
         var pieces = Flatten(paragraph);
         var wrapWidth = maxWidth - (float) paragraph.Properties.LeftIndentPoints - (float) paragraph.Properties.RightIndentPoints;
@@ -787,6 +859,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             : wrapWidth
               - (float) paragraph.Properties.FirstLineIndentPoints
               + (float) paragraph.Properties.HangingIndentPoints;
+
+        // Not for the autofit minimum: Word sizes a column to its longest word whole, never to a piece of it.
+        if (splitOverlong)
+        {
+            pieces = SplitOverlong(pieces, Math.Min(wrapWidth, firstLineWidth));
+        }
 
         var lines = new List<WrapLine>();
         float LineWrapWidth()
