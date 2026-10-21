@@ -61,6 +61,9 @@ sealed class HtmlParser
     // cellpadding, border).
     const double pixelsToPoints = 0.75;
 
+    // A table's cellpadding attribute is the one pixel Word does not take at 0.75pt (ParseTable).
+    const double cellPaddingPixelsToPoints = 0.6;
+
     // The grey Word rules a legacy border="n" table with. Measured off a Word probe at 150 DPI:
     // each rule lays 120 units of ink over two anti-aliased pixel rows, which at 0.75pt is a solid
     // value of ~B2. Not black — that is a browser's rendering of the attribute, not Word's.
@@ -1657,6 +1660,18 @@ sealed class HtmlParser
                     };
                 }
 
+                // The cell's own font styling reaches its text: a <td style="font-size:36pt"> sets its
+                // text at 36pt in Word (_probe_cellsize), where only <span>s inside it had been read.
+                // Its background and colour are the cell's own fill and text colour above, not run
+                // shading.
+                if (cell.GetAttribute("style") is { Length: > 0 } fontStyle)
+                {
+                    var runStyles = ParseStyleAttribute(fontStyle)
+                        .Where(_ => _.Key is not ("background" or "background-color" or "color"))
+                        .Select(_ => $"{_.Key}:{_.Value}");
+                    cellRunProperties = ApplyStyleToRunProps(string.Join(";", runStyles), cellRunProperties);
+                }
+
                 // The cell's inline content keeps its own formatting (<b>, <i>, <span style>...)
                 // layered over the cell's run properties, rather than flattening to one run.
                 var cellRuns = ParseInlineElements(cell, cellRunProperties);
@@ -1665,16 +1680,17 @@ sealed class HtmlParser
                     cellElements.Add(
                         new ParagraphElement
                         {
-                            // A cell's paragraph keeps the model's 1.08 line: Word's rows stand further
-                            // apart than a single-spaced line and the cell padding account for
-                            // (html_table in src/todo.md), and until that is decomposed the looser line
-                            // is the nearer of the two.
-                            Properties = cellAlignment is { } alignment
-                                ? new()
-                                {
-                                    Alignment = alignment
-                                }
-                                : new(),
+                            // A cell's own paragraph is set on a 1.15 line with 8pt after it. Read off
+                            // Word's XPS (_probe_cellsize, cellpadding 0): two lines broken by <br> stand
+                            // 16.92pt apart, 1.15 of Calibri's 14.65pt line, and every cell holds 8.0 to
+                            // 8.3pt more than its lines at 12, 24 and 36pt text and at two lines alike
+                            // — space after the paragraph, not a taller line.
+                            Properties = new()
+                            {
+                                Alignment = cellAlignment ?? TextAlignment.Left,
+                                LineSpacingMultiplier = 1.15,
+                                SpacingAfterPoints = 8
+                            },
                             Runs = cellRuns
                         });
                 }
@@ -1761,9 +1777,19 @@ sealed class HtmlParser
         // from Word. html_complex is the whole of that evidence: correct 6pt padding measured
         // +0.015 AE per backend against the too-large 8pt. The pixel rule is right and the column
         // distribution is the compensating error; they have to land together.
-        if (cellPaddingPixels is { } pixels && !fillContainer)
+        //
+        // The rate is 0.6pt a pixel, a side, not the 0.75 every other pixel takes: read off Word's XPS
+        // (_probe_cellpad, two-row bordered tables at cellpadding 0 / 10 / 20 / 40) the row pitch is
+        // 26.52 / 38.55 / 50.52 / 74.52pt, 1.2pt per pixel, the cell text drops 6 / 12 / 24pt below
+        // the table's top, and the second column moves 12pt per 10px. A full-width table takes the
+        // rate vertically too — its rows are what html_complex's 35pt pitch is made of — and keeps
+        // its old horizontal footing for the column distribution described above.
+        if (cellPaddingPixels is { } pixels)
         {
-            defaultCellPadding = new(pixels * pixelsToPoints);
+            var points = pixels * cellPaddingPixelsToPoints;
+            defaultCellPadding = fillContainer
+                ? new(points, pixels)
+                : new(points);
         }
 
         // Detached spacing insets the outer cell's box by 2 × spacing from the frame, and the

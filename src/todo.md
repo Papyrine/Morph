@@ -171,7 +171,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_complex
 
-- MEDIUM | all | p1,p2 | everything under the data table sits about 31pt high of Word's: the table's rows stand 32.6pt apart against Word's 35.4 (the cell-paragraph spacing of html_table), and the "3. Lists" heading opens 20pt closer to the table than Word's, whose headings keep their space above after a table. Page 1 so takes the "5. Styled Boxes" heading that opens Word's page 2. The intro wraps as Word's since 2026-10-11
+- MEDIUM | all | p1,p2 | the "3. Lists" heading opens 20pt closer to the data table than Word's, whose headings keep their space above after a table, so everything under it sits high. The table's rows are Word's since 2026-10-21 (35.20pt against 35.28, `docs/html-import.md`, Cell paragraph spacing); the intro wraps as Word's since 2026-10-11
 
 ### html_css_alignment
 
@@ -188,7 +188,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_table
 
-- MEDIUM | all | p1 | Table rows far more compact than Word: row pitch against Word's 58-59px at 150 DPI on identical ~17px text — the missing ~14pt/row cell-paragraph after-spacing, which is not flat (attempted twice and reverted; the `_probe_cellpad_sweep` data to model it from is in `docs/html-import.md`, Known gaps)
+- MINOR | all | p1 | rows stand 26.35pt apart against Word's 28.08 (read off its XPS): the cell-paragraph spacing is Word's since 2026-10-21, and this table, with no `cellpadding` or `border` attribute, is 1.7pt a row short of the rest — HTML's default 1px padding is the likeliest cause, unprobed (`docs/html-import.md`, Known gaps)
 
 ### html_table_cell_margin_css
 
