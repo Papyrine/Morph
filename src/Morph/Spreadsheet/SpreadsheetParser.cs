@@ -153,7 +153,7 @@ sealed class SpreadsheetParser(
             {
                 settings = PageSettingsFor(worksheet, useLetterPageSize);
 
-                var range = ResolveRange(worksheetPart, worksheet, definedNames.PrintArea(name));
+                var range = ResolveRange(worksheetPart, worksheet, definedNames.PrintArea(name), styles);
                 if (range is not { } printed || printed.IsEmpty)
                 {
                     continue;
@@ -240,7 +240,7 @@ sealed class SpreadsheetParser(
     /// The range to render: the sheet's declared print area when it has one, clipped to the cells
     /// that actually exist, else the used range from <c>dimension</c>.
     /// </summary>
-    static SheetRange? ResolveRange(WorksheetPart? worksheetPart, S.Worksheet worksheet, string? printArea)
+    static SheetRange? ResolveRange(WorksheetPart? worksheetPart, S.Worksheet worksheet, string? printArea, CellStyles? styles)
     {
         // dimension is a HINT, not a measurement: Excel writes the range it last tracked, keeping
         // columns and rows whose content has since gone, and it prints neither. Intersecting it with
@@ -267,6 +267,27 @@ sealed class SpreadsheetParser(
 
         if (CellReference.ParseArea(printArea) is { } area)
         {
+            // A print area of whole columns leaves its rows to Excel, and Excel prints them down to the
+            // last cell that SHOWS something — a value, a formula, a fill or a border — not to the last
+            // that merely carries a style. wedding-budget-template's $A:$K styles 34 empty rows under its
+            // last table with fonts and number formats alone, and Excel fits only down to the table
+            // (rows 1-69 at 42%, against 32% for all 103); to-do-list's $A:$M prints its filled but empty
+            // task rows past the last task. Whole rows leave the columns to Excel the same way. An area
+            // naming cells prints exactly those, blank or not: the invoices' $A$1:$G$37 keeps column G,
+            // which holds nothing but a style.
+            var openRows = area is { FirstRow: 1, LastRow: CellReference.MaxRow };
+            var openColumns = area is { FirstColumn: 1, LastColumn: CellReference.MaxColumn };
+            if ((openRows || openColumns) &&
+                ShownRange(worksheet, styles) is { } shown)
+            {
+                shown = ExtendForDrawings(worksheetPart, shown);
+                bounds = bounds with
+                {
+                    LastRow = openRows ? shown.LastRow : bounds.LastRow,
+                    LastColumn = openColumns ? shown.LastColumn : bounds.LastColumn
+                };
+            }
+
             var clipped = area.Intersect(bounds);
             if (clipped.IsEmpty)
             {
@@ -337,7 +358,7 @@ sealed class SpreadsheetParser(
             worksheet.AppendChild(new S.SheetData());
         }
 
-        var used = ResolveRange(worksheetPart, worksheet, null);
+        var used = ResolveRange(worksheetPart, worksheet, null, null);
         if (used is not { IsEmpty: false } bounds)
         {
             bounds = new(1, 1, 1, 1);
@@ -522,6 +543,56 @@ sealed class SpreadsheetParser(
                 cell.CellReference = CellReference.Format(column, row);
             }
         }
+    }
+
+    // The cells that put something on the page — a value, a formula, a fill or a border of their own —
+    // as a range; null when none do or no styles are to hand. What a whole-column print area's rows
+    // run to (ResolveRange).
+    static SheetRange? ShownRange(S.Worksheet worksheet, CellStyles? styles)
+    {
+        if (styles == null ||
+            worksheet.GetFirstChild<S.SheetData>() is not { } sheetData)
+        {
+            return null;
+        }
+
+        int firstRow = int.MaxValue, lastRow = 0, firstColumn = int.MaxValue, lastColumn = 0;
+        foreach (var row in sheetData.Elements<S.Row>())
+        {
+            foreach (var cell in row.Elements<S.Cell>())
+            {
+                var column = CellReference.ColumnOf(cell.CellReference?.Value);
+                var index = CellReference.RowOf(cell.CellReference?.Value);
+                if (column == 0 || index == 0)
+                {
+                    continue;
+                }
+
+                var shows = cell.CellValue != null || cell.InlineString != null || cell.CellFormula != null;
+                if (!shows)
+                {
+                    var style = styles.Resolve(cell.StyleIndex?.Value ?? 0);
+                    shows = style.BackgroundColorHex != null || style.Borders.HasAnyBorder;
+                }
+
+                if (!shows)
+                {
+                    continue;
+                }
+
+                firstRow = Math.Min(firstRow, index);
+                lastRow = Math.Max(lastRow, index);
+                firstColumn = Math.Min(firstColumn, column);
+                lastColumn = Math.Max(lastColumn, column);
+            }
+        }
+
+        if (lastRow == 0)
+        {
+            return null;
+        }
+
+        return new SheetRange(firstRow, firstColumn, lastRow, lastColumn);
     }
 
     static SheetRange? UsedRange(S.Worksheet worksheet)
