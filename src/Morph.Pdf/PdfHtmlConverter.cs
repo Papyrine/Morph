@@ -23,6 +23,6 @@ public sealed class PdfHtmlConverter
             },
             Elements = elements
         };
-        return PdfRenderer.Render(document, options);
+        return PdfRenderer.Render(document, options, cancel);
     }
 }

@@ -47,6 +47,40 @@ public class CancellationAndLimitTests
             .Throws<OperationCanceledException>();
 
     [Test]
+    public async Task A_cancelled_word_pdf_conversion_stops() =>
+        await Assert.That(() => PdfDocumentConverter.ConvertToPdf(Input("word", "business-plans/13"), new() { FontDirectory = fonts }, Cancelled()))
+            .Throws<OperationCanceledException>();
+
+    [Test]
+    public async Task A_cancelled_excel_pdf_conversion_stops() =>
+        await Assert.That(() => PdfExcelConverter.ConvertToPdf(Input("excel", "personal-budget"), new() { FontDirectory = fonts }, Cancelled()))
+            .Throws<OperationCanceledException>();
+
+    [Test]
+    public async Task A_cancelled_powerpoint_pdf_conversion_stops()
+    {
+        var deck = Directory.GetFiles(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "powerpoint"), "input.pptx", SearchOption.AllDirectories).Order().First();
+
+        await Assert.That(() => PdfPowerPointConverter.ConvertToPdf(deck, new() { FontDirectory = fonts }, Cancelled()))
+            .Throws<OperationCanceledException>();
+    }
+
+    [Test]
+    public async Task A_cancelled_html_pdf_conversion_stops() =>
+        await Assert.That(async () => await PdfHtmlConverter.ConvertToPdf("<p>Hello</p>", new() { FontDirectory = fonts }, Cancelled()))
+            .Throws<OperationCanceledException>();
+
+    // A parsed document's export checks the token itself, since no parse stands before it.
+    [Test]
+    public async Task A_cancelled_pdf_export_of_a_parsed_document_stops()
+    {
+        var document = new WordDocument(Input("word", "complex_tables"));
+
+        await Assert.That(() => document.ExportToPdf(new() { FontDirectory = fonts }, Cancelled()))
+            .Throws<OperationCanceledException>();
+    }
+
+    [Test]
     public async Task An_ordinary_page_paints_at_the_resolution_asked_for()
     {
         var a4 = new PageSettings { WidthPoints = 595, HeightPoints = 842 };
