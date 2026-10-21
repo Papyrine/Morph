@@ -58,10 +58,12 @@ static class PdfPainter
         LaidOutDocument document,
         PdfRenderContext context,
         bool rasterizeWordArt = true,
-        Action<ExportWarning>? onWarning = null)
+        Action<ExportWarning>? onWarning = null,
+        Cancel cancel = default)
     {
         foreach (var laidOutPage in document.Pages)
         {
+            cancel.ThrowIfCancellationRequested();
             var page = context.Document.AddPage();
             page.Width = XUnit.FromPoint(laidOutPage.Settings.WidthPoints);
             page.Height = XUnit.FromPoint(laidOutPage.Settings.HeightPoints);
