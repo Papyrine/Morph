@@ -361,7 +361,61 @@ public partial class SnapshotTests
         await HandInAsync(page);
 
         await Assert.That(Read(await SaveAsync(page))[2]).IsEqualTo("[Third and last. Really!] #Heading1");
-        await Assert.That(await page.InnerTextAsync(".editor-style-name")).IsEqualTo("Heading 1");
+        await Assert.That(await page.InnerTextAsync(".editor-gallery-item[aria-selected=true]")).IsEqualTo("Heading 1");
+    }
+
+    // Word's Show/Hide ¶ (Ctrl+Shift+8): a pilcrow at each paragraph's end and a dot for each space, drawn
+    // over the pages without touching the text the layer selects and copies.
+    [Test]
+    public async Task Edit_FormattingMarks_ShowAndHide()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+        await ClickInAsync(page, "and last");
+
+        await page.Keyboard.PressAsync("Control+Shift+Digit8");
+        await page.WaitForSelectorAsync(".text-mark-end");
+
+        var marks = await page.EvaluateAsync<string[]>("() => [...document.querySelectorAll('.viewer-page[data-page-number=\"1\"] .text-mark')].map(_ => _.dataset.m)");
+        await Assert.That(marks.Count(_ => _ == "¶")).IsEqualTo(3);
+        await Assert.That(marks.Count(_ => _ == "·")).IsEqualTo(6);
+        await Assert.That(await LayerTextAsync(page)).DoesNotContain("¶");
+
+        await page.ClickAsync("[aria-label='Show/Hide formatting marks']");
+        await page.WaitForSelectorAsync(".text-mark", new() { State = WaitForSelectorState.Detached });
+    }
+
+    // The ribbon's Clipboard group, in a browser that lets the page at the clipboard: Copy takes what is
+    // selected in the paragraph being typed, and Paste puts it at the caret.
+    [Test]
+    public async Task Edit_CopyAndPaste_FromTheRibbon()
+    {
+        await using var context = await browser!.NewContextAsync(
+            new()
+            {
+                Permissions = ["clipboard-read", "clipboard-write"]
+            });
+        var page = await context.NewPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Shift+Home");
+        await page.ClickAsync("[data-edit-command=copy]");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.TypeAsync(" ");
+        await page.ClickAsync("[data-edit-command=paste]");
+        await page.WaitForFunctionAsync(
+            "() => document.querySelector('.edit-box')?.innerText.includes('Third and last. Third and last.')",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await HandInAsync(page);
+
+        await Assert.That(string.Concat(Read(await SaveAsync(page))[2].Split('[', ']'))).StartsWith("Third and last. Third and last.");
     }
 
     [Test]

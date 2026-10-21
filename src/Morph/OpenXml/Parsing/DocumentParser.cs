@@ -13463,6 +13463,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             UnderlineColorHex = underlineColorHex,
             UnderlineStyle = underlineStyle,
             DoubleStrikethrough = doubleStrikethrough,
+            DirectUnderline = underlineElement?.Val?.InnerText,
+            DirectDoubleStrikethrough = doubleStrikeElement?.IsOn() == true ? true : null,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
             SmallCaps = smallCaps,
