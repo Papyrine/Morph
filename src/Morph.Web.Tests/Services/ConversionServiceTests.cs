@@ -238,6 +238,33 @@ public class ConversionServiceTests
         await Assert.That(Encoding.ASCII.GetString(payload.Bytes, 0, 5)).IsEqualTo("%PDF-");
     }
 
+    // A converter replaced by another file, or a component disposed, cancels its work rather than
+    // finishing a conversion nobody will see.
+    [Test]
+    [Arguments(OutputFormat.Png)]
+    [Arguments(OutputFormat.Pdf)]
+    [Arguments(OutputFormat.Html)]
+    [Arguments(OutputFormat.Markdown)]
+    [Arguments(OutputFormat.Text)]
+    public async Task BuildDownload_StopsWhenCancelled(OutputFormat format)
+    {
+        using var source = new CancellationTokenSource();
+        await source.CancelAsync();
+
+        await Assert.That(() => ConversionService.BuildDownload(Sample.DocxBytes, InputFormat.Docx, format, new() { Dpi = 96 }, Sample.FontDirectory, source.Token))
+            .Throws<OperationCanceledException>();
+    }
+
+    [Test]
+    public async Task RenderPages_StopsWhenCancelled()
+    {
+        using var source = new CancellationTokenSource();
+        await source.CancelAsync();
+
+        await Assert.That(() => ConversionService.RenderPages(Sample.DocxBytes, InputFormat.Docx, 96, Sample.FontDirectory, source.Token))
+            .Throws<OperationCanceledException>();
+    }
+
     static int Width(byte[] png) =>
         (png[16] << 24) | (png[17] << 16) | (png[18] << 8) | png[19];
 }

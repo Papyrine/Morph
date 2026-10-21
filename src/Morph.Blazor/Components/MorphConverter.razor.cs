@@ -83,6 +83,12 @@ public partial class MorphConverter : IDisposable
     readonly Dictionary<OutputFormat, ResultPreview> resultCache = new();
     DotNetObjectReference<MorphConverter>? selfReference;
 
+    // The work done for the loaded source: cancelled when another source replaces it and when the
+    // component goes, so a server-hosted converter stops rendering for a file nobody will see. (On the
+    // single-threaded WebAssembly runtime a render holds the thread, so it cannot be cancelled midway;
+    // a conversion still queued behind it is.)
+    CancellationTokenSource work = new();
+
     FormatInfo? TargetInfo => ConversionService.Find(target);
 
     string RootClass
@@ -163,6 +169,7 @@ public partial class MorphConverter : IDisposable
     async Task OnFileSelected(InputFileChangeEventArgs args)
     {
         await ResetAsync();
+        var cancel = work.Token;
 
         var file = args.File;
         sourceName = file.Name;
@@ -190,6 +197,10 @@ public partial class MorphConverter : IDisposable
             await RenderPreviewAsync();
             await EnsureResultPreviewAsync();
         }
+        catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+        {
+            // Replaced by another source, whose state is not this load's to touch.
+        }
         catch (Exception exception)
         {
             ReportError($"Could not read the {detected.DisplayName}", exception);
@@ -206,16 +217,21 @@ public partial class MorphConverter : IDisposable
     async Task LoadSample(InputFormatInfo info)
     {
         await ResetAsync();
+        var cancel = work.Token;
         sourceInfo = info;
         sourceName = info.SampleFileName;
 
         try
         {
             BeginPhase($"Downloading sample {info.DisplayName}…");
-            sourceBytes = await Http.GetByteArrayAsync(info.SampleAsset);
+            sourceBytes = await Http.GetByteArrayAsync(info.SampleAsset, cancel);
 
             await RenderPreviewAsync();
             await EnsureResultPreviewAsync();
+        }
+        catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+        {
+            // Replaced by another source, whose state is not this load's to touch.
         }
         catch (Exception exception)
         {
@@ -248,7 +264,8 @@ public partial class MorphConverter : IDisposable
             // Rendering needs the bundled fonts materialised into the in-memory filesystem first.
             var fontDirectory = await FontStore.EnsureAsync(Http);
             var dpi = PreviewDpi;
-            var (pages, layers) = await Task.Run(() => RenderPreview(bytes, info.Format, dpi, fontDirectory));
+            var cancel = work.Token;
+            var (pages, layers) = await Task.Run(() => RenderPreview(bytes, info.Format, dpi, fontDirectory, cancel), cancel);
             previewPages = pages;
             previewLayers = layers;
             pageCount = pages.Count;
@@ -263,9 +280,9 @@ public partial class MorphConverter : IDisposable
 
     // Each page comes with its selectable text, from the same single layout pass the images are painted
     // from, so the overlay sits exactly on the drawn text.
-    static (List<string> Pages, List<PageTextLayer> Layers) RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
+    static (List<string> Pages, List<PageTextLayer> Layers) RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory, Cancel cancel)
     {
-        var pages = ConversionService.RenderPages(bytes, source, dpi, fontDirectory);
+        var pages = ConversionService.RenderPages(bytes, source, dpi, fontDirectory, cancel);
         var urls = new List<string>(pages.Count);
         var layers = new List<PageTextLayer>(pages.Count);
         foreach (var page in pages)
@@ -313,10 +330,11 @@ public partial class MorphConverter : IDisposable
 
             isConvertingResult = true;
             BeginPhase($"Converting to {info.DisplayName}…");
+            var cancel = work.Token;
             try
             {
                 var fontDirectory = await FontStore.EnsureAsync(Http);
-                var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory));
+                var payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory, cancel), cancel);
                 var converted = await BuildResultPreviewAsync(info.Format, payload);
 
                 // The awaits above can interleave with a new upload (the file input stays active); a result
@@ -332,6 +350,10 @@ public partial class MorphConverter : IDisposable
                 {
                     result = converted;
                 }
+            }
+            catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+            {
+                return;
             }
             catch (Exception exception)
             {
@@ -400,6 +422,7 @@ public partial class MorphConverter : IDisposable
         }
 
         BeginPhase(target == OutputFormat.Png ? "Rendering image…" : $"Converting to {info.DisplayName}…");
+        var cancel = work.Token;
         try
         {
             DownloadPayload payload;
@@ -414,11 +437,15 @@ public partial class MorphConverter : IDisposable
                 // in-memory filesystem here — the text ones because a workbook's column widths are a
                 // multiple of its body font's widest digit.
                 var fontDirectory = await FontStore.EnsureAsync(Http);
-                payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory));
+                payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory, cancel), cancel);
             }
 
             var baseName = Path.GetFileNameWithoutExtension(sourceName) ?? "document";
             await Interop.DownloadAsync($"{baseName}{payload.Extension}", payload.ContentType, payload.Bytes);
+        }
+        catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+        {
+            // The source was replaced, or the component went, before the download was ready.
         }
         catch (Exception exception)
         {
@@ -438,6 +465,10 @@ public partial class MorphConverter : IDisposable
 
     async Task ResetAsync()
     {
+        await work.CancelAsync();
+        work.Dispose();
+        work = new();
+
         errorMessage = null;
         issueUrl = null;
         sourceName = null;
@@ -460,9 +491,16 @@ public partial class MorphConverter : IDisposable
         resultCache.Clear();
     }
 
-    /// <summary>Releases the reference JavaScript holds for the viewport watcher.</summary>
-    public void Dispose() =>
+    /// <summary>
+    /// Stops any conversion still running for the loaded source, and releases the reference JavaScript
+    /// holds for the viewport watcher.
+    /// </summary>
+    public void Dispose()
+    {
+        work.Cancel();
+        work.Dispose();
         selfReference?.Dispose();
+    }
 
     // One converted output, ready for the result pane: the exact bytes a download would produce, plus
     // either the text to show inline (Markdown, plain text) or the blob URL an <iframe> loads (PDF, HTML).
