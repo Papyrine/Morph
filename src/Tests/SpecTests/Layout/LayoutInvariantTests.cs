@@ -1,6 +1,6 @@
 /// <summary>
 /// Geometry every laid-out Word scenario must keep, whatever Word's reference looks like: no body text
-/// off the page, no text escaping a cell that does not clip, and no two body paragraphs' lines drawn
+/// off the page, no text set past the sides of its cell, and no two body paragraphs' lines drawn
 /// over each other. Each is a bug a reference comparison can miss — a few stray pixels against a whole
 /// page — and the first sweep found one: business-plans/13's "Marketing/Advertising", a word wider
 /// than its cell, ran on into the next column where Word breaks it mid-word.
@@ -51,11 +51,13 @@ public class LayoutInvariantTests
 
                 if (item is PlacedTableRow row)
                 {
-                    foreach (var cell in row.Cells.Where(_ => !_.ClipContent))
+                    // Word cuts a cell's content at its sides, so a run past them is text the reader
+                    // never sees, not merely ink over the neighbour.
+                    foreach (var cell in row.Cells)
                     {
                         foreach (var run in cell.Content.OfType<PlacedLine>().SelectMany(Inked))
                         {
-                            if (run.X < cell.X - tolerance || run.X + run.Width > cell.X + cell.Width + tolerance)
+                            if (run.X < cell.X - cell.ClipSpillLeft - tolerance || run.X + run.Width > cell.X + cell.Width + cell.ClipSpillRight + tolerance)
                             {
                                 violations.Add($"page {page.Number}: '{run.Text}' at {run.X:F1}..{run.X + run.Width:F1} escapes its cell at {cell.X:F1}..{cell.X + cell.Width:F1}");
                             }

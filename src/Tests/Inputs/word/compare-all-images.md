@@ -3812,7 +3812,7 @@ every other style is placed against those exactly as Word places it against the 
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.5392 · SSIM: 0.5548** | **Page 1. ErrorMetric: 0.5433 · SSIM: 0.5585** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.5180 · SSIM: 0.8349** | **Page 1. ErrorMetric: 0.5262 · SSIM: 0.8295** |
 | <img src="wedding/01/expected_0001.png" width="500"> | <img src="wedding/01/skia_result%23page_0001.verified.png" width="500"> | <img src="wedding/01/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## wedding/02
