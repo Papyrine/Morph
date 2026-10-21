@@ -190,7 +190,18 @@ static class SkiaPainter
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+            // w:w stretches the run about its own start, glyphs and advances alike, as Word's XPS draws it.
+            if (properties.CharacterScalePercent != 100)
+            {
+                canvas.Save();
+                canvas.Scale((float) (properties.CharacterScalePercent / 100), 1, P(context, run.X), 0);
+                DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+                canvas.Restore();
+            }
+            else
+            {
+                DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+            }
 
             if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {

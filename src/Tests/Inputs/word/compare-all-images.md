@@ -1,4 +1,4 @@
-# All scenarios (342)
+# All scenarios (344)
 
 <details>
 <summary>Contents</summary>
@@ -77,6 +77,7 @@
 - [cards/16](#cards16)
 - [cards/18](#cards18)
 - [cards/19](#cards19)
+- [character_scale](#character_scale)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -120,6 +121,7 @@
 - [feature_capture/01](#feature_capture01)
 - [field_codes_simple/01](#field_codes_simple01)
 - [first_line_indent](#first_line_indent)
+- [font_alignment](#font_alignment)
 - [font_families](#font_families)
 - [font_sizes](#font_sizes)
 - [footer](#footer)
@@ -1166,6 +1168,33 @@ scenario as a regression, measure that instead. (The fixture was rebuilt with fa
 | **Page 4**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 4. ErrorMetric: 0.0701 · SSIM: 0.9123** | **Page 4. ErrorMetric: 0.0739 · SSIM: 0.9046** |
 | <img src="cards/19/expected_0004.png" width="500"> | <img src="cards/19/skia_result%23page_0004.verified.png" width="500"> | <img src="cards/19/imagesharp_result%23page_0004.verified.png" width="500"> |
 
+## character_scale
+
+Pins `w:w` — a run's characters stretched or condensed horizontally.
+
+Six one-line paragraphs of `HHHH` at 24pt Arial under `w:w` 100, 50, 66, 150, 200 and 300,
+each followed by an unscaled `|` that shows where the scaled run's advance ends; then a sentence
+repeated to three lines at 12pt under 50% and 200%, to show the scale moving the line breaks.
+
+Read from Word's XPS:
+
+* A scaled run is drawn under a pure horizontal scale matrix about its own origin — `0.5,0,0,1`
+  at 50%, `2,0,0,1` at 200%, `3,0,0,1` at 300% — so glyph outlines and advances scale together
+  and heights do not. 66% draws at 0.65909, the em rounded onto Word's pixel grid; the layout
+  takes the declared percent.
+* Line heights are unchanged by the scale.
+* The sentence breaks where its scaled widths say: three long lines at 50%, five short ones at
+  200%.
+
+Morph measures each run's advances at the scale (`RunProperties.CharacterScalePercent`, through
+the measurer's width scale) and every painter draws it under the same x-scale about the run's
+start. Before this fixture `w:w` was not read.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="character_scale/expected_0001.png" width="500"> |  |  |
+
 ## colored_text
 
 | Expected (Word) | Skia | ImageSharp |
@@ -1701,6 +1730,37 @@ Use this scenario to verify per-level bullet font + glyph fidelity.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0110 · SSIM: 0.9819** | **Page 1. ErrorMetric: 0.0110 · SSIM: 0.9814** |
 | <img src="first_line_indent/expected_0001.png" width="500"> | <img src="first_line_indent/skia_result%23page_0001.verified.png" width="500"> | <img src="first_line_indent/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## font_alignment
+
+Pins `w:textAlignment` — where a line's smaller runs sit against its largest.
+
+Each paragraph sets a small `Hx` beside a large one under `baseline`, `top`, `center` and
+`bottom`, at two size pairs (6pt/24pt and 8pt/40pt) in two faces (Arial, Times New Roman).
+
+Read from Word's XPS as the small run's baseline less the large run's, as a fraction of how much
+smaller the small run is:
+
+| alignment | Arial 6/24 | Arial 8/40 | Times 6/24 | Times 8/40 |
+| --- | --- | --- | --- | --- |
+| baseline | 0 | 0 | 0 | 0 |
+| top | up 0.887 | up 0.904 | up 0.900 | up 0.889 |
+| center | up 0.333 | up 0.345 | up 0.340 | up 0.341 |
+| bottom | down 0.113 | down 0.105 | down 0.107 | down 0.105 |
+
+The fractions agree within 0.015 across two faces whose ascents differ widely (Arial 0.905,
+Times New Roman 0.891 of the em with very different internal leading), so Word places the runs on
+their em boxes rather than by the faces' metrics; top and bottom sum to one em. Morph moves each
+run by 0.895, 0.34 and -0.105 of its difference from the line's largest
+(`CanonicalParagraphMeasurer.AlignToLargest`). The line keeps its height. Before this fixture
+`w:textAlignment` was not read.
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="font_alignment/expected_0001.png" width="500"> |  |  |
+| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
+| <img src="font_alignment/expected_0002.png" width="500"> |  |  |
 
 ## font_families
 

@@ -4,6 +4,9 @@
 sealed record ParagraphProperties
 {
     public TextAlignment Alignment { get; init; } = TextAlignment.Left;
+
+    /// <summary><c>w:textAlignment</c>: where the line's smaller runs sit against its largest.</summary>
+    public FontAlignment FontAlignment { get; init; }
     public double SpacingBeforePoints { get; init; }
     // OpenXML default when not specified
     public double SpacingAfterPoints { get; init; }

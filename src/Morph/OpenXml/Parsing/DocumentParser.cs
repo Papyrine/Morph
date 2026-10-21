@@ -1467,6 +1467,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var color = baseProps?.ColorHex ?? defaultRunColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
+                var characterScale = baseProps?.CharacterScalePercent ?? 100;
 
                 // The kerning threshold comes down the chain like the rest. Leaving it off the style
                 // measured every run that takes its properties from a style UNKERNED, whatever the
@@ -1493,6 +1494,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         ColorHex = color,
                         BackgroundColorHex = backgroundColor,
                         CharacterSpacingPoints = characterSpacing,
+                        CharacterScalePercent = characterScale,
                         KerningMinFontSizePoints = kerningMinFontSize
                     };
                     processed.Add(styleId);
@@ -1586,6 +1588,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
                 }
 
+                // Character scale (w:w in rPr), a percent of the glyphs' width.
+                if (CharacterScaleOf(runProps.GetFirstChild<CharacterScale>()) is { } styleScale)
+                {
+                    characterScale = styleScale;
+                }
+
                 // Kerning threshold (w:kern in rPr); w:val="0" switches it off for this style.
                 if (DeclaredKerningMinPoints(runProps) is { } declaredKerning)
                 {
@@ -1633,6 +1641,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     ColorHex = color,
                     BackgroundColorHex = backgroundColor,
                     CharacterSpacingPoints = characterSpacing,
+                    CharacterScalePercent = characterScale,
                     KerningMinFontSizePoints = kerningMinFontSize
                 };
                 processed.Add(styleId);
@@ -1915,7 +1924,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         DefaultTabStopPoints = defaultTabStopPoints,
                         Frame = baseProps?.Frame,
                         PageBreakBefore = pageBreakBefore,
-                        SnapToGrid = baseProps?.SnapToGrid ?? true
+                        SnapToGrid = baseProps?.SnapToGrid ?? true,
+                        FontAlignment = baseProps?.FontAlignment ?? FontAlignment.Baseline
                     };
                     processed.Add(styleId);
                     continue;
@@ -2144,7 +2154,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     DefaultTabStopPoints = defaultTabStopPoints,
                     Frame = frame,
                     PageBreakBefore = pageBreakBefore,
-                    SnapToGrid = paraProps.GetFirstChild<SnapToGrid>() is { } styleSnap ? styleSnap.IsOn() : baseProps?.SnapToGrid ?? true
+                    SnapToGrid = paraProps.GetFirstChild<SnapToGrid>() is { } styleSnap ? styleSnap.IsOn() : baseProps?.SnapToGrid ?? true,
+                    FontAlignment = FontAlignmentOf(paraProps.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TextAlignment>()) ?? baseProps?.FontAlignment ?? FontAlignment.Baseline
                 };
                 processed.Add(styleId);
             }
@@ -3622,6 +3633,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return lines.Value / 100.0 * line;
     }
 
+    // w:w as a percent, within the 1-600 the schema allows; null when absent or unreadable.
+    static double? CharacterScaleOf(CharacterScale? scale)
+    {
+        if (scale?.Val?.Value is not { } percent || percent <= 0)
+        {
+            return null;
+        }
+
+        return Math.Clamp(percent, 1, 600);
+    }
+
     // w:u/@w:val as the style it draws in (TextDecorations); a value Word has and Morph does not, or
     // none at all, draws single.
     static UnderlineStyle UnderlineStyleOf(Underline underline)
@@ -3654,6 +3676,34 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         [UnderlineValues.WavyHeavy] = UnderlineStyle.WavyHeavy,
         [UnderlineValues.WavyDouble] = UnderlineStyle.WavyDouble
     };
+
+    // w:textAlignment as the vertical placement of a line's smaller runs; null when absent. Auto is the
+    // baseline for horizontal text.
+    static FontAlignment? FontAlignmentOf(DocumentFormat.OpenXml.Wordprocessing.TextAlignment? alignment)
+    {
+        var value = alignment?.Val?.Value;
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (value == VerticalTextAlignmentValues.Top)
+        {
+            return FontAlignment.Top;
+        }
+
+        if (value == VerticalTextAlignmentValues.Center)
+        {
+            return FontAlignment.Center;
+        }
+
+        if (value == VerticalTextAlignmentValues.Bottom)
+        {
+            return FontAlignment.Bottom;
+        }
+
+        return FontAlignment.Baseline;
+    }
 
     // w:lvl/w:suff — what follows a list marker; absent is a tab (ECMA-376 §17.9.29).
     static ListMarkerSuffix MarkerSuffix(Level level)
@@ -11984,6 +12034,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
         var snapToGrid = props.GetFirstChild<SnapToGrid>() is { } snapElement ? snapElement.IsOn() : styleDefaults?.SnapToGrid ?? true;
+        var fontAlignment = FontAlignmentOf(props.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TextAlignment>()) ?? styleDefaults?.FontAlignment ?? FontAlignment.Baseline;
 
         // A mirror paragraph keeps its declared indents in the model. Which side each indent lands
         // on is a PAGE-PARITY question the Fragmenter answers at placement (Word-measured,
@@ -12188,6 +12239,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             IsRightToLeft = paraRtl,
             MirrorIndents = mirrorIndents,
             SnapToGrid = snapToGrid,
+            FontAlignment = fontAlignment,
             GridLinePitchPoints = snapToGrid && SnapsToGrid(paragraph) ? documentGridPitchPoints : 0
         };
     }
@@ -12843,6 +12895,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var backgroundColor = styleDefaults?.BackgroundColorHex;
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
         var characterSpacing = styleDefaults?.CharacterSpacingPoints ?? 0.0;
+        var characterScale = styleDefaults?.CharacterScalePercent ?? 100;
 
         // Override with inline properties if specified. One pass over the children replaces
         // ~35 GetFirstChild probes (each restarts at FirstChild and rescans the siblings);
@@ -12857,6 +12910,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         Caps? capsElement = null;
         SmallCaps? smallCapsElement = null;
         Spacing? spacingElement = null;
+        CharacterScale? characterScaleElement = null;
         Kern? kernElement = null;
         DocumentFormat.OpenXml.Office2010.Word.Ligatures? ligaturesElement = null;
         RightToLeftText? rtlElement = null;
@@ -12912,6 +12966,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     break;
                 case Spacing element:
                     spacingElement ??= element;
+                    break;
+                case CharacterScale element:
+                    characterScaleElement ??= element;
                     break;
                 case Kern element:
                     kernElement ??= element;
@@ -13047,6 +13104,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacingElement?.Val?.HasValue == true)
         {
             characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
+        }
+
+        if (CharacterScaleOf(characterScaleElement) is { } directScale)
+        {
+            characterScale = directScale;
         }
 
         // Kerning threshold (w:kern in rPr — half-points; 0 disables). An absent inline kern leaves
@@ -13216,6 +13278,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
             }
 
+            if (characterScaleElement == null && originalRPr?.GetFirstChild<CharacterScale>() != null)
+            {
+                characterScale = runStyleProps.CharacterScalePercent;
+            }
+
             // A character style's w:kern outranks the paragraph style's and yields to the run's own.
             if (kernElement == null && DeclaredKerningMinPoints(originalRPr) != null)
             {
@@ -13320,6 +13387,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ColorHex = color,
             BackgroundColorHex = backgroundColor,
             CharacterSpacingPoints = characterSpacing,
+            CharacterScalePercent = characterScale,
             VerticalAlignment = verticalAlignment,
             KerningMinFontSizePoints = kerningMinFontSize,
             Ligatures = ligatures,
