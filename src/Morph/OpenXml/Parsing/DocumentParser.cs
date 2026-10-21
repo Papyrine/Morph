@@ -82,11 +82,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // ParagraphElement.Source: what lets the viewer's editor find the w:p a paragraph on a page is.
     Dictionary<Paragraph, int>? paragraphSources;
 
-    // Floating tables (w:tblpPr) discovered while parsing nested cells.
-    // Lifted to body-level after the body is parsed so they participate in normal page-flow,
-    // pagination, and rendering logic instead of being rendered inside a cell that may
-    // paginate or get clipped.
-    List<TableElement>? pendingLiftedFloatingTables;
 
     // Theme fonts for the current document being parsed
     ThemeFonts? currentThemeFonts;
@@ -473,15 +468,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var elements = ParseElements(body, mainPart);
-
-        // Append floating tables that were nested inside cells. Lifting them here lets the
-        // top-level rendering loop handle pagination and absolute positioning, rather than
-        // attempting to render them within a parent cell whose page-flow may differ.
-        if (pendingLiftedFloatingTables is {Count: > 0} lifted)
-        {
-            elements.AddRange(lifted);
-            pendingLiftedFloatingTables = null;
-        }
 
         // Pull consecutive w:framePr-positioned paragraphs out of normal flow into floating
         // text-frame elements (Word's text-frame feature).
@@ -4598,9 +4584,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             previous = bands;
         }
 
-        // A band's lifted floating tables are not body content; parsing the bands ahead of the body
-        // must not hand them to it.
-        pendingLiftedFloatingTables = null;
         return result;
     }
 
@@ -5144,20 +5127,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             cellContent.AddRange(ParseParagraph(para, mainPart));
                             break;
                         case Table nestedTable:
-                            var nested = ParseTable(nestedTable, mainPart);
-                            if (nested != null)
+                            // A floating table stays in its cell, which places it at its offset
+                            // from there (Fragmenter.LayoutCellFragment). Lifted to the end of the
+                            // document, labels/09's ticket numbers landed below the last ticket, off
+                            // the page.
+                            if (ParseTable(nestedTable, mainPart) is { } nested)
                             {
-                                if (nested.Properties.IsFloating)
-                                {
-                                    // Lift floating tables to body level so they participate in
-                                    // page-flow / pagination at the document level rather than
-                                    // being rendered inside a cell that may clip or paginate.
-                                    (pendingLiftedFloatingTables ??= []).Add(nested);
-                                }
-                                else
-                                {
-                                    cellContent.Add(nested);
-                                }
+                                cellContent.Add(nested);
                             }
 
                             break;
@@ -5171,17 +5147,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 }
                                 else if (sdtChild is Table sdtTable)
                                 {
-                                    var nestedSdt = ParseTable(sdtTable, mainPart);
-                                    if (nestedSdt != null)
+                                    if (ParseTable(sdtTable, mainPart) is { } nestedSdt)
                                     {
-                                        if (nestedSdt.Properties.IsFloating)
-                                        {
-                                            (pendingLiftedFloatingTables ??= []).Add(nestedSdt);
-                                        }
-                                        else
-                                        {
-                                            cellContent.Add(nestedSdt);
-                                        }
+                                        cellContent.Add(nestedSdt);
                                     }
                                 }
                             }

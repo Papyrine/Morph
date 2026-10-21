@@ -4129,6 +4129,31 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     break;
                 }
 
+                // A floating table in a cell stands at its offset from where it is anchored and takes no
+                // room in the cell's flow, which is why TableHeightCalculator leaves it out of the row.
+                // labels/09's ticket numbers are such tables, one in each ticket's left stub,
+                // text-anchored a twip in; anchored to the margin or the page, it stands where that puts
+                // it on the page.
+                if (element is TableElement {Properties.IsFloating: true} floatingTable)
+                {
+                    var floating = floatingTable.Properties;
+                    var floatingWidth = TableLayout.CalculateColumnWidths(floatingTable, TableLayout.GetColumnCount(floatingTable), contentWidth, measurer).Sum();
+                    var floatingLeft = floating.FloatingHorizontalAnchor switch
+                    {
+                        FloatingTableHorizontalAnchor.Page => (float) floating.FloatingXOffsetPoints,
+                        FloatingTableHorizontalAnchor.Margin => fullContentLeft + (float) floating.FloatingXOffsetPoints,
+                        _ => contentLeft + (float) floating.FloatingXOffsetPoints
+                    };
+                    var floatingTop = floating.FloatingVerticalAnchor switch
+                    {
+                        FloatingTableVerticalAnchor.Page => (float) floating.FloatingYOffsetPoints,
+                        FloatingTableVerticalAnchor.Margin => this.contentTop + (float) floating.FloatingYOffsetPoints,
+                        _ => cellY + (float) floating.FloatingYOffsetPoints
+                    };
+                    lines.AddRange(LayoutNestedTable(floatingTable, floatingLeft, floatingTop, floatingWidth).Items);
+                    continue;
+                }
+
                 // A nested table lays out at the cell cursor with no page breaks — the outer row height
                 // already accommodates it (TableHeightCalculator measures nested tables), and the
                 // vertical-alignment shift below moves its rows with the rest of the content.

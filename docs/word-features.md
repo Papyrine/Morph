@@ -2005,13 +2005,17 @@ Accessibility metadata describing the table for screen readers and exported alt-
 - **Render**: no-op — both elements only matter for assistive-technology consumers
 
 
-#### Floating Table Overlap `DONE`
+#### Floating Table Overlap `PARTIAL`
 
-Whether two floating tables on the same page may overlap. Only meaningful for floating tables (`w:tblpPr`); inline tables ignore it. Morph's floating-table support already lays each table out independently, so the flag is captured-but-unused.
+Whether two floating tables on the same page may overlap. Only meaningful for floating tables (`w:tblpPr`); inline tables ignore it.
 
 - **OOXML**: `w:tblOverlap` within `w:tblPr` (values: `overlap` / `never`)
 - **Spec**: [TableOverlap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableoverlap)
-- **Render**: no-op — collision detection between floating tables isn't implemented; the rendered layout matches Word's `overlap=overlap` default
+- **Parse**: not read
+- **Render**: what a floating table does follows from where it is placed, not from the flag. A body-level text-anchored one flows (`Fragmenter.PlaceFloatingTable`), so two never overlap — `never`'s behaviour whatever the document says. One in a cell stands at its offset and takes no room (`Fragmenter.LayoutCellFragment`), so two anchored alike would overlap — `overlap`'s behaviour, with `never` unhonoured. Neither corpus document that sets the flag (labels/09 and agendas-minutes/14, both `never`, one float per cell) has two floats that could meet, so it is unprobed.
+- **Test**: `labels/09` (a floating table in each ticket's stub cell)
+
+> **Contributors — a floating table stays in its cell (2026-10-21).** The parser used to lift every floating table out of the cell it was written in and append it to the END of the document, to keep it out of cell clipping and pagination. labels/09's ticket numbers are four such tables, one in each stub after the first, so all four were laid out after the last ticket, beyond the page, and tickets 2-5 rendered with blank stubs; agendas-minutes/14's only looked right because its table is the last thing in the document. They now stay in the cell and stand at their `tblpX`/`tblpY` offset from the cell's text (or the margin or page their anchors name), outside the cell's flow, which `TableHeightCalculator` already assumed.
 
 ---
 
@@ -3588,7 +3592,7 @@ Read-only mode, form protection, and editing restrictions.
 | 1. Text Formatting | 27 | 0 | 3 | 0 | 30 |
 | 2. Paragraph Formatting | 25 | 1 | 0 | 0 | 26 |
 | 3. Lists & Numbering | 7 | 0 | 0 | 0 | 7 |
-| 4. Tables | 29 | 0 | 0 | 0 | 29 |
+| 4. Tables | 28 | 1 | 0 | 0 | 29 |
 | 5. Page Layout & Sections | 20 | 0 | 0 | 0 | 20 |
 | 6. Graphics & Media | 22 | 3 | 1 | 1 | 27 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
@@ -3597,15 +3601,15 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **168** | **4** | **5** | **1** | **178** |
+| **Total** | **167** | **5** | **5** | **1** | **178** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 168
-    "Partial" : 4
+    "Done" : 167
+    "Partial" : 5
     "Todo" : 5
     "Wontfix" : 1
 ```
