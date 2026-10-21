@@ -2218,6 +2218,8 @@ Content repeated at the top/bottom of every page.
 
 > **Contributors — the engine reserves from a MEASUREMENT, and must measure band tables.** `Fragmenter.HeaderReservedTop` is the live implementation of the rule above (the `PageRendererBase` account beside it is history). Unlike the deleted renderer it cannot reserve from what it just painted — the body flows before the bands assemble — so it re-measures the header, and it has to stack it the same way `LayoutBand` will: paragraphs AND tables. Counting only the paragraphs reserved a banner header's two lines of marking text and none of the bar below them, dropping the body ~40pt and landing the first heading inside the bar (`header_full_bleed_banner` and `nonstandard_main_part_name`, page 1 of each). `FooterBand` had always summed both; the two now agree.
 
+> **Contributors — an empty header paragraph's space after counts (2026-10-21).** In the body an empty paragraph's after-spacing is dropped (`CanonicalParagraphMeasurer.MeasureParagraphHeightWithWidth`), but the header's reservation keeps it: `HeaderReservedTop` sums every paragraph's before, lines and after. Word-probed by cloning wedding/01 and varying only its header's lone empty paragraph (`_probe_hdrafter_*`, read from the XPS): 24pt after put the body's first baseline at 54.12pt and 48pt at 78.14pt, 24pt apart, and a paragraph holding "X" at 48pt put it at 78.14pt too. Morph lands 54.05 / 78.05 / 78.05. wedding/01's own 6pt held its whole page that much high (SSIM 0.555 → 0.835). The footer's reservation is unprobed and keeps the body's rule.
+
 
 #### First-Page Different Headers / Footers `DONE`
 

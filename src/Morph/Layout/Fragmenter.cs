@@ -781,7 +781,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 if (element is ParagraphElement paragraph)
                 {
-                    headerHeight += measurer.MeasureParagraphHeightWithWidth(paragraph, bandWidth);
+                    // Every paragraph's space after counts, an empty one's too, though the body drops an
+                    // empty paragraph's (MeasureParagraphHeightWithWidth). Word-probed on wedding/01's
+                    // header, a lone empty paragraph (_probe_hdrafter_*): its space after at 24pt and at
+                    // 48pt put the body's first baseline at 54.12pt and 78.14pt, 24pt apart, and a
+                    // paragraph holding "X" at 48pt put it at 78.14pt too. The corpus case is that
+                    // header's 6pt, which held wedding/01's whole page 6pt high.
+                    var properties = paragraph.Properties;
+                    headerHeight += (float) properties.SpacingBeforePoints +
+                                    measurer.LayoutParagraphForMeasurement(paragraph, bandWidth).Sum() +
+                                    (float) properties.SpacingAfterPoints;
                 }
                 else if (element is TableElement table)
                 {
