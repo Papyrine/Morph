@@ -1,5 +1,3 @@
-using System.Buffers.Binary;
-
 /// <summary>
 /// Marks a package's entries so that the parts an edit changes are written back at the fastest
 /// deflate level. The OpenXml SDK gives an existing part no compression option of its own; it writes

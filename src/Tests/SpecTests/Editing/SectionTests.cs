@@ -44,7 +44,7 @@ public class SectionTests
         await Assert.That(Sections(landscape)).IsEqualTo(
             "<w:sectPr><w:pgSz w:w=\"16838\" w:h=\"11906\" w:orient=\"landscape\" /><w:pgMar w:top=\"1080\" w:right=\"1440\" w:bottom=\"1080\" w:left=\"1440\" /></w:sectPr>");
         await Assert.That(Sections(portrait)).IsEqualTo(Sections(moderate));
-        await Assert.That(DocumentEditor.PageSetupOf(landscape, 0)!.Landscape).IsTrue();
+        await Assert.That(DocumentEditor.PageSetupOf(landscape, 0).Landscape).IsTrue();
     }
 
     [Test]
@@ -111,8 +111,8 @@ public class SectionTests
 
         var edited = DocumentEditor.SetOrientation(two, 1, true, Plain);
 
-        await Assert.That(DocumentEditor.PageSetupOf(edited, 0)!.Landscape).IsFalse();
-        await Assert.That(DocumentEditor.PageSetupOf(edited, 1)!.Landscape).IsTrue();
+        await Assert.That(DocumentEditor.PageSetupOf(edited, 0).Landscape).IsFalse();
+        await Assert.That(DocumentEditor.PageSetupOf(edited, 1).Landscape).IsTrue();
     }
 
     [Test]
