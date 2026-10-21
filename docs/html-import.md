@@ -37,7 +37,7 @@ These are Word-derived numbers. They are not defaults anyone would guess, and ch
 | rule | value | how it was established |
 |---|---|---|
 | Unsized text | **12pt**, in paragraphs, table cells and list items alike | XPS-read off Word's import of `html_complex` (`_probe_htmlsize`, 2026-10-11): every glyph run of body, cell and list text carries an em of 12.00, headings 24.02 and 18.02, superscripts 7.80. The model's default of 11pt stood in until then and set every line 8% narrow. |
-| Line spacing of a paragraph or list item | **single** | The same probe: a two-line paragraph's baselines are 13.8pt apart, 12pt Times New Roman's own line, and list items 14.4pt apart. A 1.08 multiple had made nearly the same pitch out of the 11pt text. Cell paragraphs keep the model's 1.08: Word's rows stand further apart than a single line and the padding account for (Known gaps). |
+| Line spacing of a paragraph or list item | **single** | The same probe: a two-line paragraph's baselines are 13.8pt apart, 12pt Times New Roman's own line, and list items 14.4pt apart. A 1.08 multiple had made nearly the same pitch out of the 11pt text. A cell's own paragraph is the exception, a 1.15 line with 8pt after it (Cell paragraph spacing). |
 | Block paragraph pitch | `spacing-after` **14pt** (12pt when the base font is over 14pt, so headings keep their own) | Word's AltChunk `<p>` pitch measures ≈57px at 150 DPI against a ~29px line box. The obvious 8pt packed paragraphs ~6pt too tight and every band and line drifted up the page. |
 | `<img>` dimensions | CSS px **× 0.75** → points | `width`/`height` attributes are CSS pixels. Treated as points they render ~33% oversized — a 312×234 image where Word draws 234×175 — and each caption pushes further down the page (`ParseDimensionAttribute`). |
 | `margin-left` indent | CSS px **× 0.75** → `LeftIndentPoints` | Word's staircase for `html_css_margin_padding` measures 78px and 156px at 150 DPI for `margin-left: 50px`/`100px` — exactly 37.5pt/75pt. The `margin` shorthand's left component carries the same meaning (a `margin: 20px` paragraph starts 31px ≈ 15pt in). |
@@ -179,41 +179,42 @@ Tracked as issue **#31** in `src/todo.md`, listed here because they shape what t
 
 - **Block children of a cell flatten.** A `<p>` or `<div>` inside a `<td>` joins one paragraph; inline formatting (`<b>`, `<span style>`, images) keeps its runs.
 - **`vertical-align` on cells is unmodelled**, which is what `html_css_alignment` actually means to demonstrate.
-- Cell padding composes slightly tighter than Word's.
 - Per-cell CSS margins render as a uniform grid where Word offsets each cell's box by its own margin.
-- **A cell paragraph's after-spacing is not flat** — see below.
+- A table with no `cellpadding` attribute (`html_table`) still stands 1.7pt a row short of Word's (26.35 against 28.08pt). HTML's own default padding is the likeliest cause; it is unprobed.
+- Two `<p>`s in one cell are set by Word with single lines, about 13pt between them and nothing after the last (`_probe_cellsize`); Morph joins them into one paragraph (the first bullet).
 
-### Cell paragraph spacing: attempted twice, both reverted (2026-07-24)
+### Cell paragraph spacing (2026-10-21)
 
-Morph gives a cell paragraph no after-spacing at all, so a bare table's rows come out at the bare line
-box (`html_table`). Adding a flat value fixes the bare table and breaks the padded one, because the two
-scenarios need different numbers:
+A cell's own paragraph — the text written straight into a `<td>` — is set on a **1.15 line with 8pt
+after it**, and `cellpadding` converts at **0.6pt a pixel a side**, not the 0.75 every other pixel takes
+(`HtmlParser.ParseTable`). Both were read off Word's XPS, glyph baselines and rule paths rather than ink,
+which is what the two earlier attempts lacked: they added a flat after-spacing, and no flat value fitted
+both `html_table` and `html_complex` because the padding was converted at the wrong rate underneath it.
 
-| | Word | Morph | short by |
+`_probe_cellpad`, two-row bordered tables at `cellpadding` 0 / 10 / 20 / 40:
+
+| cellpadding | row pitch | cell text below the table's top | second column moves |
 |---|---|---|---|
-| `html_table` (no cellpadding) | 28.3pt/row | 14.4pt | ~14pt |
-| `html_complex` (`cellpadding=8`) | 35.0pt/row | 31.2pt | ~3.8pt |
+| 0 | 26.52pt | — | — |
+| 10 | 38.55pt | +6pt | +12pt |
+| 20 | 50.52pt | +12pt | +24pt |
+| 40 | 74.52pt | +24pt | +48pt |
 
-14pt lands `html_table` exactly (14.4 + 14 = 28.4 against Word's 28.3) and overshoots `html_complex` by
-10pt: **+0.3178 AE, html_complex alone +0.106 per backend.** 8pt measured **+0.0564 AE** and made BOTH
-worse. So the spacing is not flat — it interacts with cellpadding.
+1.2pt of row per pixel, 0.6pt a side, horizontally as well. `_probe_cellsize`, the same table at
+`cellpadding=0` with different cell text — the content height between the rules against the lines it holds:
 
-**Probe data to model it from** (`_probe_cellpad_sweep`, one single-line cell per table, Word at 150 DPI).
-Box height, and the gaps from the box edge to the text ink:
+| cell | content | lines | left over |
+|---|---|---|---|
+| 12pt, one line | 24.84pt | 16.85pt | 8.0pt |
+| 24pt, one line | 41.91pt | 33.69pt | 8.2pt |
+| 36pt, one line | 58.83pt | 50.54pt | 8.3pt |
+| 12pt, two lines (`<br>`) | 42.0pt | 2 × 16.85pt | 8.3pt |
 
-| cellpadding | box height | top gap | bottom gap | bottom − top |
-|---|---|---|---|---|
-| 0 | 30.7pt | 6.7pt | 14.9pt | 8.2pt |
-| 5 | 36.5pt | 10.1pt | 17.3pt | 7.2pt |
-| 8 | 39.8pt | 11.5pt | 19.2pt | 7.7pt |
-| 15 | 49.0pt | 15.4pt | 24.5pt | 9.1pt |
-| 25 | 60.5pt | 21.6pt | 29.8pt | 8.2pt |
-| *(no attribute)* | 32.2pt | 7.2pt | 15.8pt | 8.6pt |
+The two `<br>` lines stand 16.92pt apart, 1.15 of Calibri's 14.65pt line, and what is left over is 8pt
+whatever the size and the line count: space after the paragraph, not a taller line. The probe also showed
+a `<td style="font-size:36pt">` setting its text at 36pt; the cell's own font styling had not reached its
+runs before (only `<span>`s inside it), and does now.
 
-Two things fall out. The extra space BELOW the text is **~8pt and independent of cellpadding**, and a
-table with no cellpadding attribute behaves almost exactly like an explicit `cellpadding=0` (32.2pt vs
-30.7pt), so Word applies no meaningful default padding. But box height grows at only **1.19pt per px of
-cellpadding** (0.596pt per side), NOT the 2 × 0.75 the px→pt rule predicts — which is the piece that
-does not fit, and is why a flat spacing-after cannot reconcile the two scenarios. Resolve that conversion
-before trying again; the measurements above have roughly ±3pt of extraction noise, so a retry wants
-tighter instrumentation (measure line-box tops, not ink).
+A full-width table takes the padding rate vertically too, and keeps its pixel-as-point horizontal padding
+for the column distribution (`ParseTable`'s comment). `html_complex` (`cellpadding=8`, `width:100%`) now
+stands 35.20pt a row against Word's 35.28.

@@ -37,7 +37,8 @@
                   }
                 ],
                 "Properties": {
-                  "LineSpacingMultiplier": 1.08,
+                  "SpacingAfterPoints": 8.0,
+                  "LineSpacingMultiplier": 1.15,
                   "SnapToGrid": true,
                   "ContextualSpacing": false,
                   "SuppressLineNumbers": false,
@@ -109,7 +110,8 @@
                   }
                 ],
                 "Properties": {
-                  "LineSpacingMultiplier": 1.08,
+                  "SpacingAfterPoints": 8.0,
+                  "LineSpacingMultiplier": 1.15,
                   "SnapToGrid": true,
                   "ContextualSpacing": false,
                   "SuppressLineNumbers": false,
@@ -181,7 +183,8 @@
                   }
                 ],
                 "Properties": {
-                  "LineSpacingMultiplier": 1.08,
+                  "SpacingAfterPoints": 8.0,
+                  "LineSpacingMultiplier": 1.15,
                   "SnapToGrid": true,
                   "ContextualSpacing": false,
                   "SuppressLineNumbers": false,
