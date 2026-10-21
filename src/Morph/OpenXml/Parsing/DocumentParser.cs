@@ -12690,6 +12690,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         Italic? italicElement = null;
         Underline? underlineElement = null;
         Strike? strikeElement = null;
+        DoubleStrike? doubleStrikeElement = null;
         Caps? capsElement = null;
         SmallCaps? smallCapsElement = null;
         Spacing? spacingElement = null;
@@ -12736,6 +12737,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     break;
                 case Strike element:
                     strikeElement ??= element;
+                    break;
+                case DoubleStrike element:
+                    doubleStrikeElement ??= element;
                     break;
                 case Caps element:
                     capsElement ??= element;
@@ -13136,6 +13140,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Underline = underline,
             UnderlineColorHex = underlineColorHex,
             DoubleUnderline = doubleUnderline,
+            UnderlineStyle = underlineElement?.Val?.InnerText,
+            DoubleStrikethrough = doubleStrikeElement?.IsOn() == true ? true : null,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
             SmallCaps = smallCaps,

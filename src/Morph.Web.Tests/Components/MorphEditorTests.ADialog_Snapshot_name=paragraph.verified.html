@@ -1,0 +1,77 @@
+﻿
+<div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-paragraph-title" blazor:onkeydown="71">
+	<h2 id="editor-paragraph-title" class="editor-dialog-title">Paragraph</h2>
+	<div class="editor-dialog-tabs" role="tablist">
+		<button type="button" role="tab" class="editor-dialog-tab" aria-selected="true" blazor:onclick="72">Indents and Spacing</button>
+		<button type="button" role="tab" class="editor-dialog-tab" aria-selected="false" blazor:onclick="73">Line and Page Breaks</button>
+	</div>
+	<fieldset class="editor-fieldset">
+		<legend>General</legend>
+		<label class="editor-field editor-field-inline">
+			Alignment
+			<select class="editor-input" value="center" blazor:onchange="74">
+				<option value="left">Left</option>
+				<option value="center" selected="">Centered</option>
+				<option value="right">Right</option>
+				<option value="justify">Justified</option>
+			</select>
+		</label>
+	</fieldset>
+	<fieldset class="editor-fieldset">
+		<legend>Indentation</legend>
+		<div class="editor-field-grid">
+			<label class="editor-field">
+				Left (cm)
+				<input type="number" class="editor-input" step="0.1" value="0" blazor:oninput="75">
+			</label>
+			<label class="editor-field">
+				Special
+				<select class="editor-input" value="none" blazor:onchange="76">
+					<option value="none" selected="">(none)</option>
+					<option value="first">First line</option>
+					<option value="hanging">Hanging</option>
+				</select>
+			</label>
+			<label class="editor-field">
+				Right (cm)
+				<input type="number" class="editor-input" step="0.1" value="0" blazor:oninput="77">
+			</label>
+			<label class="editor-field">
+				By (cm)
+				<input type="number" class="editor-input" step="0.1" min="0" value="" disabled="" blazor:oninput="78">
+			</label>
+		</div>
+	</fieldset>
+	<fieldset class="editor-fieldset">
+		<legend>Spacing</legend>
+		<div class="editor-field-grid">
+			<label class="editor-field">
+				Before (pt)
+				<input type="number" class="editor-input" step="6" min="0" value="0" blazor:oninput="79">
+			</label>
+			<label class="editor-field">
+				Line spacing
+				<select class="editor-input" value="multiple" blazor:onchange="80">
+					<option value="single">Single</option>
+					<option value="1.5">1.5 lines</option>
+					<option value="double">Double</option>
+					<option value="atleast">At least</option>
+					<option value="exactly">Exactly</option>
+					<option value="multiple" selected="">Multiple</option>
+				</select>
+			</label>
+			<label class="editor-field">
+				After (pt)
+				<input type="number" class="editor-input" step="6" min="0" value="8" blazor:oninput="81">
+			</label>
+			<label class="editor-field">
+				At ×
+				<input type="number" class="editor-input" step="0.01" min="0" value="1.16" blazor:oninput="82">
+			</label>
+		</div>
+	</fieldset>
+	<div class="editor-dialog-buttons">
+		<button type="button" class="editor-button editor-button-primary" blazor:onclick="83">OK</button>
+		<button type="button" class="editor-button" blazor:onclick="84">Cancel</button>
+	</div>
+</div>

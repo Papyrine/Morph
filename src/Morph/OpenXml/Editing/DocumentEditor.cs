@@ -1732,6 +1732,52 @@ static partial class DocumentEditor
                 };
             }
 
+            // Word-probed 2026-10-21 (Word 365 over COM, each on a word of its own): an underline's
+            // kind is w:u's value (dotted, wave, thick …); double strikethrough is w:dstrike, small
+            // capitals w:smallCaps, all capitals w:caps, hidden text w:vanish.
+            if (format.UnderlineStyle is { } style)
+            {
+                properties.Underline = new()
+                {
+                    Val = new UnderlineValues(style)
+                };
+            }
+
+            if (format.DoubleStrike is { } doubleStrike)
+            {
+                if (doubleStrike)
+                {
+                    properties.Strike = null;
+                }
+
+                properties.DoubleStrike = Toggle<DoubleStrike>(doubleStrike);
+            }
+
+            if (format.SmallCaps is { } smallCaps)
+            {
+                if (smallCaps)
+                {
+                    properties.Caps = null;
+                }
+
+                properties.SmallCaps = Toggle<SmallCaps>(smallCaps);
+            }
+
+            if (format.AllCaps is { } allCaps)
+            {
+                if (allCaps)
+                {
+                    properties.SmallCaps = null;
+                }
+
+                properties.Caps = Toggle<Caps>(allCaps);
+            }
+
+            if (format.Hidden is { } hidden)
+            {
+                properties.Vanish = Toggle<Vanish>(hidden);
+            }
+
             SetLook(properties, format);
         }
 

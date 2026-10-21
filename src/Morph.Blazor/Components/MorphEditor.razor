@@ -83,6 +83,12 @@
 
     @FindBar
 
+    @if (rulerShown && HasDocument)
+    {
+        @* Drawn by the script, which knows where the page stands: Word's ruler, with its markers. *@
+        <div class="editor-ruler" aria-hidden="true"></div>
+    }
+
     @if (errorMessage is not null)
     {
         <ErrorPanel Message="@errorMessage" IssueUrl="@issueUrl" />
@@ -192,7 +198,14 @@
                 <label class="editor-field">
                     Address
                     <input @ref="linkInput" type="url" class="editor-input" placeholder="https://example.com or #bookmark"
-                           value="@linkAddress" @oninput="OnLinkInput" />
+                           list="editor-link-places" value="@linkAddress" @oninput="OnLinkInput" />
+                    @* The document's own places, as Word's dialog offers them under Place in This Document. *@
+                    <datalist id="editor-link-places">
+                        @foreach (var place in Bookmarks)
+                        {
+                            <option value="@($"#{place.Name}")"></option>
+                        }
+                    </datalist>
                 </label>
             }
             <div class="editor-dialog-buttons">
@@ -204,6 +217,214 @@
                 {
                     <button type="button" class="editor-button editor-button-primary" disabled="@(linkAddress.Trim().Length == 0)" @onclick="InsertLinkAsync">Insert</button>
                 }
+                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+            </div>
+        </div>
+    }
+
+    @if (dialog == paragraphDialog)
+    {
+        var fields = paragraphFields;
+        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-paragraph-title" @onkeydown="OnFormDialogKeyDownAsync">
+            <h2 id="editor-paragraph-title" class="editor-dialog-title">Paragraph</h2>
+            <div class="editor-dialog-tabs" role="tablist">
+                <button type="button" role="tab" class="editor-dialog-tab" aria-selected="@Pressed(paragraphPage == "indents")" @onclick='() => paragraphPage = "indents"'>Indents and Spacing</button>
+                <button type="button" role="tab" class="editor-dialog-tab" aria-selected="@Pressed(paragraphPage == "breaks")" @onclick='() => paragraphPage = "breaks"'>Line and Page Breaks</button>
+            </div>
+            @if (paragraphPage == "indents")
+            {
+                <fieldset class="editor-fieldset">
+                    <legend>General</legend>
+                    <label class="editor-field editor-field-inline">
+                        Alignment
+                        <select class="editor-input" value="@fields.Alignment" @onchange='args => fields.Alignment = args.Value as string ?? "left"'>
+                            <option value="left">Left</option>
+                            <option value="center">Centered</option>
+                            <option value="right">Right</option>
+                            <option value="justify">Justified</option>
+                        </select>
+                    </label>
+                </fieldset>
+                <fieldset class="editor-fieldset">
+                    <legend>Indentation</legend>
+                    <div class="editor-field-grid">
+                        <label class="editor-field">
+                            Left (cm)
+                            <input type="number" class="editor-input" step="0.1" value="@fields.Left" @oninput='args => fields.Left = args.Value as string ?? ""' />
+                        </label>
+                        <label class="editor-field">
+                            Special
+                            <select class="editor-input" value="@fields.Special" @onchange='args => fields.Special = args.Value as string ?? "none"'>
+                                <option value="none">(none)</option>
+                                <option value="first">First line</option>
+                                <option value="hanging">Hanging</option>
+                            </select>
+                        </label>
+                        <label class="editor-field">
+                            Right (cm)
+                            <input type="number" class="editor-input" step="0.1" value="@fields.Right" @oninput='args => fields.Right = args.Value as string ?? ""' />
+                        </label>
+                        <label class="editor-field">
+                            By (cm)
+                            <input type="number" class="editor-input" step="0.1" min="0" value="@fields.By" disabled="@(fields.Special == "none")"
+                                   @oninput='args => fields.By = args.Value as string ?? ""' />
+                        </label>
+                    </div>
+                </fieldset>
+                <fieldset class="editor-fieldset">
+                    <legend>Spacing</legend>
+                    <div class="editor-field-grid">
+                        <label class="editor-field">
+                            Before (pt)
+                            <input type="number" class="editor-input" step="6" min="0" value="@fields.Before" @oninput='args => fields.Before = args.Value as string ?? ""' />
+                        </label>
+                        <label class="editor-field">
+                            Line spacing
+                            <select class="editor-input" value="@fields.Line" @onchange="OnLineChosen">
+                                @foreach (var (value, name) in LineChoices)
+                                {
+                                    <option value="@value">@name</option>
+                                }
+                            </select>
+                        </label>
+                        <label class="editor-field">
+                            After (pt)
+                            <input type="number" class="editor-input" step="6" min="0" value="@fields.After" @oninput='args => fields.After = args.Value as string ?? ""' />
+                        </label>
+                        <label class="editor-field">
+                            At @AtUnit
+                            <input type="number" class="editor-input" step="0.01" min="0" value="@fields.At" disabled="@(AtUnit.Length == 0)"
+                                   @oninput='args => fields.At = args.Value as string ?? ""' />
+                        </label>
+                    </div>
+                </fieldset>
+            }
+            else
+            {
+                <fieldset class="editor-fieldset">
+                    <legend>Pagination</legend>
+                    <label class="editor-check"><input type="checkbox" checked="@fields.WidowControl" @onchange="args => fields.WidowControl = args.Value is true" /> Widow/Orphan control</label>
+                    <label class="editor-check"><input type="checkbox" checked="@fields.KeepNext" @onchange="args => fields.KeepNext = args.Value is true" /> Keep with next</label>
+                    <label class="editor-check"><input type="checkbox" checked="@fields.KeepLines" @onchange="args => fields.KeepLines = args.Value is true" /> Keep lines together</label>
+                    <label class="editor-check"><input type="checkbox" checked="@fields.PageBreakBefore" @onchange="args => fields.PageBreakBefore = args.Value is true" /> Page break before</label>
+                </fieldset>
+            }
+            <div class="editor-dialog-buttons">
+                <button type="button" class="editor-button editor-button-primary" disabled="@(ParagraphChange() is null)" @onclick="ParagraphFromDialogAsync">OK</button>
+                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+            </div>
+        </div>
+    }
+
+    @if (dialog == fontDialog)
+    {
+        var fields = fontFields;
+        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-font-title" @onkeydown="OnFormDialogKeyDownAsync">
+            <h2 id="editor-font-title" class="editor-dialog-title">Font</h2>
+            <div class="editor-field-grid editor-field-grid-three">
+                <label class="editor-field">
+                    Font
+                    <input type="text" class="editor-input" list="editor-font-names" value="@fields.Font" @oninput='args => fields.Font = args.Value as string ?? ""' />
+                    <datalist id="editor-font-names">
+                        @foreach (var name in DocumentFonts.Concat(CommonFonts).Distinct(StringComparer.OrdinalIgnoreCase))
+                        {
+                            <option value="@name"></option>
+                        }
+                    </datalist>
+                </label>
+                <label class="editor-field">
+                    Font style
+                    <select class="editor-input" value="@fields.Style" @onchange='args => fields.Style = args.Value as string ?? "regular"'>
+                        <option value="regular">Regular</option>
+                        <option value="italic">Italic</option>
+                        <option value="bold">Bold</option>
+                        <option value="bolditalic">Bold Italic</option>
+                    </select>
+                </label>
+                <label class="editor-field">
+                    Size
+                    <input type="number" class="editor-input" min="1" max="1638" step="0.5" list="editor-font-sizes" value="@fields.Size" @oninput='args => fields.Size = args.Value as string ?? ""' />
+                    <datalist id="editor-font-sizes">
+                        @foreach (var size in FontSizes)
+                        {
+                            <option value="@SizeLabel(size)"></option>
+                        }
+                    </datalist>
+                </label>
+                <label class="editor-field">
+                    Font colour
+                    <select class="editor-input" value="@fields.Color" @onchange="args => fields.Color = args.Value as string ?? automatic">
+                        <option value="@automatic">Automatic</option>
+                        @if (fields.Color != automatic && TextColors.All(_ => _.Hex != fields.Color))
+                        {
+                            <option value="@fields.Color">@($"#{fields.Color}")</option>
+                        }
+                        @foreach (var (hex, name) in TextColors)
+                        {
+                            <option value="@hex">@name</option>
+                        }
+                    </select>
+                </label>
+                <label class="editor-field">
+                    Underline style
+                    <select class="editor-input" value="@fields.Underline" @onchange='args => fields.Underline = args.Value as string ?? "none"'>
+                        @foreach (var (value, name) in Underlines)
+                        {
+                            <option value="@value">@name</option>
+                        }
+                    </select>
+                </label>
+            </div>
+            <fieldset class="editor-fieldset editor-effects">
+                <legend>Effects</legend>
+                <label class="editor-check"><input type="checkbox" checked="@fields.Strike" @onchange="args => SetStrike(args.Value is true)" /> Strikethrough</label>
+                <label class="editor-check"><input type="checkbox" checked="@fields.SmallCaps" @onchange="args => SetSmallCaps(args.Value is true)" /> Small caps</label>
+                <label class="editor-check"><input type="checkbox" checked="@fields.DoubleStrike" @onchange="args => SetDoubleStrike(args.Value is true)" /> Double strikethrough</label>
+                <label class="editor-check"><input type="checkbox" checked="@fields.AllCaps" @onchange="args => SetAllCaps(args.Value is true)" /> All caps</label>
+                <label class="editor-check"><input type="checkbox" checked="@fields.Superscript" @onchange="args => SetSuperscript(args.Value is true)" /> Superscript</label>
+                <label class="editor-check"><input type="checkbox" checked="@fields.Hidden" @onchange="args => fields.Hidden = args.Value is true" /> Hidden</label>
+                <label class="editor-check"><input type="checkbox" checked="@fields.Subscript" @onchange="args => SetSubscript(args.Value is true)" /> Subscript</label>
+            </fieldset>
+            <div class="editor-font-preview" aria-label="Preview"><span style="@FontPreview">@(fields.Font.Trim().Length > 0 ? fields.Font.Trim() : "Preview")</span></div>
+            <div class="editor-dialog-buttons">
+                <button type="button" class="editor-button editor-button-primary" disabled="@(FontChange() is null)" @onclick="FontFromDialogAsync">OK</button>
+                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+            </div>
+        </div>
+    }
+
+    @if (dialog == bookmarkDialog)
+    {
+        var taken = DocumentEditor.IsBookmarkName(bookmarkName);
+        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-bookmark-title" @onkeydown="OnBookmarkKeyDownAsync">
+            <h2 id="editor-bookmark-title" class="editor-dialog-title">Bookmark</h2>
+            <label class="editor-field">
+                Bookmark name
+                <input type="text" class="editor-input" autocomplete="off" value="@bookmarkName" @oninput="OnBookmarkInput" />
+            </label>
+            @if (bookmarkName.Length > 0 && !taken)
+            {
+                <p class="editor-dialog-note">A name starts with a letter, and holds only letters, numbers and underscores.</p>
+            }
+            <div class="editor-bookmarks" role="listbox" aria-label="Bookmarks">
+                @if (Bookmarks.Count == 0)
+                {
+                    <p class="editor-dialog-note">The document has no bookmarks.</p>
+                }
+                @foreach (var place in Bookmarks)
+                {
+                    var name = place.Name;
+                    <button type="button" role="option" class="editor-menu-item" aria-selected="@Pressed(name == bookmarkName)"
+                            @onclick="() => bookmarkName = name">@name</button>
+                }
+            </div>
+            <div class="editor-dialog-buttons">
+                <button type="button" class="editor-button editor-button-primary" disabled="@(!taken)" @onclick="AddBookmarkFromDialogAsync">Add</button>
+                <button type="button" class="editor-button" disabled="@(!BookmarkExists)" @onclick="DeleteBookmarkFromDialogAsync">Delete</button>
+                <button type="button" class="editor-button" disabled="@(!BookmarkExists)" @onclick="GoToBookmarkFromDialogAsync">Go To</button>
                 <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
             </div>
         </div>
@@ -450,6 +671,10 @@
                         </span>
                     </div>
                 </div>
+                <button type="button" class="editor-launcher" title="Font settings" aria-label="Font settings" aria-haspopup="dialog"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="OpenFontDialogAsync">
+                    <Iconify Value="Lucide.SquareArrowDownRight" aria-hidden="true" focusable="false" />
+                </button>
             </div>
             <div class="editor-group" role="group" aria-label="Paragraph">
                 <div class="editor-rows">
@@ -470,6 +695,11 @@
                         <button type="button" class="viewer-button" title="Increase indent" aria-label="Increase indent"
                                 disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => IndentAsync(1)">
                             <Iconify Value="Lucide.IndentIncrease" aria-hidden="true" focusable="false" />
+                        </button>
+                        <span class="viewer-divider" aria-hidden="true"></span>
+                        <button type="button" class="viewer-button" title="Show/Hide ¶ (Ctrl+Shift+8)" aria-label="Show/Hide formatting marks" aria-keyshortcuts="Control+Shift+8"
+                                aria-pressed="@Pressed(marksShown)" @onmousedown:preventDefault @onclick="ToggleMarksAsync">
+                            <Iconify Value="Lucide.Pilcrow" aria-hidden="true" focusable="false" />
                         </button>
                     </div>
                     <div class="editor-row">
@@ -499,11 +729,17 @@
                                     <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="SpaceAfterFromMenuAsync">
                                         @(HasSpaceAfter ? "Remove space after paragraph" : "Add space after paragraph")
                                     </button>
+                                    <div class="editor-menu-separator" role="separator"></div>
+                                    <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="OpenParagraphDialogAsync">Line spacing options…</button>
                                 </div>
                             }
                         </span>
                     </div>
                 </div>
+                <button type="button" class="editor-launcher" title="Paragraph settings" aria-label="Paragraph settings" aria-haspopup="dialog"
+                        disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="OpenParagraphDialogAsync">
+                    <Iconify Value="Lucide.SquareArrowDownRight" aria-hidden="true" focusable="false" />
+                </button>
             </div>
             <div class="editor-group" role="group" aria-label="Styles">
                 @* Word's gallery: the styles drawn as their text is, a few rows at a time; the arrows page
@@ -716,6 +952,10 @@
                         Remove link
                     </button>
                 }
+                <button type="button" class="editor-tool editor-large" aria-haspopup="dialog" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="OpenBookmarkAsync">
+                    <Iconify Value="Lucide.Bookmark" aria-hidden="true" focusable="false" />
+                    Bookmark
+                </button>
             </div>
             <div class="editor-group" role="group" aria-label="Header and footer">
                 <button type="button" class="editor-tool editor-large" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="() => EditHeaderAsync(false)">
@@ -735,6 +975,10 @@
                 <button type="button" class="editor-tool editor-large" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="InsertFootnoteAsync">
                     <Iconify Value="Lucide.Superscript" aria-hidden="true" focusable="false" />
                     Footnote
+                </button>
+                <button type="button" class="editor-tool editor-large" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="InsertEndnoteAsync">
+                    <Iconify Value="Lucide.FileDown" aria-hidden="true" focusable="false" />
+                    Endnote
                 </button>
             </div>
         </text>;
@@ -906,6 +1150,13 @@
                     <Iconify Value="Lucide.PanelLeft" aria-hidden="true" focusable="false" />
                     @($"{PageNounTitle}s")
                 </button>
+                @if (IsWord)
+                {
+                    <button type="button" class="editor-tool editor-large" aria-pressed="@Pressed(rulerShown)" @onmousedown:preventDefault @onclick="ToggleRuler">
+                        <Iconify Value="Lucide.Ruler" aria-hidden="true" focusable="false" />
+                        Ruler
+                    </button>
+                }
             </div>
             <div class="editor-group" role="group" aria-label="Zoom">
                 <div class="editor-row">

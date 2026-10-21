@@ -938,6 +938,127 @@ public class MorphEditorTests : BunitTestContext
         return read(package);
     }
 
+    // Word's Paragraph dialog, from the Paragraph group's launcher: it starts from the paragraph as
+    // drawn, and sets only what was changed.
+    [Test]
+    public async Task TheParagraphDialog_SetsWhatWasChanged()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Caret(2, 0);
+        await cut.Find("[aria-label='Paragraph settings']").ClickAsync(new());
+        await Assert.That(cut.Find(".editor-dialog select").GetAttribute("value")).IsEqualTo("left");
+        var left = cut.FindAll(".editor-dialog input[type=number]")[0];
+        await left.InputAsync(new() { Value = "1.27" });
+        await cut.FindAll(".editor-dialog-tab").First(_ => _.TextContent == "Line and Page Breaks").ClickAsync(new());
+        await cut.FindAll(".editor-check").First(_ => _.TextContent.Contains("Keep with next")).QuerySelector("input")!.ChangeAsync(new() { Value = true });
+        await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "OK").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).Contains("<w:p><w:pPr><w:keepNext /><w:ind w:left=\"720\" /></w:pPr><w:r><w:t xml:space=\"preserve\">Third and last.</w:t>");
+        await Assert.That(cut.FindAll(".editor-dialog")).IsEmpty();
+    }
+
+    // Word's Font dialog, from the Font group's launcher: the word the caret is in, its underline's
+    // kind and its effects.
+    [Test]
+    public async Task TheFontDialog_SetsUnderlinesAndEffects()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        Caret(2, 2);
+        await cut.Find("[aria-label='Font settings']").ClickAsync(new());
+        await cut.FindAll(".editor-dialog select").Single(_ => _.QuerySelector("option[value=wave]") != null).ChangeAsync(new() { Value = "wave" });
+        await cut.FindAll(".editor-check").First(_ => _.TextContent.Contains("Small caps")).QuerySelector("input")!.ChangeAsync(new() { Value = true });
+        await Assert.That(cut.Find(".editor-font-preview span").GetAttribute("style")).Contains("font-variant: small-caps");
+        await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "OK").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).Contains("<w:r><w:rPr><w:smallCaps /><w:u w:val=\"wave\" /></w:rPr><w:t xml:space=\"preserve\">Third</w:t></w:r>");
+    }
+
+    // Word's Show/Hide ¶ on the Home tab: the script draws the marks; the button says they show.
+    [Test]
+    public async Task ShowHide_TurnsTheMarksOnAndOff()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var button = cut.Find("[aria-label='Show/Hide formatting marks']");
+
+        await button.ClickAsync(new());
+        await Assert.That((bool) controller.Invocations["setMarks"][^1].Arguments[0]!).IsTrue();
+        await Assert.That(cut.Find("[aria-label='Show/Hide formatting marks']").GetAttribute("aria-pressed")).IsEqualTo("true");
+
+        await cut.InvokeAsync(() => cut.Instance.OnMarksRequested());
+        await Assert.That((bool) controller.Invocations["setMarks"][^1].Arguments[0]!).IsFalse();
+    }
+
+    // Word's ruler (View, Ruler): the caret's page and indents go to the script, and a marker let go
+    // sets the paragraph's indents.
+    [Test]
+    public async Task TheRuler_ShowsThePage_AndSetsIndents()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(2, 0);
+        await ChooseTabAsync(cut, "View");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Ruler").ClickAsync(new());
+
+        await Assert.That(cut.FindAll(".editor-ruler")).IsNotEmpty();
+        var model = System.Text.Json.JsonDocument.Parse((string) controller.Invocations["setRuler"][^1].Arguments[0]!).RootElement;
+        await Assert.That(model.GetProperty("w").GetDouble()).IsGreaterThan(500);
+        await Assert.That(model.GetProperty("t").GetBoolean()).IsFalse();
+
+        await cut.InvokeAsync(() => cut.Instance.OnRulerIndent(36, 0, -18));
+        await Assert.That(Body(reported!)).Contains("<w:p><w:pPr><w:ind w:left=\"720\" w:hanging=\"360\" /></w:pPr><w:r><w:t xml:space=\"preserve\">Third and last.</w:t>");
+    }
+
+    // References: an endnote at the caret, opened for typing, as a footnote is.
+    [Test]
+    public async Task Endnote_PutsANoteAtTheCaret()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        await ChooseTabAsync(cut, "References");
+
+        Caret(0, 5);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Endnote").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).StartsWith("<w:p><w:r><w:t xml:space=\"preserve\">First</w:t></w:r><w:r><w:rPr><w:rStyle w:val=\"EndnoteReference\" /></w:rPr><w:endnoteReference w:id=\"1\" /></w:r>");
+        var opened = DocumentOutline.Read(reported!).Paragraphs[Session().GetProperty("p").GetInt32()];
+        await Assert.That(opened.Part).IsEqualTo(ReviewPart.Endnotes);
+    }
+
+    // Word's Bookmark dialog: a name added for the caret's place is listed, gone to, and deleted.
+    [Test]
+    public async Task TheBookmarkDialog_AddsGoesToAndDeletes()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        await ChooseTabAsync(cut, "Insert");
+
+        Caret(2, 6);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Bookmark").ClickAsync(new());
+        await cut.Find(".editor-dialog input").InputAsync(new() { Value = "2nd" });
+        await Assert.That(cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "Add").HasAttribute("disabled")).IsTrue();
+        await cut.Find(".editor-dialog input").InputAsync(new() { Value = "Ending" });
+        await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "Add").ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("<w:bookmarkStart w:name=\"Ending\" w:id=\"0\" /><w:bookmarkEnd w:id=\"0\" />");
+
+        Caret(0, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Bookmark").ClickAsync(new());
+        await cut.FindAll(".editor-bookmarks .editor-menu-item").Single(_ => _.TextContent == "Ending").ClickAsync(new());
+        await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "Go To").ClickAsync(new());
+        await Assert.That(Session().GetProperty("p").GetInt32()).IsEqualTo(2);
+        await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(6);
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Bookmark").ClickAsync(new());
+        await cut.FindAll(".editor-bookmarks .editor-menu-item").Single(_ => _.TextContent == "Ending").ClickAsync(new());
+        await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "Delete").ClickAsync(new());
+        await Assert.That(Body(reported!)).DoesNotContain("bookmark");
+        await Assert.That(cut.FindAll(".editor-bookmarks .editor-menu-item")).IsEmpty();
+    }
+
     // The Layout tab: the page of the section the caret is in.
     [Test]
     public async Task TheLayoutTab_SetsThePage()
@@ -1432,6 +1553,9 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("discard")]
     [Arguments("split")]
     [Arguments("margins")]
+    [Arguments("bookmark")]
+    [Arguments("paragraph")]
+    [Arguments("font")]
     public async Task ADialog_Snapshot(string name)
     {
         if (name == "margins")
@@ -1463,6 +1587,22 @@ public class MorphEditorTests : BunitTestContext
                 break;
             case "count":
                 await cut.Find(".editor-status-button").ClickAsync(new());
+                break;
+            case "paragraph":
+                Caret(1, 0);
+                await cut.Find("[aria-label='Paragraph settings']").ClickAsync(new());
+                break;
+            case "font":
+                Caret(1, 9);
+                await cut.Find("[aria-label='Font settings']").ClickAsync(new());
+                break;
+            case "bookmark":
+                Caret(1, 0);
+                await ChooseTabAsync(cut, "Insert");
+                await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Bookmark").ClickAsync(new());
+                await cut.Find(".editor-dialog input").InputAsync(new() { Value = "Second" });
+                await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "Add").ClickAsync(new());
+                await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Bookmark").ClickAsync(new());
                 break;
             default:
                 Caret(1, 0);
