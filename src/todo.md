@@ -160,7 +160,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### business/06
 
-- MINOR | all | p1 | the body block sits 11-13px high of Word, measured 2026-10-11 (17 bands, the first and last at Word's)
+- MINOR | all | p1 | everything from "Memo" down sits 5pt high of Word: baselines 131.30 / 169.39 / 266.14 / 675.70 against Word's 136.58 / 174.50 / 271.25 / 680.62 (Word's XPS, 2026-10-21), the "LOGO" box itself in place. The step is in the second paragraph, which holds only an INLINE text box (`wp:inline`, 32.33pt tall) on a Normal line of `w:line="288"` (1.2) with 12pt after: Morph makes that paragraph exactly the box's height and "Memo" (24pt before) follows at 108.60, where Word's follows 5.28pt lower. So Word sizes a line holding an inline object under a line multiple differently. A probe varying the multiple (1.0 / 1.2) and the box height (x1 / x2) was built by cloning this package's paragraphs, but Word failed to open it (COM "Command failed"; duplicated content-control docParts are the likely cause) — build the next one from a clean package instead. The text looks heavier in Word only because its Calibri Light is rasterised differently (the XPS shows the same faces and bold simulation Morph uses)
 
 ### comments/01
 
