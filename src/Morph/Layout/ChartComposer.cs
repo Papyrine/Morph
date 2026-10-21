@@ -401,6 +401,20 @@ sealed class ChartComposer(
                     centreY += (float) (offset.Y * chartHeight);
                 }
 
+                // A resized label is a box of its own, centred where the label would be and kept
+                // inside the chart, with its text centred in it. personal-budget's "62%" is a box
+                // 99.5% of the chart's width and height, so the chart's edges hold it and its text
+                // sits in the doughnut's hole, where Excel draws it, whatever its slice.
+                if (dataLabels.Sizes.TryGetValue(point, out var size))
+                {
+                    var boxWidth = (float) (size.Width * chartWidth);
+                    var boxHeight = (float) (size.Height * chartHeight);
+                    var boxX = Math.Clamp(centreX - boxWidth / 2, chartX, Math.Max(chartX, chartX + chartWidth - boxWidth));
+                    var boxY = Math.Clamp(centreY - boxHeight / 2, chartY, Math.Max(chartY, chartY + chartHeight - boxHeight));
+                    centreX = boxX + boxWidth / 2;
+                    centreY = boxY + boxHeight / 2;
+                }
+
                 var labelWidth = TextWidth(text, dataLabels.Text) + 2;
                 var labelHeight = LineHeight(text, dataLabels.Text);
                 labels.AddRange(Label(text, dataLabels.Text, centreX - labelWidth / 2, centreY - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Center));

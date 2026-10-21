@@ -14,6 +14,9 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
 {
     const string defaultTextColor = "595959";
 
+    // Office 2013's chart extensions, where a resized data label keeps its box (c15:layout).
+    const string c15Namespace = "http://schemas.microsoft.com/office/drawing/2012/chart";
+
     // The Office theme's accents, for a package with no theme.
     static readonly string[] defaultPalette = ["4472C4", "ED7D31", "A5A5A5", "FFC000", "5B9BD5", "70AD47"];
 
@@ -119,6 +122,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
     {
         var deleted = new HashSet<int>();
         var offsets = new Dictionary<int, (double X, double Y)>();
+        var sizes = new Dictionary<int, (double Width, double Height)>();
         foreach (var label in labels.Elements().Where(_ => _.LocalName == "dLbl"))
         {
             if (Value(Child(label, "idx")) is not { } index)
@@ -136,6 +140,17 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             {
                 offsets[(int) index] = (Value(Child(manual, "x")) ?? 0, Value(Child(manual, "y")) ?? 0);
             }
+
+            var sized = Child(label, "extLst")?
+                .Elements()
+                .SelectMany(_ => _.Elements())
+                .FirstOrDefault(_ => _.LocalName == "layout" && _.NamespaceUri == c15Namespace);
+            if (Child(sized, "manualLayout") is { } size &&
+                Value(Child(size, "w")) is > 0 and var width &&
+                Value(Child(size, "h")) is > 0 and var height)
+            {
+                sizes[(int) index] = (width, height);
+            }
         }
 
         // A point's own dLbl can carry the flags and text the series' block leaves out; the block's own
@@ -149,7 +164,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             FormatCode = Attribute(Child(labels, "numFmt"), "formatCode"),
             Text = TextStyle(Child(labels, "txPr") ?? Child(styled, "txPr"), labelText),
             Deleted = deleted,
-            Offsets = offsets
+            Offsets = offsets,
+            Sizes = sizes
         };
 
         if (!result.ShowValue && !result.ShowPercent && !result.ShowCategory)
