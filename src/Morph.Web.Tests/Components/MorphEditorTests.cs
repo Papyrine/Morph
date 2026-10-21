@@ -64,9 +64,9 @@ public class MorphEditorTests : BunitTestContext
 
         await Assert.That((bool) controller.Invocations["setEditMode"][^1].Arguments[0]!).IsTrue();
         await Assert.That(string.Join(' ', cut.FindAll(".editor-tools [data-edit-command]").Select(_ => _.GetAttribute("data-edit-command"))))
-            .IsEqualTo("undo redo bold italic underline strike align-left align-center align-right align-justify");
+            .IsEqualTo("undo redo paste cut copy bold italic underline strike align-left align-center align-right align-justify");
         await Assert.That(cut.FindAll(".editor-tools [data-edit-command][disabled]")).IsEmpty();
-        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout Review View");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout References Review View");
     }
 
     // Text is edited in MorphEditor: the viewer only shows it.
@@ -92,7 +92,8 @@ public class MorphEditorTests : BunitTestContext
         foreach (var cut in new[] {readOnly, guarded, workbook})
         {
             await Assert.That((bool) controller.Invocations["setEditMode"][^1].Arguments[0]!).IsFalse();
-            await Assert.That(cut.FindAll(".editor-tools [data-edit-command]").All(_ => _.HasAttribute("disabled"))).IsTrue();
+            // Copy, which only reads, as Word lets a read-only document be copied from.
+            await Assert.That(cut.FindAll(".editor-tools [data-edit-command]:not([data-edit-command=copy])").All(_ => _.HasAttribute("disabled"))).IsTrue();
         }
 
         await Assert.That(readOnly.Find(".editor-status").TextContent).Contains("Read-only");
@@ -376,7 +377,32 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Read(reported!)[2]).IsEqualTo("[Third and last.] #Heading1");
         await Assert.That(Text(Session())).IsEqualTo("Third and last.");
         await Assert.That(Session().GetProperty("from").GetInt32()).IsEqualTo(3);
-        await Assert.That(cut.Find(".editor-style-name").TextContent).IsEqualTo("Heading 1");
+        await Assert.That(cut.Find(".editor-gallery-item[aria-selected=true]").TextContent.Trim()).IsEqualTo("Heading 1");
+    }
+
+    // Word's style gallery: the styles drawn as their text is, two rows of four, the caret's chosen; a
+    // tile sets its style, and the arrows page through the rest.
+    [Test]
+    public async Task TheStyleGallery_SetsAStyle_AndPages()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+
+        var tiles = cut.FindAll(".editor-gallery-item");
+        await Assert.That(string.Join(", ", tiles.Select(_ => _.TextContent.Trim())))
+            .IsEqualTo("Normal, No Spacing, Heading 1, Heading 2, Heading 3, Title, Subtitle, Quote");
+        await Assert.That(cut.Find(".editor-gallery-item[aria-selected=true]").TextContent.Trim()).IsEqualTo("Normal");
+        await Assert.That(tiles.First(_ => _.TextContent.Trim() == "Title").GetAttribute("style")).Contains("font-size: 13pt");
+        await Assert.That(cut.Find("button[aria-label='Previous styles']").HasAttribute("disabled")).IsTrue();
+
+        await cut.Find("button[aria-label='More styles']").ClickAsync(new());
+        await Assert.That(string.Join(", ", cut.FindAll(".editor-gallery-item").Select(_ => _.TextContent.Trim())))
+            .IsEqualTo("Heading 3, Title, Subtitle, Quote, Intense Quote, List Paragraph");
+
+        Caret(1, 0);
+        await cut.FindAll(".editor-gallery-item").First(_ => _.TextContent.Trim() == "Title").ClickAsync(new());
+        await Assert.That(Read(reported!)[1]).Contains("#Title");
+        await Assert.That(cut.Find(".editor-gallery-item[aria-selected=true]").TextContent.Trim()).IsEqualTo("Title");
     }
 
     // The Font group: with the caret in a word, the word is what it formats, as Word's does.
@@ -584,7 +610,7 @@ public class MorphEditorTests : BunitTestContext
         await cut.Find(".editor-grid-cell[aria-label='2 by 3']").ClickAsync(new());
 
         await Assert.That(Read(reported!).Count).IsEqualTo(3 + 6 + 1);
-        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout Table Review View");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout References Review View Table");
 
         // The caret is in the first cell: a row goes in below it.
         Caret(3, 0);
@@ -886,6 +912,7 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Package(reported!, _ => _.MainDocumentPart!.FooterParts.Count())).IsEqualTo(1);
 
         Caret(0, 5);
+        await ChooseTabAsync(cut, "References");
         await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Footnote").ClickAsync(new());
         await Assert.That(Body(reported!)).StartsWith("<w:p><w:r><w:t xml:space=\"preserve\">First</w:t></w:r><w:r><w:rPr><w:rStyle w:val=\"FootnoteReference\" /></w:rPr><w:footnoteReference w:id=\"1\" /></w:r>");
         var opened = DocumentOutline.Read(reported!).Paragraphs[Session().GetProperty("p").GetInt32()];
@@ -985,7 +1012,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, after.Left + 2, after.Top + 2, outside, outside));
 
-        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout Review View");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout References Review View");
         await Assert.That(cut.Find(".editor-tab[aria-selected=true]").TextContent.Trim()).IsEqualTo("Home");
     }
 
@@ -1291,6 +1318,7 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("Home")]
     [Arguments("Insert")]
     [Arguments("Layout")]
+    [Arguments("References")]
     [Arguments("Table")]
     [Arguments("Review")]
     [Arguments("View")]

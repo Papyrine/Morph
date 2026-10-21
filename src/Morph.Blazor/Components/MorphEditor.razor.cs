@@ -36,6 +36,7 @@ public partial class MorphEditor
     const string home = "Home";
     const string insert = "Insert";
     const string layout = "Layout";
+    const string references = "References";
     const string table = "Table";
     const string reviewTab = "Review";
     const string view = "View";
@@ -45,6 +46,9 @@ public partial class MorphEditor
     const string discardDialog = "discard";
     const string splitDialog = "split";
     const string marginsDialog = "margins";
+
+    const int galleryRows = 2;
+    const int galleryColumns = 4;
 
     const int gridRows = 8;
     const int gridColumns = 10;
@@ -56,6 +60,8 @@ public partial class MorphEditor
     ElementReference linkInput;
     bool focusLink;
     (int Rows, int Columns) hover = (1, 1);
+    int galleryStart;
+    string? galleryStyle;
 
     /// <summary>
     /// Whether the File menu offers a new blank document. Default true; a host that opened one file for
@@ -89,15 +95,16 @@ public partial class MorphEditor
             if (IsWord)
             {
                 yield return layout;
-            }
-
-            if (InTable && IsWord)
-            {
-                yield return table;
+                yield return references;
             }
 
             yield return reviewTab;
             yield return view;
+            // A contextual tab, after the others, as Word's Table Layout is.
+            if (InTable && IsWord)
+            {
+                yield return table;
+            }
         }
     }
 
@@ -149,10 +156,70 @@ public partial class MorphEditor
     string Expanded(string name) =>
         Pressed(menu == name);
 
-    // A style's name drawn the way its text is, as Word's gallery draws it, at a size the menu holds.
-    static string StylePreview(StyleChoice style)
+    // The style gallery: the styles a document puts in it (and the caret's, wherever it is from), two
+    // rows at a time. It turns to the row the caret's style is on whenever that style changes, and is
+    // otherwise left where the reader paged it.
+    IReadOnlyList<StyleChoice> GalleryChoices
     {
-        var size = Math.Clamp(style.SizePoints, 9, 20).ToString("0.#", CultureInfo.InvariantCulture);
+        get
+        {
+            var choices = Styles.Where(_ => _.Gallery).ToList();
+            if (choices.Count == 0)
+            {
+                choices = [.. Styles];
+            }
+
+            if (choices.All(_ => _.Id != CurrentStyle) &&
+                Styles.FirstOrDefault(_ => _.Id == CurrentStyle) is { } current)
+            {
+                choices.Insert(0, current);
+            }
+
+            return choices;
+        }
+    }
+
+    IReadOnlyList<StyleChoice> GalleryShown
+    {
+        get
+        {
+            var choices = GalleryChoices;
+            if (galleryStyle != CurrentStyle)
+            {
+                galleryStyle = CurrentStyle;
+                var index = choices.ToList().FindIndex(_ => _.Id == CurrentStyle);
+                if (index >= 0 &&
+                    (index < galleryStart || index >= galleryStart + galleryRows * galleryColumns))
+                {
+                    galleryStart = index / galleryColumns * galleryColumns;
+                }
+            }
+
+            return [.. choices.Skip(galleryStart).Take(galleryRows * galleryColumns)];
+        }
+    }
+
+    bool CanPageGallery(int rows)
+    {
+        if (rows < 0)
+        {
+            return galleryStart > 0;
+        }
+
+        return galleryStart + galleryRows * galleryColumns < GalleryChoices.Count;
+    }
+
+    void PageGallery(int rows) =>
+        galleryStart = Math.Max(0, galleryStart + rows * galleryColumns);
+
+    // A style in the gallery: drawn as its text is, at a size a tile holds.
+    static string GalleryPreview(StyleChoice style) =>
+        StylePreview(style, 13);
+
+    // A style's name drawn the way its text is, as Word's gallery draws it, at a size the menu holds.
+    static string StylePreview(StyleChoice style, double largest = 20)
+    {
+        var size = Math.Clamp(style.SizePoints, 9, largest).ToString("0.#", CultureInfo.InvariantCulture);
         var css = $"font-size: {size}pt;";
         if (style.Bold)
         {

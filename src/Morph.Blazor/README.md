@@ -135,14 +135,21 @@ viewer underneath — the same pages, sidebar, find bar and review pane — with
 edited where it stands. It takes every `MorphViewer` parameter; with nothing open it offers a new blank
 document, Open, and (with `ShowSamples`) the sample document. A workbook or a deck opens to be read.
 
+The ribbon is laid out as Word's: the tabs on a title band with the file's name and Save, the chosen
+tab open onto the ribbon under it; each tab's commands in named groups, a group's main command a large
+button with its name under its icon and the rest small buttons beside it. In a narrower window the
+groups give up room rather than wrap, as Word's do — the style gallery shows fewer styles, then Home's
+small buttons keep only their icons — and on a phone the ribbon scrolls sideways.
+
 | ribbon | what it does |
 | --- | --- |
 | File | New blank document (Word's own, as Word makes it), Open, Save a copy, Export as PNG, PDF, HTML, Markdown or plain text, Print. A new document over edits not yet saved asks first. |
-| Home | Undo, Redo; the paragraph style — every style the document offers and Word's own gallery, each drawn as it looks; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
-| Insert | Page break; Header and Footer, which open the section's for typing (made if it has none); Footnote, a note at the caret, opened for typing; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link. |
+| Home | Undo, Redo; Paste, Cut and Copy (Paste reads the clipboard, which the browser may ask the reader for; refused, the status bar says to use Ctrl+V); the style gallery — the styles of Word's gallery drawn as their text looks, two rows at a time with arrows to page through, and a button for every style the document offers; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
+| Insert | Page break; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link; Header and Footer, which open the section's for typing (made if it has none). |
 | Layout | The page of the section the caret is in: margins (Word's Normal, Narrow, Moderate and Wide, or custom, in centimetres), portrait or landscape, the paper size; breaks — a page break, or a section break that starts the next section on a new page or on the same one. Page setup is not tracked. |
-| Table | Shown while the caret is in a table: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
-| Review | Track changes; New comment on what is selected; the comments and changes pane; Accept all, Reject all; Word count. |
+| References | Footnote: a note at the caret, opened for typing. |
+| Table | Shown while the caret is in a table, after the other tabs, as Word's Table Layout is: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
+| Review | Word count; New comment on what is selected; the comments and changes pane; Track changes; Accept all, Reject all. |
 | View | Thumbnails; zoom; page navigation; presentation mode. |
 
 A ribbon press does not take the focus: it acts on the paragraph being typed in — what was typed is
@@ -336,6 +343,8 @@ wins, whatever the stylesheet link order:
 | `--morph-text` | body text | `#333` |
 | `--morph-muted` | secondary text (captions, notes, progress labels) | `#6c757d` |
 | `--morph-border` | every border and divider | `#dee2e6` |
+| `--morph-band` | the editor's title band, which carries its tabs and the file's name | `--morph-primary`, darkened |
+| `--morph-on-band` | text and icons on the band | `#ffffff` |
 | `--morph-selection` | selected text on a rendered page | `rgb(0 96 223 / 0.3)` |
 | `--morph-find` | the viewer's find matches | `rgb(255 200 0 / 0.45)` |
 | `--morph-find-current` | the viewer's current find match | `rgb(255 110 0 / 0.55)` |

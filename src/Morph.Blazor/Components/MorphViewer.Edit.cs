@@ -372,6 +372,16 @@ public partial class MorphViewer
     async Task<EditOptions> EditOptionsAsync() =>
         new(Signature, await ReaderClockAsync(), Tracking);
 
+    /// <summary>Called from JavaScript with a note for the status bar, as when the clipboard could not be read.</summary>
+    [JSInvokable]
+    public Task OnEditNote(string note) =>
+        InvokeAsync(
+            () =>
+            {
+                editNote = note;
+                StateHasChanged();
+            });
+
     /// <summary>
     /// Called from JavaScript for a toolbar button or a key pressed while no paragraph is open: the
     /// command applies to the text selected on the pages.
