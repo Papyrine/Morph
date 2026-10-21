@@ -126,11 +126,19 @@ public class PageCropTests
     [Arguments(Backend.ImageSharp)]
     public async Task CroppedPixelsAreTheFullRendersOwn(Backend backend)
     {
-        using var full = SKBitmap.Decode(Render(backend, Document(), PageCrop.FullPage));
-        using var cropped = SKBitmap.Decode(Render(backend, Document(), PageCrop.ContentBox));
+        // Each page is written in the smallest PNG form its pixels allow (PngWriter): the cropped page
+        // here is all grey and comes out greyscale, the full one with its red header as colour. Both
+        // are decoded to one form so their pixels compare.
+        using var full = Decoded(Render(backend, Document(), PageCrop.FullPage));
+        using var cropped = Decoded(Render(backend, Document(), PageCrop.ContentBox));
 
-        await Assert.That(cropped.ColorType).IsEqualTo(full.ColorType);
         await Assert.That(FirstRowDifferingFrom(cropped, full, 40, 40)).IsEqualTo(-1);
+    }
+
+    static SKBitmap Decoded(byte[] png)
+    {
+        using var decoded = SKBitmap.Decode(png);
+        return decoded.Copy(SKColorType.Bgra8888);
     }
 
     /// <summary>
