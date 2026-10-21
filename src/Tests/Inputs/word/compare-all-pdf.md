@@ -1,4 +1,4 @@
-# All PDF export scenarios (342)
+# All PDF export scenarios (344)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -79,6 +79,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [cards/16](#cards16)
 - [cards/18](#cards18)
 - [cards/19](#cards19)
+- [character_scale](#character_scale)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -122,6 +123,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [feature_capture/01](#feature_capture01)
 - [field_codes_simple/01](#field_codes_simple01)
 - [first_line_indent](#first_line_indent)
+- [font_alignment](#font_alignment)
 - [font_families](#font_families)
 - [font_sizes](#font_sizes)
 - [footer](#footer)
@@ -1314,6 +1316,16 @@ PDF: [Morph PDF](cards/18/pdf_result.verified.pdf)
 PDF: [Morph PDF](cards/19/pdf_result.verified.pdf)
 
 
+## character_scale
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0218 · SSIM: 0.9875** |
+| <img src="character_scale/expected_0001.png" width="500"> | <img src="character_scale/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](character_scale/pdf_result.verified.pdf)
+
+
 ## colored_text
 
 | Expected (Word) | Morph PDF |
@@ -1776,6 +1788,18 @@ PDF: [Morph PDF](field_codes_simple/01/pdf_result.verified.pdf)
 | <img src="first_line_indent/expected_0001.png" width="500"> | <img src="first_line_indent/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](first_line_indent/pdf_result.verified.pdf)
+
+
+## font_alignment
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0060 · SSIM: 0.9941** |
+| <img src="font_alignment/expected_0001.png" width="500"> | <img src="font_alignment/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0005 · SSIM: 0.9996** |
+| <img src="font_alignment/expected_0002.png" width="500"> | <img src="font_alignment/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](font_alignment/pdf_result.verified.pdf)
 
 
 ## font_families

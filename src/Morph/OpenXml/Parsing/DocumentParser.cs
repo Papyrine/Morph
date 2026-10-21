@@ -655,7 +655,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        if (headerPart.GetPartById(relId) is not ImagePart imagePart)
+        if (headerPart.PartOrNull(relId) is not ImagePart imagePart)
         {
             return null;
         }
@@ -3741,6 +3741,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     static double ClampPageDimension(double points) => Math.Clamp(points, 1, maxPageDimensionPoints);
 
+    // Two opposite margins shrunk in proportion, when they would leave the page less than an inch of
+    // content (half the page, on one smaller than two inches). Real margins are never near it; only a
+    // crafted pair is touched.
+    static (double Near, double Far) FitMargins(double near, double far, double extent)
+    {
+        var room = extent - Math.Min(72, extent / 2);
+        if (near + far <= room)
+        {
+            return (near, far);
+        }
+
+        var factor = room / (near + far);
+        return (near * factor, far * factor);
+    }
+
     static string ToLetter(int number)
     {
         if (number <= 0)
@@ -3972,6 +3987,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 marginLeft += gutterPoints;
             }
         }
+
+        // A crafted w:pgMar can ask for margins wider than the page they stand on — the page is clamped
+        // (ClampPageDimension), its margins are not — and a content box of no size, or less, sends the
+        // fragmenter looking forever for a page anything fits on.
+        (marginLeft, marginRight) = FitMargins(marginLeft, marginRight, width);
+        (marginTop, marginBottom) = FitMargins(marginTop, marginBottom, height);
 
         // Parse column settings
         var columns = sectionProps.GetFirstChild<Columns>();
@@ -4814,7 +4835,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return [];
         }
 
-        var part = mainPart.GetPartById(altChunk.Id.Value);
+        var part = mainPart.PartOrNull(altChunk.Id.Value);
         if (part is AlternativeFormatImportPart altPart)
         {
             using var stream = altPart.GetStream();
@@ -7661,12 +7682,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     continue;
                 }
 
-                imageData = GetPartBytes(hostPart.GetPartById(svgEmbed));
+                if (hostPart.PartOrNull(svgEmbed) is not { } svgSource)
+                {
+                    continue;
+                }
+
+                imageData = GetPartBytes(svgSource);
                 contentType = "image/svg+xml";
             }
         }
 
-        if (hostPart.GetPartById(embed) is ImagePart imagePart)
+        if (hostPart.PartOrNull(embed) is ImagePart imagePart)
         {
             var rasterBytes = GetPartBytes(imagePart);
             if (rasterBytes.Length > 0)
@@ -9068,9 +9094,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                         if (svgBlip != null)
                         {
-                            if (svgBlip.AttributeValue("embed") is { } svgEmbed)
+                            if (svgBlip.AttributeValue("embed") is { } svgEmbed && hostPart.PartOrNull(svgEmbed) is { } svgPart)
                             {
-                                var svgPart = hostPart.GetPartById(svgEmbed);
                                 imageData = GetPartBytes(svgPart);
                                 contentType = "image/svg+xml";
                             }
@@ -9082,7 +9107,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // Read the raster blob the blip points to. When SVG is set, this becomes the
             // raster fallback for backends that can't render SVG; otherwise it's the
             // primary imageData.
-            if (hostPart.GetPartById(embed) is ImagePart rasterPart)
+            if (hostPart.PartOrNull(embed) is ImagePart rasterPart)
             {
                 var rasterBytes = GetPartBytes(rasterPart);
                 if (rasterBytes.Length > 0)

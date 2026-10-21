@@ -37,7 +37,10 @@ static class InkParser
         }
 
         // Get the ink part
-        var inkPart = mainPart.GetPartById(relIdAttribute.Value);
+        if (mainPart.PartOrNull(relIdAttribute.Value) is not { } inkPart)
+        {
+            return null;
+        }
 
         // Read the InkML content
         using var stream = inkPart.GetStream();
