@@ -169,10 +169,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | body text drawn full-size at the normal top margin instead of Word's shrunk-to-fit-markup layout (Word scales the body down and places it lower to reserve the markup column)
 - MAJOR | html | - | comment content "Commented [R1]: Looks good to me." missing from the HTML export (only the body sentence is present)
 
-### feature_capture/01
-
-- MINOR | all | p1 | Word breaks the rotated header cell's "Header" mid-word into two stacked columns against a 24pt row where Morph grows the row to the word's 35pt: Word sizes the row by the other cells and wraps the rotated text against it, Morph lets `MeasureVerticalCellHeight` grow the row to the rotated text's natural width — the wrap-at-row-height equilibrium is unprobed
-
 ### html_complex
 
 - MEDIUM | all | p1,p2 | everything under the data table sits about 31pt high of Word's: the table's rows stand 32.6pt apart against Word's 35.4 (the cell-paragraph spacing of html_table), and the "3. Lists" heading opens 20pt closer to the table than Word's, whose headings keep their space above after a table. Page 1 so takes the "5. Styled Boxes" heading that opens Word's page 2. The intro wraps as Word's since 2026-10-11
