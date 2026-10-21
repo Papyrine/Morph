@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Turns on the trim and native AOT analyzers, so a hazard fails the build (TreatWarningsAsErrors).
+         AotSmoke publishes a trimmed app over the libraries to check it end to end. -->
+    <IsAotCompatible>true</IsAotCompatible>
     <NoWarn>CS0618;CS1591;CS1572;NU1902</NoWarn>
   </PropertyGroup>
 

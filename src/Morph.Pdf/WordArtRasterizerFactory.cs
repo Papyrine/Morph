@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 /// Locates an <see cref="IWordArtRasterizer"/> from an optional raster backend so the PDF engine
 /// can embed high-fidelity WordArt without a compile-time dependency on either engine. Prefers
@@ -22,7 +24,7 @@ static class WordArtRasterizerFactory
         {
             if (!probed)
             {
-                cached = Load("Morph.Skia") ?? Load("Morph.ImageSharp");
+                cached = Load(Type.GetType("SkiaWordArtRasterizer, Morph.Skia")) ?? Load(Type.GetType("ImageSharpWordArtRasterizer, Morph.ImageSharp"));
                 probed = true;
             }
         }
@@ -30,26 +32,25 @@ static class WordArtRasterizerFactory
         return cached;
     }
 
-    static IWordArtRasterizer? Load(string assemblyName)
+    // The backend's type is named literally, which is what lets a trimmed or native AOT app keep it: the
+    // trimmer reads the name, keeps the type's constructors when its assembly is deployed (the
+    // annotation below), and leaves null for one that is not. Scanning the assembly's types, as this did,
+    // found nothing once trimming had removed them, which no build reported.
+    static IWordArtRasterizer? Load([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? type)
     {
+        if (type == null)
+        {
+            return null;
+        }
+
         try
         {
-            var assembly = Assembly.Load(assemblyName);
-            foreach (var type in assembly.GetTypes())
-            {
-                if (type is {IsAbstract: false, IsInterface: false} &&
-                    typeof(IWordArtRasterizer).IsAssignableFrom(type))
-                {
-                    return (IWordArtRasterizer?)Activator.CreateInstance(type, true);
-                }
-            }
+            return (IWordArtRasterizer?) Activator.CreateInstance(type, true);
         }
         catch
         {
-            // Assembly not deployed (FileNotFoundException), a load/reflection failure, or a
-            // missing parameterless constructor — treat as "no raster backend available".
+            // A load or construction failure: treat as "no backend available here".
+            return null;
         }
-
-        return null;
     }
 }
