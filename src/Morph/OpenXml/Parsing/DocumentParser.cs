@@ -4890,15 +4890,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         currentTableStyleId = table.GetFirstChild<OoxmlTableProperties>()?
                                   .GetFirstChild<TableStyle>()?.Val?.Value
                               ?? defaultTableStyleId;
+        tableDepth++;
         try
         {
             return ParseTableCore(table, mainPart);
         }
         finally
         {
+            tableDepth--;
             currentTableStyleId = previousTableStyleId;
         }
     }
+
+    // How deep tables nest before the parser stops building tables. Parsing, measuring and laying a table
+    // out each recurse into the tables in its cells, so a document of tables nested hundreds deep
+    // overflowed the stack — 300 of them killed the process from the parser, beyond any catch
+    // (MalformedPackageTests). Past the bound a nested table's paragraphs are kept, in order, as the
+    // cell's own: the text survives without the boxes around it. No corpus document nests past 3.
+    const int maxTableDepth = 64;
+    int tableDepth;
+
+    IEnumerable<DocumentElement> FlattenTable(Table table, MainDocumentPart mainPart) =>
+        table.Descendants<Paragraph>().SelectMany(_ => ParseParagraph(_, mainPart));
 
     /// <summary>
     /// A row's cells in document order, unwrapping any cell-level content control. Word wraps a
@@ -5126,6 +5139,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         case Paragraph para:
                             cellContent.AddRange(ParseParagraph(para, mainPart));
                             break;
+                        case Table tooDeep when tableDepth >= maxTableDepth:
+                            cellContent.AddRange(FlattenTable(tooDeep, mainPart));
+                            break;
                         case Table nestedTable:
                             // A floating table stays in its cell, which places it at its offset
                             // from there (Fragmenter.LayoutCellFragment). Lifted to the end of the
@@ -5147,7 +5163,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 }
                                 else if (sdtChild is Table sdtTable)
                                 {
-                                    if (ParseTable(sdtTable, mainPart) is { } nestedSdt)
+                                    if (tableDepth >= maxTableDepth)
+                                    {
+                                        cellContent.AddRange(FlattenTable(sdtTable, mainPart));
+                                    }
+                                    else if (ParseTable(sdtTable, mainPart) is { } nestedSdt)
                                     {
                                         cellContent.Add(nestedSdt);
                                     }
