@@ -643,6 +643,47 @@ export class ParagraphEditor {
         return true;
     }
 
+    // The ribbon's Paste: what Ctrl+V would have pasted, read from the clipboard (the browser may ask
+    // the reader first, and a refusal pastes nothing). HTML goes to .NET as a pasted one does.
+    async pasteFromClipboard() {
+        const range = this.range();
+        if (!range || !navigator.clipboard) {
+            return;
+        }
+
+        let html = '';
+        let text = '';
+        try {
+            if (navigator.clipboard.read) {
+                for (const item of await navigator.clipboard.read()) {
+                    if (item.types.includes('text/html')) {
+                        html = await (await item.getType('text/html')).text();
+                    }
+
+                    if (item.types.includes('text/plain')) {
+                        text = await (await item.getType('text/plain')).text();
+                    }
+                }
+            } else {
+                text = await navigator.clipboard.readText();
+            }
+        } catch {
+            this.callbacks.note?.('The browser did not let the page read the clipboard: paste with Ctrl+V.');
+            return;
+        }
+
+        if (this.pending || this.closed) {
+            return;
+        }
+
+        const data = { getData: type => ({ 'text/html': html, 'text/plain': text })[type] ?? '' };
+        if (!this.pasteHtml(range, data)) {
+            this.replace(range, text, 'paste');
+        }
+
+        this.box.focus({ preventScroll: true });
+    }
+
     lineBreak(range) {
         this.record('break');
         const like = this.faceAt(range.from);
@@ -1330,6 +1371,17 @@ export class ParagraphEditor {
             return this.undo();
         } else if (name === 'redo') {
             return this.redo();
+        } else if (name === 'copy') {
+            // What is selected in the box, as Ctrl+C copies it.
+            document.execCommand('copy');
+        } else if (name === 'cut') {
+            const range = this.range();
+            if (range && !same(range.from, range.to)) {
+                document.execCommand('copy');
+                this.replace(range, '', 'delete');
+            }
+        } else if (name === 'paste') {
+            this.pasteFromClipboard();
         } else {
             return false;
         }

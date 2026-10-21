@@ -361,7 +361,41 @@ public partial class SnapshotTests
         await HandInAsync(page);
 
         await Assert.That(Read(await SaveAsync(page))[2]).IsEqualTo("[Third and last. Really!] #Heading1");
-        await Assert.That(await page.InnerTextAsync(".editor-style-name")).IsEqualTo("Heading 1");
+        await Assert.That(await page.InnerTextAsync(".editor-gallery-item[aria-selected=true]")).IsEqualTo("Heading 1");
+    }
+
+    // The ribbon's Clipboard group, in a browser that lets the page at the clipboard: Copy takes what is
+    // selected in the paragraph being typed, and Paste puts it at the caret.
+    [Test]
+    public async Task Edit_CopyAndPaste_FromTheRibbon()
+    {
+        await using var context = await browser!.NewContextAsync(
+            new()
+            {
+                Permissions = ["clipboard-read", "clipboard-write"]
+            });
+        var page = await context.NewPageAsync();
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Shift+Home");
+        await page.ClickAsync("[data-edit-command=copy]");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.TypeAsync(" ");
+        await page.ClickAsync("[data-edit-command=paste]");
+        await page.WaitForFunctionAsync(
+            "() => document.querySelector('.edit-box')?.innerText.includes('Third and last. Third and last.')",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await HandInAsync(page);
+
+        await Assert.That(string.Concat(Read(await SaveAsync(page))[2].Split('[', ']'))).StartsWith("Third and last. Third and last.");
     }
 
     [Test]

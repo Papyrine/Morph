@@ -39,6 +39,9 @@ const maxImages = 24;
 // this many characters of layer data only the pages around the current one are built.
 const textBudget = 24000000;
 
+// The ribbon's Clipboard group: run by the script, inside the press, as the clipboard asks.
+const clipboardCommands = ['cut', 'copy', 'paste'];
+
 export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
     const viewer = new Viewer(root, dotNet, maxDpi, maxPagePixels);
     // Plain closures, so the calls work however the interop layer binds `this`.
@@ -1936,6 +1939,7 @@ class Viewer {
             key: name => this.editKey(name),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
+            note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
     }
@@ -2011,7 +2015,12 @@ class Viewer {
 
         for (const button of this.root.querySelectorAll('[data-edit-command]')) {
             const name = button.dataset.editCommand;
-            if (name === 'track' || name === 'undo' || name === 'redo') {
+            // The ribbon's Paste needs the clipboard API: without it, Ctrl+V is the way.
+            if (name === 'paste') {
+                button.hidden = !navigator.clipboard?.readText;
+            }
+
+            if (name === 'track' || name === 'undo' || name === 'redo' || clipboardCommands.includes(name)) {
                 continue;
             }
 
@@ -2035,6 +2044,19 @@ class Viewer {
             }
 
             await editor.commit(0);
+        } else if (clipboardCommands.includes(name)) {
+            // Text selected on the pages: copied as Ctrl+C copies it, and cut by deleting it after.
+            // There is nowhere to paste.
+            if (name === 'paste' || !this.selectedText()) {
+                return;
+            }
+
+            document.execCommand('copy');
+            if (name === 'copy') {
+                return;
+            }
+
+            name = 'delete';
         }
 
         this.dotNet.invokeMethodAsync('OnEditCommand', name).catch(() => {});

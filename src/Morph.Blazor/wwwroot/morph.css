@@ -21,6 +21,8 @@
     | --morph-text       | body text                                          | #333    |
     | --morph-muted      | secondary text (captions, notes, progress labels)  | #6c757d |
     | --morph-border     | every border and divider                           | #dee2e6 |
+    | --morph-band       | the editor's title band, its tabs and file name     | --morph-primary, darkened |
+    | --morph-on-band    | text and icons on the band                         | #ffffff |
     | --morph-selection  | selected text on a rendered page                   | rgb(0 96 223 / 0.3)   |
     | --morph-find       | the viewer's find matches                          | rgb(255 200 0 / 0.45) |
     | --morph-find-current | the viewer's current find match                  | rgb(255 110 0 / 0.55) |
@@ -1722,11 +1724,15 @@
     border-bottom: 1px solid var(--morph-border, #dee2e6);
 }
 
+/* Word's title band: the tabs stand on it, the chosen one open onto the ribbon under it, with the file's
+   name and Save beside them. */
 .editor-titlebar {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 0.5rem;
-    padding: 0.25rem 0.5rem 0;
+    padding: 0.3rem 0.5rem 0;
+    background: var(--morph-band, color-mix(in srgb, var(--morph-primary, #2b579a) 88%, black));
+    color: var(--morph-on-band, #ffffff);
 }
 
 .editor-tabs {
@@ -1738,37 +1744,44 @@
 
 .editor-file,
 .editor-tab {
-    padding: 0.4rem 0.75rem;
+    padding: 0.4rem 0.8rem 0.45rem;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
     background: transparent;
-    color: var(--morph-text, #333);
+    color: inherit;
     font: inherit;
     font-size: 0.85rem;
     cursor: pointer;
 }
 
 .editor-file {
-    border-radius: 4px 4px 0 0;
-    background: var(--morph-primary, #2b579a);
-    color: white;
     font-weight: 600;
 }
 
+.editor-file:hover:not(:disabled),
+.editor-tab:hover:not(:disabled, [aria-selected="true"]) {
+    background: rgb(255 255 255 / 0.15);
+}
+
 .editor-tab[aria-selected="true"] {
-    border-bottom-color: var(--morph-primary, #2b579a);
+    background: var(--morph-surface, #ffffff);
     color: var(--morph-primary, #2b579a);
     font-weight: 600;
 }
 
 .editor-tab:disabled {
-    opacity: 0.45;
+    opacity: 0.6;
     cursor: default;
 }
 
 .editor-file:focus-visible,
-.editor-tab:focus-visible,
+.editor-tab:focus-visible {
+    outline: 2px solid var(--morph-on-band, #ffffff);
+    outline-offset: -3px;
+}
+
 .editor-tool:focus-visible,
+.editor-gallery-item:focus-visible,
 .editor-dropdown:focus-visible,
 .editor-menu-item:focus-visible,
 .editor-grid-cell:focus-visible {
@@ -1778,6 +1791,7 @@
 
 .editor-name {
     flex: 1;
+    align-self: center;
     min-width: 0;
     overflow: hidden;
     font-size: 0.85rem;
@@ -1788,37 +1802,236 @@
 }
 
 .editor-dirty {
-    color: var(--morph-muted, #6c757d);
     font-weight: 400;
+    opacity: 0.8;
 }
 
 .editor-quick {
     display: flex;
     flex: none;
+    align-self: center;
     gap: 0.15rem;
+    padding-bottom: 0.2rem;
 }
 
+.editor-quick .viewer-button {
+    color: inherit;
+}
+
+.editor-quick .viewer-button:hover:not(:disabled) {
+    border-color: transparent;
+    background: rgb(255 255 255 / 0.15);
+}
+
+.editor-quick .viewer-button:focus-visible {
+    outline-color: var(--morph-on-band, #ffffff);
+}
+
+/* The ribbon: groups of commands, each as tall as two rows of buttons, its name under it as in Word
+   (the name is its aria-label, drawn by the sheet). */
 .editor-tools {
+    --ribbon-row: 2rem;
+    --ribbon-gap: 0.2rem;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: stretch;
     gap: 0.25rem 0;
-    min-height: 2.75rem;
-    padding: 0.35rem 0.25rem;
-    border-top: 1px solid var(--morph-border, #dee2e6);
+    padding: 0.3rem 0.25rem 0.15rem;
 }
 
 .editor-group {
     position: relative;
     display: flex;
+    flex: none;
     align-items: center;
-    gap: 0.15rem;
-    padding: 0 0.5rem;
+    gap: 0.2rem;
+    min-height: calc(var(--ribbon-row) * 2 + var(--ribbon-gap) + 1.1rem);
+    padding: 0 0.5rem 1.1rem;
     border-right: 1px solid var(--morph-border, #dee2e6);
+}
+
+/* Under the group, and out of its flow, so that a name never widens its group. */
+.editor-group::after {
+    content: attr(aria-label);
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.7rem;
+    line-height: 1rem;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .editor-group:last-child {
     border-right: none;
+}
+
+/* Two rows of small buttons, as the Font and Paragraph groups are. */
+.editor-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ribbon-gap);
+}
+
+.editor-row {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    min-height: var(--ribbon-row);
+}
+
+/* Small labelled buttons one over another, beside a group's large one. */
+.editor-stack {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: var(--ribbon-gap);
+    min-height: calc(var(--ribbon-row) * 2 + var(--ribbon-gap));
+}
+
+.editor-stack-three {
+    --ribbon-row: 1.4rem;
+    gap: 0.1rem;
+}
+
+.editor-stack-three .editor-tool,
+.editor-stack-three .editor-size-field {
+    height: 1.4rem;
+}
+
+/* A group's main command: its icon large, its name under it. */
+.editor-tool.editor-large {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    height: calc(var(--ribbon-row) * 2 + var(--ribbon-gap));
+    min-width: 3.25rem;
+    max-width: 6.5rem;
+    padding: 0.2rem 0.4rem;
+    line-height: 1.1;
+    text-align: center;
+    white-space: normal;
+}
+
+.editor-tool.editor-large svg {
+    width: 1.6rem;
+    height: 1.6rem;
+}
+
+.editor-tool.editor-large svg.editor-caret {
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-top: -0.1rem;
+}
+
+.editor-tool.editor-large .editor-badge {
+    position: absolute;
+    top: 0.15rem;
+    right: 0.15rem;
+}
+
+/* Word's style gallery: tiles drawn as the styles' text is, two rows of them; the arrows beside it page
+   through, and the last opens the whole list. A tile is paper, white with black automatic text, under
+   any theme: it shows the style as the page will, which stays white too. */
+.editor-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 6.25rem);
+    grid-auto-rows: var(--ribbon-row);
+    gap: var(--ribbon-gap);
+    padding: 1px;
+}
+
+.editor-gallery-item {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding: 0 0.5rem;
+    overflow: hidden;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    background: #ffffff;
+    color: #000000;
+    font-family: inherit;
+    line-height: 1;
+    text-align: left;
+    cursor: pointer;
+}
+
+.editor-gallery-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editor-gallery-item:hover:not(:disabled) {
+    border-color: var(--morph-primary, #2b579a);
+}
+
+.editor-gallery-item[aria-selected="true"] {
+    border-color: var(--morph-primary, #2b579a);
+    box-shadow: inset 0 0 0 1px var(--morph-primary, #2b579a);
+    background: color-mix(in srgb, var(--morph-primary, #2b579a) 12%, #ffffff);
+}
+
+.editor-gallery-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.editor-gallery-arrows {
+    flex-direction: column;
+    align-self: stretch;
+    justify-content: flex-start;
+}
+
+.editor-gallery-arrows > .viewer-button {
+    width: 1.25rem;
+    height: calc((var(--ribbon-row) * 2 + var(--ribbon-gap)) / 3);
+    border-color: var(--morph-border, #dee2e6);
+    border-radius: 0;
+}
+
+.editor-gallery-arrows > .viewer-button svg {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+.editor-anchor.editor-gallery-arrows > .editor-menu {
+    right: 0;
+    left: auto;
+}
+
+/* As Word's ribbon does in a narrower window, the groups give up room rather than wrap: first the
+   gallery's width, then the names of Home's small buttons, which keep their icons and tooltips (the name
+   is still the button's, at no size). */
+@media (max-width: 1300px) {
+    .editor-gallery {
+        grid-template-columns: repeat(2, 6.25rem);
+    }
+
+    .editor-gallery-item:nth-child(n + 5) {
+        display: none;
+    }
+}
+
+@media (max-width: 1100px) {
+    .editor-tools[aria-label="Home"] .editor-stack .editor-tool {
+        gap: 0;
+        padding: 0 0.45rem;
+        font-size: 0;
+    }
+
+    .editor-font-button {
+        min-width: 6.5rem;
+    }
+
+    .editor-group {
+        padding-right: 0.3rem;
+        padding-left: 0.3rem;
+    }
 }
 
 .editor-tool {
@@ -2379,6 +2592,20 @@
 
     .editor-group {
         flex: none;
+        min-height: 0;
+        padding-bottom: 0;
+    }
+
+    .editor-group::after {
+        display: none;
+    }
+
+    .editor-gallery {
+        grid-template-columns: repeat(2, 5.5rem);
+    }
+
+    .editor-gallery-item:nth-child(n + 3) {
+        display: none;
     }
 
     .editor-tabs {
