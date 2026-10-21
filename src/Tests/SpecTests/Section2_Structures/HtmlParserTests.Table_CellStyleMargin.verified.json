@@ -21,6 +21,7 @@
                       "DoubleStrikethrough": false,
                       "AllCaps": false,
                       "SmallCaps": false,
+                      "CharacterScalePercent": 100.0,
                       "Ligatures": "Standard",
                       "IsRightToLeft": false,
                       "HasReflection": false,

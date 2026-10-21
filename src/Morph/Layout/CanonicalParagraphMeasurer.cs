@@ -122,6 +122,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
+            AlignToLargest(runs, props.FontAlignment);
+
             // An empty mark line has no runs; its baseline still needs the mark's ascent, and its height the
             // mark font's line pitch. Without the height, an image-only line — a heading-rule drawing in an
             // otherwise blank paragraph (resumes/18's section rules) — collapses to the tiny image height, so
@@ -196,6 +198,34 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         }
 
         return result;
+    }
+
+    // w:textAlignment: each run moves by a fixed fraction of how much smaller it is than the line's
+    // largest — up for top and center, down for bottom (FontAlignment, Word-probed). The runs stay inside
+    // the largest run's box, so the line keeps its height.
+    static void AlignToLargest(LaidOutRun[] runs, FontAlignment alignment)
+    {
+        if (alignment == FontAlignment.Baseline ||
+            runs.Length < 2)
+        {
+            return;
+        }
+
+        var factor = alignment switch
+        {
+            FontAlignment.Top => 0.895f,
+            FontAlignment.Center => 0.34f,
+            _ => -0.105f
+        };
+        var largest = runs.Max(_ => (float) _.Properties.FontSizePoints);
+        for (var index = 0; index < runs.Length; index++)
+        {
+            var smaller = largest - (float) runs[index].Properties.FontSizePoints;
+            if (smaller > 0)
+            {
+                runs[index] = runs[index] with {BaselineShift = runs[index].BaselineShift + factor * smaller};
+            }
+        }
     }
 
     // The height a line takes on the document grid and how far its baseline drops for it
@@ -401,6 +431,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// The width in points of a short run of text in the given font — for placing a right-aligned list
     /// marker just before its text. Zero when the font does not resolve.
     /// </summary>
+    // The horizontal scale a run's advances measure at: the conversion's own font width scale, then the
+    // run's w:w (RunProperties.CharacterScalePercent).
+    double WidthScale(RunProperties properties) =>
+        fontWidthScale * properties.CharacterScalePercent / 100;
+
     public float MeasureRunWidth(string text, RunProperties properties)
     {
         var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
@@ -409,7 +444,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties));
+        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, WidthScale(properties), KerningEnabled(properties));
     }
 
     /// <summary>
@@ -1423,7 +1458,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // resolved it to .notdef's wide advance, so "to improve" drew with a
                     // double-width gap where Word shows a single space (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
-                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale, kerning);
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, WidthScale(run.Properties), kerning);
                     if (trackingPerChar != 0)
                     {
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
@@ -1434,7 +1469,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // and Word's layout counts those (CanonicalTextMeasurer.KernPixelsBetween).
                     if (kerning && previousToken >= 0)
                     {
-                        var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, fontWidthScale);
+                        var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, WidthScale(run.Properties));
                         if (between != 0)
                         {
                             pieces[previousToken] = pieces[previousToken] with {Pixels = pieces[previousToken].Pixels + between};

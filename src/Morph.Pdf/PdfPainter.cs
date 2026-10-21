@@ -255,7 +255,19 @@ static class PdfPainter
             var stepFont = properties.SyntheticBold == SyntheticBold.None
                 ? font
                 : context.GetFont(properties.FontFamily, false, properties.Italic, VerticalRunPosition.RenderSizePoints(properties));
+            // w:w stretches the run about its own start, glyphs and advances alike (SkiaPainter.PaintLine).
+            var scaled = properties.CharacterScalePercent != 100;
+            var state = scaled ? graphics.Save() : null;
+            if (scaled)
+            {
+                graphics.ScaleAtTransform(properties.CharacterScalePercent / 100, 1, new XPoint(run.X, baseline));
+            }
+
             DrawTracked(graphics, run.Text, font, context.GetBrush(color), run.X, baseline, properties.CharacterSpacingPoints, context.NeedsSyntheticItalic(properties), KernShifts(context, run.Text, properties), stepFont);
+            if (state != null)
+            {
+                graphics.Restore(state);
+            }
 
             // Underline below the baseline, strike through the x-height (TextDecorations).
             if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)

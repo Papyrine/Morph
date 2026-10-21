@@ -1,4 +1,4 @@
-﻿# Morph Feature Matrix
+# Morph Feature Matrix
 
 Comprehensive inventory of Microsoft Word DOCX features — what Morph supports today, what is partial, and what remains to be implemented. This document serves as both reference documentation and a living roadmap.
 
@@ -378,6 +378,23 @@ Lowers text below the baseline, typically at a smaller font size.
 > **Contributors**: the same 65% size, lowered by 35% of the full-size descent — the reduced glyph's descent bottom stays on the full one (1 − 0.65): Calibri 0.094 × size against its 0.269 descent, Times 0.075 against 0.216, Segoe UI 0.088 against 0.251, each within a pixel of the XPS (`VerticalRunPosition.BaselineShiftPoints`).
 
 
+#### Character Scale `DONE`
+
+Characters stretched or condensed horizontally, as a percent of their width.
+
+- **OOXML**: `w:w` within `w:rPr` (1-600)
+- **Spec**: [CharacterScale](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.characterscale)
+- **Model**: `RunProperties.CharacterScalePercent`
+- **Layout**: the measurer's width scale per run (`CanonicalParagraphMeasurer.WidthScale`); every painter draws the run under the same x-scale about its start
+- **Test**: `character_scale/`, `CharacterScaleTests`
+
+> **Word-probed (2026-10-21, `character_scale`, XPS).** Word draws a scaled run under a pure
+> horizontal scale matrix about its origin (`0.5,0,0,1` at 50%, `3,0,0,1` at 300%): outlines and
+> advances scale together, heights and line heights do not, and lines break where the scaled widths
+> say. 66% draws at 0.659, the em rounded onto Word's pixel grid; the layout takes the declared
+> percent. Read through the style cascade like `w:spacing`. Not read before.
+
+
 #### Kerning `DONE`
 
 Adjusts spacing between specific character pairs for visual balance. Applied at LAYOUT
@@ -634,6 +651,24 @@ Text spread to fill the full width, with extra space distributed between words.
 > - the squeeze per space is at most HALF the stretch per space the line would need without that word. Fifteen thresholds over lines of 5 to 33 words bracket the factor between 0.497 and 0.503. It is a per-space comparison and not one of totals, which the same cases contradict (0.634 accepted, 0.587 refused).
 >
 > A line left with no space once the word is taken off has nothing to stretch, so only the quarter applies. The paragraph's last line is squeezed by the same test although it is not justified. Left-aligned text is never squeezed, and in modes 14 and older a justified line breaks exactly where a left-aligned one does (16 of 16 thresholds at `ceil(linear width)`). The squeezed line ends at the measure: each space gives back an equal share of the overrun. The engine reproduces 1,605 of the 1,606 probed lines; the one it misses holds an `ff` ligature, whose advance Word's layout takes and the measurer does not (`src/todo.md` #43). letters/04 and newsletters/03 are the corpus cases.
+
+
+#### Font Alignment `DONE`
+
+Where a line's smaller runs sit against its largest.
+
+- **OOXML**: `w:textAlignment` within `w:pPr` (`auto`, `baseline`, `top`, `center`, `bottom`)
+- **Spec**: [TextAlignment](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textalignment)
+- **Model**: `ParagraphProperties.FontAlignment`
+- **Layout**: `CanonicalParagraphMeasurer.AlignToLargest`, as a baseline shift per run
+- **Test**: `font_alignment/`, `FontAlignmentTests`
+
+> **Word-probed (2026-10-21, `font_alignment`, XPS, two faces at two size pairs).** A run moves by
+> a fixed fraction of how much smaller it is than the line's largest: up 0.895 for `top`, up 0.34
+> for `center`, down 0.105 for `bottom`; `auto` and `baseline` leave it on the baseline. The
+> fractions hold within 0.015 across Arial and Times New Roman, whose ascents differ widely, so Word
+> places the runs on their em boxes and not by the faces' metrics. The line keeps its height. Not
+> read before.
 
 
 ### 2.2 Spacing
@@ -3546,8 +3581,8 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Wontfix | Total |
 |----------|------|---------|------|---------|-------|
-| 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
-| 2. Paragraph Formatting | 24 | 1 | 0 | 0 | 25 |
+| 1. Text Formatting | 27 | 0 | 3 | 0 | 30 |
+| 2. Paragraph Formatting | 25 | 1 | 0 | 0 | 26 |
 | 3. Lists & Numbering | 7 | 0 | 0 | 0 | 7 |
 | 4. Tables | 29 | 0 | 0 | 0 | 29 |
 | 5. Page Layout & Sections | 20 | 0 | 0 | 0 | 20 |
@@ -3558,14 +3593,14 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **166** | **4** | **5** | **1** | **176** |
+| **Total** | **168** | **4** | **5** | **1** | **178** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 166
+    "Done" : 168
     "Partial" : 4
     "Todo" : 5
     "Wontfix" : 1

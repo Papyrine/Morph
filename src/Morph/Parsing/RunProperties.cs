@@ -50,6 +50,14 @@ sealed record RunProperties
     public double CharacterSpacingPoints { get; init; }
 
     /// <summary>
+    /// <c>w:w</c>: the run's glyphs stretched or condensed horizontally, as a percent of their width —
+    /// advances and outlines alike, heights untouched. Word-probed (<c>character_scale</c>, 2026-10-21):
+    /// the XPS draws a scaled run under a pure x-scale matrix (<c>0.5,0,0,1</c> at 50%), and the line
+    /// breaks where the scaled widths say.
+    /// </summary>
+    public double CharacterScalePercent { get; init; } = 100;
+
+    /// <summary>
     /// Set by the layout engine, never by a parser: this bold run resolved a face that is not bold, so a
     /// painter emboldens the glyphs as Word does (<see cref="BoldSimulation"/>).
     /// </summary>

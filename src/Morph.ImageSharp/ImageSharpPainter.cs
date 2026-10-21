@@ -240,14 +240,21 @@ static class ImageSharpPainter
         // An italic run whose family bundles no italic face resolved a non-italic style
         // (PickAvailableStyle): Word synthesizes an oblique, so shear the glyphs right about
         // the baseline by the Word-measured skew. Advances are unchanged, matching Word.
+        //
+        // w:w stretches the run about its own start, glyphs and advances alike (SkiaPainter.PaintLine).
+        // A nested Save replaces the transform rather than composing with it, so the shear and the
+        // stretch go in as one matrix: x' = scale * (x - skew * (y - baseline) - penX) + penX.
         var oblique = properties.Italic && !font.IsItalic;
-        if (oblique)
+        var scale = (float) (properties.CharacterScalePercent / 100);
+        var transformed = oblique || scale != 1;
+        if (transformed)
         {
-            var skew = (float) FontHelpers.SyntheticItalicSkew;
+            var skew = oblique ? (float) FontHelpers.SyntheticItalicSkew : 0;
+            var penPixels = P(context, penX);
             canvas.Save(
                 new()
                 {
-                    Transform = new(new(1, 0, -skew, 1, skew * baselineY, 0))
+                    Transform = new(new(scale, 0, -scale * skew, 1, scale * skew * baselineY + penPixels * (1 - scale), 0))
                 });
         }
 
@@ -275,7 +282,7 @@ static class ImageSharpPainter
             }
         }
 
-        if (oblique)
+        if (transformed)
         {
             canvas.Restore();
         }

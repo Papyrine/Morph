@@ -16,6 +16,7 @@
           "AllCaps": false,
           "SmallCaps": false,
           "ColorHex": "FFA500",
+          "CharacterScalePercent": 100.0,
           "Ligatures": "Standard",
           "IsRightToLeft": false,
           "HasReflection": false,
