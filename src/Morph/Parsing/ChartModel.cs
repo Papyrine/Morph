@@ -108,6 +108,12 @@ sealed record ChartDataLabels
 
     /// <summary>A point's label moved off its default place, as fractions of the chart (<c>c:dLbl/c:layout</c>).</summary>
     public IReadOnlyDictionary<int, (double X, double Y)> Offsets { get; init; } = new Dictionary<int, (double X, double Y)>();
+
+    /// <summary>
+    /// A point's label given a box of its own, as fractions of the chart (<c>c15:layout</c> in the
+    /// label's extension list, Office 2013's resizable labels). The text is centred in the box.
+    /// </summary>
+    public IReadOnlyDictionary<int, (double Width, double Height)> Sizes { get; init; } = new Dictionary<int, (double Width, double Height)>();
 }
 
 sealed record ChartAxis

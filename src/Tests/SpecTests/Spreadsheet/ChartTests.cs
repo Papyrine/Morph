@@ -30,6 +30,30 @@ public class ChartTests
         await Assert.That(series.Labels.Text.SizePoints).IsEqualTo(53);
     }
 
+    // The label was resized to nearly the whole chart (c15:layout, 99.5% by 99.99%), so the chart's edges
+    // hold its box wherever its slice and offset would put it, and its text is centred in the chart: in
+    // the hole, where Excel draws it, rather than over the ring.
+    [Test]
+    public async Task A_resized_label_is_centred_in_its_box_and_its_box_kept_in_the_chart()
+    {
+        var doughnut = Charts().Single(_ => _.Chart.Kind == ChartKind.Doughnut).Chart;
+        var size = doughnut.Series.Single().Labels!.Sizes[1];
+        await Assert.That(size.Width).IsEqualTo(0.99457156090782772).Within(1e-12);
+        await Assert.That(size.Height).IsEqualTo(0.99986227240785974).Within(1e-12);
+
+        var boxes = new List<(float X, float Y, float Width, float Height)>();
+        new ChartComposer(LayoutTestFonts.Measurer, (_, x, y, width, height, _) =>
+            {
+                boxes.Add((x, y, width, height));
+                return [];
+            })
+            .Compose(doughnut, 0, 0, 200, 300);
+
+        var label = boxes.Single();
+        await Assert.That(label.X + label.Width / 2).IsEqualTo(100f).Within(0.6f);
+        await Assert.That(label.Y + label.Height / 2).IsEqualTo(150f).Within(0.1f);
+    }
+
     [Test]
     public async Task The_column_chart_reads_its_series_its_legend_and_its_axes()
     {
