@@ -1161,7 +1161,7 @@ static class ShapeParser
         }
 
         // Try to get the image part
-        if (hostPart.GetPartById(embedAttribute) is not ImagePart imagePart)
+        if (hostPart.PartOrNull(embedAttribute) is not ImagePart imagePart)
         {
             return (null, null);
         }

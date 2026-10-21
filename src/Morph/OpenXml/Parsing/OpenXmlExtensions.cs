@@ -30,6 +30,23 @@ static class OpenXmlExtensions
     /// Returns true when an OnOff-style element is present and not explicitly set to false.
     /// OOXML semantics: a bare element (no w:val) is "on", w:val="false"/"0" is "off".
     /// </summary>
+    /// <summary>
+    /// The part a relationship id names, or null when the host has no such relationship. A package whose
+    /// relationships part is missing or stale names ids that resolve to nothing, and
+    /// <see cref="OpenXmlPartContainer.GetPartById"/> throws for each; Word opens such a file with the
+    /// pictures, charts and chunks left out, and so does Morph.
+    /// </summary>
+    public static OpenXmlPart? PartOrNull(this OpenXmlPartContainer host, string? id)
+    {
+        if (string.IsNullOrEmpty(id) ||
+            !host.TryGetPartById(id, out var part))
+        {
+            return null;
+        }
+
+        return part;
+    }
+
     public static bool IsOn(this OnOffType? element) =>
         element != null && element.Val?.Value != false;
 

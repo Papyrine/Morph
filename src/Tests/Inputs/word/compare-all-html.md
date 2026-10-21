@@ -1,4 +1,4 @@
-# All HTML export scenarios (342)
+# All HTML export scenarios (344)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -79,6 +79,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [cards/16](#cards16)
 - [cards/18](#cards18)
 - [cards/19](#cards19)
+- [character_scale](#character_scale)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -122,6 +123,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [feature_capture/01](#feature_capture01)
 - [field_codes_simple/01](#field_codes_simple01)
 - [first_line_indent](#first_line_indent)
+- [font_alignment](#font_alignment)
 - [font_families](#font_families)
 - [font_sizes](#font_sizes)
 - [footer](#footer)
@@ -794,6 +796,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="cards/19/expected_0001.png" width="500"><br><img src="cards/19/expected_0002.png" width="500"><br><img src="cards/19/expected_0003.png" width="500"><br><img src="cards/19/expected_0004.png" width="500"> | <img src="cards/19/html_result.verified.png" width="500"> |
 
+## character_scale
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="character_scale/expected_0001.png" width="500"> | <img src="character_scale/html_result.verified.png" width="500"> |
+
 ## colored_text
 
 | Expected (Word) | Morph HTML |
@@ -1051,6 +1059,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="first_line_indent/expected_0001.png" width="500"> | <img src="first_line_indent/html_result.verified.png" width="500"> |
+
+## font_alignment
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="font_alignment/expected_0001.png" width="500"><br><img src="font_alignment/expected_0002.png" width="500"> | <img src="font_alignment/html_result.verified.png" width="500"> |
 
 ## font_families
 
