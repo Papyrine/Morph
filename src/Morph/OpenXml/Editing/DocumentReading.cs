@@ -1,6 +1,3 @@
-using System.Runtime.CompilerServices;
-using DocumentFormat.OpenXml.Packaging;
-
 /// <summary>
 /// A Word document read for its review pane and for editing at once. The viewer wants both after
 /// every edit, and each on its own opens the package, normalizes Strict markup and loads every part's
