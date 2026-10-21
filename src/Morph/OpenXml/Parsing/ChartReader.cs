@@ -98,11 +98,22 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
     {
         var properties = Child(ser, "spPr");
         var pointFills = new Dictionary<int, string>();
+        var pointLines = new Dictionary<int, ChartStroke>();
         foreach (var point in ser.Elements().Where(_ => _.LocalName == "dPt"))
         {
-            if (Value(Child(point, "idx")) is { } index && SolidColor(Child(point, "spPr")) is { } fill)
+            if (Value(Child(point, "idx")) is not { } index)
+            {
+                continue;
+            }
+
+            if (SolidColor(Child(point, "spPr")) is { } fill)
             {
                 pointFills[(int) index] = fill;
+            }
+
+            if (Stroke(Child(Child(point, "spPr"), "ln")) is { } line)
+            {
+                pointLines[(int) index] = line;
             }
         }
 
@@ -114,6 +125,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             FillHex = SolidColor(properties),
             Line = Stroke(Child(properties, "ln")),
             PointFills = pointFills,
+            PointLines = pointLines,
             Labels = Child(ser, "dLbls") is { } labels ? DataLabels(labels, labelText) : null
         };
     }
@@ -220,7 +232,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             return null;
         }
 
-        return new(content, style);
+        return new(content, style, Rect(Child(Child(title, "layout"), "manualLayout")));
     }
 
     // The default run properties of a text body (c:txPr, or a rich title's first paragraph) over what the

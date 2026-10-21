@@ -1432,7 +1432,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // unbreakable box whose display width counts toward the line and whose height grows the line,
             // carried on a LaidOutImage with no bytes and its ShapeGroup set. The display size is on the
             // run's inline-image extent, since the two are mutually exclusive.
-            if (run.InlineShapeGroup is { } shapeGroup)
+            // An inline chart takes the same box, composed into it at layout; a pie or doughnut also
+            // carries its slices, which the chart outranks.
+            if (run.InlineShapeGroup is { } || run.InlineChart is { })
             {
                 // A straight connector is a box with no height (or no width) at all, and that is its
                 // size on the line: it stands on the baseline and adds nothing to the line's height.
@@ -1442,7 +1444,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 var sized = run.InlineImageWidthPoints > 0 || run.InlineImageHeightPoints > 0;
                 var groupWidth = (float) (sized ? run.InlineImageWidthPoints : 12);
                 var groupHeight = (float) (sized ? run.InlineImageHeightPoints : 12);
-                var group = new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: shapeGroup, EffectExtent: run.InlineImageEffectExtent);
+                var group = new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: run.InlineShapeGroup, EffectExtent: run.InlineImageEffectExtent, Chart: run.InlineChart);
                 pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(group.BoxWidth), 0, "", run.Properties, group, false, false));
                 continue;
             }

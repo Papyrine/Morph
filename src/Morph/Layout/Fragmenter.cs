@@ -4507,7 +4507,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     shifted[imageIndex] = images[imageIndex] with
                     {
                         X = images[imageIndex].X + dx,
-                        Y = images[imageIndex].Y + dy
+                        Y = images[imageIndex].Y + dy,
+                        Composed = images[imageIndex].Composed?.Select(_ => ShiftComposed(_, dx, dy)).ToList()
                     };
                 }
 
@@ -4523,6 +4524,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 Images = images
             };
         }
+
+        // An inline chart's drawn items move with its line: a label is a line of its own, and a shape is
+        // drawn from its box.
+        static PlacedItem ShiftComposed(PlacedItem item, float dx, float dy) =>
+            item switch
+            {
+                PlacedLine line => ShiftLine(line, dx, dy),
+                _ => item with { X = item.X + dx, Y = item.Y + dy }
+            };
 
         // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each
         // paragraph to the band width and stacking it with its own spacing — no page breaks (a band fits
@@ -5291,8 +5301,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Projects a laid-out line's inline boxes (images and shape groups) to placed images: the line's
         // left edge plus each box's offset, with its bottom sitting on the text baseline. A shape-group box
-        // carries its group through and leaves Data null.
-        static IReadOnlyList<PlacedImage> MapImages(LaidOutLine line, float lineLeft, float baseline)
+        // carries its group through and leaves Data null; a chart's box is composed here, where the box
+        // finally has a place on the page and the chart's labels can be laid out (PlaceChart).
+        IReadOnlyList<PlacedImage> MapImages(LaidOutLine line, float lineLeft, float baseline)
         {
             if (line.Images.Count == 0)
             {
@@ -5308,7 +5319,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // picture draws inside it, offset by the left and top effect edges (ImageEffectExtent).
                 var effectLeft = (float) (image.EffectExtent?.Left ?? 0) + (float) (image.ShapeGroup?.DrawOffsetXPoints ?? 0);
                 var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0) - (float) (image.ShapeGroup?.DrawOffsetYPoints ?? 0);
-                images[imageIndex] = new(lineLeft + image.X + effectLeft, baseline - effectBottom - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
+                var x = lineLeft + image.X + effectLeft;
+                var y = baseline - effectBottom - image.Height;
+                if (image.Chart is { } chart)
+                {
+                    var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() { Content = content }, left, top, width, height, alignment));
+                    images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: composer.Compose(chart, x, y, image.Width, image.Height));
+                    continue;
+                }
+
+                images[imageIndex] = new(x, y, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
             }
 
             return images;

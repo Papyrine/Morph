@@ -1,0 +1,31 @@
+﻿{
+  "target": {
+    "Document": {
+      "CreationDate": "DateTimeOffset_1",
+      "Creator": "Morph",
+      "ModDate": "DateTimeOffset_1",
+      "Producer": "PDFsharp 6.2.4"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "A horizontal bar chart anchored to the page, 3 inches down and 1.5 inches in, with no text wrap.\nSouth North\n42\n30\n55\n38\n61\n52\n48\n64\n0 10 20 30 40 50 60 70\nQ1\nQ2\nQ3\nQ4\nQuarterly Sales by Region"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0513,
+      "Ssim": 0.9276,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

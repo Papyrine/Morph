@@ -45,11 +45,31 @@ sealed class ChartComposer(
 
         var inner = (X: x + padding, Y: y + padding, Width: width - 2 * padding, Height: height - 2 * padding);
 
+        // The title is drawn last, over the plot, as Word layers it. A title with a manual layout stands
+        // where that puts its box's top-left and takes nothing from the plot: business-plans/12's "SWOT"
+        // sits in its doughnut's hole, which the plot, laid out over the whole chart, would otherwise paint
+        // over. Without one it heads the chart and the plot goes below it.
+        //
+        // Word sets the text inside the title's box 2.9pt in and 1.4pt down, the same at 14pt and 36pt
+        // (_probe_charttitle, read off the XPS against the box its manual layout names: glyphs at 182.90pt
+        // for a box at 180, baselines 1.35 and 1.54pt under the render's); an automatic title takes the
+        // same drop.
+        var titleItems = new List<PlacedItem>();
         if (chart.Title is { } title)
         {
             var titleHeight = LineHeight(title.Text, title.Style);
-            items.AddRange(Label(title.Text, title.Style, inner.X, inner.Y, inner.Width, titleHeight, TextAlignment.Center));
-            inner = (inner.X, inner.Y + titleHeight + padding, inner.Width, inner.Height - titleHeight - padding);
+            var insetX = 2.9f * (float) scale;
+            var insetY = 1.4f * (float) scale;
+            if (title.Layout is { } at)
+            {
+                var titleWidth = TextWidth(title.Text, title.Style) + 2;
+                titleItems.AddRange(Label(title.Text, title.Style, x + (float) at.X * width + insetX, y + (float) at.Y * height + insetY, titleWidth, titleHeight, TextAlignment.Left));
+            }
+            else
+            {
+                titleItems.AddRange(Label(title.Text, title.Style, inner.X, inner.Y + insetY, inner.Width, titleHeight, TextAlignment.Center));
+                inner = (inner.X, inner.Y + titleHeight + padding, inner.Width, inner.Height - titleHeight - padding);
+            }
         }
 
         if (chart.Legend is { } legend)
@@ -61,10 +81,12 @@ sealed class ChartComposer(
         {
             var box = chart.PlotLayout is { } manual ? Absolute(manual, x, y, width, height) : inner;
             Pie(chart, box, x, y, width, height, items);
+            items.AddRange(titleItems);
             return items;
         }
 
         Plot(chart, inner, x, y, width, height, items);
+        items.AddRange(titleItems);
         return items;
     }
 
@@ -370,6 +392,7 @@ sealed class ChartComposer(
 
             var sweep = values[point] / total * 360;
             var fill = PointColor(chart, series, 0, point);
+            var outline = series.PointLines.GetValueOrDefault(point) ?? series.Line;
             items.Add(
                 new PlacedShape(
                     circleX,
@@ -381,8 +404,8 @@ sealed class ChartComposer(
                         WidthPoints = diameter,
                         HeightPoints = diameter,
                         FillColorHex = fill,
-                        LineColorHex = series.Line?.ColorHex,
-                        LineWidthPoints = series.Line?.WidthPoints,
+                        LineColorHex = outline?.ColorHex,
+                        LineWidthPoints = outline?.WidthPoints,
                         Subpaths = [SliceContour(angle, sweep, hole)]
                     }));
 
@@ -434,6 +457,15 @@ sealed class ChartComposer(
         var entries = byCategory
             ? chart.Categories.Select((_, index) => (Text: _, Color: PointColor(chart, chart.Series[0], 0, index))).ToList()
             : chart.Series.Select((_, index) => (Text: _.Name ?? $"Series{index + 1}", Color: _.FillHex ?? _.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count])).ToList();
+
+        // Horizontal bars stack their series upwards, the first at the bottom of each category, and the
+        // legend lists them the same way round: chart_anchored's North and South bars are keyed
+        // "South, North" in Word's render. A legend lists them by series everywhere else.
+        if (!byCategory && chart.Kind == ChartKind.Bar && chart.Horizontal)
+        {
+            entries.Reverse();
+        }
+
         if (entries.Count == 0)
         {
             return inner;
@@ -442,9 +474,15 @@ sealed class ChartComposer(
         var style = legend.Text;
         var lineHeight = LineHeight("0", style);
         var key = (float) (style.SizePoints * 0.6);
+
+        // A line series is keyed by a stroke of its line, twice the legend's font size long: chart_column_line's
+        // 10pt legend keys its 3pt lines with 20pt strokes in Word's render. Anything else takes a square
+        // swatch of its fill.
+        var lineKeys = chart.Kind == ChartKind.Line && !byCategory;
+        var keyWidth = lineKeys ? (float) (style.SizePoints * 2) : key;
         var keyGap = 3f;
         var entryGap = (float) style.SizePoints;
-        var widths = entries.Select(_ => key + keyGap + TextWidth(_.Text, style) + 2).ToList();
+        var widths = entries.Select(_ => keyWidth + keyGap + TextWidth(_.Text, style) + 2).ToList();
         var across = legend.Position is ChartLegendPosition.Top or ChartLegendPosition.Bottom;
 
         var blockWidth = across ? widths.Sum() + entryGap * (entries.Count - 1) : widths.Max();
@@ -484,8 +522,17 @@ sealed class ChartComposer(
         var y = area.Y + (area.Height - blockHeight) / 2;
         for (var index = 0; index < entries.Count; index++)
         {
-            items.Add(Rectangle(x, y + (lineHeight - key) / 2, key, key, entries[index].Color, null));
-            items.AddRange(Label(entries[index].Text, style, x + key + keyGap, y, widths[index] - key - keyGap, lineHeight, TextAlignment.Left));
+            if (lineKeys)
+            {
+                var stroke = (float) (chart.Series[index].Line?.WidthPoints ?? 2.25);
+                items.Add(Rectangle(x, y + (lineHeight - stroke) / 2, keyWidth, stroke, entries[index].Color, null));
+            }
+            else
+            {
+                items.Add(Rectangle(x, y + (lineHeight - key) / 2, key, key, entries[index].Color, null));
+            }
+
+            items.AddRange(Label(entries[index].Text, style, x + keyWidth + keyGap, y, widths[index] - keyWidth - keyGap, lineHeight, TextAlignment.Left));
             if (across)
             {
                 x += widths[index] + entryGap;
@@ -695,6 +742,7 @@ sealed class ChartComposer(
                 .Select(_ => _ with
                 {
                     Line = Stroke(_.Line),
+                    PointLines = _.PointLines.ToDictionary(point => point.Key, point => Stroke(point.Value)!),
                     Labels = _.Labels is { } labels ? labels with { Text = Text(labels.Text) } : null
                 })
                 .ToList()
