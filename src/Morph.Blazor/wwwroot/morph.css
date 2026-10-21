@@ -224,6 +224,35 @@
     color: transparent !important;
 }
 
+/* Word's formatting marks (Show/Hide ¶): no text of their own, never hit, drawn in Word's mark blue. */
+.text-marks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.text-layer .text-mark {
+    position: absolute;
+    line-height: 1;
+    color: #3b5ba5 !important;
+    font-family: "Morph Text", sans-serif;
+    white-space: pre;
+}
+
+.text-mark::before {
+    content: attr(data-m);
+}
+
+.text-mark-space,
+.text-mark-tab {
+    transform: translate(-50%, -50%);
+}
+
+.text-mark-end {
+    transform: translateY(-50%);
+}
+
 .text-line,
 .text-frame,
 .text-end,
@@ -1862,6 +1891,7 @@
     line-height: 1rem;
     text-align: center;
     white-space: nowrap;
+    pointer-events: none;
 }
 
 .editor-group:last-child {
@@ -2443,6 +2473,215 @@
 .editor-menu-detail {
     color: var(--morph-muted, #6c757d);
     font-size: 0.75rem;
+}
+
+/* Word's ruler, drawn by the script over the current page: the text's width white, the margins grey,
+   ticks each quarter centimetre, and the paragraph's indent markers to drag. */
+.editor-ruler {
+    position: relative;
+    flex: none;
+    height: 1.4rem;
+    overflow: hidden;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-background, #f8f9fa);
+    user-select: none;
+}
+
+.ruler-strip {
+    position: absolute;
+    top: 0.2rem;
+    bottom: 0.2rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    background: #ffffff;
+    color: #444444;
+}
+
+.ruler-margin {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: #d9dde3;
+}
+
+.ruler-tick {
+    position: absolute;
+    top: 40%;
+    width: 1px;
+    height: 20%;
+    background: #777777;
+}
+
+.ruler-tick-half {
+    top: 30%;
+    height: 40%;
+}
+
+.ruler-number {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.6rem;
+    line-height: 1;
+}
+
+.ruler-marker {
+    position: absolute;
+    z-index: 1;
+    width: 0.6rem;
+    height: 0.4rem;
+    margin-left: -0.3rem;
+    background: #7a8699;
+    cursor: ew-resize;
+    touch-action: none;
+}
+
+.ruler-first {
+    top: -1px;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.ruler-hanging,
+.ruler-right {
+    bottom: 0.25rem;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.ruler-left {
+    bottom: -1px;
+    height: 0.25rem;
+}
+
+/* A group's dialog launcher, at the foot of the group by its name, as Word's. */
+.editor-launcher {
+    position: absolute;
+    z-index: 1;
+    right: 0.15rem;
+    bottom: 0.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    padding: 0;
+    border: none;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--morph-muted, #6c757d);
+    cursor: pointer;
+}
+
+.editor-launcher svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
+.editor-launcher:hover:not(:disabled) {
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+}
+
+.editor-launcher:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* The Paragraph and Font dialogs: their pages, their groups of fields, and the Font dialog's preview. */
+.editor-dialog-wide {
+    top: 1rem;
+    width: min(34rem, calc(100% - 2rem));
+    max-height: calc(100% - 2rem);
+    overflow-y: auto;
+}
+
+.editor-dialog-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+}
+
+.editor-dialog-tab {
+    padding: 0.35rem 0.75rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.editor-dialog-tab[aria-selected="true"] {
+    border-bottom-color: var(--morph-primary, #2b579a);
+    color: var(--morph-primary, #2b579a);
+    font-weight: 600;
+}
+
+.editor-fieldset {
+    margin: 0 0 0.6rem;
+    padding: 0.4rem 0.6rem 0.6rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+}
+
+.editor-fieldset legend {
+    padding: 0 0.25rem;
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.editor-field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 0.75rem;
+}
+
+.editor-field-grid-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 0.6rem;
+}
+
+.editor-field-inline {
+    max-width: 14rem;
+}
+
+.editor-check {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0;
+    font-size: 0.875rem;
+}
+
+.editor-effects {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editor-font-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 4rem;
+    overflow: hidden;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
+    background: #ffffff;
+    color: #000000;
+}
+
+/* The Bookmark dialog's list of the document's bookmarks. */
+.editor-bookmarks {
+    display: flex;
+    flex-direction: column;
+    min-height: 6rem;
+    max-height: 12rem;
+    overflow-y: auto;
+    margin-top: 0.5rem;
+    padding: 0.25rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 4px;
 }
 
 .editor-margin-fields {

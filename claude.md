@@ -312,7 +312,15 @@ page to open like the body's (`EditMap` keys blocks by ordinal; a header repeate
 block that starts the paragraph afresh, which `EditSession`'s skip has to know). An edit that makes a
 relationship — a picture's image, a link's address — makes it on the part the paragraph is in
 (`Editing.PartOf`). `DocumentEditor.Stories.cs` makes a section's header or footer and puts in
-footnotes, as Word writes them.
+footnotes and endnotes, as Word writes them; `DocumentEditor.Bookmarks.cs` adds, moves and deletes
+bookmarks (Word's dialog's name rule, `IsBookmarkName`), and `DocumentOutline.Bookmarks` says where each
+starts. `DocumentEditor.ParagraphFormat.cs` is Word's Paragraph dialog (`ParagraphFormat`: indents,
+spacing, line rule, pagination switches written only where they differ from the style), and `RunFormat`
+carries the Font dialog's underline styles and effects; the dialogs themselves are
+`MorphEditor.Dialogs.cs`. Word's formatting marks are drawn by morph-text.js (`setMarks`) as
+aria-hidden elements over each page's text layer, so selection and copy never see them; the ruler is
+drawn by morph-viewer.js (`setRuler`) from `MorphEditor.RulerModel`, and hands dragged indents back to
+`OnRulerIndent`.
 `DocumentEditor.Sections.cs` sets a section's margins, orientation and paper and breaks sections (a
 section is the paragraphs up to the one whose `pPr` holds its `sectPr`; how a section starts is said
 in its OWN `sectPr`, so a continuous break marks the section after it);

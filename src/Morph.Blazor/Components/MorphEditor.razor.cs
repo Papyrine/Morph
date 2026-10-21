@@ -46,6 +46,7 @@ public partial class MorphEditor
     const string discardDialog = "discard";
     const string splitDialog = "split";
     const string marginsDialog = "margins";
+    const string bookmarkDialog = "bookmark";
 
     const int galleryRows = 2;
     const int galleryColumns = 4;
@@ -242,6 +243,7 @@ public partial class MorphEditor
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
+        await SyncRulerAsync();
         if (firstRender)
         {
             await FindDraftAsync();
@@ -633,6 +635,72 @@ public partial class MorphEditor
     {
         dialog = null;
         return UnlinkAsync();
+    }
+
+    // Word's Bookmark dialog: a name for the caret's place or the text selected; one of the document's
+    // chosen from the list is deleted or gone to.
+    string bookmarkName = "";
+    EditTarget? bookmarkTarget;
+
+    async Task OpenBookmarkAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        bookmarkTarget = target;
+        bookmarkName = "";
+        dialog = bookmarkDialog;
+    }
+
+    bool BookmarkExists =>
+        Bookmarks.Any(_ => _.Name == bookmarkName);
+
+    void OnBookmarkInput(ChangeEventArgs args) =>
+        bookmarkName = (args.Value as string ?? "").Trim();
+
+    async Task AddBookmarkFromDialogAsync()
+    {
+        dialog = null;
+        if (bookmarkTarget is { } target &&
+            DocumentEditor.IsBookmarkName(bookmarkName))
+        {
+            await AddBookmarkAsync(target, bookmarkName);
+        }
+    }
+
+    async Task DeleteBookmarkFromDialogAsync()
+    {
+        if (bookmarkTarget is { } target &&
+            BookmarkExists)
+        {
+            await DeleteBookmarkAsync(target, bookmarkName);
+            bookmarkName = "";
+        }
+    }
+
+    Task GoToBookmarkFromDialogAsync()
+    {
+        dialog = null;
+        return GoToBookmarkAsync(bookmarkName);
+    }
+
+    Task OnBookmarkKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            CloseDialog();
+            return Task.CompletedTask;
+        }
+
+        if (args.Key == "Enter" &&
+            DocumentEditor.IsBookmarkName(bookmarkName))
+        {
+            return AddBookmarkFromDialogAsync();
+        }
+
+        return Task.CompletedTask;
     }
 
     Task OnLinkKeyDownAsync(KeyboardEventArgs args)

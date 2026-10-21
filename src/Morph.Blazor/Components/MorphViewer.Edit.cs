@@ -356,7 +356,7 @@ public partial class MorphViewer
             });
 
     // Goes on editing where an edit left off.
-    Task ResumeAsync(int paragraph, int offset)
+    internal Task ResumeAsync(int paragraph, int offset)
     {
         if (!editOpen ||
             handle is not { } viewer ||

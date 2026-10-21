@@ -1,5 +1,6 @@
 using OoxmlFootnote = DocumentFormat.OpenXml.Wordprocessing.Footnote;
 using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
+using OoxmlEndnote = DocumentFormat.OpenXml.Wordprocessing.Endnote;
 
 // Headers, footers and footnotes: the parts of a document beside its body that an editor writes in
 // too. Their paragraphs are numbered after the body's (SourceRuns.Stories), so everything that edits
@@ -10,6 +11,9 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 //     (<w:hdr><w:p><w:pPr><w:pStyle w:val="Header"/></w:pPr>…), named by the section's properties as
 //     <w:headerReference w:type="default" r:id="…"/>, ahead of the page size. A footer likewise, in
 //     Footer. A section that names none shows the one before it.
+//   - An endnote is written as a footnote is, in the endnotes part and the Endnote Reference and
+//     Endnote Text styles (w:endnoteReference, w:endnoteRef). Word makes both notes parts with their
+//     separators, and names the separators in the settings (<w:footnotePr>, <w:endnotePr>).
 //   - A footnote's reference is a run in the Footnote Reference style holding
 //     <w:footnoteReference w:id="1"/>. The note is a w:footnote of that id in the footnotes part, whose
 //     first two are the separator (id -1) and the continuation separator (id 0); its paragraph is in
@@ -29,7 +33,14 @@ static partial class DocumentEditor
     /// place returned is the end of the note's paragraph, where its text is typed.
     /// </summary>
     public static EditResult InsertFootnote(byte[] docx, int paragraph, int offset, EditOptions options) =>
-        Edit(docx, options, edit => edit.Footnote(paragraph, offset));
+        Edit(docx, options, edit => edit.Note(paragraph, offset, false));
+
+    /// <summary>
+    /// Puts an endnote at a place, as <see cref="InsertFootnote"/> puts a footnote: its reference there,
+    /// its note at the end of the endnotes, and the place returned the end of the note's paragraph.
+    /// </summary>
+    public static EditResult InsertEndnote(byte[] docx, int paragraph, int offset, EditOptions options) =>
+        Edit(docx, options, edit => edit.Note(paragraph, offset, true));
 
     sealed partial class Editing
     {
@@ -99,12 +110,12 @@ static partial class DocumentEditor
             return null;
         }
 
-        public (Paragraph Paragraph, int Offset) Footnote(int ordinal, int offset)
+        public (Paragraph Paragraph, int Offset) Note(int ordinal, int offset, bool endnote)
         {
             var paragraph = Find(ordinal);
             if (!ReferenceEquals(PartOf(paragraph), main))
             {
-                throw new InvalidOperationException("A footnote goes in the body of the document.");
+                throw new InvalidOperationException("A note goes in the body of the document.");
             }
 
             var point = At(paragraph, offset);
@@ -113,31 +124,36 @@ static partial class DocumentEditor
                 point = Divide(point);
             }
 
-            Define("FootnoteReference");
-            Define("FootnoteText");
-            var notes = Notes();
-            var id = notes.Elements<OoxmlFootnote>().Select(_ => _.Id?.Value ?? 0).DefaultIfEmpty(0).Max() + 1;
+            var kind = endnote ? "Endnote" : "Footnote";
+            Define($"{kind}Reference");
+            Define($"{kind}Text");
+            var notes = Notes(endnote);
+            var id = notes.Elements<FootnoteEndnoteType>().Select(_ => _.Id?.Value ?? 0).DefaultIfEmpty(0).Max() + 1;
             if (id < 1)
             {
                 id = 1;
             }
 
-            Add(
-                point,
-                new(Referenced(),
-                    new FootnoteReference
-                    {
-                        Id = id
-                    }));
+            FootnoteEndnoteReferenceType reference = endnote
+                ? new EndnoteReference
+                {
+                    Id = id
+                }
+                : new FootnoteReference
+                {
+                    Id = id
+                };
+            Add(point, new(Referenced(kind), reference));
 
             var note = new Paragraph(
                 new DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties(new ParagraphStyleId
                 {
-                    Val = "FootnoteText"
+                    Val = $"{kind}Text"
                 }));
+            OpenXmlElement mark = endnote ? new EndnoteReferenceMark() : new FootnoteReferenceMark();
             var runs = new OpenXmlElement[]
             {
-                new OoxmlRun(Referenced(), new FootnoteReferenceMark()),
+                new OoxmlRun(Referenced(kind), mark),
                 new OoxmlRun(new Text(" ")
                 {
                     Space = SpaceProcessingModeValues.Preserve
@@ -155,50 +171,108 @@ static partial class DocumentEditor
                 note.Append(runs);
             }
 
-            notes.AppendChild(new OoxmlFootnote(note)
-            {
-                Id = id
-            });
+            FootnoteEndnoteType made = endnote ? new OoxmlEndnote(note) : new OoxmlFootnote(note);
+            made.Id = id;
+            notes.AppendChild(made);
             return (note, int.MaxValue);
 
-            static DocumentFormat.OpenXml.Wordprocessing.RunProperties Referenced() =>
+            static DocumentFormat.OpenXml.Wordprocessing.RunProperties Referenced(string kind) =>
             [
                 with(new RunStyle
                 {
-                    Val = "FootnoteReference"
+                    Val = $"{kind}Reference"
                 })
             ];
         }
 
-        // The footnotes, made with Word's two separators where the document has none.
-        Footnotes Notes()
+        // The footnotes or the endnotes, made with Word's two separators where the document has none,
+        // and named in the settings as Word names them (<w:footnotePr><w:footnote w:id="-1"/>…).
+        OpenXmlCompositeElement Notes(bool endnote)
         {
-            var part = main.FootnotesPart ?? main.AddNewPart<FootnotesPart>(NextRelationship(main));
-            if (part.Footnotes is { } existing)
+            if (endnote)
             {
-                return existing;
+                var endnotes = main.EndnotesPart ?? main.AddNewPart<EndnotesPart>(NextRelationship(main));
+                if (endnotes.Endnotes is { } existing)
+                {
+                    return existing;
+                }
+
+                endnotes.Endnotes =
+                [
+                    with(Separator<OoxmlEndnote>(-1, FootnoteEndnoteValues.Separator, new SeparatorMark()),
+                        Separator<OoxmlEndnote>(0, FootnoteEndnoteValues.ContinuationSeparator, new ContinuationSeparatorMark()))
+                ];
+                Name(new EndnoteDocumentWideProperties(new EndnoteSpecialReference
+                {
+                    Id = -1
+                }, new EndnoteSpecialReference
+                {
+                    Id = 0
+                }));
+                return endnotes.Endnotes;
             }
 
-            part.Footnotes =
-            [
-                with(Separator(-1, FootnoteEndnoteValues.Separator, new SeparatorMark()),
-                    Separator(0, FootnoteEndnoteValues.ContinuationSeparator, new ContinuationSeparatorMark()))
-            ];
-            return part.Footnotes;
+            var footnotes = main.FootnotesPart ?? main.AddNewPart<FootnotesPart>(NextRelationship(main));
+            if (footnotes.Footnotes is { } current)
+            {
+                return current;
+            }
 
-            static OoxmlFootnote Separator(int id, FootnoteEndnoteValues type, OpenXmlElement mark) =>
-                new(new Paragraph(
+            footnotes.Footnotes =
+            [
+                with(Separator<OoxmlFootnote>(-1, FootnoteEndnoteValues.Separator, new SeparatorMark()),
+                    Separator<OoxmlFootnote>(0, FootnoteEndnoteValues.ContinuationSeparator, new ContinuationSeparatorMark()))
+            ];
+            Name(new FootnoteDocumentWideProperties(new FootnoteSpecialReference
+            {
+                Id = -1
+            }, new FootnoteSpecialReference
+            {
+                Id = 0
+            }));
+            return footnotes.Footnotes;
+
+            static T Separator<T>(int id, FootnoteEndnoteValues type, OpenXmlElement mark)
+                where T : FootnoteEndnoteType, new()
+            {
+                var separator = new T
+                {
+                    Type = type,
+                    Id = id
+                };
+                separator.AppendChild(new Paragraph(
                     new DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties(new SpacingBetweenLines
                     {
                         After = "0",
                         Line = "240",
                         LineRule = LineSpacingRuleValues.Auto
                     }),
-                    new OoxmlRun(mark)))
+                    new OoxmlRun(mark)));
+                return separator;
+            }
+
+            // In the settings' schema order, footnotePr then endnotePr, both before compat.
+            void Name(OpenXmlElement properties)
+            {
+                if (main.DocumentSettingsPart?.Settings is not { } settings ||
+                    settings.ChildElements.Any(_ => _.GetType() == properties.GetType()))
                 {
-                    Type = type,
-                    Id = id
-                };
+                    return;
+                }
+
+                OpenXmlElement? before = settings.GetFirstChild<EndnoteDocumentWideProperties>();
+                if (properties is EndnoteDocumentWideProperties || before == null)
+                {
+                    before = settings.GetFirstChild<Compatibility>();
+                }
+
+                if (before == null)
+                {
+                    return;
+                }
+
+                settings.InsertBefore(properties, before);
+            }
         }
     }
 }

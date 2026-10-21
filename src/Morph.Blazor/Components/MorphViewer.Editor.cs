@@ -227,7 +227,7 @@ public partial class MorphViewer
     }
 
     // A command with nowhere to act says so.
-    async Task<EditTarget?> RequireAsync(string note = "Click in the document first, or select some of its text.")
+    internal async Task<EditTarget?> RequireAsync(string note = "Click in the document first, or select some of its text.")
     {
         if (!editOpen ||
             !CanWrite ||
@@ -289,7 +289,7 @@ public partial class MorphViewer
     }
 
     // An edit to paragraphs as they are, after which the caret goes back where it was.
-    async Task EditParagraphsAsync(EditTarget target, Func<byte[], EditOptions, byte[]> edit)
+    internal async Task EditParagraphsAsync(EditTarget target, Func<byte[], EditOptions, byte[]> edit)
     {
         var options = await EditOptionsAsync();
         var edited = await ReviseAsync(_ => edit(_, options), relayout: true, () => activeKey);
@@ -302,7 +302,7 @@ public partial class MorphViewer
 
     // What the ribbon shows of the paragraph the reader is in
 
-    ParagraphProperties? CurrentProperties
+    internal ParagraphProperties? CurrentProperties
     {
         get
         {
@@ -336,6 +336,87 @@ public partial class MorphViewer
     }
 
     internal IReadOnlyList<StyleChoice> Styles => outline.Styles;
+
+    // The document's bookmarks as Word's dialog lists them: Word's own hidden ones left out.
+    internal IReadOnlyList<BookmarkPlace> Bookmarks =>
+        [.. outline.Bookmarks.Where(_ => !_.Hidden)];
+
+    // Word's ruler: the caret's page and paragraph, drawn by the script, whose markers set the
+    // paragraph's indents as Word's do.
+
+    internal async Task SetRulerAsync(string? model)
+    {
+        if (handle is { } viewer)
+        {
+            await viewer.SetRulerAsync(model);
+        }
+    }
+
+    /// <summary>
+    /// Called from JavaScript when a ruler marker is let go: the paragraph's left and right indents and
+    /// its first line's (negative, hanging), in points.
+    /// </summary>
+    [JSInvokable]
+    public Task OnRulerIndent(double left, double right, double firstLine) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (await RequireAsync() is not { } target)
+                {
+                    return;
+                }
+
+                var now = PropertiesOf(target.Paragraph);
+                var format = new ParagraphFormat();
+                if (now == null ||
+                    Math.Abs(now.LeftIndentPoints - left) > 0.05)
+                {
+                    format = format with { LeftPoints = left };
+                }
+
+                if (now == null ||
+                    Math.Abs(now.RightIndentPoints - right) > 0.05)
+                {
+                    format = format with { RightPoints = right };
+                }
+
+                var first = 0.0;
+                if (now != null)
+                {
+                    first = now.FirstLineIndentPoints - now.HangingIndentPoints;
+                }
+
+                if (Math.Abs(first - firstLine) > 0.05)
+                {
+                    format = format with { FirstLinePoints = firstLine };
+                }
+
+                if (format != default)
+                {
+                    await EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+                }
+
+                StateHasChanged();
+            });
+
+    // Bookmarks: a name for the caret's place or the text selected, which a link to #name goes to.
+
+    internal Task AddBookmarkAsync(EditTarget target, string name) =>
+        EditAtAsync((_, options) => DocumentEditor.AddBookmark(_, target.Paragraph, target.Offset, target.Start, target.End, name, options));
+
+    internal Task DeleteBookmarkAsync(EditTarget target, string name) =>
+        EditParagraphsAsync(target, (_, options) => DocumentEditor.DeleteBookmark(_, name, options));
+
+    // Opens the paragraph a bookmark starts in, the caret where it starts.
+    internal Task GoToBookmarkAsync(string name)
+    {
+        if (outline.Bookmarks.FirstOrDefault(_ => _.Name == name) is not { } place)
+        {
+            return Task.CompletedTask;
+        }
+
+        return ResumeAsync(place.Paragraph, place.Offset);
+    }
 
     internal string CurrentStyle =>
         CurrentProperties?.StyleId ?? CurrentProperties?.ResolvedStyleId ?? outline.DefaultStyle;
@@ -614,6 +695,16 @@ public partial class MorphViewer
         }
 
         await EditAtAsync((_, options) => DocumentEditor.InsertFootnote(_, target.Paragraph, target.Offset, options));
+    }
+
+    internal async Task InsertEndnoteAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync((_, options) => DocumentEditor.InsertEndnote(_, target.Paragraph, target.Offset, options));
     }
 
     // A section's page: margins, which way up, the paper, and breaks between sections. They act on the
@@ -1335,27 +1426,44 @@ public partial class MorphViewer
                 return null;
             }
 
-            var at = 0;
-            RunProperties? found = null;
-            foreach (var unit in paragraph.Units)
-            {
-                var span = unit.Editable ? unit.Text.Length : 1;
-                if (unit.Editable &&
-                    editMap.Format(unit.Run) is { } format)
-                {
-                    found ??= format;
-                    if (caretOffset > at &&
-                        caretOffset <= at + span)
-                    {
-                        return format;
-                    }
-                }
+            return RunAt(paragraph, caretOffset);
+        }
+    }
 
-                at += span;
+    // The look of the character before a place in a paragraph, or else of its first text.
+    RunProperties? RunAt(EditParagraph paragraph, int offset)
+    {
+        var at = 0;
+        RunProperties? found = null;
+        foreach (var unit in paragraph.Units)
+        {
+            var span = unit.Editable ? unit.Text.Length : 1;
+            if (unit.Editable &&
+                editMap.Format(unit.Run) is { } format)
+            {
+                found ??= format;
+                if (offset > at &&
+                    offset <= at + span)
+                {
+                    return format;
+                }
             }
 
-            return found;
+            at += span;
         }
+
+        return found;
+    }
+
+    // The look of the first character of the text between two places of a paragraph.
+    internal RunProperties? LookOf(int paragraph, int from)
+    {
+        if (paragraph >= outline.Paragraphs.Count)
+        {
+            return null;
+        }
+
+        return RunAt(outline.Paragraphs[paragraph], from + 1);
     }
 
     internal string CurrentFont => CurrentRun?.FontFamily ?? DefaultFontSettings.DefaultFont;
@@ -1395,7 +1503,7 @@ public partial class MorphViewer
 
     // What character formatting acts on: the text selected — in the paragraph open for typing, or
     // across the pages — or the word the caret is in.
-    async Task<(EditTarget Target, SourcePosition Start, SourcePosition End, int From, int To)?> TextAsync()
+    internal async Task<(EditTarget Target, SourcePosition Start, SourcePosition End, int From, int To)?> TextAsync()
     {
         const string note = "Select the text to format, or click in a word.";
         if (await RequireAsync(note) is not { } target)
@@ -1465,11 +1573,16 @@ public partial class MorphViewer
 
     async Task FormatTextAsync(Func<SourcePosition, SourcePosition, EditOptions, Func<byte[], byte[]>> edit)
     {
-        if (await TextAsync() is not var (target, start, end, from, to))
+        if (await TextAsync() is { } text)
         {
-            return;
+            await FormatTextAsync(text, edit);
         }
+    }
 
+    // Formats text taken before, as a dialog takes it when it opens.
+    internal async Task FormatTextAsync((EditTarget Target, SourcePosition Start, SourcePosition End, int From, int To) text, Func<SourcePosition, SourcePosition, EditOptions, Func<byte[], byte[]>> edit)
+    {
+        var (target, start, end, from, to) = text;
         var options = await EditOptionsAsync();
         if (!await ReviseAsync(edit(start, end, options), relayout: true, () => activeKey) ||
             !target.Typing)
@@ -1488,6 +1601,19 @@ public partial class MorphViewer
         }
 
         await ResumeAsync(target.Paragraph, target.Offset);
+    }
+
+    // The look of a paragraph and of a run as the pages drew them, which the Paragraph and Font
+    // dialogs start from.
+    internal ParagraphProperties? PropertiesOf(int paragraph)
+    {
+        var blocks = editMap.Blocks(paragraph);
+        if (blocks.Count == 0)
+        {
+            return null;
+        }
+
+        return blocks[0].Element.Properties;
     }
 
     internal Task FormatAsync(RunFormat format) =>

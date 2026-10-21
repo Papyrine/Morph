@@ -89,6 +89,14 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
 
     // The editor's draft (morph-draft.js): whether the page asks before it is left, the file kept in
     // the browser's storage, and the draft read back.
+    // Word's ruler over the pages, from the model MorphEditor.RulerModel writes; null takes it away.
+    public ValueTask SetRulerAsync(string? model) =>
+        controller.InvokeVoidAsync("setRuler", model);
+
+    // Word's formatting marks over the pages' text, or none.
+    public ValueTask SetMarksAsync(bool on) =>
+        controller.InvokeVoidAsync("setMarks", on);
+
     public ValueTask SetUnsavedAsync(bool unsaved) =>
         controller.InvokeVoidAsync("setUnsaved", unsaved);
 

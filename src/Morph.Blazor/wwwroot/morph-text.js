@@ -138,7 +138,7 @@ export async function renderTextLayer(element, json) {
 
 /** Synchronous build; the caller has awaited ensureFonts(). Replaces anything already in the element. */
 export function buildTextLayer(element, page) {
-    const state = { unit: 100 / page.w, index: [], length: 0, end: null };
+    const state = { unit: 100 / page.w, width: page.w, index: [], length: 0, end: null, marks: [], origin: { x: 0, y: 0 }, rotated: 0 };
     const fragment = document.createDocumentFragment();
     buildItems(page.i, fragment, state);
 
@@ -154,6 +154,81 @@ export function buildTextLayer(element, page) {
     element.dataset.textState = 'ready';
     layers.set(element, state);
     installListeners();
+    if (marksShown) {
+        requestAnimationFrame(() => buildMarks(element, state));
+    }
+}
+
+// Word's formatting marks (Show/Hide ¶): a dot for each space, an arrow for each tab, a pilcrow at each
+// paragraph's end and a ¤ at a cell's. They are drawn over the page in their own aria-hidden elements,
+// with no text of their own, so what is selected and copied stays the document's text. Tabs and ends
+// are placed from the layer's geometry; spaces where the layer's own text puts them.
+let marksShown = false;
+
+export function setMarks(on) {
+    marksShown = on;
+    for (const [element, state] of layers) {
+        element.querySelector(':scope > .text-marks')?.remove();
+        if (on) {
+            buildMarks(element, state);
+        }
+    }
+}
+
+function buildMarks(element, state) {
+    if (!marksShown || !element.isConnected || layers.get(element) !== state) {
+        return;
+    }
+
+    element.querySelector(':scope > .text-marks')?.remove();
+    const layer = element.getBoundingClientRect();
+    if (layer.width === 0) {
+        return;
+    }
+
+    const points = state.width / layer.width;
+    const marks = document.createElement('div');
+    marks.className = 'text-marks';
+    marks.setAttribute('aria-hidden', 'true');
+    const add = (glyph, x, y, size, kind) => {
+        const mark = document.createElement('span');
+        mark.className = `text-mark text-mark-${kind}`;
+        mark.dataset.m = glyph;
+        mark.style.cssText = `left:${cq(state, x)};top:${cq(state, y)};font-size:${cq(state, size)}`;
+        marks.append(mark);
+    };
+
+    for (const mark of state.marks) {
+        add(mark.m, mark.x, mark.y, mark.z, mark.k);
+    }
+
+    const range = document.createRange();
+    for (const { node } of state.index) {
+        if (node.nodeType !== Node.TEXT_NODE ||
+            node.parentElement?.closest('.text-tab, .text-frame:not(.text-clip):not(.text-clip-y)')) {
+            continue;
+        }
+
+        const text = node.data;
+        for (let index = 0; index < text.length; index++) {
+            const ch = text[index];
+            if (ch !== ' ' && ch !== '\u00a0') {
+                continue;
+            }
+
+            range.setStart(node, index);
+            range.setEnd(node, index + 1);
+            const box = range.getBoundingClientRect();
+            if (box.height === 0) {
+                continue;
+            }
+
+            const size = parseFloat(getComputedStyle(node.parentElement).fontSize) * points;
+            add(ch === ' ' ? '\u00b7' : '\u00b0', (box.left + box.width / 2 - layer.left) * points, (box.top + box.height / 2 - layer.top) * points, size, 'space');
+        }
+    }
+
+    element.prepend(marks);
 }
 
 export function clearTextLayer(element) {
@@ -291,6 +366,14 @@ function buildItems(items, parent, state) {
 // A rotated text box or cell (rotated about its centre, as the painter does), or a clipped table cell.
 // Children are in the frame's own coordinates.
 function buildFrame(item, parent, state) {
+    // Marks are placed in the page's coordinates: a clip's children are offset by its corner. A rotated
+    // box's are not marked at all.
+    const origin = state.origin;
+    state.origin = { x: origin.x + item.x, y: origin.y + item.y };
+    if (item.k === 'r') {
+        state.rotated++;
+    }
+
     const frame = document.createElement('div');
     frame.className = item.k === 'r' ? 'text-frame' : item.cx ? 'text-frame text-clip' : 'text-frame text-clip-y';
     let css = `left:${cq(state, item.x)};top:${cq(state, item.y)};width:${cq(state, item.w)};height:${cq(state, item.h)}`;
@@ -301,6 +384,29 @@ function buildFrame(item, parent, state) {
     frame.style.cssText = css;
     buildItems(item.i, frame, state);
     parent.append(frame);
+    state.origin = origin;
+    if (item.k === 'r') {
+        state.rotated--;
+    }
+}
+
+// Where a line's tabs and its end are marked, in the page's points: a tab's arrow in the middle of its
+// gap, a paragraph's pilcrow and a cell's ¤ just after the line's last glyph.
+function markLine(line, end, size, state) {
+    if (state.rotated > 0) {
+        return;
+    }
+
+    const { x, y } = state.origin;
+    for (const span of line.s) {
+        if (((span.f ?? 0) & 4) !== 0 && span.t === '\t') {
+            state.marks.push({ m: '\u2192', k: 'tab', x: x + span.x + span.w / 2, y: y + line.b - span.z * 0.3, z: span.z });
+        }
+    }
+
+    if (line.e === 2 || line.e === 3) {
+        state.marks.push({ m: line.e === 2 ? '\u00b6' : '\u00a4', k: 'end', x: x + end + size * 0.05, y: y + line.b - size * 0.35, z: size });
+    }
 }
 
 function faceClass(base, face) {
@@ -319,6 +425,7 @@ function faceClass(base, face) {
 function buildLine(line, parent, state) {
     const spans = line.s;
     if (spans.length === 0) {
+        markLine(line, line.x, Math.min(line.h / 1.2, 12), state);
         if (line.e === 2) {
             appendBreak(parent, state);
         } else if (line.e === 1 || line.e === 3) {
@@ -425,6 +532,7 @@ function buildLine(line, parent, state) {
         pen = start + advance;
     }
 
+    markLine(line, pen, size, state);
     appendEnd(element, line.e, state);
     parent.append(element);
     if (line.e === 2) {
