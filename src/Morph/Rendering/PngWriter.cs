@@ -92,6 +92,22 @@ static class PngWriter
                 }
 
                 Pack(row, current, colourType);
+
+                // A row the same as the one above filters to all zeros under Up, the least any filter
+                // can sum to, and the adaptive choice takes the first filter that reaches it: None when
+                // the row is itself all zeros (its raw bytes are then the same zeros), Up otherwise. Most
+                // of a page is such rows — its margins, and the whole of a page with nothing on it — and
+                // trying all five filters on each had made encoding a large page cost twenty times its
+                // painting (MalformedPackageTests' 14,400pt pages). The bytes are the five-way search's.
+                if (y > 0 && current.AsSpan().SequenceEqual(previous))
+                {
+                    best[0] = current.AsSpan().IndexOfAnyExcept((byte) 0) < 0 ? (byte) 0 : (byte) 2;
+                    best.AsSpan(1).Clear();
+                    zlib.Write(best, 0, rowLength + 1);
+                    (previous, current) = (current, previous);
+                    continue;
+                }
+
                 var bestSum = long.MaxValue;
                 for (byte filter = 0; filter < 5; filter++)
                 {
@@ -125,6 +141,19 @@ static class PngWriter
         for (var y = 0; y < height; y++)
         {
             var row = rgba.Slice(y * stride, width * 4);
+
+            // A row the same as the one above holds nothing new: its pixels were all checked there, and
+            // its indices are that row's.
+            if (y > 0 && row.SequenceEqual(rgba.Slice((y - 1) * stride, width * 4)))
+            {
+                if (palette != null)
+                {
+                    indices.AsSpan((y - 1) * width, width).CopyTo(indices.AsSpan(y * width, width));
+                }
+
+                continue;
+            }
+
             for (var x = 0; x < width; x++)
             {
                 var r = row[x * 4];
