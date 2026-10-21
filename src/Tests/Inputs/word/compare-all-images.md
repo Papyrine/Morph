@@ -1,4 +1,4 @@
-# All scenarios (346)
+# All scenarios (344)
 
 <details>
 <summary>Contents</summary>
@@ -347,8 +347,6 @@
 - [wordart](#wordart)
 - [wordart-astral](#wordart-astral)
 - [wordart-envelope](#wordart-envelope)
-- [_probe_html_complex](#_probe_html_complex)
-- [_probe_html_table](#_probe_html_table)
 
 </details>
 
@@ -2344,7 +2342,7 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0968 · SSIM: 0.8502** | **Page 1. ErrorMetric: 0.0973 · SSIM: 0.8508** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0969 · SSIM: 0.8525** | **Page 1. ErrorMetric: 0.0974 · SSIM: 0.8535** |
 | <img src="labels/09/expected_0001.png" width="500"> | <img src="labels/09/skia_result%23page_0001.verified.png" width="500"> | <img src="labels/09/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## labels/10
@@ -4060,20 +4058,4 @@ Word's height with a much deeper bow.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.1158 · SSIM: 0.9416** | **Page 1. ErrorMetric: 0.1146 · SSIM: 0.9467** |
 | <img src="wordart-envelope/expected_0001.png" width="500"> | <img src="wordart-envelope/skia_result%23page_0001.verified.png" width="500"> | <img src="wordart-envelope/imagesharp_result%23page_0001.verified.png" width="500"> |
-
-## _probe_html_complex
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="_probe_html_complex/expected_0001.png" width="500"> |  |  |
-| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
-| <img src="_probe_html_complex/expected_0002.png" width="500"> |  |  |
-
-## _probe_html_table
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="_probe_html_table/expected_0001.png" width="500"> |  |  |
 
