@@ -58,4 +58,37 @@ public sealed record ImageExportOptions : ExportOptions
     /// raising for a document of many pages when nothing else is competing for the cores.
     /// </summary>
     public int MaxDegreeOfParallelism { get; init; } = 1;
+
+    /// <summary>
+    /// The most pixels one page may take. A document whose largest page would exceed it at
+    /// <see cref="Dpi"/> is painted at the highest resolution that fits instead, so a crafted page size
+    /// cannot ask for a raster of gigabytes. The default, 50 million, is an A4 page at 600 DPI with room
+    /// to spare; 0 lifts the limit.
+    /// </summary>
+    public long MaxPagePixels { get; init; } = 50_000_000;
+
+    // The conversion's cancellation, set by the converters from their own cancel parameter so it rides
+    // to the render loop with the options it already reaches.
+    internal Cancel Cancellation { get; init; }
+
+    /// <summary>
+    /// The resolution pages are painted at: <see cref="Dpi"/>, or lower when the largest page would
+    /// exceed <see cref="MaxPagePixels"/> at it.
+    /// </summary>
+    internal int EffectiveDpi(IEnumerable<PageSettings> pages)
+    {
+        if (MaxPagePixels <= 0)
+        {
+            return Dpi;
+        }
+
+        var largest = pages.Select(_ => _.WidthPoints * _.HeightPoints).DefaultIfEmpty(0).Max();
+        if (largest <= 0)
+        {
+            return Dpi;
+        }
+
+        var fitting = (int) Math.Floor(72 * Math.Sqrt(MaxPagePixels / largest));
+        return Math.Clamp(fitting, 1, Dpi);
+    }
 }

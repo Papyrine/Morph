@@ -15,14 +15,15 @@ static class ParallelPages
         int degreeOfParallelism,
         Func<TContext> createContext,
         Action<TContext, LaidOutPage, Action<Action<Stream>>> paintPage,
-        Action<Action<Stream>> pageCallback)
+        Action<Action<Stream>> pageCallback,
+        Cancel cancel = default)
         where TContext : IDisposable
     {
         var encoded = new byte[pages.Count][];
         Parallel.For(
             0,
             pages.Count,
-            new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism },
+            new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism, CancellationToken = cancel },
             createContext,
             (index, _, context) =>
             {

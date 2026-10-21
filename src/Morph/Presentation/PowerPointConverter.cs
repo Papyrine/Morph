@@ -12,16 +12,17 @@ namespace Morph;
 public abstract class PowerPointConverter
 {
     /// <summary>Converts a PPTX file to PNG images saved to <paramref name="outputDirectory"/>, one per slide.</summary>
-    public ConversionResult ConvertToImages(string pptxPath, string outputDirectory, ImageExportOptions? options = null)
+    public ConversionResult ConvertToImages(string pptxPath, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
         using var stream = File.OpenRead(pptxPath);
-        return ConvertToImages(stream, outputDirectory, options);
+        return ConvertToImages(stream, outputDirectory, options, cancel);
     }
 
     /// <summary>Converts a PPTX stream to PNG images saved to <paramref name="outputDirectory"/>, one per slide.</summary>
-    public ConversionResult ConvertToImages(Stream pptxStream, string outputDirectory, ImageExportOptions? options = null)
+    public ConversionResult ConvertToImages(Stream pptxStream, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
+        options = (options ?? new()) with { Cancellation = cancel };
+        cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
         var document = Parse(pptxStream, options.DefaultFont);
         return PageSink.ToDirectory(
@@ -30,16 +31,17 @@ public abstract class PowerPointConverter
     }
 
     /// <summary>Converts a PPTX file to PNG image data in memory, one entry per slide.</summary>
-    public IReadOnlyList<byte[]> ConvertToImageData(string pptxPath, ImageExportOptions? options = null)
+    public IReadOnlyList<byte[]> ConvertToImageData(string pptxPath, ImageExportOptions? options = null, Cancel cancel = default)
     {
         using var stream = File.OpenRead(pptxPath);
-        return ConvertToImageData(stream, options);
+        return ConvertToImageData(stream, options, cancel);
     }
 
     /// <summary>Converts a PPTX stream to PNG image data in memory, one entry per slide.</summary>
-    public IReadOnlyList<byte[]> ConvertToImageData(Stream pptxStream, ImageExportOptions? options = null)
+    public IReadOnlyList<byte[]> ConvertToImageData(Stream pptxStream, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
+        options = (options ?? new()) with { Cancellation = cancel };
+        cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 
         var document = Parse(pptxStream, options.DefaultFont);
