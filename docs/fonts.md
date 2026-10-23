@@ -60,7 +60,7 @@ When a name doesn't match any indexed face, Morph falls back in this order:
    | `Grandview Display` | `Grandview` |
    | `Cambria Math` | `Cambria` |
 
-3. **User `FontFallback` delegate**, if `ExportOptions.FontFallback` is supplied. Called with the original family name; return an alternative or `null`. The alternative is looked up in the indexed fonts, then the platform font manager, then the Aptos faces embedded in `Morph.dll`, so `FontFallback = _ => "Aptos"` renders every unresolved family on any host, including one with no fonts installed.
+3. **User `FontFallback` delegate**, if `ExportOptions.FontFallback` is supplied. Called with the original family name, also when the alias above names a family that is not available; return an alternative or `null`. The alternative is looked up in the indexed fonts, then the platform font manager, then the Aptos faces embedded in `Morph.dll`, so `FontFallback = _ => "Aptos"` renders every unresolved family on any host, including one with no fonts installed.
 4. **Platform font manager.** Skia's `SKTypeface.FromFamilyName` / ImageSharp's `SystemFonts` get a final chance, useful for fonts the user installed after Morph's caches loaded.
 
 If all four fall through, an `InvalidOperationException` is thrown listing every directory that was searched.
@@ -91,18 +91,18 @@ flowchart TD
     Weight -->|yes| Done
     Weight -->|no| Name
 
-    Name{"Fallback name?<br/>built-in alias, else FontFallback"}
+    Name{"Next fallback name?<br/>built-in alias, then FontFallback"}
     Name -->|no, and a face was found| Done
     Name -->|"no, nothing found,<br/>no FontDirectory"| ThrowHost(["InvalidOperationException<br/>listing every searched directory"])
     Name -->|"no, nothing found,<br/>FontDirectory set"| ThrowDir(["InvalidOperationException<br/>naming the directory"])
-    Name -->|yes| Alias{"Fallback name found in the same places,<br/>then in Morph.dll's Aptos faces?"}
+    Name -->|yes| Alias{"That name found in the same places,<br/>then in Morph.dll's Aptos faces?"}
 
     Alias -->|"yes, and closer than<br/>any face already found"| Fallback(["Use the fallback face"])
-    Alias -->|"no, or no closer,<br/>and a face was found"| Done
-    Alias -->|"no, and nothing found"| ThrowHost
+    Alias -->|"yes, but no closer"| Done
+    Alias -->|no| Name
 ```
 
-So `FontFallback = _ => "Aptos"` never throws: the last place a fallback name is looked for is the Aptos faces embedded in `Morph.dll`, which every host has.
+The first fallback name that resolves settles it, so an alias that loads keeps `FontFallback` out of it, but an alias whose family is absent moves on to `FontFallback` rather than leaving the request unresolved — `Avenir Next LT Pro` maps to `Century Gothic`, which a directory of only the Aptos faces does not hold, and until 2026-10 that threw, so `business-plans/13` could not be drawn in the Blazor app at all (`FontFallbackOrderTests`). So `FontFallback = _ => "Aptos"` never throws: the last place a fallback name is looked for is the Aptos faces embedded in `Morph.dll`, which every host has.
 
 ## Configuration
 
