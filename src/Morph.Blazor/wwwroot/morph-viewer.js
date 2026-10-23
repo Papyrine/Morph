@@ -18,7 +18,7 @@
 // which paragraph a click is in, what it holds and what becomes of it afterwards are .NET's.
 
 import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt, setMarks as showMarks } from './morph-text.js';
-import { ParagraphEditor } from './morph-edit.js';
+import { ParagraphEditor, wordKey } from './morph-edit.js';
 import { DraftKeeper } from './morph-draft.js';
 
 // PDF.js's zoom steps.
@@ -486,6 +486,10 @@ class Viewer {
         this.documentId = documentId;
         this.texts = texts;
         this.textCharacters = 0;
+
+        // .NET forgets the selection with the file it was made in, so the same text selected again
+        // is news to it.
+        this.lastSelection = '';
 
         const count = sizes.length / 2;
         const noun = capitalise(this.pageNoun);
@@ -2368,6 +2372,18 @@ class Viewer {
         if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
             event.preventDefault();
             this.editKey(`heading${event.code.slice(-1)}`);
+            return true;
+        }
+
+        const word = wordKey(event);
+        if (word) {
+            event.preventDefault();
+            if (word.command) {
+                this.editCommand(word.command);
+            } else {
+                this.editKey(word.key);
+            }
+
             return true;
         }
 

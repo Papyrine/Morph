@@ -267,7 +267,9 @@ public partial class MorphViewer
     /// and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty paragraph of one
     /// (<c>end-list</c>), Backspace at the start of one or of an indented paragraph (<c>unindent</c>),
     /// Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3 (<c>heading1</c> to
-    /// <c>heading3</c>) and Ctrl+K (<c>link</c>).
+    /// <c>heading3</c>), Ctrl+K (<c>link</c>), and the Font and Paragraph groups' keys (<c>grow</c>,
+    /// <c>shrink</c>, <c>subscript</c>, <c>superscript</c>, <c>clear-formatting</c>, <c>bullets</c>,
+    /// <c>line-single</c>, <c>line-double</c>, <c>line-one-and-half</c>).
     /// </summary>
     [JSInvokable]
     public Task OnEditKey(string name) =>
@@ -340,6 +342,15 @@ public partial class MorphViewer
             "heading1" => ApplyStyleAsync("Heading1"),
             "heading2" => ApplyStyleAsync("Heading2"),
             "heading3" => ApplyStyleAsync("Heading3"),
+            "grow" => GrowAsync(1),
+            "shrink" => GrowAsync(-1),
+            "subscript" => ToggleSubscriptAsync(),
+            "superscript" => ToggleSuperscriptAsync(),
+            "clear-formatting" => ClearFormattingAsync(),
+            "bullets" => ToggleListAsync(ListKind.Bullet),
+            "line-single" => SpaceAsync(new(Line: 1)),
+            "line-double" => SpaceAsync(new(Line: 2)),
+            "line-one-and-half" => SpaceAsync(new(Line: 1.5)),
             _ => Task.CompletedTask
         };
 

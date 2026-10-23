@@ -63,6 +63,54 @@ function same(first, second) {
     return first.b === second.b && first.o === second.o;
 }
 
+// Word's keys for a ribbon command, whether a paragraph is open or text is selected on the pages: a
+// `command` the script carries out as the ribbon's button does (data-edit-command), or a `key` .NET
+// carries out (MorphViewer.OnEditKey). By the key's place where the character differs by layout or by
+// Shift. Null for any other key.
+export function wordKey(event) {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+        return null;
+    }
+
+    if (event.shiftKey) {
+        switch (event.code) {
+            case 'Equal':
+                return { key: 'superscript' };
+            case 'KeyL':
+                return { key: 'bullets' };
+        }
+
+        return null;
+    }
+
+    switch (event.code) {
+        case 'KeyL':
+            return { command: 'align-left' };
+        case 'KeyE':
+            return { command: 'align-center' };
+        case 'KeyR':
+            return { command: 'align-right' };
+        case 'KeyJ':
+            return { command: 'align-justify' };
+        case 'BracketLeft':
+            return { key: 'shrink' };
+        case 'BracketRight':
+            return { key: 'grow' };
+        case 'Equal':
+            return { key: 'subscript' };
+        case 'Space':
+            return { key: 'clear-formatting' };
+        case 'Digit1':
+            return { key: 'line-single' };
+        case 'Digit2':
+            return { key: 'line-double' };
+        case 'Digit5':
+            return { key: 'line-one-and-half' };
+    }
+
+    return null;
+}
+
 export class ParagraphEditor {
     /**
      * sheet is the page's own element (.viewer-sheet), session what EditSession wrote, and callbacks
@@ -1157,6 +1205,18 @@ export class ParagraphEditor {
         if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
             event.preventDefault();
             this.callbacks.key(`heading${event.code.slice(-1)}`);
+            return;
+        }
+
+        const word = wordKey(event);
+        if (word) {
+            event.preventDefault();
+            if (word.command) {
+                this.command(word.command);
+            } else {
+                this.callbacks.key(word.key);
+            }
+
             return;
         }
 
