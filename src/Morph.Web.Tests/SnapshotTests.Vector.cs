@@ -1,4 +1,3 @@
-using System.Text.Json;
 using static EditFixtures;
 
 // Pages drawn as SVG (MorphViewer.VectorPages, the default), end to end in the published app.

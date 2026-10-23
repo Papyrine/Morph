@@ -121,19 +121,18 @@ sealed class EditSession
     /// <summary>What the script shows, with the selection from one place of the paragraph to another.</summary>
     public string Json(int from, int to)
     {
-        var block = Block;
-        var properties = block.Element.Properties;
+        var properties = Block.Element.Properties;
         var mark = properties.ParagraphMarkRunProperties;
-        var first = block.Lines[0];
+        var first = Block.Lines[0];
 
         // A block that holds the rest of a paragraph shows its own lines: the ones on the pages
         // before are scrolled out of sight above it.
         // A header or footer is the whole paragraph again on every page: a block that starts with the
         // paragraph's first line starts it afresh.
         var skip = 0f;
-        foreach (var earlier in Map.Blocks(block.Paragraph))
+        foreach (var earlier in Map.Blocks(Block.Paragraph))
         {
-            if (ReferenceEquals(earlier, block))
+            if (ReferenceEquals(earlier, Block))
             {
                 break;
             }
@@ -158,13 +157,13 @@ sealed class EditSession
             json.WriteNumber("v", 1);
             json.WriteNumber("id", Id);
             json.WriteNumber("p", Paragraph.Ordinal);
-            json.WriteNumber("page", block.Page);
-            Number(json, "x", block.Left);
-            Number(json, "y", block.Top);
-            Number(json, "w", block.Width);
-            Number(json, "h", block.Height);
+            json.WriteNumber("page", Block.Page);
+            Number(json, "x", Block.Left);
+            Number(json, "y", Block.Top);
+            Number(json, "w", Block.Width);
+            Number(json, "h", Block.Height);
             Number(json, "skip", skip);
-            Number(json, "indent", block.Indent);
+            Number(json, "indent", Block.Indent);
             json.WriteNumber("align", (int) properties.Alignment);
             Number(json, "line", first.Height);
             Number(json, "base", first.Baseline - first.Y);
@@ -172,7 +171,7 @@ sealed class EditSession
             json.WriteNumber("face", (int) markFace);
             json.WriteString("font", mark?.FontFamily ?? Font());
             json.WriteString("color", Color(mark));
-            if (block.Fill is { } fill)
+            if (Block.Fill is { } fill)
             {
                 json.WriteString("fill", fill);
             }

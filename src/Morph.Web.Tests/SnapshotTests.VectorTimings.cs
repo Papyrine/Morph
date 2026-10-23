@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 // What a page costs drawn as SVG (MorphViewer.VectorPages) against painted as a PNG, on the real
@@ -94,9 +92,9 @@ public partial class SnapshotTests
                     logged = [.. lines];
                 }
 
-                foreach (var line in logged.DistinctBy(_ => Regex.Match(_, @"page=(\d+)").Groups[1].Value))
+                foreach (var line in logged.DistinctBy(_ => PageNumber.Match(_).Groups[1].Value))
                 {
-                    var number = int.Parse(Regex.Match(line, @"page=(\d+)").Groups[1].Value, CultureInfo.InvariantCulture);
+                    var number = int.Parse(PageNumber.Match(line).Groups[1].Value, CultureInfo.InvariantCulture);
                     var svg = Field(line, "svg");
                     var png = Field(line, "png");
                     all.Add((svg, png));
@@ -132,7 +130,7 @@ public partial class SnapshotTests
     }
 
     static double Field(string line, string name) =>
-        double.Parse(Regex.Match(line, $@"(?:^| ){Regex.Escape(name)}=([0-9.]+)").Groups[1].Value, CultureInfo.InvariantCulture);
+        double.Parse(Regex.Match(line, $"(?:^| ){Regex.Escape(name)}=([0-9.]+)").Groups[1].Value, CultureInfo.InvariantCulture);
 
     static IEnumerable<(string Name, byte[] Bytes)> VectorDocuments()
     {
@@ -143,4 +141,7 @@ public partial class SnapshotTests
         yield return ("Header and footer", File.ReadAllBytes(ProjectFiles.corpus.header_footer_docx));
         yield return ("Tracked changes", File.ReadAllBytes(ProjectFiles.corpus.tracked_changes_docx));
     }
+
+    [GeneratedRegex(@"page=(\d+)")]
+    private static partial Regex PageNumber { get; }
 }

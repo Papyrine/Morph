@@ -15,7 +15,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 /// The test always passes; treat the snapshot diff as the audit output. When you intentionally
 /// change either doc, accept the new baseline via the usual Verify-promote workflow.
 /// </summary>
-public class TagCoverageAuditTests
+public partial class TagCoverageAuditTests
 {
     /// <summary>
     /// XML namespaces that surface in DOCX wordprocessing parts. Anything outside this set
@@ -329,7 +329,7 @@ public class TagCoverageAuditTests
 
         // Match prefix:localName. Constrain prefixes to the known wordprocessing-doc set so we
         // don't pick up unrelated `xml:lang` or schema URLs.
-        var pattern = new Regex(@"\b(w|w10|w14|w15|w16|wp|wp14|wpg|wps|pic|m|a|a14|a16|mc|dgm|c|cs|v|o|r|ink|adec|asvg|c14|c16|c16r3|thm15|w16cid|w16cur|w16sdtdh|w16se|wopx|w16ex|x14|w16hdp):([a-zA-Z][a-zA-Z0-9]*)\b");
+        var pattern = PrefixedTag;
 
         foreach (var path in paths)
         {
@@ -347,4 +347,7 @@ public class TagCoverageAuditTests
 
         return result;
     }
+
+    [GeneratedRegex(@"\b(w|w10|w14|w15|w16|wp|wp14|wpg|wps|pic|m|a|a14|a16|mc|dgm|c|cs|v|o|r|ink|adec|asvg|c14|c16|c16r3|thm15|w16cid|w16cur|w16sdtdh|w16se|wopx|w16ex|x14|w16hdp):([a-zA-Z][a-zA-Z0-9]*)\b")]
+    private static partial Regex PrefixedTag { get; }
 }

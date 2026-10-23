@@ -130,7 +130,7 @@ public class EditMapTests
     [Arguments("corpus/header_footer.docx")]
     public async Task Blocks_HoldTheirLines(string file)
     {
-        var (document, outline, map) = Open(File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, file)));
+        var (document, outline, map) = Open(await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, file)));
         using var disposing = document;
 
         var blocks = 0;

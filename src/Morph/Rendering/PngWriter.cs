@@ -1,6 +1,3 @@
-using System.Buffers.Binary;
-using System.IO.Compression;
-
 /// <summary>
 /// Encodes a rendered page as the smallest of the four 8-bit PNG forms its pixels allow, where the
 /// backends' own encoders always write 8-bit RGBA:

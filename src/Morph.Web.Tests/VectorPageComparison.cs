@@ -1,10 +1,3 @@
-using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 // How close a page drawn as SVG (MorphViewer.VectorPages) comes to the PNG ImageSharpPainter paints of
 // it, and what each costs. Every sampled page is painted as a PNG and written as SVG through
 // PagedDocument, as the viewer does, with the viewer's fonts (every family on the bundled Aptos); the SVG
@@ -363,7 +356,16 @@ public class VectorPageComparison
             overlay.SaveAsPng(overlayPath);
         }
 
-        double Ratio(long matched, long total) => total == 0 ? 1 : (double) matched / total;
+        static double Ratio(long matched, long total)
+        {
+            if (total == 0)
+            {
+                return 1;
+            }
+
+            return (double) matched / total;
+        }
+
         return new(
             pngCount,
             svgCount,

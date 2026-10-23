@@ -31,7 +31,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         }
 
         var text = TextStyle(Child(chartSpace, "txPr"), new(themeFonts?.MinorFont ?? "Calibri", 10, defaultTextColor, false, false));
-        var labelText = text with { SizePoints = Child(chartSpace, "txPr") == null ? 9 : text.SizePoints };
+        var labelText = text with {SizePoints = Child(chartSpace, "txPr") == null ? 9 : text.SizePoints};
 
         var kind = plot.LocalName switch
         {
@@ -156,7 +156,11 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             var sized = Child(label, "extLst")?
                 .Elements()
                 .SelectMany(_ => _.Elements())
-                .FirstOrDefault(_ => _.LocalName == "layout" && _.NamespaceUri == c15Namespace);
+                .FirstOrDefault(_ => _ is
+                {
+                    LocalName: "layout",
+                    NamespaceUri: c15Namespace
+                });
             if (Child(sized, "manualLayout") is { } size &&
                 Value(Child(size, "w")) is > 0 and var width &&
                 Value(Child(size, "h")) is > 0 and var height)
@@ -180,7 +184,12 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             Sizes = sizes
         };
 
-        if (!result.ShowValue && !result.ShowPercent && !result.ShowCategory)
+        if (result is
+            {
+                ShowValue: false,
+                ShowPercent: false,
+                ShowCategory: false
+            })
         {
             return null;
         }
@@ -223,10 +232,12 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
     ChartText? Title(OpenXmlElement title, ChartTextStyle text, List<ChartSeries> series)
     {
         var rich = Child(Child(title, "tx"), "rich");
-        var style = TextStyle(Child(title, "txPr") ?? rich, text with { SizePoints = 14 });
+        var style = TextStyle(Child(title, "txPr") ?? rich, text with {SizePoints = 14});
         var content = rich != null
             ? string.Join("\n", rich.Elements().Where(_ => _.LocalName == "p").Select(_ => string.Concat(_.Descendants<A.Text>().Select(run => run.Text))))
-            : series.Count == 1 ? series[0].Name : null;
+            : series.Count == 1
+                ? series[0].Name
+                : null;
         if (string.IsNullOrWhiteSpace(content))
         {
             return null;
@@ -367,7 +378,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             }
         }
 
-        return [..result.Select(_ => _ ?? "")];
+        return [.. result.Select(_ => _ ?? "")];
     }
 
     static ChartRect? Rect(OpenXmlElement? manual)
