@@ -11951,7 +11951,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (afterAuto)
         {
-            after = paragraph != null && (IsCellEdge(paragraph, first: false) || SharesListWith(paragraph, NextBlock(paragraph)))
+            after = paragraph != null &&
+                    (IsCellEdge(paragraph, first: false) ||
+                     SharesListWith(paragraph, NextBlock(paragraph)))
                 ? 0
                 : autoSpacingPoints;
         }
@@ -11991,7 +11993,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             while (true)
             {
                 var neighbour = first ? block.PreviousSibling() : block.NextSibling();
-                while (neighbour != null && neighbour is not (Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock))
+                while (neighbour != null &&
+                       neighbour is not (Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock))
                 {
                     neighbour = first ? neighbour.PreviousSibling() : neighbour.NextSibling();
                 }
