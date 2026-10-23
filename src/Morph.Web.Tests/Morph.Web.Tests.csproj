@@ -12,8 +12,10 @@
     <WopiSamplePublishDir>$(MSBuildThisFileDirectory)bin\$(Configuration)\wopi-sample-publish\</WopiSamplePublishDir>
   </PropertyGroup>
 
-  <!-- Publish the Blazor app as part of build so the Playwright snapshot tests can serve pre-published output. -->
-  <Target Name="PublishBlazorForTests" AfterTargets="Build">
+  <!-- Publish the Blazor app as part of build so the Playwright snapshot tests can serve pre-published output.
+       -p:SkipBlazorPublish=true leaves bin/$(Configuration)/blazor-publish as it is: the deploy's test-aot
+       job puts the AOT app it deploys there and runs the browser tests against that. -->
+  <Target Name="PublishBlazorForTests" AfterTargets="Build" Condition="'$(SkipBlazorPublish)' != 'true'">
     <MSBuild Projects="..\Morph.Web\Morph.Web.csproj" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(BlazorPublishDir)" />
   </Target>
 
@@ -64,6 +66,12 @@
   <ItemGroup>
     <Content Include="..\Tests\Inputs\word\tracked_changes\01\input.docx" Link="corpus\tracked_changes.docx" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\Tests\Inputs\word\comments\01\input.docx" Link="corpus\comments.docx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- A long real-world document for the editor's benchmark (SnapshotTests.Benchmark.cs): 18 pages of
+       tables, lists and text. -->
+  <ItemGroup>
+    <Content Include="..\Tests\Inputs\word\business-plans\12\input.docx" Link="corpus\business_plan.docx" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

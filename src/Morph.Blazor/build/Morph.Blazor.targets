@@ -33,4 +33,32 @@
     <TrimmerRootAssembly Include="PdfSharp.WPFonts" />
   </ItemGroup>
 
+  <!--
+    Two workarounds an AOT publish (RunAOTCompilation) needs, and nothing else does. Both lean on SDK
+    surface that is internal (underscore-prefixed). If an SDK update stops honouring either, the AOT
+    publish fails with a build error, never a runtime one: "Precompiling failed for ... aot-instances.dll"
+    for the first, "Assertion at sgen-alloc.c:409, condition '*p == NULL' not met" for the second.
+
+    1. PdfSharp stays interpreted. It is rooted whole above, and AOT compiles every method of an assembly
+       rooted whole; PdfSharp.Snippets.Pdf.BouncyCastleSigner references BouncyCastle.Cryptography, which
+       PdfSharp's package does not depend on, so that compile fails. The interpreter never loads the
+       snippet. Only PDF export runs PdfSharp. Drop this once PdfSharp is rooted without its Snippets
+       namespace, or depends on what its snippets use.
+
+    2. SixLabors.Fonts' calling-convention attributes are trimmed away
+       (Morph.Blazor.AotLinkAttributes.xml). Fonts 3.1+ declares its system-font P/Invokes with
+       [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]; Mono's WebAssembly AOT compiler
+       (10.0.13, and 11.0.0-rc.2 still) allocates a managed array while decoding that attribute and its GC
+       asserts, before any method is compiled. A calling convention means nothing on browser-wasm. Drop
+       this once https://github.com/dotnet/runtime/issues/136351 is fixed. The file is applied by the
+       trimmer, so an AOT publish must also trim, which a Blazor WebAssembly publish does by default.
+  -->
+  <ItemGroup Condition="'$(RunAOTCompilation)' == 'true'">
+    <_AOT_InternalForceInterpretAssemblies Include="PdfSharp.dll" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(RunAOTCompilation)' == 'true'">
+    <_ExtraTrimmerArgs>$(_ExtraTrimmerArgs) --link-attributes "$(MSBuildThisFileDirectory)Morph.Blazor.AotLinkAttributes.xml"</_ExtraTrimmerArgs>
+  </PropertyGroup>
+
 </Project>

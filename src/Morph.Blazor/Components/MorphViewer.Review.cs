@@ -613,7 +613,7 @@ public partial class MorphViewer
             if (relayout)
             {
                 var opening = ++generation;
-                var opened = await Task.Run(() => Open(bytes, InputFormat.Docx, fonts), lifetime.Token);
+                var opened = await Task.Run(() => Open(bytes, InputFormat.Docx, fonts, true), lifetime.Token);
                 if (opening != generation || disposed)
                 {
                     opened.Document.Dispose();

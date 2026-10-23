@@ -1173,7 +1173,7 @@ static class ShapeParser
         }
         else
         {
-            using var stream = imagePart.GetStream();
+            using var stream = imagePart.GetStream(FileMode.Open, FileAccess.Read);
             using var ms = new MemoryStream();
             stream.CopyTo(ms);
             imageData = ms.ToArray();

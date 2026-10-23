@@ -30,7 +30,8 @@ public partial class SnapshotTests
     {
         var page = await OpenReviewAsync(TrackedChanges);
         await Assert.That(await page.Locator(".review-change").CountAsync()).IsEqualTo(2);
-        var before = await page.GetAttributeAsync(".viewer-page[data-current] img", "src");
+        // Whatever draws the page — a picture or an SVG — is replaced when the page is drawn again.
+        await page.EvaluateAsync("() => window.drawnBefore = document.querySelector('.viewer-page[data-current] .viewer-sheet > :first-child')");
         await Assert.That(await LayerTextAsync(page)).IsEqualTo("Hello inserted world removed.");
 
         await page.ClickAsync("text=Accept all");
@@ -42,8 +43,8 @@ public partial class SnapshotTests
                 Timeout = 60000
             });
         await page.WaitForFunctionAsync(
-            "before => { const image = document.querySelector('.viewer-page[data-current][data-rendered-dpi] img'); return image && image.src !== before; }",
-            before,
+            "() => { const drawn = document.querySelector('.viewer-page[data-current][data-rendered-dpi] .viewer-sheet > :first-child'); return drawn && drawn !== window.drawnBefore; }",
+            null,
             new()
             {
                 Timeout = 60000

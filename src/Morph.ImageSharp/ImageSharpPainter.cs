@@ -29,12 +29,21 @@ static class ImageSharpPainter
     public static void PaintPage(LaidOutPage laidOutPage, ImageSharpRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
     {
         var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
-        using var image = new Image<Rgba32>(pageWidth, pageHeight);
+        var background = laidOutPage.Settings.BackgroundColorHex;
+        var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
+
+        // An opaque background is what the image starts as, rather than a rectangle filled over a blank
+        // one: the pixels are the same, and filling the whole page through the canvas cost ~270 ms a page
+        // on the WebAssembly runtime the viewer paints in. A translucent one is blended as before.
+        var backgroundPixel = backgroundColor.ToPixel<Rgba32>();
+        var opaque = backgroundPixel.A == byte.MaxValue;
+        using var image = opaque ? new Image<Rgba32>(pageWidth, pageHeight, backgroundPixel) : new Image<Rgba32>(pageWidth, pageHeight);
         using (var canvas = image.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
         {
-            var background = laidOutPage.Settings.BackgroundColorHex;
-            var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
-            canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
+            if (!opaque)
+            {
+                canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
+            }
 
             foreach (var item in laidOutPage.Items)
             {

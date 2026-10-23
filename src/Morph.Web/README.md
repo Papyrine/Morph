@@ -113,7 +113,7 @@ the WASM boot rather than after it.
 i.e. a cross-origin-isolated page — and a service-worker shim can't reliably guarantee that isolation
 across every serving context; when it isn't isolated the threaded runtime aborts at startup
 (`mono_wasm_register_ui_thread` stack-bounds assertion). The single-threaded runtime boots reliably
-anywhere with no isolation, no service worker, and no `wasm-tools`/emcc relink.
+anywhere with no isolation and no service worker.
 
 The trade-off: a conversion runs on the UI thread, so the page is briefly unresponsive while it works.
 Each conversion is still wrapped in `Task.Run`, which yields once so the "Rendering…" state paints before
@@ -127,6 +127,36 @@ full-trim silently strips types they resolve by name and it surfaces only as a b
 mid-conversion. Those roots live in `Morph.Blazor/build/Morph.Blazor.targets` and ship inside that
 package, so every consuming app gets them; this app imports the file by path, because a `ProjectReference`
 doesn't pick up a referenced project's MSBuild assets the way a `PackageReference` does.
+
+## Deployed AOT-compiled
+
+The site at morph.papyrine.org is compiled ahead of time: `.github/workflows/deploy-blazor.yml` publishes
+with `-p:RunAOTCompilation=true` on pushes to main and manual runs. Nothing in this project turns AOT on,
+so local builds, `Morph.Web.Tests`' own publish and pull requests stay interpreted; the deploy's
+`test-aot` job runs the browser tests against the AOT app before it goes out.
+
+What it buys and costs, measured 2026-10-23 with pages drawn as SVG:
+
+| | interpreted | AOT |
+| --- | ---: | ---: |
+| an edit handed in, 18-page business plan, until idle | 2.5 s | 0.53 s |
+| the same document opened, to its first page | 4.1 s | 1.6 s |
+| download, gzip (what GitHub Pages serves) | 10.5 MB | 33.5 MB |
+| first visit at 50 Mbps / at 10 Mbps | 2.5 s / 9.7 s | 7.9 s / 30.4 s |
+| a visit with everything cached | 0.6 s | 1.3 s |
+| publish | ~1 min | 15–25 min |
+
+AOT compiles all of the app's code into `dotnet.native.wasm`, so any change to it gives that file a new
+fingerprint and a returning visitor downloads it again after each deploy. Interpreting only the
+libraries the editor does not need (ImageSharp, AngleSharp) was tried: it saved 4 MB of the 23 and made
+everything ImageSharp draws 2.7x slower than the interpreted build, so all of the app is compiled. The
+two workarounds AOT needs (PdfSharp left interpreted, SixLabors.Fonts' calling-convention attributes
+trimmed for a Mono compiler bug) live in `Morph.Blazor/build/Morph.Blazor.targets`, where they also reach
+any other app that AOT-compiles the package. Turning AOT off is deleting the property from the publish line.
+
+An AOT publish run locally leaves its assemblies, IL stripped, in `obj/Release`, and the next interpreted
+publish (`dotnet build src/Morph.Web.Tests -c Release`) reuses them: the app it serves then never starts.
+Delete `src/Morph.Web/obj/Release` between the two.
 
 ## In Morph.slnx, but excluded from the container build
 

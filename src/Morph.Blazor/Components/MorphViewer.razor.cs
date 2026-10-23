@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Morph;
 
 /// <summary>
@@ -81,6 +83,22 @@ public partial class MorphViewer : IAsyncDisposable
     /// </summary>
     [Parameter]
     public bool ShowIssueLink { get; set; } = true;
+
+    /// <summary>
+    /// Whether pages — on screen, in the sidebar and in print — are drawn as SVG the browser rasterises
+    /// (<see cref="SvgPainter"/>) rather than as PNGs painted on the WebAssembly runtime, which takes tens
+    /// of milliseconds a page rather than most of a second, and needs no new render at another zoom. A
+    /// page the SVG cannot carry whole is still painted as a PNG. Default true.
+    /// </summary>
+    [Parameter]
+    public bool VectorPages { get; set; } = true;
+
+    /// <summary>
+    /// For measuring <see cref="VectorPages"/>: each page shown as SVG is also painted as the PNG it
+    /// replaces, unseen, and both times are written to the browser's console. Default false.
+    /// </summary>
+    [Parameter]
+    public bool MeasurePaint { get; set; }
 
     /// <summary>Extra CSS classes for the root element, alongside the <c>viewer</c> class.</summary>
     [Parameter]
@@ -411,7 +429,7 @@ public partial class MorphViewer : IAsyncDisposable
         try
         {
             // Parse, lay out and read every page's text in one go; the pages themselves paint later, on demand.
-            var opened = await Task.Run(() => Open(bytes, info.Format, fontDirectory), lifetime.Token);
+            var opened = await Task.Run(() => Open(bytes, info.Format, fontDirectory, !ReadOnly), lifetime.Token);
             if (opening != generation || disposed)
             {
                 opened.Document.Dispose();
@@ -471,7 +489,31 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
-    static OpenedDocument Open(byte[] bytes, InputFormat format, string fontDirectory)
+    // A Word document is opened for editing first, and the parse and the reading of its review and
+    // outline read that one package, which the first edit then starts from (DocumentReading.Prepare):
+    // the body's XML is read once rather than three times. Where nothing will be edited the package is
+    // let go once read.
+    static OpenedDocument Open(byte[] bytes, InputFormat format, string fontDirectory, bool keep)
+    {
+        if (format == InputFormat.Docx)
+        {
+            DocumentReading.Prepare(bytes);
+        }
+
+        try
+        {
+            return Load(bytes, format, fontDirectory);
+        }
+        finally
+        {
+            if (!keep)
+            {
+                DocumentReading.Release(bytes);
+            }
+        }
+    }
+
+    static OpenedDocument Load(byte[] bytes, InputFormat format, string fontDirectory)
     {
         var document = PagedDocument.Open(bytes, format, fontDirectory, traceSources: true);
         try
@@ -673,6 +715,11 @@ public partial class MorphViewer : IAsyncDisposable
                 }
 
                 var stamp = documentId;
+                if (VectorPages && await ShowVectorAsync(current, viewer, stamp, kind, page, dpi))
+                {
+                    continue;
+                }
+
                 byte[] png;
                 try
                 {
@@ -720,6 +767,83 @@ public partial class MorphViewer : IAsyncDisposable
         {
             rendering = false;
         }
+    }
+
+    // A page or its thumbnail (kind 1) as SVG (VectorPages): false when the page has something only the
+    // PNG painter draws, which the caller then paints. The pictures travel as one array and their lengths.
+    async Task<bool> ShowVectorAsync(PagedDocument current, ViewerHandle viewer, int stamp, int kind, int page, int dpi)
+    {
+        var watch = Stopwatch.StartNew();
+        SvgPage svg;
+        try
+        {
+            svg = await Task.Run(() => current.RenderSvg(page, dpi), lifetime.Token);
+        }
+        catch (ObjectDisposedException)
+        {
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine($"Morph: page {page + 1} could not be written as SVG, so it is painted: {exception.Message}");
+            return false;
+        }
+
+        var built = watch.Elapsed.TotalMilliseconds;
+        if (!svg.Complete)
+        {
+            Console.WriteLine($"Morph: page {page + 1} is painted, not drawn as SVG: {string.Join(", ", svg.Unsupported)}");
+            return false;
+        }
+
+        if (MeasurePaint && kind == 0)
+        {
+            watch.Restart();
+            try
+            {
+                current.RenderPage(page, dpi);
+            }
+            catch (ObjectDisposedException)
+            {
+                return true;
+            }
+
+            Console.WriteLine($"morph-paint page={page + 1} svg={built:0.0} png={watch.Elapsed.TotalMilliseconds:0.0} dpi={dpi} svg-bytes={svg.Markup.Length}");
+        }
+
+        if (stamp != documentId)
+        {
+            return true;
+        }
+
+        var (pictures, lengths) = Pack(svg);
+        if (kind == 0)
+        {
+            await viewer.SetPageSvgAsync(stamp, page, svg.Markup, pictures, lengths, MeasurePaint);
+        }
+        else
+        {
+            await viewer.SetThumbnailSvgAsync(stamp, page, svg.Markup, pictures, lengths);
+        }
+
+        return true;
+    }
+
+    // An SVG page's pictures as one array and their lengths: what crosses to the script cheaply.
+    static (byte[] Pictures, int[] Lengths) Pack(SvgPage svg)
+    {
+        var lengths = new int[svg.Images.Count];
+        var pictures = new byte[svg.Images.Sum(_ => _.Length)];
+        var offset = 0;
+        for (var index = 0; index < lengths.Length; index++)
+        {
+            var image = svg.Images[index];
+            image.CopyTo(pictures, offset);
+            lengths[index] = image.Length;
+            offset += image.Length;
+        }
+
+        return (pictures, lengths);
     }
 
     /// <summary>Called from JavaScript whenever the view changes: the page in view, the zoom, presentation, the sidebar.</summary>
@@ -921,6 +1045,14 @@ public partial class MorphViewer : IAsyncDisposable
                 progressDetail = $"{index + 1} of {current.PageCount}";
                 StateHasChanged();
                 await Task.Delay(1, cancel.Token);
+                if (VectorPages &&
+                    await Task.Run(() => current.RenderSvg(pageIndex, dpi), cancel.Token) is { Complete: true } svg)
+                {
+                    var (pictures, lengths) = Pack(svg);
+                    await viewer.AddPrintPageSvgAsync(pageIndex, svg.Markup, pictures, lengths);
+                    continue;
+                }
+
                 var png = await Task.Run(() => current.RenderPage(pageIndex, dpi), cancel.Token);
                 await viewer.AddPrintPageAsync(pageIndex, png);
             }
@@ -1185,6 +1317,10 @@ public partial class MorphViewer : IAsyncDisposable
         selfReference?.Dispose();
         document?.Dispose();
         document = null;
+        if (sourceBytes is { } bytes)
+        {
+            DocumentReading.Release(bytes);
+        }
     }
 
     sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map, DocumentOutline Outline, EditMap Edits);
