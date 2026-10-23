@@ -370,15 +370,17 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             {
                 if (index >= result.Length)
                 {
+                    // A point past ptCount: grow to it, filling the gap as the start was filled.
+                    var old = result.Length;
                     Array.Resize(ref result, index + 1);
-                    result[index] = "";
+                    Array.Fill(result, "", old, result.Length - old);
                 }
 
                 result[index] = Child(point, "v")?.InnerText ?? "";
             }
         }
 
-        return [.. result.Select(_ => _ ?? "")];
+        return [.. result];
     }
 
     static ChartRect? Rect(OpenXmlElement? manual)

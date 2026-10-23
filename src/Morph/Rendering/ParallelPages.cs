@@ -42,11 +42,7 @@ static class ParallelPages
 
         foreach (var page in encoded)
         {
-            // A page the painter chose not to emit leaves its slot empty.
-            if (page != null)
-            {
-                pageCallback(_ => _.Write(page));
-            }
+            pageCallback(_ => _.Write(page));
         }
     }
 }

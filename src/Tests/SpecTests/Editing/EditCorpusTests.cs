@@ -99,7 +99,7 @@ public class EditCorpusTests
         {
             edited = DocumentEditor.InsertPageBreak(edited, last.Ordinal, last.Length, Tracked).Document;
             edited = DocumentEditor.InsertTable(edited, last.Ordinal, 0, 2, 2, Plain).Document;
-            edited = DocumentEditor.InsertPicture(edited, last.Ordinal, 0, new(Png, "image/png", 20, 10), Plain).Document;
+            edited = DocumentEditor.InsertPicture(edited, last.Ordinal, 0, new(png, "image/png", 20, 10), Plain).Document;
         }
 
         using var stream = new MemoryStream(edited);
@@ -112,7 +112,7 @@ public class EditCorpusTests
     }
 
     // A 1×1 PNG: the picture's bytes are only carried, never decoded.
-    static readonly byte[] Png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+    static readonly byte[] png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
 
     // What the schema finds wrong with the parts an edit writes: the body, the styles, the numbering.
     static HashSet<string> Errors(byte[] docx)
