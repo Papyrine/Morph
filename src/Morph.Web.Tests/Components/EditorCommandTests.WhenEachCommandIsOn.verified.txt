@@ -1,0 +1,13 @@
+﻿bullets: in a bulleted list
+find: find shown
+format-painter: painting
+marks: marks shown
+numbering: in a numbered list
+pages: pages shown
+presentation: presenting
+replace: replace shown
+review-pane: review shown
+ruler: ruler shown
+subscript: subscript
+superscript: superscript
+track: tracking

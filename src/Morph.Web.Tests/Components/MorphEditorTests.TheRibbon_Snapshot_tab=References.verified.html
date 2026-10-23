@@ -3,13 +3,13 @@
 	<div class="editor-titlebar">
 		<div class="editor-tabs" role="tablist" aria-label="Ribbon">
 			<button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="79">Home</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="80">Insert</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="81">Layout</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="82">References</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="83">Review</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="84">View</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="85">Table</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="106">Home</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="107">Insert</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="108">Layout</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="109">References</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="110">Review</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="111">View</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="112">Table</button>
 		</div>
 		<span class="editor-name" title="edit.docx">edit.docx</span>
 		<div class="editor-quick">
@@ -32,41 +32,33 @@
 	</div>
 	<div class="editor-tools" role="tabpanel" aria-label="References">
 		<div class="editor-group" role="group" aria-label="Table of contents">
-			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="86">
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="113">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 5H3m13 7H3m13 7H3M21 5h.01M21 12h.01M21 19h.01"></path>
-				</svg>
-				Table of contents
-			</button>
+				</svg>Table of contents</button>
 			<div class="editor-stack">
-				<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="87">
+				<button type="button" class="editor-tool" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="114">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 						<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 							<path d="M3 12a9 9 0 0 1 9-9a9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
 							<path d="M21 3v5h-5m5 4a9 9 0 0 1-9 9a9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
 							<path d="M8 16H3v5"></path>
 						</g>
-					</svg>
-					Update table
-				</button>
+					</svg>Update table</button>
 			</div>
 		</div>
 		<div class="editor-group" role="group" aria-label="Footnotes">
-			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="88">
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="115">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 19l8-8m0 8l-8-8m16 1h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06"></path>
-				</svg>
-				Footnote
-			</button>
-			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="89">
+				</svg>Footnote</button>
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="116">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 						<path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path>
 						<path d="M14 2v5a1 1 0 0 0 1 1h5m-8 10v-6m-3 3l3 3l3-3"></path>
 					</g>
-				</svg>
-				Endnote
-			</button>
+				</svg>Endnote</button>
 		</div>
 	</div>
 </div>

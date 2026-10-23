@@ -179,6 +179,14 @@ handed in first — and the caret is back where it was afterwards, the paragraph
 style, list or spacing. With text selected across the pages instead, it acts on every paragraph the
 selection touches.
 
+A command that cannot be used where the reader is, is greyed out rather than taken away, as Word's are,
+so the ribbon never moves under the pointer: the Table tab's commands outside a table (the tab itself is
+there only inside one), Remove link outside a link, Restart at 1 and Continue numbering outside a
+numbered list, Wrap text until a picture is selected, Update table until there is a table of contents,
+Accept all and Reject all while there are no tracked changes, and every edit in a read-only document. A
+button, its menu's items and its key are one command (`MorphEditor.Commands`), enabled by one rule, so a
+key does nothing where its button is greyed out; a button's tooltip names its key, as Word's do.
+
 What each does to the file is what Word does, probed against Word over COM: a style is Word's own
 definition, added the first time it is used, and applying one clears the paragraph's own formatting and
 character formatting that covers the whole of it; a list is Word's nine-level bullet or number list, in
@@ -212,7 +220,8 @@ again, and the page redrawn.
 | A click on a picture that floats | Selects it and frames it on the page: its right-hand corners size it in proportion from its top left, and Layout > Wrap text sets how it stands with the text. |
 | Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
 | ↑ ↓ ← → at the paragraph's edge | Goes on to the paragraph that way. |
-| Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. |
+| Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. With a menu or a dialog open, Escape closes that instead, and what was typed stays. |
+| A right-click | Word's right-click menu, where the pointer is. What is under it is selected first, as Word selects it — a picture; text already selected, left as it is; anywhere else, the paragraph there, opened as a click opens it — and the menu offers what belongs there: Cut, Copy and Paste; Font… and Paragraph…; for a picture, Wrap text; in a numbered list, Restart at 1 and Continue numbering; in a table, Insert (a row above or below, a column to the left or right), Delete (the row, the column, the table), Merge cells and Split cells…; Link…, or Remove link in a link; New comment. What belongs but cannot be done there is greyed out, by the ribbon's own rules. Shift+right-click gives the browser's own menu, and its spelling suggestions. |
 | Bold, Italic, Underline, Strikethrough (Ctrl+B / I / U) | Applies to what is selected in the open paragraph — or, with none open, to text selected across the pages. With nothing selected it applies to what is typed next. |
 | Font, size, grow and shrink, colour, highlight, superscript, subscript, clear formatting | Apply to what is selected — in the open paragraph or across the pages — or, with nothing selected, to the word the caret is in, as Word's do. The paragraph opens again with the same text selected. The font and size shown are those of the text at the caret. |
 | Align left, centre, right, justify | Aligns the open paragraph, or the paragraphs of the text selected on the pages. |
@@ -310,8 +319,8 @@ Limits worth knowing:
 - A table of contents numbers its pages by their place in the document, from 1: a section that starts
   its numbering afresh is not followed. What is typed into a table of contents is lost when it is
   updated, as in Word.
-- A ribbon menu is not closed by Escape: Escape goes to the paragraph being typed in, which it
-  abandons. A press anywhere else closes the menu.
+- The menus are not walked with the arrow keys: a line is chosen with the pointer, and Escape or a
+  press anywhere else closes a menu.
 - A pasted table's rows are pasted as paragraphs, their cells a tab apart, and a pasted picture is
   left out.
 - An underline style other than single or double, and double strikethrough, are written to the file as

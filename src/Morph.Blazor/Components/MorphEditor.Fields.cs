@@ -12,12 +12,6 @@ public partial class MorphEditor
     // The date each format is shown with: the reader's, when the dialog opened.
     DateTime dateShown;
 
-    Task PageNumberFromMenuAsync(bool total)
-    {
-        menu = null;
-        return InsertPageNumberAsync(total);
-    }
-
     async Task OpenDateAsync()
     {
         dateShown = await ReaderDateAsync();

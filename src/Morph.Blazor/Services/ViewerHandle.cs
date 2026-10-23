@@ -101,6 +101,10 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask SetRulerAsync(string? model) =>
         controller.InvokeVoidAsync("setRuler", model);
 
+    // The right-click menu MorphEditor just drew at the pointer: kept inside the editor.
+    public ValueTask PlaceMenuAsync() =>
+        controller.InvokeVoidAsync("placeMenu");
+
     // Word's formatting marks over the pages' text, or none.
     public ValueTask SetMarksAsync(bool on) =>
         controller.InvokeVoidAsync("setMarks", on);

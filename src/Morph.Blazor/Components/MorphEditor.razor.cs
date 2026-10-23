@@ -250,6 +250,13 @@ public partial class MorphEditor
     {
         await base.OnAfterRenderAsync(firstRender);
         await SyncRulerAsync();
+        if (placeMenu &&
+            menu == contextMenu)
+        {
+            placeMenu = false;
+            await PlaceMenuAsync();
+        }
+
         if (firstRender)
         {
             await FindDraftAsync();
@@ -266,11 +273,15 @@ public partial class MorphEditor
     void ToggleMenu(string name)
     {
         menu = menu == name ? null : name;
+        openSubmenu = null;
         hover = (1, 1);
     }
 
-    void CloseMenu() =>
+    void CloseMenu()
+    {
         menu = null;
+        openSubmenu = null;
+    }
 
     void OnMenuKeyDown(KeyboardEventArgs args)
     {
@@ -308,30 +319,6 @@ public partial class MorphEditor
         return SetListStyleAsync(style);
     }
 
-    Task RestartFromMenuAsync(bool restart)
-    {
-        menu = null;
-        return RestartNumberingAsync(restart);
-    }
-
-    Task SpacingFromMenuAsync(ParagraphSpacing spacing)
-    {
-        menu = null;
-        return SpaceAsync(spacing);
-    }
-
-    Task SpaceBeforeFromMenuAsync()
-    {
-        menu = null;
-        return ToggleSpaceBeforeAsync();
-    }
-
-    Task SpaceAfterFromMenuAsync()
-    {
-        menu = null;
-        return ToggleSpaceAfterAsync();
-    }
-
     Task TableFromMenuAsync(int rows, int columns)
     {
         menu = null;
@@ -348,50 +335,8 @@ public partial class MorphEditor
     static string Centimetres(int twips) =>
         (twips * 2.54 / 1440).ToString("0.##", CultureInfo.InvariantCulture) + " cm";
 
-    Task MarginsFromMenuAsync((int Top, int Right, int Bottom, int Left) margins)
-    {
-        menu = null;
-        return SetMarginsAsync(margins.Top, margins.Right, margins.Bottom, margins.Left);
-    }
-
-    Task OrientationFromMenuAsync(bool landscape)
-    {
-        menu = null;
-        return SetOrientationAsync(landscape);
-    }
-
     // Layout > Columns' equal choices, as Word's menu names them.
     internal static readonly (int Count, string Name)[] ColumnChoices = [(1, "One"), (2, "Two"), (3, "Three")];
-
-    Task ColumnsFromMenuAsync(int count)
-    {
-        menu = null;
-        return SetColumnsAsync(count, CurrentPage?.LineBetween == true);
-    }
-
-    Task LineBetweenFromMenuAsync()
-    {
-        menu = null;
-        return SetColumnsAsync(CurrentPage?.Columns ?? 1, CurrentPage?.LineBetween != true);
-    }
-
-    Task PaperFromMenuAsync((int Width, int Height) paper)
-    {
-        menu = null;
-        return SetPaperSizeAsync(paper.Width, paper.Height);
-    }
-
-    Task PageBreakFromMenuAsync()
-    {
-        menu = null;
-        return InsertPageBreakAsync();
-    }
-
-    Task SectionBreakFromMenuAsync(bool continuous)
-    {
-        menu = null;
-        return InsertSectionBreakAsync(continuous);
-    }
 
     void OpenMargins()
     {
@@ -462,18 +407,6 @@ public partial class MorphEditor
     int splitColumns = 2;
     int splitRows = 1;
 
-    Task FitFromMenuAsync(TableFit fit)
-    {
-        menu = null;
-        return FitTableAsync(fit);
-    }
-
-    Task BordersFromMenuAsync(BorderPreset preset)
-    {
-        menu = null;
-        return SetTableBordersAsync(preset);
-    }
-
     // Home > Borders' menu, in Word's order.
     internal static readonly (ParagraphBorder Border, string Name)[] ParagraphBorders =
     [
@@ -497,18 +430,6 @@ public partial class MorphEditor
         (PictureWrap.BehindText, "Behind text"),
         (PictureWrap.InFrontOfText, "In front of text")
     ];
-
-    Task WrapFromMenuAsync(PictureWrap wrap)
-    {
-        menu = null;
-        return WrapPictureAsync(wrap);
-    }
-
-    Task ParagraphBorderFromMenuAsync(ParagraphBorder border)
-    {
-        menu = null;
-        return BorderParagraphsAsync(border);
-    }
 
     Task ParagraphShadingFromMenuAsync(string? fill)
     {
@@ -674,16 +595,6 @@ public partial class MorphEditor
     }
 
     // Links
-
-    internal override Task KeyAsync(string name)
-    {
-        if (name == "link")
-        {
-            return OpenLinkAsync();
-        }
-
-        return base.KeyAsync(name);
-    }
 
     async Task OpenLinkAsync()
     {

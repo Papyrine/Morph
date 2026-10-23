@@ -41,6 +41,9 @@ sealed class DocumentOutline
     /// <summary>The bookmarks that start in a paragraph, in the document's order.</summary>
     public IReadOnlyList<BookmarkPlace> Bookmarks { get; init; } = [];
 
+    /// <summary>Whether the body has a table of contents, which References > Update Table updates.</summary>
+    public bool HasContents { get; init; }
+
     public static DocumentOutline Empty { get; } = new()
     {
         Paragraphs = [],
@@ -107,9 +110,15 @@ sealed class DocumentOutline
         var unindents = DocumentEditor.Unindents(document);
         var paragraphOfRun = new Dictionary<int, int>();
         var bookmarks = new List<BookmarkPlace>();
+        var contents = false;
         var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, _.Paragraph, _.Units)));
         foreach (var (part, paragraph, units) in read)
         {
+            // Only a paragraph a field is in is looked into for one.
+            contents = contents ||
+                       (part == ReviewPart.Body &&
+                        units.Any(_ => _.Kind == EditUnitKind.Field) &&
+                        DocumentEditor.HasContents(paragraph));
             var ordinal = paragraphs.Count;
             foreach (var (run, _, _) in ParagraphContent.Runs(paragraph))
             {
@@ -147,6 +156,7 @@ sealed class DocumentOutline
                 .ToList() ?? [],
             DefaultStyle = defaultStyle,
             Bookmarks = bookmarks,
+            HasContents = contents,
             paragraphOfRun = paragraphOfRun
         };
     }

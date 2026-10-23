@@ -354,10 +354,39 @@ where its caret was, in paragraph ordinals (`EditSession` gives the script each 
 A new document is `wwwroot/blank.docx`: Word's own blank document with its author, rsids and document
 ids taken out.
 
+The ribbon's buttons, the verbs its menus offer, Word's keys and the buttons the script handles itself
+(`data-edit-command`) are **one table of commands**, `MorphEditor.Commands` (`MorphEditor.Commands.cs`):
+each an `EditorCommand` — the name the script hands `OnEditCommand` / `OnEditKey`, its label, icon and
+key, and its `Enabled`, `Visible` and `Checked` rules — asked of one `EditorState`, worked out at the
+start of each render and again when a command runs, so a key is refused where its button is greyed out.
+The markup draws each button from its entry (`Tool`, `MenuItem`) and holds no rule of its own; a menu's
+choices (the margins, the colours, the wrap styles) are not commands. A new control is a new entry, which
+has to join the table's `all` list as well (`EditorCommandTests.TheTable_HoldsEveryCommand` fails
+otherwise), and its rule then shows in `EditorCommandTests`' snapshots. A command that cannot be used is
+greyed out, never taken away — only the contextual Table tab comes and goes. Only what is cheap to know
+goes in the state: what needs the file read (the caret's page setup, a picture's wrap) is asked by the
+menu that shows it, while it is open. The script still binds the keys (`wordKey`) and still keeps bold's
+and the alignments' pressed state as the caret moves — crossing to .NET for those would cost a render on
+the one WebAssembly thread per caret move — and it tells .NET only when a picture comes to be selected
+alone in the open paragraph, or stops being (`OnEditPicture`).
+
+**Menus are data**: a `MenuLine` is a command (its rule greys the line out), a choice, a heading, a
+separator, or a submenu of lines, and one fragment (`Menu`) draws every menu that is a list — the
+ribbon's dropdowns (`MorphEditor.Menus.cs` makes each where what it offers is known) and Word's
+right-click menu. The dropdowns that are pictures — the palettes, the table grid, the list libraries, the
+fonts and styles drawn as themselves — keep markup of their own. A right-click (`onContextMenu` in
+morph-viewer.js) selects what is under it first — a floating picture, the open paragraph's own place,
+text already selected left as it is, or the paragraph there opened as a click opens it — then calls
+`OnContextMenu`, and `ContextLines` offers only what belongs to that place, as Word's does (the
+ribbon greys out instead, so it never moves); `placeMenu` then keeps the menu inside the editor. A
+command line the script handles carries `data-edit-command`, so its press is the script's as the
+ribbon's button is. Escape with a menu or a dialog open is caught at the document, before the open
+paragraph's own Escape abandons what was typed, and handed to `OnMenuEscape`.
+
 Word's keys that change what a paragraph IS rather than what it says — Tab/Shift+Tab in a list, Enter
 in an empty list paragraph, Backspace at a list paragraph's start, Enter at a heading's end,
 Ctrl+Alt+1-3, Ctrl+K — are read by `onParagraphKey` in morph-edit.js and handed to .NET by name
-(`MorphViewer.OnEditKey`), which carries them out like a ribbon command; the session JSON says whether
+(`MorphViewer.OnEditKey`), which runs the command of that name as a ribbon press does; the session JSON says whether
 the paragraph is in a list (`list`) and whether its style names another to follow it (`follow`), from
 `EditParagraph.ListLevel` / `NextStyle`. What they do was **probed by sending keys to Word** (a visible
 Word window, with keys sent only while it is in the foreground — COM's `TypeParagraph` /

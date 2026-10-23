@@ -344,6 +344,145 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Read(reported!)[0]).IsEqualTo("[Tracked]{+[, always]+}[.]");
     }
 
+    static bool ToolDisabled(IRenderedComponent<MorphEditor> cut, string label) =>
+        cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == label).HasAttribute("disabled");
+
+    // Layout > Wrap Text is greyed out, as Word's is, until a picture is selected: a floating one on its
+    // page, or one selected alone in the paragraph being typed, which the script says as it comes and goes.
+    [Test]
+    public async Task WrapText_IsGreyedOut_UntilAPictureIsSelected()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        await ChooseTabAsync(cut, "Layout");
+
+        await Assert.That(ToolDisabled(cut, "Wrap text")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditPicture(true));
+        await Assert.That(ToolDisabled(cut, "Wrap text")).IsFalse();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditPicture(false));
+        await Assert.That(ToolDisabled(cut, "Wrap text")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnPictureSelected(0, 6));
+        await Assert.That(ToolDisabled(cut, "Wrap text")).IsFalse();
+    }
+
+    // References > Update Table is greyed out until there is a table of contents to update.
+    [Test]
+    public async Task UpdateTable_IsGreyedOut_UntilThereIsATableOfContents()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        Caret(0, 0);
+        await ChooseTabAsync(cut, "References");
+
+        await Assert.That(ToolDisabled(cut, "Update table")).IsTrue();
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Table of contents").ClickAsync(new());
+
+        await Assert.That(ToolDisabled(cut, "Update table")).IsFalse();
+    }
+
+    // What the script names runs by the same rule as the button: Restart at 1, greyed out outside a
+    // numbered list, does nothing there by name either, while Ctrl+Shift+L's Bullets runs.
+    [Test]
+    public async Task ACommandTheScriptNames_RunsOnlyWhereItsRuleAllows()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        Caret(0, 0);
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("restart-numbering"));
+        await Assert.That(reported).IsNull();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditKey("bullets"));
+        await Assert.That(reported).IsNotNull();
+    }
+
+    // Word's right-click menu: once the script has selected what was right-clicked, the menu opens where
+    // the pointer was and offers what belongs to that place — a table's rows and columns only in a table,
+    // Remove link only in a link, a picture's wrapping only for a picture.
+
+    static string ContextLines(IRenderedComponent<MorphEditor> cut) =>
+        string.Join(" | ", cut.FindAll(".editor-context-menu > .editor-menu-item, .editor-context-menu > .editor-menu-sub > .editor-menu-item").Select(_ => _.TextContent.Trim()));
+
+    [Test]
+    public async Task TheContextMenu_OffersWhatBelongsToThePlace()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 1, "bold");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
+
+        await cut.InvokeAsync(() => cut.Instance.OnContextMenu(120, 200));
+        await Assert.That(cut.Find(".editor-context-menu").GetAttribute("style")).IsEqualTo("left: 120px; top: 200px");
+        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Link… | New comment");
+        // The clipboard's lines are the script's to carry out, inside the press.
+        await Assert.That(string.Join(" ", cut.FindAll(".editor-context-menu [data-edit-command]").Select(_ => _.GetAttribute("data-edit-command")))).IsEqualTo("cut copy paste");
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditPicture(true));
+        await cut.InvokeAsync(() => cut.Instance.OnContextMenu(120, 200));
+        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Wrap text | Font… | Paragraph… | Link… | New comment");
+        await Assert.That(cut.Find(".editor-submenu .editor-menu-item[aria-checked=true]").TextContent).IsEqualTo("In line with text");
+    }
+
+    [Test]
+    public async Task TheContextMenu_InALink_OffersToRemoveIt()
+    {
+        var linked = Build(P("", "<w:hyperlink w:anchor=\"top\"><w:r><w:t>Linked</w:t></w:r></w:hyperlink>", R(" plain")));
+        var cut = await OpenEditing(linked);
+        var (block, offset) = Place(linked, 0, "Linked");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 5, block.Top + 2, offset + 2, offset + 2));
+
+        await cut.InvokeAsync(() => cut.Instance.OnContextMenu(10, 10));
+
+        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Remove link | New comment");
+    }
+
+    [Test]
+    public async Task TheContextMenu_InATable_Snapshot()
+    {
+        var cut = await OpenGridAsync(_ => { });
+
+        await cut.InvokeAsync(() => cut.Instance.OnContextMenu(120, 200));
+
+        await Verify(cut.Find(".editor-context-menu").Pretty(), "html");
+    }
+
+    // A line runs its command as the ribbon's button does, and the menu closes first; a submenu opens
+    // on a press, as a touch has no hover.
+    [Test]
+    public async Task AContextMenuLine_RunsItsCommand()
+    {
+        byte[]? reported = null;
+        var cut = await OpenGridAsync(_ => reported = _);
+        await cut.InvokeAsync(() => cut.Instance.OnContextMenu(120, 200));
+
+        await cut.FindAll(".editor-context-menu .editor-menu-item").First(_ => _.TextContent.Trim() == "Delete").ClickAsync(new());
+        await Assert.That(cut.Find(".editor-menu-sub[data-open]").TextContent).Contains("Column");
+        await cut.FindAll(".editor-submenu .editor-menu-item").First(_ => _.TextContent.Trim() == "Row").ClickAsync(new());
+
+        await Assert.That(cut.FindAll(".editor-context-menu")).IsEmpty();
+        await Assert.That(string.Join(" / ", Read(reported!))).IsEqualTo("[c] / [d] / [After]");
+    }
+
+    // Escape closes the menu open, or else the dialog: the script hands it here before the paragraph
+    // being typed in sees it, since neither has the focus.
+    [Test]
+    public async Task Escape_ClosesTheMenuOpen_OrElseTheDialog()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        Caret(0, 0);
+        await ChooseTabAsync(cut, "Layout");
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Margins").ClickAsync(new());
+        await cut.Find(".editor-status-button").ClickAsync(new());
+
+        await cut.InvokeAsync(() => cut.Instance.OnMenuEscape());
+        await Assert.That(cut.FindAll(".editor-menu")).IsEmpty();
+        await Assert.That(cut.FindAll(".editor-dialog")).IsNotEmpty();
+
+        await cut.InvokeAsync(() => cut.Instance.OnMenuEscape());
+        await Assert.That(cut.FindAll(".editor-dialog")).IsEmpty();
+    }
+
     [Test]
     public async Task Undo_TakesAnEditBack()
     {

@@ -2382,6 +2382,54 @@
     min-width: 16rem;
 }
 
+/* The right-click menu, where the pointer was (the style sets left and top; the script moves it in from
+   the editor's edges). It does not scroll, so its submenus can stand out beside it. */
+.editor-context-menu {
+    max-height: none;
+    overflow: visible;
+    min-width: 14rem;
+}
+
+.editor-menu-item:disabled {
+    color: var(--morph-muted, #6c757d);
+    cursor: default;
+    opacity: 0.55;
+}
+
+.editor-menu-item:disabled:hover {
+    background: transparent;
+}
+
+/* A line that opens a submenu, beside it: on hover, or when pressed, which is how a touch opens it. */
+.editor-menu-sub {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-menu-sub > .editor-menu-item::after {
+    content: "›";
+    margin-left: auto;
+    padding-left: 1rem;
+    color: var(--morph-muted, #6c757d);
+}
+
+.editor-submenu {
+    display: none;
+    top: -0.3rem;
+    left: 100%;
+}
+
+.editor-menu-sub:hover > .editor-submenu,
+.editor-menu-sub[data-open] > .editor-submenu {
+    display: flex;
+}
+
+.editor-context-menu[data-flip] .editor-submenu {
+    left: auto;
+    right: 100%;
+}
+
 .editor-menu-item {
     display: flex;
     align-items: center;

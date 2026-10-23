@@ -1,0 +1,22 @@
+﻿a picture selected
+    wrap-text
+a table of contents
+    update-contents
+comments allowed
+    new-comment
+in a link
+    remove-link
+in a numbered list
+    continue-numbering, restart-numbering
+in a table
+    autofit, cell-shading, cell-shadings, delete-column, delete-row, delete-table, distribute-columns, insert-column-left, insert-column-right, insert-row-above, insert-row-below, merge-cells, split-cells, table-borders
+read-only, writable, revising, in a table, in a link, in a numbered list, a picture selected, a table of contents, tracked changes, tracking forced, comments allowed
+    copy, find, marks, pages, presentation, review-pane, ruler, word-count
+tracked changes
+    accept-all, reject-all
+writable, in a table, in a link, in a numbered list, a picture selected, a table of contents, tracked changes, comments allowed
+    track
+writable, in a table, in a link, in a numbered list, a picture selected, a table of contents, tracked changes, tracking forced, comments allowed
+    align-center, align-justify, align-left, align-right, bold, bookmark, breaks, bullet-library, bullets, clear-formatting, columns, contents, cut, date, decrease-indent, delete, end-list, endnote, follow-on, font, font-colour, font-colours, font-dialog, font-size, footer, footnote, format-painter, grow, header, heading1, heading2, heading3, highlight, highlights, increase-indent, indent, italic, line-double, line-one-and-half, line-single, link, margins, more-paragraph-borders, numbering, numbering-library, orientation, outdent, page-break, page-number, paper-size, paragraph-borders, paragraph-dialog, paragraph-shading, paragraph-shadings, paste, picture, redo, reset-picture, shrink, spacing, strike, styles, subscript, superscript, table, underline, undo, unindent
+writable, revising, in a table, in a link, in a numbered list, a picture selected, a table of contents, tracked changes, tracking forced, comments allowed
+    replace
