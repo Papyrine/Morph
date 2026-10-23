@@ -187,7 +187,7 @@ sealed class ConditionalFormats
         return new(
             type,
             rule.Operator?.Value is { } op ? ((IEnumValue) op).Value : null,
-            rule.Elements<S.Formula>().Select(_ => _.Text.Trim()).ToList(),
+            [.. rule.Elements<S.Formula>().Select(_ => _.Text.Trim())],
             rule.FormatId?.Value,
             rule.Priority?.Value ?? int.MaxValue,
             scale);

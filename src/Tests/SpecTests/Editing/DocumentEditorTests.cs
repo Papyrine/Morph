@@ -647,7 +647,7 @@ public class DocumentEditorTests
         var docx = Rewrite(Corpus("tracked_changes", "01"), 0, Tracked, Reads(T(0, "Hello, "), T(1, "inserted "), T(2, "world ")), Reads(K(3), T(-1, "More.")));
 
         using var stream = new MemoryStream(docx);
-        var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var parsed = DocumentConverter.Parse(stream, null, captureSources: true);
 
         var paragraphs = parsed.Elements.OfType<ParagraphElement>().ToList();
         await Assert.That(string.Join('|', paragraphs.Select(_ => string.Concat(_.Runs.Select(run => run.Text))))).IsEqualTo("Hello, inserted world |removed.More.");

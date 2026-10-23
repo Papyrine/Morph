@@ -98,7 +98,7 @@ sealed class SvgReader
         "animate", "animateTransform", "animateMotion", "animateColor", "set"
     ];
 
-    readonly Dictionary<string, XElement> elementsById = new(StringComparer.Ordinal);
+    readonly Dictionary<string, XElement> elementsById = [with(StringComparer.Ordinal)];
     readonly HashSet<XElement> beingUsed = [];
     readonly SvgStyleSheet styleSheet;
     int segmentCount;
@@ -346,7 +346,7 @@ sealed class SvgReader
 
         // A translucent container's shapes are gathered apart, so that Fade can judge them together.
         var opacity = ReadOpacity(declared, "opacity");
-        var group = opacity < 1 ? new() : output;
+        var group = opacity < 1 ? [] : output;
         switch (name)
         {
             case "svg" when isRoot:

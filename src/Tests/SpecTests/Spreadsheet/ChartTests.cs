@@ -11,7 +11,7 @@ public class ChartTests
     static List<FloatingChartElement> Charts()
     {
         using var stream = File.OpenRead(workbook);
-        return ExcelConverter.Parse(stream, null, null, null, useLetterPageSize: false, onePagePerSheet: false)
+        return ExcelConverter.Parse(stream, null, null, useLetterPageSize: false, onePagePerSheet: false)
             .Elements.OfType<FloatingChartElement>().ToList();
     }
 

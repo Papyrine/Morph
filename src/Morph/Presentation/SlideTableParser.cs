@@ -178,14 +178,13 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
             result.Add(
                 new ParagraphElement
                 {
-                    Runs = paragraph.Runs
+                    Runs = [.. paragraph.Runs
                         .Select(_ => _.WithProperties(
                             _.Properties with
                             {
                                 ColorHex = _.Properties.ColorHex ?? styled.ColorHex,
                                 Bold = _.Properties.Bold || styled.Bold
-                            }))
-                        .ToArray(),
+                            }))],
                     Properties = paragraph.Properties
                 });
         }

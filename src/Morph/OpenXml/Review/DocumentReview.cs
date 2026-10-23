@@ -89,12 +89,11 @@ sealed class DocumentReview
         return new()
         {
             Comments = ReadComments(document, body),
-            Changes = changes
+            Changes = [.. changes
                 .OrderBy(_ => _.Part)
                 .ThenBy(_ => _.Change.Anchor)
                 .ThenBy(_ => _.Order)
-                .Select(_ => _.Change)
-                .ToList(),
+                .Select(_ => _.Change)],
             Editable = editable,
             AllowsComments = editable && allowsComments,
             AllowsResolving = editable && allowsResolving
@@ -216,7 +215,7 @@ sealed class DocumentReview
             roots.AddRange(orphans.Select(_ => (_, int.MaxValue)));
         }
 
-        return roots
+        return [.. roots
             .Select(_ =>
             {
                 if (replies.TryGetValue(_.Comment.Id, out var list))
@@ -228,8 +227,7 @@ sealed class DocumentReview
             })
             .OrderBy(_ => Place(_.Comment))
             .ThenBy(_ => _.Index)
-            .Select(_ => _.Comment)
-            .ToList();
+            .Select(_ => _.Comment)];
     }
 
     // A comment the document never refers to has no place in it, and follows the ones that do.
@@ -318,7 +316,7 @@ sealed class DocumentReview
         public OoxmlTableRow? ChangedRow { get; set; }
 
         // The open w:moveFromRangeStart / w:moveToRangeStart, by w:id, and the move each names.
-        public Dictionary<string, string> MoveRanges { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, string> MoveRanges { get; } = [with(StringComparer.Ordinal)];
         public string? MoveFromName { get; set; }
         public string? MoveToName { get; set; }
 
@@ -339,16 +337,16 @@ sealed class DocumentReview
 
     sealed class Reader(int partIndex, ReviewPart part, OpenXmlElement root)
     {
-        readonly Dictionary<OpenXmlElement, int> ordinals = new(ReferenceEqualityComparer.Instance);
+        readonly Dictionary<OpenXmlElement, int> ordinals = [with(ReferenceEqualityComparer.Instance)];
         readonly Dictionary<OoxmlRun, int> runOrdinals = SourceRuns.Index(root);
-        readonly Dictionary<OpenXmlElement, Builder> builderOf = new(ReferenceEqualityComparer.Instance);
-        readonly Dictionary<string, Builder> moves = new(StringComparer.Ordinal);
+        readonly Dictionary<OpenXmlElement, Builder> builderOf = [with(ReferenceEqualityComparer.Instance)];
+        readonly Dictionary<string, Builder> moves = [with(StringComparer.Ordinal)];
         readonly List<Builder> builders = [];
         readonly Stack<Flow> flows = new();
 
-        readonly Dictionary<string, CommentRange> openComments = new(StringComparer.Ordinal);
-        readonly Dictionary<string, CommentRange> comments = new(StringComparer.Ordinal);
-        readonly Dictionary<string, int> references = new(StringComparer.Ordinal);
+        readonly Dictionary<string, CommentRange> openComments = [with(StringComparer.Ordinal)];
+        readonly Dictionary<string, CommentRange> comments = [with(StringComparer.Ordinal)];
+        readonly Dictionary<string, int> references = [with(StringComparer.Ordinal)];
 
         // The highest run ordinal walked so far: the run after it is where a runless change sits.
         int lastRun = -1;
@@ -383,7 +381,7 @@ sealed class DocumentReview
                 var anchor = -1;
                 if (Tracked)
                 {
-                    runs = builder.Runs.Distinct().Order().ToList();
+                    runs = [.. builder.Runs.Distinct().Order()];
                     anchor = builder.Point;
                     if (builder.Destination >= 0)
                     {

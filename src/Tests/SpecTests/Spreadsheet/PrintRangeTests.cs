@@ -10,7 +10,7 @@ public class PrintRangeTests
     static TableElement Grid(string scenario)
     {
         using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", scenario, "input.xlsx"));
-        return ExcelConverter.Parse(stream, null, null, null, useLetterPageSize: false, onePagePerSheet: false)
+        return ExcelConverter.Parse(stream, null, null, useLetterPageSize: false, onePagePerSheet: false)
             .Elements.OfType<TableElement>().First();
     }
 
@@ -57,8 +57,8 @@ public class PrintRangeTests
     [Test]
     public async Task A_drawing_extends_the_printed_rows_over_the_cells_it_stands_on()
     {
-        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "back-to-school-planner", "input.xlsx"));
-        var document = ExcelConverter.Parse(stream, null, null, null, useLetterPageSize: false, onePagePerSheet: false);
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "back-to-school-planner", "input.xlsx"));
+        var document = ExcelConverter.Parse(stream, null, null, useLetterPageSize: false, onePagePerSheet: false);
         var breakdown = document.Elements.OfType<TableElement>().Skip(1).First();
 
         await Assert.That(breakdown.Rows.Count).IsGreaterThan(10);

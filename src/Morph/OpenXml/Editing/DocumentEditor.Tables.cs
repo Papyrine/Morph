@@ -107,14 +107,12 @@ static partial class DocumentEditor
 
         // A row's own cells, in order: those in a content control too, and none of a table nested in one.
         static List<OoxmlTableCell> Cells(OoxmlTableRow row) =>
-            row.Descendants<OoxmlTableCell>()
-                .Where(_ => ReferenceEquals(_.Ancestors<OoxmlTableRow>().First(), row))
-                .ToList();
+            [.. row.Descendants<OoxmlTableCell>()
+                .Where(_ => ReferenceEquals(_.Ancestors<OoxmlTableRow>().First(), row))];
 
         static List<OoxmlTableRow> Rows(OoxmlTable table) =>
-            table.Descendants<OoxmlTableRow>()
-                .Where(_ => ReferenceEquals(_.Ancestors<OoxmlTable>().First(), table))
-                .ToList();
+            [.. table.Descendants<OoxmlTableRow>()
+                .Where(_ => ReferenceEquals(_.Ancestors<OoxmlTable>().First(), table))];
 
         // The cell of a row that a grid column is in.
         static OoxmlTableCell? CellAt(OoxmlTableRow row, int column)

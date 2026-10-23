@@ -209,7 +209,7 @@ static partial class DocumentEditor
 
                 if (group.Count > 0)
                 {
-                    List(group.Select(_ => Find(first + _)).ToList(), content[group[0]].List);
+                    List([.. group.Select(_ => Find(first + _))], content[group[0]].List);
                     foreach (var index in group)
                     {
                         Indent(Find(first + index), content[index].Level);

@@ -19,7 +19,7 @@ public class RunBorderLineChargeTests
     // two plain spaces between runs, the shape border_style_variants uses.
     static ParagraphElement Line(BorderEdge border, bool padded, int count)
     {
-        var runs = new List<Run> {Text(prefix)};
+        List<Run> runs = [Text(prefix)];
         foreach (var word in new[] {"XXXX", "YYYY"}.Take(count))
         {
             if (padded)

@@ -10,8 +10,8 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// </summary>
 sealed class DefinedNames
 {
-    readonly Dictionary<string, string> printAreas = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, string> printTitles = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, string> printAreas = [with(StringComparer.OrdinalIgnoreCase)];
+    readonly Dictionary<string, string> printTitles = [with(StringComparer.OrdinalIgnoreCase)];
 
     public static DefinedNames For(WorkbookPart workbookPart)
     {

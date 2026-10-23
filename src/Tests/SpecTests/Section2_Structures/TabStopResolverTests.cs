@@ -5,8 +5,8 @@ public class TabStopResolverTests
     [Test]
     public async Task Left_SnapsToFirstStopBeyondCursor()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 72,
@@ -17,7 +17,7 @@ public class TabStopResolverTests
                 PositionPoints = 216,
                 Alignment = TabAlignment.Left
             }
-        };
+        ];
 
         var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 30, measureFollowingWidth: () => 40, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
@@ -29,8 +29,8 @@ public class TabStopResolverTests
     [Test]
     public async Task Left_SkipsStopsAtOrBehindCursor()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 72,
@@ -41,7 +41,7 @@ public class TabStopResolverTests
                 PositionPoints = 216,
                 Alignment = TabAlignment.Left
             }
-        };
+        ];
 
         var (dest, _, _) = TabStopResolver.Resolve(cursorX: 100, measureFollowingWidth: () => 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
@@ -53,15 +53,15 @@ public class TabStopResolverTests
     [Test]
     public async Task Right_DestinationSubtractsFollowingWidth()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 432,
                 Alignment = TabAlignment.Right,
                 Leader = TabLeader.Dot
             }
-        };
+        ];
 
         var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 100, measureFollowingWidth: () => 20, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
@@ -72,8 +72,8 @@ public class TabStopResolverTests
     [Test]
     public async Task Right_SkipsToNextStopIfDestinationBehindCursor()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 100,
@@ -84,7 +84,7 @@ public class TabStopResolverTests
                 PositionPoints = 400,
                 Alignment = TabAlignment.Right
             }
-        };
+        ];
 
         // followingWidth=60 at stop 100 → dest 40 (behind cursor 50) → try next stop.
         var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 50, measureFollowingWidth: () => 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -98,14 +98,14 @@ public class TabStopResolverTests
     [Test]
     public async Task Center_DestinationSubtractsHalfFollowingWidth()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 234,
                 Alignment = TabAlignment.Center
             }
-        };
+        ];
 
         var (dest, _, _) = TabStopResolver.Resolve(cursorX: 50, measureFollowingWidth: () => 60, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
@@ -140,14 +140,14 @@ public class TabStopResolverTests
     [Test]
     public async Task Default_KicksInPastLastExplicitStop()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 144,
                 Alignment = TabAlignment.Left
             }
-        };
+        ];
 
         // Cursor past last explicit stop at 150 → next default multiple past 144 is 180, 216, ...
         var (dest, stop, _) = TabStopResolver.Resolve(
@@ -164,14 +164,14 @@ public class TabStopResolverTests
     [Test]
     public async Task Default_DoesNotKickInBeforeLastExplicitStop()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 200,
                 Alignment = TabAlignment.Left
             }
-        };
+        ];
 
         // Cursor at 50: even though a default-tab multiple (72) is closer, the explicit stop wins.
         var (dest, stop, _) = TabStopResolver.Resolve(cursorX: 50, measureFollowingWidth: () => 0, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
@@ -201,14 +201,14 @@ public class TabStopResolverTests
     {
         // No decimalPrefixWidth supplied → behaves like Right (matches Word's fallback when
         // the following text has no decimal point).
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 144,
                 Alignment = TabAlignment.Decimal
             }
-        };
+        ];
 
         var (dest, _, _) = TabStopResolver.Resolve(cursorX: 20, measureFollowingWidth: () => 50, stops, defaultTabStopPoints: 36, leftIndentPoints: 0);
 
@@ -228,15 +228,15 @@ public class TabStopResolverTests
     {
         // business-plans/12: a right-dot stop at full-page width (540pt) inside a 250pt cell.
         // The stop clamps to the cell edge and the 8pt page number right-aligns against it.
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 540,
                 Alignment = TabAlignment.Right,
                 Leader = TabLeader.Dot
             }
-        };
+        ];
 
         var (dest, stop, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 30, measureFollowingWidth: () => 8, stops,
@@ -254,14 +254,14 @@ public class TabStopResolverTests
         // business-plans/13: TOC1's 245pt right stop in a cell whose content width computes a
         // hair narrower (244pt). The stop clamps by that hair; the 7pt page number right-aligns
         // at the cell edge, indistinguishable from Word's render.
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 245,
                 Alignment = TabAlignment.Right
             }
-        };
+        ];
 
         var (dest, stop, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 55, measureFollowingWidth: () => 7, stops,
@@ -276,15 +276,15 @@ public class TabStopResolverTests
     [Test]
     public async Task Right_DoesNotClamp_WhenStopFitsInsideAvailableEndX()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 200,
                 Alignment = TabAlignment.Right,
                 Leader = TabLeader.Dot
             }
-        };
+        ];
 
         var (dest, _, suppressFollowing) = TabStopResolver.Resolve(
             cursorX: 30, measureFollowingWidth: () => 8, stops,
@@ -298,14 +298,14 @@ public class TabStopResolverTests
     [Test]
     public async Task Center_ClampsToAvailableEndX_WhenStopExceedsIt()
     {
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 540,
                 Alignment = TabAlignment.Center
             }
-        };
+        ];
 
         // The 540pt centre stop clamps to the 250pt edge; centred text (60pt) starts at 250 − 30.
         var (dest, _, suppressFollowing) = TabStopResolver.Resolve(
@@ -322,14 +322,14 @@ public class TabStopResolverTests
     {
         // Left tabs past the available area collapse via the cursor check; the renderer drops them
         // separately. We just assert the resolver does not silently relocate them.
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 540,
                 Alignment = TabAlignment.Left
             }
-        };
+        ];
 
         var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 30, measureFollowingWidth: () => 8, stops,
@@ -345,14 +345,14 @@ public class TabStopResolverTests
     {
         // followingWidth=50 (whole "12.50"), decimalPrefixWidth=20 (just "12") → decimal lands at 144,
         // so destination = 144 - 20 = 124.
-        var stops = new List<TabStop>
-        {
+        List<TabStop> stops =
+        [
             new()
             {
                 PositionPoints = 144,
                 Alignment = TabAlignment.Decimal
             }
-        };
+        ];
 
         var (dest, stop, _) = TabStopResolver.Resolve(
             cursorX: 20,

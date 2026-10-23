@@ -223,17 +223,14 @@ static class FrameGrouper
     /// </summary>
     static ParagraphElement FoldIconOntoLabel(List<Run> iconRuns, ParagraphElement label)
     {
-        var runs = new List<Run>(iconRuns.Count + label.Runs.Count + 1);
-        runs.AddRange(iconRuns);
-        runs.Add(new() {Text = "\t", IsTab = true});
-        runs.AddRange(label.Runs);
+        List<Run> runs = [..iconRuns, new() {Text = "\t", IsTab = true}, ..label.Runs];
 
         // The label sits at the hanging-indent width from the line start (Word's gap), measured from
         // the paragraph's left edge (0 here — the direct ind override zeroed left). Add the matching
         // Left tab stop; the renderers snap the tab to it relative to the line start.
         var properties = label.Properties;
         var gap = properties.HangingIndentPoints > 0 ? properties.HangingIndentPoints : defaultIconGapPoints;
-        var tabStops = new List<TabStop>(properties.TabStops) {new() {PositionPoints = gap}};
+        List<TabStop> tabStops = [..properties.TabStops, new() {PositionPoints = gap}];
         tabStops.Sort((leftStop, rightStop) => leftStop.PositionPoints.CompareTo(rightStop.PositionPoints));
 
         return new()

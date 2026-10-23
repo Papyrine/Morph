@@ -23,7 +23,13 @@ public class PngPdfAgreementTests
         // 18 DPI keeps the raster cheap: a page is a quarter of a pixel per point, which is all a size check needs.
         const int dpi = 18;
         var images = new SkiaDocumentConverter().ConvertToImageData(Input(scenario), new() { FontDirectory = fonts, Dpi = dpi });
-        using var pdf = PdfiumDocument.Load(PdfDocumentConverter.ConvertToPdf(Input(scenario), new() { FontDirectory = fonts }), null);
+        using var pdf = PdfiumDocument.Load(
+            PdfDocumentConverter.ConvertToPdf(
+                Input(scenario),
+                new()
+                {
+                    FontDirectory = fonts
+                }));
         var sizes = pdf.GetPageSizes();
 
         await Assert.That(sizes.Count).IsEqualTo(images.Count);
@@ -51,7 +57,13 @@ public class PngPdfAgreementTests
             document.Elements, document.PageSettings, document.Header, document.Footer,
             document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter,
             DocumentNotes.From(document));
-        using var pdf = PdfiumDocument.Load(PdfDocumentConverter.ConvertToPdf(Input(scenario), new() { FontDirectory = fonts }), null);
+        using var pdf = PdfiumDocument.Load(
+            PdfDocumentConverter.ConvertToPdf(
+                Input(scenario),
+                new()
+                {
+                    FontDirectory = fonts
+                }));
 
         await Assert.That(pdf.PageCount).IsEqualTo(laidOut.Pages.Count);
 

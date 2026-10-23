@@ -85,13 +85,13 @@ public class PdfPainterFidelityTests
         var meanSsim = ordered.Count == 0 ? 0 : ordered.Average(_ => _.Ssim);
         var median = ordered.Count == 0 ? 0 : ordered[ordered.Count / 2].Ssim;
 
-        var report = new List<string>
-        {
+        List<string> report =
+        [
             $"Painter fidelity vs Word: {ordered.Count} documents (page count matched), {pageCountMismatches} page-count mismatches skipped.",
             $"SSIM mean={meanSsim:F3} median={median:F3} (1.000 = pixel-identical to Word).",
             "",
             "Best 8:"
-        };
+        ];
         report.AddRange(ordered.Take(8).Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)"));
         report.Add("");
         report.Add("Worst 12:");

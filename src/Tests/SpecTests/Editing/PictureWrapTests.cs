@@ -84,7 +84,7 @@ public class PictureWrapTests
         var floating = DocumentEditor.SetPictureWrap(Pictured(), 0, 7, PictureWrap.Square, Plain);
 
         using var stream = new MemoryStream(floating);
-        var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var parsed = DocumentConverter.Parse(stream, null, captureSources: true);
         var image = parsed.Elements.OfType<FloatingImageElement>().Single();
 
         await Assert.That(image.Source).IsNotNull();

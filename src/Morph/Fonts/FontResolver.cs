@@ -86,8 +86,8 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     Action<TFont>? releaseFont;
     string? fontDirectory;
     Func<string, string?>? fontFallback;
-    Dictionary<(string Name, int Weight, bool Italic), TFont> cache = new();
-    HashSet<TFont> seededFonts = new();
+    Dictionary<(string Name, int Weight, bool Italic), TFont> cache = [];
+    HashSet<TFont> seededFonts = [];
 
     /// <param name="loadFace">Loads a single face from disk into <typeparamref name="TFont"/>.</param>
     /// <param name="systemFallback">OS-level fallback. Pass <c>null</c> in directory mode.</param>
@@ -123,7 +123,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     // fragment on the render hot path, so a 100% canonical-cache hit rate still paid full
     // price on every call. The canonical cache stays as the second level so raw aliases that
     // normalize to the same face share one font.
-    Dictionary<(string Family, bool Bold, bool Italic), TFont> rawRequestCache = new();
+    Dictionary<(string Family, bool Bold, bool Italic), TFont> rawRequestCache = [];
 
     /// <summary>
     /// Resolves <paramref name="fontFamily"/> + style flags to a backend font, throwing

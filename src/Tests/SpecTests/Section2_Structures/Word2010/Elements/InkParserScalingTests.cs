@@ -16,8 +16,8 @@ public class InkParserScalingTests
     [Test]
     public async Task ScaleStrokesToCanvas_SingleStroke_ScalesToFitCanvas()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -26,7 +26,7 @@ public class InkParserScalingTests
                     new() { X = 200, Y = 100 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 100, 50);
 
@@ -42,8 +42,8 @@ public class InkParserScalingTests
     [Test]
     public async Task ScaleStrokesToCanvas_PreservesAspectRatio()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -52,7 +52,7 @@ public class InkParserScalingTests
                     new() { X = 100, Y = 100 }
                 }
             }
-        };
+        ];
 
         // Canvas is wider than tall - should scale to fit height
         InkParser.ScaleStrokesToCanvas(strokes, 200, 50);
@@ -67,8 +67,8 @@ public class InkParserScalingTests
     [Test]
     public async Task ScaleStrokesToCanvas_TranslatesToOrigin()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -77,7 +77,7 @@ public class InkParserScalingTests
                     new() { X = 200, Y = 150 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 100, 100);
 
@@ -93,8 +93,8 @@ public class InkParserScalingTests
     [Test]
     public async Task ScaleStrokesToCanvas_MultipleStrokes_ScalesTogether()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -111,7 +111,7 @@ public class InkParserScalingTests
                     new() { X = 100, Y = 100 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 200, 200);
 
@@ -130,8 +130,8 @@ public class InkParserScalingTests
     [Test]
     public async Task ScaleStrokesToCanvas_PreservesStrokeProperties()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -145,7 +145,7 @@ public class InkParserScalingTests
                 PenTip = InkPenTip.Rectangle,
                 IsHighlighter = true
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 50, 50);
 
@@ -159,8 +159,8 @@ public class InkParserScalingTests
     [Test]
     public async Task ScaleStrokesToCanvas_PreservesPressure()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -169,7 +169,7 @@ public class InkParserScalingTests
                     new() { X = 100, Y = 100, Pressure = 1.0 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 50, 50);
 
@@ -181,8 +181,8 @@ public class InkParserScalingTests
     public async Task ScaleStrokesToCanvas_ZeroWidthInk_HandledGracefully()
     {
         // Vertical line (zero width)
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -191,7 +191,7 @@ public class InkParserScalingTests
                     new() { X = 50, Y = 100 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 100, 50);
 
@@ -206,8 +206,8 @@ public class InkParserScalingTests
     public async Task ScaleStrokesToCanvas_ZeroHeightInk_HandledGracefully()
     {
         // Horizontal line (zero height)
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -216,7 +216,7 @@ public class InkParserScalingTests
                     new() { X = 100, Y = 50 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 50, 100);
 
@@ -231,8 +231,8 @@ public class InkParserScalingTests
     public async Task ScaleStrokesToCanvas_SinglePoint_NoScaling()
     {
         // Single point has zero extent
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -240,7 +240,7 @@ public class InkParserScalingTests
                     new() { X = 50, Y = 50 }
                 }
             }
-        };
+        ];
 
         InkParser.ScaleStrokesToCanvas(strokes, 100, 100);
 

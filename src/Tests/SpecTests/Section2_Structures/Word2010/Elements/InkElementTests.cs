@@ -21,8 +21,8 @@ public class InkElementTests
     [Test]
     public async Task InkElement_WithStrokes_ContainsStrokes()
     {
-        var strokes = new List<InkStroke>
-        {
+        List<InkStroke> strokes =
+        [
             new()
             {
                 Points = new List<InkPoint>
@@ -31,7 +31,7 @@ public class InkElementTests
                     new() { X = 100, Y = 50 }
                 }
             }
-        };
+        ];
 
         var element = new InkElement
         {

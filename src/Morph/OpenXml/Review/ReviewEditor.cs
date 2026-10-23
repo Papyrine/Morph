@@ -99,7 +99,7 @@ static class ReviewEditor
                     continue;
                 }
 
-                targets = targets.Where((_, ordinal) => ordinals.Contains(ordinal)).ToList();
+                targets = [.. targets.Where((_, ordinal) => ordinals.Contains(ordinal))];
             }
 
             // In file order. Settling one revision can take others with it — the deletion inside a

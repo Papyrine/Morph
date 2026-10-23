@@ -56,7 +56,7 @@ sealed class FontFileCache
         var final = new Dictionary<string, FontFace[]>(temp.Count, StringComparer.OrdinalIgnoreCase);
         foreach (var kvp in temp)
         {
-            final[kvp.Key] = kvp.Value.ToArray();
+            final[kvp.Key] = [.. kvp.Value];
         }
 
         index = final;

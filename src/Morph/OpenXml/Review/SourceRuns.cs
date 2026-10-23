@@ -21,7 +21,7 @@ static class SourceRuns
     /// keeps. The body comes first, so its ordinals are the same whether or not the rest are counted.
     /// </summary>
     public static List<OpenXmlPartRootElement> Stories(WordprocessingDocument document) =>
-        RevisionElements.Roots(document).Select(_ => _.Root).ToList();
+        [.. RevisionElements.Roots(document).Select(_ => _.Root)];
 
     /// <summary>Every <c>w:p</c> under each of <paramref name="roots"/>, numbered in order across them.</summary>
     public static Dictionary<Paragraph, int> IndexAllParagraphs(IEnumerable<OpenXmlElement> roots)

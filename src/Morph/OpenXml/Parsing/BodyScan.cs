@@ -11,7 +11,7 @@ using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 /// </summary>
 sealed class BodyScan
 {
-    public int LastRenderedPageBreaks { get; private set; }
+    public int LastRenderedPageBreaks { get; }
     public bool HasAnchors { get; private set; }
     public List<Paragraph> Paragraphs { get; } = [];
     public List<OoxmlRun> Runs { get; } = [];
@@ -85,7 +85,7 @@ sealed class BodyScan
     {
         if (paragraphOrdinals == null)
         {
-            paragraphOrdinals = new(Paragraphs.Count);
+            paragraphOrdinals = [with(Paragraphs.Count)];
             for (var ordinal = 0; ordinal < Paragraphs.Count; ordinal++)
             {
                 paragraphOrdinals[Paragraphs[ordinal]] = ordinal;

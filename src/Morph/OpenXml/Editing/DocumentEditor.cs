@@ -286,7 +286,7 @@ static partial class DocumentEditor
         // Where each character still to be dealt with is now, by the element it is in. Dividing a
         // run, typing into one and deleting from one all move the characters after the place, and
         // every one of those goes through here to say so.
-        readonly Dictionary<OpenXmlElement, List<Cell>> places = new(ReferenceEqualityComparer.Instance);
+        readonly Dictionary<OpenXmlElement, List<Cell>> places = [with(ReferenceEqualityComparer.Instance)];
         long nextRevision = -1;
 
         // The parts paragraphs are numbered across: the body, the headers and footers, the notes.
@@ -442,7 +442,7 @@ static partial class DocumentEditor
 
             // Last stretch first, and within a stretch last change first: a change moves only what
             // comes after it, and what comes after it has been dealt with.
-            var results = new List<Paragraph> {paragraph};
+            List<Paragraph> results = [paragraph];
             for (var index = before.Count - 1; index >= 0; index--)
             {
                 var ahead = index < bounds.Count ? bounds[index] : null;
@@ -572,7 +572,7 @@ static partial class DocumentEditor
 
             // A character is what it was only in the run it was in: the editor says which run each
             // stretch of text is like, and that is what tells a space typed from a space kept.
-            var hunks = TextDiff.Compare(was, now, old.Select(_ => _.Unit).ToList(), fresh.Select(_ => _.Unit).ToList());
+            var hunks = TextDiff.Compare(was, now, [.. old.Select(_ => _.Unit)], [.. fresh.Select(_ => _.Unit)]);
             var steps = new List<Step>();
             var at = 0;
             var to = 0;
@@ -1649,11 +1649,10 @@ static partial class DocumentEditor
                 }
             }
 
-            return found
+            return [.. found
                 .OrderBy(_ => _.Run)
                 .ThenBy(_ => _.Cells[0].Position)
-                .Select(_ => _.Cells)
-                .ToList();
+                .Select(_ => _.Cells)];
         }
 
         void Change(OoxmlRun run, RunFormat format)
@@ -2050,7 +2049,7 @@ static partial class DocumentEditor
 
             var first = stretches[0][0].Run.Ancestors<Paragraph>().First();
             var last = stretches[^1][0].Run.Ancestors<Paragraph>().First();
-            var chain = new List<Paragraph> {first};
+            List<Paragraph> chain = [first];
             while (!ReferenceEquals(chain[^1], last))
             {
                 if (NextBlock(chain[^1]) is not Paragraph next ||

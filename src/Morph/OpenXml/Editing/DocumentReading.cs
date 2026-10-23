@@ -13,7 +13,7 @@ static class DocumentReading
     static bool capturing;
 
     // Keyed by the edited file's array: nothing alters one once returned, and an entry goes with it.
-    static readonly ConditionalWeakTable<byte[], Reading> remembered = new();
+    static readonly ConditionalWeakTable<byte[], Reading> remembered = [];
 
     sealed record Reading(DocumentReview Review, DocumentOutline Outline);
 

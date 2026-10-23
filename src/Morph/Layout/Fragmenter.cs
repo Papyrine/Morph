@@ -610,8 +610,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var area = noteAreas[0] ??= new();
-            var rows = new List<NoteRow> {SeparatorRow(notes!.FootnoteContinuationSeparator, true)};
-            rows.AddRange(pendingNoteRows);
+            List<NoteRow> rows = [SeparatorRow(notes!.FootnoteContinuationSeparator, true), ..pendingNoteRows];
             pendingNoteRows.Clear();
             AcceptNoteRows(area, rows, pageContentBottom - contentTop);
             RefreshContentBottom();
@@ -1974,7 +1973,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             for (var guard = 0; guard < 8; guard++)
             {
                 float? clearTo = null;
-                var segments = new List<(float Start, float End)> { (left, right) };
+                List<(float Start, float End)> segments = [(left, right)];
                 foreach (var exclusion in floatExclusions)
                 {
                     if (currentTop + probeHeight <= exclusion.Top || currentTop >= exclusion.Bottom)
@@ -2180,7 +2179,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // point taller than Word's must not lose a line Word draws.
             if (textBox.HidesOverflow)
             {
-                content = content.Where(_ => _.Y < boxY + boxHeight).ToList();
+                content = [.. content.Where(_ => _.Y < boxY + boxHeight)];
             }
 
             // A rotated text box turns its content with its chrome, about the box centre — the a:xfrm
@@ -2964,12 +2963,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             };
                             var digits = ordinal.ToString(CultureInfo.InvariantCulture);
                             var digitsWidth = measurer.MeasureRunWidth(digits, digitProperties);
-                            var withNumber = new List<PlacedRun>(lineRuns.Count + 1)
-                            {
-                                new(ColumnLeft - (float) lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties)
-                            };
-                            withNumber.AddRange(lineRuns);
-                            lineRuns = withNumber;
+                            lineRuns =
+                            [
+                                new(ColumnLeft - (float) lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties),
+                                ..lineRuns
+                            ];
                         }
                     }
 
@@ -4743,18 +4741,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         new TableElement
                         {
                             Properties = table.Properties,
-                            Rows = table.Rows
+                            Rows = [.. table.Rows
                                 .Select(_ => new TableRow
                                 {
-                                    Cells = _.Cells
+                                    Cells = [.. _.Cells
                                         .Select(cell => new TableCell
                                         {
                                             Content = SubstitutePageFields(cell.Content, numbering, sectionFormat),
                                             Floats = cell.Floats,
                                             FloatAnchorParagraphOrdinals = cell.FloatAnchorParagraphOrdinals,
                                             Properties = cell.Properties
-                                        })
-                                        .ToList(),
+                                        })],
                                     HeightPoints = _.HeightPoints,
                                     IsExactHeight = _.IsExactHeight,
                                     IsHeader = _.IsHeader,
@@ -4763,8 +4760,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                                     OverrideInsideHBorder = _.OverrideInsideHBorder,
                                     OverrideInsideVBorder = _.OverrideInsideVBorder,
                                     OverrideCellPadding = _.OverrideCellPadding
-                                })
-                                .ToList()
+                                })]
                         });
                 }
                 else if (element is ParagraphElement paragraph &&

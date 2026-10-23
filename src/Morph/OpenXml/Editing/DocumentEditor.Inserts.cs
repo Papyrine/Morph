@@ -88,7 +88,7 @@ static partial class DocumentEditor
             {
                 foreach (var paragraph in ranges.GroupBy(_ => _.Paragraph))
                 {
-                    edit.Replace(paragraph.Key, paragraph.ToList(), text);
+                    edit.Replace(paragraph.Key, [.. paragraph], text);
                 }
 
                 return null;
@@ -585,11 +585,11 @@ static partial class DocumentEditor
             if (cells.Count == 0 &&
                 start == end)
             {
-                cells = Between(start, start with {Offset = start.Offset + 1}).SelectMany(_ => _).ToList();
+                cells = [.. Between(start, start with {Offset = start.Offset + 1}).SelectMany(_ => _)];
                 if (cells.Count == 0 &&
                     start.Offset > 0)
                 {
-                    cells = Between(start with {Offset = start.Offset - 1}, start).SelectMany(_ => _).ToList();
+                    cells = [.. Between(start with {Offset = start.Offset - 1}, start).SelectMany(_ => _)];
                 }
             }
 

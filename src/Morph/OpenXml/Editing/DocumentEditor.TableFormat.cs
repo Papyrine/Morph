@@ -339,7 +339,7 @@ static partial class DocumentEditor
         }
 
         static List<OpenXmlElement> Blocks(OoxmlTableCell cell) =>
-            cell.ChildElements.Where(_ => _ is not OoxmlTableCellProperties).ToList();
+            [.. cell.ChildElements.Where(_ => _ is not OoxmlTableCellProperties)];
 
         static bool Empty(OoxmlTableCell cell) =>
             Blocks(cell) is [Paragraph paragraph] &&
@@ -446,7 +446,7 @@ static partial class DocumentEditor
             // The cell's paragraphs shared out, one to a cell, when there are enough; the last
             // cell takes what is left. Fewer, and they stay where they are.
             var blocks = Blocks(cell);
-            var made = new List<OoxmlTableCell> {cell};
+            List<OoxmlTableCell> made = [cell];
             var after = cell;
             for (var index = 1; index < columns; index++)
             {

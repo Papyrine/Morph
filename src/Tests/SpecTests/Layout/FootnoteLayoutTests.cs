@@ -135,7 +135,7 @@ public class FootnoteLayoutTests
             Rows = [new() { Cells = [new() { Properties = new(), Content = [Paragraph("cell", footnote: "2")] }] }],
             Properties = new() { GridColumnWidths = [260] }
         };
-        var elements = new List<DocumentElement> { Paragraph("Body", footnote: "1"), table, Paragraph("Again", footnote: "1") };
+        List<DocumentElement> elements = [Paragraph("Body", footnote: "1"), table, Paragraph("Again", footnote: "1")];
         var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(elements, page, notes: Notes(("1", ["Note one."]), ("2", ["Note two."])));
 
         var noteLines = laidOut.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Note"))).OrderBy(_ => _.Y).Select(_ => _.Runs[0].Text).ToList();
@@ -185,7 +185,7 @@ public class FootnoteLayoutTests
 
     static ParagraphElement Paragraph(string text, string? footnote = null, string? endnote = null)
     {
-        var runs = new List<Run> { new() { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } } };
+        List<Run> runs = [new() { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }];
         if (footnote != null)
         {
             runs.Add(new() { Text = "1", Properties = new() { FontFamily = "Aptos", FontSizePoints = 11, VerticalAlignment = VerticalRunAlignment.Superscript }, FootnoteReferenceId = footnote });
