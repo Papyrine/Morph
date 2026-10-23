@@ -1,24 +1,24 @@
 # syntax=docker/dockerfile:1.7
 #
 # Morph test image — produces bit-identical Skia/ImageSharp output across
-# host OSes by pinning a single linux/amd64 .NET 10 SDK environment.
+# host OSes by pinning a single linux/amd64 .NET 11 SDK environment.
 #
 # This image is intentionally lightweight: source code, NuGet cache, and
 # test output are all volume-mounted from the host at runtime, not baked in.
 # That keeps iteration fast and keeps the image cache hit rate high.
 
-# Pinned by digest (not just the mutable :10.0 tag) so every build — local and
+# Pinned by digest (not just the mutable :11.0.100-rc.2 tag) so every build — local and
 # CI — resolves the byte-identical SDK image; an SDK patch silently changing
 # under the tag is a source of cross-environment rendering drift. To bump:
-#   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:10.0
+#   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:11.0.100-rc.2
 # then update the digest below (and regenerate baselines in the container).
-# The pinned image's SDK must satisfy global.json (currently 10.0.402) — pinning
+# The pinned image's SDK must satisfy global.json (currently 11.0.100-rc.2.26504.105) — pinning
 # an older patch than global.json requires makes `dotnet` fail to find an SDK.
 # That is not hypothetical: bumping global.json 10.0.302 -> 10.0.400 without
 # moving this digest left every containerised run failing with "Install the
 # [10.0.400] .NET SDK", and no rebuild can fix it, since the FROM is the pin.
 # Bump the two together.
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:10.0@sha256:0d99ebf1ccad15037b5c98c9fe8979d6b8dbac23812feae2277a0b277b5c5ffa
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:11.0.100-rc.2@sha256:e2438fd800a09d2d761aefe4edd30675c8f1db8958e4423c0844cc9a0240e60f
 
 # SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
 # The .NET SDK image already ships with ICU, so we only need to add fontconfig
@@ -77,7 +77,7 @@ RUN test -n "${PLAYWRIGHT_VERSION}" \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet new console >/dev/null \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet add package Microsoft.Playwright --version "${PLAYWRIGHT_VERSION}" >/dev/null \
     && NUGET_PACKAGES=/tmp/pw/nuget dotnet build -c Release >/dev/null \
-    && pwsh bin/Release/net10.0/playwright.ps1 install chromium --with-deps \
+    && pwsh bin/Release/net11.0/playwright.ps1 install chromium --with-deps \
     && cd / && rm -rf /tmp/pw
 
 # rsync drives the incremental sync of the working tree onto container-local disk

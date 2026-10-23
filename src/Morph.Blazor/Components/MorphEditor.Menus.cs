@@ -237,7 +237,8 @@ public partial class MorphEditor
         [
             .. MarginPresets.Select(_ => new MenuLine(_.Name)
             {
-                Checked = current is { } now && (now.Top, now.Right, now.Bottom, now.Left) == (_.Top, _.Right, _.Bottom, _.Left),
+                Checked = current != null &&
+                          (current.Top, current.Right, current.Bottom, current.Left) == (_.Top, _.Right, _.Bottom, _.Left),
                 Detail = $"{Centimetres(_.Top)} top, {Centimetres(_.Left)} left, {Centimetres(_.Right)} right",
                 Choice = () => SetMarginsAsync(_.Top, _.Right, _.Bottom, _.Left)
             }),
@@ -263,7 +264,8 @@ public partial class MorphEditor
         [
             .. PaperSizes.Select(_ => new MenuLine(_.Name)
             {
-                Checked = current is { } now && Math.Min(now.Width, now.Height) == _.Width && Math.Max(now.Width, now.Height) == _.Height,
+                Checked = current != null &&
+                          Math.Min(current.Width, current.Height) == _.Width && Math.Max(current.Width, current.Height) == _.Height,
                 Detail = $"{Centimetres(_.Width)} × {Centimetres(_.Height)}",
                 Choice = () => SetPaperSizeAsync(_.Width, _.Height)
             })
@@ -309,17 +311,38 @@ public partial class MorphEditor
 
     IReadOnlyList<MenuLine> FitLines() =>
     [
-        new("AutoFit contents") {Choice = () => FitTableAsync(TableFit.Contents)},
-        new("AutoFit window") {Choice = () => FitTableAsync(TableFit.Window)},
-        new("Fixed column width") {Choice = () => FitTableAsync(TableFit.Fixed)}
+        new("AutoFit contents")
+        {
+            Choice = () => FitTableAsync(TableFit.Contents)
+        },
+        new("AutoFit window")
+        {
+            Choice = () => FitTableAsync(TableFit.Window)
+        },
+        new("Fixed column width")
+        {
+            Choice = () => FitTableAsync(TableFit.Fixed)
+        }
     ];
 
     IReadOnlyList<MenuLine> TableBorderLines() =>
     [
-        new("All borders") {Choice = () => SetTableBordersAsync(BorderPreset.All)},
-        new("Outside borders") {Choice = () => SetTableBordersAsync(BorderPreset.Outside)},
-        new("Inside borders") {Choice = () => SetTableBordersAsync(BorderPreset.Inside)},
-        new("No border") {Choice = () => SetTableBordersAsync(BorderPreset.None)},
+        new("All borders")
+        {
+            Choice = () => SetTableBordersAsync(BorderPreset.All)
+        },
+        new("Outside borders")
+        {
+            Choice = () => SetTableBordersAsync(BorderPreset.Outside)
+        },
+        new("Inside borders")
+        {
+            Choice = () => SetTableBordersAsync(BorderPreset.Inside)
+        },
+        new("No border")
+        {
+            Choice = () => SetTableBordersAsync(BorderPreset.None)
+        },
         MenuLine.Separator,
         .. WidthLines()
     ];
