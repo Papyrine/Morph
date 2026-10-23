@@ -9275,6 +9275,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
+    // Where an anchored drawing is, under captureSources: its run's ordinal, and its place in the run
+    // counted as SourceRuns counts — what the children ahead of it take. Read only; nothing is written.
+    RunSource? AnchorSource(DW.Anchor anchor)
+    {
+        if (runOrdinals == null ||
+            anchor.Ancestors<OoxmlRun>().FirstOrDefault() is not { } run ||
+            !runOrdinals.TryGetValue(run, out var ordinal))
+        {
+            return null;
+        }
+
+        var position = 0;
+        foreach (var child in run.ChildElements)
+        {
+            if (ReferenceEquals(child, anchor) ||
+                child.Descendants<DW.Anchor>().Any(_ => ReferenceEquals(_, anchor)))
+            {
+                return new RunSource(ordinal, position, true);
+            }
+
+            position += SourceRuns.Length(child);
+        }
+
+        return null;
+    }
+
     FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null, double opacity = 1, ImageOutline? outline = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints, anchorAlignmentPage);
@@ -9282,6 +9308,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         return new()
         {
+            Source = AnchorSource(anchor),
             Outline = outline,
             ImageData = imageData,
             WidthPoints = widthPoints,

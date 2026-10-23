@@ -67,6 +67,8 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         revealReviewCard: key => viewer.revealReviewCard(key),
         setEditMode: on => viewer.setEditMode(on),
         setMarks: on => showMarks(on),
+        setPainting: on => viewer.setPainting(on),
+        setPictures: (documentId, numbers) => viewer.setPictures(documentId, numbers),
         setRuler: model => viewer.setRuler(model),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
@@ -1463,6 +1465,29 @@ class Viewer {
         }
 
         if (this.editMode && !this.presenting && this.scroller.contains(target)) {
+            // With Format Painter on, the text selected is painted, as Word paints it when the
+            // mouse is let go — rather than opening the paragraph it was selected in.
+            if (this.painting && target.closest('.viewer-page')) {
+                const selected = this.selectedText();
+                if (selected) {
+                    this.setPainting(false);
+                    this.dotNet.invokeMethodAsync('OnPaint', selected).catch(() => {});
+                }
+
+                return;
+            }
+
+            // A floating picture is not in any line: a click on one selects it, to size it.
+            if (!target.closest('.edit-box') && !target.closest('.viewer-picture-frame') && this.pictureAt(event)) {
+                return;
+            }
+
+            if (target.closest('.viewer-picture-frame')) {
+                return;
+            }
+
+            this.selectPicture(null);
+
             // A click in the editor is the editor's; one anywhere else on a page opens what is there.
             if (!target.closest('.edit-box') && target.closest('.viewer-page')) {
                 this.onEditClick(event);
@@ -2038,6 +2063,121 @@ class Viewer {
     // the text it selected; .NET answers with the paragraph there (beginEdit), and an editor is laid
     // over it. What is typed is handed in when the reader moves on (OnEditCommit), and the editor
     // stays up until the page has been drawn again.
+
+    // Floating pictures: where each page draws its own, from .NET (PagedDocument.Pictures), in points.
+    setPictures(documentId, numbers) {
+        if (documentId !== this.documentId) {
+            return;
+        }
+
+        this.pictures = [];
+        for (let index = 0; index + 6 < numbers.length; index += 7) {
+            const [page, x, y, width, height, paragraph, offset] = numbers.slice(index, index + 7);
+            this.pictures.push({ page, x, y, width, height, paragraph, offset });
+        }
+
+        this.selectPicture(null);
+    }
+
+    // The floating picture under a click, selected; whether there was one. The last drawn is on top.
+    pictureAt(event) {
+        if (!this.pictures?.length || this.rotation !== 0) {
+            return false;
+        }
+
+        const page = this.pageOf(event.target);
+        if (!page) {
+            return false;
+        }
+
+        const [x, y] = this.pagePoint(page, event.clientX, event.clientY);
+        const hit = this.pictures.filter(_ => _.page === page.index && x >= _.x && x <= _.x + _.width && y >= _.y && y <= _.y + _.height).pop();
+        if (!hit) {
+            return false;
+        }
+
+        this.selectPicture(hit);
+        return true;
+    }
+
+    // Frames a floating picture with handles at its right-hand corners, which size it in proportion
+    // from its top left, where it stands (a left-hand corner would move it too); null takes
+    // the frame away. .NET is told which picture is selected, for Wrap Text, and its new size.
+    selectPicture(picture) {
+        this.pictureFrame?.remove();
+        this.pictureFrame = null;
+        const was = this.selectedPicture ?? null;
+        this.selectedPicture = picture;
+        if (picture) {
+            const page = this.pages[picture.page];
+            const frame = document.createElement('div');
+            frame.className = 'viewer-picture-frame';
+            frame.setAttribute('role', 'img');
+            frame.setAttribute('aria-label', 'Selected picture');
+            const place = (width, height) => {
+                frame.style.left = `${picture.x / page.width * 100}%`;
+                frame.style.top = `${picture.y / page.height * 100}%`;
+                frame.style.width = `${width / page.width * 100}%`;
+                frame.style.height = `${height / page.height * 100}%`;
+                frame.dataset.size = `${Math.round(width * 10) / 10} × ${Math.round(height * 10) / 10} pt`;
+            };
+            place(picture.width, picture.height);
+            for (const corner of ['ne', 'se']) {
+                const handle = document.createElement('span');
+                handle.className = 'viewer-picture-handle';
+                handle.dataset.corner = corner;
+                handle.addEventListener('pointerdown', event => this.dragPicture(event, picture, corner, place));
+                frame.appendChild(handle);
+            }
+
+            page.element.appendChild(frame);
+            this.pictureFrame = frame;
+        }
+
+        if (picture !== was) {
+            this.dotNet.invokeMethodAsync('OnPictureSelected', picture?.paragraph ?? -1, picture?.offset ?? -1).catch(() => {});
+        }
+    }
+
+    // A corner dragged: the picture is sized in proportion from its top left, and its size
+    // handed to .NET when the corner is let go.
+    dragPicture(event, picture, corner, place) {
+        event.preventDefault();
+        event.stopPropagation();
+        const page = this.pages[picture.page];
+        const handle = event.currentTarget;
+        handle.setPointerCapture(event.pointerId);
+        const scale = page.element.getBoundingClientRect().width / page.width;
+        const startX = event.clientX;
+        const ratio = picture.height / picture.width;
+        let width = picture.width;
+        const move = moved => {
+            width = Math.max(8, picture.width + (moved.clientX - startX) / scale);
+            place(width, width * ratio);
+        };
+        const up = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', up);
+            if (Math.abs(width - picture.width) >= 0.5) {
+                this.dotNet.invokeMethodAsync('OnPictureResize', picture.paragraph, picture.offset, width, width * ratio).catch(() => {});
+            }
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
+    }
+
+    // Format Painter on or off: while on, the pages show the painter's cursor, and the next text
+    // selected on them is painted (onClick).
+    setPainting(on) {
+        this.painting = on;
+        if (on) {
+            this.root.dataset.painting = 'on';
+        } else {
+            delete this.root.dataset.painting;
+        }
+    }
 
     async setEditMode(on) {
         if (!on) {

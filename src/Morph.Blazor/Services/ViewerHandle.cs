@@ -105,6 +105,15 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask SetMarksAsync(bool on) =>
         controller.InvokeVoidAsync("setMarks", on);
 
+    // The floating pictures of a document's pages, seven numbers each: page, x, y, width, height (in
+    // points), paragraph and place. A click on one in the editor selects it to size it.
+    public ValueTask SetPicturesAsync(int documentId, double[] pictures) =>
+        controller.InvokeVoidAsync("setPictures", documentId, pictures);
+
+    // Format Painter on or off: while on, the next text selected on the pages is handed to OnPaint.
+    public ValueTask SetPaintingAsync(bool on) =>
+        controller.InvokeVoidAsync("setPainting", on);
+
     public ValueTask SetUnsavedAsync(bool unsaved) =>
         controller.InvokeVoidAsync("setUnsaved", unsaved);
 

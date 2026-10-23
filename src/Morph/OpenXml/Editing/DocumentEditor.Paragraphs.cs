@@ -360,6 +360,12 @@ static partial class DocumentEditor
             var list = Neighbour(PreviousBlock(paragraphs[0]), kind) ??
                        Neighbour(NextBlock(paragraphs[^1]), kind) ??
                        NewList(kind);
+            Assign(paragraphs, list);
+        }
+
+        // Puts paragraphs in a list, each at the level it was at in the list it was in.
+        void Assign(IEnumerable<Paragraph> paragraphs, int list)
+        {
             foreach (var paragraph in paragraphs)
             {
                 var level = 0;
@@ -808,7 +814,11 @@ static partial class DocumentEditor
             return numbering!.Elements<AbstractNum>().FirstOrDefault(_ => _.AbstractNumberId?.Value == abstractId);
         }
 
-        int NewList(ListKind kind)
+        int NewList(ListKind kind) =>
+            NewList((id, nsid) => ListTemplates.Create(kind, id, nsid));
+
+        // A new list, its definition made by make from its abstract id and nsid; its number's id.
+        int NewList(Func<int, int, AbstractNum> make)
         {
             var part = main.NumberingDefinitionsPart ?? main.AddNewPart<NumberingDefinitionsPart>();
             part.Numbering ??= new();
@@ -830,7 +840,7 @@ static partial class DocumentEditor
                 nsid++;
             }
 
-            var definition = ListTemplates.Create(kind, abstractId, nsid);
+            var definition = make(abstractId, nsid);
             if (definitions.Count > 0)
             {
                 definitions[^1].InsertAfterSelf(definition);

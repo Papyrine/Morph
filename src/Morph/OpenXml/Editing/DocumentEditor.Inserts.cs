@@ -465,7 +465,7 @@ static partial class DocumentEditor
             };
 
         // A value written as Word writes it: an on-off as 1 or 0, where the SDK would write true.
-        static T Literal<T>(string text)
+        public static T Literal<T>(string text)
             where T : OpenXmlSimpleType, new() =>
             new()
             {

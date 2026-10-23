@@ -628,6 +628,7 @@ public partial class MorphViewer
                 currentPage = Math.Clamp(currentPage, 1, Math.Max(1, pageCount));
                 pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
                 await viewer.ReloadAsync(opening, pageSizes, opened.Json);
+                await viewer.SetPicturesAsync(opening, opened.Pictures);
                 if (findOpen && findQuery.Trim().Length > 0)
                 {
                     await RunSearchAsync();

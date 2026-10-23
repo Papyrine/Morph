@@ -449,6 +449,7 @@ public partial class MorphViewer : IAsyncDisposable
             var viewer = await attached.Task;
             documentId = opening;
             await viewer.LoadAsync(opening, pageSizes, opened.Json, currentPage - 1, ZoomName(InitialZoom), info.PageNoun);
+            await viewer.SetPicturesAsync(opening, opened.Pictures);
             if (findOpen && findQuery.Trim().Length > 0)
             {
                 await RunSearchAsync();
@@ -534,13 +535,32 @@ public partial class MorphViewer : IAsyncDisposable
             }
 
             var (review, outline) = ReviewAndOutline(bytes, format);
-            return new(document, sizes, json, texts, review, new(sources), outline, Edits(document, outline));
+            return new(document, sizes, json, texts, review, new(sources), outline, Edits(document, outline), Pictures(document, outline, format));
         }
         catch
         {
             document.Dispose();
             throw;
         }
+    }
+
+    static double[] Pictures(PagedDocument document, DocumentOutline outline, InputFormat format)
+    {
+        if (format != InputFormat.Docx)
+        {
+            return [];
+        }
+
+        var numbers = new List<double>();
+        for (var page = 0; page < document.PageCount; page++)
+        {
+            foreach (var picture in document.Pictures(page, outline))
+            {
+                numbers.AddRange([page, picture.X, picture.Y, picture.Width, picture.Height, picture.Paragraph, picture.Offset]);
+            }
+        }
+
+        return [.. numbers];
     }
 
     // Both from one opening of the package. Should that fail, each is read on its own, so a document
@@ -1323,5 +1343,7 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
-    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map, DocumentOutline Outline, EditMap Edits);
+    // Pictures: the floating pictures of every page, seven numbers each — page, x, y, width, height,
+    // paragraph and place (PagedDocument.Pictures).
+    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map, DocumentOutline Outline, EditMap Edits, double[] Pictures);
 }

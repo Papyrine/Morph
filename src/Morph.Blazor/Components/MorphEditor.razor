@@ -430,6 +430,27 @@
         </div>
     }
 
+    @if (dialog == dateDialog)
+    {
+        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-date-title" @onkeydown="OnDialogKeyDown">
+            <h2 id="editor-date-title" class="editor-dialog-title">Date and time</h2>
+            <div class="editor-bookmarks" role="listbox" aria-label="Available formats">
+                @foreach (var format in DateFormats)
+                {
+                    var chosen = format;
+                    <button type="button" role="option" class="editor-menu-item" aria-selected="@Pressed(chosen == dateFormat)" data-format="@chosen"
+                            @onclick="() => dateFormat = chosen" @ondblclick="DateFromDialogAsync">@DateLabel(chosen)</button>
+                }
+            </div>
+            <label class="editor-check"><input type="checkbox" checked="@dateUpdates" @onchange="args => dateUpdates = args.Value is true" /> Update automatically</label>
+            <div class="editor-dialog-buttons">
+                <button type="button" class="editor-button editor-button-primary" @onclick="DateFromDialogAsync">Insert</button>
+                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+            </div>
+        </div>
+    }
+
     @if (dialog == marginsDialog)
     {
         <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
@@ -544,6 +565,11 @@
                             @onmousedown:preventDefault>
                         <Iconify Value="Lucide.Copy" aria-hidden="true" focusable="false" />
                         Copy
+                    </button>
+                    <button type="button" class="editor-tool" title="Format Painter: pick up the formatting at the caret, then select text to paint it" aria-pressed="@Pressed(Painting)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="FormatPainterAsync">
+                        <Iconify Value="Lucide.Paintbrush" aria-hidden="true" focusable="false" />
+                        Format Painter
                     </button>
                 </div>
             </div>
@@ -679,14 +705,34 @@
             <div class="editor-group" role="group" aria-label="Paragraph">
                 <div class="editor-rows">
                     <div class="editor-row">
-                        <button type="button" class="viewer-button" title="Bullets" aria-label="Bullets" aria-pressed="@Pressed(CurrentList == ListKind.Bullet)"
-                                disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleListAsync(ListKind.Bullet)">
-                            <Iconify Value="Lucide.List" aria-hidden="true" focusable="false" />
-                        </button>
-                        <button type="button" class="viewer-button" title="Numbering" aria-label="Numbering" aria-pressed="@Pressed(CurrentList == ListKind.Number)"
-                                disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleListAsync(ListKind.Number)">
-                            <Iconify Value="Lucide.ListOrdered" aria-hidden="true" focusable="false" />
-                        </button>
+                        <span class="editor-anchor">
+                            <button type="button" class="viewer-button" title="Bullets" aria-label="Bullets" aria-pressed="@Pressed(CurrentList == ListKind.Bullet)"
+                                    disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleListAsync(ListKind.Bullet)">
+                                <Iconify Value="Lucide.List" aria-hidden="true" focusable="false" />
+                            </button>
+                            <button type="button" class="viewer-button editor-split-arrow" title="Bullet library" aria-label="Bullet library" aria-haspopup="menu"
+                                    aria-expanded="@Expanded(bulletsMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(bulletsMenu)">
+                                <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                            </button>
+                            @if (menu == bulletsMenu)
+                            {
+                                @ListLibrary("Bullet library", ListTemplates.Bullets, false)
+                            }
+                        </span>
+                        <span class="editor-anchor">
+                            <button type="button" class="viewer-button" title="Numbering" aria-label="Numbering" aria-pressed="@Pressed(CurrentList == ListKind.Number)"
+                                    disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleListAsync(ListKind.Number)">
+                                <Iconify Value="Lucide.ListOrdered" aria-hidden="true" focusable="false" />
+                            </button>
+                            <button type="button" class="viewer-button editor-split-arrow" title="Numbering library" aria-label="Numbering library" aria-haspopup="menu"
+                                    aria-expanded="@Expanded(numberingMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(numberingMenu)">
+                                <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                            </button>
+                            @if (menu == numberingMenu)
+                            {
+                                @ListLibrary("Numbering library", ListTemplates.Numbers, true)
+                            }
+                        </span>
                         <span class="viewer-divider" aria-hidden="true"></span>
                         <button type="button" class="viewer-button" title="Decrease indent" aria-label="Decrease indent"
                                 disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => IndentAsync(-1)">
@@ -731,6 +777,59 @@
                                     </button>
                                     <div class="editor-menu-separator" role="separator"></div>
                                     <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="OpenParagraphDialogAsync">Line spacing options…</button>
+                                </div>
+                            }
+                        </span>
+                        <span class="viewer-divider" aria-hidden="true"></span>
+                        <span class="editor-anchor">
+                            <button type="button" class="viewer-button editor-swatch-button" title="Paragraph shading" aria-label="Paragraph shading"
+                                    style="--swatch: #@LastShading" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ShadeParagraphsAsync(LastShading)">
+                                <Iconify Value="Lucide.PaintBucket" aria-hidden="true" focusable="false" />
+                            </button>
+                            <button type="button" class="viewer-button editor-split-arrow" title="More paragraph shading colours" aria-label="More paragraph shading colours" aria-haspopup="dialog"
+                                    aria-expanded="@Expanded(paragraphShadingMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(paragraphShadingMenu)">
+                                <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                            </button>
+                            @if (menu == paragraphShadingMenu)
+                            {
+                                <div class="editor-menu editor-palette" role="dialog" aria-label="Paragraph shading" @onkeydown="OnMenuKeyDown">
+                                    <div class="editor-swatches">
+                                        @foreach (var (hex, name) in ShadingColors)
+                                        {
+                                            var color = hex;
+                                            <button type="button" class="editor-swatch" title="@name" aria-label="@name" style="background: #@color"
+                                                    @onmousedown:preventDefault @onclick="() => ParagraphShadingFromMenuAsync(color)"></button>
+                                        }
+                                    </div>
+                                    <button type="button" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => ParagraphShadingFromMenuAsync(null)">No colour</button>
+                                </div>
+                            }
+                        </span>
+                        <span class="editor-anchor">
+                            <button type="button" class="viewer-button" title="@ParagraphBorders.First(_ => _.Border == LastParagraphBorder).Name" aria-label="Paragraph borders"
+                                    disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => BorderParagraphsAsync(LastParagraphBorder)">
+                                <Iconify Value="Lucide.SquareDashedBottom" aria-hidden="true" focusable="false" />
+                            </button>
+                            <button type="button" class="viewer-button editor-split-arrow" title="More borders" aria-label="More paragraph borders" aria-haspopup="menu"
+                                    aria-expanded="@Expanded(paragraphBordersMenu)" disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(paragraphBordersMenu)">
+                                <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+                            </button>
+                            @if (menu == paragraphBordersMenu)
+                            {
+                                <div class="editor-menu" role="menu" aria-label="Paragraph borders" @onkeydown="OnMenuKeyDown">
+                                    @foreach (var (border, name) in ParagraphBorders)
+                                    {
+                                        var chosen = border;
+                                        <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => ParagraphBorderFromMenuAsync(chosen)">@name</button>
+                                    }
+                                    <div class="editor-menu-separator" role="separator"></div>
+                                    <div class="editor-menu-heading">Width</div>
+                                    @foreach (var (size, name) in BorderSizes)
+                                    {
+                                        var width = size;
+                                        <button type="button" role="menuitemradio" class="editor-menu-item" aria-checked="@Pressed(BorderSize == width)"
+                                                @onmousedown:preventDefault @onclick="() => BorderSize = width">@name</button>
+                                    }
                                 </div>
                             }
                         </span>
@@ -797,6 +896,29 @@
                 </div>
             </div>
         </text>;
+
+    // Word's Bullets or Numbering library: an item per look, the caret's list's marked, and for
+    // numbering Restart at 1 and Continue Numbering under it.
+    RenderFragment ListLibrary(string label, IReadOnlyList<ListStyle> styles, bool numbering) =>
+        @<div class="editor-menu editor-list-library" role="menu" aria-label="@label" @onkeydown="OnMenuKeyDown">
+            @{ var current = CurrentListStyle; }
+            <div class="editor-list-grid">
+                @foreach (var style in styles)
+                {
+                    var chosen = style;
+                    <button type="button" role="menuitemradio" class="editor-list-item" title="@chosen.Name" aria-label="@chosen.Name" aria-checked="@Pressed(chosen == current)"
+                            @onmousedown:preventDefault @onclick="() => ListStyleFromMenuAsync(chosen)">@chosen.Shown</button>
+                }
+            </div>
+            @if (numbering)
+            {
+                <div class="editor-menu-separator" role="separator"></div>
+                <button type="button" role="menuitem" class="editor-menu-item" disabled="@(CurrentList != ListKind.Number)"
+                        @onmousedown:preventDefault @onclick="() => RestartFromMenuAsync(true)">Restart at 1</button>
+                <button type="button" role="menuitem" class="editor-menu-item" disabled="@(CurrentList != ListKind.Number)"
+                        @onmousedown:preventDefault @onclick="() => RestartFromMenuAsync(false)">Continue numbering</button>
+            }
+        </div>;
 
     // A font in the menu, drawn in itself where the browser has it.
     RenderFragment FontChoice(string font) =>
@@ -874,6 +996,29 @@
                     }
                 </span>
                 <span class="editor-anchor">
+                    <button type="button" class="editor-tool editor-large" aria-haspopup="menu" aria-expanded="@Expanded(columnsMenu)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(columnsMenu)">
+                        <Iconify Value="Lucide.Columns2" aria-hidden="true" focusable="false" />
+                        Columns
+                        <Iconify Value="Lucide.ChevronDown" class="editor-caret" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == columnsMenu)
+                    {
+                        var current = CurrentPage;
+                        <div class="editor-menu" role="menu" aria-label="Columns" @onkeydown="OnMenuKeyDown">
+                            @foreach (var (count, name) in ColumnChoices)
+                            {
+                                var chosen = count;
+                                <button type="button" role="menuitemradio" class="editor-menu-item" aria-checked="@Pressed(current?.Columns == chosen)"
+                                        @onmousedown:preventDefault @onclick="() => ColumnsFromMenuAsync(chosen)">@name</button>
+                            }
+                            <div class="editor-menu-separator" role="separator"></div>
+                            <button type="button" role="menuitemcheckbox" class="editor-menu-item" aria-checked="@Pressed(current?.LineBetween == true)"
+                                    disabled="@(current?.Columns is null or < 2)" @onmousedown:preventDefault @onclick="LineBetweenFromMenuAsync">Line between</button>
+                        </div>
+                    }
+                </span>
+                <span class="editor-anchor">
                     <button type="button" class="editor-tool editor-large" aria-haspopup="menu" aria-expanded="@Expanded(breaksMenu)"
                             disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(breaksMenu)">
                         <Iconify Value="Lucide.SeparatorHorizontal" aria-hidden="true" focusable="false" />
@@ -888,6 +1033,28 @@
                             <div class="editor-menu-heading">Section breaks</div>
                             <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => SectionBreakFromMenuAsync(false)">Next page</button>
                             <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => SectionBreakFromMenuAsync(true)">Continuous</button>
+                        </div>
+                    }
+                </span>
+            </div>
+            <div class="editor-group" role="group" aria-label="Arrange">
+                <span class="editor-anchor">
+                    <button type="button" class="editor-tool editor-large" title="Wrap text: how the selected picture stands with the text" aria-haspopup="menu" aria-expanded="@Expanded(wrapMenu)"
+                            disabled="@(!CanWrite || revising)" @onmousedown:preventDefault @onclick="() => ToggleMenu(wrapMenu)">
+                        <Iconify Value="Lucide.WrapText" aria-hidden="true" focusable="false" />
+                        Wrap text
+                        <Iconify Value="Lucide.ChevronDown" class="editor-caret" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == wrapMenu)
+                    {
+                        var current = CurrentWrap;
+                        <div class="editor-menu" role="menu" aria-label="Wrap text" @onkeydown="OnMenuKeyDown">
+                            @foreach (var (wrap, name) in WrapChoices)
+                            {
+                                var chosen = wrap;
+                                <button type="button" role="menuitemradio" class="editor-menu-item" aria-checked="@Pressed(current == chosen)"
+                                        @onmousedown:preventDefault @onclick="() => WrapFromMenuAsync(chosen)">@name</button>
+                            }
                         </div>
                     }
                 </span>
@@ -966,11 +1133,45 @@
                     <Iconify Value="Lucide.PanelBottom" aria-hidden="true" focusable="false" />
                     Footer
                 </button>
+                <span class="editor-anchor">
+                    <button type="button" class="editor-tool editor-large" aria-haspopup="menu" aria-expanded="@Expanded(pageNumberMenu)"
+                            disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="() => ToggleMenu(pageNumberMenu)">
+                        <Iconify Value="Lucide.Hash" aria-hidden="true" focusable="false" />
+                        Page number
+                        <Iconify Value="Lucide.ChevronDown" class="editor-caret" aria-hidden="true" focusable="false" />
+                    </button>
+                    @if (menu == pageNumberMenu)
+                    {
+                        <div class="editor-menu" role="menu" aria-label="Page number" @onkeydown="OnMenuKeyDown">
+                            <div class="editor-menu-heading">At the caret</div>
+                            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => PageNumberFromMenuAsync(false)">Page number</button>
+                            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => PageNumberFromMenuAsync(true)">Number of pages</button>
+                        </div>
+                    }
+                </span>
+            </div>
+            <div class="editor-group" role="group" aria-label="Text">
+                <button type="button" class="editor-tool editor-large" aria-haspopup="dialog" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="OpenDateAsync">
+                    <Iconify Value="Lucide.CalendarDays" aria-hidden="true" focusable="false" />
+                    Date &amp; time
+                </button>
             </div>
         </text>;
 
     RenderFragment ReferencesTab =>
         @<text>
+            <div class="editor-group" role="group" aria-label="Table of contents">
+                <button type="button" class="editor-tool editor-large" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="InsertContentsAsync">
+                    <Iconify Value="Lucide.TableOfContents" aria-hidden="true" focusable="false" />
+                    Table of contents
+                </button>
+                <div class="editor-stack">
+                    <button type="button" class="editor-tool" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="UpdateContentsAsync">
+                        <Iconify Value="Lucide.RefreshCw" aria-hidden="true" focusable="false" />
+                        Update table
+                    </button>
+                </div>
+            </div>
             <div class="editor-group" role="group" aria-label="Footnotes">
                 <button type="button" class="editor-tool editor-large" disabled="@(!CanWrite || revising || !IsWord)" @onmousedown:preventDefault @onclick="InsertFootnoteAsync">
                     <Iconify Value="Lucide.Superscript" aria-hidden="true" focusable="false" />
