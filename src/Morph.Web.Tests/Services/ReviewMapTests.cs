@@ -207,7 +207,8 @@ public class ReviewMapTests
                     return 0;
                 }
 
-                while (at < text.Length && char.IsWhiteSpace(text[at]))
+                while (at < text.Length &&
+                       char.IsWhiteSpace(text[at]))
                 {
                     at++;
                 }

@@ -77,7 +77,8 @@ static class ImageSharpShapeDrawing
         var imageBytes = shape.ImageContentType == "image/svg+xml"
             ? shape.ImageRasterFallbackData
             : shape.ImageData;
-        if (vector == null && imageBytes == null)
+        if (vector == null &&
+            imageBytes == null)
         {
             return;
         }
@@ -94,7 +95,8 @@ static class ImageSharpShapeDrawing
         // ellipse-clipped photo would sit unrotated. DrawImage does honour it, so draw a standalone
         // pre-clipped bitmap instead: the pushed transform then rotates the circle into place. (A
         // rect picture already goes through DrawImage below and rotates for free.)
-        if (groupRotated && clip != null)
+        if (groupRotated &&
+            clip != null)
         {
             var clipped = vector != null
                 ? context.GetClippedImage(img, contours: null, flipHorizontal: false, flipVertical: false)

@@ -39,7 +39,11 @@ public class ParagraphBoxFlowTests
         var shadow = Line(page, "w:shadow=\"true\"");
         var frame = Line(page, "w:frame=\"true\"");
         var both = Line(page, "both");
-        var boxes = page.Items.OfType<PlacedBorder>().Where(_ => _.Y > shadow.Y - 10 && _.Height > 0).ToList();
+        var boxes = page.Items
+            .OfType<PlacedBorder>()
+            .Where(_ => _.Y > shadow.Y - 10 &&
+                        _.Height > 0)
+            .ToList();
 
         await Assert.That(boxes.Count).IsEqualTo(3);
         await Assert.That(shadow.Paragraph.Properties.SharesBorderGroupWith(frame.Paragraph.Properties)).IsFalse();
@@ -56,9 +60,15 @@ public class ParagraphBoxFlowTests
         var shadow = Line(page, "w:shadow=\"true\"");
         var frame = Line(page, "w:frame=\"true\"");
         var bands = page.Items.OfType<PlacedShading>().Where(_ => _.ColorHex == "000000").ToList();
-        var box = page.Items.OfType<PlacedBorder>().First(_ => _.Y <= shadow.Y && _.Y + _.Height >= shadow.Y + shadow.Height);
+        var box = page.Items
+            .OfType<PlacedBorder>()
+            .First(_ => _.Y <= shadow.Y &&
+                        _.Y + _.Height >= shadow.Y + shadow.Height);
 
-        var own = bands.Where(_ => _.Y >= box.Y - 0.01f && _.Y < frame.Y - 2).ToList();
+        var own = bands
+            .Where(_ => _.Y >= box.Y - 0.01f &&
+                        _.Y < frame.Y - 2)
+            .ToList();
         await Assert.That(own.Count).IsEqualTo(2);
 
         var right = own.Single(_ => _.Height > _.Width);
@@ -83,8 +93,17 @@ public class ParagraphBoxFlowTests
     public async Task A_between_rule_and_its_space_on_either_side_take_flow()
     {
         var page = fixture.Value.Pages[3];
-        var members = page.Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Group member"))).ToList();
-        var rules = page.Items.OfType<PlacedBorder>().Where(_ => _.Height == 0 && _.Y > members[0].Y && _.Y < members[2].Y).ToList();
+        var members = page.Items
+            .OfType<PlacedLine>()
+            .Where(_ => _.Runs
+                .Any(_ => _.Text.StartsWith("Group member")))
+            .ToList();
+        var rules = page.Items
+            .OfType<PlacedBorder>()
+            .Where(_ => _.Height == 0 &&
+                        _.Y > members[0].Y &&
+                        _.Y < members[2].Y)
+            .ToList();
 
         await Assert.That(members.Count).IsEqualTo(3);
         await Assert.That(members[1].Y - members[0].Y).IsEqualTo(31.14f).Within(0.1f);

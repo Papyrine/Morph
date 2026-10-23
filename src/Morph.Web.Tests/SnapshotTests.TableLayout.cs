@@ -109,7 +109,8 @@ public partial class SnapshotTests
         await ChooseTabAsync(page, "Layout");
         await page.ClickAsync(".editor-tool:has-text('Margins')");
         await page.ClickAsync(".editor-menu-item:has-text('Narrow')");
-        await WaitForSectionAsync(page, _ => _.PageMargin?.Top?.Value == 720 && _.PageMargin.Left?.Value == 720);
+        await WaitForSectionAsync(page, _ => _.PageMargin?.Top?.Value == 720 &&
+                                             _.PageMargin.Left?.Value == 720);
 
         await ClickInAsync(page, "paragraph here");
         await page.ClickAsync(".editor-tool:has-text('Margins')");
@@ -127,7 +128,8 @@ public partial class SnapshotTests
         await ClickInAsync(page, "paragraph here");
         await page.ClickAsync(".editor-tool:has-text('Orientation')");
         await page.ClickAsync(".editor-menu-item:text-is('Landscape')");
-        await WaitForSectionAsync(page, _ => _.PageSize?.Orient?.Value == PageOrientationValues.Landscape && _.PageSize.Width?.Value == 11906u);
+        await WaitForSectionAsync(page, _ => _.PageSize?.Orient?.Value == PageOrientationValues.Landscape &&
+                                             _.PageSize.Width?.Value == 11906u);
 
         await ClickInAsync(page, "paragraph here");
         await page.ClickAsync(".editor-tool:has-text('Columns')");
@@ -166,7 +168,8 @@ public partial class SnapshotTests
         for (var attempt = 0; attempt < 40; attempt++)
         {
             last = Shape(await SaveAsync(page));
-            if (last != null && expected(last))
+            if (last != null &&
+                expected(last))
             {
                 return last;
             }

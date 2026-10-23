@@ -145,7 +145,8 @@ public class CellHeightLawTests
     // A w:tcBorders declaring only the given top and bottom edges, or none.
     static CellBorders? Edges(double top, double bottom)
     {
-        if (top == 0 && bottom == 0)
+        if (top == 0 &&
+            bottom == 0)
         {
             return null;
         }

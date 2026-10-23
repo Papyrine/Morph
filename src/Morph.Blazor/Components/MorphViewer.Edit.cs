@@ -26,7 +26,9 @@ public partial class MorphViewer
     bool editOpen;
     internal string? editNote;
 
-    internal bool CanWrite => !ReadOnly && IsWord && outline.AllowsEditing;
+    internal bool CanWrite => !ReadOnly &&
+                              IsWord &&
+                              outline.AllowsEditing;
 
     // Whether edits are recorded as tracked changes.
     internal bool Tracking => outline.Tracking || outline.ForcesTracking;
@@ -451,7 +453,8 @@ public partial class MorphViewer
             reviewMap.Before(selection[0], selection[1]) is not { } start ||
             reviewMap.After(selection[2], selection[3] - 1) is not { } end ||
             start.Run > end.Run ||
-            (start.Run == end.Run && start.Offset >= end.Offset))
+            (start.Run == end.Run &&
+             start.Offset >= end.Offset))
         {
             editNote = "Select some of the document's text first, or click in a paragraph to type in it.";
             return null;
@@ -469,7 +472,9 @@ public partial class MorphViewer
         }
 
         var runs = reviewMap.Runs(selection[0], selection[1], selection[2], selection[3]);
-        var all = runs.Count > 0 && runs.All(_ => editMap.Format(_) is { } properties && has(properties));
+        var all = runs.Count > 0 &&
+                  runs.All(_ => editMap.Format(_) is { } properties &&
+                                has(properties));
         var options = await EditOptionsAsync();
         await ReviseAsync(_ => DocumentEditor.Format(_, start, end, format(!all), options), relayout: true, () => activeKey);
     }

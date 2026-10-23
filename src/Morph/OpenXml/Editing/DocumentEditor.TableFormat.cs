@@ -251,7 +251,11 @@ static partial class DocumentEditor
             for (var index = top; index <= bottom; index++)
             {
                 var row = rows[index];
-                var cells = Cells(row).Where(_ => Columns(row, _) is var (from, to) && from < end && to > start).ToList();
+                var cells = Cells(row)
+                    .Where(_ => Columns(row, _) is var (from, to) &&
+                                from < end &&
+                                to > start)
+                    .ToList();
                 if (cells.Count > 0)
                 {
                     block.Add((row, cells));
@@ -267,7 +271,8 @@ static partial class DocumentEditor
         {
             var (table, rows, start, end) = Rectangle(first, last);
             if (rows.Count == 0 ||
-                (rows.Count == 1 && rows[0].Cells.Count == 1))
+                (rows.Count == 1 &&
+                 rows[0].Cells.Count == 1))
             {
                 throw new InvalidOperationException("Select cells across more than one cell to merge them.");
             }

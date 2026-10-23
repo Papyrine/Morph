@@ -97,7 +97,9 @@ public class PictureFillTests
     public async Task A_member_of_a_nested_group_takes_the_groups_scale()
     {
         var groups = Runs(Parse("newsletters/03").Elements).Select(_ => _.InlineShapeGroup).OfType<InlineShapeGroup>().ToList();
-        var banner = groups.First(_ => Math.Abs(_.ChildExtentX - 7315200) < 1 && _.Shapes.Any(shape => shape.Subpaths is [{Count: 6}]));
+        var banner = groups
+            .First(_ => Math.Abs(_.ChildExtentX - 7315200) < 1 &&
+                        _.Shapes.Any(_ => _.Subpaths is [{Count: 6}]));
         var hexagons = banner.Shapes.Where(_ => _.Subpaths is [{Count: 6}]).ToList();
 
         await Assert.That(hexagons.Count).IsEqualTo(2);
@@ -125,14 +127,16 @@ public class PictureFillTests
         var chart = Runs(Parse("business-plans/12").Elements)
             .Select(_ => _.InlineShapeGroup)
             .OfType<InlineShapeGroup>()
-            .Single(_ => _.Shapes.Count == 4 && _.Shapes.All(shape => shape.Subpaths is [{Count: > 40}]));
-
+            .Single(_ => _.Shapes.Count == 4 &&
+                         _.Shapes.All(_ => _.Subpaths is [{Count: > 40}]));
         await Assert.That(chart.Shapes.Select(_ => _.FillColorHex).Distinct().Count()).IsEqualTo(4);
 
         // One plot circle, square, inside the chart's box.
         var first = chart.Shapes[0];
         await Assert.That(first.Width).IsEqualTo(first.Height).Within(1);
-        await Assert.That(chart.Shapes.All(_ => _.X == first.X && _.Y == first.Y && _.Width == first.Width)).IsTrue();
+        await Assert.That(chart.Shapes.All(_ => _.X == first.X &&
+                                                _.Y == first.Y &&
+                                                _.Width == first.Width)).IsTrue();
         await Assert.That(first.Width).IsLessThanOrEqualTo(chart.ChildExtentX);
 
         // The first slice is the top right quarter of the ring: from the hole's rim to the circle's.

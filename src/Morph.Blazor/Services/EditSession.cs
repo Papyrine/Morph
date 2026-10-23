@@ -367,7 +367,8 @@ sealed class EditSession
                     }
 
                     if (unit >= Paragraph.Units.Count ||
-                        (unit >= 0 && !Paragraph.Units[unit].Editable))
+                        (unit >= 0 &&
+                         !Paragraph.Units[unit].Editable))
                     {
                         return null;
                     }

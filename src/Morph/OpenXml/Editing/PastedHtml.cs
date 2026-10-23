@@ -410,7 +410,8 @@ static partial class PastedHtml
                 return;
             }
 
-            var listed = block.List != ListKind.None && numbered.Add(block.Item);
+            var listed = block.List != ListKind.None &&
+                         numbered.Add(block.Item);
             paragraphs.Add(
                 new(runs)
                 {
@@ -510,7 +511,8 @@ static partial class PastedHtml
             inline = inline with
             {
                 Bold = weight is "bold" or "bolder" ||
-                       (int.TryParse(weight, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) && number >= 600)
+                       (int.TryParse(weight, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) &&
+                        number >= 600)
             };
         }
 

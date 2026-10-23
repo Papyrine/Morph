@@ -88,6 +88,19 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends rsync \
     && rm -rf /var/lib/apt/lists/*
 
+# Morph.Web and Morph.Wopi.Sample.Client are Blazor WebAssembly apps, and building them (or
+# Morph.Web.Tests, which references Morph.Web) needs the wasm-tools workload — without it the
+# SDK stops with NETSDK1147. --skip-manifest-update keeps it at the manifests the pinned SDK
+# ships with; without it the install floats to the newest workload release at build time. Morph.Web
+# links Krilla's native library, which relinks the runtime through Emscripten, and Emscripten needs
+# python3. The restore is kept off the runtime-mounted /nuget cache. Placed after the Playwright
+# layer for the same reason as rsync above.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && NUGET_PACKAGES=/tmp/workload-nuget dotnet workload install wasm-tools --skip-manifest-update \
+    && rm -rf /tmp/workload-nuget
+
 WORKDIR /src
 
 # No COPY of source — the wrapper script mounts the working tree as a volume.

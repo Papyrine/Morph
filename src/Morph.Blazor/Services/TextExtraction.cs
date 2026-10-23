@@ -142,7 +142,8 @@ public static class TextExtraction
 
     static void NewLine(StringBuilder builder)
     {
-        if (builder.Length > 0 && builder[^1] != '\n')
+        if (builder.Length > 0 &&
+            builder[^1] != '\n')
         {
             builder.Append('\n');
         }

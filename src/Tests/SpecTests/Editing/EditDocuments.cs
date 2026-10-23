@@ -65,7 +65,8 @@ static class EditDocuments
                 Shape(child, builder);
             }
 
-            if (builder.Length > 0 && builder[^1] != ' ')
+            if (builder.Length > 0 &&
+                builder[^1] != ' ')
             {
                 builder.Append(' ');
             }

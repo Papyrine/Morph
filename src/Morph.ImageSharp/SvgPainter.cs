@@ -69,7 +69,7 @@ static class SvgPainter
                 Item(item);
             }
 
-            if (page.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            if (page.Settings.PageBorders is {HasAnyBorder: true} pageBorders)
             {
                 var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(page.Settings);
                 Edges(borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
@@ -246,7 +246,9 @@ static class SvgPainter
             for (var index = 0; index < text.Length; index++)
             {
                 // A surrogate pair is one character to the browser's list, positioned by its first half.
-                if (Skipped(text[index]) || (char.IsLowSurrogate(text[index]) && index > 0))
+                if (Skipped(text[index]) ||
+                    (char.IsLowSurrogate(text[index]) &&
+                     index > 0))
                 {
                     continue;
                 }
@@ -289,7 +291,8 @@ static class SvgPainter
 
             // The synthesised oblique and the w:w stretch as one matrix about the run's start and the
             // baseline, as ImageSharpPainter.DrawTracked builds it.
-            var oblique = properties.Italic && !font.IsItalic;
+            var oblique = properties.Italic &&
+                          !font.IsItalic;
             var scale = properties.CharacterScalePercent / 100;
             if (oblique || scale != 1)
             {
@@ -330,7 +333,10 @@ static class SvgPainter
             var x = 0f;
             for (var index = 0; index < text.Length; index++)
             {
-                var length = char.IsHighSurrogate(text[index]) && index + 1 < text.Length ? 2 : 1;
+                var length = char.IsHighSurrogate(text[index]) &&
+                             index + 1 < text.Length
+                    ? 2
+                    : 1;
                 positions[index] = x;
                 if (length == 2)
                 {
@@ -460,7 +466,11 @@ static class SvgPainter
                 return;
             }
 
-            if (image.Vector != null || image.Tile != null || image.Recolor != null || image.Data is { } raw && !Decodable(raw))
+            if (image.Vector != null ||
+                image.Tile != null ||
+                image.Recolor != null ||
+                image.Data is { } raw &&
+                !Decodable(raw))
             {
                 RasterPicture(image);
                 return;
@@ -505,7 +515,8 @@ static class SvgPainter
 
             // The outline the picture is cut to, inside the flips so it mirrors with the picture — the
             // raster painter mirrors the outline to the mirrored pixels. A turned picture is left uncut.
-            var cut = (image.ClipToEllipse || image.ClipSubpaths != null) && !rotated;
+            var cut = (image.ClipToEllipse || image.ClipSubpaths != null) &&
+                      !rotated;
             if (cut)
             {
                 var id = NextId();
@@ -536,7 +547,7 @@ static class SvgPainter
                 svg.Append(")\">");
             }
 
-            if (image.Crop is { IsCropped: true } crop)
+            if (image.Crop is {IsCropped: true} crop)
             {
                 var (expandedX, expandedY, expandedWidth, expandedHeight) = crop.Expand(image.X, image.Y, image.Width, image.Height);
                 OpenClip(image.X, image.Y, image.Width, image.Height);
@@ -575,7 +586,8 @@ static class SvgPainter
             }
             else if (image.Data is { } data)
             {
-                processed = image.Tile is { } tile && Math.Abs(image.RotationDegrees) <= 0.01
+                processed = image.Tile is { } tile &&
+                            Math.Abs(image.RotationDegrees) <= 0.01
                     ? context.GetTiledImage(data, width, height, tile, image.Width, image.Height, image.Recolor, image.Opacity)
                     : null;
                 processed ??= context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
@@ -586,7 +598,8 @@ static class SvgPainter
                 return;
             }
 
-            var cut = (image.ClipToEllipse || image.ClipSubpaths != null) && Math.Abs(image.RotationDegrees) <= 0.01;
+            var cut = (image.ClipToEllipse || image.ClipSubpaths != null) &&
+                      Math.Abs(image.RotationDegrees) <= 0.01;
             if (cut)
             {
                 processed = context.GetClippedImage(processed, image.ClipSubpaths, image.FlipHorizontal, image.FlipVertical) ?? processed;
@@ -615,7 +628,8 @@ static class SvgPainter
         void Outline(PlacedImage image, bool cut)
         {
             // The picture's a:ln: a band outside the unrotated box (ImageSharpPainter.PaintImage).
-            if (image.Outline is { } outline && !cut)
+            if (image.Outline is { } outline &&
+                !cut)
             {
                 var strokeWidth = outline.WidthPoints;
                 var half = strokeWidth / 2;
@@ -698,7 +712,8 @@ static class SvgPainter
                     svg.Append(" fill=\"none\"");
                     Paint("stroke", ImageSharpShapeDrawing.ParseColor(shape.ColorHex, shape.LineAlpha));
                     Attribute("stroke-width", strokeWidth);
-                    if (shape.LineDashPattern is not { Count: >= 2 } && shape.RoundCap)
+                    if (shape.LineDashPattern is not {Count: >= 2} &&
+                        shape.RoundCap)
                     {
                         svg.Append(" stroke-linecap=\"round\"");
                     }
@@ -723,7 +738,8 @@ static class SvgPainter
             var bytes = shape.ImageContentType == "image/svg+xml"
                 ? shape.ImageRasterFallbackData
                 : shape.ImageData;
-            if (vector == null && bytes == null)
+            if (vector == null &&
+                bytes == null)
             {
                 return;
             }
@@ -741,10 +757,11 @@ static class SvgPainter
                 svg.Append(")\">");
             }
 
-            if (vector == null && Decodable(bytes!))
+            if (vector == null &&
+                Decodable(bytes!))
             {
                 var index = AddImage(bytes!);
-                if (shape.ImageCrop is { IsCropped: true } crop)
+                if (shape.ImageCrop is {IsCropped: true} crop)
                 {
                     var (expandedX, expandedY, expandedWidth, expandedHeight) = crop.Expand(x, y, width, height);
                     OpenClip(x, y, width, height);
@@ -823,7 +840,7 @@ static class SvgPainter
         void Shape(PlacedShape placed)
         {
             var shape = placed.Shape;
-            if (shape.ImageData is { Length: > 0 })
+            if (shape.ImageData is {Length: > 0})
             {
                 return;
             }
@@ -837,12 +854,13 @@ static class SvgPainter
 
             var hasFill = gradientId != null || shape.FillColorHex != null;
             var hasLine = shape.LineColorHex != null;
-            if (!hasFill && !hasLine)
+            if (!hasFill &&
+                !hasLine)
             {
                 return;
             }
 
-            if (shape.Subpaths is { Count: > 0 })
+            if (shape.Subpaths is {Count: > 0})
             {
                 var rotation = shape.RotationDegrees * Math.PI / 180.0;
                 var cos = Math.Cos(rotation);
@@ -980,7 +998,7 @@ static class SvgPainter
                     CellEdges(cell, borders);
                 }
 
-                if (cell.Diagonals is { HasAny: true } diagonals)
+                if (cell.Diagonals is {HasAny: true} diagonals)
                 {
                     Diagonal(diagonals.Down, cell.X, cell.Y, cell.X + cell.Width, cell.Y + cell.Height);
                     Diagonal(diagonals.Up, cell.X + cell.Width, cell.Y, cell.X, cell.Y + cell.Height);
@@ -1021,7 +1039,8 @@ static class SvgPainter
 
             void Wave(BorderEdge edge, bool horizontal, double from, double to, double at, int outward)
             {
-                if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is { Length: > 0 } waves)
+                if (BorderStroke.Draws(edge) &&
+                    BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
                 {
                     Waves(edge, waves, horizontal, from, to, at, outward);
                 }
@@ -1050,7 +1069,7 @@ static class SvgPainter
                 return;
             }
 
-            if (BorderStroke.Waves(edge.Style) is { Length: > 0 } waves)
+            if (BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
             {
                 Waves(edge, waves, horizontal, from, to, at, outward);
                 return;
@@ -1117,7 +1136,8 @@ static class SvgPainter
                 return;
             }
 
-            if (dash == null && (y0 == y1 || x0 == x1))
+            if (dash == null &&
+                (y0 == y1 || x0 == x1))
             {
                 if (y0 == y1)
                 {
@@ -1160,7 +1180,7 @@ static class SvgPainter
         // A preset dash (a:prstDash) is declared in multiples of the stroke's width.
         void Dash(IReadOnlyList<double>? pattern, double strokeWidth)
         {
-            if (pattern is not { Count: >= 2 } || strokeWidth <= 0)
+            if (pattern is not {Count: >= 2} || strokeWidth <= 0)
             {
                 return;
             }
@@ -1214,7 +1234,8 @@ static class SvgPainter
                 Number(y);
             }
 
-            if (!first && close)
+            if (!first &&
+                close)
             {
                 svg.Append('Z');
             }
@@ -1279,11 +1300,25 @@ static class SvgPainter
         // The raster formats every browser decodes in an SVG <image>.
         static bool Decodable(byte[] data) =>
             data.Length > 12 &&
-            ((data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47) ||
-             (data[0] == 0xFF && data[1] == 0xD8) ||
-             (data[0] == 0x47 && data[1] == 0x49 && data[2] == 0x46) ||
-             (data[0] == 0x42 && data[1] == 0x4D) ||
-             (data[0] == 0x52 && data[1] == 0x49 && data[2] == 0x46 && data[3] == 0x46 && data[8] == 0x57 && data[9] == 0x45 && data[10] == 0x42 && data[11] == 0x50));
+            ((data[0] == 0x89 &&
+              data[1] == 0x50 &&
+              data[2] == 0x4E &&
+              data[3] == 0x47) ||
+             (data[0] == 0xFF &&
+              data[1] == 0xD8) ||
+             (data[0] == 0x47 &&
+              data[1] == 0x49 &&
+              data[2] == 0x46) ||
+             (data[0] == 0x42 &&
+              data[1] == 0x4D) ||
+             (data[0] == 0x52 &&
+              data[1] == 0x49 &&
+              data[2] == 0x46 &&
+              data[3] == 0x46 &&
+              data[8] == 0x57 &&
+              data[9] == 0x45 &&
+              data[10] == 0x42 &&
+              data[11] == 0x50));
 
         string NextId() => $"{idPrefix}{ids++}";
 
@@ -1441,7 +1476,9 @@ static class SvgPainter
             foreach (var glyph in TextMeasurer.GetGlyphMetrics(text, options).Span)
             {
                 var index = glyph.StringIndex;
-                if (index >= 0 && index < positions.Length && float.IsNaN(positions[index]))
+                if (index >= 0 &&
+                    index < positions.Length &&
+                    float.IsNaN(positions[index]))
                 {
                     positions[index] = glyph.Advance.X;
                 }
@@ -1465,13 +1502,4 @@ static class SvgPainter
             return positions;
         }
     }
-}
-
-/// <summary>
-/// One page as SVG (<see cref="SvgPainter"/>): the markup, whose <c>&lt;image data-i="n"&gt;</c> elements
-/// stand for <see cref="Images"/>[n], and what on the page the markup leaves out.
-/// </summary>
-sealed record SvgPage(string Markup, IReadOnlyList<byte[]> Images, IReadOnlySet<string> Unsupported)
-{
-    public bool Complete => Unsupported.Count == 0;
 }

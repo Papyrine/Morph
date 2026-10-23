@@ -31,21 +31,25 @@ static class TextDiff
         var now = Symbols(after, afterKinds);
         var start = 0;
         var limit = Math.Min(was.Length, now.Length);
-        while (start < limit && was[start] == now[start])
+        while (start < limit &&
+               was[start] == now[start])
         {
             start++;
         }
 
         var endBefore = was.Length;
         var endAfter = now.Length;
-        while (endBefore > start && endAfter > start && was[endBefore - 1] == now[endAfter - 1])
+        while (endBefore > start &&
+               endAfter > start &&
+               was[endBefore - 1] == now[endAfter - 1])
         {
             endBefore--;
             endAfter--;
         }
 
         var hunks = new List<TextHunk>();
-        if (endBefore == start && endAfter == start)
+        if (endBefore == start &&
+            endAfter == start)
         {
             return hunks;
         }
@@ -102,7 +106,8 @@ static class TextDiff
             {
                 int x;
                 if (diagonal == -round ||
-                    (diagonal != round && reach[maximum + diagonal - 1] < reach[maximum + diagonal + 1]))
+                    (diagonal != round &&
+                     reach[maximum + diagonal - 1] < reach[maximum + diagonal + 1]))
                 {
                     x = reach[maximum + diagonal + 1];
                 }
@@ -112,14 +117,17 @@ static class TextDiff
                 }
 
                 var y = x - diagonal;
-                while (x < lengthBefore && y < lengthAfter && before[x] == after[y])
+                while (x < lengthBefore &&
+                       y < lengthAfter &&
+                       before[x] == after[y])
                 {
                     x++;
                     y++;
                 }
 
                 reach[maximum + diagonal] = x;
-                if (x >= lengthBefore && y >= lengthAfter)
+                if (x >= lengthBefore &&
+                    y >= lengthAfter)
                 {
                     found = round;
                     break;
@@ -144,7 +152,8 @@ static class TextDiff
             var diagonal = atX - atY;
             int from;
             if (diagonal == -round ||
-                (diagonal != round && previous[round + diagonal - 1] < previous[round + diagonal + 1]))
+                (diagonal != round &&
+                 previous[round + diagonal - 1] < previous[round + diagonal + 1]))
             {
                 from = diagonal + 1;
             }

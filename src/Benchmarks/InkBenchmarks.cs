@@ -30,7 +30,9 @@ public class InkBenchmarks
                 builder.Append(", ");
             }
 
-            if (includeRelativePrefix && i > 0 && i % 4 == 0)
+            if (includeRelativePrefix &&
+                i > 0 &&
+                i % 4 == 0)
             {
                 builder.Append('\'');
             }

@@ -48,7 +48,8 @@ public partial class DocumentPreview
 
     PageTextLayer? LayerAt(int index)
     {
-        if (TextLayers is { } layers && index < layers.Count)
+        if (TextLayers is { } layers &&
+            index < layers.Count)
         {
             return layers[index];
         }

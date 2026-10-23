@@ -541,7 +541,9 @@ static partial class DocumentEditor
 
             // Runs that follow one another in one place are one link; where the text is divided —
             // part of it a tracked insertion — each part is a link to the same place.
-            var follows = runs.Select((run, index) => index > 0 && ReferenceEquals(Following(runs[index - 1]), run)).ToList();
+            var follows = runs
+                .Select((run, index) => index > 0 &&
+                                        ReferenceEquals(Following(runs[index - 1]), run)).ToList();
             Hyperlink? open = null;
             for (var index = 0; index < runs.Count; index++)
             {
@@ -702,7 +704,8 @@ static partial class DocumentEditor
                 var unit = units[index];
                 if (!unit.Editable)
                 {
-                    if (ranges.Any(_ => _.From <= place && place < _.To))
+                    if (ranges.Any(_ => _.From <= place &&
+                                        place < _.To))
                     {
                         throw new InvalidOperationException(fixedInPlace);
                     }
@@ -720,7 +723,8 @@ static partial class DocumentEditor
                         builder.Append(text);
                     }
 
-                    if (!ranges.Any(_ => _.From <= place && place < _.To))
+                    if (!ranges.Any(_ => _.From <= place &&
+                                         place < _.To))
                     {
                         builder.Append(unit.Text[character]);
                     }

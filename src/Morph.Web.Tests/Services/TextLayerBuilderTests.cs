@@ -276,7 +276,8 @@ public class TextLayerBuilderTests
     {
         var kinds = typeof(PlacedItem).Assembly
             .GetTypes()
-            .Where(_ => _.IsSubclassOf(typeof(PlacedItem)) && !_.IsAbstract)
+            .Where(_ => _.IsSubclassOf(typeof(PlacedItem)) &&
+                        !_.IsAbstract)
             .Select(_ => _.Name)
             .Order()
             .ToList();

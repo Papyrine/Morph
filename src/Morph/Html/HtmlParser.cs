@@ -116,7 +116,8 @@ sealed class HtmlParser
                 continue;
             }
 
-            var auto = next.Runs.Count > 0 && next.Runs[0].Properties.FontSizePoints > 14 ? 12d : 14d;
+            var auto = next.Runs.Count > 0 &&
+                       next.Runs[0].Properties.FontSizePoints > 14 ? 12d : 14d;
             if (auto <= bottom)
             {
                 continue;
@@ -447,8 +448,10 @@ sealed class HtmlParser
     {
         var style = ParseInlineStyle(element);
         if (style == null ||
-            (style.BackgroundColor == null && style.Borders == null &&
-             style.MarginTopPoints == null && style.MarginBottomPoints == null))
+            (style.BackgroundColor == null &&
+             style.Borders == null &&
+             style.MarginTopPoints == null &&
+             style.MarginBottomPoints == null))
         {
             ParseNodes(element.ChildNodes, elements);
             return;
@@ -476,7 +479,8 @@ sealed class HtmlParser
             }
 
             var props = para.Properties;
-            if (style.BackgroundColor != null && props.BackgroundColorHex == null)
+            if (style.BackgroundColor != null &&
+                props.BackgroundColorHex == null)
             {
                 props = props with
                 {
@@ -484,7 +488,8 @@ sealed class HtmlParser
                 };
             }
 
-            if (style.Borders != null && props.Borders == null)
+            if (style.Borders != null &&
+                props.Borders == null)
             {
                 props = props with
                 {
@@ -511,7 +516,8 @@ sealed class HtmlParser
                 }
             }
 
-            if (ReferenceEquals(para, lastParagraph) && style.MarginBottomPoints is { } marginBottom)
+            if (ReferenceEquals(para, lastParagraph) &&
+                style.MarginBottomPoints is { } marginBottom)
             {
                 props = props with
                 {
@@ -625,7 +631,8 @@ sealed class HtmlParser
     /// docs/html-import.md.</summary>
     static void TrimEdgeWhitespace(List<Run> runs)
     {
-        while (runs.Count > 0 && runs[0] is { InlineImageData: null, InlineShapeGroup: null, IsTab: false} first)
+        while (runs.Count > 0 &&
+               runs[0] is { InlineImageData: null, InlineShapeGroup: null, IsTab: false} first)
         {
             var trimmed = first.Text.TrimStart(' ', '\t', '\r', '\n');
             if (trimmed.Length == first.Text.Length)
@@ -643,7 +650,8 @@ sealed class HtmlParser
             break;
         }
 
-        while (runs.Count > 0 && runs[^1] is { InlineImageData: null, InlineShapeGroup: null, IsTab: false} last)
+        while (runs.Count > 0 &&
+               runs[^1] is { InlineImageData: null, InlineShapeGroup: null, IsTab: false} last)
         {
             var trimmed = last.Text.TrimEnd(' ', '\t', '\r', '\n');
             if (trimmed.Length == last.Text.Length)
@@ -737,7 +745,8 @@ sealed class HtmlParser
             }
 
             var style = parent.GetAttribute("style");
-            if (style != null && style.Contains("white-space", StringComparison.OrdinalIgnoreCase))
+            if (style != null &&
+                style.Contains("white-space", StringComparison.OrdinalIgnoreCase))
             {
                 return style.Contains("pre", StringComparison.OrdinalIgnoreCase);
             }
@@ -1116,22 +1125,26 @@ sealed class HtmlParser
             };
 
             var padding = ParseCssBoxLengths(styles, "padding");
-            if (top != null && padding.Top is { } paddingTop)
+            if (top != null &&
+                padding.Top is { } paddingTop)
             {
                 result.BorderTopSpacePoints = Math.Round(paddingTop);
             }
 
-            if (right != null && padding.Right is { } paddingRight)
+            if (right != null &&
+                padding.Right is { } paddingRight)
             {
                 result.BorderRightSpacePoints = Math.Round(paddingRight);
             }
 
-            if (bottom != null && padding.Bottom is { } paddingBottom)
+            if (bottom != null &&
+                padding.Bottom is { } paddingBottom)
             {
                 result.BorderBottomSpacePoints = Math.Round(paddingBottom);
             }
 
-            if (left != null && padding.Left is { } paddingLeft)
+            if (left != null &&
+                padding.Left is { } paddingLeft)
             {
                 result.BorderLeftSpacePoints = Math.Round(paddingLeft);
             }
@@ -1462,7 +1475,8 @@ sealed class HtmlParser
                 var widthValue = cssWidth.Trim();
                 if (widthValue.EndsWith('%'))
                 {
-                    if (double.TryParse(widthValue[..^1], out var percent) && percent >= 99)
+                    if (double.TryParse(widthValue[..^1], out var percent) &&
+                        percent >= 99)
                     {
                         fillContainer = true;
                     }
@@ -1484,7 +1498,8 @@ sealed class HtmlParser
             WidthPoints = pixelsToPoints,
             ColorHex = htmlTableBorderColor
         };
-        var cellBoxBorders = hasBorderAttribute && cellSpacingPixels > 0
+        var cellBoxBorders = hasBorderAttribute &&
+                             cellSpacingPixels > 0
             ? new CellBorders
             {
                 Top = cellRule,
@@ -1493,7 +1508,8 @@ sealed class HtmlParser
                 Left = cellRule
             }
             : null;
-        var insideRule = hasBorderAttribute && cellSpacingPixels <= 0 ? cellRule : null;
+        var insideRule = hasBorderAttribute &&
+                         cellSpacingPixels <= 0 ? cellRule : null;
 
         // Track active rowspans: column index -> remaining rows
         var activeRowspans = new Dictionary<int, int>();
@@ -1597,7 +1613,8 @@ sealed class HtmlParser
                         var widthValue = cssWidth.Trim();
                         if (widthValue.EndsWith('%'))
                         {
-                            if (double.TryParse(widthValue[..^1], out var percent) && percent > 0)
+                            if (double.TryParse(widthValue[..^1], out var percent) &&
+                                percent > 0)
                             {
                                 cellWidthFraction = percent / 100;
                             }
@@ -1610,18 +1627,21 @@ sealed class HtmlParser
                 }
 
                 // Legacy <td width="..."> attribute: a bare number is pixels.
-                if (cellWidthPoints == null && cellWidthFraction == null &&
+                if (cellWidthPoints == null &&
+                    cellWidthFraction == null &&
                     cell.GetAttribute("width") is {Length: > 0} widthAttribute)
                 {
                     var attributeValue = widthAttribute.Trim();
                     if (attributeValue.EndsWith('%'))
                     {
-                        if (double.TryParse(attributeValue[..^1], out var percent) && percent > 0)
+                        if (double.TryParse(attributeValue[..^1], out var percent) &&
+                            percent > 0)
                         {
                             cellWidthFraction = percent / 100;
                         }
                     }
-                    else if (double.TryParse(attributeValue, out var widthPx) && widthPx > 0)
+                    else if (double.TryParse(attributeValue, out var widthPx) &&
+                             widthPx > 0)
                     {
                         cellWidthPoints = widthPx * 0.75;
                     }
@@ -1630,7 +1650,9 @@ sealed class HtmlParser
                 // Handle colspan
                 var gridSpan = 1;
                 var colspanAttribute = cell.GetAttribute("colspan");
-                if (!string.IsNullOrEmpty(colspanAttribute) && int.TryParse(colspanAttribute, out var cs) && cs > 1)
+                if (!string.IsNullOrEmpty(colspanAttribute) &&
+                    int.TryParse(colspanAttribute, out var cs) &&
+                    cs > 1)
                 {
                     // Ceiling the span as the DOCX path does: an unbounded colspan flows through
                     // GetColumnCount into float[colCount] allocations, so a crafted value would
@@ -1641,7 +1663,9 @@ sealed class HtmlParser
                 // Handle rowspan
                 var verticalMerge = VerticalMergeType.None;
                 var rowspanAttribute = cell.GetAttribute("rowspan");
-                if (!string.IsNullOrEmpty(rowspanAttribute) && int.TryParse(rowspanAttribute, out var rs) && rs > 1)
+                if (!string.IsNullOrEmpty(rowspanAttribute) &&
+                    int.TryParse(rowspanAttribute, out var rs) &&
+                    rs > 1)
                 {
                     verticalMerge = VerticalMergeType.Restart;
                     newRowspans[colIndex] = rs - 1;
@@ -2409,7 +2433,8 @@ sealed class HtmlParser
 
         static double? ParseEdge(string? value)
         {
-            if (value != null && TryParseCssLengthToPoints(value, out var points))
+            if (value != null &&
+                TryParseCssLengthToPoints(value, out var points))
             {
                 return points;
             }

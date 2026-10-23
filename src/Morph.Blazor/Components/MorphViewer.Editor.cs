@@ -113,7 +113,10 @@ public partial class MorphViewer
     string Text(int firstParagraph, int from, int lastParagraph, int to)
     {
         var builder = new StringBuilder();
-        for (var ordinal = firstParagraph; ordinal <= lastParagraph && ordinal < outline.Paragraphs.Count; ordinal++)
+        for (var ordinal = firstParagraph;
+             ordinal <= lastParagraph &&
+             ordinal < outline.Paragraphs.Count;
+             ordinal++)
         {
             if (ordinal > firstParagraph)
             {
@@ -367,46 +370,45 @@ public partial class MorphViewer
     /// </summary>
     [JSInvokable]
     public Task OnRulerIndent(double left, double right, double firstLine) =>
-        InvokeAsync(
-            async () =>
+        InvokeAsync(async () =>
+        {
+            if (await RequireAsync() is not { } target)
             {
-                if (await RequireAsync() is not { } target)
-                {
-                    return;
-                }
+                return;
+            }
 
-                var now = PropertiesOf(target.Paragraph);
-                var format = new ParagraphFormat();
-                if (now == null ||
-                    Math.Abs(now.LeftIndentPoints - left) > 0.05)
-                {
-                    format = format with { LeftPoints = left };
-                }
+            var now = PropertiesOf(target.Paragraph);
+            var format = new ParagraphFormat();
+            if (now == null ||
+                Math.Abs(now.LeftIndentPoints - left) > 0.05)
+            {
+                format = format with {LeftPoints = left};
+            }
 
-                if (now == null ||
-                    Math.Abs(now.RightIndentPoints - right) > 0.05)
-                {
-                    format = format with { RightPoints = right };
-                }
+            if (now == null ||
+                Math.Abs(now.RightIndentPoints - right) > 0.05)
+            {
+                format = format with {RightPoints = right};
+            }
 
-                var first = 0.0;
-                if (now != null)
-                {
-                    first = now.FirstLineIndentPoints - now.HangingIndentPoints;
-                }
+            var first = 0.0;
+            if (now != null)
+            {
+                first = now.FirstLineIndentPoints - now.HangingIndentPoints;
+            }
 
-                if (Math.Abs(first - firstLine) > 0.05)
-                {
-                    format = format with { FirstLinePoints = firstLine };
-                }
+            if (Math.Abs(first - firstLine) > 0.05)
+            {
+                format = format with {FirstLinePoints = firstLine};
+            }
 
-                if (format != default)
-                {
-                    await EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
-                }
+            if (format != default)
+            {
+                await EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+            }
 
-                StateHasChanged();
-            });
+            StateHasChanged();
+        });
 
     // Bookmarks: a name for the caret's place or the text selected, which a link to #name goes to.
 
@@ -994,7 +996,7 @@ public partial class MorphViewer
 
     static (int Paragraph, int Offset) PictureAt(EditTarget target)
     {
-        if (target is { HasSelection: true, StartParagraph: >= 0 })
+        if (target is {HasSelection: true, StartParagraph: >= 0})
         {
             return (target.StartParagraph, target.StartOffset);
         }
@@ -1059,20 +1061,19 @@ public partial class MorphViewer
     /// <summary>Called from JavaScript when a floating picture's corner has sized it: its size in points.</summary>
     [JSInvokable]
     public Task OnPictureResize(int paragraph, int offset, double width, double height) =>
-        InvokeAsync(
-            async () =>
+        InvokeAsync(async () =>
+        {
+            if (!editOpen ||
+                !CanWrite ||
+                revising)
             {
-                if (!editOpen ||
-                    !CanWrite ||
-                    revising)
-                {
-                    return;
-                }
+                return;
+            }
 
-                var options = await EditOptionsAsync();
-                await ReviseAsync(_ => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options), relayout: true, () => activeKey);
-                StateHasChanged();
-            });
+            var options = await EditOptionsAsync();
+            await ReviseAsync(_ => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options), relayout: true, () => activeKey);
+            StateHasChanged();
+        });
 
     // The picture Wrap Text acts on: the floating one selected, or the inline one the open paragraph
     // has selected.
@@ -1096,7 +1097,10 @@ public partial class MorphViewer
     }
 
     internal PictureWrap? CurrentWrap =>
-        floatingPicture is { } floating && sourceBytes is { } bytes ? DocumentEditor.PictureWrapOf(bytes, floating.Paragraph, floating.Offset) : null;
+        floatingPicture is { } floating &&
+        sourceBytes is { } bytes
+            ? DocumentEditor.PictureWrapOf(bytes, floating.Paragraph, floating.Offset)
+            : null;
 
     internal async Task WrapPictureAsync(PictureWrap wrap)
     {
@@ -1164,36 +1168,35 @@ public partial class MorphViewer
     /// <summary>Called from JavaScript with the text selected on the pages while Format Painter is on.</summary>
     [JSInvokable]
     public Task OnPaint(int[] range) =>
-        InvokeAsync(
-            async () =>
+        InvokeAsync(async () =>
+        {
+            if (painter is not { } copy ||
+                !editOpen ||
+                !CanWrite ||
+                revising)
             {
-                if (painter is not { } copy ||
-                    !editOpen ||
-                    !CanWrite ||
-                    revising)
-                {
-                    return;
-                }
+                return;
+            }
 
-                painter = null;
-                editNote = null;
-                selection = range.Length == 4 ? range : [];
-                if (FromSelection() is not {Start: { } start, End: { } end} target)
-                {
-                    StateHasChanged();
-                    return;
-                }
-
-                // The paragraphs the selection takes whole, which take the paragraph's formatting too.
-                var whole = target.Paragraphs
-                    .Where(_ => _ < outline.Paragraphs.Count &&
-                                (_ != target.First || outline.Paragraphs[_].OffsetOf(start) == 0) &&
-                                (_ != target.Last || outline.Paragraphs[_].OffsetOf(end) == outline.Paragraphs[_].Length))
-                    .ToList();
-                var options = await EditOptionsAsync();
-                await ReviseAsync(_ => DocumentEditor.PasteFormat(_, start, end, whole, copy, options), relayout: true, () => activeKey);
+            painter = null;
+            editNote = null;
+            selection = range.Length == 4 ? range : [];
+            if (FromSelection() is not {Start: { } start, End: { } end} target)
+            {
                 StateHasChanged();
-            });
+                return;
+            }
+
+            // The paragraphs the selection takes whole, which take the paragraph's formatting too.
+            var whole = target.Paragraphs
+                .Where(_ => _ < outline.Paragraphs.Count &&
+                            (_ != target.First || outline.Paragraphs[_].OffsetOf(start) == 0) &&
+                            (_ != target.Last || outline.Paragraphs[_].OffsetOf(end) == outline.Paragraphs[_].Length))
+                .ToList();
+            var options = await EditOptionsAsync();
+            await ReviseAsync(_ => DocumentEditor.PasteFormat(_, start, end, whole, copy, options), relayout: true, () => activeKey);
+            StateHasChanged();
+        });
 
     // Home > Borders and Shading, on the caret's paragraph or the paragraphs selected; the width and
     // the colour are the Table tab's, so the last chosen is the next drawn in either.
@@ -1559,7 +1562,8 @@ public partial class MorphViewer
             {
                 var match = matches[index];
                 if (match.Page > replaced.Page ||
-                    (match.Page == replaced.Page && match.Start >= after))
+                    (match.Page == replaced.Page &&
+                     match.Start >= after))
                 {
                     currentMatch = index;
                     break;

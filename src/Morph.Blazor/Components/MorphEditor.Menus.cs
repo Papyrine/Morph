@@ -265,7 +265,8 @@ public partial class MorphEditor
             .. PaperSizes.Select(_ => new MenuLine(_.Name)
             {
                 Checked = current != null &&
-                          Math.Min(current.Width, current.Height) == _.Width && Math.Max(current.Width, current.Height) == _.Height,
+                          Math.Min(current.Width, current.Height) == _.Width &&
+                          Math.Max(current.Width, current.Height) == _.Height,
                 Detail = $"{Centimetres(_.Width)} × {Centimetres(_.Height)}",
                 Choice = () => SetPaperSizeAsync(_.Width, _.Height)
             })

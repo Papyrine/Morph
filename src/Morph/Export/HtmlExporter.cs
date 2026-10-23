@@ -227,8 +227,14 @@ static class HtmlExporter
         {
             if (element is
                 FloatingShapeElement or
-                FloatingImageElement {WrapType: WrapType.None} or
-                FloatingTextBoxElement {WrapType: WrapType.None})
+                FloatingImageElement
+                {
+                    WrapType: WrapType.None
+                } or
+                FloatingTextBoxElement
+                {
+                    WrapType: WrapType.None
+                })
             {
                 return true;
             }
@@ -262,7 +268,10 @@ static class HtmlExporter
             return null;
         }
 
-        return weights.OrderByDescending(_ => _.Value).ThenBy(_ => _.Key, StringComparer.Ordinal).First().Key;
+        return weights.OrderByDescending(_ => _.Value)
+            .ThenBy(_ => _.Key, StringComparer.Ordinal)
+            .First()
+            .Key;
     }
 
     static void AccumulateFontWeights(IReadOnlyList<DocumentElement> elements, Dictionary<string, long> weights)
@@ -274,7 +283,9 @@ static class HtmlExporter
                 case ParagraphElement paragraph:
                     foreach (var run in paragraph.Runs)
                     {
-                        if (run.Properties.Hidden || run.IsTab || string.IsNullOrEmpty(run.Text) ||
+                        if (run.Properties.Hidden ||
+                            run.IsTab ||
+                            string.IsNullOrEmpty(run.Text) ||
                             string.IsNullOrEmpty(run.Properties.FontFamily))
                         {
                             continue;
@@ -364,26 +375,26 @@ static class HtmlExporter
         const double defaultHeadingSpacingAfterPoints = 0;
 
         // Mirrors the stylesheet's heading sizes (h1=16pt … h6=11pt); index = level - 1.
-        static readonly double[] headingFontSizePoints = [16, 13, 12, 11, 11, 11];
+        static  double[] headingFontSizePoints = [16, 13, 12, 11, 11, 11];
 
         // What the element a run is written into already sets for its text, so that the run
         // carries only what differs: a heading is bold and has its own size, and a list item
         // takes the weight, size, colour and face of its marker. Colour and family are null where
         // the element sets none of its own — black, and the body's font.
-        readonly record struct TextContext(bool Bold, double FontSizePoints, string? Color = null, string? FontFamily = null)
+        record struct TextContext(bool Bold, double FontSizePoints, string? Color = null, string? FontFamily = null)
         {
             public static TextContext Body { get; } = new(false, defaultBodyFontSizePoints);
         }
 
         // Full-document exports pass their prelude-seeded builder so the body streams straight
         // into the final output instead of being materialized and copied once more at the end.
-        readonly StringBuilder builder = output ?? new();
-        readonly HashSet<string> usedHeadingIds = [];
+        StringBuilder builder = output ?? new();
+        HashSet<string> usedHeadingIds = [];
 
         // Distinct picture recolours used so far, in first-use order — the index is the filter's
         // id. CSS has no duotone, so each becomes an SVG feColorMatrix the images reference and
         // WriteRecolorFilters emits once at the end.
-        readonly List<ImageRecolor> recolorFilters = [];
+        List<ImageRecolor> recolorFilters = [];
         int imageIndex;
         int shapeIndex;
 
@@ -397,10 +408,16 @@ static class HtmlExporter
         ParagraphProperties? borderGroupPrevious;
         ParagraphProperties? borderGroupNext;
 
-        readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
-        readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
-        readonly List<(int Number, string Text)> notes = [];
-        readonly Dictionary<string, int> noteNumbers = [];
+        Dictionary<string, string> footnoteTexts = footnotes
+            .GroupBy(_ => _.Id)
+            .ToDictionary(_ => _.Key, _ => _.First().Text);
+
+        Dictionary<string, string> endnoteTexts = endnotes
+            .GroupBy(_ => _.Id)
+            .ToDictionary(_ => _.Key, _ => _.First().Text);
+
+        List<(int Number, string Text)> notes = [];
+        Dictionary<string, int> noteNumbers = [];
 
         // How far down the page the flow being written starts, where that is not the top margin:
         // set while the footer is written (see WriteFooter).
@@ -509,7 +526,13 @@ static class HtmlExporter
                 switch (elements[index])
                 {
                     case PageBreakElement:
-                    case SectionBreakElement {BreakType: SectionBreakType.NextPage or SectionBreakType.EvenPage or SectionBreakType.OddPage}:
+                    case SectionBreakElement
+                    {
+                        BreakType:
+                        SectionBreakType.NextPage or
+                        SectionBreakType.EvenPage or
+                        SectionBreakType.OddPage
+                    }:
                         return index + 1;
                     case ParagraphElement {Properties.PageBreakBefore: true}:
                         var boundary = index;
@@ -586,7 +609,10 @@ static class HtmlExporter
                         var top = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor).Top;
                         return (top, top + height);
                     }
-                    case FloatingImageElement {WrapType: WrapType.None} image:
+                    case FloatingImageElement
+                    {
+                        WrapType: WrapType.None
+                    } image:
                     {
                         var top = FloatOrigin(0, PageTop(image.VerticalAnchor, image.VerticalPositionPoints), image.VerticalAnchor).Top;
                         return (top, top + image.HeightPoints);
@@ -609,11 +635,17 @@ static class HtmlExporter
             {
                 var element = elements[index];
 
-                if (element is ParagraphElement {Properties.Numbering: not null})
+                if (element is ParagraphElement
+                    {
+                        Properties.Numbering: not null
+                    })
                 {
                     var items = new List<ParagraphElement>();
                     while (index < end &&
-                           elements[index] is ParagraphElement {Properties.Numbering: not null} listItem)
+                           elements[index] is ParagraphElement
+                           {
+                               Properties.Numbering: not null
+                           } listItem)
                     {
                         items.Add(listItem);
                         index++;
@@ -672,7 +704,8 @@ static class HtmlExporter
             var before = properties.SpacingBeforePoints;
             var after = properties.SpacingAfterPoints;
             var styleKey = ParagraphGap.StyleKey(properties);
-            if (previous != null && ParagraphGap.StyleKey(previous.Properties) == styleKey)
+            if (previous != null &&
+                ParagraphGap.StyleKey(previous.Properties) == styleKey)
             {
                 if (properties.ContextualSpacing)
                 {
@@ -684,12 +717,15 @@ static class HtmlExporter
                 }
             }
 
-            if (properties.ContextualSpacing && next != null && ParagraphGap.StyleKey(next.Properties) == styleKey)
+            if (properties.ContextualSpacing &&
+                next != null &&
+                ParagraphGap.StyleKey(next.Properties) == styleKey)
             {
                 after = 0;
             }
 
-            if (before == properties.SpacingBeforePoints && after == properties.SpacingAfterPoints)
+            if (before == properties.SpacingBeforePoints &&
+                after == properties.SpacingAfterPoints)
             {
                 return paragraph;
             }
@@ -697,7 +733,11 @@ static class HtmlExporter
             return new()
             {
                 Runs = paragraph.Runs,
-                Properties = properties with {SpacingBeforePoints = before, SpacingAfterPoints = after},
+                Properties = properties with
+                {
+                    SpacingBeforePoints = before,
+                    SpacingAfterPoints = after
+                },
                 IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
                 IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
                 IsSectionBreakMark = paragraph.IsSectionBreakMark
@@ -735,7 +775,10 @@ static class HtmlExporter
                     // box or panel read as one (they were dropped, leaving bare paragraphs).
                     // A box with nothing visible in it stays a bare div, so an empty one costs
                     // the flow nothing.
-                    var hasVisibleContent = textBox.Content.Any(_ => _ is not ParagraphElement contentParagraph || !IsBlankForHtml(contentParagraph));
+                    var hasVisibleContent = textBox
+                        .Content
+                        .Any(_ => _ is not ParagraphElement contentParagraph ||
+                                  !IsBlankForHtml(contentParagraph));
                     Indent(depth).Append(hasVisibleContent ? TextBoxOpenTag(textBox, positionStyle: null) : "<div>").Append('\n');
                     WriteElements(textBox.Content, depth + 1);
                     Indent(depth).Append("</div>\n");
@@ -767,8 +810,10 @@ static class HtmlExporter
                     WriteShape(shape, depth);
                     break;
                 case InkElement:
-                    options.OnWarning?.Invoke(new(WarningKind.UnsupportedElement,
-                        $"{element.GetType().Name} cannot be represented in reflowable HTML and was dropped."));
+                    options.OnWarning?.Invoke(
+                        new(
+                            WarningKind.UnsupportedElement,
+                            $"{element.GetType().Name} cannot be represented in reflowable HTML and was dropped."));
                     break;
                 // PageBreak / ColumnBreak / SectionBreak / LineBreak have no semantic representation
                 // in reflowable HTML and are intentionally omitted (no warning — they're flow hints,
@@ -830,14 +875,15 @@ static class HtmlExporter
         // flow's indent and line break, as the rest of a cell's content is.
         bool TryWriteTabbedParagraph(ParagraphElement paragraph, int depth, double measure, bool inCell = false)
         {
-            if (paragraph.Properties.TabStops.Count == 0)
+            var properties = paragraph.Properties;
+            if (properties.TabStops.Count == 0)
             {
                 return false;
             }
 
             var stops = new List<TabStop>();
             var barStops = new List<TabStop>();
-            foreach (var stop in paragraph.Properties.TabStops)
+            foreach (var stop in properties.TabStops)
             {
                 if (stop.Alignment == TabAlignment.Bar)
                 {
@@ -850,7 +896,8 @@ static class HtmlExporter
             }
 
             stops.Sort((a, b) => a.PositionPoints.CompareTo(b.PositionPoints));
-            if (stops.Count == 0 && barStops.Count == 0)
+            if (stops.Count == 0 &&
+                barStops.Count == 0)
             {
                 return false;
             }
@@ -862,7 +909,8 @@ static class HtmlExporter
                 {
                     segments.Add([]);
                 }
-                else if (run.InlineImageData != null || run.InlineShapeGroup != null)
+                else if (run.InlineImageData != null ||
+                         run.InlineShapeGroup != null)
                 {
                     // Images inside a flex row would become flex items and shift; leave those
                     // paragraphs on the plain path.
@@ -881,7 +929,7 @@ static class HtmlExporter
                 // grid — approximated as a fixed gap, since a reflowing export cannot know where
                 // the grid lands. The rules are absolutely positioned children of the paragraph.
                 OpenTabbedParagraph(depth, inCell);
-                AppendParagraphStyle(paragraph.Properties, extraStyle: "position: relative");
+                AppendParagraphStyle(properties, extraStyle: "position: relative");
                 builder.Append('>');
                 foreach (var bar in barStops)
                 {
@@ -904,7 +952,7 @@ static class HtmlExporter
             }
 
             var tabCount = segments.Count - 1;
-            if (tabCount == 0 || ReachableStops(segments, stops, paragraph.Properties) is not { } reached)
+            if (tabCount == 0 || ReachableStops(segments, stops, properties) is not { } reached)
             {
                 return false;
             }
@@ -916,15 +964,18 @@ static class HtmlExporter
             // as the final tab.
             for (var i = 0; i < tabCount - 1; i++)
             {
-                if (stops[i].Alignment is TabAlignment.Right or TabAlignment.Decimal &&
-                    stops[i].PositionPoints < measure - 40)
+                var stop = stops[i];
+                if (stop.Alignment is
+                        TabAlignment.Right or
+                        TabAlignment.Decimal &&
+                    stop.PositionPoints < measure - 40)
                 {
                     return false;
                 }
             }
 
             OpenTabbedParagraph(depth, inCell);
-            AppendParagraphStyle(paragraph.Properties, extraStyle: "display: flex");
+            AppendParagraphStyle(properties, extraStyle: "display: flex");
             builder.Append('>');
             WriteTabbedSegments(segments, stops, TextContext.Body, measure);
             builder.Append(inCell ? "</p>" : "</p>\n");
@@ -960,7 +1011,9 @@ static class HtmlExporter
                 }
 
                 var stop = stops[index];
-                if (stop.Alignment is TabAlignment.Right or TabAlignment.Decimal)
+                if (stop.Alignment is
+                    TabAlignment.Right or
+                    TabAlignment.Decimal)
                 {
                     if (stop.PositionPoints >= measure - 40)
                     {
@@ -1040,7 +1093,8 @@ static class HtmlExporter
                 {
                     segments.Add([]);
                 }
-                else if (run.InlineImageData != null || run.InlineShapeGroup != null)
+                else if (run.InlineImageData != null ||
+                         run.InlineShapeGroup != null)
                 {
                     return null;
                 }
@@ -1060,7 +1114,9 @@ static class HtmlExporter
 
             for (var i = 0; i < tabCount - 1; i++)
             {
-                if (stops[i].Alignment is TabAlignment.Right or TabAlignment.Decimal &&
+                if (stops[i].Alignment is
+                        TabAlignment.Right or
+                        TabAlignment.Decimal &&
                     stops[i].PositionPoints < pageSettings.ContentWidth - 40)
                 {
                     return null;
@@ -1096,7 +1152,8 @@ static class HtmlExporter
                     }
                 }
 
-                while (next < stops.Count && stops[next].PositionPoints <= pen)
+                while (next < stops.Count &&
+                       stops[next].PositionPoints <= pen)
                 {
                     next++;
                 }
@@ -1149,9 +1206,16 @@ static class HtmlExporter
             var headingDefaultSize = headingFontSizePoints[level - 1];
             var uniformSize = UniformRunFontSize(paragraph.Runs);
             var effectiveSize = uniformSize ?? headingDefaultSize;
-            var liftedSize = uniformSize != null && Math.Abs(uniformSize.Value - headingDefaultSize) > 0.01
-                ? uniformSize
-                : null;
+            double? liftedSize;
+            if (uniformSize != null &&
+                Math.Abs(uniformSize.Value - headingDefaultSize) > 0.01)
+            {
+                liftedSize = uniformSize;
+            }
+            else
+            {
+                liftedSize = null;
+            }
 
             // A heading laying its content out against declared tab stops (resumes/18's
             // "date<tab>title" Experience rows) takes the same flex form the paragraph path uses,
@@ -1183,8 +1247,11 @@ static class HtmlExporter
             double? size = null;
             foreach (var run in runs)
             {
-                if (run.Properties.Hidden || run.IsTab || run.InlineImageData != null ||
-                    run.FootnoteReferenceId != null || run.EndnoteReferenceId != null ||
+                if (run.Properties.Hidden ||
+                    run.IsTab ||
+                    run.InlineImageData != null ||
+                    run.FootnoteReferenceId != null ||
+                    run.EndnoteReferenceId != null ||
                     string.IsNullOrEmpty(run.Text))
                 {
                     continue;
@@ -1369,8 +1436,10 @@ static class HtmlExporter
                 _ => image.HorizontalPositionPoints + image.WidthPoints / 2 <= pageSettings.ContentWidth / 2 ? "left" : "right"
             };
             var style = $"float: {side}; clear: {side}";
-            if (image.WrapDistanceTopPoints > 0.01 || image.WrapDistanceRightPoints > 0.01 ||
-                image.WrapDistanceBottomPoints > 0.01 || image.WrapDistanceLeftPoints > 0.01)
+            if (image.WrapDistanceTopPoints > 0.01 ||
+                image.WrapDistanceRightPoints > 0.01 ||
+                image.WrapDistanceBottomPoints > 0.01 ||
+                image.WrapDistanceLeftPoints > 0.01)
             {
                 style += $"; margin: {BoxShorthand(image.WrapDistanceTopPoints, image.WrapDistanceRightPoints, image.WrapDistanceBottomPoints, image.WrapDistanceLeftPoints)}";
             }
@@ -1435,7 +1504,8 @@ static class HtmlExporter
                 WriteShape(box, depth);
             }
 
-            if (textBox.Content.All(_ => _ is ParagraphElement paragraph && IsBlankForHtml(paragraph)))
+            if (textBox.Content.All(_ => _ is ParagraphElement paragraph &&
+                                         IsBlankForHtml(paragraph)))
             {
                 return;
             }
@@ -1674,8 +1744,10 @@ static class HtmlExporter
                 return;
             }
 
-            var joinsPrevious = borderGroupPrevious != null && borderGroupPrevious.SharesBorderGroupWith(properties);
-            var joinsNext = borderGroupNext != null && properties.SharesBorderGroupWith(borderGroupNext);
+            var joinsPrevious = borderGroupPrevious != null &&
+                                borderGroupPrevious.SharesBorderGroupWith(properties);
+            var joinsNext = borderGroupNext != null &&
+                            properties.SharesBorderGroupWith(borderGroupNext);
             var top = properties.BorderTopSpacePoints;
             var bottom = properties.BorderBottomSpacePoints;
             var effective = borders;
@@ -1752,7 +1824,8 @@ static class HtmlExporter
                 }
 
                 builder.Append(">\n");
-                while (index < nodes.Count && nodes[index].Ordered == ordered)
+                while (index < nodes.Count &&
+                       nodes[index].Ordered == ordered)
                 {
                     WriteListItem(nodes[index], depth + 1, context);
                     index++;
@@ -1929,7 +2002,8 @@ static class HtmlExporter
             }
 
             var headerRowCount = 0;
-            while (headerRowCount < rows.Count && rows[headerRowCount].IsHeader)
+            while (headerRowCount < rows.Count &&
+                   rows[headerRowCount].IsHeader)
             {
                 headerRowCount++;
             }
@@ -2634,7 +2708,8 @@ static class HtmlExporter
                     continue;
                 }
 
-                if (chars[i - 1] is not (' ' or '\u00A0') && chars[i + 1] is not (' ' or '\u00A0'))
+                if (chars[i - 1] is not (' ' or '\u00A0') &&
+                    chars[i + 1] is not (' ' or '\u00A0'))
                 {
                     chars[i] = ' ';
                 }
@@ -2680,7 +2755,8 @@ static class HtmlExporter
             // UA default — so a <strong> inside one is redundant and is skipped, mirroring the
             // Markdown exporter's heading bold suppression. A run that is explicitly non-bold in a
             // heading is still honoured: InlineStyle emits font-weight: normal for it.
-            var strong = properties.Bold && !context.Bold;
+            var strong = properties.Bold &&
+                         !context.Bold;
             if (strong)
             {
                 builder.Append("<strong>");
@@ -2793,7 +2869,8 @@ static class HtmlExporter
 
             // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared
             // for:" label styled Heading 2, say) must override back to normal weight to match Word.
-            var overrideWeight = context.Bold && !properties.Bold;
+            var overrideWeight = context.Bold &&
+                                 !properties.Bold;
 
             // Only a run whose font differs from the one its element sets — the document's <body>
             // font, or a list item's marker face — needs an inline family; the common case (run
@@ -2810,7 +2887,9 @@ static class HtmlExporter
                 background == null &&
                 properties is {SmallCaps: false, AllCaps: false} &&
                 !hasFontSize &&
-                !overrideWeight && !hasFont && !hasLetterSpacing)
+                !overrideWeight &&
+                !hasFont &&
+                !hasLetterSpacing)
             {
                 return null;
             }
@@ -2899,7 +2978,8 @@ static class HtmlExporter
                 chrome = true;
             }
 
-            if (DocumentExportHelpers.NormalizeColor(textBox.LineColorHex) is { } line && textBox.LineWidthPoints > 0)
+            if (DocumentExportHelpers.NormalizeColor(textBox.LineColorHex) is { } line &&
+                textBox.LineWidthPoints > 0)
             {
                 style.Append($"border: {Number(textBox.LineWidthPoints)}pt solid {line}; ");
                 chrome = true;
@@ -2959,19 +3039,22 @@ static class HtmlExporter
             // (the ring's centre is open), so it approximates as a border at the preset frame's
             // ring thickness (1/8 of the short side).
             var boxStyle = new StringBuilder();
-            if (wordArt.BoxSubpaths is {Count: > 0} && DocumentExportHelpers.NormalizeColor(wordArt.BoxFillColorHex) is { } ringFill)
+            if (wordArt.BoxSubpaths is {Count: > 0} &&
+                DocumentExportHelpers.NormalizeColor(wordArt.BoxFillColorHex) is { } ringFill)
             {
                 var ring = Math.Min(wordArt.WidthPoints, wordArt.HeightPoints) / 8;
                 boxStyle.Append($"border: {Number(ring)}pt solid {ringFill}; ");
             }
             else
             {
-                if (wordArt.BoxSubpaths == null && DocumentExportHelpers.NormalizeColor(wordArt.BoxFillColorHex) is { } boxFill)
+                if (wordArt.BoxSubpaths == null &&
+                    DocumentExportHelpers.NormalizeColor(wordArt.BoxFillColorHex) is { } boxFill)
                 {
                     boxStyle.Append($"background-color: {boxFill}; ");
                 }
 
-                if (DocumentExportHelpers.NormalizeColor(wordArt.BoxLineColorHex) is { } boxLine && wordArt.BoxLineWidthPoints > 0)
+                if (DocumentExportHelpers.NormalizeColor(wordArt.BoxLineColorHex) is { } boxLine &&
+                    wordArt.BoxLineWidthPoints > 0)
                 {
                     boxStyle.Append($"border: {Number(wordArt.BoxLineWidthPoints)}pt solid {boxLine}; ");
                 }
@@ -3678,7 +3761,9 @@ static class HtmlExporter
             // back to the frame: a hidden-overflow box the frame's size, the full image inside it
             // offset by the cropped-away edges. The transform (and any float/absolute placement
             // style) rides on the box, since it is the frame that Word rotates and positions.
-            if (crop is {IsCropped: true} && widthPoints > 0 && heightPoints > 0)
+            if (crop is {IsCropped: true} &&
+                widthPoints > 0 &&
+                heightPoints > 0)
             {
                 var (offsetX, offsetY, fullWidth, fullHeight) = crop.Expand(0, 0, widthPoints, heightPoints);
                 if (Math.Abs(fullWidth - widthPoints) > 0.01 || Math.Abs(fullHeight - heightPoints) > 0.01 ||
@@ -3765,7 +3850,8 @@ static class HtmlExporter
 
         static string SelectedItem(DropDownFormFieldElement dropDown)
         {
-            if (dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count)
+            if (dropDown.SelectedIndex >= 0 &&
+                dropDown.SelectedIndex < dropDown.Items.Count)
             {
                 return dropDown.Items[dropDown.SelectedIndex];
             }
@@ -3813,7 +3899,8 @@ static class HtmlExporter
             {
                 if (char.IsLetterOrDigit(character))
                 {
-                    if (pendingHyphen && slug.Length > 0)
+                    if (pendingHyphen &&
+                        slug.Length > 0)
                     {
                         slug.Append('-');
                     }

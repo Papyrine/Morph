@@ -168,7 +168,13 @@ static partial class DocumentEditor
                 return [paragraph];
             }
 
-            return [.. body.Skip(start).Where(_ => ReferenceEquals(_, paragraph) || Numbering(_) is {Id: var id} && id == list)];
+            return
+            [
+                .. body.Skip(start)
+                    .Where(_ => ReferenceEquals(_, paragraph) ||
+                                Numbering(_) is {Id: var id} &&
+                                id == list)
+            ];
         }
     }
 }

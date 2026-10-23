@@ -102,17 +102,21 @@ sealed class CanonicalTextMeasurer
         double explicitPoints = 0,
         double naturalPitchPoints = 0)
     {
-        if (rule == LineSpacingRule.Exactly && explicitPoints > 0)
+        if (rule == LineSpacingRule.Exactly &&
+            explicitPoints > 0)
         {
             return explicitPoints * 0.8;
         }
 
-        if (rule == LineSpacingRule.AtLeast && explicitPoints > naturalPitchPoints && naturalPitchPoints > 0)
+        if (rule == LineSpacingRule.AtLeast &&
+            explicitPoints > naturalPitchPoints &&
+            naturalPitchPoints > 0)
         {
             return naturalAscentPoints + (explicitPoints - naturalPitchPoints);
         }
 
-        if (rule == LineSpacingRule.Auto && multiplier < 1)
+        if (rule == LineSpacingRule.Auto &&
+            multiplier < 1)
         {
             return naturalAscentPoints * multiplier;
         }
@@ -308,8 +312,10 @@ sealed class CanonicalTextMeasurer
         var end = start;
         while (end < text.Length)
         {
-            var length = char.IsHighSurrogate(text[end]) && end + 1 < text.Length ? 2 : 1;
-            if (end > start && shifts[end] != shift)
+            var length = char.IsHighSurrogate(text[end]) &&
+                         end + 1 < text.Length ? 2 : 1;
+            if (end > start &&
+                shifts[end] != shift)
             {
                 break;
             }
@@ -445,7 +451,8 @@ sealed class CanonicalTextMeasurer
         var start = 0;
         for (var i = 0; i < word.Length - 1; i++)
         {
-            if (IsDash(word[i]) && !IsDash(word[i + 1]))
+            if (IsDash(word[i]) &&
+                !IsDash(word[i + 1]))
             {
                 yield return word[start..(i + 1)];
                 start = i + 1;

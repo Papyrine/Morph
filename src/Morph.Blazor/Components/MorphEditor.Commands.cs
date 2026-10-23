@@ -47,7 +47,8 @@ public partial class MorphEditor
             RulerShown = rulerShown,
             PagesShown = sidebarOpen,
             ReviewShown = reviewOpen,
-            FindShown = findOpen && !replaceOpen,
+            FindShown = findOpen &&
+                        !replaceOpen,
             ReplaceShown = ReplaceShown,
             Presenting = presenting
         };

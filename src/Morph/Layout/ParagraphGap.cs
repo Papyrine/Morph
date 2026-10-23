@@ -37,8 +37,10 @@ static class ParagraphGap
         bool previousIsParagraph,
         ParagraphProperties current)
     {
-        var sameStyle = previousIsParagraph && StyleKey(current) == previousStyleKey;
-        var after = previousContextual && sameStyle ? 0f : previousAfter;
+        var sameStyle = previousIsParagraph &&
+                        StyleKey(current) == previousStyleKey;
+        var after = previousContextual &&
+                    sameStyle ? 0f : previousAfter;
         return (after, Before(previousAfter, previousStyleKey, previousIsParagraph, current));
     }
 
@@ -120,7 +122,9 @@ static class ParagraphGap
         bool previousIsParagraph,
         ParagraphProperties current)
     {
-        if (current.ContextualSpacing && previousIsParagraph && StyleKey(current) == previousStyleKey)
+        if (current.ContextualSpacing &&
+            previousIsParagraph &&
+            StyleKey(current) == previousStyleKey)
         {
             return 0;
         }

@@ -96,7 +96,8 @@ static class DocumentReading
     /// </summary>
     public static byte[] Edit(byte[] docx, Action<WordprocessingDocument> edit)
     {
-        if (capturing && Take(docx) is { } held)
+        if (capturing &&
+            Take(docx) is { } held)
         {
             return EditCaptured(held, edit);
         }
@@ -104,7 +105,8 @@ static class DocumentReading
         var stream = Copy(docx);
 
         // A Strict file is read through a rewrite, which the package open here is not.
-        if (capturing && !StrictToTransitional.IsStrict(stream))
+        if (capturing &&
+            !StrictToTransitional.IsStrict(stream))
         {
             return EditCaptured(new(docx, stream, OpenCaptured(stream)), edit);
         }

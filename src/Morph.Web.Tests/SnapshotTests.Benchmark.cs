@@ -216,7 +216,8 @@ public partial class SnapshotTests
             var rounds = new List<RoundTimings>();
             for (var round = 0; round < 3; round++)
             {
-                var profiling = profile != null && round == 0;
+                var profiling = profile != null &&
+                                round == 0;
                 if (profiling)
                 {
                     await devTools.SendAsync("Profiler.enable");
@@ -454,7 +455,8 @@ public partial class SnapshotTests
     }
 
     static bool Overlaps(LongTask task, double from, double to) =>
-        task.Start < to && task.Start + task.Duration > from;
+        task.Start < to &&
+        task.Start + task.Duration > from;
 
     // How long the main thread was held by long tasks between two times.
     static double Blocked(List<LongTask> tasks, double from, double to) =>

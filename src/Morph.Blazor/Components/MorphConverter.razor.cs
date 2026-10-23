@@ -104,7 +104,9 @@ public partial class MorphConverter : IDisposable
         }
     }
 
-    bool ResultPaneVisible => ShowResultPane && wideViewport && target != OutputFormat.Png;
+    bool ResultPaneVisible => ShowResultPane &&
+                              wideViewport &&
+                              target != OutputFormat.Png;
 
     protected override void OnInitialized() =>
         target = InitialTarget;

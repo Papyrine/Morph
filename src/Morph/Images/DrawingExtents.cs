@@ -303,7 +303,8 @@ static class DrawingExtents
             }
         }
 
-        if (double.TryParse(value[..^unit], CultureInfo.InvariantCulture, out var parsed) && parsed > 0)
+        if (double.TryParse(value[..^unit], CultureInfo.InvariantCulture, out var parsed) &&
+            parsed > 0)
         {
             return parsed / perInch;
         }

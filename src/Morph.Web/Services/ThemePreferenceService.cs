@@ -13,7 +13,8 @@ public class ThemePreferenceService(IJSRuntime jsRuntime)
     public async Task<ThemeType> GetSavedThemeAsync()
     {
         var value = await jsRuntime.InvokeAsync<string?>("statePreference.get", ThemeKey);
-        if (value is not null && Enum.TryParse<ThemeType>(value, out var theme))
+        if (value is not null &&
+            Enum.TryParse<ThemeType>(value, out var theme))
         {
             return theme;
         }

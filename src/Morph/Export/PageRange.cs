@@ -13,5 +13,6 @@ public readonly record struct PageRange(int Start, int End)
     public static PageRange Single(int page) => new(page, page);
 
     /// <summary>Whether <paramref name="pageNumber"/> (1-based) is included in this range.</summary>
-    public bool Contains(int pageNumber) => pageNumber >= Start && pageNumber <= End;
+    public bool Contains(int pageNumber) => pageNumber >= Start &&
+                                            pageNumber <= End;
 }

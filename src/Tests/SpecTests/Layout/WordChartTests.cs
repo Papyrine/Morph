@@ -38,8 +38,11 @@ public class WordChartTests
         foreach (var box in boxes)
         {
             // Everything drawn stands inside the chart's box, and its text includes the title.
-            await Assert.That(box.Composed!.All(_ => _.X >= box.X - 0.5f && _.X + _.Width <= box.X + box.Width + 0.5f)).IsTrue();
-            await Assert.That(box.Composed!.OfType<PlacedLine>().Any(_ => _.Runs.Any(_ => _.Text is "Quarterly Sales" or "Web Traffic"))).IsTrue();
+            await Assert.That(box.Composed!
+                .All(_ => _.X >= box.X - 0.5f &&
+                          _.X + _.Width <= box.X + box.Width + 0.5f)).IsTrue();
+            await Assert.That(box.Composed!.OfType<PlacedLine>()
+                .Any(_ => _.Runs.Any(_ => _.Text is "Quarterly Sales" or "Web Traffic"))).IsTrue();
         }
     }
 

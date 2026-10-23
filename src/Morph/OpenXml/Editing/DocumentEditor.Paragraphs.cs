@@ -241,7 +241,8 @@ static partial class DocumentEditor
         // The id of the style of a type that the document's text of that type is in when it names none.
         string? DefaultOf(StyleValues? type) =>
             main.StyleDefinitionsPart?.Styles?.Elements<Style>()
-                .FirstOrDefault(_ => _.Type?.Value == type && _.Default?.Value == true)?.StyleId?.Value;
+                .FirstOrDefault(_ => _.Type?.Value == type &&
+                                     _.Default?.Value == true)?.StyleId?.Value;
 
         public void Restyle(Paragraph paragraph, string styleId)
         {
@@ -274,7 +275,8 @@ static partial class DocumentEditor
         void Unformat(Paragraph paragraph)
         {
             var runs = ParagraphContent.Runs(paragraph)
-                .Where(_ => _.Deletion == null && SourceRuns.Length(_.Run) > 0)
+                .Where(_ => _.Deletion == null &&
+                            SourceRuns.Length(_.Run) > 0)
                 .Select(_ => _.Run)
                 .ToList();
             if (runs.Count == 0)
@@ -607,7 +609,8 @@ static partial class DocumentEditor
 
             // Out no further than the margin, where the first level's number stands.
             if (shift < 0 &&
-                levels.Any(_ => Indents(_) is var (left, offset) && (left ?? 0) + (offset ?? 0) + shift < 0))
+                levels.Any(_ => Indents(_) is var (left, offset) &&
+                                (left ?? 0) + (offset ?? 0) + shift < 0))
             {
                 return;
             }

@@ -272,7 +272,8 @@ static class ReviewDocuments
             }
 
             // Every cell ends in a paragraph; its mark says nothing a test wants to read.
-            if (builder.Length > 0 && builder[^1] == '¶')
+            if (builder.Length > 0 &&
+                builder[^1] == '¶')
             {
                 builder.Length--;
             }

@@ -259,7 +259,8 @@ public partial class MorphViewer : IAsyncDisposable
                 _ = OpenSourceAsync(bytes, FileName);
             }
         }
-        else if (Url is { } url && url != openedUrl)
+        else if (Url is { } url &&
+                 url != openedUrl)
         {
             openedUrl = url;
             _ = OpenUrlAsync(url);
@@ -450,7 +451,8 @@ public partial class MorphViewer : IAsyncDisposable
             documentId = opening;
             await viewer.LoadAsync(opening, pageSizes, opened.Json, currentPage - 1, ZoomName(InitialZoom), info.PageNoun);
             await viewer.SetPicturesAsync(opening, opened.Pictures);
-            if (findOpen && findQuery.Trim().Length > 0)
+            if (findOpen &&
+                findQuery.Trim().Length > 0)
             {
                 await RunSearchAsync();
             }
@@ -458,20 +460,26 @@ public partial class MorphViewer : IAsyncDisposable
             // The pane stays open from one Word document to the next, and opens by itself only where
             // the host asked and there is something in it.
             var hasReview = review.Comments.Count > 0 || review.Changes.Count > 0;
-            reviewOpen = ShowReview && IsWord && (reviewOpen || (OpenReview && hasReview));
+            reviewOpen = ShowReview &&
+                         IsWord &&
+                         (reviewOpen || (OpenReview &&
+                                         hasReview));
             BuildEntries();
             await viewer.SetReviewModeAsync(reviewOpen);
             await PushReviewAsync(false);
 
             // The editor edits every Word document that allows it.
-            editOpen = Editing && CanWrite;
+            editOpen = Editing &&
+                       CanWrite;
             await viewer.SetEditModeAsync(editOpen);
             await DocumentOpenedAsync(viewer);
         }
         catch (Exception exception)
         {
             // Disposal cancels the open; that is not a failure to report.
-            if (opening == generation && !disposed)
+            if (opening ==
+                generation &&
+                !disposed)
             {
                 ReportError($"Could not open the {info.DisplayName}", exception);
             }
@@ -715,7 +723,11 @@ public partial class MorphViewer : IAsyncDisposable
     {
         try
         {
-            while (!disposed && !printing && renderQueue.Length >= 3 && document is { } current && handle is { } viewer)
+            while (!disposed &&
+                   !printing &&
+                   renderQueue.Length >= 3 &&
+                   document is { } current &&
+                   handle is { } viewer)
             {
                 // A real macrotask, not Task.Yield: the browser paints and delivers scroll and input events
                 // between two pages — which is also what brings the script's next wish list in.
@@ -735,7 +747,8 @@ public partial class MorphViewer : IAsyncDisposable
                 }
 
                 var stamp = documentId;
-                if (VectorPages && await ShowVectorAsync(current, viewer, stamp, kind, page, dpi))
+                if (VectorPages &&
+                    await ShowVectorAsync(current, viewer, stamp, kind, page, dpi))
                 {
                     continue;
                 }
@@ -752,7 +765,8 @@ public partial class MorphViewer : IAsyncDisposable
                 }
                 catch (Exception exception)
                 {
-                    if (stamp == documentId && kind == 0)
+                    if (stamp == documentId &&
+                        kind == 0)
                     {
                         await viewer.SetPageErrorAsync(stamp, page, $"This {PageNoun} could not be rendered: {exception.Message}");
                     }
@@ -816,7 +830,8 @@ public partial class MorphViewer : IAsyncDisposable
             return false;
         }
 
-        if (MeasurePaint && kind == 0)
+        if (MeasurePaint &&
+            kind == 0)
         {
             watch.Restart();
             try
@@ -922,7 +937,8 @@ public partial class MorphViewer : IAsyncDisposable
 
     async Task Call(Func<ViewerHandle, ValueTask> action)
     {
-        if (handle is { } viewer && document is not null)
+        if (handle is { } viewer &&
+            document is not null)
         {
             await action(viewer);
         }
@@ -1171,7 +1187,8 @@ public partial class MorphViewer : IAsyncDisposable
         findOpen = true;
         focusFind = true;
         StateHasChanged();
-        if (!wasOpen && findQuery.Trim().Length > 0)
+        if (!wasOpen &&
+            findQuery.Trim().Length > 0)
         {
             return RunSearchAsync();
         }

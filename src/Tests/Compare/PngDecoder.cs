@@ -79,7 +79,11 @@ static class PngDecoder
                         throw new($"Unsupported PNG bit depth: {bitDepth}. Only 8-bit supported.");
                     }
 
-                    if (colorType != 0 && colorType != 2 && colorType != 3 && colorType != 4 && colorType != 6)
+                    if (colorType != 0 &&
+                        colorType != 2 &&
+                        colorType != 3 &&
+                        colorType != 4 &&
+                        colorType != 6)
                     {
                         throw new($"Unsupported PNG color type: {colorType}.");
                     }
@@ -257,7 +261,8 @@ static class PngDecoder
                     rgba[o] = palette[index * 3];
                     rgba[o + 1] = palette[index * 3 + 1];
                     rgba[o + 2] = palette[index * 3 + 2];
-                    rgba[o + 3] = trns is not null && index < trns.Length ? trns[index] : (byte)255;
+                    rgba[o + 3] = trns is not null &&
+                                  index < trns.Length ? trns[index] : (byte)255;
                 }
 
                 break;
@@ -330,7 +335,8 @@ static class PngDecoder
         var pa = Math.Abs(p - a);
         var pb = Math.Abs(p - b);
         var pc = Math.Abs(p - c);
-        if (pa <= pb && pa <= pc)
+        if (pa <= pb &&
+            pa <= pc)
         {
             return a;
         }

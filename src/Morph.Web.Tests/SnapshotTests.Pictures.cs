@@ -49,7 +49,8 @@ public partial class SnapshotTests
         await page.ClickAsync(".editor-tool:has-text('Wrap text')");
         await page.WaitForSelectorAsync(".editor-menu-item[aria-checked='true']:text-is('Square')");
         await page.ClickAsync(".editor-menu-item:text-is('In line with text')");
-        await WaitForBodyAsync(page, _ => _.Contains("wp:inline") && !_.Contains("wp:anchor"));
+        await WaitForBodyAsync(page, _ => _.Contains("wp:inline") &&
+                                          !_.Contains("wp:anchor"));
     }
 
     // The first drawing's size in points.

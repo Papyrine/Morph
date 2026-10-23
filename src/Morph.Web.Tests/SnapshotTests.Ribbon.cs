@@ -81,7 +81,11 @@ public partial class SnapshotTests
             // lowest priority first.
             foreach (var group in groups.Where(_ => _.Form == "folded"))
             {
-                await Assert.That(groups.Where(_ => _.Priority < group.Priority && _.FoldSaves).All(_ => _.Form == "folded")).IsTrue()
+                await Assert.That(
+                        groups.Where(_ => _.Priority < group.Priority &&
+                                          _.FoldSaves)
+                            .All(_ => _.Form == "folded"))
+                    .IsTrue()
                     .Because($"{group.Name} folded at {width}px");
             }
 
