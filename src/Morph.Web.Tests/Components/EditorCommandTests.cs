@@ -1,5 +1,3 @@
-using System.Reflection;
-
 // The editor's commands (MorphEditor.Commands): each is enabled, shown and checked by one rule, asked of
 // one EditorState, whether a button, a menu or a key reaches it. These lay every rule out against the
 // states that decide them, so a rule that changes shows in a snapshot's diff, and check that the table

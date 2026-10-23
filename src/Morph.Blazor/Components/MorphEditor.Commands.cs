@@ -682,7 +682,11 @@ public partial class MorphEditor
                 Place = "Layout › Arrange",
                 Menu = wrapMenu,
                 Opens = "menu",
-                Enabled = _ => _.Editable && _.PictureSelected
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    PictureSelected: true
+                }
             };
 
         // References
@@ -699,7 +703,11 @@ public partial class MorphEditor
             {
                 Icon = Lucide.RefreshCw,
                 Place = "References › Table of contents",
-                Enabled = _ => _.Editable && _.HasContents
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    HasContents: true
+                }
             };
 
         public static readonly EditorCommand Footnote =
@@ -818,7 +826,11 @@ public partial class MorphEditor
             {
                 Icon = Lucide.MessageSquarePlus,
                 Place = "Review › Comments",
-                Enabled = _ => _.CanComment && !_.Revising,
+                Enabled = _ => _ is
+                {
+                    CanComment: true,
+                    Revising: false
+                },
                 Visible = _ => _.OffersReview
             };
 
@@ -838,7 +850,11 @@ public partial class MorphEditor
                 Icon = Lucide.FilePenLine,
                 Place = "Review › Tracking",
                 Handler = CommandHandler.Script,
-                Enabled = _ => _.Editable && !_.ForcesTracking,
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    ForcesTracking: false
+                },
                 Checked = _ => _.Tracking
             };
 
@@ -847,8 +863,16 @@ public partial class MorphEditor
             {
                 Icon = Lucide.CheckCheck,
                 Place = "Review › Changes",
-                Enabled = _ => _.HasChanges && !_.Revising,
-                Visible = _ => _.OffersReview && _.CanResolve
+                Enabled = _ => _ is
+                {
+                    HasChanges: true,
+                    Revising: false
+                },
+                Visible = _ => _ is
+                {
+                    OffersReview: true,
+                    CanResolve: true
+                }
             };
 
         public static readonly EditorCommand RejectAll =
@@ -856,8 +880,16 @@ public partial class MorphEditor
             {
                 Icon = Lucide.X,
                 Place = "Review › Changes",
-                Enabled = _ => _.HasChanges && !_.Revising,
-                Visible = _ => _.OffersReview && _.CanResolve
+                Enabled = _ => _ is
+                {
+                    HasChanges: true,
+                    Revising: false
+                },
+                Visible = _ => _ is
+                {
+                    OffersReview: true,
+                    CanResolve: true
+                }
             };
 
         // View: these only show, so they are there for any document.
@@ -954,7 +986,7 @@ public partial class MorphEditor
         // Every command, by the name the script hands in. Last in the file, so that every field above is
         // set by the time it is.
         static readonly Dictionary<string, EditorCommand> all =
-            new EditorCommand[]
+            new[]
             {
                 Undo, Redo, Paste, Cut, Copy, FormatPainter, Font, FontSize, Grow, Shrink, ClearFormatting, Bold, Italic,
                 Underline, Strike, Subscript, Superscript, Highlight, Highlights, FontColour, FontColours, FontDialog,

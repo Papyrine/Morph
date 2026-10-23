@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using static EditFixtures;
 
 // A floating picture on the page: a click selects it and frames it, a corner sizes it in proportion,
@@ -54,7 +55,7 @@ public partial class SnapshotTests
     // The first drawing's size in points.
     static (double Width, double Height)? Extent(string body)
     {
-        var match = System.Text.RegularExpressions.Regex.Match(body, "<wp:extent cx=\"(\\d+)\" cy=\"(\\d+)\"");
+        var match = DrawingExtent.Match(body);
         if (!match.Success)
         {
             return null;
@@ -62,4 +63,8 @@ public partial class SnapshotTests
 
         return (long.Parse(match.Groups[1].Value) / 12700.0, long.Parse(match.Groups[2].Value) / 12700.0);
     }
+
+    // A drawing's wp:extent, cx and cy in EMUs.
+    [GeneratedRegex("<wp:extent cx=\"(\\d+)\" cy=\"(\\d+)\"")]
+    private static partial Regex DrawingExtent { get; }
 }

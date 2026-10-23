@@ -516,11 +516,7 @@ static partial class DocumentEditor
         // The levels \o "1-3" names; Word's 1 to 9 without it, 1 to 3 being what Automatic Table writes.
         static (int From, int To) Levels(string instruction)
         {
-            var match = Regex.Match(
-                instruction,
-                """
-                \\o\s+"(\d)-(\d)"
-                """);
+            var match = OutlineLevels.Match(instruction);
             if (match.Success)
             {
                 return (int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture), int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
@@ -647,4 +643,9 @@ static partial class DocumentEditor
             }
         }
     }
+
+    [GeneratedRegex("""
+                    \\o\s+"(\d)-(\d)"
+                    """)]
+    private static partial Regex OutlineLevels { get; }
 }

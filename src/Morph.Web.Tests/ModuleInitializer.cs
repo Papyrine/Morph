@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-static class ModuleInitializer
+static partial class ModuleInitializer
 {
     [ModuleInitializer]
     public static void Initialize()
@@ -17,11 +17,7 @@ static class ModuleInitializer
         // bUnit stamps a fresh element-reference GUID on InputFile each render; pin it so component
         // snapshots stay stable. Only matches the bUnit attribute, so Playwright/text snapshots are untouched.
         VerifierSettings.ScrubLinesWithReplace(_ =>
-            Regex.Replace(
-                _,
-                "blazor:elementreference=\"[^\"]*\"",
-                "blazor:elementreference=\"scrubbed\"",
-                RegexOptions.IgnoreCase));
+            ElementReference.Replace(_, "blazor:elementreference=\"scrubbed\""));
 
         // Playwright hides the caret while it takes a screenshot by styling the focused element
         // caret-color: transparent, and takes the style off again afterwards. Verify.Playwright reads
@@ -35,4 +31,7 @@ static class ModuleInitializer
         // scrubbed here — a scrubber can only fix the HTML, and those figures are painted into the
         // screenshot too.
     }
+
+    [GeneratedRegex("blazor:elementreference=\"[^\"]*\"", RegexOptions.IgnoreCase)]
+    private static partial Regex ElementReference { get; }
 }

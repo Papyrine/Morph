@@ -1,5 +1,3 @@
-using System.IO.Compression;
-
 /// <summary>
 /// Minimal reader for the OpenType <c>name</c> and <c>OS/2</c> tables. Used to index
 /// font files by every name they declare (Family, Full Name, PostScript Name, Typographic

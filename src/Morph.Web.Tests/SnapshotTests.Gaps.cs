@@ -170,11 +170,11 @@ public partial class SnapshotTests
         await Assert.That(bytes.Length).IsGreaterThan(0);
         if (extension == ".pdf")
         {
-            await Assert.That(System.Text.Encoding.ASCII.GetString(bytes, 0, 5)).IsEqualTo("%PDF-");
+            await Assert.That(Encoding.ASCII.GetString(bytes, 0, 5)).IsEqualTo("%PDF-");
         }
         else if (extension != ".png")
         {
-            await Assert.That(System.Text.Encoding.UTF8.GetString(bytes)).Contains("Second");
+            await Assert.That(Encoding.UTF8.GetString(bytes)).Contains("Second");
         }
     }
 

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Options;

@@ -600,7 +600,7 @@ public partial class SnapshotTests
         await HandInAsync(page);
 
         var body = DocumentBody(await SaveAsync(page));
-        var extent = System.Text.RegularExpressions.Regex.Match(body, "<wp:extent cx=\"(\\d+)\" cy=\"(\\d+)\" />");
+        var extent = DrawingExtent.Match(body);
         var width = long.Parse(extent.Groups[1].Value);
         var height = long.Parse(extent.Groups[2].Value);
         await Assert.That(width).IsGreaterThan(100 * 12700);

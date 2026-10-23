@@ -248,7 +248,7 @@ public class ConversionServiceTests
     [Arguments(OutputFormat.Text)]
     public async Task BuildDownload_StopsWhenCancelled(OutputFormat format)
     {
-        using var source = new CancellationTokenSource();
+        using var source = new CancelSource();
         await source.CancelAsync();
 
         await Assert.That(() => ConversionService.BuildDownload(Sample.DocxBytes, InputFormat.Docx, format, new() { Dpi = 96 }, Sample.FontDirectory, source.Token))
@@ -258,7 +258,7 @@ public class ConversionServiceTests
     [Test]
     public async Task RenderPages_StopsWhenCancelled()
     {
-        using var source = new CancellationTokenSource();
+        using var source = new CancelSource();
         await source.CancelAsync();
 
         await Assert.That(() => ConversionService.RenderPages(Sample.DocxBytes, InputFormat.Docx, 96, Sample.FontDirectory, source.Token))

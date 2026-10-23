@@ -1,7 +1,3 @@
-using System.Diagnostics;
-using System.Globalization;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using static EditFixtures;
 
 // How quickly MorphEditor answers the reader, timed on the real WebAssembly runtime in a real browser.
