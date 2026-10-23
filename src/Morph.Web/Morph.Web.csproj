@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <!-- App, not a package: no XML docs. ProjectDefaults turns on GenerateDocumentationFile in Release,
          which (with TreatWarningsAsErrors) would fail on every undocumented component/parameter. -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
