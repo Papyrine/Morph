@@ -10336,7 +10336,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // 3-point minimum, so their geometry is unchanged.
         var subpaths = ShapeParser.ExtractSubpaths(
             shapeProps,
-            minContourPoints: fillColorHex == null && imageData == null ? 2 : 3);
+            minContourPoints: fillColorHex == null &&
+                              imageData == null ? 2 : 3);
 
         // An image fill clips to the shape's real silhouette, so a preset beyond the enum's
         // Rect/Ellipse needs its built contours (newsletters/13's arch-top photo is a
@@ -10359,7 +10360,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // when it is a plain rect/ellipse preset (business/06's LOGO frame, labels/02's label
         // borders); a custGeom (menus/04's arc-path doodles) or an unbuilt preset would stroke
         // a bounding box Word doesn't draw.
-        if (fillColorHex == null && imageData == null && subpaths == null &&
+        if (fillColorHex == null &&
+            imageData == null &&
+            subpaths == null &&
             !ShapeParser.HasStrokeablePresetOutline(shapeProps))
         {
             return null;
@@ -10370,7 +10373,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // labels/04's hexagon accents drew as saturated gradient boxes over Word's soft
         // hexagons, visibly worse than their previous absence — and the stroke would box
         // the same way, so the shape drops entirely.
-        if (gradient != null && subpaths == null &&
+        if (gradient != null &&
+            subpaths == null &&
             !ShapeParser.HasStrokeablePresetOutline(shapeProps))
         {
             return null;
@@ -10468,7 +10472,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var offY = (long) (off.Y ?? 0);
         var extCx = (long) (ext.Cx ?? 0);
         var extCy = (long) (ext.Cy ?? 0);
-        if (xfrm.Rotation?.Value is { } rot && rot != 0)
+        if (xfrm.Rotation?.Value is { } rot &&
+            rot != 0)
         {
             var ownDegrees = NormalizeDegrees(rot / 60000.0);
             if (IsQuarterTurn(ownDegrees))
@@ -10491,7 +10496,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // MapRectangle already sizes by the rotated basis vectors, so a quarter-turn arrives
         // with the box axes ALREADY swapped — only oblique angles bail.
         var groupDegrees = NormalizeDegrees(mapped.RotationDegrees);
-        if (Math.Abs(groupDegrees) > 0.01 && !IsQuarterTurn(groupDegrees) && !IsHalfTurn(groupDegrees))
+        if (Math.Abs(groupDegrees) > 0.01 &&
+            !IsQuarterTurn(groupDegrees) &&
+            !IsHalfTurn(groupDegrees))
         {
             return null;
         }
@@ -10503,7 +10510,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // Lines have a zero extent on the perpendicular axis. Bail if both are zero
         // (degenerate point) — there's nothing to draw.
-        if (widthPt <= 0 && heightPt <= 0)
+        if (widthPt <= 0 &&
+            heightPt <= 0)
         {
             return null;
         }
@@ -10741,7 +10749,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (bodyPr != null)
         {
             var prstTxWarp = bodyPr.GetFirstChild<A.PresetTextWarp>();
-            if (prstTxWarp?.Preset?.HasValue == true && prstTxWarp.Preset.Value != A.TextShapeValues.TextNoShape)
+            if (prstTxWarp?.Preset?.HasValue == true &&
+                prstTxWarp.Preset.Value != A.TextShapeValues.TextNoShape)
             {
                 return null;
             }
@@ -10894,7 +10903,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         bool ChainDeclares(string? styleId)
         {
-            for (var depth = 0; styleId != null && depth < 12; depth++)
+            for (var depth = 0; styleId != null &&
+                                depth < 12; depth++)
             {
                 var style = styles.Elements<Style>().FirstOrDefault(_ => _.StyleId?.Value == styleId);
                 if (style == null)
@@ -11015,7 +11025,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (runFonts != null)
             {
                 // First try theme font reference
-                if (runFonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+                if (runFonts.AsciiTheme?.HasValue == true &&
+                    currentThemeFonts != null)
                 {
                     var themeValue = ((IEnumValue) runFonts.AsciiTheme.Value).Value;
                     var resolvedFont = currentThemeFonts.ResolveFont(themeValue);
@@ -11200,7 +11211,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (transform != WordArtTransform.None)
             {
                 var shapeSolidFill = spPr.GetFirstChild<A.SolidFill>();
-                if (shapeSolidFill != null && fillColor == null)
+                if (shapeSolidFill != null &&
+                    fillColor == null)
                 {
                     var rgbColor = shapeSolidFill.GetFirstChild<A.RgbColorModelHex>();
                     if (rgbColor?.Val?.HasValue == true)
@@ -11222,7 +11234,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // For anchored WordArt, return a floating element with position info
-        if (isAnchored && anchor != null)
+        if (isAnchored &&
+            anchor != null)
         {
             var positioning = anchor.ParsePositioning(page: anchorAlignmentPage);
 
@@ -11651,11 +11664,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 // Check if it has a val attribute with false value
                 var val = defaultElement.AttributeValue("val");
-                defaultChecked = val == null || (val != "0" && !val.Equals("false", StringComparison.CurrentCultureIgnoreCase));
+                defaultChecked = val == null ||
+                                 (val != "0" &&
+                                  !val.Equals("false", StringComparison.CurrentCultureIgnoreCase));
             }
 
             double size = 0;
-            if (sizeElement?.Val?.HasValue == true && double.TryParse(sizeElement.Val.Value, out var sizeValue))
+            if (sizeElement?.Val?.HasValue == true &&
+                double.TryParse(sizeElement.Val.Value, out var sizeValue))
             {
                 size = sizeValue.HalfPointsToPoints();
             }
@@ -11751,7 +11767,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // nextPage; reading the ending sectPr rendered the whole document without section page breaks.
         // The ending sectPr stands in only when no following sectPr exists.
         var typeSource = sectionProps;
-        if (nextSectionProps != null && nextSectionProps.TryGetValue(sectionProps, out var followingProps) && followingProps != null)
+        if (nextSectionProps != null &&
+            nextSectionProps.TryGetValue(sectionProps, out var followingProps) && followingProps != null)
         {
             typeSource = followingProps;
         }
@@ -11785,7 +11802,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // SectionProperties (sectPr) describes the section it belongs to.
         // For a section break, the following section's properties are stored in the next sectPr in the document.
         PageSettings? newSettings = null;
-        if (nextSectionSettings != null && nextSectionSettings.TryGetValue(sectionProps, out var nextSettings))
+        if (nextSectionSettings != null &&
+            nextSectionSettings.TryGetValue(sectionProps, out var nextSettings))
         {
             newSettings = nextSettings;
         }
@@ -11919,9 +11937,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (beforeAuto)
         {
-            before = paragraph != null && (IsCellEdge(paragraph, first: true) || SharesListWith(paragraph, PreviousBlock(paragraph)))
-                ? 0
-                : autoSpacingPoints;
+            if (paragraph != null &&
+                (IsCellEdge(paragraph, first: true) ||
+                 SharesListWith(paragraph, PreviousBlock(paragraph))))
+            {
+                before = 0;
+            }
+            else
+            {
+                before = autoSpacingPoints;
+            }
         }
 
         if (afterAuto)
