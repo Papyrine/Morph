@@ -580,7 +580,10 @@ public partial class SnapshotTests
 
     record BenchmarkDocument(string Name, byte[] Bytes, string First, string Second);
 
+    // Every timing is written to the report's JSON, which ReSharper does not see as a read.
+    // ReSharper disable NotAccessedPositionalProperty.Local
     record KeyTiming(double Start, double Delay, double Script, double Latency);
+    // ReSharper restore NotAccessedPositionalProperty.Local
 
     record LongTask(double Start, double Duration);
 

@@ -43,10 +43,10 @@ static partial class DocumentEditor
             var properties = Reformat(paragraph);
             Indent(properties, format);
             Space(properties, format);
-            Switch<KeepNext>(paragraph, properties, format.KeepNext, false, _ => _.KeepNext, (_, value) => _.KeepNext = value);
-            Switch<KeepLines>(paragraph, properties, format.KeepLines, false, _ => _.KeepLines, (_, value) => _.KeepLines = value);
-            Switch<PageBreakBefore>(paragraph, properties, format.PageBreakBefore, false, _ => _.PageBreakBefore, (_, value) => _.PageBreakBefore = value);
-            Switch<WidowControl>(paragraph, properties, format.WidowControl, true, _ => _.WidowControl, (_, value) => _.WidowControl = value);
+            Switch<KeepNext>(paragraph, properties, format.KeepNext, false, (_, value) => _.KeepNext = value);
+            Switch<KeepLines>(paragraph, properties, format.KeepLines, false, (_, value) => _.KeepLines = value);
+            Switch<PageBreakBefore>(paragraph, properties, format.PageBreakBefore, false, (_, value) => _.PageBreakBefore = value);
+            Switch<WidowControl>(paragraph, properties, format.WidowControl, true, (_, value) => _.WidowControl = value);
         }
 
         static void Indent(OoxmlParagraphProperties properties, ParagraphFormat format)
@@ -135,7 +135,7 @@ static partial class DocumentEditor
             ((int) Math.Round(points * 20)).ToString(CultureInfo.InvariantCulture);
 
         // A switch the paragraph says only where its style says otherwise.
-        void Switch<T>(Paragraph paragraph, OoxmlParagraphProperties properties, bool? wanted, bool unsaid, Func<OoxmlParagraphProperties, T?> read, Action<OoxmlParagraphProperties, T?> write)
+        void Switch<T>(Paragraph paragraph, OoxmlParagraphProperties properties, bool? wanted, bool unsaid, Action<OoxmlParagraphProperties, T?> write)
             where T : OnOffType, new()
         {
             if (wanted is not { } on)
@@ -144,7 +144,7 @@ static partial class DocumentEditor
             }
 
             write(properties, null);
-            if (StyleSays(paragraph, read) ?? unsaid)
+            if (StyleSays<T>(paragraph) ?? unsaid)
             {
                 // Off as Word spells it: w:val="0".
                 if (!on)
@@ -166,7 +166,7 @@ static partial class DocumentEditor
 
         // What the paragraph's style, through the styles it is based on and then the document's
         // defaults, says of a switch; null where none says.
-        bool? StyleSays<T>(Paragraph paragraph, Func<OoxmlParagraphProperties, T?> read)
+        bool? StyleSays<T>(Paragraph paragraph)
             where T : OnOffType
         {
             var styles = main.StyleDefinitionsPart?.Styles;

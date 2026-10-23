@@ -539,6 +539,8 @@ public class VectorPageComparison
     static string SourceDirectory([CallerFilePath] string path = "") =>
         Path.GetDirectoryName(path)!;
 
+    // Every result is written to results.json, which ReSharper does not see as a read.
+    // ReSharper disable NotAccessedPositionalProperty.Local
     record PageResult(
         string Scenario,
         int Page,
@@ -557,6 +559,7 @@ public class VectorPageComparison
         int ShiftX,
         int ShiftY,
         double ShiftedExact);
+    // ReSharper restore NotAccessedPositionalProperty.Local
 
     record Comparison(long PngInk, long SvgInk, double Exact, double WithinOne, int ShiftX, int ShiftY, double ShiftedExact);
 

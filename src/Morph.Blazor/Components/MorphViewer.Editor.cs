@@ -68,7 +68,7 @@ public partial class MorphViewer
             return null;
         }
 
-        if (FromEditor(place ?? []) is { } typing)
+        if (FromEditor(place) is { } typing)
         {
             return typing;
         }
