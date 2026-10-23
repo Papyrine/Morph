@@ -619,7 +619,8 @@ public partial class MorphEditor
 
         linkAddress = "https://";
         dialog = linkDialog;
-        focusLink = true;
+        // The address is asked for only of a selection: in a link with none, the dialog only removes it.
+        focusLink = linkTarget is {HasSelection: true};
     }
 
     void OnLinkInput(ChangeEventArgs args) =>

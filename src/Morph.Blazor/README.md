@@ -205,6 +205,8 @@ again, and the page redrawn.
 | Enter in an empty paragraph of a list | Ends the list: the paragraph is taken out of it, at no indent. |
 | Backspace at the start of a list's paragraph, or an indented one | Takes its number or bullet off and leaves the text where it stood; then takes its indent off a step at a time, as Word does — first to where the paragraph above starts its first line, when the text lines up under that paragraph's — and only then joins it to the paragraph before. |
 | Ctrl+Alt+1, 2, 3; Ctrl+K | Heading 1, 2 or 3; a link on what is selected. |
+| Ctrl+L, E, R, J; Ctrl+1, 2, 5; Ctrl+Shift+L | Align left, centre, right, justify; single, double or 1.5 line spacing; bullets — as Word's keys, on the open paragraph or the paragraphs selected on the pages. |
+| Ctrl+[, Ctrl+]; Ctrl+=, Ctrl+Shift+=; Ctrl+Space | Shrink and grow the font; subscript and superscript; clear formatting — on what is selected, or the word the caret is in, as the ribbon's buttons do. |
 | Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
 | A click on a picture in the line | Selects it and frames it: its corner handles size it in proportion, its side handles stretch it one way, and Reset size puts it back to the size its image was made for. Its size shows as it changes. |
 | Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
