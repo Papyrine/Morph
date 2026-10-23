@@ -48,13 +48,13 @@ public class MorphEditorTests : BunitTestContext
     }
 
     // The session the script was last given.
-    System.Text.Json.JsonElement Session()
+    JsonElement Session()
     {
         var json = (string) controller.Invocations["beginEdit"][^1].Arguments[1]!;
-        return System.Text.Json.JsonDocument.Parse(json).RootElement;
+        return JsonDocument.Parse(json).RootElement;
     }
 
-    static string Text(System.Text.Json.JsonElement session) =>
+    static string Text(JsonElement session) =>
         string.Concat(session.GetProperty("u").EnumerateArray().Select(_ => _.GetProperty("t").GetString()));
 
     [Test]
@@ -842,12 +842,12 @@ public class MorphEditorTests : BunitTestContext
     // A PNG 40 pixels by 20, made for 144 DPI: 20pt by 10pt on the page, near enough.
     static byte[] Picture()
     {
-        using var image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(40, 20);
+        using var image = new Image<Rgba32>(40, 20);
         image.Metadata.HorizontalResolution = 144;
         image.Metadata.VerticalResolution = 144;
         image.Metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
         using var stream = new MemoryStream();
-        SixLabors.ImageSharp.ImageExtensions.SaveAsPng(image, stream);
+        ImageExtensions.SaveAsPng(image, stream);
         return stream.ToArray();
     }
 
@@ -1144,7 +1144,7 @@ public class MorphEditorTests : BunitTestContext
         await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Ruler").ClickAsync(new());
 
         await Assert.That(cut.FindAll(".editor-ruler")).IsNotEmpty();
-        var model = System.Text.Json.JsonDocument.Parse((string) controller.Invocations["setRuler"][^1].Arguments[0]!).RootElement;
+        var model = JsonDocument.Parse((string) controller.Invocations["setRuler"][^1].Arguments[0]!).RootElement;
         await Assert.That(model.GetProperty("w").GetDouble()).IsGreaterThan(500);
         await Assert.That(model.GetProperty("t").GetBoolean()).IsFalse();
 

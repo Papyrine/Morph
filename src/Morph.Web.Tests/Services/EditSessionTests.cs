@@ -17,7 +17,7 @@ public class EditSessionTests
     {
         var session = Open(Paragraphs, 1);
 
-        using var json = System.Text.Json.JsonDocument.Parse(session.Json(3, 9));
+        using var json = JsonDocument.Parse(session.Json(3, 9));
         var root = json.RootElement;
 
         await Assert.That(root.GetProperty("id").GetInt32()).IsEqualTo(7);
@@ -59,8 +59,8 @@ public class EditSessionTests
             await Assert.That(blocks[0].Page).IsEqualTo(0);
             await Assert.That(blocks[1].Page).IsEqualTo(1);
 
-            using var first = System.Text.Json.JsonDocument.Parse(new EditSession(1, outline.Paragraphs[above], blocks[0], map).Json(0, 0));
-            using var second = System.Text.Json.JsonDocument.Parse(new EditSession(2, outline.Paragraphs[above], blocks[1], map).Json(0, 0));
+            using var first = JsonDocument.Parse(new EditSession(1, outline.Paragraphs[above], blocks[0], map).Json(0, 0));
+            using var second = JsonDocument.Parse(new EditSession(2, outline.Paragraphs[above], blocks[1], map).Json(0, 0));
 
             await Assert.That(first.RootElement.GetProperty("skip").GetDouble()).IsEqualTo(0);
             await Assert.That(first.RootElement.GetProperty("indent").GetDouble()).IsEqualTo(18).Within(0.01);
@@ -88,7 +88,7 @@ public class EditSessionTests
                 "<w:r><w:rPr><w:vanish/></w:rPr><w:t>unseen</w:t></w:r>"));
         var session = Open(docx, 0);
 
-        using var json = System.Text.Json.JsonDocument.Parse(session.Json(0, 0));
+        using var json = JsonDocument.Parse(session.Json(0, 0));
         var units = json.RootElement.GetProperty("u").EnumerateArray()
             .Select(_ => $"{_.GetProperty("k").GetInt32()}{(_.TryGetProperty("s", out var kind) ? " " + kind.GetString() : "")}")
             .ToList();

@@ -24,7 +24,7 @@ public partial class SnapshotTests
         await page.ClickAsync(".editor-dialog [data-format='yyyy-MM-dd']");
         await page.ClickAsync(".editor-dialog .editor-check input");
         await page.ClickAsync(".editor-dialog .editor-button-primary");
-        var today = DateTime.Now.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var today = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         await WaitForBodyAsync(page, _ => _.Contains(today) && !_.Contains(" DATE "));
     }
 
