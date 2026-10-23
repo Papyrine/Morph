@@ -861,7 +861,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.Find("label.editor-tool").ClickAsync(new());
         cut.FindComponents<Microsoft.AspNetCore.Components.Forms.InputFile>()[^1].UploadFiles(InputFileContent.CreateFromBinary(Picture(), "dot.png", null, "image/png"));
-        cut.WaitForState(() => reported != null, TimeSpan.FromSeconds(30));
+        await cut.WaitForStateAsync(() => reported != null, TimeSpan.FromSeconds(30));
 
         // A PNG says its resolution in pixels a metre: 144 DPI is written 5669, which is 143.99 DPI, and
         // the picture a hair over 20pt by 10pt — as Word, which does not round it either, draws it.
@@ -901,7 +901,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.Find("label.editor-tool").ClickAsync(new());
         cut.FindComponents<Microsoft.AspNetCore.Components.Forms.InputFile>()[^1].UploadFiles(InputFileContent.CreateFromText("not a picture", "notes.png", null, "image/png"));
-        cut.WaitForState(() => cut.Find(".editor-status-note").TextContent.Length > 0, TimeSpan.FromSeconds(30));
+        await cut.WaitForStateAsync(() => cut.Find(".editor-status-note").TextContent.Length > 0, TimeSpan.FromSeconds(30));
 
         await Assert.That(reported).IsNull();
         await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("is not a picture");
@@ -1308,7 +1308,7 @@ public class MorphEditorTests : BunitTestContext
         await cut.Find(".viewer-find-input").InputAsync(new() {Value = "e"});
 
         // Found as it is typed, once the reader pauses: Enter now would go on to the second match.
-        cut.WaitForState(() => cut.Find(".viewer-find-status").TextContent == "1 of 4", TimeSpan.FromSeconds(10));
+        await cut.WaitForStateAsync(() => cut.Find(".viewer-find-status").TextContent == "1 of 4", TimeSpan.FromSeconds(10));
         await cut.Find(".viewer-replace input").InputAsync(new() {Value = "E"});
         var replace = () => cut.FindAll(".viewer-text-button").First(_ => _.TextContent.Trim() == "Replace").ClickAsync(new());
 
@@ -1527,7 +1527,7 @@ public class MorphEditorTests : BunitTestContext
         controller.Setup<int>("zoneOffset").SetResult(600);
         var cut = Render<MorphEditor>();
 
-        cut.WaitForElement(".editor-recover");
+        await cut.WaitForElementAsync(".editor-recover");
 
         await Assert.That(cut.Find(".editor-recover-text").TextContent).IsEqualTo("Notes.docx was edited on 17 Oct at 21:20 and not saved.");
     }
@@ -1537,7 +1537,7 @@ public class MorphEditorTests : BunitTestContext
     {
         controller.Setup<DraftInfo?>("describeDraft").SetResult(new("Notes.docx", 1760700000000));
         var cut = Render<MorphEditor>();
-        cut.WaitForElement(".editor-recover");
+        await cut.WaitForElementAsync(".editor-recover");
 
         await cut.FindAll(".editor-recover .editor-button").First(_ => _.TextContent == "Discard").ClickAsync(new());
 
