@@ -1,6 +1,15 @@
 ﻿global using System.Globalization;
+global using System.Numerics;
 global using System.Text.RegularExpressions;
+global using Krilla;
 global using Morph;
-global using PdfSharp.Drawing;
-global using PdfSharp.Fonts;
-global using PdfSharp.Pdf;
+global using Color = Krilla.Color;
+global using Font = Krilla.Font;
+global using Paint = Krilla.Paint;
+global using Fill = Krilla.Fill;
+global using Stroke = Krilla.Stroke;
+global using Glyph = Krilla.Glyph;
+global using Surface = Krilla.Surface;
+global using LineCap = Krilla.LineCap;
+global using LineJoin = Krilla.LineJoin;
+global using FillRule = Krilla.FillRule;

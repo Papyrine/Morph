@@ -65,7 +65,7 @@ When a name doesn't match any indexed face, Morph falls back in this order:
 
 If all four fall through, an `InvalidOperationException` is thrown listing every directory that was searched.
 
-This chain is the shared `FontResolver`, used by the Skia and ImageSharp backends. The PDF backend has its own: PdfSharp resolves faces through the process-global `PdfFontResolver`, which mirrors steps 1, 2 and 4. Step 3 still applies, from outside — because a process-global resolver cannot see per-conversion state, `PdfRenderContext` substitutes the delegate's answer before the family name ever reaches PdfSharp, consulting it only once the indexed faces and the host's installed fonts (`HostFontIndex`) have both missed.
+This chain is the shared `FontResolver`, used by the Skia and ImageSharp backends. The PDF backend uses it too: `PdfRenderContext` resolves a `FontResolver<PdfFace>` built exactly as `LayoutFonts` builds the measurer's, and Krilla embeds the face it returns, so the painter draws the face the line was measured in. The delegate is asked only when its answer could be used — when nothing matched, or the match is a poor weight fit.
 
 ### How `FontResolver` picks a face
 

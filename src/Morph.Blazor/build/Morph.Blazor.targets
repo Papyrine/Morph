@@ -6,7 +6,7 @@
 
     Trimming the BCL, the Components framework and Morph's own assemblies (verified reflection-free) is
     safe and worth a lot of payload. The conversion pipeline's reflection-heavy dependencies are not:
-    DocumentFormat.OpenXml, AngleSharp, ImageSharp (+ Drawing/Fonts) and PdfSharp resolve types by name at
+    DocumentFormat.OpenXml, AngleSharp, and ImageSharp (+ Drawing/Fonts) resolve types by name at
     runtime, so full-trim silently strips types they need and the failure surfaces only as a browser-side
     crash part-way through a conversion. Rooting each keeps it whole.
 
@@ -25,12 +25,6 @@
     <TrimmerRootAssembly Include="SixLabors.ImageSharp.Drawing" />
     <TrimmerRootAssembly Include="SixLabors.Fonts" />
     <TrimmerRootAssembly Include="SixLabors.PolygonClipper" />
-    <TrimmerRootAssembly Include="PdfSharp" />
-    <TrimmerRootAssembly Include="PdfSharp.Charting" />
-    <TrimmerRootAssembly Include="PdfSharp.Cryptography" />
-    <TrimmerRootAssembly Include="PdfSharp.Shared" />
-    <TrimmerRootAssembly Include="PdfSharp.System" />
-    <TrimmerRootAssembly Include="PdfSharp.WPFonts" />
   </ItemGroup>
 
   <!--

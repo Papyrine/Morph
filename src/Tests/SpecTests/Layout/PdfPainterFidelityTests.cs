@@ -48,10 +48,7 @@ public class PdfPainterFidelityTests
             byte[] pdfBytes;
             try
             {
-                var pdf = PdfPainter.Paint(fragmenter.Layout(document.Elements, document.PageSettings, document.Header, document.Footer, document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter), fontsDirectory);
-                using var stream = new MemoryStream();
-                await pdf.SaveAsync(stream);
-                pdfBytes = stream.ToArray();
+                pdfBytes = PdfPainter.Paint(fragmenter.Layout(document.Elements, document.PageSettings, document.Header, document.Footer, document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter), fontsDirectory);
             }
             catch
             {

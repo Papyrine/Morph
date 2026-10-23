@@ -1,7 +1,7 @@
 namespace Morph;
 
 /// <summary>
-/// Converts PowerPoint presentations to vector-text PDF using PdfSharp, one PDF page per slide. For
+/// Converts PowerPoint presentations to vector-text PDF using Krilla, one PDF page per slide. For
 /// parse-once / export-many workflows, prefer <see cref="PowerPointDocument"/> plus its
 /// <c>ExportToPdf</c> extension.
 /// </summary>
