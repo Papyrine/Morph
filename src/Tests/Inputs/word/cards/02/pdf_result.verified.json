@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 2,
     "Pages": [
@@ -14,7 +11,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "ADMIT ONE\nKeepticketstub\n150220YY\nADMIT ONE\nKeepticketstub\n150220YY"
+        "Text": "ADMIT ONE\nKeep ticket stub\n150220YY\nADMIT ONE\nKeep ticket stub\n150220YY"
       },
       {
         "Number": 2,
@@ -29,16 +26,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.044,
-      "Ssim": 0.9866,
+      "ErrorMetric": 0.0441,
+      "Ssim": 0.9865,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.039,
-      "Ssim": 0.9719,
+      "ErrorMetric": 0.0392,
+      "Ssim": 0.9717,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

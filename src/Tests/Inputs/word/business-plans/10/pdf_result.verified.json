@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 5,
     "Pages": [
@@ -53,24 +50,24 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.7319,
-      "Ssim": 0.9186,
+      "ErrorMetric": 0.7323,
+      "Ssim": 0.9179,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0598,
-      "Ssim": 0.9247,
+      "ErrorMetric": 0.0593,
+      "Ssim": 0.929,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0584,
-      "Ssim": 0.9087,
+      "ErrorMetric": 0.0581,
+      "Ssim": 0.91,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
@@ -78,15 +75,15 @@
     {
       "Page": 4,
       "ErrorMetric": 0.0275,
-      "Ssim": 0.9672,
+      "Ssim": 0.9673,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.0313,
-      "Ssim": 0.9484,
+      "ErrorMetric": 0.0312,
+      "Ssim": 0.9491,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"

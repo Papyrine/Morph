@@ -7,10 +7,19 @@ extern alias ImageSharp;
 /// </summary>
 public class FontFaceResolutionTests
 {
+    static PdfRenderContext PdfContext() =>
+        new(new(), compatibility: null, fontWidthScale: 1, fontFallback: null, ProjectFonts.Directory);
+
     static string FileOf(string family, bool bold, bool italic = false)
     {
-        PdfFontResolver.Register(ProjectFonts.Directory);
-        return Path.GetFileName(PdfFontResolver.Instance.ResolveTypeface(family, bold, italic)!.FaceName);
+        using var context = PdfContext();
+        return Path.GetFileName(context.GetFace(family, bold, italic).Source!);
+    }
+
+    static bool PdfSimulatesBold(string family, bool bold)
+    {
+        using var context = PdfContext();
+        return BoldSimulation.For(bold, context.GetFace(family, bold, false).Metrics) != SyntheticBold.None;
     }
 
     // Word emboldens the family a run names (_probe_synbold): Franklin Gothic Book drawn bold is the Book
@@ -30,12 +39,10 @@ public class FontFaceResolutionTests
     [Test]
     public async Task A_face_that_is_not_bold_is_simulated_in_the_pdf_and_a_bold_one_is_not()
     {
-        PdfFontResolver.Register(ProjectFonts.Directory);
-
-        await Assert.That(PdfFontResolver.Instance.ResolveTypeface("Franklin Gothic Book", true, false)!.MustSimulateBold).IsTrue();
-        await Assert.That(PdfFontResolver.Instance.ResolveTypeface("Franklin Gothic Book", false, false)!.MustSimulateBold).IsFalse();
-        await Assert.That(PdfFontResolver.Instance.ResolveTypeface("Arial", true, false)!.MustSimulateBold).IsFalse();
-        await Assert.That(PdfFontResolver.Instance.ResolveTypeface("Arial Black", true, false)!.MustSimulateBold).IsFalse();
+        await Assert.That(PdfSimulatesBold("Franklin Gothic Book", true)).IsTrue();
+        await Assert.That(PdfSimulatesBold("Franklin Gothic Book", false)).IsFalse();
+        await Assert.That(PdfSimulatesBold("Arial", true)).IsFalse();
+        await Assert.That(PdfSimulatesBold("Arial Black", true)).IsFalse();
     }
 
     // Cambria's regular face is bundled only inside cambria.ttc; its bold is a file of its own. The PDF
@@ -46,55 +53,12 @@ public class FontFaceResolutionTests
         await Assert.That(FileOf("Cambria", bold: false)).IsEqualTo("cambria.ttc|0");
         await Assert.That(FileOf("Cambria", bold: true)).IsEqualTo("Cambria_700.ttf");
 
-        var face = PdfFontResolver.Instance.ResolveTypeface("Cambria", false, false)!.FaceName;
-        var bytes = PdfFontResolver.Instance.GetFont(face)!;
-        var metrics = FontMetricsReader.Read(new MemoryStream(bytes))!;
+        using var context = PdfContext();
+        var metrics = context.GetFace("Cambria", false, false).Metrics;
 
-        // A font file of its own: an sfnt header, the face's own weight, glyphs to draw with.
-        await Assert.That(System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(bytes)).IsEqualTo(0x00010000u);
+        // The face's own weight, glyphs to draw with.
         await Assert.That(metrics.Weight).IsEqualTo(400);
         await Assert.That(metrics.AdvanceWidths.Count).IsGreaterThan(1000);
-    }
-
-    [Test]
-    public async Task A_collection_member_is_lifted_out_whole()
-    {
-        var collection = File.ReadAllBytes(Path.Combine(ProjectFonts.Directory, "cambria.ttc"));
-        var first = FontCollectionFace.Extract(collection, 0)!;
-        var second = FontCollectionFace.Extract(collection, 1)!;
-
-        var fromCollection = FontMetricsReader.Read(new MemoryStream(collection), 1)!;
-        var standalone = FontMetricsReader.Read(new MemoryStream(second))!;
-        await Assert.That(standalone.UnitsPerEm).IsEqualTo(fromCollection.UnitsPerEm);
-        await Assert.That(standalone.AdvanceWidths.Count).IsEqualTo(fromCollection.AdvanceWidths.Count);
-        await Assert.That(standalone.AdvanceUnits('M')).IsEqualTo(fromCollection.AdvanceUnits('M'));
-
-        // The whole-file checksum a font carries in its head table comes out right for the new file.
-        await Assert.That(Checksum(first)).IsEqualTo(0xB1B0AFBAu);
-        await Assert.That(Checksum(second)).IsEqualTo(0xB1B0AFBAu);
-    }
-
-    [Test]
-    public async Task What_is_not_a_collection_member_is_refused()
-    {
-        var collection = File.ReadAllBytes(Path.Combine(ProjectFonts.Directory, "cambria.ttc"));
-        var single = File.ReadAllBytes(Path.Combine(ProjectFonts.Directory, "Cambria_700.ttf"));
-
-        await Assert.That(FontCollectionFace.Extract(collection, 2)).IsNull();
-        await Assert.That(FontCollectionFace.Extract(collection, -1)).IsNull();
-        await Assert.That(FontCollectionFace.Extract(single, 0)).IsNull();
-        await Assert.That(FontCollectionFace.Extract(collection.AsSpan(0, 40), 0)).IsNull();
-    }
-
-    static uint Checksum(byte[] bytes)
-    {
-        var sum = 0u;
-        for (var index = 0; index + 3 < bytes.Length; index += 4)
-        {
-            sum += System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(index));
-        }
-
-        return sum;
     }
 
     // newsletters/07's body is "AvenirNext LT Pro Medium": the resolver scores the Regular of its face

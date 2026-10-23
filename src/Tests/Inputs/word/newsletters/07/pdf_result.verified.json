@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 2,
     "Pages": [
@@ -14,7 +11,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "M O D E R N L I V I N G\nYour guide to buy or rent\nOCTOBER / 20XX / ISSUE #10\nReady to settle?\nBy Peyton Davis\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. They can be printed or\nemailed and are an excellent way to maintain regular contact with your\nsubscribers and drive traffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. They are an excellent way to\nmaintain regular contact with your subscribers. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. Type the content of your\nnewsletter here.\nWHAT ’ S NEW\nTAKE A LOOK INSIDE\nAdd description text here to get your\nsubscribers interested in your topic\nPROPERTY TRENDS\nAdd description text here to get your\nsubscribers interested in your topic\nARE YOU READY TO LIST?\nAdd description text here to get your\nsubscribers interested in your topic"
+        "Text": "M O D E R N L I V I N G\nYour guide to buy or rent\nOCTOBER / 20XX / ISSUE #10\nReady to settle?\nBy Peyton Davis\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. They can be printed or\nemailed and are an excellent way to maintain regular contact with your\nsubscribers and drive traffic to your site. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. They are an excellent way to\nmaintain regular contact with your subscribers. Type the content of your\nnewsletter here.\nNewsletters are periodicals used to advertise or update your subscribers\nwith information about your product or blog. Type the content of your\nnewsletter here.\nW H A T ’ S N E W\nTAKE A LOOK INSIDE\nAdd description text here to get your\nsubscribers interested in your topic\nPROPERTY TRENDS\nAdd description text here to get your\nsubscribers interested in your topic\nARE YOU READY TO LIST?\nAdd description text here to get your\nsubscribers interested in your topic"
       },
       {
         "Number": 2,
@@ -29,8 +26,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3871,
-      "Ssim": 0.8372,
+      "ErrorMetric": 0.3874,
+      "Ssim": 0.837,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
@@ -38,7 +35,7 @@
     {
       "Page": 2,
       "ErrorMetric": 0.483,
-      "Ssim": 0.8942,
+      "Ssim": 0.8944,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

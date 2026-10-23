@@ -113,7 +113,7 @@ the WASM boot rather than after it.
 i.e. a cross-origin-isolated page — and a service-worker shim can't reliably guarantee that isolation
 across every serving context; when it isn't isolated the threaded runtime aborts at startup
 (`mono_wasm_register_ui_thread` stack-bounds assertion). The single-threaded runtime boots reliably
-anywhere with no isolation and no service worker.
+anywhere with no isolation and no service worker. (The app does relink natively, for Krilla's PDF archive, so it needs the `wasm-tools` workload.)
 
 The trade-off: a conversion runs on the UI thread, so the page is briefly unresponsive while it works.
 Each conversion is still wrapped in `Task.Run`, which yields once so the "Rendering…" state paints before

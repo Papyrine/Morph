@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 18,
     "Pages": [
@@ -181,8 +178,8 @@
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.021,
-      "Ssim": 0.9853,
+      "ErrorMetric": 0.0214,
+      "Ssim": 0.9841,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -238,7 +235,7 @@
     {
       "Page": 11,
       "ErrorMetric": 0.0016,
-      "Ssim": 0.9989,
+      "Ssim": 0.9988,
       "ExpectedFile": "expected_0011.png",
       "VerifiedFile": "pdf_result#page_0011.verified.png",
       "ReceivedFile": "pdf_result#page_0011.received.png"
