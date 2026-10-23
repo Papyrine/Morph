@@ -1,5 +1,3 @@
-using Morph;
-
 /// <summary>
 /// Writes one page of a <see cref="LaidOutDocument"/> as SVG markup for a browser to draw — the vector
 /// counterpart of <see cref="ImageSharpPainter"/>, reading the same <see cref="PlacedItem"/> tree with the
@@ -1032,15 +1030,15 @@ static class SvgPainter
 
         void Edges(double x, double y, double width, double height, CellBorders borders, BorderStroke.Scope scope = BorderStroke.Scope.Paragraph)
         {
-            double left = x, top = y, right = x + width, bottom = y + height;
+            double right = x + width, bottom = y + height;
             var drawsLeft = BorderStroke.Draws(borders.Left);
             var drawsRight = BorderStroke.Draws(borders.Right);
             var drawsTop = BorderStroke.Draws(borders.Top);
             var drawsBottom = BorderStroke.Draws(borders.Bottom);
-            Edge(borders.Top, horizontal: true, left, right, top, scope, outward: -1, drawsLeft, drawsRight);
-            Edge(borders.Bottom, horizontal: true, left, right, bottom, scope, outward: 1, drawsLeft, drawsRight);
-            Edge(borders.Left, horizontal: false, top, bottom, left, scope, outward: -1, drawsTop, drawsBottom);
-            Edge(borders.Right, horizontal: false, top, bottom, right, scope, outward: 1, drawsTop, drawsBottom);
+            Edge(borders.Top, horizontal: true, x, right, y, scope, outward: -1, drawsLeft, drawsRight);
+            Edge(borders.Bottom, horizontal: true, x, right, bottom, scope, outward: 1, drawsLeft, drawsRight);
+            Edge(borders.Left, horizontal: false, y, bottom, x, scope, outward: -1, drawsTop, drawsBottom);
+            Edge(borders.Right, horizontal: false, y, bottom, right, scope, outward: 1, drawsTop, drawsBottom);
         }
 
         // ImageSharpPainter.StrokeEdge: one band per line of a multi-line style, offset away from the box,

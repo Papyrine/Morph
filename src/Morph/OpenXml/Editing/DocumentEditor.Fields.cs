@@ -506,14 +506,21 @@ static partial class DocumentEditor
         static IEnumerable<OoxmlRun> FieldStart(string instruction) =>
         [
             new(new FieldChar {FieldCharType = FieldCharValues.Begin}),
-            new(new OoxmlFieldCode(instruction) {Space = SpaceProcessingModeValues.Preserve}),
+            new(new OoxmlFieldCode(instruction)
+            {
+                Space = SpaceProcessingModeValues.Preserve
+            }),
             new(new FieldChar {FieldCharType = FieldCharValues.Separate})
         ];
 
         // The levels \o "1-3" names; Word's 1 to 9 without it, 1 to 3 being what Automatic Table writes.
         static (int From, int To) Levels(string instruction)
         {
-            var match = Regex.Match(instruction, @"\\o\s+""(\d)-(\d)""");
+            var match = Regex.Match(
+                instruction,
+                """
+                \\o\s+"(\d)-(\d)"
+                """);
             if (match.Success)
             {
                 return (int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture), int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));

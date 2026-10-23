@@ -117,7 +117,11 @@ sealed class ChartComposer(
         var valueStyle = valueAxis?.Text ?? chart.Text;
         var categoryStyle = categoryAxis?.Text ?? chart.Text;
         var valueLabels = ticks.Select(_ => NumberFormat.Format(_, valueFormat).Text).ToList();
-        var horizontal = chart.Horizontal && chart.Kind == ChartKind.Bar;
+        var horizontal = chart is
+        {
+            Horizontal: true,
+            Kind: ChartKind.Bar
+        };
 
         // The axes' box: a manual inner layout is it; otherwise the labels come off the box.
         var plot = chart.PlotLayout is { } manual ? Absolute(manual, chartX, chartY, chartWidth, chartHeight) : inner;
@@ -453,7 +457,12 @@ sealed class ChartComposer(
     // series; a pie, or a single series that varies its colours, keys each category.
     (float X, float Y, float Width, float Height) Legend(ChartModel chart, ChartLegend legend, float chartX, float chartY, float chartWidth, float chartHeight, (float X, float Y, float Width, float Height) inner, List<PlacedItem> items)
     {
-        var byCategory = chart.Kind is ChartKind.Pie or ChartKind.Doughnut || (chart.VaryColors && chart.Series.Count == 1);
+        var byCategory = chart.Kind is ChartKind.Pie or ChartKind.Doughnut ||
+                         chart is
+                         {
+                             VaryColors: true,
+                             Series.Count: 1
+                         };
         var entries = byCategory
             ? chart.Categories.Select((_, index) => (Text: _, Color: PointColor(chart, chart.Series[0], 0, index))).ToList()
             : chart.Series.Select((_, index) => (Text: _.Name ?? $"Series{index + 1}", Color: _.FillHex ?? _.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count])).ToList();
@@ -461,7 +470,11 @@ sealed class ChartComposer(
         // Horizontal bars stack their series upwards, the first at the bottom of each category, and the
         // legend lists them the same way round: chart_anchored's North and South bars are keyed
         // "South, North" in Word's render. A legend lists them by series everywhere else.
-        if (!byCategory && chart.Kind == ChartKind.Bar && chart.Horizontal)
+        if (!byCategory && chart is
+            {
+                Kind: ChartKind.Bar,
+                Horizontal: true
+            })
         {
             entries.Reverse();
         }
@@ -651,7 +664,11 @@ sealed class ChartComposer(
             return fill;
         }
 
-        if (chart.VaryColors && chart.Series.Count == 1)
+        if (chart is
+            {
+                VaryColors: true,
+                Series.Count: 1
+            })
         {
             return chart.Palette[point % chart.Palette.Count];
         }
@@ -687,7 +704,7 @@ sealed class ChartComposer(
         var steps = Math.Max(2, (int) Math.Ceiling(sweepDegrees / 2));
         var points = new List<(double X, double Y)>(steps * 2 + 2);
 
-        (double X, double Y) At(double degrees, double radius)
+        static (double X, double Y) At(double degrees, double radius)
         {
             var radians = degrees * Math.PI / 180;
             return (0.5 + radius * Math.Sin(radians), 0.5 - radius * Math.Cos(radians));

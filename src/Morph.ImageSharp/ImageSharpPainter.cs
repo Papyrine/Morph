@@ -183,9 +183,11 @@ static class ImageSharpPainter
             var baseline = line.Baseline - run.BaselineShift;
             DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
 
-            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
+            if (properties.Underline ||
+                properties.Strikethrough ||
+                properties.DoubleStrikethrough)
             {
-                PaintDecorations(context, canvas, run, properties, color, (float) baseline, (float) ascent);
+                PaintDecorations(context, canvas, run, properties, color, baseline, ascent);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.

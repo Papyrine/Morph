@@ -205,7 +205,7 @@ static class SkiaPainter
 
             if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                PaintDecorations(context, canvas, run, properties, color, (float) baseline, (float) ascent);
+                PaintDecorations(context, canvas, run, properties, color, baseline, ascent);
             }
 
             // w:bdr — a box around this run alone, over the glyphs like Word's, its rules the drawn
