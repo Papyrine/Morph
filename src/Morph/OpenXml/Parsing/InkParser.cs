@@ -43,7 +43,7 @@ static class InkParser
         }
 
         // Read the InkML content
-        using var stream = inkPart.GetStream();
+        using var stream = inkPart.GetStream(FileMode.Open, FileAccess.Read);
         var inkXml = new XmlDocument();
         inkXml.Load(stream);
 

@@ -203,7 +203,7 @@ public class MorphViewerTests : BunitTestContext
     [Test]
     public async Task Print_StreamsEveryPage_ThenOpensTheDialog()
     {
-        var cut = await OpenSample();
+        var cut = await OpenSample(_ => _.Add(component => component.VectorPages, false));
 
         await cut.Find("button[aria-label=Print]").ClickAsync(new());
 
@@ -216,11 +216,54 @@ public class MorphViewerTests : BunitTestContext
         await Assert.That(cut.FindAll(".viewer-overlay")).IsEmpty();
     }
 
-    // The script asks for pages as (kind, page, dpi) triples; each is rendered and pushed back.
+    // Pages drawn as SVG print as SVG: each page's markup streams to the script in place of a picture.
+    [Test]
+    public async Task Print_StreamsEveryPageAsSvg()
+    {
+        var cut = await OpenSample();
+
+        await cut.Find("button[aria-label=Print]").ClickAsync(new());
+
+        controller.VerifyInvoke("beginPrint");
+        await Assert.That(controller.Invocations["addPrintPageSvg"].Count).IsEqualTo(2);
+        await Assert.That(controller.Invocations["addPrintPage"].Count).IsEqualTo(0);
+        var markup = (string) controller.Invocations["addPrintPageSvg"][0].Arguments[1]!;
+        await Assert.That(markup).StartsWith("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 612 792\"");
+        controller.VerifyInvoke("finishPrint");
+    }
+
+    // The script asks for pages as (kind, page, dpi) triples; each is drawn as SVG and pushed back, a page
+    // and a thumbnail alike.
+    [Test]
+    public async Task RenderQueue_PushesEachRequestedPageAsSvg()
+    {
+        var cut = await OpenSample();
+        var documentId = (int) controller.Invocations["load"].Single().Arguments[0]!;
+
+        await cut.InvokeAsync(() => cut.Instance.OnRenderQueue([0, 1, 72, 1, 0, 36]));
+
+        // Polled, as RenderQueue_PushesEachRequestedImage explains.
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while ((controller.Invocations["setPageSvg"].Count == 0 || controller.Invocations["setThumbnailSvg"].Count == 0) &&
+               DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(50);
+        }
+
+        var page = controller.Invocations["setPageSvg"].Single();
+        await Assert.That(page.Arguments[0]).IsEqualTo(documentId);
+        await Assert.That(page.Arguments[1]).IsEqualTo(1);
+        await Assert.That((string) page.Arguments[2]!).Contains("<text ");
+        await Assert.That(controller.Invocations["setThumbnailSvg"].Single().Arguments[1]).IsEqualTo(0);
+        await Assert.That(controller.Invocations["setPageImage"].Count).IsEqualTo(0);
+    }
+
+    // The script asks for pages as (kind, page, dpi) triples; each is rendered and pushed back. Painted
+    // pages (VectorPages off).
     [Test]
     public async Task RenderQueue_PushesEachRequestedImage()
     {
-        var cut = await OpenSample();
+        var cut = await OpenSample(_ => _.Add(component => component.VectorPages, false));
         var documentId = (int) controller.Invocations["load"].Single().Arguments[0]!;
 
         await cut.InvokeAsync(() => cut.Instance.OnRenderQueue([0, 1, 72, 1, 0, 36]));

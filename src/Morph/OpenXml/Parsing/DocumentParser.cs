@@ -335,6 +335,34 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
+    // Set while a borrowed package is parsed: how to undo each change parsing makes to its tree.
+    List<Action>? restore;
+
+    /// <summary>
+    /// Parses a package another owner keeps open — the editor's live one (<c>DocumentReading.Borrow</c>),
+    /// whose tree is the file it just saved — and leaves it as it was found. Parsing changes the tree in
+    /// two places, dropping a style defined twice and folding relative sizes into anchors' extents, and
+    /// both are undone, in reverse order, once the document is read; left in, the next save would write
+    /// them into the file.
+    /// </summary>
+    public ParsedDocument Parse(WordprocessingDocument document)
+    {
+        restore = [];
+        try
+        {
+            return ParseDocument(document);
+        }
+        finally
+        {
+            for (var index = restore.Count - 1; index >= 0; index--)
+            {
+                restore[index]();
+            }
+
+            restore = null;
+        }
+    }
+
     ParsedDocument ParseDocument(WordprocessingDocument doc)
     {
         var mainPart = doc.MainDocumentPart
@@ -351,7 +379,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         runOrdinals = captureSources ? SourceRuns.IndexAll(stories) : null;
         paragraphSources = captureSources ? SourceRuns.IndexAllParagraphs(stories) : null;
 
-        DropRedefinedStyles(mainPart);
+        DropRedefinedStyles(mainPart, restore);
 
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
         currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
@@ -4594,7 +4622,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // on the second definitions' spacing, and adding italics, centring and an indent to the FIRST
     // definition moved nothing. Every reader of the styles walks the part in order and takes the
     // first match, so the earlier definitions are dropped from the tree before anything reads it.
-    static void DropRedefinedStyles(MainDocumentPart mainPart)
+    static void DropRedefinedStyles(MainDocumentPart mainPart, List<Action>? restore)
     {
         if (mainPart.StyleDefinitionsPart?.Styles is not { } styles)
         {
@@ -4625,6 +4653,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         foreach (var style in redefined)
         {
+            if (restore != null &&
+                style.Parent is { } parent)
+            {
+                var previous = style.PreviousSibling();
+                restore.Add(
+                    () =>
+                    {
+                        if (previous == null)
+                        {
+                            parent.PrependChild(style);
+                        }
+                        else
+                        {
+                            parent.InsertAfter(style, previous);
+                        }
+                    });
+            }
+
             style.Remove();
         }
     }
@@ -4643,7 +4689,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 page = ExtractPageSettings(section);
             }
 
-            child.FoldRelativeSizes(page);
+            child.FoldRelativeSizes(page, restore);
         }
     }
 
@@ -4667,7 +4713,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // first section's page, as its aligned art does.
         if (anchorAlignmentPage != null)
         {
-            rootElement.FoldRelativeSizes(anchorAlignmentPage);
+            rootElement.FoldRelativeSizes(anchorAlignmentPage, restore);
         }
 
         var elements = new List<DocumentElement>();
@@ -4821,7 +4867,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var part = mainPart.PartOrNull(altChunk.Id.Value);
         if (part is AlternativeFormatImportPart altPart)
         {
-            using var stream = altPart.GetStream();
+            using var stream = altPart.GetStream(FileMode.Open, FileAccess.Read);
             using var reader = new StreamReader(stream, Encoding.UTF8);
             var html = reader.ReadToEnd();
 
@@ -12471,7 +12517,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     {
         if (!imagePartBytes.TryGetValue(part, out var bytes))
         {
-            using var stream = part.GetStream();
+            // Read-only: a part of a package open for writing that is opened read-write is written back
+            // out, deflated again, by every save after — and the parse reads the editor's live package.
+            using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
             using var buffer = new MemoryStream();
             stream.CopyTo(buffer);
             bytes = buffer.ToArray();
