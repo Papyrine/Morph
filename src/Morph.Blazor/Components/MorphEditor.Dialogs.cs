@@ -134,16 +134,16 @@ public partial class MorphEditor
     }
 
     // Sends the ruler whenever what it shows has changed, after the render that changed it.
-    async Task SyncRulerAsync()
+    Task SyncRulerAsync()
     {
         var model = RulerModel();
         if (model == rulerSent)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         rulerSent = model;
-        await SetRulerAsync(model);
+        return SetRulerAsync(model);
     }
 
     // The Paragraph dialog
@@ -375,22 +375,22 @@ public partial class MorphEditor
         };
     }
 
-    async Task ParagraphFromDialogAsync()
+    Task ParagraphFromDialogAsync()
     {
         if (ParagraphChange() is not { } format ||
             paragraphTarget is not { } target)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         dialog = null;
         paragraphTarget = null;
         if (format == default)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+        return EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
     }
 
     // The Font dialog
@@ -675,22 +675,23 @@ public partial class MorphEditor
         }
     }
 
-    async Task FontFromDialogAsync()
+    Task FontFromDialogAsync()
     {
         if (FontChange() is not { } format ||
             fontText is not { } text)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         dialog = null;
         fontText = null;
         if (format.IsEmpty)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        await FormatTextAsync(text, (start, end, options) => _ => DocumentEditor.Format(_, start, end, format, options));
+        return FormatTextAsync(text, (start, end, options) =>
+            _ => DocumentEditor.Format(_, start, end, format, options));
     }
 
     Task OnFormDialogKeyDownAsync(KeyboardEventArgs args)

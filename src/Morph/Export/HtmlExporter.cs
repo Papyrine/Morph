@@ -576,23 +576,29 @@ static class HtmlExporter
         // WriteAbsoluteImage and WriteAbsoluteTextBox position.
         (double Top, double Bottom)? AbsoluteExtent(DocumentElement element)
         {
-            switch (element)
+            while (true)
             {
-                case FloatingShapeElement shape:
+                switch (element)
                 {
-                    var (pageLeft, pageTop, _, height) = ShapeBox(shape, pageSettings);
-                    var top = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor).Top;
-                    return (top, top + height);
+                    case FloatingShapeElement shape:
+                    {
+                        var (pageLeft, pageTop, _, height) = ShapeBox(shape, pageSettings);
+                        var top = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor).Top;
+                        return (top, top + height);
+                    }
+                    case FloatingImageElement {WrapType: WrapType.None} image:
+                    {
+                        var top = FloatOrigin(0, PageTop(image.VerticalAnchor, image.VerticalPositionPoints), image.VerticalAnchor).Top;
+                        return (top, top + image.HeightPoints);
+                    }
+                    case FloatingTextBoxElement {WrapType: WrapType.None} textBox:
+                        element = TextBoxShape(textBox);
+                        continue;
+                    default:
+                        return null;
                 }
-                case FloatingImageElement {WrapType: WrapType.None} image:
-                {
-                    var top = FloatOrigin(0, PageTop(image.VerticalAnchor, image.VerticalPositionPoints), image.VerticalAnchor).Top;
-                    return (top, top + image.HeightPoints);
-                }
-                case FloatingTextBoxElement {WrapType: WrapType.None} textBox:
-                    return AbsoluteExtent(TextBoxShape(textBox));
-                default:
-                    return null;
+
+                break;
             }
         }
 
