@@ -29,6 +29,13 @@
       "rendering" state paint before the compute begins). For 1–3 page documents that's a blink.
     -->
     <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>
+    <!--
+      REQUIRED: the PDF export is Krilla, whose browser-wasm native is a static archive that has to be
+      linked into this app's own .wasm (Krilla's buildTransitive targets hand it to the link step). Only a
+      native build links it, so without this the app builds, runs, and fails on the first PDF with
+      "krilla_capi could not be loaded". Needs the wasm-tools workload: `dotnet workload install wasm-tools`.
+    -->
+    <WasmBuildNative>true</WasmBuildNative>
     <UseNativeHttpHandler>true</UseNativeHttpHandler>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

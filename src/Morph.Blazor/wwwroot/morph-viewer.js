@@ -178,6 +178,26 @@ function isTyping(target) {
         (target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]') !== null);
 }
 
+// A ribbon group's form (Viewer.foldRibbon): null for whole, 'squeezed' or 'folded'.
+function setFold(group, form) {
+    if (form) {
+        group.dataset.fold = form;
+    } else {
+        delete group.dataset.fold;
+    }
+}
+
+// Whether something drawn in the ribbon may change a group's width: anything but a menu opening or
+// closing, or drawn afresh inside one.
+function reshapesRibbon(mutation) {
+    if (mutation.target instanceof Element && mutation.target.closest('.editor-menu')) {
+        return false;
+    }
+
+    return [...mutation.addedNodes, ...mutation.removedNodes]
+        .some(_ => !(_ instanceof Element && _.matches('.editor-menu, .editor-backdrop')));
+}
+
 // A point's position within a page, as fractions of the page box, between the rotated (on screen) and
 // unrotated (the page's own) frames.
 function toScreen(u, v, rotation) {
@@ -334,6 +354,7 @@ class Viewer {
         this.visibleObserver = new IntersectionObserver(entries => this.onVisible(entries), { root: this.scroller, threshold: [0, 0.5, 1] });
         this.nearObserver = new IntersectionObserver(entries => this.onNear(entries), { root: this.scroller, rootMargin: '100% 0px' });
         this.thumbObserver = new IntersectionObserver(entries => this.onThumbs(entries), { root: this.thumbList, rootMargin: '50% 0px' });
+        this.watchRibbon();
     }
 
     fileInput() {
@@ -638,6 +659,10 @@ class Viewer {
         this.unload();
         this.abort.abort();
         this.resizeObserver.disconnect();
+        for (const observer of this.ribbonObservers ?? []) {
+            observer.disconnect();
+        }
+
         clearTimeout(this.queueTimer);
         clearTimeout(this.selectionTimer);
     }
@@ -1442,6 +1467,10 @@ class Viewer {
             return;
         }
 
+        if (this.onFoldClick(target)) {
+            return;
+        }
+
         const action = target.closest('[data-viewer-action]')?.dataset.viewerAction;
         if (action === 'presentation') {
             // Handled here, inside the click, because the browser grants fullscreen only to a user gesture.
@@ -1650,6 +1679,13 @@ class Viewer {
             event.preventDefault();
             event.stopPropagation();
             this.call('OnMenuEscape');
+            return;
+        }
+
+        // Then a folded group open, which is the script's alone.
+        if (event.key === 'Escape' && this.closeFolds()) {
+            event.preventDefault();
+            event.stopPropagation();
             return;
         }
 
@@ -2713,6 +2749,159 @@ class Viewer {
         }
 
         return false;
+    }
+
+    // The editor's ribbon gives up room group by group as it narrows, as Word's does, rather than
+    // wrapping: refolded a frame after it changes size, or anything in it but a menu is drawn afresh.
+    watchRibbon() {
+        const ribbon = this.root.querySelector('.editor-ribbon');
+        if (!ribbon) {
+            return;
+        }
+
+        let frame = 0;
+        const refold = () => {
+            if (!frame) {
+                frame = requestAnimationFrame(() => {
+                    frame = 0;
+                    this.foldRibbon();
+                });
+            }
+        };
+        const resized = new ResizeObserver(refold);
+        resized.observe(ribbon);
+        const drawn = new MutationObserver(mutations => {
+            if (mutations.some(reshapesRibbon)) {
+                refold();
+            }
+        });
+        drawn.observe(ribbon, { childList: true, subtree: true });
+        this.ribbonObservers = [resized, drawn];
+        // A face that arrives late changes every width.
+        document.fonts?.ready.then(refold);
+    }
+
+    // The ribbon's groups that do not fit give up room: first those that can get smaller do (data-squeeze:
+    // the style gallery shows fewer styles, the Clipboard's and Editing's buttons only their icons), then
+    // whole groups fold into one button each (MorphEditor's Fold) — the lowest data-priority first, the
+    // rightmost of equals first, as Word's ribbon gives them up. The steps are always taken in that one
+    // order, so a narrower ribbon never has more of anything than a wider one, and a step that would
+    // save nothing is not taken. A group is never cut short, as half a group is worse than a folded one.
+    // Each group is measured in each form afresh, within the one frame, so nothing is remembered between
+    // widths and nothing is drawn half done.
+    foldRibbon() {
+        const tools = this.root.querySelector('.editor-tools');
+        const groups = tools ? [...tools.querySelectorAll(':scope > .editor-group')] : [];
+        if (!groups.length || tools.clientWidth === 0) {
+            return;
+        }
+
+        const style = getComputedStyle(tools);
+        const room = tools.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+        const widths = form => {
+            for (const group of groups) {
+                setFold(group, form);
+            }
+
+            return groups.map(_ => _.getBoundingClientRect().width);
+        };
+        const open = widths(null);
+        const squeezed = widths('squeezed');
+        const folded = widths('folded');
+        const order = groups
+            .map((group, index) => ({ group, index, priority: Number(group.dataset.priority ?? 0) }))
+            .sort((first, second) => first.priority - second.priority || second.index - first.index);
+        const forms = groups.map(() => null);
+        const width = index => forms[index] === 'squeezed' ? squeezed[index] : open[index];
+        let total = open.reduce((sum, each) => sum + each, 0);
+        for (const { group, index } of order) {
+            if (total <= room) {
+                break;
+            }
+
+            if ('squeeze' in group.dataset && squeezed[index] < open[index]) {
+                forms[index] = 'squeezed';
+                total -= open[index] - squeezed[index];
+            }
+        }
+
+        // A group whose button is no narrower than the group — one command alone, two icons — stays.
+        for (const { index } of order) {
+            if (total <= room) {
+                break;
+            }
+
+            if (folded[index] < width(index)) {
+                total -= width(index) - folded[index];
+                forms[index] = 'folded';
+            }
+        }
+
+        groups.forEach((group, index) => {
+            setFold(group, forms[index]);
+            if (forms[index] !== 'folded') {
+                this.closeFold(group);
+            }
+        });
+    }
+
+    // A press on a folded group's button opens the group under it, or closes it again. A press anywhere
+    // else closes it, and so does one on a command in it — but not one that opens a menu or a submenu
+    // there, keeps its menu open, pages the style gallery, or is in a field. Says whether the press was
+    // the button's.
+    onFoldClick(target) {
+        const button = target.closest('.editor-fold');
+        if (button) {
+            const group = button.closest('.editor-group');
+            const open = group.hasAttribute('data-open');
+            this.closeFolds();
+            if (!open) {
+                this.openFold(group);
+            }
+
+            return true;
+        }
+
+        const open = target.closest('.editor-group[data-open]');
+        if (!open || (target.closest('button') && !target.closest('[aria-haspopup], [data-stays], .editor-gallery-arrows'))) {
+            this.closeFolds();
+        }
+
+        return false;
+    }
+
+    openFold(group) {
+        group.setAttribute('data-open', '');
+        group.querySelector(':scope > .editor-fold')?.setAttribute('aria-expanded', 'true');
+        // Kept inside the editor: moved left by as much as it would run past its right edge.
+        const body = group.querySelector(':scope > .editor-group-body');
+        if (body) {
+            const over = body.getBoundingClientRect().right - this.root.getBoundingClientRect().right + 4;
+            if (over > 0) {
+                body.style.left = `${-over}px`;
+            }
+        }
+    }
+
+    closeFold(group) {
+        if (!group.hasAttribute('data-open')) {
+            return false;
+        }
+
+        group.removeAttribute('data-open');
+        group.querySelector(':scope > .editor-fold')?.setAttribute('aria-expanded', 'false');
+        group.querySelector(':scope > .editor-group-body')?.style.removeProperty('left');
+        return true;
+    }
+
+    // Closes the folded group open; says whether one was.
+    closeFolds() {
+        let closed = false;
+        for (const group of this.root.querySelectorAll('.editor-group[data-open]')) {
+            closed = this.closeFold(group) || closed;
+        }
+
+        return closed;
     }
 
     // The right-click menu, just drawn by .NET where the pointer was: moved in from the editor's right

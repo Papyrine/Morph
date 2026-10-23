@@ -1,7 +1,7 @@
 namespace Morph;
 
 /// <summary>
-/// Converts Excel workbooks to vector-text PDF using PdfSharp. For parse-once / export-many
+/// Converts Excel workbooks to vector-text PDF using Krilla. For parse-once / export-many
 /// workflows, prefer <see cref="ExcelDocument"/> plus its <c>ExportToPdf</c> extension.
 /// </summary>
 public sealed class PdfExcelConverter

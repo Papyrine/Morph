@@ -1,7 +1,7 @@
 namespace Morph;
 
 /// <summary>
-/// Converts DOCX documents to vector-text PDF using PdfSharp. For parse-once / export-many
+/// Converts DOCX documents to vector-text PDF using Krilla. For parse-once / export-many
 /// workflows, prefer <see cref="WordDocument"/> plus its <c>ExportToPdf</c> extension.
 /// </summary>
 public sealed class PdfDocumentConverter
