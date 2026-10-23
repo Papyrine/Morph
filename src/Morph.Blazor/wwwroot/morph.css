@@ -1840,6 +1840,7 @@
 }
 
 .editor-tool:focus-visible,
+.editor-fold:focus-visible,
 .editor-gallery-item:focus-visible,
 .editor-dropdown:focus-visible,
 .editor-menu-item:focus-visible,
@@ -1926,6 +1927,99 @@
 
 .editor-group:last-child {
     border-right: none;
+}
+
+/* What a group holds, in a row; in a folded group, what its button opens under it. */
+.editor-group-body {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+/* A group the ribbon has no room for is folded into one button with its name (foldRibbon in
+   morph-viewer.js), as Word's ribbon folds one; pressed, the group opens whole under it. The button looks
+   as a large command does, but is not one. */
+.editor-fold {
+    position: relative;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    height: calc(var(--ribbon-row) * 2 + var(--ribbon-gap));
+    min-width: 3.25rem;
+    max-width: 6.5rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1.1;
+    text-align: center;
+    cursor: pointer;
+}
+
+.editor-fold:hover {
+    border-color: var(--morph-border, #dee2e6);
+    background: var(--morph-background, #f8f9fa);
+}
+
+.editor-fold svg {
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+}
+
+.editor-fold svg.editor-caret {
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-top: -0.1rem;
+}
+
+.editor-group[data-fold="folded"] > .editor-fold {
+    display: inline-flex;
+}
+
+.editor-group[data-fold="folded"] > .editor-group-body,
+.editor-group[data-fold="folded"]::after {
+    display: none;
+}
+
+.editor-group[data-fold="folded"][data-open] > .editor-fold {
+    border-color: var(--morph-border, #dee2e6);
+    background: var(--morph-background, #f8f9fa);
+}
+
+.editor-group[data-fold="folded"][data-open] > .editor-group-body {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    z-index: 9;
+    display: flex;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 6px;
+    background: var(--morph-surface, #ffffff);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* A group that can first get smaller (data-squeeze): the style gallery shows two columns of styles, and
+   the small buttons beside a large one only their icons, keeping their tooltips (the name is still the
+   button's, at no size). */
+.editor-group[data-squeeze][data-fold="squeezed"] .editor-gallery {
+    grid-template-columns: repeat(2, 6.25rem);
+}
+
+.editor-group[data-squeeze][data-fold="squeezed"] .editor-gallery-item:nth-child(n + 5) {
+    display: none;
+}
+
+.editor-group[data-squeeze][data-fold="squeezed"] .editor-stack .editor-tool {
+    gap: 0;
+    padding: 0 0.45rem;
+    font-size: 0;
 }
 
 /* Two rows of small buttons, as the Font and Paragraph groups are. */
@@ -2062,36 +2156,6 @@
 .editor-anchor.editor-gallery-arrows > .editor-menu {
     right: 0;
     left: auto;
-}
-
-/* As Word's ribbon does in a narrower window, the groups give up room rather than wrap: first the
-   gallery's width, then the names of Home's small buttons, which keep their icons and tooltips (the name
-   is still the button's, at no size). */
-@media (max-width: 1460px) {
-    .editor-gallery {
-        grid-template-columns: repeat(2, 6.25rem);
-    }
-
-    .editor-gallery-item:nth-child(n + 5) {
-        display: none;
-    }
-}
-
-@media (max-width: 1280px) {
-    .editor-tools[aria-label="Home"] .editor-stack .editor-tool {
-        gap: 0;
-        padding: 0 0.45rem;
-        font-size: 0;
-    }
-
-    .editor-font-button {
-        min-width: 6.5rem;
-    }
-
-    .editor-group {
-        padding-right: 0.3rem;
-        padding-left: 0.3rem;
-    }
 }
 
 .editor-tool {
@@ -2971,30 +3035,36 @@
     }
 }
 
-/* A phone's ribbon scrolls sideways rather than wrapping into a wall of buttons, and so do its tabs,
+/* A phone's ribbon folds most of its groups (foldRibbon) into smaller buttons, and leaves out their names
+   under them; a group opened from one wraps its rows to the screen's width. Its tabs scroll sideways,
    leaving the quick buttons room. After the rules above, which it overrides. */
 @media (max-width: 640px) {
-    .editor-tools {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-    }
-
     .editor-group {
         flex: none;
         min-height: 0;
-        padding-bottom: 0;
+        padding: 0 0.25rem;
     }
 
     .editor-group::after {
         display: none;
     }
 
-    .editor-gallery {
-        grid-template-columns: repeat(2, 5.5rem);
+    .editor-fold {
+        min-width: 2.75rem;
+        max-width: 4.5rem;
+        padding: 0.15rem 0.25rem;
+        font-size: 0.7rem;
     }
 
-    .editor-gallery-item:nth-child(n + 3) {
-        display: none;
+    /* As wide as it needs, not as the narrow group it hangs from, up to the screen's width. */
+    .editor-group[data-fold="folded"][data-open] > .editor-group-body {
+        width: max-content;
+        max-width: calc(100vw - 1rem);
+        flex-wrap: wrap;
+    }
+
+    .editor-group[data-open] .editor-row {
+        flex-wrap: wrap;
     }
 
     .editor-tabs {
