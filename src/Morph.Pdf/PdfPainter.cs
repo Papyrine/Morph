@@ -249,7 +249,7 @@ static class PdfPainter
             Layer? scaled = null;
             if (properties.CharacterScalePercent != 100)
             {
-                scaled = surface.PushTransform(Matrix3x2.CreateScale((float) (properties.CharacterScalePercent / 100), 1, new((float) run.X, (float) baseline)));
+                scaled = surface.PushTransform(Matrix3x2.CreateScale((float) (properties.CharacterScalePercent / 100), 1, new(run.X, baseline)));
             }
 
             DrawTracked(context, surface, run.Text, properties, color, run.X, baseline);
@@ -258,7 +258,7 @@ static class PdfPainter
             // Underline below the baseline, strike through the x-height (TextDecorations).
             if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                PaintDecorations(context, surface, run, properties, color, (float) baseline, (float) ascent);
+                PaintDecorations(context, surface, run, properties, color, baseline, ascent);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.

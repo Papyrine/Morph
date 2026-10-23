@@ -786,7 +786,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         bool Fits(double pixels) => LinearPoints(pixels) <= widthPoints + fitTolerancePoints;
 
         bool Overlong(Piece piece) =>
-            !piece.IsSpace && piece.Image == null && !piece.IsTab && !piece.IsInset && piece.Text.Length > 1 && !Fits(piece.Pixels + piece.FitPixels);
+            piece is
+            {
+                IsSpace: false,
+                Image: null,
+                IsTab: false,
+                IsInset: false
+            } &&
+            piece.Text.Length > 1 && !Fits(piece.Pixels + piece.FitPixels);
 
         if (widthPoints <= 0 || !pieces.Exists(Overlong))
         {
@@ -796,18 +803,20 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var result = new List<Piece>(pieces.Count + 4);
         foreach (var piece in pieces)
         {
+            var properties = piece.Properties;
+
             if (!Overlong(piece) ||
-                resolveFont(piece.Properties.FontFamily, piece.Properties.Bold, piece.Properties.Italic) is not { } metrics)
+                resolveFont(properties.FontFamily, properties.Bold, properties.Italic) is not { } metrics)
             {
                 result.Add(piece);
                 continue;
             }
 
-            var size = VerticalRunPosition.RenderSizePoints(piece.Properties);
-            var scale = WidthScale(piece.Properties);
-            var tracking = piece.Properties.CharacterSpacingPoints;
+            var size = VerticalRunPosition.RenderSizePoints(properties);
+            var scale = WidthScale(properties);
+            var tracking = properties.CharacterSpacingPoints;
             double Width(string text) =>
-                CanonicalTextMeasurer.LinearPixels(metrics, text, size, scale, false) +
+                CanonicalTextMeasurer.LinearPixels(metrics, text, size, scale) +
                 (tracking != 0 ? CanonicalTextMeasurer.PixelsFromPoints((float) (tracking * text.Length)) : 0);
 
             var text = piece.Text;

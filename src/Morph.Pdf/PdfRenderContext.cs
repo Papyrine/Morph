@@ -238,7 +238,7 @@ sealed class PdfRenderContext : RenderContextBase, IDisposable
     {
         if (hex.TryParseArgb(out var a, out var r, out var g, out var b))
         {
-            return new((byte) r, (byte) g, (byte) b, a / 255.0);
+            return new(r, g, b, a / 255.0);
         }
 
         return PdfColor.Black;

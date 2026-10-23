@@ -356,7 +356,7 @@ sealed class PdfPicture
 
         if (image != null)
         {
-            surface.DrawImage(image, Krilla.Rectangle.FromSize((float) x, (float) y, (float) width, (float) height));
+            surface.DrawImage(image, Rectangle.FromSize((float) x, (float) y, (float) width, (float) height));
             return;
         }
 
