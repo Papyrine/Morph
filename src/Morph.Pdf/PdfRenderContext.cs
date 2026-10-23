@@ -1,15 +1,20 @@
 /// <summary>
 /// Rendering state for a PDF conversion. Coordinates are kept in points (the PDF user unit) by
 /// constructing the base with a 72-DPI scale, so <see cref="RenderContextBase.PointsToPixels"/> is
-/// an identity and every value the shared layout engine computes maps straight onto
-/// <see cref="XGraphics"/>.
+/// an identity and every value the shared layout engine computes maps straight onto the Krilla
+/// <see cref="Krilla.Surface"/>, whose origin is the top-left corner with Y increasing downward.
 /// </summary>
-sealed class PdfRenderContext : RenderContextBase
+sealed class PdfRenderContext : RenderContextBase, IDisposable
 {
-    public PdfDocument Document { get; } = new();
+    public KrillaDocument Document { get; } = new();
 
-    /// <summary>The graphics surface for the page currently being emitted (null between pages).</summary>
-    public XGraphics? Graphics { get; set; }
+    /// <summary>The drawing surface of the page currently being emitted (null between pages).</summary>
+    public Surface? Surface { get; set; }
+
+    // Faces resolve through the same FontResolver the layout engine measures with (LayoutFonts):
+    // the same directory, the same bundled seed, the same FontFallback delegate, so the painter
+    // draws the face the measurer broke the line on.
+    readonly FontResolver<PdfFace> fonts;
 
     public PdfRenderContext(
         PageSettings pageSettings,
@@ -19,147 +24,84 @@ sealed class PdfRenderContext : RenderContextBase
         string? fontDirectory) :
         base(pageSettings, dpi: 72, compatibility, fontWidthScale, fontFallback, fontDirectory)
     {
-        PdfFontResolver.Register(fontDirectory);
-        Document.Info.Creator = "Morph";
+        fonts = new(
+            loadFace: (face, _) => PdfFace.Load(face),
+            systemFallback: null,
+            releaseFont: _ => _.Dispose(),
+            fontDirectory: fontDirectory,
+            fontFallback: fontFallback,
+            seed: FontResolver<PdfFace>.BuildBundledSeed(LoadSeeded));
+        Document.SetMetadata(
+            new()
+            {
+                Creator = "Morph"
+            });
     }
 
-    static readonly XPdfFontOptions fontOptions = new(PdfFontEncoding.Unicode);
-    readonly Dictionary<(string Family, bool Bold, bool Italic, double Size), XFont> fontCache = [];
+    // The resolver leaves the faces it was seeded with to their owner — they are shared in the raster
+    // backends — but these are this conversion's own, so they are disposed with it.
+    readonly List<PdfFace> seededFaces = [];
 
-    public XFont GetFont(RunProperties properties)
+    PdfFace LoadSeeded(byte[] bytes)
     {
-        var size = properties.FontSizePoints;
-        // Word's reduced size for a superscript or subscript (VerticalRunPosition: 65%, XPS-read).
-        if (properties.VerticalAlignment != VerticalRunAlignment.Baseline)
-        {
-            size *= VerticalRunPosition.ReducedScale;
-        }
-
-        return GetFont(properties.FontFamily, properties.Bold, properties.Italic, size);
+        var face = PdfFace.Load(bytes);
+        seededFaces.Add(face);
+        return face;
     }
 
-    public XFont GetFont(string family, bool bold, bool italic, double sizePoints)
+    /// <summary>
+    /// The face a run draws in. A family nothing can serve falls back to
+    /// <see cref="DefaultFontSettings.DefaultFont"/> — the last resort <see cref="LayoutFonts.ToDelegate"/>
+    /// gives the measurer — so the line is drawn in the face it was measured in.
+    /// </summary>
+    public PdfFace GetFace(string family, bool bold, bool italic)
     {
-        if (sizePoints <= 0)
+        try
         {
-            sizePoints = 11;
+            return fonts.Resolve(family, bold, italic);
         }
-
-        family = ResolveFamily(family, bold, italic);
-
-        var key = (family, bold, italic, sizePoints);
-        if (fontCache.TryGetValue(key, out var cached))
+        catch (InvalidOperationException)
         {
-            return cached;
+            return fonts.Resolve(DefaultFontSettings.DefaultFont, bold, italic);
         }
-
-        var style = XFontStyleEx.Regular;
-        if (bold)
-        {
-            style |= XFontStyleEx.Bold;
-        }
-
-        if (italic)
-        {
-            style |= XFontStyleEx.Italic;
-        }
-
-        var font = new XFont(family, sizePoints, style, fontOptions);
-        fontCache[key] = font;
-        return font;
     }
 
-    // Whether an italic run needs the painter's synthetic oblique: the family (after the
-    // per-conversion fallback) bundles no italic face, so the resolver serves an upright one.
-    // Cached per (family, bold) — the resolver walk only runs for new combinations.
-    readonly Dictionary<(string Family, bool Bold), bool> syntheticItalicCache = [];
+    public PdfFace GetFace(RunProperties properties) =>
+        GetFace(properties.FontFamily, properties.Bold, properties.Italic);
 
-    public bool NeedsSyntheticItalic(RunProperties properties)
+    // Whether an italic run needs the painter's synthetic oblique: the face it resolved is upright.
+    public bool NeedsSyntheticItalic(RunProperties properties) =>
+        properties.Italic && !GetFace(properties).Italic;
+
+    // A Paint allocated through Krilla lives until the document is disposed, so one is made per
+    // colour rather than per drawn word, underline or border edge.
+    readonly Dictionary<(byte R, byte G, byte B), Paint> paintCache = [];
+
+    public Paint GetPaint(PdfColor color)
     {
-        if (!properties.Italic)
+        var key = (color.R, color.G, color.B);
+        if (!paintCache.TryGetValue(key, out var paint))
         {
-            return false;
+            paint = Paint.Solid(Color.Rgb(color.R, color.G, color.B));
+            paintCache[key] = paint;
         }
 
-        var family = ResolveFamily(properties.FontFamily, properties.Bold, italic: true);
-        var key = (family, properties.Bold);
-        if (!syntheticItalicCache.TryGetValue(key, out var needs))
-        {
-            needs = !PdfFontResolver.Instance.ResolvesToItalicFace(family, properties.Bold);
-            syntheticItalicCache[key] = needs;
-        }
-
-        return needs;
+        return paint;
     }
 
-    // PdfSharp resolves faces through a process-global IFontResolver that cannot see per-conversion
-    // state, so the FontFallback delegate is applied here rather than inside PdfFontResolver: the
-    // substituted family is what reaches XFont, and the global resolver only ever sees a name it can
-    // already serve. Cached per requested triple so the delegate runs once per distinct family.
-    readonly Dictionary<(string Family, bool Bold, bool Italic), string> fallbackCache = [];
+    public Fill GetFill(PdfColor color) =>
+        new(GetPaint(color), (float) color.Alpha);
 
-    string ResolveFamily(string family, bool bold, bool italic)
-    {
-        if (FontFallback == null)
-        {
-            return family;
-        }
+    public Fill GetFill(PdfColor color, FillRule rule) =>
+        new(GetPaint(color), (float) color.Alpha, rule);
 
-        var key = (family, bold, italic);
-        if (fallbackCache.TryGetValue(key, out var cached))
-        {
-            return cached;
-        }
+    public Stroke GetStroke(PdfColor color, double width, LineCap cap = LineCap.Butt, float[]? dash = null) =>
+        new(GetPaint(color), (float) width, (float) color.Alpha, cap, DashArray: dash);
 
-        // Mirrors the shared resolver's ordering: the delegate is consulted only once the indexed
-        // faces and the curated alias map have missed, and a null/empty return falls through to
-        // PdfFontResolver's own platform and default-font fallbacks.
-        var resolved = family;
-        if (!PdfFontResolver.Instance.CanResolve(family, bold, italic) &&
-            FontFallback(family) is { Length: > 0 } substitute)
-        {
-            resolved = substitute;
-        }
-
-        fallbackCache[key] = resolved;
-        return resolved;
-    }
-
-    // Brushes and pens were allocated per drawn word / underline / border edge. Documents use a
-    // small set of colours and widths, so cache by value — PdfSharp reads them at draw time and
-    // never mutates them.
-    readonly Dictionary<XColor, XSolidBrush> brushCache = [];
-    readonly Dictionary<(XColor Color, double Width), XPen> penCache = [];
-
-    public XSolidBrush GetBrush(XColor color)
-    {
-        if (!brushCache.TryGetValue(color, out var brush))
-        {
-            brush = new(color);
-            brushCache[color] = brush;
-        }
-
-        return brush;
-    }
-
-    public XPen GetPen(XColor color, double width)
-    {
-        var key = (color, width);
-        if (!penCache.TryGetValue(key, out var pen))
-        {
-            pen = new(color, width);
-            penCache[key] = pen;
-        }
-
-        return pen;
-    }
-
-    // PdfSharp dedupes embedded image XObjects per XImage *instance* — a fresh XImage from the
-    // same bytes is decoded again and embedded again in the output PDF (a header logo on an
-    // N-page document used to embed N copies). Cache per source array (reference identity: the
-    // parsed elements hold stable arrays). Decode failures propagate to the caller, matching
-    // the uncached XImage.FromStream behaviour — nothing is cached for a throwing source.
-    readonly Dictionary<(byte[] Data, ImageRecolor? Recolor, double Opacity), XImage> imageCache = new(ImageKeyComparer.Instance);
+    // Krilla embeds an image once per PdfImage instance, so one is kept per source array (reference
+    // identity: the parsed elements hold stable arrays) and treatment — a header logo on an N-page
+    // document is stored once. A source that cannot be decoded is remembered as null and skipped.
+    readonly Dictionary<(byte[] Data, ImageRecolor? Recolor, double Opacity), PdfImage?> imageCache = new(ImageKeyComparer.Instance);
 
     // The same source array can be drawn both plainly and with effects, so the key carries them
     // beside it: the array still compares by reference, the effects by value.
@@ -176,108 +118,157 @@ sealed class PdfRenderContext : RenderContextBase
             HashCode.Combine(RuntimeHelpers.GetHashCode(key.Data), key.Recolor, key.Opacity);
     }
 
-    // PixelKey -> PaletteKey of the first indexed PNG embedded with those pixels; see GetImage.
-    readonly Dictionary<string, string> indexedPixelIdentities = [];
-
-    public XImage GetImage(byte[] data, ImageRecolor? recolor = null, double opacity = 1)
+    public PdfImage? GetImage(byte[] data, ImageRecolor? recolor = null, double opacity = 1)
     {
-        if (!imageCache.TryGetValue((data, recolor, opacity), out var image))
+        var key = (data, recolor, opacity);
+        if (!imageCache.TryGetValue(key, out var image))
         {
             // The blip's effects: Word's Recolor gallery (a:duotone / a:grayscl / a:lum) and the
-            // a:alphaModFix transparency. PDFsharp embeds encoded bytes and has no pixel pipeline
-            // to apply either with, so they are baked in here by a raster backend if one is
-            // deployed — the arrangement WordArt already uses. The result is always a PNG, which
-            // the two re-encodes below then pass straight through.
+            // a:alphaModFix transparency. Krilla embeds encoded bytes and has no pixel pipeline to
+            // apply either with, so they are baked in here by a raster backend if one is deployed —
+            // the arrangement WordArt already uses. The result is always a PNG.
             var source = (recolor != null || opacity < 1) &&
                          ImageEffectsFactory.TryGet()?.Bake(data, recolor, opacity) is { Length: > 0 } baked
                 ? baked
                 : data;
 
-            // Two formats need re-encoding before PDFsharp will take them, both keyed on the
-            // ORIGINAL array so the cache stays reference-stable and the work happens at most once:
-            //   * GIF — PDFsharp's cross-platform build cannot decode it at all, so the first frame
-            //     is transcoded to an indexed PNG (GifToPng).
-            //   * a sub-8-bit indexed PNG — PDFsharp emits an all-zero soft mask for those, so the
-            //     picture lands in the PDF and draws as nothing (IndexedPngNormalizer).
-            var decodable = GifToPng.IsGif(source)
-                ? GifToPng.Convert(source) ?? source
-                : IndexedPngNormalizer.Normalize(source);
-
-            // PDFsharp's document-level image dedup hashes an imported bitmap's PIXEL data but not
-            // its palette, so a recoloured copy of an already-embedded indexed PNG — identical
-            // indices, different PLTE — collides and draws as the FIRST image everywhere (menus/06's
-            // sheep rendered as page 2's white icon). Re-encode only the collider as RGBA, putting
-            // its colours into the data PDFsharp hashes; everything else embeds exactly as before.
-            if (IndexedPngNormalizer.PixelIdentity(decodable) is var (pixelKey, paletteKey))
-            {
-                if (indexedPixelIdentities.TryGetValue(pixelKey, out var firstPalette))
-                {
-                    if (firstPalette != paletteKey)
-                    {
-                        decodable = IndexedPngNormalizer.ExpandPaletteToRgba(decodable) ?? decodable;
-                    }
-                }
-                else
-                {
-                    indexedPixelIdentities[pixelKey] = paletteKey;
-                }
-            }
-
-            using var stream = new MemoryStream(decodable);
-            image = XImage.FromStream(stream);
-            imageCache[(data, recolor, opacity)] = image;
+            image = LoadImage(source);
+            imageCache[key] = image;
         }
 
         return image;
     }
 
-    // One form per drawing and treatment, as imageCache is one XImage per source array: a form is
-    // an indirect object, so every page that draws the picture refers to the same one.
-    readonly Dictionary<(SvgDrawing Vector, ImageRecolor? Recolor, double Opacity), XForm> vectorFormCache = [];
-
-    /// <summary>
-    /// A picture stored as SVG, as a form of path operators (<see cref="PdfVectorDrawing"/>) — the
-    /// vector counterpart of <see cref="GetImage"/>, and placed by the same calls. The recolour is
-    /// applied to the drawing's colours. Transparency can only be folded into each path's own
-    /// alpha, which is the picture faded as one image just when its paths keep clear of each other;
-    /// the painter therefore asks for it only where the picture has no raster to bake it into.
-    /// </summary>
-    public XForm GetVectorForm(SvgDrawing vector, ImageRecolor? recolor = null, double opacity = 1)
+    static PdfImage? LoadImage(byte[] data)
     {
-        var key = (vector, recolor, opacity);
-        if (!vectorFormCache.TryGetValue(key, out var form))
+        if (Sniff(data) is not { } format)
         {
-            form = PdfVectorDrawing.BuildForm(Document, vector.Recolored(recolor), Math.Clamp(opacity, 0, 1));
-            vectorFormCache[key] = form;
+            return null;
         }
 
-        return form;
+        try
+        {
+            return PdfImage.Load(format, data);
+        }
+        catch (KrillaException)
+        {
+            return null;
+        }
     }
 
-    /// <summary>Disposes every cached image. Called once the document has been saved.</summary>
-    public void DisposeImages()
+    // The formats Krilla decodes, told apart by their signatures.
+    static ImageFormat? Sniff(ReadOnlySpan<byte> data)
+    {
+        if (data.StartsWith((ReadOnlySpan<byte>) [0x89, (byte) 'P', (byte) 'N', (byte) 'G']))
+        {
+            return ImageFormat.Png;
+        }
+
+        if (data.StartsWith((ReadOnlySpan<byte>) [0xFF, 0xD8]))
+        {
+            return ImageFormat.Jpeg;
+        }
+
+        if (data.StartsWith("GIF8"u8))
+        {
+            return ImageFormat.Gif;
+        }
+
+        if (data.Length >= 12 && data.StartsWith("RIFF"u8) && data[8..12].SequenceEqual("WEBP"u8))
+        {
+            return ImageFormat.Webp;
+        }
+
+        return null;
+    }
+
+    // One graphic per drawing and treatment, as imageCache is one PdfImage per source array: a
+    // graphic is stored once and every page that draws the picture refers to it.
+    readonly Dictionary<(SvgDrawing Vector, ImageRecolor? Recolor, double Opacity), Graphic> vectorCache = [];
+
+    /// <summary>
+    /// A picture stored as SVG, as a graphic of path operators (<see cref="PdfVectorDrawing"/>) — the
+    /// vector counterpart of <see cref="GetImage"/>, drawn in the drawing's own units. The recolour is
+    /// applied to the drawing's colours. Transparency can only be folded into each path's own alpha,
+    /// which is the picture faded as one image just when its paths keep clear of each other; the
+    /// painter therefore asks for it only where the picture has no raster to bake it into.
+    /// </summary>
+    public Graphic GetVectorGraphic(SvgDrawing vector, ImageRecolor? recolor = null, double opacity = 1)
+    {
+        var key = (vector, recolor, opacity);
+        if (!vectorCache.TryGetValue(key, out var graphic))
+        {
+            graphic = PdfVectorDrawing.Capture(this, Surface!, vector.Recolored(recolor), Math.Clamp(opacity, 0, 1));
+            vectorCache[key] = graphic;
+        }
+
+        return graphic;
+    }
+
+    public void Dispose()
     {
         foreach (var image in imageCache.Values)
         {
-            image.Dispose();
+            image?.Dispose();
         }
 
         imageCache.Clear();
-        foreach (var form in vectorFormCache.Values)
+        foreach (var graphic in vectorCache.Values)
         {
-            form.Dispose();
+            graphic.Dispose();
         }
 
-        vectorFormCache.Clear();
+        vectorCache.Clear();
+        foreach (var paint in paintCache.Values)
+        {
+            paint.Dispose();
+        }
+
+        paintCache.Clear();
+        fonts.Dispose();
+        foreach (var face in seededFaces)
+        {
+            face.Dispose();
+        }
+
+        Document.Dispose();
     }
 
-    public static XColor ParseColor(string? hex)
+    public static PdfColor ParseColor(string? hex)
     {
         if (hex.TryParseArgb(out var a, out var r, out var g, out var b))
         {
-            return XColor.FromArgb(a, r, g, b);
+            return new((byte) r, (byte) g, (byte) b, a / 255.0);
         }
 
-        return XColors.Black;
+        return PdfColor.Black;
+    }
+}
+
+/// <summary>An RGB colour with its opacity, which Krilla takes apart from the colour as a fill's or stroke's.</summary>
+readonly record struct PdfColor(byte R, byte G, byte B, double Alpha = 1)
+{
+    public static PdfColor Black => new(0, 0, 0);
+
+    public PdfColor WithAlpha(double alpha) =>
+        this with
+        {
+            Alpha = Math.Clamp(alpha, 0, 1)
+        };
+
+    // See SkiaPainter.Shaded.
+    public PdfColor Shaded(double shade)
+    {
+        if (shade >= 1)
+        {
+            return this;
+        }
+
+        return this with
+        {
+            R = (byte) (R * shade),
+            G = (byte) (G * shade),
+            B = (byte) (B * shade)
+        };
     }
 }

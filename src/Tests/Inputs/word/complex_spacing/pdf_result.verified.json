@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 7,
     "Pages": [
@@ -69,32 +66,32 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.093,
-      "Ssim": 0.837,
+      "ErrorMetric": 0.0935,
+      "Ssim": 0.8346,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0757,
-      "Ssim": 0.8682,
+      "ErrorMetric": 0.076,
+      "Ssim": 0.8665,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.0843,
-      "Ssim": 0.8544,
+      "ErrorMetric": 0.0846,
+      "Ssim": 0.8531,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.0141,
-      "Ssim": 0.9767,
+      "ErrorMetric": 0.014,
+      "Ssim": 0.9768,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
@@ -102,7 +99,7 @@
     {
       "Page": 5,
       "ErrorMetric": 0.0605,
-      "Ssim": 0.893,
+      "Ssim": 0.8925,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
@@ -110,15 +107,15 @@
     {
       "Page": 6,
       "ErrorMetric": 0.0277,
-      "Ssim": 0.9495,
+      "Ssim": 0.9493,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.0374,
-      "Ssim": 0.9337,
+      "ErrorMetric": 0.0376,
+      "Ssim": 0.9329,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"

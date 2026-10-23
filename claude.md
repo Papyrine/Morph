@@ -378,7 +378,14 @@ fonts and styles drawn as themselves — keep markup of their own. A right-click
 morph-viewer.js) selects what is under it first — a floating picture, the open paragraph's own place,
 text already selected left as it is, or the paragraph there opened as a click opens it — then calls
 `OnContextMenu`, and `ContextLines` offers only what belongs to that place, as Word's does (the
-ribbon greys out instead, so it never moves); `placeMenu` then keeps the menu inside the editor. A
+ribbon greys out instead, so it never moves); `placeMenu` then keeps the menu inside the editor.
+The ribbon gives up room as it narrows the way Word's does, measured rather than at CSS breakpoints:
+each group carries `data-priority` (and `data-squeeze` where it can first get smaller) and a `Fold`
+button, and `foldRibbon` in morph-viewer.js measures every group whole, squeezed and folded within one
+frame, then squeezes and folds in that one fixed order — lowest priority first — skipping a step that
+would save nothing, so a narrower ribbon never has more of anything than a wider one. The folding is the
+script's alone (`data-fold`, and `data-open` for a folded group opened), on elements .NET draws in both
+forms; a ResizeObserver and a MutationObserver on the ribbon refold it a frame after it changes. A
 command line the script handles carries `data-edit-command`, so its press is the script's as the
 ribbon's button is. Escape with a menu or a dialog open is caught at the document, before the open
 paragraph's own Escape abandons what was typed, and handed to `OnMenuEscape`.

@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 2,
     "Pages": [
@@ -22,7 +19,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "Agenda\n• Topic one\n• Topic two\n• Topic three\n• Topic four\n•\nS\nA\nM\nP\nL\nE\nF\nO\nO\nT\nE\nR\nT\nE\nX\nT\n2"
+        "Text": "Agenda • Topic one • Topic two • Topic three • Topic four •\nSAMPLE FOOTER TEXT\n2"
       }
     ]
   },

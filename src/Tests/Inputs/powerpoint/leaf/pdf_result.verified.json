@@ -1,10 +1,7 @@
 ﻿{
   "target": {
     "Document": {
-      "CreationDate": "DateTimeOffset_1",
-      "Creator": "Morph",
-      "ModDate": "DateTimeOffset_1",
-      "Producer": "PDFsharp 6.2.4"
+      "Creator": "Morph"
     },
     "PageCount": 2,
     "Pages": [
@@ -14,7 +11,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "BAS IC PRESENTATI O N"
+        "Text": "B A S I C P R E S E N T A T I O N"
       },
       {
         "Number": 2,
@@ -22,7 +19,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "A G ENDA\nEco-friendly packaging and materials\nRenewable energy technologies and their\nintegration\nCircular economy and product lifecycle\nmanagement \nSustainability and plant-based alternatives"
+        "Text": "A G E N D A\nEco-friendly packaging and materials\nRenewable energy technologies and their\nintegration\nCircular economy and product lifecycle\nmanagement \nSustainability and plant-based alternatives"
       }
     ]
   },

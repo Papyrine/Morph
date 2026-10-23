@@ -1,4 +1,4 @@
-using PdfSharp.Pdf.IO;
+using Morph.PDFium;
 
 /// <summary>
 /// Validates the layout engine's first painter (<c>docs/layout-engine.md</c>, step 5):
@@ -58,15 +58,13 @@ public class PdfPainterTests
         await Assert.That(runs[0].Text.Contains("Paragraph")).IsTrue();
 
         var pdf = PdfPainter.Paint(tree, fontsDirectory);
-        using var stream = new MemoryStream();
-        await pdf.SaveAsync(stream);
 
         // Reopen the saved bytes: a valid PDF with exactly the tree's pages at the tree's geometry — the
         // painter added no pages and paginated nothing.
-        stream.Position = 0;
-        using var reopened = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
+        using var reopened = PdfiumDocument.Load(pdf);
         await Assert.That(reopened.PageCount).IsEqualTo(tree.Pages.Count);
-        await Assert.That(reopened.Pages[0].Width.Point).IsEqualTo(612d).Within(0.5);
-        await Assert.That(reopened.Pages[0].Height.Point).IsEqualTo(792d).Within(0.5);
+        var size = reopened.GetPageSize(0);
+        await Assert.That(size.Width).IsEqualTo(612d).Within(0.5);
+        await Assert.That(size.Height).IsEqualTo(792d).Within(0.5);
     }
 }

@@ -160,8 +160,12 @@ document, Open, and (with `ShowSamples`) the sample document. A workbook or a de
 The ribbon is laid out as Word's: the tabs on a title band with the file's name and Save, the chosen
 tab open onto the ribbon under it; each tab's commands in named groups, a group's main command a large
 button with its name under its icon and the rest small buttons beside it. In a narrower window the
-groups give up room rather than wrap, as Word's do — the style gallery shows fewer styles, then Home's
-small buttons keep only their icons — and on a phone the ribbon scrolls sideways.
+groups give up room rather than wrap, as Word's do, measured as the window changes: first the groups that
+can get smaller do — the style gallery shows fewer styles, the Clipboard's and Editing's buttons keep only
+their icons — then whole groups fold into one button with their name, which opens the group under it,
+those Word gives up first folding first (Editing and Styles before Font). A group whose button would be no
+narrower than it is, one command alone, stays as it is. On a phone most groups are folded; a group opened
+there wraps to the screen's width.
 
 | ribbon | what it does |
 | --- | --- |
