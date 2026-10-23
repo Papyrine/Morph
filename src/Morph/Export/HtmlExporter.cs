@@ -597,8 +597,6 @@ static class HtmlExporter
                     default:
                         return null;
                 }
-
-                break;
             }
         }
 
