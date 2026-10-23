@@ -489,7 +489,7 @@ public partial class SnapshotTests
         builder.AppendLine();
         builder.AppendLine(
             $"Chromium {browser!.Version}, {Environment.ProcessorCount} logical cores, CPU throttled {throttle}x, " +
-            $"{configuration} build, pages {Environment.GetEnvironmentVariable("MORPH_BENCH_PAGES") ?? "svg (the default)"},{DateTime.Now:yyyy-MM-dd HH:mm}. Milliseconds; a step's time is the median of three rounds, " +
+            $"{configuration} build, pages {Environment.GetEnvironmentVariable("MORPH_BENCH_PAGES") ?? "svg (the default)"}, {DateTime.Now:yyyy-MM-dd HH:mm}. Milliseconds; a step's time is the median of three rounds, " +
             "a key's the percentile over all of them. A key is timed from the browser receiving it to the end of the frame " +
             "that shows it; its handler is the editor's own beforeinput. A long task is one over 50 ms, during which the page answers nothing.");
         builder.AppendLine();
