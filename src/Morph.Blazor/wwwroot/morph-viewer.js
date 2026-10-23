@@ -70,6 +70,7 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setPainting: on => viewer.setPainting(on),
         setPictures: (documentId, numbers) => viewer.setPictures(documentId, numbers),
         setRuler: model => viewer.setRuler(model),
+        placeMenu: () => viewer.placeMenu(),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
         setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
@@ -281,6 +282,7 @@ class Viewer {
 
         this.root.addEventListener('keydown', event => this.onKeyDown(event), { signal });
         this.root.addEventListener('click', event => this.onClick(event), { signal });
+        this.root.addEventListener('contextmenu', event => this.onContextMenu(event), { signal });
         // A press on an editing button must not take the focus, and with it the selection the
         // button is for.
         this.root.addEventListener('mousedown', event => {
@@ -1641,6 +1643,16 @@ class Viewer {
 
     // Ctrl+P while focus is in the viewer prints the document rather than the host page around it.
     onDocumentKeyDown(event) {
+        // Escape closes the editor's menu or dialog that is open, and goes no further: the paragraph
+        // being typed in keeps what was typed, as Word's does. Neither has the focus — the ribbon does
+        // not take it — so the key is caught here, before the paragraph's own Escape.
+        if (event.key === 'Escape' && this.root.querySelector('.editor-menu, .editor-dialog')) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.call('OnMenuEscape');
+            return;
+        }
+
         if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' &&
             this.pages.length && (this.presenting || this.root.contains(document.activeElement))) {
             event.preventDefault();
@@ -2312,6 +2324,14 @@ class Viewer {
     // Which of the editing bar's buttons are pressed: null when no paragraph is open. The font and
     // size the caret is in show in the ribbon (data-edit-show), as of the last place it was.
     showEditState(state) {
+        // Whether a picture is selected alone decides what the ribbon offers, so .NET is told — but only
+        // when that changes, never as the caret moves.
+        const picture = state?.picture === true;
+        if (picture !== (this.editPicture ?? false)) {
+            this.editPicture = picture;
+            this.dotNet.invokeMethodAsync('OnEditPicture', picture).catch(() => {});
+        }
+
         if (state) {
             for (const shown of this.root.querySelectorAll('[data-edit-show]')) {
                 const value = state[shown.dataset.editShow];
@@ -2633,6 +2653,90 @@ class Viewer {
         } catch {
             return false;
         }
+    }
+
+    // Word's right-click menu, while editing. What was right-clicked is selected first, as Word selects
+    // it: a floating picture; in the paragraph being typed, where its own mousedown put the caret (or the
+    // picture it framed); text already selected on the pages, left as it is; anywhere else on a page, the
+    // paragraph there, opened as a click opens it. Then .NET opens the menu where the pointer was
+    // (MorphEditor.ContextLines). Shift+right-click keeps the browser's own menu, as does all that is not
+    // the pages.
+    async onContextMenu(event) {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target || !this.editMode || this.presenting || event.shiftKey || !this.scroller.contains(target)) {
+            return;
+        }
+
+        const page = this.pageOf(target);
+        const typing = Boolean(target.closest('.edit-box'));
+        if (!page && !typing) {
+            return;
+        }
+
+        event.preventDefault();
+        let { clientX, clientY } = event;
+        // From the keyboard (the menu key, Shift+F10) there is no pointer: the menu opens at the caret.
+        if (clientX === 0 && clientY === 0) {
+            const selection = getSelection();
+            const box = selection?.rangeCount ? selection.getRangeAt(0).getBoundingClientRect() : target.getBoundingClientRect();
+            clientX = box.left;
+            clientY = box.bottom;
+        }
+
+        if (typing || target.closest('.viewer-picture-frame')) {
+            // The paragraph's own place, or the picture already selected.
+        } else if (this.pictureAt(event)) {
+            // A floating picture, now selected.
+        } else if (!this.inSelection(clientX, clientY)) {
+            this.selectPicture(null);
+            await this.closeEditor();
+            this.ensureText(page);
+            const offset = this.caretOffset(page, clientX, clientY);
+            await this.sendHit(page, clientX, clientY, offset, offset);
+        }
+
+        const bounds = this.root.getBoundingClientRect();
+        this.dotNet.invokeMethodAsync('OnContextMenu', clientX - bounds.left, clientY - bounds.top).catch(() => {});
+    }
+
+    // Whether a point is on the text selected on the pages.
+    inSelection(clientX, clientY) {
+        const selection = getSelection();
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+            return false;
+        }
+
+        for (const box of selection.getRangeAt(0).getClientRects()) {
+            if (clientX >= box.left && clientX <= box.right && clientY >= box.top && clientY <= box.bottom) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The right-click menu, just drawn by .NET where the pointer was: moved in from the editor's right
+    // and bottom edges where it would run past them — up from the pointer when there is room above —
+    // and its submenus set to open on the side that has room.
+    placeMenu() {
+        const menu = this.root.querySelector('.editor-context-menu');
+        if (!menu) {
+            return;
+        }
+
+        const bounds = this.root.getBoundingClientRect();
+        let box = menu.getBoundingClientRect();
+        if (box.right > bounds.right) {
+            menu.style.left = `${Math.max(0, bounds.width - box.width - 4)}px`;
+        }
+
+        if (box.bottom > bounds.bottom) {
+            const above = box.top - bounds.top - box.height;
+            menu.style.top = `${Math.max(0, above >= 0 ? above : bounds.height - box.height)}px`;
+        }
+
+        box = menu.getBoundingClientRect();
+        menu.toggleAttribute('data-flip', box.right + box.width > bounds.right);
     }
 
     // An arrow key took the caret out of the top or the bottom of a paragraph: the paragraph that way

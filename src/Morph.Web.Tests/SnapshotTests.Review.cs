@@ -257,7 +257,7 @@ public partial class SnapshotTests
             new[] { start, end });
 
     // Clicks the middle of one character of the first page's text.
-    static async Task ClickTextAsync(IPage page, int offset)
+    static async Task ClickTextAsync(IPage page, int offset, MouseButton button = MouseButton.Left)
     {
         var box = await page.EvaluateAsync<double[]>(
             """
@@ -284,6 +284,12 @@ public partial class SnapshotTests
             }
             """,
             offset);
-        await page.Mouse.ClickAsync((float) box[0], (float) box[1]);
+        await page.Mouse.ClickAsync(
+            (float) box[0],
+            (float) box[1],
+            new()
+            {
+                Button = button
+            });
     }
 }

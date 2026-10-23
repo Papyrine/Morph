@@ -1506,7 +1506,9 @@ export class ParagraphEditor {
             italic: (face & italic) !== 0,
             underline: (face & underline) !== 0,
             strike: (face & strike) !== 0,
-            align: this.blocks[selected.from.b].align ?? this.session.align
+            align: this.blocks[selected.from.b].align ?? this.session.align,
+            // A picture selected alone, framed: what Layout > Wrap Text acts on.
+            picture: Boolean(this.frame)
         });
     }
 

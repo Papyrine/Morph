@@ -533,10 +533,10 @@ public partial class MorphViewer
     internal Task ResolveAllAsync(bool accept) =>
         ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
 
-    Task UndoAsync() =>
+    internal Task UndoAsync() =>
         StepAsync(undo, redo);
 
-    Task RedoAsync() =>
+    internal Task RedoAsync() =>
         StepAsync(redo, undo);
 
     async Task StepAsync(List<byte[]> from, List<byte[]> to)

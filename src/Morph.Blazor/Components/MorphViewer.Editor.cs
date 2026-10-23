@@ -352,6 +352,15 @@ public partial class MorphViewer
         }
     }
 
+    // The right-click menu, just drawn at the pointer, moved by the script to stay inside the editor.
+    internal async Task PlaceMenuAsync()
+    {
+        if (handle is { } viewer)
+        {
+            await viewer.PlaceMenuAsync();
+        }
+    }
+
     /// <summary>
     /// Called from JavaScript when a ruler marker is let go: the paragraph's left and right indents and
     /// its first line's (negative, hanging), in points.
@@ -1020,12 +1029,30 @@ public partial class MorphViewer
     // inline one selected in the paragraph being typed — a selection of the one place it is.
     (int Paragraph, int Offset)? floatingPicture;
 
+    // The paragraph being typed has a picture selected, alone: the script says so as it comes and goes,
+    // and the script's target says which, when a command asks.
+    bool inlinePicture;
+
+    internal bool PictureSelected => floatingPicture != null || inlinePicture;
+
     /// <summary>Called from JavaScript when a floating picture is selected on a page, or none is (-1).</summary>
     [JSInvokable]
     public Task OnPictureSelected(int paragraph, int offset) =>
         InvokeAsync(() =>
         {
             floatingPicture = paragraph >= 0 ? (paragraph, offset) : null;
+            StateHasChanged();
+        });
+
+    /// <summary>
+    /// Called from JavaScript when a picture comes to be selected alone in the paragraph being typed, or
+    /// stops being: only then, never as the caret moves.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditPicture(bool selected) =>
+        InvokeAsync(() =>
+        {
+            inlinePicture = selected;
             StateHasChanged();
         });
 

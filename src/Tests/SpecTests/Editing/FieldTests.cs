@@ -194,6 +194,17 @@ public class FieldTests
         await Assert.That(xml.Split("Chapter one").Length).IsEqualTo(1);
     }
 
+    // The outline says whether the body has a table of contents: what greys Update Table out.
+    [Test]
+    public async Task TheOutline_SaysWhetherTheBodyHasContents()
+    {
+        var headed = Headed();
+        var inserted = DocumentEditor.InsertContents(headed, 0, 0, Plain).Document;
+
+        await Assert.That(DocumentOutline.Read(headed).HasContents).IsFalse();
+        await Assert.That(DocumentOutline.Read(inserted).HasContents).IsTrue();
+    }
+
     [Test]
     public async Task AContentsTable_Tracked_IsReviewable()
     {

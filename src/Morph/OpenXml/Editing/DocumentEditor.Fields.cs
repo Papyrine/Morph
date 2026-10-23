@@ -104,6 +104,10 @@ static partial class DocumentEditor
                body.Descendants<OoxmlFieldCode>().Any(IsContents);
     }
 
+    /// <summary>Whether a paragraph holds a table of contents' field code: where one begins.</summary>
+    public static bool HasContents(Paragraph paragraph) =>
+        paragraph.Descendants<OoxmlFieldCode>().Any(IsContents);
+
     static bool IsContents(OoxmlFieldCode code) =>
         code.Text.TrimStart().StartsWith("TOC ", StringComparison.Ordinal);
 
