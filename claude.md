@@ -233,8 +233,11 @@ component is `ExportOptionsPanel`: `ExportOptions` is already Morph's own record
 
 `MorphViewer` is the package's second widget: a browser-PDF-viewer-style view of a `.docx`/`.xlsx`/`.pptx`
 (thumbnails, zoom and fit modes, rotation, find, presentation mode, print, download). It rests on
-`PagedDocument`, which parses and runs the `Fragmenter` once and paints any page at any DPI through
-`ImageSharpPainter`, and on `TextLayerBuilder`, which reads each page's runs off the laid-out tree into the
+`PagedDocument`, which parses and runs the `Fragmenter` once and writes any page as SVG through
+`SvgPainter` (Morph.ImageSharp; the browser draws it, `MorphViewer.VectorPages`, the default) or paints it
+at any DPI through `ImageSharpPainter`. `SvgPainter` reads the same tree in the same order as
+`ImageSharpPainter`, with each glyph at the x SixLabors.Fonts lays it at, so a drawing change made to one
+painter belongs in the other too. It also rests on `TextLayerBuilder`, which reads each page's runs off the laid-out tree into the
 selectable text layer (`wwwroot/morph-text.js`) that the converter's preview carries too. Both use Morph
 internals: `Morph` and `Morph.ImageSharp` grant `Morph.Blazor` `InternalsVisibleTo`, so a change to the
 layout tree (`PlacedItem` kinds, `PlacedRun`) can break the Blazor build — and
@@ -370,7 +373,20 @@ file in IndexedDB after each edit, which the start page offers back. One slot; s
 drops it, and only a draft this session wrote is dropped.
 
 An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
-pages cannot disagree with what Download saves. **A change to `CanonicalParagraphMeasurer.Flatten` — what
+pages cannot disagree with what Download saves. The viewer's edits (under `DocumentReading.Capture`)
+keep the package of the file each returns open, and both the next edit to that file and the parse of
+it (`DocumentReading.Borrow`, from `PagedDocument.Open`) read that tree rather than the file's XML —
+which is the file, since it is what was just saved; on the WebAssembly runtime reading the business
+plan's body was ~580ms, twice per hand-in. Opening a Word document (and an undo) does the same from
+the other end: the viewer opens the file for editing first (`DocumentReading.Prepare`), so the parse,
+the reading of its review and outline (`DocumentReading.Read`) and the first edit share that one
+tree, and a read-only viewer lets it go once read. **The parser must therefore leave the tree as it found
+it**: its two writes (`DropRedefinedStyles`, `FoldRelativeSizes`) are journalled and undone when it
+parses a borrowed package (`DocumentParser.Parse(WordprocessingDocument)`), and it reads part
+streams read-only, since a read-write stream of a package open for writing is deflated again on
+every save. A new write to the tree in the parser has to join the journal: `LivePackageTests` parses
+every corpus document both ways, after an edit and from a prepared package, and compares the next
+edit's parts, and fails otherwise. **A change to `CanonicalParagraphMeasurer.Flatten` — what
 text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`
 fails if the two part ways.
 
@@ -392,7 +408,14 @@ locks it, refreshes the lock, saves through the editor's `OnSave` and unlocks wi
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
 extracted into `Morph.Blazor` this project is only the shell — header with Convert | View | Edit links,
 theme toggle, footer — around `<MorphConverter />` at `/`, `<MorphViewer />` at `/view` and
-`<MorphEditor />` at `/edit`. See
+`<MorphEditor />` at `/edit`. **The deploy is AOT-compiled and nothing else is**: only the publish line
+in `.github/workflows/deploy-blazor.yml` passes `RunAOTCompilation` (main only), so local builds, the
+tests' own publish and pull requests stay interpreted — never set it in a csproj, or every test build
+becomes a 15-minute AOT publish. **After a local AOT publish, delete `src/Morph.Web/obj/Release` before the
+next interpreted one**: the interpreted publish reuses the AOT build's assemblies, whose IL AOT stripped, and
+the tests then serve an app that never starts. The workarounds AOT needs are in `Morph.Blazor/build/Morph.Blazor.targets`,
+and the deploy's `test-aot` job runs the browser tests against the AOT app
+(`Morph.Web.Tests -p:SkipBlazorPublish=true` serves whatever is in `bin/Release/blazor-publish`). See
 `src/Morph.Web/README.md`.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render

@@ -24,6 +24,14 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask SetPageImageAsync(int documentId, int pageIndex, byte[] png, int dpi) =>
         controller.InvokeVoidAsync("setPageImage", documentId, pageIndex, png, dpi);
 
+    // A page as SVG markup in place of a picture; its <image data-i="n"> elements show the n-th of the
+    // pictures packed end to end in images, lengths long. measure has the script time its part.
+    public ValueTask SetPageSvgAsync(int documentId, int pageIndex, string markup, byte[] images, int[] lengths, bool measure) =>
+        controller.InvokeVoidAsync("setPageSvg", documentId, pageIndex, markup, images, lengths, measure);
+
+    public ValueTask SetThumbnailSvgAsync(int documentId, int pageIndex, string markup, byte[] images, int[] lengths) =>
+        controller.InvokeVoidAsync("setThumbnailSvg", documentId, pageIndex, markup, images, lengths);
+
     public ValueTask SetThumbnailAsync(int documentId, int pageIndex, byte[] png) =>
         controller.InvokeVoidAsync("setThumbnail", documentId, pageIndex, png);
 
@@ -121,6 +129,10 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
 
     public ValueTask AddPrintPageAsync(int pageIndex, byte[] png) =>
         controller.InvokeVoidAsync("addPrintPage", pageIndex, png);
+
+    // A printed page as SVG, its pictures packed as SetPageSvgAsync packs them.
+    public ValueTask AddPrintPageSvgAsync(int pageIndex, string markup, byte[] images, int[] lengths) =>
+        controller.InvokeVoidAsync("addPrintPageSvg", pageIndex, markup, images, lengths);
 
     // Resolves once the browser's print dialog has closed and the print pages are cleaned up.
     public ValueTask FinishPrintAsync() =>

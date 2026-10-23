@@ -1,8 +1,15 @@
 @page "/view"
 
 @* The document viewer — pages rendered on demand with selectable text, a thumbnail sidebar, zoom, find,
-   presentation mode and printing — is the MorphViewer component from the Morph.Blazor package. *@
+   presentation mode and printing — is the MorphViewer component from the Morph.Blazor package. Its pages
+   are drawn as SVG; ?pages=png paints them instead, and ?pages=svg-timed also paints each one as a PNG,
+   unseen, and logs both times. *@
 
 <PageTitle>Morph — Office Viewer</PageTitle>
 
-<MorphViewer ShowSamples="true" />
+<MorphViewer ShowSamples="true" VectorPages="@(Pages != "png")" MeasurePaint="@(Pages == "svg-timed")" />
+
+@code {
+    [SupplyParameterFromQuery(Name = "pages")]
+    public string? Pages { get; set; }
+}

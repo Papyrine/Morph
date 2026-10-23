@@ -45,12 +45,15 @@
     <PackageReference Include="SponsorCheck" PrivateAssets="all" Condition="'$(MORPH_TEST_CONTAINER)' != '1'" />
   </ItemGroup>
 
-  <!-- Shipped to consumers so a trimmed WebAssembly publish keeps the reflection-heavy libraries whole;
-       see build/Morph.Blazor.targets. buildTransitive as well as build, so an app that picks the package
-       up indirectly still gets the roots. -->
+  <!-- Shipped to consumers so a trimmed WebAssembly publish keeps the reflection-heavy libraries whole,
+       and an AOT one gets the two workarounds it needs; see build/Morph.Blazor.targets. buildTransitive
+       as well as build, so an app that picks the package up indirectly still gets them. The targets
+       find the link-attributes file beside themselves. -->
   <ItemGroup>
     <None Include="build\Morph.Blazor.targets" Pack="true" PackagePath="build\Morph.Blazor.targets" />
     <None Include="build\Morph.Blazor.targets" Pack="true" PackagePath="buildTransitive\Morph.Blazor.targets" />
+    <None Include="build\Morph.Blazor.AotLinkAttributes.xml" Pack="true" PackagePath="build\Morph.Blazor.AotLinkAttributes.xml" />
+    <None Include="build\Morph.Blazor.AotLinkAttributes.xml" Pack="true" PackagePath="buildTransitive\Morph.Blazor.AotLinkAttributes.xml" />
   </ItemGroup>
 
 </Project>

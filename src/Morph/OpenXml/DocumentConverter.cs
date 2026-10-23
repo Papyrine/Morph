@@ -304,6 +304,10 @@ public abstract class DocumentConverter
     internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
         new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(docxStream);
 
+    // A package someone else holds open, read as it stands and left as it was (DocumentParser.Parse).
+    internal static ParsedDocument Parse(WordprocessingDocument document, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
+        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(document);
+
     /// <summary>
     /// Renders a parsed document, invoking <paramref name="pageCallback"/> for each page (the
     /// callback receives an action that writes the PNG data to a destination stream).

@@ -1034,7 +1034,8 @@
     aspect-ratio: var(--ph) / var(--pw);
 }
 
-.viewer-thumb-sheet img {
+.viewer-thumb-sheet img,
+.viewer-thumb-vector {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -1043,8 +1044,15 @@
     transform: translate(-50%, -50%) rotate(var(--viewer-rotation, 0deg));
 }
 
+.viewer-thumb-vector {
+    height: auto;
+    pointer-events: none;
+}
+
 .viewer[data-rotation="90"] .viewer-thumb-sheet img,
-.viewer[data-rotation="270"] .viewer-thumb-sheet img {
+.viewer[data-rotation="270"] .viewer-thumb-sheet img,
+.viewer[data-rotation="90"] .viewer-thumb-vector,
+.viewer[data-rotation="270"] .viewer-thumb-vector {
     width: calc(120px * var(--pw) / var(--ph));
 }
 
@@ -1113,6 +1121,22 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
+}
+
+/* Holds a page's or a thumbnail's SVG and is inert, which the svg itself cannot be (morph-viewer.js,
+   vectorFrom); it draws no box, so the svg lays out as the page's or the sheet's own child. */
+.viewer-vector-holder {
+    display: contents;
+}
+
+/* A page drawn as SVG (MorphViewer.VectorPages): a picture to the reader, whose text is the text layer's. */
+.viewer-vector {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .viewer-page-message {
@@ -1634,6 +1658,12 @@
         display: block;
         max-width: 100%;
         max-height: 100%;
+    }
+
+    .print-page > svg {
+        display: block;
+        width: 100%;
+        height: 100%;
     }
 }
 

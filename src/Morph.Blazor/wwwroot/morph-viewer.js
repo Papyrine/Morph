@@ -50,7 +50,9 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         reload: (documentId, sizes, texts) => viewer.reload(documentId, sizes, texts),
         unload: () => viewer.unload(),
         setPageImage: (documentId, pageIndex, png, dpi) => viewer.setPageImage(documentId, pageIndex, png, dpi),
+        setPageSvg: (documentId, pageIndex, markup, images, lengths, measure) => viewer.setPageSvg(documentId, pageIndex, markup, images, lengths, measure),
         setThumbnail: (documentId, pageIndex, png) => viewer.setThumbnail(documentId, pageIndex, png),
+        setThumbnailSvg: (documentId, pageIndex, markup, images, lengths) => viewer.setThumbnailSvg(documentId, pageIndex, markup, images, lengths),
         setPageError: (documentId, pageIndex, message) => viewer.setPageError(documentId, pageIndex, message),
         goToPage: pageIndex => viewer.goToPage(pageIndex),
         stepPage: delta => viewer.stepPage(delta),
@@ -77,10 +79,66 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
         addPrintPage: (pageIndex, png) => viewer.addPrintPage(pageIndex, png),
+        addPrintPageSvg: (pageIndex, markup, images, lengths) => viewer.addPrintPageSvg(pageIndex, markup, images, lengths),
         finishPrint: () => viewer.finishPrint(),
         cancelPrint: () => viewer.cancelPrint(),
         dispose: () => viewer.dispose(),
     };
+}
+
+// What a page drawn as SVG counts as for the render queue: sharp at every zoom.
+const vectorDpi = 1e9;
+
+// Frees the pictures a page's SVG showed, once something else has taken its place.
+function dropVector(page) {
+    if (page.vector) {
+        page.vector.forEach(_ => URL.revokeObjectURL(_));
+        page.vector = null;
+    }
+}
+
+function dropThumbVector(thumb) {
+    if (thumb.vector) {
+        thumb.vector.forEach(_ => URL.revokeObjectURL(_));
+        thumb.vector = null;
+    }
+}
+
+// The element for a page written as SVG (SvgPainter), with its pictures swapped in from the bytes .NET
+// packed end to end and decoded, so it never shows a hole once it is put in the page. Its text is set in
+// the text layer's own faces. The SVG comes in a holder that draws no box of its own and is inert, so the
+// browser's own find leaves that text to the text layer: `inert` is an HTML attribute, which does nothing
+// on the svg itself, and there Chromium's find bar counted every word of a page three times — in the text
+// layer, the page and its thumbnail.
+async function vectorFrom(markup, images, lengths, className) {
+    await ensureFonts();
+    const holder = document.createElement('div');
+    holder.className = 'viewer-vector-holder';
+    holder.inert = true;
+    holder.setAttribute('aria-hidden', 'true');
+    holder.innerHTML = markup;
+    const svg = holder.firstElementChild;
+    svg.setAttribute('class', className);
+    const urls = [];
+    let offset = 0;
+    for (const length of lengths) {
+        urls.push(URL.createObjectURL(new Blob([images.subarray(offset, offset + length)])));
+        offset += length;
+    }
+
+    if (urls.length) {
+        for (const image of svg.querySelectorAll('image[data-i]')) {
+            image.setAttribute('href', urls[Number(image.dataset.i)]);
+        }
+
+        await Promise.all(urls.map(url => {
+            const probe = new Image();
+            probe.src = url;
+            return whenReady(probe);
+        }));
+    }
+
+    return { picture: holder, urls };
 }
 
 function clamp(value, low, high) {
@@ -453,7 +511,7 @@ class Viewer {
             // Shown until it is replaced, and first in line to be.
             page.dpi = 0;
             page.failed = false;
-            page.thumb.stale = page.thumb.url !== null;
+            page.thumb.stale = page.thumb.url !== null || !!page.thumb.vector;
             page.element.classList.remove('viewer-page-failed');
             page.element.querySelector('.viewer-page-message')?.remove();
             delete page.element.dataset.renderedDpi;
@@ -480,6 +538,8 @@ class Viewer {
                 URL.revokeObjectURL(page.url);
             }
 
+            dropVector(page);
+            dropThumbVector(page.thumb);
             if (page.thumb.url) {
                 URL.revokeObjectURL(page.thumb.url);
             }
@@ -532,6 +592,8 @@ class Viewer {
                 URL.revokeObjectURL(page.url);
             }
 
+            dropVector(page);
+            dropThumbVector(page.thumb);
             if (page.thumb.url) {
                 URL.revokeObjectURL(page.thumb.url);
             }
@@ -598,6 +660,7 @@ class Viewer {
             URL.revokeObjectURL(page.url);
         }
 
+        dropVector(page);
         page.url = url;
         page.dpi = dpi;
         page.failed = false;
@@ -605,6 +668,80 @@ class Viewer {
         page.element.classList.remove('viewer-page-failed');
         this.settle(page);
         this.evict();
+        this.scheduleQueue(0);
+    }
+
+    // A page as SVG (MorphViewer.VectorPages): the markup takes the picture's place, and the browser draws
+    // it at whatever size the page is shown — so it is never asked for again at another zoom. Its text is
+    // set in the text layer's own faces, and its pictures are swapped in from the bytes .NET packed.
+    async setPageSvg(documentId, pageIndex, markup, images, lengths, measure) {
+        const page = documentId === this.documentId ? this.pages[pageIndex] : null;
+        if (!page) {
+            return;
+        }
+
+        const started = performance.now();
+        const { picture, urls } = await vectorFrom(markup, images, lengths, 'viewer-vector');
+        if (documentId !== this.documentId) {
+            urls.forEach(_ => URL.revokeObjectURL(_));
+            return;
+        }
+
+        const built = performance.now();
+        page.image.replaceWith(picture);
+        page.image = picture;
+        if (page.url) {
+            URL.revokeObjectURL(page.url);
+            page.url = null;
+        }
+
+        dropVector(page);
+        page.vector = urls;
+        page.dpi = vectorDpi;
+        page.failed = false;
+        page.element.dataset.renderedDpi = 'vector';
+        page.element.classList.remove('viewer-page-failed');
+        this.settle(page);
+        this.evict();
+        this.scheduleQueue(0);
+
+        // MorphViewer.MeasurePaint: the script's part, and the frame that first draws the page.
+        if (measure) {
+            const timings = window.morphVectorTimings ??= [];
+            const entry = { page: pageIndex + 1, script: built - started, characters: markup.length, frame: 0 };
+            timings.push(entry);
+            requestAnimationFrame(() => {
+                const channel = new MessageChannel();
+                channel.port1.onmessage = () => entry.frame = performance.now() - built;
+                channel.port2.postMessage(null);
+            });
+        }
+    }
+
+    // A thumbnail as SVG: the page's own markup, drawn small over the thumbnail's picture.
+    async setThumbnailSvg(documentId, pageIndex, markup, images, lengths) {
+        const page = documentId === this.documentId ? this.pages[pageIndex] : null;
+        if (!page) {
+            return;
+        }
+
+        const { picture, urls } = await vectorFrom(markup, images, lengths, 'viewer-thumb-vector');
+        if (documentId !== this.documentId) {
+            urls.forEach(_ => URL.revokeObjectURL(_));
+            return;
+        }
+
+        page.thumb.sheet.querySelector(':scope > .viewer-vector-holder')?.remove();
+        page.thumb.sheet.append(picture);
+        dropThumbVector(page.thumb);
+        page.thumb.vector = urls;
+        page.thumb.image.removeAttribute('src');
+        if (page.thumb.url) {
+            URL.revokeObjectURL(page.thumb.url);
+            page.thumb.url = null;
+        }
+
+        page.thumb.stale = false;
         this.scheduleQueue(0);
     }
 
@@ -620,11 +757,13 @@ class Viewer {
             URL.revokeObjectURL(page.thumb.url);
         }
 
+        page.thumb.sheet.querySelector(':scope > .viewer-vector-holder')?.remove();
+        dropThumbVector(page.thumb);
         page.thumb.url = url;
         page.thumb.stale = false;
 
         // A page whose full image was evicted shows the thumbnail meanwhile.
-        if (!page.url) {
+        if (!page.url && !page.vector) {
             page.image.src = url;
         }
 
@@ -651,9 +790,10 @@ class Viewer {
     }
 
     // Keeps the most recently useful full-resolution images and lets the rest fall back to their
-    // thumbnails — decoded page images are the bulk of the page's memory.
+    // thumbnails — decoded page images are the bulk of the page's memory. A page drawn as SVG counts as
+    // one too: it holds its pictures, and drawing it again when it comes back is cheap.
     evict() {
-        const rendered = this.pages.filter(_ => _.url);
+        const rendered = this.pages.filter(_ => _.url || _.vector);
         let excess = rendered.length - maxImages;
         if (excess <= 0) {
             return;
@@ -670,8 +810,19 @@ class Viewer {
                 continue;
             }
 
-            URL.revokeObjectURL(page.url);
-            page.url = null;
+            if (page.vector) {
+                const image = document.createElement('img');
+                image.className = 'viewer-image';
+                image.alt = '';
+                image.draggable = false;
+                page.image.replaceWith(image);
+                page.image = image;
+                dropVector(page);
+            } else {
+                URL.revokeObjectURL(page.url);
+                page.url = null;
+            }
+
             page.dpi = 0;
             delete page.element.dataset.renderedDpi;
             if (page.thumb.url) {
@@ -730,7 +881,7 @@ class Viewer {
         if (this.sidebarOpen && !this.presenting) {
             for (const index of [...this.visibleThumbs].sort((first, second) => first - second)) {
                 const page = this.pages[index];
-                if (page && (!page.thumb.url || page.thumb.stale) && !page.failed) {
+                if (page && ((!page.thumb.url && !page.thumb.vector) || page.thumb.stale) && !page.failed) {
                     jobs.push(1, index, this.thumbnailDpi(page));
                 }
             }
@@ -2415,6 +2566,44 @@ class Viewer {
         page.append(image);
         print.container.append(page);
         print.images.push(image);
+    }
+
+    // A printed page as SVG (MorphViewer.VectorPages): vector text on paper, its pictures as on screen.
+    async addPrintPageSvg(pageIndex, markup, images, lengths) {
+        const print = this.print;
+        if (!print) {
+            return;
+        }
+
+        await ensureFonts();
+        const page = document.createElement('div');
+        page.className = 'print-page';
+        let css = `width:${print.sizes[2 * pageIndex]}pt;height:${print.sizes[2 * pageIndex + 1]}pt`;
+        if (print.named) {
+            css += `;page:${print.pageNames[pageIndex]}`;
+        }
+
+        page.style.cssText = css;
+        page.innerHTML = markup;
+        let offset = 0;
+        const urls = lengths.map(length => {
+            const url = URL.createObjectURL(new Blob([images.subarray(offset, offset + length)]));
+            offset += length;
+            return url;
+        });
+        for (const image of page.querySelectorAll('image[data-i]')) {
+            image.setAttribute('href', urls[Number(image.dataset.i)]);
+        }
+
+        // finishPrint waits for these, as for a printed page's picture.
+        for (const url of urls) {
+            const probe = new Image();
+            probe.src = url;
+            print.images.push(probe);
+        }
+
+        print.urls.push(...urls);
+        print.container.append(page);
     }
 
     async finishPrint() {

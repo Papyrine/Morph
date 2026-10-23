@@ -1,0 +1,14 @@
+<linker>
+  <!-- Applied by Morph.Blazor.targets to an AOT publish only (RunAOTCompilation), where it is the second
+       workaround that file describes. SixLabors.Fonts 3.1+ declares its system-font P/Invokes with
+       [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]. Mono's WebAssembly AOT compiler
+       (10.0.13, and 11.0.0-rc.2 still) decodes that attribute while building the native wrappers and
+       aborts in its GC (sgen-alloc.c:409; https://github.com/dotnet/runtime/issues/136351). A calling
+       convention means nothing on browser-wasm, so the trimmer drops the attribute's instances and the
+       compiler never decodes one. -->
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Runtime.InteropServices.UnmanagedCallConvAttribute">
+      <attribute internal="RemoveAttributeInstances" />
+    </type>
+  </assembly>
+</linker>

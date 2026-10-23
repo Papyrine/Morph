@@ -21,7 +21,10 @@
       SharedArrayBuffer, i.e. a cross-origin-isolated page, which a service-worker shim can't reliably
       guarantee across every serving context — and when it isn't isolated the threaded runtime aborts at
       startup (mono_wasm_register_ui_thread stack-bounds assertion). Single-threaded boots reliably
-      anywhere with no isolation, no coi.js, and no wasm-tools/emcc relink. The trade-off: a conversion
+      anywhere with no isolation and no coi.js. (The deploy is AOT-compiled, which has nothing to do with
+      threads: .github/workflows/deploy-blazor.yml passes RunAOTCompilation on its publish line, and
+      nothing here turns it on, so local builds and the tests' publish stay interpreted. The workarounds
+      AOT needs are in Morph.Blazor's build/Morph.Blazor.targets.) The trade-off: a conversion
       runs on the UI thread, so the page is briefly unresponsive while it works (Task.Run still lets the
       "rendering" state paint before the compute begins). For 1–3 page documents that's a blink.
     -->

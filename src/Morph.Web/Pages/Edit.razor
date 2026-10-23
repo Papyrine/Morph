@@ -2,8 +2,14 @@
 
 @* The word processor — a ribbon over the pages, typing where the text stands, styles, lists, tables,
    pictures, links, find and replace, track changes and comments — is the MorphEditor component from the
-   Morph.Blazor package. *@
+   Morph.Blazor package. Its pages are drawn as SVG; ?pages=png paints them instead, and ?pages=svg-timed
+   also paints each one as a PNG, unseen, and logs both times. *@
 
 <PageTitle>Morph — Word Editor</PageTitle>
 
-<MorphEditor ShowSamples="true" />
+<MorphEditor ShowSamples="true" VectorPages="@(Pages != "png")" MeasurePaint="@(Pages == "svg-timed")" />
+
+@code {
+    [SupplyParameterFromQuery(Name = "pages")]
+    public string? Pages { get; set; }
+}

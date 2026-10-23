@@ -62,14 +62,20 @@ sealed class PagedDocument : IDisposable
         // What the public render entry points do before parsing: it locks the process-wide default font.
         DefaultFontSettings.MarkRenderOccurred();
 
-        using var stream = new MemoryStream(bytes);
-        var document = source switch
+        // A file the editor has just written is read from the package its edit still holds open, whose
+        // tree is that file's: reading the body's XML again was half of the parse.
+        if (source != InputFormat.Docx ||
+            !DocumentReading.Borrow(bytes, _ => DocumentConverter.Parse(_, options.DefaultFont, options.UseLetterPageSize, traceSources), out var document))
         {
-            InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources),
-            InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
-            InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont),
-            _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown input format.")
-        };
+            using var stream = new MemoryStream(bytes);
+            document = source switch
+            {
+                InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources),
+                InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
+                InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont),
+                _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown input format.")
+            };
+        }
 
         return new(document, ImageSharpDocumentConverter.Layout(document, options), options);
     }
@@ -163,6 +169,30 @@ sealed class PagedDocument : IDisposable
             finally
             {
                 // The context outlives the page; its decoded pictures must not.
+                context.ReleaseImages();
+            }
+        }
+    }
+
+    /// <summary>
+    /// The page (zero-based <paramref name="index"/>) as SVG for the browser to draw (<see cref="SvgPainter"/>),
+    /// its text in <paramref name="fontFamily"/> — the face morph-text.js registers, which is the Aptos every
+    /// family maps to here. <paramref name="dpi"/> only sets what the SVG still carries as pixels (warped
+    /// WordArt). A page the SVG cannot carry whole (<see cref="SvgPage.Complete"/>) is painted with
+    /// <see cref="RenderPage"/> instead.
+    /// </summary>
+    public SvgPage RenderSvg(int index, int dpi, string fontFamily = "Morph Text")
+    {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            var context = ContextFor(dpi);
+            try
+            {
+                return SvgPainter.PaintPage(laidOut.Pages[index], context, fontFamily);
+            }
+            finally
+            {
                 context.ReleaseImages();
             }
         }

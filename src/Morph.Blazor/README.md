@@ -123,6 +123,28 @@ converter's — `AddMorph()`, a base-addressed `HttpClient` and the stylesheet.
 Keyboard, with focus in the viewer: ←/→ page when the page does not scroll sideways, Home/End go to the
 first/last page, Ctrl+`+`/`-`/`0` zoom in/out/back to automatic, Ctrl+A selects the pages' text.
 
+### Pages drawn as SVG
+
+A page is not painted on the WebAssembly runtime (`VectorPages`, the default): `SvgPainter` (in
+Morph.ImageSharp, beside `ImageSharpPainter`) writes the laid-out page as SVG in points, and the browser
+draws it — at any zoom, so a page is never asked for twice. Writing a page takes tens of milliseconds where
+painting it took most of a second. Pagination and positions are still Morph's: every glyph carries its own
+`x`, taken from the layout the PNG painter draws, and the text is set in the text layer's Aptos faces
+(`Morph Text`). Rules, shading, borders, shapes, gradients and pictures are SVG elements; a picture the
+browser cannot take as it is (stored as SVG, tiled, recoloured, a format no browser decodes) and warped
+WordArt are embedded as the bitmap the PNG painter draws of them. Thumbnails and printed pages are SVG too.
+A page the SVG cannot carry whole (`SvgPage.Complete`) is painted as a PNG.
+
+The SVG stands in an `inert`, `aria-hidden` holder that draws no box (`display: contents`): its text is
+the text layer's to select, copy and find, and it leaves out spaces, which draw nothing. The holder is
+what makes it inert — `inert` is an HTML attribute and does nothing on an `<svg>`, where the browser's own
+find bar counted every word three times (the text layer, the page and its thumbnail). Pages far from the one in view are let go like painted ones (24 kept) and
+drawn again when they come near.
+
+`?pages=png` in Morph.Web paints instead; `?pages=svg-timed` sets `MeasurePaint`. `VectorPageComparison`
+(Morph.Web.Tests, explicit) compares SVG pages with painted ones over the corpus, and
+`SnapshotTests.Benchmark_VectorPages` times both on the real runtime.
+
 ## Editor
 
 ```razor
@@ -327,9 +349,11 @@ Limits worth knowing:
 | `MaxRenderDpi` | `288` | The sharpest a zoomed page renders; a page too large for its pixel budget renders lower still. |
 | `MaxFileSize` | 25 MB | Largest file the viewer will read. |
 | `ShowIssueLink` | `true` | Whether an unexpected failure offers a pre-filled GitHub issue against the Morph repo. |
+| `VectorPages` | `true` | Draws pages as SVG the browser rasterises rather than painting PNGs. See [Pages drawn as SVG](#pages-drawn-as-svg). |
+| `MeasurePaint` | `false` | With `VectorPages`: also paints each page as a PNG, unseen, and logs both times to the console. |
 | `Class` | — | Extra CSS classes for the root element. Any other attribute is splatted onto it too. |
 
-Print is a raster at `PrintDpi` rather than vector text. A document mixing page sizes prints each at its
+Print is vector text, the pages' SVG; with `VectorPages` off, a raster at `PrintDpi`. A document mixing page sizes prints each at its
 own size where the browser supports named pages (Chromium, Firefox); elsewhere every sheet takes the first
 page's size.
 
@@ -421,6 +445,22 @@ The package ships MSBuild targets that root the reflection-heavy dependencies
 resolve types by name at runtime, so a full trim would strip types they need and surface only as a
 browser-side crash part-way through a conversion. Nothing to configure — `PublishTrimmed=true` keeps
 working.
+
+## AOT
+
+An app can publish with `RunAOTCompilation=true` (the `wasm-tools` workload installed, and trimming on, as
+a Blazor WebAssembly publish has by default). The same targets then supply the two workarounds it needs:
+PdfSharp is left interpreted, since it is rooted whole and one of its code samples references a library
+it does not depend on; and SixLabors.Fonts' `UnmanagedCallConv` attributes are trimmed away
+(`Morph.Blazor.AotLinkAttributes.xml`), since Mono's WebAssembly AOT compiler (10.0.13, and 11.0 RC2)
+crashes decoding them ([dotnet/runtime#136351](https://github.com/dotnet/runtime/issues/136351)). Both use internal SDK settings; if one stops working, the publish fails with a build error rather
+than the app at runtime.
+
+What it is worth: on morph.papyrine.org an edit to an 18-page document is back in 0.53 s rather than
+2.5 s, for a download of 33.5 MB rather than 10.5 MB (gzip), a 15–25 minute publish, and a
+`dotnet.native.wasm` that changes with every change to the code. Leaving ImageSharp interpreted to save
+size does not pay: calls between compiled and interpreted code make ImageSharp 2.7x slower than an
+interpreted build. See `src/Morph.Web/README.md`.
 
 ## Backends
 
