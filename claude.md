@@ -333,7 +333,17 @@ is `RunFormat` through the same `Format` as bold, and `ClearFormatting` takes a 
 but leaves its character style. `DocumentEditor.Atoms.cs` deletes what is not text — a picture, a
 break, a field from its beginning to its end, a note's reference with its note — when a rewritten
 paragraph leaves it out or a deletion spans it; tracked, its runs are struck (`w:delText`,
-`w:delInstrText`) so rejecting puts it back. Word's own markup for each was **probed over COM** and is recorded beside the
+`w:delInstrText`) so rejecting puts it back. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
+DATE fields and Word's Automatic Table 1 table of contents — whose page numbers only the layout knows,
+so the editor lays the edited file out and writes them in (`SetContentsPages`) within the same edit;
+`DocumentEditor.Lists.cs` is the Bullets and Numbering libraries (`ListTemplates.Bullets`/`Numbers`,
+each differing from the default list in its first level only) and Restart at 1 / Continue numbering;
+`DocumentEditor.ParagraphBorders.cs` paragraph borders and shading; `DocumentEditor.FormatPainter.cs`
+Format Painter; `DocumentEditor.Pictures.cs` also wraps a picture (`SetPictureWrap`, inline ↔
+`wp:anchor`). A floating picture is selected on the page without the layout growing a source link:
+the parser stamps `FloatingImageElement.Source` under `captureSources`, and `PagedDocument.Pictures`
+finds each placed picture by its image's byte array — the very array the parser read — so an array two
+pictures share is not offered. Word's own markup for each was **probed over COM** and is recorded beside the
 code: `BuiltInStyles` holds Word's definitions of the styles it builds in, added to a document the first
 time one is used, and `ListTemplates` Word's nine-level bullet and number lists. Their tests are
 `ParagraphFormatTests`, `InsertTests`, `TableEditTests`, `CharacterFormatTests` and `AtomDeletionTests` under

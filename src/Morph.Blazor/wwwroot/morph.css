@@ -2067,7 +2067,7 @@
 /* As Word's ribbon does in a narrower window, the groups give up room rather than wrap: first the
    gallery's width, then the names of Home's small buttons, which keep their icons and tooltips (the name
    is still the button's, at no size). */
-@media (max-width: 1300px) {
+@media (max-width: 1460px) {
     .editor-gallery {
         grid-template-columns: repeat(2, 6.25rem);
     }
@@ -2077,7 +2077,7 @@
     }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
     .editor-tools[aria-label="Home"] .editor-stack .editor-tool {
         gap: 0;
         padding: 0 0.45rem;
@@ -2276,6 +2276,78 @@
 
 .editor-swatch:hover,
 .editor-swatch:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: 1px;
+}
+
+/* A floating picture selected on a page: a frame round it, handles at its corners, its size below. */
+.viewer-picture-frame {
+    position: absolute;
+    z-index: 3;
+    box-sizing: border-box;
+    border: 1px solid var(--morph-primary, #2b579a);
+    pointer-events: none;
+}
+
+.viewer-picture-frame::after {
+    content: attr(data-size);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: var(--morph-primary, #2b579a);
+    color: #ffffff;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.viewer-picture-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    margin: -5px;
+    box-sizing: border-box;
+    border: 1px solid var(--morph-primary, #2b579a);
+    border-radius: 50%;
+    background: #ffffff;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.viewer-picture-handle[data-corner="ne"] { left: 100%; top: 0; cursor: nesw-resize; }
+.viewer-picture-handle[data-corner="se"] { left: 100%; top: 100%; cursor: nwse-resize; }
+
+/* Format Painter on: the pages take a painter's cursor until text is selected on them. */
+.viewer[data-painting="on"] .viewer-page,
+.viewer[data-painting="on"] .viewer-page .text-layer {
+    cursor: copy;
+}
+
+/* Word's Bullets and Numbering libraries: a grid of the looks, each drawn as its list's first marks. */
+.editor-list-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 4.5rem);
+    gap: 6px;
+    padding: 0.4rem 0.6rem;
+}
+
+.editor-list-item {
+    height: 3rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.editor-list-item:hover,
+.editor-list-item:focus-visible,
+.editor-list-item[aria-checked="true"] {
     outline: 2px solid var(--morph-primary, #2b579a);
     outline-offset: 1px;
 }

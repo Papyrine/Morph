@@ -27,6 +27,12 @@ public partial class MorphEditor
     const string orientationMenu = "orientation";
     const string sizeOfPageMenu = "paper";
     const string breaksMenu = "breaks";
+    const string columnsMenu = "columns";
+    const string bulletsMenu = "bullets";
+    const string numberingMenu = "numbering";
+    const string paragraphBordersMenu = "paragraph-borders";
+    const string paragraphShadingMenu = "paragraph-shading";
+    const string wrapMenu = "wrap";
     const string bordersMenu = "borders";
     const string shadingMenu = "shading";
 
@@ -296,6 +302,18 @@ public partial class MorphEditor
         return ApplyStyleAsync(styleId);
     }
 
+    Task ListStyleFromMenuAsync(ListStyle style)
+    {
+        menu = null;
+        return SetListStyleAsync(style);
+    }
+
+    Task RestartFromMenuAsync(bool restart)
+    {
+        menu = null;
+        return RestartNumberingAsync(restart);
+    }
+
     Task SpacingFromMenuAsync(ParagraphSpacing spacing)
     {
         menu = null;
@@ -340,6 +358,21 @@ public partial class MorphEditor
     {
         menu = null;
         return SetOrientationAsync(landscape);
+    }
+
+    // Layout > Columns' equal choices, as Word's menu names them.
+    internal static readonly (int Count, string Name)[] ColumnChoices = [(1, "One"), (2, "Two"), (3, "Three")];
+
+    Task ColumnsFromMenuAsync(int count)
+    {
+        menu = null;
+        return SetColumnsAsync(count, CurrentPage?.LineBetween == true);
+    }
+
+    Task LineBetweenFromMenuAsync()
+    {
+        menu = null;
+        return SetColumnsAsync(CurrentPage?.Columns ?? 1, CurrentPage?.LineBetween != true);
     }
 
     Task PaperFromMenuAsync((int Width, int Height) paper)
@@ -439,6 +472,48 @@ public partial class MorphEditor
     {
         menu = null;
         return SetTableBordersAsync(preset);
+    }
+
+    // Home > Borders' menu, in Word's order.
+    internal static readonly (ParagraphBorder Border, string Name)[] ParagraphBorders =
+    [
+        (ParagraphBorder.Bottom, "Bottom border"),
+        (ParagraphBorder.Top, "Top border"),
+        (ParagraphBorder.Left, "Left border"),
+        (ParagraphBorder.Right, "Right border"),
+        (ParagraphBorder.None, "No border"),
+        (ParagraphBorder.All, "All borders"),
+        (ParagraphBorder.Outside, "Outside borders"),
+        (ParagraphBorder.Inside, "Inside horizontal border")
+    ];
+
+    // Layout > Wrap Text's choices, in Word's order.
+    internal static readonly (PictureWrap Wrap, string Name)[] WrapChoices =
+    [
+        (PictureWrap.Inline, "In line with text"),
+        (PictureWrap.Square, "Square"),
+        (PictureWrap.Tight, "Tight"),
+        (PictureWrap.TopAndBottom, "Top and bottom"),
+        (PictureWrap.BehindText, "Behind text"),
+        (PictureWrap.InFrontOfText, "In front of text")
+    ];
+
+    Task WrapFromMenuAsync(PictureWrap wrap)
+    {
+        menu = null;
+        return WrapPictureAsync(wrap);
+    }
+
+    Task ParagraphBorderFromMenuAsync(ParagraphBorder border)
+    {
+        menu = null;
+        return BorderParagraphsAsync(border);
+    }
+
+    Task ParagraphShadingFromMenuAsync(string? fill)
+    {
+        menu = null;
+        return ShadeParagraphsAsync(fill);
     }
 
     Task ShadingFromMenuAsync(string? fill)

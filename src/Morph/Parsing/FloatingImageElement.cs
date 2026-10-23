@@ -11,6 +11,13 @@ sealed class FloatingImageElement : DocumentElement
     /// </summary>
     public ParagraphElement? AnchorParagraph { get; set; }
 
+    /// <summary>
+    /// Where the picture's drawing is in the package, as <see cref="Run.Source"/> says where text is:
+    /// the ordinal of its <c>w:r</c> and its place in it. Stamped only under captureSources, for the
+    /// viewer, which finds a picture on the page by its <see cref="ImageData"/> and edits it here.
+    /// </summary>
+    public RunSource? Source { get; init; }
+
     public required byte[] ImageData { get; init; }
     public required double WidthPoints { get; init; }
     public required double HeightPoints { get; init; }
@@ -163,6 +170,7 @@ sealed class FloatingImageElement : DocumentElement
             VerticalAnchor = VerticalAnchor.Page,
             VerticalPositionPoints = y,
             CellAnchorParagraphIndex = CellAnchorParagraphIndex,
+            Source = Source,
             ImageData = ImageData,
             WidthPoints = WidthPoints,
             HeightPoints = HeightPoints,

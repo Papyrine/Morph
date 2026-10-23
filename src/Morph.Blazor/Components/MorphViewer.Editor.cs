@@ -498,6 +498,49 @@ public partial class MorphViewer
         await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetList(_, target.Paragraphs, chosen, options));
     }
 
+    // A library item from the Bullets or Numbering menu: the list the caret is in takes its look, or
+    // the paragraphs start one.
+    internal async Task SetListStyleAsync(ListStyle style)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetListStyle(_, target.Paragraphs, style, options));
+    }
+
+    internal async Task RestartNumberingAsync(bool restart)
+    {
+        if (await RequireAsync("Click in a list first.") is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(
+            target,
+            (_, options) => restart
+                ? DocumentEditor.RestartNumbering(_, target.Paragraph, options)
+                : DocumentEditor.ContinueNumbering(_, target.Paragraph, options));
+    }
+
+    // The library item the caret's list looks like, for the menus to mark.
+    internal ListStyle? CurrentListStyle
+    {
+        get
+        {
+            if ((session?.Paragraph.Ordinal ?? caretParagraph) is not { } paragraph ||
+                sourceBytes is not { } bytes ||
+                !IsWord ||
+                CurrentList == ListKind.None)
+            {
+                return null;
+            }
+
+            return DocumentEditor.ListStyleOf(bytes, paragraph);
+        }
+    }
+
     // Enter in an empty paragraph of a list ends the list there, as Word's does: the paragraph is
     // left out of it, at no indent.
     internal async Task EndListAsync()
@@ -707,6 +750,97 @@ public partial class MorphViewer
         await EditAtAsync((_, options) => DocumentEditor.InsertEndnote(_, target.Paragraph, target.Offset, options));
     }
 
+    // Fields and the table of contents. A page number and a date go in at the caret; a table of
+    // contents goes in before the caret's paragraph, and updates in place, and either way the pages
+    // its entries name are read off the edited file laid out — which only this side of the edit
+    // knows — before the edit is handed in, so it is one step to undo.
+
+    internal async Task InsertPageNumberAsync(bool total)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync((_, options) => DocumentEditor.InsertPageNumber(_, target.Paragraph, target.Offset, total, options));
+    }
+
+    // Dates of the kinds Word's Date and Time dialog offers (not read off the dialog itself), each
+    // spelt alike by Word's \@ switch and .NET's custom formats. A 12-hour time is left out: Word's
+    // switch writes am/pm where .NET writes tt.
+    internal static readonly string[] DateFormats =
+    [
+        "d/MM/yyyy",
+        "dddd, d MMMM yyyy",
+        "d MMMM yyyy",
+        "d/MM/yy",
+        "yyyy-MM-dd",
+        "d-MMM-yy",
+        "d.MM.yyyy",
+        "MMMM yy",
+        "MMM-yy",
+        "HH:mm"
+    ];
+
+    internal async Task<DateTime> ReaderDateAsync() =>
+        (await ReaderClockAsync()).DateTime;
+
+    internal async Task InsertDateAsync(string format, bool update)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var now = await ReaderDateAsync();
+        await EditAtAsync((_, options) => DocumentEditor.InsertDate(_, target.Paragraph, target.Offset, format, now, update, options));
+    }
+
+    internal async Task InsertContentsAsync()
+    {
+        if (await RequireAsync("Click in the document where the table of contents is to go.") is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync((_, options) =>
+        {
+            var inserted = DocumentEditor.InsertContents(_, target.Paragraph, target.Offset, options);
+            return inserted with {Document = Paginated(inserted.Document)};
+        });
+    }
+
+    internal async Task UpdateContentsAsync()
+    {
+        if (!editOpen ||
+            !CanWrite ||
+            revising)
+        {
+            return;
+        }
+
+        await HandInAsync();
+        if (sourceBytes is not { } bytes ||
+            !DocumentEditor.HasContents(bytes))
+        {
+            editNote = "The document has no table of contents.";
+            StateHasChanged();
+            return;
+        }
+
+        var options = await EditOptionsAsync();
+        await ReviseAsync(_ => Paginated(DocumentEditor.UpdateContents(_, options)), relayout: true, () => activeKey);
+    }
+
+    // The table of contents' pages, from the file laid out as it now is. The page is its place in the
+    // document, counted from 1: a section that numbers its pages afresh is not followed.
+    byte[] Paginated(byte[] docx)
+    {
+        using var laidOut = PagedDocument.Open(docx, InputFormat.Docx, fontDirectory!, traceSources: true);
+        var map = laidOut.Edits(DocumentOutline.Read(docx));
+        return DocumentEditor.SetContentsPages(docx, _ => map.Blocks(_) is [var first, ..] ? first.Page + 1 : null);
+    }
+
     // A section's page: margins, which way up, the paper, and breaks between sections. They act on the
     // section the caret is in.
 
@@ -783,6 +917,16 @@ public partial class MorphViewer
         }
 
         await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetOrientation(_, target.Paragraph, landscape, options));
+    }
+
+    internal async Task SetColumnsAsync(int count, bool lineBetween)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetColumns(_, target.Paragraph, count, lineBetween, options));
     }
 
     internal async Task SetPaperSizeAsync(int width, int height)
@@ -870,6 +1014,192 @@ public partial class MorphViewer
         }
 
         await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetTableBorders(_, target.Paragraph, preset, BorderSize, options));
+    }
+
+    // Pictures: a floating one selected on the page (the script frames it, and says which), or an
+    // inline one selected in the paragraph being typed — a selection of the one place it is.
+    (int Paragraph, int Offset)? floatingPicture;
+
+    /// <summary>Called from JavaScript when a floating picture is selected on a page, or none is (-1).</summary>
+    [JSInvokable]
+    public Task OnPictureSelected(int paragraph, int offset) =>
+        InvokeAsync(() =>
+        {
+            floatingPicture = paragraph >= 0 ? (paragraph, offset) : null;
+            StateHasChanged();
+        });
+
+    /// <summary>Called from JavaScript when a floating picture's corner has sized it: its size in points.</summary>
+    [JSInvokable]
+    public Task OnPictureResize(int paragraph, int offset, double width, double height) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    revising)
+                {
+                    return;
+                }
+
+                var options = await EditOptionsAsync();
+                await ReviseAsync(_ => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options), relayout: true, () => activeKey);
+                StateHasChanged();
+            });
+
+    // The picture Wrap Text acts on: the floating one selected, or the inline one the open paragraph
+    // has selected.
+    async Task<(int Paragraph, int Offset)?> PictureTargetAsync()
+    {
+        if (floatingPicture is { } floating)
+        {
+            return floating;
+        }
+
+        if (await TargetAsync() is {HasSelection: true} target &&
+            target.StartParagraph == target.Paragraph &&
+            target.Offset - target.StartOffset == 1 &&
+            sourceBytes is { } bytes &&
+            DocumentEditor.PictureWrapOf(bytes, target.Paragraph, target.StartOffset) != null)
+        {
+            return (target.Paragraph, target.StartOffset);
+        }
+
+        return null;
+    }
+
+    internal PictureWrap? CurrentWrap =>
+        floatingPicture is { } floating && sourceBytes is { } bytes ? DocumentEditor.PictureWrapOf(bytes, floating.Paragraph, floating.Offset) : null;
+
+    internal async Task WrapPictureAsync(PictureWrap wrap)
+    {
+        if (!editOpen ||
+            !CanWrite ||
+            revising)
+        {
+            return;
+        }
+
+        if (await PictureTargetAsync() is not var (paragraph, offset))
+        {
+            editNote = "Select a picture first.";
+            StateHasChanged();
+            return;
+        }
+
+        floatingPicture = null;
+        var options = await EditOptionsAsync();
+        await ReviseAsync(_ => DocumentEditor.SetPictureWrap(_, paragraph, offset, wrap, options), relayout: true, () => activeKey);
+    }
+
+    // Home > Format Painter: pressed, it picks up the formatting where the caret is and hands in what
+    // was typed; the next text selected on the pages is painted with it, and the painter is off again.
+    // Pressed again, it is off without painting.
+    FormatCopy? painter;
+
+    internal bool Painting => painter != null;
+
+    internal async Task FormatPainterAsync()
+    {
+        if (painter != null)
+        {
+            painter = null;
+            if (handle != null)
+            {
+                await handle.SetPaintingAsync(false);
+            }
+
+            return;
+        }
+
+        if (await RequireAsync() is not { } target ||
+            sourceBytes is not { } bytes)
+        {
+            return;
+        }
+
+        var at = target.Start;
+        if (at == null &&
+            target.Paragraph < outline.Paragraphs.Count)
+        {
+            // The character before the caret, as Word reads the formatting at it.
+            at = outline.Paragraphs[target.Paragraph].PositionAt(Math.Max(target.Offset - 1, 0), ending: false);
+        }
+
+        painter = DocumentEditor.CopyFormat(bytes, target.StartParagraph >= 0 ? target.StartParagraph : target.Paragraph, at);
+        editNote = "Select the text to paint.";
+        if (handle != null)
+        {
+            await handle.SetPaintingAsync(true);
+        }
+    }
+
+    /// <summary>Called from JavaScript with the text selected on the pages while Format Painter is on.</summary>
+    [JSInvokable]
+    public Task OnPaint(int[] range) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (painter is not { } copy ||
+                    !editOpen ||
+                    !CanWrite ||
+                    revising)
+                {
+                    return;
+                }
+
+                painter = null;
+                editNote = null;
+                selection = range.Length == 4 ? range : [];
+                if (FromSelection() is not {Start: { } start, End: { } end} target)
+                {
+                    StateHasChanged();
+                    return;
+                }
+
+                // The paragraphs the selection takes whole, which take the paragraph's formatting too.
+                var whole = target.Paragraphs
+                    .Where(_ => _ < outline.Paragraphs.Count &&
+                                (_ != target.First || outline.Paragraphs[_].OffsetOf(start) == 0) &&
+                                (_ != target.Last || outline.Paragraphs[_].OffsetOf(end) == outline.Paragraphs[_].Length))
+                    .ToList();
+                var options = await EditOptionsAsync();
+                await ReviseAsync(_ => DocumentEditor.PasteFormat(_, start, end, whole, copy, options), relayout: true, () => activeKey);
+                StateHasChanged();
+            });
+
+    // Home > Borders and Shading, on the caret's paragraph or the paragraphs selected; the width and
+    // the colour are the Table tab's, so the last chosen is the next drawn in either.
+    internal ParagraphBorder LastParagraphBorder { get; set; } = ParagraphBorder.Bottom;
+
+    internal async Task BorderParagraphsAsync(ParagraphBorder border)
+    {
+        if (border != ParagraphBorder.None)
+        {
+            LastParagraphBorder = border;
+        }
+
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetParagraphBorders(_, target.Paragraphs, border, BorderSize, options));
+    }
+
+    internal async Task ShadeParagraphsAsync(string? fill)
+    {
+        if (fill != null)
+        {
+            LastShading = fill;
+        }
+
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetParagraphShading(_, target.Paragraphs, fill, options));
     }
 
     internal async Task ShadeCellsAsync(string? fill)

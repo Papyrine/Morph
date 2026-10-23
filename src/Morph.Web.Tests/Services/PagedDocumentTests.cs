@@ -25,6 +25,25 @@ public class PagedDocumentTests
         }
     }
 
+    // A floating picture is found on its page by its image's array, and named by the place of its
+    // drawing that the parser noted.
+    [Test]
+    public async Task Pictures_AreTheFloatingOnes_WithTheirPlaces()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pixel = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+        var pictured = DocumentEditor.InsertPicture(EditFixtures.Paragraphs, 0, 6, new(pixel, "image/png", 100, 50), options).Document;
+        var floating = DocumentEditor.SetPictureWrap(pictured, 0, 6, PictureWrap.Square, options);
+
+        using var document = PagedDocument.Open(floating, InputFormat.Docx, Sample.FontDirectory, traceSources: true);
+        var pictures = document.Pictures(0, DocumentOutline.Read(floating));
+
+        await Assert.That(pictures).Count().IsEqualTo(1);
+        var picture = pictures[0];
+        await Assert.That((picture.Paragraph, picture.Offset)).IsEqualTo((0, 6));
+        await Assert.That((picture.Width, picture.Height)).IsEqualTo((100f, 50f));
+    }
+
     // The painter truncates the page's pixel size, as every Morph raster does.
     [Test]
     [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]

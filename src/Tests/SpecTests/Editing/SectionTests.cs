@@ -120,4 +120,41 @@ public class SectionTests
         await Assert.That(() => DocumentEditor.InsertSectionBreak(
             Build("<w:tbl><w:tblGrid><w:gridCol w:w=\"2000\"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>" + P(R("After")) + section),
             0, 2, false, Plain)).Throws<InvalidOperationException>();
+
+    // Word-probed 2026-10-23: Layout > Columns.
+    [Test]
+    public async Task Columns_AreTheSectionsCount_AndOneIsNoCount()
+    {
+        var two = DocumentEditor.SetColumns(Document(), 0, 2, false, Plain);
+        var three = DocumentEditor.SetColumns(two, 0, 3, true, Plain);
+        var one = DocumentEditor.SetColumns(three, 0, 1, true, Plain);
+
+        await Assert.That(Xml(two)).Contains("<w:cols w:space=\"708\" w:num=\"2\" />");
+        await Assert.That(Xml(three)).Contains("<w:cols w:space=\"708\" w:num=\"3\" w:sep=\"1\" />");
+        await Assert.That(Xml(one)).Contains("<w:cols w:space=\"708\" />");
+        await Assert.That(DocumentEditor.PageSetupOf(three, 0)).IsEqualTo(new(11906, 16838, 1440, 1440, 1440, 1440, false) {Columns = 3, LineBetween = true});
+    }
+
+    // A section with no w:cols is given one, in the schema's place after the margins.
+    [Test]
+    public async Task Columns_InASectionWithout_GoAfterTheMargins()
+    {
+        var docx = Build(P(R("Text")) + "<w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/><w:pgMar w:top=\"1440\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/><w:docGrid w:linePitch=\"360\"/></w:sectPr>");
+
+        var edited = DocumentEditor.SetColumns(docx, 0, 2, false, Plain);
+
+        await Assert.That(Xml(edited)).Contains("w:gutter=\"0\" /><w:cols w:space=\"708\" w:num=\"2\" /><w:docGrid");
+    }
+
+    // Columns of their own widths are made alike.
+    [Test]
+    public async Task Columns_OfTheirOwnWidths_AreMadeAlike()
+    {
+        var docx = Build(P(R("Text")) + "<w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/><w:cols w:num=\"2\" w:space=\"708\" w:equalWidth=\"0\"><w:col w:w=\"2000\" w:space=\"708\"/><w:col w:w=\"6318\"/></w:cols></w:sectPr>");
+
+        await Assert.That(DocumentEditor.PageSetupOf(docx, 0).Columns).IsEqualTo(2);
+        var edited = DocumentEditor.SetColumns(docx, 0, 3, false, Plain);
+
+        await Assert.That(Xml(edited)).Contains("<w:cols w:space=\"708\" w:num=\"3\" />");
+    }
 }
