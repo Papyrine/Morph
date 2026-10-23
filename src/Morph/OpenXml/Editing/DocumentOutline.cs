@@ -125,7 +125,7 @@ sealed class DocumentOutline
                 paragraphOfRun[runs[run]] = ordinal;
             }
 
-            var edited = new EditParagraph(ordinal, units.Select(_ => Unit(_, runs)).ToList())
+            var edited = new EditParagraph(ordinal, [.. units.Select(_ => Unit(_, runs))])
                 {
                     Part = part,
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,

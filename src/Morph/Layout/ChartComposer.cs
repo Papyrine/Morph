@@ -463,9 +463,9 @@ sealed class ChartComposer(
                              VaryColors: true,
                              Series.Count: 1
                          };
-        var entries = byCategory
-            ? chart.Categories.Select((_, index) => (Text: _, Color: PointColor(chart, chart.Series[0], 0, index))).ToList()
-            : chart.Series.Select((_, index) => (Text: _.Name ?? $"Series{index + 1}", Color: _.FillHex ?? _.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count])).ToList();
+        List<(string Text, string Color)> entries = byCategory
+            ? [.. chart.Categories.Select((_, index) => (Text: _, Color: PointColor(chart, chart.Series[0], 0, index)))]
+            : [.. chart.Series.Select((_, index) => (Text: _.Name ?? $"Series{index + 1}", Color: _.FillHex ?? _.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count]))];
 
         // Horizontal bars stack their series upwards, the first at the bottom of each category, and the
         // legend lists them the same way round: chart_anchored's North and South bars are keyed
@@ -755,14 +755,13 @@ sealed class ChartComposer(
             ValueAxis = Axis(chart.ValueAxis),
             Area = chart.Area with { Line = Stroke(chart.Area.Line) },
             Plot = chart.Plot with { Line = Stroke(chart.Plot.Line) },
-            Series = chart.Series
+            Series = [.. chart.Series
                 .Select(_ => _ with
                 {
                     Line = Stroke(_.Line),
                     PointLines = _.PointLines.ToDictionary(point => point.Key, point => Stroke(point.Value)!),
                     Labels = _.Labels is { } labels ? labels with { Text = Text(labels.Text) } : null
-                })
-                .ToList()
+                })]
         };
     }
 

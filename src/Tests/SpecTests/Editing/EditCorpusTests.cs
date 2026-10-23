@@ -24,7 +24,7 @@ public class EditCorpusTests
     [MethodDataSource(nameof(Documents))]
     public async Task EveryDocument_TakesAnEditToAnyParagraph(string scenario)
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
         var outline = DocumentOutline.Read(docx);
         if (!outline.AllowsEditing ||
             outline.Paragraphs.Count == 0)
@@ -54,7 +54,7 @@ public class EditCorpusTests
         await Assert.That(string.Join('\n', Texts(after))).IsEqualTo(string.Join('\n', expected));
 
         using var stream = new MemoryStream(edited);
-        var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var parsed = DocumentConverter.Parse(stream, null, captureSources: true);
         await Assert.That(parsed.Elements.Count).IsGreaterThan(0);
     }
 
@@ -66,7 +66,7 @@ public class EditCorpusTests
     [MethodDataSource(nameof(Documents))]
     public async Task EveryDocument_TakesTheRibbonsEdits(string scenario)
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
         var outline = DocumentOutline.Read(docx);
         if (!outline.AllowsEditing ||
             outline.Paragraphs.Count == 0)
@@ -103,7 +103,7 @@ public class EditCorpusTests
         }
 
         using var stream = new MemoryStream(edited);
-        var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var parsed = DocumentConverter.Parse(stream, null, captureSources: true);
         await Assert.That(parsed.Elements.Count).IsGreaterThan(0);
 
         var added = Errors(edited).Except(Errors(docx)).ToList();
@@ -171,7 +171,7 @@ public class EditCorpusTests
     [MethodDataSource(nameof(Documents))]
     public async Task EveryDocument_ReadsTheSameCapturedAsAfresh(string scenario)
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
         var outline = DocumentOutline.Read(docx);
         if (!outline.AllowsEditing ||
             outline.Paragraphs.FirstOrDefault(_ => _.Units.Any(unit => unit.Editable)) is not { } paragraph)
@@ -203,7 +203,7 @@ public class EditCorpusTests
     [MethodDataSource(nameof(Documents))]
     public async Task EveryDocument_SavesTheSamePartsMarkedFast(string scenario)
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
         var marked = docx.ToArray();
         FastDeflate.Mark(marked);
 
@@ -216,15 +216,15 @@ public class EditCorpusTests
     [Test]
     public async Task AnEdit_WritesTheBodyAtFastest()
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
         var paragraph = DocumentOutline.Read(docx).Paragraphs.First(_ => _.Units.Any(unit => unit.Editable));
         var content = new NewParagraph[] { new(Items(paragraph, typed)) };
         var edited = DocumentEditor.Rewrite(docx, paragraph.Ordinal, content, Tracked).Document;
 
-        using var archive = new System.IO.Compression.ZipArchive(new MemoryStream(edited));
+        await using var archive = new ZipArchive(new MemoryStream(edited));
         var body = archive.GetEntry("word/document.xml")!;
         using var fastest = new MemoryStream();
-        using (var deflate = new System.IO.Compression.DeflateStream(fastest, System.IO.Compression.CompressionLevel.Fastest, true))
+        await using (var deflate = new DeflateStream(fastest, CompressionLevel.Fastest, true))
         {
             deflate.Write(Entries(edited)["word/document.xml"]);
         }
@@ -238,7 +238,7 @@ public class EditCorpusTests
         using var stream = new MemoryStream();
         stream.Write(docx);
         stream.Position = 0;
-        using (var document = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, true))
+        using (var document = WordprocessingDocument.Open(stream, true))
         {
             foreach (var part in document.GetAllParts())
             {
@@ -262,7 +262,7 @@ public class EditCorpusTests
 
     static Dictionary<string, byte[]> Entries(byte[] package)
     {
-        using var archive = new System.IO.Compression.ZipArchive(new MemoryStream(package));
+        using var archive = new ZipArchive(new MemoryStream(package));
         return archive.Entries.ToDictionary(
             _ => _.FullName,
             _ =>
@@ -275,5 +275,5 @@ public class EditCorpusTests
     }
 
     static string Json(object value) =>
-        System.Text.Json.JsonSerializer.Serialize(value, value.GetType());
+        JsonSerializer.Serialize(value, value.GetType());
 }

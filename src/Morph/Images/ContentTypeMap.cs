@@ -9,8 +9,8 @@ namespace Morph;
 /// </summary>
 sealed class ContentTypeMap
 {
-    readonly Dictionary<string, string> byExtension = new(StringComparer.OrdinalIgnoreCase);
-    readonly Dictionary<string, string> byPartName = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<string, string> byExtension = [with(StringComparer.OrdinalIgnoreCase)];
+    readonly Dictionary<string, string> byPartName = [with(StringComparer.OrdinalIgnoreCase)];
 
     public static ContentTypeMap Read(ZipArchive archive)
     {

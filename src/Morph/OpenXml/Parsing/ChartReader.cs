@@ -90,7 +90,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             Area = Fill(Child(chartSpace, "spPr"), defaultFill: "FFFFFF", defaultLine: new("D9D9D9", 0.75, 1)),
             Plot = Fill(Child(plotArea, "spPr"), defaultFill: null, defaultLine: null),
             Text = text,
-            Palette = Enumerable.Range(1, 6).Select(_ => themeColors?.ResolveColor($"accent{_}") ?? defaultPalette[_ - 1]).ToList()
+            Palette = [.. Enumerable.Range(1, 6).Select(_ => themeColors?.ResolveColor($"accent{_}") ?? defaultPalette[_ - 1])]
         };
     }
 
@@ -348,7 +348,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
 
         var cache = categories.Descendants().FirstOrDefault(_ => _.LocalName is "numCache" or "numLit");
         var format = Child(cache, "formatCode")?.InnerText;
-        return Numbers(categories).Select(_ => _ is { } number ? NumberFormat.Format(number, format).Text : "").ToList();
+        return [.. Numbers(categories).Select(_ => _ is { } number ? NumberFormat.Format(number, format).Text : "")];
     }
 
     static List<string> CachedStrings(OpenXmlElement holder)

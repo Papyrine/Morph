@@ -21,10 +21,10 @@ public class ConsecutivePageBreakTests
     [Arguments(3, 4)]
     public async Task BreakOnlyParagraphs_EachStartAPage(int breaks, int expectedPages)
     {
-        var elements = new List<DocumentElement>
-        {
+        List<DocumentElement> elements =
+        [
             Paragraph("ONE")
-        };
+        ];
         for (var i = 0; i < breaks; i++)
         {
             elements.Add(new PageBreakElement());

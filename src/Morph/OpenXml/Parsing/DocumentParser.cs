@@ -5466,8 +5466,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
 
                     var sorted = floatsInOrder.OrderBy(static _ => FloatingZOrder(_.Element)).ToList();
-                    cellFloats = sorted.Select(static _ => _.Element).ToList();
-                    cellFloatOrdinals = sorted.Select(static _ => _.Ordinal).ToList();
+                    cellFloats = [.. sorted.Select(static _ => _.Element)];
+                    cellFloatOrdinals = [.. sorted.Select(static _ => _.Ordinal)];
                     cellContent.RemoveAll(static _ => _ is FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement);
                 }
 
@@ -8525,8 +8525,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        var shapes = new List<GroupShape>
-        {
+        List<GroupShape> shapes =
+        [
             new()
             {
                 X = 0,
@@ -8538,7 +8538,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 LineDashPattern = MapPresetDashPattern(ln?.GetFirstChild<A.PresetDash>()?.Val),
                 Geometry = GroupShapeGeometry.Line
             }
-        };
+        ];
 
         return new()
         {
@@ -8611,8 +8611,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
-        var shapes = new List<GroupShape>
-        {
+        List<GroupShape> shapes =
+        [
             new()
             {
                 X = 0,
@@ -8643,7 +8643,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ImageRasterFallbackData = image?.RasterFallbackData,
                 ImageCrop = blipFill != null && image != null ? ReadCrop(blipFill) : null
             }
-        };
+        ];
 
         return new()
         {

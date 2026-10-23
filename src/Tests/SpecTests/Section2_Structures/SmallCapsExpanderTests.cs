@@ -3,11 +3,11 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task PassesThroughWhenNoSmallCapsRunsPresent()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new() { Text = "Hello", Properties = new() { FontSizePoints = 12 } },
             new() { Text = " world", Properties = new() { FontSizePoints = 14 } }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 
@@ -17,14 +17,14 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task SplitsLowercaseAndUppercaseSegments()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "Hello World",
                 Properties = new() { FontSizePoints = 10, SmallCaps = true }
             }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 
@@ -49,14 +49,14 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task GroupsNonLetterCharactersWithUppercaseRun()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "ABC 123",
                 Properties = new() { FontSizePoints = 10, SmallCaps = true }
             }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 
@@ -68,14 +68,14 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task AllLowercaseProducesSingleScaledUppercaseSegment()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "hello",
                 Properties = new() { FontSizePoints = 10, SmallCaps = true }
             }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 
@@ -87,8 +87,8 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task PreservesOtherRunPropertiesAcrossSplits()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "Ab",
@@ -100,7 +100,7 @@ public class SmallCapsExpanderTests
                     ColorHex = "FF0000"
                 }
             }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 
@@ -114,8 +114,8 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task LeavesTabAndImageRunsUntouched()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "\t",
@@ -128,7 +128,7 @@ public class SmallCapsExpanderTests
                 InlineImageData = [1, 2, 3],
                 Properties = new() { FontSizePoints = 10, SmallCaps = true }
             }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 
@@ -140,14 +140,14 @@ public class SmallCapsExpanderTests
     [Test]
     public async Task EmptyTextRunPassesThrough()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "",
                 Properties = new() { FontSizePoints = 10, SmallCaps = true }
             }
-        };
+        ];
 
         var result = SmallCapsExpander.Expand(runs);
 

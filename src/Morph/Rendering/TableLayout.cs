@@ -231,9 +231,8 @@ static class TableLayout
         // A neighbour whose explicit facing edge is VISIBLE changes nothing here: both cells then
         // draw the same edge, which overdraws harmlessly.
         var span = Math.Max(1, cellProps.GridSpan);
-        var sameRow = row;
-        var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex - 1)?.Borders, BorderSides.Right);
-        var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex + span)?.Borders, BorderSides.Left);
+        var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, row, rowIndex, colIndex - 1)?.Borders, BorderSides.Right);
+        var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, row, rowIndex, colIndex + span)?.Borders, BorderSides.Left);
         var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowAt(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders, BorderSides.Bottom);
         var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowAt(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders, BorderSides.Top);
 
@@ -973,7 +972,7 @@ static class TableLayout
     // when a cell STARTS at the merge's grid column and is a Continue — a row whose cells jump
     // past the column ends the run, same as the old scan. Weakly keyed per parsed table, so
     // concurrent conversions and repeated measure/render passes share one map.
-    static readonly ConditionalWeakTable<TableElement, HashSet<int>[]> verticalMergeContinueStarts = new();
+    static readonly ConditionalWeakTable<TableElement, HashSet<int>[]> verticalMergeContinueStarts = [];
 
     static HashSet<int>[] GetVerticalMergeContinueStarts(TableElement table) =>
         verticalMergeContinueStarts.GetValue(table, static keyTable =>

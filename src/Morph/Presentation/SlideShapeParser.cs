@@ -817,12 +817,13 @@ sealed class SlideShapeParser(
         // placeholder kind, then the presentation default. Taking only the nearest match would drop
         // the master's contribution whenever a layout declares the placeholder at all — which every
         // layout does, usually with an empty a:lstStyle.
-        var sources = new List<OpenXmlElement?> { shape.TextBody?.ListStyle };
-        sources.AddRange(placeholders.Matches(placeholder).Select(OpenXmlElement? (_) => _.TextBody?.ListStyle));
-        sources.Add(MasterStyle(master, placeholder));
-        sources.Add(defaultTextStyle);
-
-        return new(sources);
+        return new([
+            shape.TextBody?.ListStyle,
+            ..placeholders.Matches(placeholder)
+                .Select(OpenXmlElement? (_) => _.TextBody?.ListStyle),
+            MasterStyle(master, placeholder),
+            defaultTextStyle
+        ]);
     }
 
     // The master's title / body / other list for the placeholder's kind, the same three-way split

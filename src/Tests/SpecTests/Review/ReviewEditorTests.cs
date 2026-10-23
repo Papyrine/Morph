@@ -693,7 +693,7 @@ public class ReviewEditorTests
         docx = ReviewEditor.ResolveAll(docx, accept: true);
 
         using var stream = new MemoryStream(docx);
-        var parsed = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var parsed = DocumentConverter.Parse(stream, null, captureSources: true);
 
         var text = string.Concat(parsed.Elements.OfType<ParagraphElement>().SelectMany(_ => _.Runs).Select(_ => _.Text));
         await Assert.That(text).IsEqualTo("Hello inserted world ");

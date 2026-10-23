@@ -48,11 +48,10 @@ static class StyleCatalog
             found.Add((Priority(style), Choice(style, defined, baseSize, true, false)));
         }
 
-        return found
+        return [.. found
             .OrderBy(_ => _.Priority)
             .ThenBy(_ => _.Choice.Name, StringComparer.OrdinalIgnoreCase)
-            .Select(_ => _.Choice)
-            .ToList();
+            .Select(_ => _.Choice)];
     }
 
     // Normal names no priority, and leads the gallery all the same.

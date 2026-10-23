@@ -22,12 +22,12 @@ public static class IssueLauncher
     {
         var title = WebUtility.UrlEncode($"{action}: {exception.GetType().Name}");
 
-        var lines = new List<string>
-        {
+        List<string> lines =
+        [
             "An unexpected error occurred while converting a document with Morph.",
             "",
             $"* Action: {action}",
-        };
+        ];
 
         if (!string.IsNullOrWhiteSpace(environment))
         {

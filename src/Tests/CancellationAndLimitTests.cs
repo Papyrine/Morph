@@ -1,6 +1,3 @@
-using System.IO.Compression;
-using System.Text;
-
 /// <summary>
 /// A conversion can be stopped (each converter's <c>cancel</c> parameter), and no page can ask for more
 /// pixels than <see cref="ImageExportOptions.MaxPagePixels"/>: one that would is painted at the highest
@@ -15,7 +12,7 @@ public class CancellationAndLimitTests
 
     static Cancel Cancelled()
     {
-        using var source = new CancellationTokenSource();
+        using var source = new CancelSource();
         source.Cancel();
         return source.Token;
     }
@@ -104,7 +101,9 @@ public class CancellationAndLimitTests
     [Test]
     public async Task A_crafted_page_size_renders_within_the_budget()
     {
-        using var zip = new ZipArchive(new MemoryStream(File.ReadAllBytes(Input("word", "complex_tables"))));
+        await using var zip = new ZipArchive(
+            new MemoryStream(
+                await File.ReadAllBytesAsync(Input("word", "complex_tables"))));
         var parts = zip.Entries.ToDictionary(_ => _.FullName, _ =>
         {
             using var stream = _.Open();
@@ -115,11 +114,11 @@ public class CancellationAndLimitTests
         var document = System.Text.RegularExpressions.Regex.Replace(Encoding.UTF8.GetString(parts["word/document.xml"]), "<w:pgSz [^>]*/>", "<w:pgSz w:w=\"288000\" w:h=\"288000\"/>");
         parts["word/document.xml"] = Encoding.UTF8.GetBytes(document);
         using var output = new MemoryStream();
-        using (var rebuilt = new ZipArchive(output, ZipArchiveMode.Create, true))
+        await using (var rebuilt = new ZipArchive(output, ZipArchiveMode.Create, true))
         {
             foreach (var (name, bytes) in parts)
             {
-                using var stream = rebuilt.CreateEntry(name).Open();
+                await using var stream = await rebuilt.CreateEntry(name).OpenAsync();
                 stream.Write(bytes);
             }
         }

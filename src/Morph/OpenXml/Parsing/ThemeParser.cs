@@ -83,7 +83,7 @@ static class ThemeParser
     /// </summary>
     static IReadOnlyList<long> ExtractLineStyleWidths(ThemePart themePart)
     {
-        var defaults = new long[] { 0, 6350, 12700, 19050 };
+        long[] defaults = [0, 6350, 12700, 19050];
         var formatScheme = themePart.Theme?.ThemeElements?.FormatScheme;
         var lnStyleLst = formatScheme?.LineStyleList;
         if (lnStyleLst == null)
@@ -91,7 +91,7 @@ static class ThemeParser
             return defaults;
         }
 
-        var widths = new List<long> { 0 };
+        List<long> widths = [0];
         foreach (var ln in lnStyleLst.Elements<A.Outline>())
         {
             widths.Add(ln.Width?.Value ?? 0);

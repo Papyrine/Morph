@@ -19,7 +19,7 @@ sealed record LaidOutDocument(IReadOnlyList<LaidOutPage> Pages)
     {
         if (range is { } bounds)
         {
-            return new(Pages.Where(_ => bounds.Contains(_.Number)).ToArray());
+            return new([.. Pages.Where(_ => bounds.Contains(_.Number))]);
         }
 
         return this;

@@ -28,7 +28,7 @@ static class StrictToTransitional
     // to the SDK's on-open remapping. Sorted longest-first so a shorter key can never partially rewrite
     // a longer URI.
     static readonly (string strict, string transitional)[] map =
-        new (string strict, string transitional)[]
+        [.. new (string strict, string transitional)[]
         {
             ("http://purl.oclc.org/ooxml/wordprocessingml/main", "http://schemas.openxmlformats.org/wordprocessingml/2006/main"),
             ("http://purl.oclc.org/ooxml/drawingml/main", "http://schemas.openxmlformats.org/drawingml/2006/main"),
@@ -55,8 +55,7 @@ static class StrictToTransitional
             ("http://purl.oclc.org/ooxml/descriptions/base", "http://descriptions.openxmlformats.org/description/base"),
             ("http://purl.oclc.org/ooxml/descriptions/full", "http://descriptions.openxmlformats.org/description/full"),
         }
-        .OrderByDescending(_ => _.strict.Length)
-        .ToArray();
+        .OrderByDescending(_ => _.strict.Length)];
 
     /// <summary>
     /// If <paramref name="input"/> is a Strict-format DOCX, returns a new seekable stream (positioned

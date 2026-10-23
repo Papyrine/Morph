@@ -95,7 +95,7 @@ public class ContextualSpacingAtTablesTests
     public async Task Letters_01s_header_table_stands_where_Word_has_it()
     {
         var path = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "letters", "01", "input.docx");
-        using var stream = File.OpenRead(path);
+        await using var stream = File.OpenRead(path);
         var document = new DocumentParser().Parse(stream);
         var page = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings).Pages[0];
 

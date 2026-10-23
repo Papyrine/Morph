@@ -20,7 +20,7 @@ public class LivePackageTests
     [MethodDataSource(typeof(EditCorpusTests), nameof(EditCorpusTests.Documents))]
     public async Task EveryDocument_ReadsAndEditsTheSameThroughItsLivePackage(string scenario)
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
         var outline = DocumentOutline.Read(docx);
         var paragraph = outline.AllowsEditing
             ? outline.Paragraphs.Where(_ => _.Units.Any(unit => unit.Editable)).MaxBy(_ => _.Length)
@@ -34,7 +34,7 @@ public class LivePackageTests
         // here, before the first await.
         var (borrowed, first) = EditAndBorrow(docx, paragraph);
         using var stream = new MemoryStream(first);
-        var read = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var read = DocumentConverter.Parse(stream, null, captureSources: true);
         var (live, fresh) = EditAgain(first, paragraph.Ordinal);
 
         await Assert.That(borrowed).IsNotNull()
@@ -51,7 +51,7 @@ public class LivePackageTests
     [MethodDataSource(typeof(EditCorpusTests), nameof(EditCorpusTests.Documents))]
     public async Task EveryDocument_OpensReadsAndEditsTheSameThroughAPreparedPackage(string scenario)
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx"));
         var (review, outline) = DocumentReading.Read(docx);
         var paragraph = outline.AllowsEditing
             ? outline.Paragraphs.Where(_ => _.Units.Any(unit => unit.Editable)).MaxBy(_ => _.Length)
@@ -64,7 +64,7 @@ public class LivePackageTests
         // As above, everything that relies on the package runs before the first await.
         var (borrowed, reading, prepared) = PrepareReadAndEdit(docx, paragraph);
         using var stream = new MemoryStream(docx);
-        var read = DocumentConverter.Parse(stream, null, null, captureSources: true);
+        var read = DocumentConverter.Parse(stream, null, captureSources: true);
         byte[] fresh;
         using (DocumentReading.Capture())
         {
@@ -84,7 +84,7 @@ public class LivePackageTests
     [Test]
     public async Task AReleasedPackage_IsNotBorrowed()
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
         DocumentReading.Prepare(docx);
         var prepared = DocumentReading.Borrow(docx, _ => 0, out _);
         DocumentReading.Release(docx);
@@ -98,7 +98,7 @@ public class LivePackageTests
     [Test]
     public async Task AFailedEdit_LetsThePackageGo()
     {
-        var docx = File.ReadAllBytes(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
+        var docx = await File.ReadAllBytesAsync(Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), "letters", "01", "input.docx"));
         var paragraph = DocumentOutline.Read(docx).Paragraphs.First(_ => _.Units.Any(unit => unit.Editable));
         byte[] first;
         using (DocumentReading.Capture())
@@ -132,13 +132,13 @@ public class LivePackageTests
             first = DocumentEditor.Rewrite(docx, paragraph.Ordinal, [Typed(paragraph, "x")], Plain).Document;
         }
 
-        return (DocumentReading.Borrow(first, _ => DocumentConverter.Parse(_, null, null, captureSources: true), out var parsed) ? parsed : null, first);
+        return (DocumentReading.Borrow(first, _ => DocumentConverter.Parse(_, null, captureSources: true), out var parsed) ? parsed : null, first);
     }
 
     static (ParsedDocument? Borrowed, (DocumentReview, DocumentOutline) Reading, byte[] Edited) PrepareReadAndEdit(byte[] docx, EditParagraph paragraph)
     {
         DocumentReading.Prepare(docx);
-        var borrowed = DocumentReading.Borrow(docx, _ => DocumentConverter.Parse(_, null, null, captureSources: true), out var parsed) ? parsed : null;
+        var borrowed = DocumentReading.Borrow(docx, _ => DocumentConverter.Parse(_, null, captureSources: true), out var parsed) ? parsed : null;
         var reading = DocumentReading.Read(docx);
         using (DocumentReading.Capture())
         {
@@ -211,13 +211,13 @@ public class LivePackageTests
             parts.Append(part.Uri.OriginalString).Append(": ");
             if (part.RootElement is { } root)
             {
-                var tree = System.Xml.Linq.XElement.Parse(root.OuterXml);
+                var tree = XElement.Parse(root.OuterXml);
                 foreach (var element in tree.DescendantsAndSelf())
                 {
                     element.Attributes().Where(_ => _.IsNamespaceDeclaration).Remove();
                 }
 
-                parts.AppendLine(tree.ToString(System.Xml.Linq.SaveOptions.DisableFormatting));
+                parts.AppendLine(tree.ToString(SaveOptions.DisableFormatting));
                 continue;
             }
 

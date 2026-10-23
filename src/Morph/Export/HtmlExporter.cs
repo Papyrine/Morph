@@ -860,7 +860,7 @@ static class HtmlExporter
             {
                 if (run.IsTab)
                 {
-                    segments.Add(new());
+                    segments.Add([]);
                 }
                 else if (run.InlineImageData != null || run.InlineShapeGroup != null)
                 {
@@ -1038,7 +1038,7 @@ static class HtmlExporter
             {
                 if (run.IsTab)
                 {
-                    segments.Add(new());
+                    segments.Add([]);
                 }
                 else if (run.InlineImageData != null || run.InlineShapeGroup != null)
                 {
@@ -2378,10 +2378,10 @@ static class HtmlExporter
                             // cell paragraph takes the same block form so its w:pBdr rules survive
                             // (resumes/08's separator rules above EXPERIENCE/ABOUT ME), with the
                             // border-group law applied against its paragraph siblings.
-                            var cellBlockParts = new List<string>
-                            {
+                            List<string> cellBlockParts =
+                            [
                                 $"margin: {Length(paragraph.Properties.SpacingBeforePoints)} 0 {Length(paragraph.Properties.SpacingAfterPoints)}"
-                            };
+                            ];
                             borderGroupPrevious = index > 0 ? (content[index - 1] as ParagraphElement)?.Properties : null;
                             borderGroupNext = index + 1 < content.Count ? (content[index + 1] as ParagraphElement)?.Properties : null;
                             AppendParagraphBorderStyle(cellBlockParts, paragraph.Properties);

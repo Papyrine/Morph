@@ -3,10 +3,10 @@ public class DropCapsExpanderTests
     [Test]
     public async Task PassesThroughWhenNoDropCap()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new() {Text = "Hello", Properties = new() {FontSizePoints = 12}}
-        };
+        ];
         var props = new ParagraphProperties();
 
         var result = DropCapsExpander.Expand(runs, props);
@@ -17,10 +17,10 @@ public class DropCapsExpanderTests
     [Test]
     public async Task PassesThroughWhenDropCapLinesIsOneOrLess()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new() {Text = "Hello", Properties = new() {FontSizePoints = 12}}
-        };
+        ];
         var props = new ParagraphProperties {DropCap = DropCapPosition.Drop, DropCapLines = 1};
 
         var result = DropCapsExpander.Expand(runs, props);
@@ -31,10 +31,10 @@ public class DropCapsExpanderTests
     [Test]
     public async Task ExpandsFirstCharIntoLargeCap()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new() {Text = "Hello world", Properties = new() {FontSizePoints = 11}}
-        };
+        ];
         var props = new ParagraphProperties {DropCap = DropCapPosition.Drop, DropCapLines = 3};
 
         var result = DropCapsExpander.Expand(runs, props);
@@ -51,14 +51,14 @@ public class DropCapsExpanderTests
     [Test]
     public async Task PreservesOtherRunPropertiesOnCap()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new()
             {
                 Text = "Once upon a time",
                 Properties = new() {FontSizePoints = 12, Bold = true, ColorHex = "AA0000"}
             }
-        };
+        ];
         var props = new ParagraphProperties {DropCap = DropCapPosition.Drop, DropCapLines = 2};
 
         var result = DropCapsExpander.Expand(runs, props);
@@ -71,12 +71,12 @@ public class DropCapsExpanderTests
     [Test]
     public async Task SkipsLeadingTabAndImageRunsToFindFirstTextRun()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new() {Text = "\t", IsTab = true, Properties = new() {FontSizePoints = 11}},
             new() {Text = "", InlineImageData = [1, 2], Properties = new() {FontSizePoints = 11}},
             new() {Text = "Real text", Properties = new() {FontSizePoints = 11}}
-        };
+        ];
         var props = new ParagraphProperties {DropCap = DropCapPosition.Drop, DropCapLines = 2};
 
         var result = DropCapsExpander.Expand(runs, props);
@@ -94,11 +94,11 @@ public class DropCapsExpanderTests
     [Test]
     public async Task ReturnsRunsWhenNoTextRunFound()
     {
-        var runs = new List<Run>
-        {
+        List<Run> runs =
+        [
             new() {Text = "\t", IsTab = true, Properties = new()},
             new() {Text = "", Properties = new()}
-        };
+        ];
         var props = new ParagraphProperties {DropCap = DropCapPosition.Drop, DropCapLines = 3};
 
         var result = DropCapsExpander.Expand(runs, props);

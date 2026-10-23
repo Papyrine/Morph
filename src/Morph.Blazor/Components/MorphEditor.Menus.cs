@@ -112,13 +112,13 @@ public partial class MorphEditor
     // done is greyed out.
     IReadOnlyList<MenuLine> ContextLines()
     {
-        var lines = new List<MenuLine>
-        {
+        List<MenuLine> lines =
+        [
             MenuLine.Of(Commands.Cut),
             MenuLine.Of(Commands.Copy),
             MenuLine.Of(Commands.Paste),
             MenuLine.Separator
-        };
+        ];
         if (state.PictureSelected)
         {
             // An inline picture is in line with text; a floating one's wrap is read from the file.

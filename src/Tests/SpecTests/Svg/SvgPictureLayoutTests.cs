@@ -150,7 +150,7 @@ public class SvgPictureLayoutTests
     public async Task The_three_stars_of_icons_multiple_are_placed_blue_red_and_green()
     {
         // Their raster fallbacks are one blue PNG three times over; the colours are in the SVGs alone.
-        using var stream = File.OpenRead(Input("word/icons_multiple"));
+        await using var stream = File.OpenRead(Input("word/icons_multiple"));
         var document = new DocumentParser().Parse(stream);
 
         var fills = Images(fragmenter.Layout(document.Elements, document.PageSettings))
@@ -164,7 +164,7 @@ public class SvgPictureLayoutTests
     {
         // education-infographics-poster's cap, microscope and figures: an a:blip with no r:embed,
         // only the asvg:svgBlip extension.
-        using var stream = File.OpenRead(Input("powerpoint/education-infographics-poster"));
+        await using var stream = File.OpenRead(Input("powerpoint/education-infographics-poster"));
         var document = PowerPointConverter.Parse(stream, null);
 
         var pictures = Images(fragmenter.Layout(document.Elements, document.PageSettings))
@@ -178,7 +178,7 @@ public class SvgPictureLayoutTests
     [Test]
     public async Task An_Excel_picture_keeps_its_raster_as_the_fallback_beside_its_SVG()
     {
-        using var stream = File.OpenRead(Input("excel/wedding-budget-template"));
+        await using var stream = File.OpenRead(Input("excel/wedding-budget-template"));
         var document = ExcelConverter.Parse(stream, new ImageExportOptions {FontDirectory = ProjectFonts.Directory});
 
         var bells = Images(fragmenter.Layout(document.Elements, document.PageSettings)).First(_ => _.Vector != null);
@@ -199,10 +199,10 @@ public class SvgPictureLayoutTests
         var givenUp = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var directory in ScenarioInputs.AllDirectories())
         {
-            using var archive = ZipFile.OpenRead(ScenarioInputs.InputFile(directory));
+            await using var archive = await ZipFile.OpenReadAsync(ScenarioInputs.InputFile(directory));
             foreach (var entry in archive.Entries.Where(_ => _.FullName.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)))
             {
-                using var part = entry.Open();
+                await using var part = await entry.OpenAsync();
                 using var buffer = new MemoryStream();
                 await part.CopyToAsync(buffer);
                 var result = SvgReader.Read(buffer.ToArray());

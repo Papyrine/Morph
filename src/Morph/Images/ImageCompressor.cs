@@ -67,7 +67,7 @@ public static class ImageCompressor
         return new(
             planned.Sum(_ => _.Report.Bytes),
             planned.Sum(_ => _.Report.NewBytes),
-            planned.Select(_ => _.Report).ToList());
+            [.. planned.Select(_ => _.Report)]);
     }
 
     /// <summary>
@@ -90,9 +90,8 @@ public static class ImageCompressor
     public static IReadOnlyList<ImageReport> Inspect(Stream package, ImageCompressionOptions? options = null)
     {
         using var archive = new ZipArchive(package, ZipArchiveMode.Read, leaveOpen: true);
-        return Plan(archive, options ?? new(), encode: false)
-            .Select(_ => _.Report)
-            .ToList();
+        return [.. Plan(archive, options ?? new(), encode: false)
+            .Select(_ => _.Report)];
     }
 
     static List<PlannedImage> Plan(ZipArchive archive, ImageCompressionOptions options, bool encode)

@@ -220,7 +220,7 @@ static class BorderStroke
             pendingGap = 0;
         }
 
-        return bands.ToArray();
+        return [.. bands];
     }
 
     // Word's thin unit and its "two-pixel" unit are POINT quantities — 0.75pt (sz=6) and 1.5pt

@@ -19,7 +19,7 @@ sealed class SvgDrawing(double x, double y, double width, double height, IReadOn
     // One reading per part: a picture part's bytes are one array for the whole parse, however many
     // pictures point at it and however many pages draw them. Weakly keyed, so the reading goes
     // when the parsed document does, and a document read concurrently shares it.
-    static readonly ConditionalWeakTable<byte[], SvgReadResult> readings = new();
+    static readonly ConditionalWeakTable<byte[], SvgReadResult> readings = [];
 
     public double X { get; } = x;
 

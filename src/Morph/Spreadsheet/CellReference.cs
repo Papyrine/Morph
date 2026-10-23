@@ -67,7 +67,7 @@ static class CellReference
             return 0;
         }
 
-        var digits = new string(reference.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit).ToArray());
+        var digits = new string([.. reference.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit)]);
         if (int.TryParse(digits, out var row) && row <= MaxRow)
         {
             return row;

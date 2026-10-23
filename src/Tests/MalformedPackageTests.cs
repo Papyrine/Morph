@@ -1,6 +1,3 @@
-using System.IO.Compression;
-using System.Text;
-
 /// <summary>
 /// A damaged package renders or fails cleanly — never hangs, never surfaces a crash from inside the
 /// pipeline. Each case damages a corpus document one way: truncated, a part dropped, the body cut

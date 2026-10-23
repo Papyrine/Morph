@@ -8,7 +8,7 @@ public class TiledPictureFillTests
 {
     static byte[] Png(int width, int height, uint? pixelsPerMetre)
     {
-        var data = new List<byte> {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        List<byte> data = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
         void Chunk(string type, byte[] payload)
         {
             var length = new byte[4];

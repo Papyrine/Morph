@@ -277,8 +277,8 @@ static class BenchmarkDocs
             ? $"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rLogoSvg" Type="{imageRelType}" Target="media/logo.svg"/><Relationship Id="rLogoFallback" Type="{imageRelType}" Target="media/logo.png"/></Relationships>"""
             : $"""<?xml version="1.0" encoding="utf-8"?><Relationships xmlns="{relsNs}"><Relationship Id="rLogo" Type="{imageRelType}" Target="media/logo.png"/></Relationships>""";
 
-        var parts = new List<(string, byte[])>
-        {
+        List<(string, byte[])> parts =
+        [
             (contentTypesPath, Utf8(ContentTypes(header: true, styles: false, svg: useSvg))),
             ("_rels/.rels", Utf8(packageRels)),
             ("word/document.xml", Utf8($"""<?xml version="1.0" encoding="utf-8"?><w:document {documentNamespaces}><w:body>{body}</w:body></w:document>""")),
@@ -286,7 +286,7 @@ static class BenchmarkDocs
             ("word/header1.xml", Utf8(header)),
             ("word/_rels/header1.xml.rels", Utf8(headerRels)),
             ("word/media/logo.png", BuildLogoPng())
-        };
+        ];
         if (useSvg)
         {
             parts.Add(("word/media/logo.svg", Utf8(BuildLogoSvg())));

@@ -172,7 +172,7 @@ static partial class DocumentEditor
             (int) (margins?.Left?.Value ?? 1440),
             size != null && Landscape(size))
         {
-            Columns = (int) count,
+            Columns = count,
             LineBetween = columns?.Separator?.Value == true
         };
     }

@@ -473,8 +473,8 @@ static partial class DocumentEditor
                     entry.Append(FieldStart(instruction));
                 }
 
-                var runs = new List<OpenXmlElement>
-                {
+                List<OpenXmlElement> runs =
+                [
                     new OoxmlRun(linked ? new OoxmlRunProperties(new RunStyle {Val = "Hyperlink"}, new NoProof()) : new OoxmlRunProperties(new NoProof()), new Text(text) {Space = SpaceProcessingModeValues.Preserve}),
                     Hidden(new TabChar()),
                     Hidden(new FieldChar {FieldCharType = FieldCharValues.Begin}),
@@ -483,7 +483,7 @@ static partial class DocumentEditor
                     Hidden(new FieldChar {FieldCharType = FieldCharValues.Separate}),
                     Hidden(new Text("1")),
                     Hidden(new FieldChar {FieldCharType = FieldCharValues.End})
-                };
+                ];
                 if (linked)
                 {
                     entry.AppendChild(new Hyperlink(runs) {Anchor = name, History = Literal<OnOffValue>("1")});

@@ -616,11 +616,10 @@ static partial class DocumentEditor
             if (numbering!.Elements<NumberingInstance>().Count(_ => _.AbstractNumId?.Val?.Value == abstractId) > 1)
             {
                 definition = Detach(instance, definition);
-                levels = definition.Elements<Level>()
+                levels = [.. definition.Elements<Level>()
                     .Concat(instance.Elements<LevelOverride>().Select(_ => _.Level).OfType<Level>())
                     .Select(_ => _.PreviousParagraphProperties?.Indentation)
-                    .OfType<Indentation>()
-                    .ToList();
+                    .OfType<Indentation>()];
             }
 
             foreach (var indentation in levels)

@@ -149,13 +149,13 @@ public class PageVerticalAlignmentTests
         var rows = items.OfType<PlacedTableRow>().OrderBy(_ => _.Y).ToList();
         var before = Line(document, "before");
         var after = Line(document, "after");
-        var gaps = new List<float>
-        {
+        List<float> gaps =
+        [
             rows[0].Y - Bottom(before),
             rows[1].Y - Bottom(rows[0]),
             rows[2].Y - Bottom(rows[1]),
             after.Y - Bottom(rows[2])
-        };
+        ];
 
         await Assert.That(gaps[0]).IsGreaterThan(10f);
         foreach (var gap in gaps)

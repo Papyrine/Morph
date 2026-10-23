@@ -95,7 +95,7 @@ public class RelativeSizeTests
     public async Task A_full_height_group_reaches_the_foot_of_a_taller_page()
     {
         var path = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "cover-letters", "09", "input.docx");
-        using var stream = File.OpenRead(path);
+        await using var stream = File.OpenRead(path);
         var document = new DocumentParser().Parse(stream);
 
         var shapes = document.Elements.OfType<FloatingShapeElement>().ToList();

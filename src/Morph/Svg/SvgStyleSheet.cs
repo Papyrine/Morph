@@ -41,7 +41,7 @@ sealed class SvgStyleSheet
         // The cascade: a more specific rule over a less specific one, and a later rule over an
         // earlier one of the same weight — which the stable sort leaves in the order they came.
         // Sorted once, so applying is a walk in order.
-        parsed.rules = parsed.rules.OrderBy(_ => _.Specificity).ToList();
+        parsed.rules = [.. parsed.rules.OrderBy(_ => _.Specificity)];
         styleSheet = parsed;
         unsupported = null;
         return true;
@@ -199,7 +199,7 @@ sealed class SvgStyleSheet
             }
         }
 
-        rule = new(element, id, classes.ToArray(), declarations);
+        rule = new(element, id, [.. classes], declarations);
         return true;
     }
 
