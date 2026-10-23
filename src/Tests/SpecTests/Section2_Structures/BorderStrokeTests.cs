@@ -309,7 +309,8 @@ public class BorderStrokeTests
         var borders = new CellBorders {Top = edge, Bottom = edge, Left = edge, Right = edge};
 
         var interior = BorderStroke.CellEdgeLines(x: 100, y: 200, width: 50, height: 30, borders, bottomInset: 0);
-        var top = interior.Single(_ => _.Horizontal && _.Edge == borders.Top && _.At < 215);
+        var top = interior.Single(_ => _.Horizontal &&
+                                       _.Edge == borders.Top && _.At < 215);
         var bottom = interior.Single(_ => _ is {Horizontal: true, At: > 215});
         var left = interior.Single(_ => _ is {Horizontal: false, At: < 125});
         var right = interior.Single(_ => _ is {Horizontal: false, At: > 125});

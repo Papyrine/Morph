@@ -252,7 +252,8 @@ static partial class DocumentEditor
             }
 
             var marks = main.Document!.Body!.Descendants<BookmarkStart>()
-                .Where(_ => _.Name?.Value is { } name && name.StartsWith("_Toc", StringComparison.Ordinal))
+                .Where(_ => _.Name?.Value is { } name &&
+                            name.StartsWith("_Toc", StringComparison.Ordinal))
                 .GroupBy(_ => _.Name!.Value!, StringComparer.Ordinal)
                 .ToDictionary(_ => _.Key, _ => _.First(), StringComparer.Ordinal);
             var contents = main.Document.Body.Descendants<OoxmlFieldCode>().Where(IsContents).SelectMany(FieldParagraphs).ToHashSet(ReferenceEqualityComparer.Instance);
@@ -313,7 +314,8 @@ static partial class DocumentEditor
 
                     if (type == FieldCharValues.End)
                     {
-                        if (!written && separated)
+                        if (!written &&
+                            separated)
                         {
                             each.InsertBeforeSelf(new OoxmlRun(
                                 new OoxmlRunProperties(new NoProof(), new WebHidden()),
@@ -403,7 +405,8 @@ static partial class DocumentEditor
         static OpenXmlElement? NextRunOf(OpenXmlElement run)
         {
             var next = run.NextSibling();
-            while (next != null && next is not OoxmlRun)
+            while (next != null &&
+                   next is not OoxmlRun)
             {
                 next = next.NextSibling();
             }
@@ -588,7 +591,8 @@ static partial class DocumentEditor
             var numbers = Stories()
                 .SelectMany(_ => _.Descendants<BookmarkStart>())
                 .Select(_ => _.Name?.Value)
-                .Where(_ => _ != null && _.StartsWith("_Toc", StringComparison.Ordinal))
+                .Where(_ => _ != null &&
+                            _.StartsWith("_Toc", StringComparison.Ordinal))
                 .Select(_ => long.TryParse(_![4..], NumberStyles.None, CultureInfo.InvariantCulture, out var number) ? number : 0)
                 .DefaultIfEmpty(200000000)
                 .Max();

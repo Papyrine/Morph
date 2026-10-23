@@ -14,7 +14,8 @@ sealed class SkiaImageEffects : IImageEffects
     public static SKPaint? Paint(ImageRecolor? recolor, double opacity)
     {
         var filter = Filter(recolor);
-        if (filter is null && opacity >= 1)
+        if (filter is null &&
+            opacity >= 1)
         {
             return null;
         }

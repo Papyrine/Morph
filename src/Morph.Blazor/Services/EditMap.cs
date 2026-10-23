@@ -184,7 +184,8 @@ sealed class EditMap
 
             if (ordinal != paragraph ||
                 !ReferenceEquals(cell, container) ||
-                (lines.Count > 0 && line.Y < lines[^1].Y))
+                (lines.Count > 0 &&
+                 line.Y < lines[^1].Y))
             {
                 Close();
                 paragraph = ordinal;

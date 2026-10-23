@@ -486,13 +486,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             if (nextSectionSettings[sectionPropsList[i]] is { } nextSettings)
             {
-                nextSectionSettings[sectionPropsList[i]] = nextSettings with { Bands = sectionBands[i + 1] };
+                nextSectionSettings[sectionPropsList[i]] = nextSettings with {Bands = sectionBands[i + 1]};
             }
         }
 
         if (sectionBands.Count > 0)
         {
-            pageSettings = pageSettings with { Bands = sectionBands[0] };
+            pageSettings = pageSettings with {Bands = sectionBands[0]};
         }
 
         var elements = ParseElements(body, mainPart);
@@ -663,7 +663,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     Watermark? ParsePictureWatermark(DocumentFormat.OpenXml.Vml.ImageData imageData, HeaderPart headerPart)
     {
         var relId = imageData.RelationshipId?.Value
-                    ?? imageData.GetAttributes().FirstOrDefault(_ => _.LocalName == "id" && _.NamespaceUri.EndsWith("/relationships")).Value;
+                    ?? imageData.GetAttributes()
+                        .FirstOrDefault(_ => _.LocalName == "id" &&
+                                             _.NamespaceUri.EndsWith("/relationships")).Value;
         if (relId == null)
         {
             return null;
@@ -893,7 +895,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         ParagraphElement? continuation = null;
         foreach (var fn in part.Footnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Footnote>())
         {
-            if (fn.Type?.HasValue == true && fn.Type.Value != FootnoteEndnoteValues.Normal)
+            if (fn.Type?.HasValue == true &&
+                fn.Type.Value != FootnoteEndnoteValues.Normal)
             {
                 if (fn.Type.Value == FootnoteEndnoteValues.Separator)
                 {
@@ -939,7 +942,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         ParagraphElement? continuation = null;
         foreach (var en in part.Endnotes.Elements<DocumentFormat.OpenXml.Wordprocessing.Endnote>())
         {
-            if (en.Type?.HasValue == true && en.Type.Value != FootnoteEndnoteValues.Normal)
+            if (en.Type?.HasValue == true &&
+                en.Type.Value != FootnoteEndnoteValues.Normal)
             {
                 if (en.Type.Value == FootnoteEndnoteValues.Separator)
                 {
@@ -1012,7 +1016,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     ParagraphElement ParseSeparatorParagraph(OpenXmlCompositeElement? entry, MainDocumentPart mainPart)
     {
         var paragraph = entry?.GetFirstChild<Paragraph>()
-                        ?? new Paragraph(new OoxmlParagraphProperties(new SpacingBetweenLines { After = "0", Line = "240", LineRule = LineSpacingRuleValues.Auto }));
+                        ?? new Paragraph(new OoxmlParagraphProperties(new SpacingBetweenLines {After = "0", Line = "240", LineRule = LineSpacingRuleValues.Auto}));
         var parsed = ParseParagraph(paragraph, mainPart).OfType<ParagraphElement>().FirstOrDefault();
         return new()
         {
@@ -1055,11 +1059,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         _ = flag;
                         break;
 
-                    case Text t when instructionStack.Count > 0 && inResult.Peek():
+                    case Text t when instructionStack.Count > 0 &&
+                                     inResult.Peek():
                         resultStack.Peek().Append(t.Text.ReplaceSeparatorsWithSpace());
                         break;
 
-                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.End && instructionStack.Count > 0:
+                    case FieldChar fc when fc.FieldCharType?.Value == FieldCharValues.End &&
+                                           instructionStack.Count > 0:
                         var instruction = instructionStack.Pop().TrimmedToString();
                         var resultText = resultStack.Pop().ToString();
                         inResult.Pop();
@@ -1198,7 +1204,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             paragraphOrdinals ??= scan.ParagraphOrdinals();
             for (var current = rangeStart.Parent; current != null; current = current.Parent)
             {
-                if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
+                if (current is Paragraph paragraph &&
+                    paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     anchorByCommentId[rangeId] = idx;
                     break;
@@ -1257,7 +1264,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             int? paragraphIndex = null;
             for (var current = start.Parent; current != null; current = current.Parent)
             {
-                if (current is Paragraph paragraph && paragraphOrdinals.TryGetValue(paragraph, out var idx))
+                if (current is Paragraph paragraph &&
+                    paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     paragraphIndex = idx;
                     break;
@@ -1284,7 +1292,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     static byte? ThemeByte(StringValue? value)
     {
         if (value?.HasValue == true &&
-                byte.TryParse(value.Value, NumberStyles.HexNumber, null, out var parsed))
+            byte.TryParse(value.Value, NumberStyles.HexNumber, null, out var parsed))
         {
             return parsed;
         }
@@ -1321,7 +1329,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     string? ResolveRunColor(Color colorElement)
     {
         var themeColor = colorElement.ThemeColor?.Value;
-        if (themeColor != null && currentThemeColors != null)
+        if (themeColor != null &&
+            currentThemeColors != null)
         {
             var shade = ThemeByte(colorElement.ThemeShade);
             var tint = ThemeByte(colorElement.ThemeTint);
@@ -1333,7 +1342,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        if (colorElement.Val?.HasValue == true && colorElement.Val.Value != "auto")
+        if (colorElement.Val?.HasValue == true &&
+            colorElement.Val.Value != "auto")
         {
             return colorElement.Val.Value;
         }
@@ -1388,7 +1398,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 defaultEastAsiaFontFamily = EastAsiaFontFamily(defaultFonts);
 
                 // Try theme font reference first
-                if (defaultFonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+                if (defaultFonts.AsciiTheme?.HasValue == true &&
+                    currentThemeFonts != null)
                 {
                     var themeValue = ((IEnumValue) defaultFonts.AsciiTheme.Value).Value;
                     var resolvedFont = currentThemeFonts.ResolveFont(themeValue);
@@ -1633,8 +1644,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     backgroundColor = ResolveThemeFill(shadingElement);
 
                     // Fall back to direct fill value
-                    if (backgroundColor == null && shadingElement.Fill?.HasValue == true &&
-                        shadingElement.Fill.Value != "auto" && shadingElement.Fill.Value != "none")
+                    if (backgroundColor == null &&
+                        shadingElement.Fill?.HasValue == true &&
+                        shadingElement.Fill.Value != "auto" &&
+                        shadingElement.Fill.Value != "none")
                     {
                         backgroundColor = shadingElement.Fill.Value;
                     }
@@ -1762,7 +1775,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var chain = new List<Style>();
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var currentId = id;
-            while (visited.Add(currentId) && byId.TryGetValue(currentId, out var style))
+            while (visited.Add(currentId) &&
+                   byId.TryGetValue(currentId, out var style))
             {
                 chain.Add(style);
                 if (style.BasedOn?.Val?.Value is not { } baseId)
@@ -1837,7 +1851,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var basedOnId = style.BasedOn?.Val?.Value;
                 // Only wait for the base style if it actually exists in this document
                 // If basedOn references a non-existent style, process without waiting
-                if (basedOnId != null && existingStyleIds.Contains(basedOnId) && !processed.Contains(basedOnId))
+                if (basedOnId != null &&
+                    existingStyleIds.Contains(basedOnId) &&
+                    !processed.Contains(basedOnId))
                 {
                     // Base style not yet processed, skip for now
                     continue;
@@ -1852,8 +1868,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 // Whether the base's indentation is its numbering's, and what it falls back to without
                 // the numbering (see styleIndentBound).
-                var baseIndentBound = basedOnId != null && styleIndentBound.Contains(basedOnId);
-                var baseUnboundIndent = basedOnId != null && styleUnboundIndents.TryGetValue(basedOnId, out var inheritedUnbound)
+                var baseIndentBound = basedOnId != null &&
+                                      styleIndentBound.Contains(basedOnId);
+                var baseUnboundIndent = basedOnId != null &&
+                                        styleUnboundIndents.TryGetValue(basedOnId, out var inheritedUnbound)
                     ? inheritedUnbound
                     : (defaultLeftIndentPoints, 0d, 0d, defaultRightIndentPoints);
 
@@ -2027,9 +2045,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // resumes/07's "College info" the second: basedOn List Bullet, numId=0, left=360, an
                 // indent this used to throw away with the numbering.
                 var styleNumPr = paraProps.GetFirstChild<NumberingProperties>();
-                var hasOrphanedNumPr = styleNumPr != null && (styleNumPr.NumberingId?.Val?.Value ?? 0) == 0;
-                var activeNumbering = styleNumPr != null && !hasOrphanedNumPr;
-                if (hasOrphanedNumPr && baseIndentBound)
+                var hasOrphanedNumPr = styleNumPr != null &&
+                                       (styleNumPr.NumberingId?.Val?.Value ?? 0) == 0;
+                var activeNumbering = styleNumPr != null &&
+                                      !hasOrphanedNumPr;
+                if (hasOrphanedNumPr &&
+                    baseIndentBound)
                 {
                     (leftIndent, firstLineIndent, hangingIndent, rightIndent) = baseUnboundIndent;
                 }
@@ -2047,7 +2068,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
                 }
 
-                if (activeNumbering || (baseIndentBound && !hasOrphanedNumPr && !ownIndentation))
+                if (activeNumbering ||
+                    (baseIndentBound &&
+                     !hasOrphanedNumPr &&
+                     !ownIndentation))
                 {
                     styleIndentBound.Add(styleId);
                 }
@@ -2100,8 +2124,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     backgroundColor = ResolveThemeFill(shadingElement);
 
                     // Fall back to direct fill value
-                    if (backgroundColor == null && shadingElement.Fill?.HasValue == true &&
-                        shadingElement.Fill.Value != "auto" && shadingElement.Fill.Value != "none")
+                    if (backgroundColor == null &&
+                        shadingElement.Fill?.HasValue == true &&
+                        shadingElement.Fill.Value != "auto" &&
+                        shadingElement.Fill.Value != "none")
                     {
                         backgroundColor = shadingElement.Fill.Value;
                     }
@@ -2262,7 +2288,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // The level's own marker colour (w:lvl/w:rPr/w:color). Direct hex only:
                     // "auto" keeps the paragraph fallback.
                     var levelColor = runProps.GetFirstChild<Color>()?.Val?.Value;
-                    if (levelColor != null && !levelColor.Equals("auto", StringComparison.OrdinalIgnoreCase))
+                    if (levelColor != null &&
+                        !levelColor.Equals("auto", StringComparison.OrdinalIgnoreCase))
                     {
                         markerColorHex = levelColor;
                     }
@@ -2333,7 +2360,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var overrideIlvl = lvlOverride.LevelIndex?.Value ?? 0;
                 var startOverride = lvlOverride.StartOverrideNumberingValue?.Val?.Value;
 
-                if (startOverride != null && levels.TryGetValue(overrideIlvl, out var baseDef))
+                if (startOverride != null &&
+                    levels.TryGetValue(overrideIlvl, out var baseDef))
                 {
                     startOverrides.Add((numId, overrideIlvl));
                     levels[overrideIlvl] = new()
@@ -2461,7 +2489,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var tableStylesById = new Dictionary<string, Style>(StringComparer.OrdinalIgnoreCase);
         foreach (var style in stylesPart.Styles.Elements<Style>())
         {
-            if (style.Type?.Value == StyleValues.Table && style.StyleId?.Value is { } id)
+            if (style.Type?.Value == StyleValues.Table &&
+                style.StyleId?.Value is { } id)
             {
                 tableStylesById[id] = style;
             }
@@ -2602,7 +2631,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var current = style;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -2630,7 +2660,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var current = style;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -2667,7 +2698,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var current = style;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -2751,7 +2783,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 }
             }
 
-            if (borders == null && shading == null && run == null)
+            if (borders == null &&
+                shading == null &&
+                run == null)
             {
                 continue;
             }
@@ -2784,7 +2818,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         BorderType? top = null, right = null, bottom = null, left = null, insideH = null, insideV = null;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -2799,7 +2834,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 insideH ??= borders.GetFirstChild<InsideHorizontalBorder>();
                 insideV ??= borders.GetFirstChild<InsideVerticalBorder>();
 
-                if (top != null && right != null && bottom != null && left != null && insideH != null && insideV != null)
+                if (top != null &&
+                    right != null &&
+                    bottom != null &&
+                    left != null &&
+                    insideH != null &&
+                    insideV != null)
                 {
                     break;
                 }
@@ -2852,7 +2892,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var current = style;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -2896,7 +2937,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var current = style;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -2999,7 +3041,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         double? top = null, right = null, bottom = null, left = null;
         while (current != null)
         {
-            if (current.StyleId?.Value is { } id && !visited.Add(id))
+            if (current.StyleId?.Value is { } id &&
+                !visited.Add(id))
             {
                 break;
             }
@@ -3013,7 +3056,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 bottom ??= sides.Bottom;
                 left ??= sides.Left;
 
-                if (top != null && right != null && bottom != null && left != null)
+                if (top != null &&
+                    right != null &&
+                    bottom != null &&
+                    left != null)
                 {
                     break;
                 }
@@ -3028,7 +3074,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             current = baseStyle;
         }
 
-        if (top == null && right == null && bottom == null && left == null)
+        if (top == null &&
+            right == null &&
+            bottom == null &&
+            left == null)
         {
             return null;
         }
@@ -3393,7 +3442,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 var numFmt = levelDef.NumberFormat;
                 // Try to get the actual format for parent levels
-                if (lvl != ilvl && levels.TryGetValue(lvl, out var parentLevelDef))
+                if (lvl != ilvl &&
+                    levels.TryGetValue(lvl, out var parentLevelDef))
                 {
                     numFmt = parentLevelDef.NumberFormat;
                 }
@@ -3877,7 +3927,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var val = compatSetting.Val?.Value;
 
             if (string.Equals(name, "compatibilityMode", StringComparison.OrdinalIgnoreCase) &&
-                uri == "http://schemas.microsoft.com/office/word" && val != null)
+                uri == "http://schemas.microsoft.com/office/word" &&
+                val != null)
             {
                 if (int.TryParse(val, out var mode))
                 {
@@ -3889,12 +3940,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return new()
         {
             CompatibilityMode = compatMode,
-            UsesFixedAutoSpacing = compat.Elements().Any(_ => _.LocalName == "doNotUseHTMLParagraphAutoSpacing" && OnOff(_))
+            UsesFixedAutoSpacing = compat
+                .Elements()
+                .Any(_ => _.LocalName == "doNotUseHTMLParagraphAutoSpacing" &&
+                          OnOff(_))
         };
 
         // An on/off element is on when it is there, unless its w:val says otherwise.
         static bool OnOff(OpenXmlElement element) =>
-            element.GetAttributes().FirstOrDefault(_ => _.LocalName == "val").Value is not ("0" or "false" or "off");
+            element
+                .GetAttributes()
+                .FirstOrDefault(_ => _.LocalName == "val")
+                .Value is not ("0" or "false" or "off");
     }
 
     PageSettings ExtractPageSettings(SectionProperties sectionProps)
@@ -4148,12 +4205,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return (width, height);
         }
 
-        if (Matches(width, paper.Width) && Matches(height, paper.Height))
+        if (Matches(width, paper.Width) &&
+            Matches(height, paper.Height))
         {
             return paper;
         }
 
-        if (Matches(width, paper.Height) && Matches(height, paper.Width))
+        if (Matches(width, paper.Height) &&
+            Matches(height, paper.Width))
         {
             return (paper.Height, paper.Width);
         }
@@ -4176,7 +4235,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var bottom = ParseBorderEdge(element.GetFirstChild<BottomBorder>());
         var left = ParseBorderEdge(element.GetFirstChild<LeftBorder>());
 
-        if (!top.IsVisible && !right.IsVisible && !bottom.IsVisible && !left.IsVisible)
+        if (!top.IsVisible &&
+            !right.IsVisible &&
+            !bottom.IsVisible &&
+            !left.IsVisible)
         {
             return null;
         }
@@ -4308,7 +4370,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         string? colorHex = null;
         var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
-        if (color?.Val?.HasValue == true && color.Val.Value != "auto")
+        if (color?.Val?.HasValue == true &&
+            color.Val.Value != "auto")
         {
             colorHex = color.Val.Value;
         }
@@ -4363,7 +4426,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// rather than any single channel. A WCAG contrast crossover would sit near 122 and is refuted.
     /// </summary>
     static bool IsDarkForAutomaticText(string? fillHex) =>
-        Brightness(fillHex) is { } brightness && brightness < 59;
+        Brightness(fillHex) is { } brightness &&
+        brightness < 59;
 
     // ITU-R BT.601 perceived brightness, 0-255. Null when the value is not a six-digit hex colour
     // (a theme name, "auto", "none").
@@ -4391,14 +4455,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (background.Color?.HasValue == true)
         {
             var colorValue = background.Color.Value;
-            if (!string.IsNullOrEmpty(colorValue) && colorValue != "auto")
+            if (!string.IsNullOrEmpty(colorValue) &&
+                colorValue != "auto")
             {
                 return colorValue;
             }
         }
 
         // Try theme color
-        if (background.ThemeColor?.HasValue == true && currentThemeColors != null)
+        if (background.ThemeColor?.HasValue == true &&
+            currentThemeColors != null)
         {
             var themeColorName = background.ThemeColor.Value.ToString();
 
@@ -4409,7 +4475,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (background.ThemeTint?.HasValue == true)
             {
                 var tintHex = background.ThemeTint.Value;
-                if (!string.IsNullOrEmpty(tintHex) && byte.TryParse(tintHex, NumberStyles.HexNumber, null, out var tintByte))
+                if (!string.IsNullOrEmpty(tintHex) &&
+                    byte.TryParse(tintHex, NumberStyles.HexNumber, null, out var tintByte))
                 {
                     tint = tintByte;
                 }
@@ -4418,7 +4485,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (background.ThemeShade?.HasValue == true)
             {
                 var shadeHex = background.ThemeShade.Value;
-                if (!string.IsNullOrEmpty(shadeHex) && byte.TryParse(shadeHex, NumberStyles.HexNumber, null, out var shadeByte))
+                if (!string.IsNullOrEmpty(shadeHex) &&
+                    byte.TryParse(shadeHex, NumberStyles.HexNumber, null, out var shadeByte))
                 {
                     shade = shadeByte;
                 }
@@ -4573,7 +4641,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var result = new List<SectionBands>(sectionPropsList.Count);
-        var previous = new SectionBands { EvenAndOddHeaders = evenAndOddHeaders };
+        var previous = new SectionBands {EvenAndOddHeaders = evenAndOddHeaders};
         foreach (var sectionProps in sectionPropsList)
         {
             HeaderFooterContent? Header(HeaderFooterValues type, HeaderFooterContent? inherited)
@@ -4657,18 +4725,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 style.Parent is { } parent)
             {
                 var previous = style.PreviousSibling();
-                restore.Add(
-                    () =>
+                restore.Add(() =>
+                {
+                    if (previous == null)
                     {
-                        if (previous == null)
-                        {
-                            parent.PrependChild(style);
-                        }
-                        else
-                        {
-                            parent.InsertAfter(style, previous);
-                        }
-                    });
+                        parent.PrependChild(style);
+                    }
+                    else
+                    {
+                        parent.InsertAfter(style, previous);
+                    }
+                });
             }
 
             style.Remove();
@@ -4898,7 +4965,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
-            if (start >= 0 && i - start > 1)
+            if (start >= 0 &&
+                i - start > 1)
             {
                 var sorted = elements.GetRange(start, i - start)
                     .OrderBy(FloatingZOrder)
@@ -5128,7 +5196,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Total grid columns — used for resolving lastColumn cnfStyle. Falls back to the
         // first row's gridSpan-aware cell count when no explicit grid is supplied.
         var totalCols = gridColumnWidths?.Count ?? 0;
-        if (totalCols == 0 && rowList.Count > 0)
+        if (totalCols == 0 &&
+            rowList.Count > 0)
         {
             var (firstBefore, firstAfter) = RowGridSkips(rowList[0]);
             totalCols = firstBefore + firstAfter;
@@ -5167,7 +5236,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                      runFlags, rowIndex, gridColIndex, totalRows, totalCols,
                                      styleInfo.RowBandSize, styleInfo.ColBandSize, tableLookMask))
                         {
-                            if (styleInfo.Conditionals.TryGetValue(condType, out var cond) && cond.RunProperties != null)
+                            if (styleInfo.Conditionals.TryGetValue(condType, out var cond) &&
+                                cond.RunProperties != null)
                             {
                                 layeredRun = layeredRun == null ? cond.RunProperties : layeredRun.Layer(cond.RunProperties);
                             }
@@ -5239,7 +5309,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 if (cellProps != null)
                 {
                     var cellWidth = cellProps.GetFirstChild<TableCellWidth>();
-                    if (cellWidth?.Width?.HasValue == true && cellWidth.Type?.Value == TableWidthUnitValues.Dxa)
+                    if (cellWidth?.Width?.HasValue == true &&
+                        cellWidth.Type?.Value == TableWidthUnitValues.Dxa)
                     {
                         width = double.Parse(cellWidth.Width.Value!) / OoxmlUnits.TwipsPerPoint;
                     }
@@ -5253,7 +5324,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
 
                     var shading = cellProps.GetFirstChild<Shading>();
-                    if (shading?.Fill?.HasValue == true && shading.Fill.Value != "auto")
+                    if (shading?.Fill?.HasValue == true &&
+                        shading.Fill.Value != "auto")
                     {
                         bgColor = shading.Fill.Value;
                     }
@@ -5434,7 +5506,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // the table style just above, has already filled ColorHex in and wins. Placed outside
                 // the styleInfo block so a direct w:shd on the cell counts the same as a conditional
                 // one, which is what Word does (probed both ways).
-                if (bgColor != null && IsDarkForAutomaticText(bgColor))
+                if (bgColor != null &&
+                    IsDarkForAutomaticText(bgColor))
                 {
                     ApplyDefaultRunColor(cellContent, "FFFFFF");
                 }
@@ -5649,7 +5722,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             // If no inline borders, try to get borders from the table style
-            if (defaultBorders == null && insideHBorder == null && insideVBorder == null && styleInfo != null)
+            if (defaultBorders == null &&
+                insideHBorder == null &&
+                insideVBorder == null &&
+                styleInfo != null)
             {
                 defaultBorders = styleInfo.Outer;
                 if (styleInfo.InsideH.IsVisible)
@@ -5776,7 +5852,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Only honour explicit dxa values. pct/auto/nil aren't modelled — treating them as 0
         // matches Word's behaviour for non-positive cell spacing (no detached-border switch).
         var type = spacing.Type?.Value;
-        if (type != null && type != TableWidthUnitValues.Dxa)
+        if (type != null &&
+            type != TableWidthUnitValues.Dxa)
         {
             return 0;
         }
@@ -5837,7 +5914,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     internal static CellSpacing? MergeTableCellMargin(TableCellMarginDefault margin, CellSpacing? fallback)
     {
         var (top, right, bottom, left) = ReadTableCellMarginSides(margin);
-        if (top == null && right == null && bottom == null && left == null)
+        if (top == null &&
+            right == null &&
+            bottom == null &&
+            left == null)
         {
             return null;
         }
@@ -5860,7 +5940,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return 0;
         }
 
-        if (span.Length > 2 && char.IsAsciiLetter(span[^1]) && char.IsAsciiLetter(span[^2]))
+        if (span.Length > 2 &&
+            char.IsAsciiLetter(span[^1]) &&
+            char.IsAsciiLetter(span[^2]))
         {
             if (!double.TryParse(span[..^2], NumberStyles.Float, CultureInfo.InvariantCulture, out var measure))
             {
@@ -6067,11 +6149,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var color = "000000";
-        if (border.Color?.HasValue == true && border.Color.Value != "auto")
+        if (border.Color?.HasValue == true &&
+            border.Color.Value != "auto")
         {
             color = border.Color.Value;
         }
-        else if (border.ThemeColor?.HasValue == true && currentThemeColors != null)
+        else if (border.ThemeColor?.HasValue == true &&
+                 currentThemeColors != null)
         {
             // Try to resolve theme color - use IEnumValue.Value instead of ToString()
             var themeColorValue = ((IEnumValue) border.ThemeColor.Value).Value;
@@ -6261,7 +6345,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     fieldStack.Push(new());
                 }
-                else if (type == FieldCharValues.Separate && fieldStack.Count > 0)
+                else if (type == FieldCharValues.Separate &&
+                         fieldStack.Count > 0)
                 {
                     var state = fieldStack.Peek();
                     (state.Kind, state.NumberFormat) = ClassifyPageField(state.Instruction.ToString());
@@ -6271,7 +6356,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         state.SeparateProperties = ParseRunProperties(controlRun.RunProperties, mainPart, paragraphStyleId);
                     }
                 }
-                else if (type == FieldCharValues.End && fieldStack.Count > 0)
+                else if (type == FieldCharValues.End &&
+                         fieldStack.Count > 0)
                 {
                     var state = fieldStack.Pop();
                     if (state.Kind != PageFieldKind.None)
@@ -6298,7 +6384,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var instruction = controlRun.GetFirstChild<OoxmlFieldCode>();
-            if (instruction != null && fieldStack.Count > 0)
+            if (instruction != null &&
+                fieldStack.Count > 0)
             {
                 fieldStack.Peek().Instruction.Append(instruction.Text);
                 return true;
@@ -6343,7 +6430,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             //     (agendas-minutes/17: the Bullets style tightens the level's 1800 to 360).
             // Direct paragraph <w:ind> wins over both.
             ParagraphProperties? styleDefaults = null;
-            if (paragraphStyleId != null && styleParagraphProperties != null)
+            if (paragraphStyleId != null &&
+                styleParagraphProperties != null)
             {
                 styleParagraphProperties.TryGetValue(paragraphStyleId, out styleDefaults);
             }
@@ -6849,7 +6937,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         // Inline shape groups (no behindDoc anchor, just <wp:inline> with a wpg:wgp inside)
                         // need to flow with the surrounding text rather than render as floating block content.
                         // Skip the group-as-block branch for inline drawings so the inline-image path catches them.
-                        var isInlineGroup = hasGroup && drawing.Descendants().Any(_ => _.LocalName == "inline");
+                        var isInlineGroup = hasGroup &&
+                                            drawing.Descendants().Any(_ => _.LocalName == "inline");
 
                         // A FRONT-of-text anchored drawing whose art is a blip-filled or solid
                         // text-free wsp reaches neither ShapeParser (behindDoc-only) nor the
@@ -6867,9 +6956,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 shape.GetFirstChild<WPS.ShapeProperties>() is { } shapeProperties &&
                                 (shapeProperties.GetFirstChild<A.BlipFill>() != null ||
                                  ((shapeProperties.GetFirstChild<A.SolidFill>() != null ||
-                                   ShapeParser.IsLineShape(shapeProperties)) && TextBoxHasNoText(shape))));
+                                   ShapeParser.IsLineShape(shapeProperties)) &&
+                                  TextBoxHasNoText(shape))));
 
-                        if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) && !isInlineGroup)
+                        if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) &&
+                            !isInlineGroup)
                         {
                             // For grouped drawings anchored inside table cells the DocumentParser
                             // walk below owns the children: its nested-group transform math resolves
@@ -6883,7 +6974,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             // wedding/11 regressed badly under blanket doc-parser authority), and
                             // cell-anchored groups never rendered at all before the hoist, so only
                             // they can safely switch owner.
-                            var cellGroup = hasGroup && para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any();
+                            var cellGroup = hasGroup &&
+                                            para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any();
 
                             // ShapeParser's flat anchor-extent scaling is only meaningful when the
                             // group's nesting is identity (chOff==off, chExt==ext, no rotation) —
@@ -6894,7 +6986,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             // size-sensitive dedup can't match — the walk's composed nested
                             // transform is the only correct owner there, exactly as for cell
                             // groups.
-                            var nonIdentityNesting = hasGroup && HasNonIdentityNestedGroup(drawing);
+                            var nonIdentityNesting = hasGroup &&
+                                                     HasNonIdentityNestedGroup(drawing);
                             var walkOwnsChildren = cellGroup || nonIdentityNesting;
 
                             // Also check for images in the same drawing/group (e.g., decorative overlays, SVG backgrounds)
@@ -6955,7 +7048,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 groupChildren = groupChildren.OrderBy(_ =>
                                 {
                                     if (childSources.TryGetValue(_, out var source) &&
-                                            documentOrder.TryGetValue(source, out var ordinal))
+                                        documentOrder.TryGetValue(source, out var ordinal))
                                     {
                                         return ordinal;
                                     }
@@ -7128,7 +7221,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         var parsedRuns = ParseRun(run, mainPart, paragraphStyleId, emitLineBreaks: true);
                         // A page/column break splits the paragraph above, so its run's content is
                         // intentionally not appended here; line-break-only (or break-free) runs are.
-                        if (parsedRuns.Count > 0 && !hasPageOrColumnBreak)
+                        if (parsedRuns.Count > 0 &&
+                            !hasPageOrColumnBreak)
                         {
                             runs.AddRange(parsedRuns);
                         }
@@ -7157,7 +7251,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // Add remaining content
         if (runs.Count == 0 &&
-            (result.Count == 0 || (onlyFloatingArt && props.SpacingAfterPoints <= 0)))
+            (result.Count == 0 ||
+             (onlyFloatingArt &&
+              props.SpacingAfterPoints <= 0)))
         {
             // Empty paragraph - still counts for spacing
             // Keep runs empty so the renderer can avoid creating spurious extra pages at document end.
@@ -7190,7 +7286,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     Properties = props
                 });
         }
-        else if (props.SpacingAfterPoints > 0 && onlyFloatingArt)
+        else if (props.SpacingAfterPoints > 0 &&
+                 onlyFloatingArt)
         {
             // Paragraph contained only behind-text decorative shapes (a "background
             // placeholder" pattern) but carries explicit spacing-after — Word honours
@@ -7208,7 +7305,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     IsAnchorOnlyMark = true
                 });
         }
-        else if (result.Count > 0 && result[^1] is ColumnBreakElement)
+        else if (result.Count > 0 &&
+                 result[^1] is ColumnBreakElement)
         {
             // A paragraph that ENDS at a column break still has its mark, and Word places it at
             // the top of the NEXT column as a line of its own — the following paragraph starts one
@@ -7427,7 +7525,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // a:xfrm/@rot is clockwise 60,000ths of a degree; in Y-down page coordinates
                     // the clockwise rotation matrix is [[cos, −sin], [sin, cos]].
                     double rotation = 0;
-                    if (xfrm.GetAttributes().AttributeValue("rot") is { } rotValue && long.TryParse(rotValue, out var rot60000ths))
+                    if (xfrm.GetAttributes().AttributeValue("rot") is { } rotValue &&
+                        long.TryParse(rotValue, out var rot60000ths))
                     {
                         rotation = rot60000ths / 60000.0 * Math.PI / 180;
                     }
@@ -7438,8 +7537,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // text boxes keep the flip-free transform — Word mirrors box geometry,
                     // never the text itself.
                     var xfrmAttributes = xfrm.GetAttributes();
-                    var mirrorX = composeFlips && xfrmAttributes.AttributeValue("flipH") is "1" or "true" ? -1d : 1d;
-                    var mirrorY = composeFlips && xfrmAttributes.AttributeValue("flipV") is "1" or "true" ? -1d : 1d;
+                    var mirrorX = composeFlips &&
+                                  xfrmAttributes.AttributeValue("flipH") is "1" or "true" ? -1d : 1d;
+                    var mirrorY = composeFlips &&
+                                  xfrmAttributes.AttributeValue("flipV") is "1" or "true" ? -1d : 1d;
 
                     var cos = Math.Cos(rotation);
                     var sin = Math.Sin(rotation);
@@ -7518,7 +7619,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // An inline chart (a:graphicData holding a c:chart reference to a chart part).
-        if (drawing.Descendants().FirstOrDefault(_ => _.LocalName == "chart" && _.Parent?.LocalName == "graphicData") is { } chartReference)
+        if (drawing
+                .Descendants()
+                .FirstOrDefault(_ => _.LocalName == "chart" &&
+                                     _.Parent?.LocalName == "graphicData") is { } chartReference)
         {
             return ParseInlineChartRun(drawing, chartReference, hostPart, runProps);
         }
@@ -7651,7 +7755,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var top = (effectExtent.TopEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
         var right = (effectExtent.RightEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
         var bottom = (effectExtent.BottomEdge?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
-        if (left == 0 && top == 0 && right == 0 && bottom == 0)
+        if (left == 0 &&
+            top == 0 &&
+            right == 0 &&
+            bottom == 0)
         {
             return null;
         }
@@ -7825,7 +7932,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // resolution (ParseSolidFillShape) so inline groups pick up the same cluster colour.
                 var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
                 var fill = explicitNoFill ? null : shapeProps.GetFirstChild<A.SolidFill>();
-                if (fill == null && !explicitNoFill && shapeProps.GetFirstChild<A.GroupFill>() != null)
+                if (fill == null &&
+                    !explicitNoFill &&
+                    shapeProps.GetFirstChild<A.GroupFill>() != null)
                 {
                     fill = ResolveGroupFill(wsp);
                 }
@@ -8004,11 +8113,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// </summary>
     FloatingChartElement? AnchoredChart(Drawing drawing, DW.Anchor anchor, OpenXmlPart hostPart)
     {
-        if (drawing.Descendants().FirstOrDefault(_ => _.LocalName == "chart" && _.Parent?.LocalName == "graphicData") is not { } chartReference ||
-            anchor.Extent is not { Cx: { } width, Cy: { } height } ||
+        if (drawing
+                .Descendants()
+                .FirstOrDefault(_ => _.LocalName == "chart" &&
+                                     _.Parent?.LocalName == "graphicData") is not { } chartReference ||
+            anchor.Extent is not {Cx: { } width, Cy: { } height} ||
             width.Value <= 0 ||
             height.Value <= 0 ||
-            chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value is not { Length: > 0 } relationshipId ||
+            chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value is not {Length: > 0} relationshipId ||
             hostPart.PartOrNull(relationshipId)?.RootElement is not { } chartSpace ||
             new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
         {
@@ -8079,7 +8191,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var pointProperties = new Dictionary<int, OpenXmlElement>();
         foreach (var dataPoint in series.Elements().Where(_ => _.LocalName == "dPt"))
         {
-            if (Value(Child(dataPoint, "idx")) is { } dataPointIndex && Child(dataPoint, "spPr") is { } properties)
+            if (Value(Child(dataPoint, "idx")) is { } dataPointIndex &&
+                Child(dataPoint, "spPr") is { } properties)
             {
                 pointProperties[(int) dataPointIndex] = properties;
             }
@@ -8114,7 +8227,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                        ?? currentThemeColors?.ResolveColor("accent1")
                        ?? "4472C4";
             var outline = Child(properties, "ln");
-            var stroked = outline != null && Child(outline, "noFill") == null;
+            var stroked = outline != null &&
+                          Child(outline, "noFill") == null;
             shapes.Add(
                 new()
                 {
@@ -8126,7 +8240,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     Subpaths = [SliceContour(angle, sweep, hole)],
                     FillColorHex = fill,
                     ColorHex = stroked ? ExtractFirstFillColor(Child(outline, "solidFill")) ?? "FFFFFF" : "FFFFFF",
-                    LineWidthEmu = stroked && long.TryParse(outline!.GetAttributes().FirstOrDefault(_ => _.LocalName == "w").Value, out var lineWidth) ? lineWidth : 0
+                    LineWidthEmu = stroked &&
+                                   long.TryParse(outline!.GetAttributes().FirstOrDefault(_ => _.LocalName == "w").Value, out var lineWidth) ? lineWidth : 0
                 });
             angle += sweep;
         }
@@ -8200,7 +8315,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         static bool IsTurn(double degrees) => Math.Abs(Math.IEEERemainder(degrees, 360)) > 0.01;
 
-        if (!turnable || (!mirrored && !IsTurn(groupDegrees) && !IsTurn(ownDegrees)))
+        if (!turnable ||
+            (!mirrored &&
+             !IsTurn(groupDegrees) &&
+             !IsTurn(ownDegrees)))
         {
             return (x, y, width, height, subpaths, flipHorizontal, flipVertical);
         }
@@ -8209,6 +8327,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // groups' mirror and turn.
         var ownRadians = ownDegrees * Math.PI / 180;
         var groupRadians = groupDegrees * Math.PI / 180;
+
         (double X, double Y) Turn(double pointX, double pointY)
         {
             if (flipHorizontal)
@@ -8234,7 +8353,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var centerY = y + height / 2;
 
         // A line is its two ends, and stays a line: the flips say which way it now runs.
-        if (subpaths == null && geometry == GroupShapeGeometry.Line)
+        if (subpaths == null &&
+            geometry == GroupShapeGeometry.Line)
         {
             var start = Turn(-width / 2, -height / 2);
             var end = Turn(width / 2, height / 2);
@@ -8342,7 +8462,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Word writes shadow colours as <a:prstClr val="black">. Only the monochrome presets show
         // up in practice, so the rest fall back to black rather than carrying a 140-name table.
         var colorHex = ExtractFirstFillColor(shadow);
-        if (colorHex == null && shadow.GetFirstChild<A.PresetColor>()?.Val?.Value is { } preset)
+        if (colorHex == null &&
+            shadow.GetFirstChild<A.PresetColor>()?.Val?.Value is { } preset)
         {
             colorHex = preset == A.PresetColorValues.White ? "FFFFFF" : "000000";
         }
@@ -8596,7 +8717,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var stroke = ReadGroupStroke(shapeProps, wsp.GetFirstChild<WPS.ShapeStyle>()?.LineReference);
-        if (image == null && fillColorHex == null && stroke.WidthEmu <= 0)
+        if (image == null &&
+            fillColorHex == null &&
+            stroke.WidthEmu <= 0)
         {
             return null;
         }
@@ -8623,7 +8746,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 LineWidthEmu = stroke.WidthEmu,
                 LineAlpha = stroke.Alpha,
                 LineDashPattern = stroke.DashPattern,
-                OpenOutline = custGeom != null && !custGeom.Descendants<A.CloseShapePath>().Any(),
+                OpenOutline = custGeom != null &&
+                              !custGeom.Descendants<A.CloseShapePath>().Any(),
                 RoundCap = shapeProps.GetFirstChild<A.Outline>()?.CapType?.Value == A.LineCapValues.Round,
                 Geometry = MapGroupGeometry(shapeProps),
                 // Contours drive the SOLID fill's silhouette (custGeom logo art). Picture
@@ -8641,7 +8765,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ImageData = image?.Data,
                 ImageContentType = image?.ContentType,
                 ImageRasterFallbackData = image?.RasterFallbackData,
-                ImageCrop = blipFill != null && image != null ? ReadCrop(blipFill) : null
+                ImageCrop = blipFill != null &&
+                            image != null ? ReadCrop(blipFill) : null
             }
         ];
 
@@ -8699,7 +8824,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     static double ReadRotationDegrees(OpenXmlElement xfrm)
     {
-        if (xfrm.AttributeValue("rot") is { } rotValue && long.TryParse(rotValue, out var rot60000ths))
+        if (xfrm.AttributeValue("rot") is { } rotValue &&
+            long.TryParse(rotValue, out var rot60000ths))
         {
             return rot60000ths / 60000.0;
         }
@@ -8790,7 +8916,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 case "lum":
                     // a:lum bright="N" — N>0 means washout (lighten), N<0 means darken.
                     var brightAttribute = child.AttributeValue("bright");
-                    if (int.TryParse(brightAttribute, out var bright) && bright > 0)
+                    if (int.TryParse(brightAttribute, out var bright) &&
+                        bright > 0)
                     {
                         return (BlipColorEffect.Washout, null, null);
                     }
@@ -8820,7 +8947,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 case A.RgbColorModelHex rgb when rgb.Val?.HasValue == true:
                     resolved = ShapeParser.ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
                     break;
-                case A.SchemeColor scheme when scheme.Val?.HasValue == true && themeColors != null:
+                case A.SchemeColor scheme when scheme.Val?.HasValue == true &&
+                                               themeColors != null:
                     var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
                     resolved = themeColors.ResolveColor(schemeValue, ShapeParser.ExtractColorTransforms(scheme));
                     break;
@@ -8891,7 +9019,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         static (double Near, double Far) Fold(double sourceNear, double sourceFar, double fillNear, double fillFar)
         {
             var fillSpan = 1 - fillNear - fillFar;
-            if (fillSpan <= 0 || (fillNear == 0 && fillFar == 0))
+            if (fillSpan <= 0 ||
+                (fillNear == 0 &&
+                 fillFar == 0))
             {
                 return (sourceNear, sourceFar);
             }
@@ -8907,7 +9037,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         static double ReadFraction(OpenXmlElement element, string attributeName)
         {
-            if (element.AttributeValue(attributeName) is { } value && long.TryParse(value, out var thousandthsOfPercent))
+            if (element.AttributeValue(attributeName) is { } value &&
+                long.TryParse(value, out var thousandthsOfPercent))
             {
                 // Negative values are padding (the image shrinks inside its frame) and are as
                 // common as positive crops in Word's icon templates; the -10 floor only guards
@@ -8966,15 +9097,27 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return new(width, height, Offset("tx"), Offset("ty"), alignment);
 
         // sx and sy are 1000ths of a percent; absent, the tile is the picture's own size.
-        double Scale(string attributeName) =>
-            tile.AttributeValue(attributeName) is { } value && long.TryParse(value, out var thousandthsOfPercent)
-                ? thousandthsOfPercent / 100000.0
-                : 1;
+        double Scale(string attributeName)
+        {
+            if (tile.AttributeValue(attributeName) is { } value &&
+                long.TryParse(value, out var thousandthsOfPercent))
+            {
+                return thousandthsOfPercent / 100000.0;
+            }
 
-        double Offset(string attributeName) =>
-            tile.AttributeValue(attributeName) is { } value && long.TryParse(value, out var emu)
-                ? emu / OoxmlUnits.EmusPerPoint
-                : 0;
+            return 1;
+        }
+
+        double Offset(string attributeName)
+        {
+            if (tile.AttributeValue(attributeName) is { } value &&
+                long.TryParse(value, out var emu))
+            {
+                return emu / OoxmlUnits.EmusPerPoint;
+            }
+
+            return 0;
+        }
     }
 
     /// <summary>
@@ -9012,12 +9155,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 return null;
             }
 
-            if (properties.AttributeValue("descr") is {Length: > 0} descr && !string.IsNullOrWhiteSpace(descr))
+            if (properties.AttributeValue("descr") is {Length: > 0} descr &&
+                !string.IsNullOrWhiteSpace(descr))
             {
                 return descr.Trim();
             }
 
-            if (properties.AttributeValue("title") is {Length: > 0} title && !string.IsNullOrWhiteSpace(title))
+            if (properties.AttributeValue("title") is {Length: > 0} title &&
+                !string.IsNullOrWhiteSpace(title))
             {
                 return title.Trim();
             }
@@ -9064,7 +9209,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     long.TryParse(attributes.AttributeValue("y"), out groupOffsetY);
                 }
 
-                if (chExt != null && ext != null)
+                if (chExt != null &&
+                    ext != null)
                 {
                     var chExtAttributes = chExt.GetAttributes();
                     var extAttributes = ext.GetAttributes();
@@ -9073,15 +9219,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     var extCx = extAttributes.AttributeValue("cx");
                     var extCy = extAttributes.AttributeValue("cy");
 
-                    if (chCx != null && extCx != null &&
-                        long.TryParse(chCx, out var childWidth) && long.TryParse(extCx, out var actualWidth) &&
+                    if (chCx != null &&
+                        extCx != null &&
+                        long.TryParse(chCx, out var childWidth) &&
+                        long.TryParse(extCx, out var actualWidth) &&
                         childWidth > 0)
                     {
                         groupScaleX = (double) actualWidth / childWidth;
                     }
 
-                    if (chCy != null && extCy != null &&
-                        long.TryParse(chCy, out var childHeight) && long.TryParse(extCy, out var actualHeight) &&
+                    if (chCy != null &&
+                        extCy != null &&
+                        long.TryParse(chCy, out var childHeight) &&
+                        long.TryParse(extCy, out var actualHeight) &&
                         childHeight > 0)
                     {
                         groupScaleY = (double) actualHeight / childHeight;
@@ -9197,7 +9347,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                         if (svgBlip != null)
                         {
-                            if (svgBlip.AttributeValue("embed") is { } svgEmbed && hostPart.PartOrNull(svgEmbed) is { } svgPart)
+                            if (svgBlip.AttributeValue("embed") is { } svgEmbed &&
+                                hostPart.PartOrNull(svgEmbed) is { } svgPart)
                             {
                                 imageData = GetPartBytes(svgPart);
                                 contentType = "image/svg+xml";
@@ -9494,7 +9645,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (bodyPr != null)
         {
             var prstTxWarp = bodyPr.GetFirstChild<A.PresetTextWarp>();
-            if (prstTxWarp?.Preset?.HasValue == true && prstTxWarp.Preset.Value != A.TextShapeValues.TextNoShape)
+            if (prstTxWarp?.Preset?.HasValue == true &&
+                prstTxWarp.Preset.Value != A.TextShapeValues.TextNoShape)
             {
                 // This is WordArt, let ParseWordArt handle it
                 return null;
@@ -9659,7 +9811,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // group's children at the group's extent box). A zero-area frame must not clip
             // (it would eat every child of a degenerate connector-only group).
             (double Left, double Top, double Width, double Height)? groupFrame =
-                extent?.Cx != null && extent.Cy != null && extent.Cx.Value > 0 && extent.Cy.Value > 0
+                extent?.Cx != null &&
+                extent.Cy != null &&
+                extent.Cx.Value > 0 &&
+                extent.Cy.Value > 0
                     ? (positioning.HorizontalPositionPoints,
                         positioning.VerticalPositionPoints,
                         extent.Cx.Value / OoxmlUnits.EmusPerPoint,
@@ -9759,7 +9914,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (bodyPr != null)
         {
             var prstTxWarp = bodyPr.GetFirstChild<A.PresetTextWarp>();
-            if (prstTxWarp?.Preset?.HasValue == true && prstTxWarp.Preset.Value != A.TextShapeValues.TextNoShape)
+            if (prstTxWarp?.Preset?.HasValue == true &&
+                prstTxWarp.Preset.Value != A.TextShapeValues.TextNoShape)
             {
                 return null;
             }
@@ -9910,7 +10066,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     {
         foreach (var ancestor in wsp.Ancestors())
         {
-            if (ancestor is not WPG.GroupShape && ancestor is not WPG.WordprocessingGroup)
+            if (ancestor is not WPG.GroupShape &&
+                ancestor is not WPG.WordprocessingGroup)
             {
                 continue;
             }
@@ -9996,7 +10153,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // groups). Text-box carriers keep ShapeParser's rule and stay skipped — their chrome
         // belongs to the text-box path.
         var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
-        if (explicitNoFill && wsp.GetFirstChild<WPS.TextBoxInfo2>() != null)
+        if (explicitNoFill &&
+            wsp.GetFirstChild<WPS.TextBoxInfo2>() != null)
         {
             return null;
         }
@@ -10010,7 +10168,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Check for solid fill in shape properties. a:grpFill defers to the ancestor group's
         // fill (labels/07's 27 collage pieces inherit their cluster group's accent colour).
         var solidFill = explicitNoFill ? null : shapeProps.GetFirstChild<A.SolidFill>();
-        if (solidFill == null && !explicitNoFill && shapeProps.GetFirstChild<A.GroupFill>() != null)
+        if (solidFill == null &&
+            !explicitNoFill &&
+            shapeProps.GetFirstChild<A.GroupFill>() != null)
         {
             solidFill = ResolveGroupFill(wsp);
         }
@@ -10043,7 +10203,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // each and quantising the value through a 0-255 byte. ExtractColorTransforms is
                     // the same job done once, in document order and at full precision.
                     var transforms = ShapeParser.ExtractColorTransforms(schemeClr);
-                    if (transforms.HasTransforms && currentThemeColors != null)
+                    if (transforms.HasTransforms &&
+                        currentThemeColors != null)
                     {
                         var schemeValue = ((IEnumValue) schemeClr.Val.Value).Value;
                         fillColorHex = currentThemeColors.ResolveColor(schemeValue, transforms);
@@ -10065,7 +10226,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // the fillRef fallback (the direct property wins); unmodelled radial/path gradients
         // keep falling through to it, as they always have.
         GradientFill? gradient = null;
-        if (fillColorHex == null && !explicitNoFill &&
+        if (fillColorHex == null &&
+            !explicitNoFill &&
             shapeProps.GetFirstChild<A.GradientFill>() is { } gradFillElement)
         {
             gradient = ShapeParser.ExtractGradientFill(gradFillElement, currentThemeColors);
@@ -10076,7 +10238,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // If no direct fill, check for style reference (fillRef in wps:style)
-        if (fillColorHex == null && !explicitNoFill)
+        if (fillColorHex == null &&
+            !explicitNoFill)
         {
             var shapeStyle = wsp.GetFirstChild<WPS.ShapeStyle>();
             var fillRef = shapeStyle?.FillReference;
@@ -10102,8 +10265,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // dash table doesn't map still draws solid.
         var strokeDashPattern = MapPresetDashPattern(
             shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val);
-        var hasStroke = lineColorHex != null && lineWidthPoints is > 0;
-        if (fillColorHex == null && imageData == null && !hasStroke)
+        var hasStroke = lineColorHex != null &&
+                        lineWidthPoints is > 0;
+        if (fillColorHex == null &&
+            imageData == null &&
+            !hasStroke)
         {
             return null;
         }
@@ -11901,6 +12067,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             (leftIndent, firstLineIndent, hangingIndent, rightIndent) = unboundIndent;
         }
+
         var suppressAutoHyphens = false;
 
         // Table-style step of the cascade. The values above resolved the paragraph style chain

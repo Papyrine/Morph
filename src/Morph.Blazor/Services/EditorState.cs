@@ -18,7 +18,8 @@ sealed record EditorState
     public bool Revising { get; init; }
 
     /// <summary>What most commands ask: a document that can be written, and no edit under way.</summary>
-    public bool Editable => CanWrite && !Revising;
+    public bool Editable => CanWrite &&
+                            !Revising;
 
     /// <summary>The caret's paragraph is in a table.</summary>
     public bool InTable { get; init; }

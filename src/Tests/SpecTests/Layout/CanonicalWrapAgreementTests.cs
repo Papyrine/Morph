@@ -47,6 +47,7 @@ public class CanonicalWrapAgreementTests
             .ToList();
 
         var typefaces = new Dictionary<string, SKTypeface?>();
+
         SKTypeface? Typeface(string path)
         {
             if (typefaces.TryGetValue(path, out var cached))
@@ -58,6 +59,7 @@ public class CanonicalWrapAgreementTests
         }
 
         var metricsByPath = new Dictionary<string, FontMetrics?>();
+
         FontMetrics? Metrics(string path)
         {
             if (metricsByPath.TryGetValue(path, out var cached))
@@ -159,12 +161,18 @@ public class CanonicalWrapAgreementTests
                 continue;
             }
 
-            var visible = paragraph.Runs.Where(_ => !string.IsNullOrEmpty(_.Text) && !_.IsTab).ToList();
+            var visible = paragraph
+                .Runs
+                .Where(_ => !string.IsNullOrEmpty(_.Text) &&
+                            !_.IsTab)
+                .ToList();
             if (visible.Count == 0 ||
-                paragraph.Runs.Any(_ => _.IsTab ||
-                                        _.InlineImageData != null ||
-                                        _.PageField != PageFieldKind.None ||
-                                        _.Text.Contains('\n')) ||
+                paragraph
+                    .Runs
+                    .Any(_ => _.IsTab ||
+                              _.InlineImageData != null ||
+                              _.PageField != PageFieldKind.None ||
+                              _.Text.Contains('\n')) ||
                 paragraph.Properties.Numbering != null)
             {
                 continue;

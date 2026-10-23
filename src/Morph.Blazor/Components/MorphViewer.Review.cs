@@ -84,9 +84,11 @@ public partial class MorphViewer
 
     internal bool IsWord => sourceInfo?.Format == InputFormat.Docx;
 
-    internal bool CanComment => !ReadOnly && review.AllowsComments;
+    internal bool CanComment => !ReadOnly &&
+                                review.AllowsComments;
 
-    internal bool CanResolve => !ReadOnly && review.AllowsResolving;
+    internal bool CanResolve => !ReadOnly &&
+                                review.AllowsResolving;
 
     bool CanEdit => CanComment || CanResolve;
 
@@ -345,7 +347,8 @@ public partial class MorphViewer
             reviewMap.Before(selection[0], selection[1]) is not { } start ||
             reviewMap.After(selection[2], selection[3] - 1) is not { } end ||
             start.Run > end.Run ||
-            (start.Run == end.Run && start.Offset > end.Offset))
+            (start.Run == end.Run &&
+             start.Offset > end.Offset))
         {
             reviewNote = "Select some of the document's text to comment on it.";
             return Task.CompletedTask;
@@ -366,7 +369,10 @@ public partial class MorphViewer
     string SelectedText()
     {
         var builder = new StringBuilder();
-        for (var page = selection[0]; page <= selection[2] && page < pageTexts.Length; page++)
+        for (var page = selection[0];
+             page <= selection[2] &&
+             page < pageTexts.Length;
+             page++)
         {
             var text = pageTexts[page];
             var from = page == selection[0] ? Math.Clamp(selection[1], 0, text.Length) : 0;
@@ -380,7 +386,10 @@ public partial class MorphViewer
     int[] SelectionTriples()
     {
         var triples = new List<int>();
-        for (var page = selection[0]; page <= selection[2] && page < pageTexts.Length; page++)
+        for (var page = selection[0];
+             page <= selection[2] &&
+             page < pageTexts.Length;
+             page++)
         {
             var length = pageTexts[page].Length;
             var from = page == selection[0] ? Math.Clamp(selection[1], 0, length) : 0;
@@ -558,7 +567,8 @@ public partial class MorphViewer
     {
         history.Add(bytes);
         var weight = history.Sum(_ => (long) _.Length);
-        while (history.Count > 1 && weight > undoBudget)
+        while (history.Count > 1 &&
+               weight > undoBudget)
         {
             weight -= history[0].Length;
             history.RemoveAt(0);
@@ -629,7 +639,8 @@ public partial class MorphViewer
                 pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
                 await viewer.ReloadAsync(opening, pageSizes, opened.Json);
                 await viewer.SetPicturesAsync(opening, opened.Pictures);
-                if (findOpen && findQuery.Trim().Length > 0)
+                if (findOpen &&
+                    findQuery.Trim().Length > 0)
                 {
                     await RunSearchAsync();
                 }
@@ -659,7 +670,8 @@ public partial class MorphViewer
             activeKey = select();
             BuildEntries();
             revealKey = activeKey;
-            await PushReviewAsync(scroll && activeKey != null);
+            await PushReviewAsync(scroll &&
+                                  activeKey != null);
             emitted = bytes;
             await OnDocumentChanged.InvokeAsync(bytes);
             await DocumentRevisedAsync();
@@ -712,7 +724,8 @@ public partial class MorphViewer
                 continue;
             }
 
-            if (gap && builder.Length > 0)
+            if (gap &&
+                builder.Length > 0)
             {
                 builder.Append(' ');
             }

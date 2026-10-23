@@ -39,7 +39,9 @@ sealed class GposKernTable
     /// <paramref name="second"/>, in design units — 0 when the pair does not kern.</summary>
     public short KernUnits(ushort first, ushort second)
     {
-        if (pairs.TryGetValue(((uint) first << 16) | second, out var exact) && exact != 0)
+        if (pairs.TryGetValue(
+                ((uint) first << 16) | second, out var exact) &&
+            exact != 0)
         {
             return exact;
         }
@@ -144,7 +146,8 @@ sealed class GposKernTable
             }
         }
 
-        if (pairs.Count == 0 && classSubtables.Count == 0)
+        if (pairs.Count == 0 &&
+            classSubtables.Count == 0)
         {
             return null;
         }
@@ -164,7 +167,8 @@ sealed class GposKernTable
         {
             var coverage = ReadCoverage(gpos, subtable + ReadU16(gpos, subtable + 2));
             var pairSetCount = ReadU16(gpos, subtable + 8);
-            for (var i = 0; i < pairSetCount && i < coverage.Count; i++)
+            for (var i = 0; i < pairSetCount &&
+                            i < coverage.Count; i++)
             {
                 var first = coverage[i];
                 var pairSet = subtable + ReadU16(gpos, subtable + 10 + 2 * i);
@@ -235,7 +239,8 @@ sealed class GposKernTable
             {
                 var start = ReadU16(gpos, offset + 4 + 6 * i);
                 var end = ReadU16(gpos, offset + 6 + 6 * i);
-                for (var g = start; g <= end && g >= start; g++)
+                for (var g = start; g <= end &&
+                                    g >= start; g++)
                 {
                     glyphs.Add(g);
                 }

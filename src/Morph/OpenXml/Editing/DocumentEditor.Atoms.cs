@@ -32,7 +32,8 @@ static partial class DocumentEditor
         List<Unit> Atoms(List<Paragraph> chain, SourcePosition start, SourcePosition end)
         {
             if (end.Run < start.Run ||
-                (end.Run == start.Run && end.Offset < start.Offset))
+                (end.Run == start.Run &&
+                 end.Offset < start.Offset))
             {
                 (start, end) = (end, start);
             }
@@ -50,8 +51,12 @@ static partial class DocumentEditor
                         continue;
                     }
 
-                    var after = run > start.Run || (run == start.Run && unit.Start >= start.Offset);
-                    var ahead = run < end.Run || (run == end.Run && unit.Start < end.Offset);
+                    var after = run > start.Run ||
+                                (run == start.Run &&
+                                 unit.Start >= start.Offset);
+                    var ahead = run < end.Run ||
+                                (run == end.Run &&
+                                 unit.Start < end.Offset);
                     if (after && ahead)
                     {
                         found.Add(unit);

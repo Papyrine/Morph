@@ -164,7 +164,8 @@ public class BaselineHealthTests
         for (var i = 0; i < rgba.Length; i += 4)
         {
             var color = (uint) ((rgba[i] << 24) | (rgba[i + 1] << 16) | (rgba[i + 2] << 8) | rgba[i + 3]);
-            if (seen.Add(color) && seen.Count > cap)
+            if (seen.Add(color) &&
+                seen.Count > cap)
             {
                 return cap + 1;
             }

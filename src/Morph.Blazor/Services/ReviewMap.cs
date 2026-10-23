@@ -128,7 +128,10 @@ sealed class ReviewMap
     public IReadOnlyList<int> Runs(int firstPage, int start, int lastPage, int end)
     {
         var found = new List<int>();
-        for (var page = Math.Max(firstPage, 0); page <= lastPage && page < pages.Length; page++)
+        for (var page = Math.Max(firstPage, 0);
+             page <= lastPage &&
+             page < pages.Length;
+             page++)
         {
             var from = page == firstPage ? start : 0;
             var to = page == lastPage ? end : int.MaxValue;
@@ -244,4 +247,3 @@ sealed class ReviewMap
 
         return found;
     }
-}

@@ -231,10 +231,12 @@ static class ParagraphContent
                     case Drawing or Picture or DocumentFormat.OpenXml.Wordprocessing.EmbeddedObject or AlternateContent when fields.Count == 0:
                         Fixed(EditUnitKind.Drawing, run, child, position, "");
                         break;
-                    case Break when length == 0 && fields.Count == 0:
+                    case Break when length == 0 &&
+                                    fields.Count == 0:
                         Fixed(EditUnitKind.Break, run, child, position, "");
                         break;
-                    case FootnoteReference or EndnoteReference when length > 0 && fields.Count == 0:
+                    case FootnoteReference or EndnoteReference when length > 0 &&
+                                                                    fields.Count == 0:
                         Fixed(EditUnitKind.Note, run, child, position, "");
                         break;
                     default:

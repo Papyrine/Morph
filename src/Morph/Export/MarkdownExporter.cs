@@ -16,20 +16,21 @@ static class MarkdownExporter
 
     sealed class MarkdownWriter(MarkdownExportOptions options, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, bool pageFieldsPreEvaluated = false)
     {
-        readonly StringBuilder builder = new();
+        StringBuilder builder = new();
         int imageIndex;
 
-        readonly Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
-        readonly Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
-        readonly List<(int Number, string Text)> notes = [];
-        readonly Dictionary<string, int> noteNumbers = [];
+        Dictionary<string, string> footnoteTexts = footnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
+        List<(int Number, string Text)> notes = [];
+        Dictionary<string, int> noteNumbers = [];
 
         public string Finish()
         {
             // Trim trailing newlines in place — ToString().TrimEnd() duplicated the whole
             // document to drop a few characters.
             var length = builder.Length;
-            while (length > 0 && builder[length - 1] == '\n')
+            while (length > 0 &&
+                   builder[length - 1] == '\n')
             {
                 length--;
             }
@@ -544,7 +545,8 @@ static class MarkdownExporter
         // prefix/Insert(0)-suffix builders produced, without the per-run builder churn.
         static void AppendDecorated(StringBuilder target, string text, RunProperties properties, bool suppressBold = false)
         {
-            var bold = properties.Bold && !suppressBold;
+            var bold = properties.Bold &&
+                       !suppressBold;
             var sup = properties.VerticalAlignment == VerticalRunAlignment.Superscript;
             var sub = properties.VerticalAlignment == VerticalRunAlignment.Subscript;
 
@@ -775,7 +777,8 @@ static class MarkdownExporter
 
         static string SelectedItem(DropDownFormFieldElement dropDown)
         {
-            if (dropDown.SelectedIndex >= 0 && dropDown.SelectedIndex < dropDown.Items.Count)
+            if (dropDown.SelectedIndex >= 0 &&
+                dropDown.SelectedIndex < dropDown.Items.Count)
             {
                 return dropDown.Items[dropDown.SelectedIndex];
             }
@@ -786,7 +789,8 @@ static class MarkdownExporter
         static int LeadingWhitespaceLength(string text)
         {
             var count = 0;
-            while (count < text.Length && char.IsWhiteSpace(text[count]))
+            while (count < text.Length &&
+                   char.IsWhiteSpace(text[count]))
             {
                 count++;
             }
@@ -797,7 +801,8 @@ static class MarkdownExporter
         static int TrailingWhitespaceLength(string text, int leadingLength)
         {
             var count = 0;
-            while (count < text.Length - leadingLength && char.IsWhiteSpace(text[text.Length - 1 - count]))
+            while (count < text.Length - leadingLength &&
+                   char.IsWhiteSpace(text[text.Length - 1 - count]))
             {
                 count++;
             }
@@ -819,12 +824,14 @@ static class MarkdownExporter
             }
 
             var lines = new List<string>(inline.Split('\n'));
-            while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[0]))
+            while (lines.Count > 0 &&
+                   string.IsNullOrWhiteSpace(lines[0]))
             {
                 lines.RemoveAt(0);
             }
 
-            while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[^1]))
+            while (lines.Count > 0 &&
+                   string.IsNullOrWhiteSpace(lines[^1]))
             {
                 lines.RemoveAt(lines.Count - 1);
             }
@@ -857,12 +864,14 @@ static class MarkdownExporter
             }
 
             var segments = new List<string>(inline.Split('\n'));
-            while (segments.Count > 0 && string.IsNullOrWhiteSpace(segments[0]))
+            while (segments.Count > 0 &&
+                   string.IsNullOrWhiteSpace(segments[0]))
             {
                 segments.RemoveAt(0);
             }
 
-            while (segments.Count > 0 && string.IsNullOrWhiteSpace(segments[^1]))
+            while (segments.Count > 0 &&
+                   string.IsNullOrWhiteSpace(segments[^1]))
             {
                 segments.RemoveAt(segments.Count - 1);
             }
@@ -889,7 +898,8 @@ static class MarkdownExporter
                 case '#':
                 {
                     var hashes = 0;
-                    while (hashes < line.Length && line[hashes] == '#')
+                    while (hashes < line.Length &&
+                           line[hashes] == '#')
                     {
                         hashes++;
                     }
@@ -916,7 +926,8 @@ static class MarkdownExporter
                 {
                     // Only a line consisting entirely of '=' is a setext-heading underline.
                     var equalsCount = 0;
-                    while (equalsCount < line.Length && line[equalsCount] == '=')
+                    while (equalsCount < line.Length &&
+                           line[equalsCount] == '=')
                     {
                         equalsCount++;
                     }
@@ -933,14 +944,16 @@ static class MarkdownExporter
                 case >= '0' and <= '9':
                 {
                     var digits = 0;
-                    while (digits < line.Length && char.IsAsciiDigit(line[digits]))
+                    while (digits < line.Length &&
+                           char.IsAsciiDigit(line[digits]))
                     {
                         digits++;
                     }
 
                     // "1998. was ..." — escape the separator ("1998\.") so it stays prose; the
                     // digits themselves are not escapable characters.
-                    if (digits <= 9 && digits < line.Length &&
+                    if (digits <= 9 &&
+                        digits < line.Length &&
                         line[digits] is '.' or ')' &&
                         (digits + 1 == line.Length ||
                          line[digits + 1] is ' ' or '\t'))
@@ -989,7 +1002,8 @@ static class MarkdownExporter
         static bool IsEntityLike(string text, int ampersand)
         {
             var index = ampersand + 1;
-            if (index < text.Length && text[index] == '#')
+            if (index < text.Length &&
+                text[index] == '#')
             {
                 index++;
                 if (index < text.Length &&

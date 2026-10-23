@@ -113,6 +113,7 @@ public class TextDecorationTests
         var doubled = Collect(new() { FontSizePoints = size, DoubleStrikethrough = true }).Rules;
 
         await Assert.That(doubled.Select(_ => _.Y)).IsEquivalentTo([single.Y - single.Thickness, single.Y + single.Thickness]);
-        await Assert.That(doubled.All(_ => _.IsStrike && _.Thickness == single.Thickness)).IsTrue();
+        await Assert.That(doubled.All(_ => _.IsStrike &&
+                                           _.Thickness == single.Thickness)).IsTrue();
     }
 }

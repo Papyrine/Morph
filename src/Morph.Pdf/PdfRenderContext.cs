@@ -71,7 +71,8 @@ sealed class PdfRenderContext : RenderContextBase, IDisposable
 
     // Whether an italic run needs the painter's synthetic oblique: the face it resolved is upright.
     public bool NeedsSyntheticItalic(RunProperties properties) =>
-        properties.Italic && !GetFace(properties).Italic;
+        properties.Italic &&
+        !GetFace(properties).Italic;
 
     // A Paint allocated through Krilla lives until the document is disposed, so one is made per
     // colour rather than per drawn word, underline or border edge.
@@ -174,7 +175,9 @@ sealed class PdfRenderContext : RenderContextBase, IDisposable
             return ImageFormat.Gif;
         }
 
-        if (data.Length >= 12 && data.StartsWith("RIFF"u8) && data[8..12].SequenceEqual("WEBP"u8))
+        if (data.Length >= 12 &&
+            data.StartsWith("RIFF"u8) &&
+            data[8..12].SequenceEqual("WEBP"u8))
         {
             return ImageFormat.Webp;
         }

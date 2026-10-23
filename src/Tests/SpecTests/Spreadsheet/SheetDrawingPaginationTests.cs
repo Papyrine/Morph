@@ -58,7 +58,9 @@ public class SheetDrawingPaginationTests
         foreach (var piece in parted)
         {
             var overhang = piece.Y + piece.Height - firstBottom;
-            var carried = Drawn(second).Any(_ => Math.Abs(_.Height - piece.Height) < 0.01f && Math.Abs(_.Y + _.Height - secondTop - overhang) < 0.01f);
+            var carried = Drawn(second)
+                .Any(_ => Math.Abs(_.Height - piece.Height) < 0.01f &&
+                          Math.Abs(_.Y + _.Height - secondTop - overhang) < 0.01f);
             await Assert.That(carried).IsTrue();
         }
     }

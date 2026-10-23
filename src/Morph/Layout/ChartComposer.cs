@@ -99,11 +99,13 @@ sealed class ChartComposer(
         }
 
         var percent = chart.Grouping == ChartGrouping.PercentStacked;
-        var stacked = chart.Grouping != ChartGrouping.Clustered && chart.Kind == ChartKind.Bar;
+        var stacked = chart.Grouping != ChartGrouping.Clustered &&
+                      chart.Kind == ChartKind.Bar;
         var (dataMin, dataMax) = DataRange(chart, categoryCount, stacked, percent);
         var valueAxis = chart.ValueAxis;
         var (minimum, maximum, unit) = Scale(dataMin, dataMax, valueAxis);
-        var valueFormat = valueAxis?.FormatCode is { } code && code != "General" ? code : percent ? "0%" : chart.Series[0].FormatCode ?? "General";
+        var valueFormat = valueAxis?.FormatCode is { } code &&
+                          code != "General" ? code : percent ? "0%" : chart.Series[0].FormatCode ?? "General";
 
         var ticks = new List<double>();
         for (var tick = minimum; tick <= maximum + unit * 1e-6; tick += unit)
@@ -113,7 +115,8 @@ sealed class ChartComposer(
 
         var categoryAxis = chart.CategoryAxis;
         var showValueLabels = valueAxis is { Deleted: false, ShowLabels: true };
-        var showCategoryLabels = categoryAxis is not { Deleted: true } && categoryAxis?.ShowLabels != false;
+        var showCategoryLabels = categoryAxis is not { Deleted: true } &&
+                                 categoryAxis?.ShowLabels != false;
         var valueStyle = valueAxis?.Text ?? chart.Text;
         var categoryStyle = categoryAxis?.Text ?? chart.Text;
         var valueLabels = ticks.Select(_ => NumberFormat.Format(_, valueFormat).Text).ToList();
@@ -129,7 +132,8 @@ sealed class ChartComposer(
         {
             var valueWidth = showValueLabels ? valueLabels.Max(_ => TextWidth(_, valueStyle)) : 0;
             var valueHeight = showValueLabels ? LineHeight("0", valueStyle) : 0;
-            var categoryWidth = showCategoryLabels && chart.Categories.Count > 0 ? chart.Categories.Max(_ => TextWidth(_, categoryStyle)) : 0;
+            var categoryWidth = showCategoryLabels &&
+                                chart.Categories.Count > 0 ? chart.Categories.Max(_ => TextWidth(_, categoryStyle)) : 0;
             var categoryHeight = showCategoryLabels ? LineHeight("0", categoryStyle) : 0;
             var left = horizontal ? categoryWidth : valueWidth;
             var bottom = horizontal ? valueHeight : categoryHeight;
@@ -138,7 +142,8 @@ sealed class ChartComposer(
 
             // Half a label overhangs each end of the axis that carries them along its length.
             var top = horizontal ? 0 : showValueLabels ? valueHeight / 2 : 0;
-            var right = horizontal && showValueLabels ? TextWidth(valueLabels[^1], valueStyle) / 2 : 0;
+            var right = horizontal &&
+                        showValueLabels ? TextWidth(valueLabels[^1], valueStyle) / 2 : 0;
             plot = (plot.X + leftReserve, plot.Y + top, plot.Width - leftReserve - right, plot.Height - bottomReserve - top);
         }
 
@@ -290,7 +295,8 @@ sealed class ChartComposer(
                     continue;
                 }
 
-                var value = percent && total > 0 ? raw / total : raw;
+                var value = percent &&
+                            total > 0 ? raw / total : raw;
                 double from;
                 double to;
                 if (stacked)
@@ -319,7 +325,8 @@ sealed class ChartComposer(
 
                 // In a horizontal chart the bars of one category stack downward in series order when
                 // categories run up the axis, so the first series sits nearest the axis origin.
-                if (horizontal && !stacked)
+                if (horizontal &&
+                    !stacked)
                 {
                     across = groupStart + (float) ((slots - 1 - slot) * barWidth * (1 - overlap));
                 }
@@ -331,7 +338,8 @@ sealed class ChartComposer(
                     ? Rectangle(Math.Min(start, end), across, Math.Abs(end - start), barWidth, fill, series.Line)
                     : Rectangle(across, Math.Min(start, end), barWidth, Math.Abs(end - start), fill, series.Line));
 
-                if (series.Labels is { } labels && !labels.Deleted.Contains(category))
+                if (series.Labels is { } labels &&
+                    !labels.Deleted.Contains(category))
                 {
                     var text = DataLabelText(labels, series.FormatCode, raw, total, chart, category);
                     var labelWidth = TextWidth(text, labels.Text) + 2;
@@ -415,7 +423,8 @@ sealed class ChartComposer(
 
             // A label sits mid-slice, halfway across the ring (a third of the way in from a pie's rim),
             // then moves by its manual offset, which is a fraction of the chart.
-            if (series.Labels is { } dataLabels && !dataLabels.Deleted.Contains(point))
+            if (series.Labels is { } dataLabels &&
+                !dataLabels.Deleted.Contains(point))
             {
                 var text = DataLabelText(dataLabels, series.FormatCode, values[point], total, chart, point);
                 var radius = hole > 0 ? (1 + hole) / 4 : 1 / 3.0;
@@ -470,7 +479,8 @@ sealed class ChartComposer(
         // Horizontal bars stack their series upwards, the first at the bottom of each category, and the
         // legend lists them the same way round: chart_anchored's North and South bars are keyed
         // "South, North" in Word's render. A legend lists them by series everywhere else.
-        if (!byCategory && chart is
+        if (!byCategory &&
+            chart is
             {
                 Kind: ChartKind.Bar,
                 Horizontal: true
@@ -491,7 +501,8 @@ sealed class ChartComposer(
         // A line series is keyed by a stroke of its line, twice the legend's font size long: chart_column_line's
         // 10pt legend keys its 3pt lines with 20pt strokes in Word's render. Anything else takes a square
         // swatch of its fill.
-        var lineKeys = chart.Kind == ChartKind.Line && !byCategory;
+        var lineKeys = chart.Kind == ChartKind.Line &&
+                       !byCategory;
         var keyWidth = lineKeys ? (float) (style.SizePoints * 2) : key;
         var keyGap = 3f;
         var entryGap = (float) style.SizePoints;
@@ -570,7 +581,8 @@ sealed class ChartComposer(
     internal static (double Minimum, double Maximum, double Unit) Scale(double dataMinimum, double dataMaximum, ChartAxis? axis)
     {
         var minimum = axis?.Minimum ?? (dataMinimum >= 0 ? 0 : dataMinimum);
-        var maximum = axis?.Maximum ?? (dataMaximum <= 0 && dataMinimum < 0 ? 0 : dataMaximum);
+        var maximum = axis?.Maximum ?? (dataMaximum <= 0 &&
+                                        dataMinimum < 0 ? 0 : dataMaximum);
         if (maximum <= minimum)
         {
             maximum = minimum + 1;
@@ -578,12 +590,14 @@ sealed class ChartComposer(
 
         var padded = maximum;
         var paddedMinimum = minimum;
-        if (axis?.Maximum == null && dataMaximum > 0)
+        if (axis?.Maximum == null &&
+            dataMaximum > 0)
         {
             padded = maximum + 0.05 * (maximum - minimum);
         }
 
-        if (axis?.Minimum == null && dataMinimum < 0)
+        if (axis?.Minimum == null &&
+            dataMinimum < 0)
         {
             paddedMinimum = minimum - 0.05 * (maximum - minimum);
         }
@@ -594,7 +608,8 @@ sealed class ChartComposer(
             maximum = Math.Ceiling(padded / unit - 1e-9) * unit;
         }
 
-        if (axis?.Minimum == null && dataMinimum < 0)
+        if (axis?.Minimum == null &&
+            dataMinimum < 0)
         {
             minimum = Math.Floor(paddedMinimum / unit + 1e-9) * unit;
         }
@@ -679,17 +694,24 @@ sealed class ChartComposer(
     static string DataLabelText(ChartDataLabels labels, string? sourceFormat, double value, double total, ChartModel chart, int point)
     {
         var parts = new List<string>();
-        if (labels.ShowCategory && point < chart.Categories.Count)
+        if (labels.ShowCategory &&
+            point < chart.Categories.Count)
         {
             parts.Add(chart.Categories[point]);
         }
 
         if (labels.ShowValue)
         {
-            parts.Add(NumberFormat.Format(value, labels.FormatCode is { } own && own != "General" ? own : sourceFormat).Text);
+            parts.Add(NumberFormat.Format(
+                value,
+                labels.FormatCode is { } own &&
+                own != "General"
+                    ? own
+                    : sourceFormat).Text);
         }
 
-        if (labels.ShowPercent && total > 0)
+        if (labels.ShowPercent &&
+            total > 0)
         {
             parts.Add(NumberFormat.Format(value / total, "0%").Text);
         }

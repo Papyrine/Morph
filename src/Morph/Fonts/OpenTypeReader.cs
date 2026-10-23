@@ -244,7 +244,9 @@ static class OpenTypeReader
         }
 
         var os2Bytes = Array.Empty<byte>();
-        if (os2Offset >= 0 && os2Length > 0 && os2Offset + os2Length <= stream.Length)
+        if (os2Offset >= 0 &&
+            os2Length > 0 &&
+            os2Offset + os2Length <= stream.Length)
         {
             os2Bytes = new byte[os2Length];
             stream.Position = os2Offset;
@@ -429,7 +431,8 @@ static class OpenTypeReader
         Array.Copy(decompressed, (int) nameOffset, nameBytes, 0, (int) nameLength);
 
         var os2Bytes = Array.Empty<byte>();
-        if (os2Found && os2Length > 0)
+        if (os2Found &&
+            os2Length > 0)
         {
             os2Bytes = new byte[(int) os2Length];
             Array.Copy(decompressed, (int) os2Offset, os2Bytes, 0, (int) os2Length);
@@ -616,7 +619,8 @@ static class OpenTypeReader
         }
 
         // Platform 1 (Mac) Encoding 0 (Roman) is mostly ASCII for English font names.
-        if (platformId == 1 && encodingId == 0)
+        if (platformId == 1 &&
+            encodingId == 0)
         {
             return Encoding.ASCII.GetString(bytes);
         }
@@ -634,7 +638,8 @@ static class OpenTypeReader
 
         void Add(string? value)
         {
-            if (!string.IsNullOrWhiteSpace(value) && seen.Add(value))
+            if (!string.IsNullOrWhiteSpace(value) &&
+                seen.Add(value))
             {
                 ordered.Add(value);
             }
@@ -664,7 +669,8 @@ static class OpenTypeReader
         // Same combo from the basic Family + Subfamily, when it differs from the above and
         // the subfamily is something other than the boring "Regular" / "Bold" / "Italic"
         // (which add no naming information beyond what id 1 already gave us).
-        if (!string.IsNullOrWhiteSpace(family) && !string.IsNullOrWhiteSpace(subfamily) &&
+        if (!string.IsNullOrWhiteSpace(family) &&
+            !string.IsNullOrWhiteSpace(subfamily) &&
             !IsTrivialSubfamily(subfamily))
         {
             Add($"{family} {subfamily}");
@@ -731,7 +737,8 @@ static class OpenTypeReader
             }
 
             // No leading zeros: a stream starting with 0x80 is not a valid encoding.
-            if (i == 0 && b == 0x80)
+            if (i == 0 &&
+                b == 0x80)
             {
                 return false;
             }

@@ -82,7 +82,8 @@ static partial class DocumentEditor
 
         // A paragraph is the paste's own when none of the paragraph pasted into is in it.
         var owned = Enumerable.Range(0, content.Count)
-            .Where(_ => (_ > 0 || before.Count == 0) && (_ < last || after.Count == 0))
+            .Where(_ => (_ > 0 || before.Count == 0) &&
+                        (_ < last || after.Count == 0))
             .ToList();
         if (owned.Count > 0)
         {
@@ -201,7 +202,8 @@ static partial class DocumentEditor
                 if (position < owned.Count &&
                     content[owned[position]].List is not ListKind.None and var kind &&
                     (group.Count == 0 ||
-                     (owned[position] == group[^1] + 1 && content[group[^1]].List == kind)))
+                     (owned[position] == group[^1] + 1 &&
+                      content[group[^1]].List == kind)))
                 {
                     group.Add(owned[position]);
                     continue;

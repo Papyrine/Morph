@@ -329,7 +329,8 @@ static class ScenarioMarkdownGenerator
     static string RenderExpectedLabel(string pageLabel, string? expectedFile, bool siblingHasMetric)
     {
         var label = RenderLabel(pageLabel, null, expectedFile);
-        if (expectedFile != null && siblingHasMetric)
+        if (expectedFile != null &&
+            siblingHasMetric)
         {
             return label + expectedLabelPadding;
         }
@@ -408,7 +409,8 @@ static class ScenarioMarkdownGenerator
             {
                 // Ssim tolerated as absent (jsons written before the column existed) and as
                 // null (page sizes differed, so no SSIM was computed).
-                double? ssim = diff.TryGetProperty("Ssim", out var ssimEl) && ssimEl.ValueKind == JsonValueKind.Number
+                double? ssim = diff.TryGetProperty("Ssim", out var ssimEl) &&
+                               ssimEl.ValueKind == JsonValueKind.Number
                     ? ssimEl.GetDouble()
                     : null;
                 result[pageEl.GetInt32()] = new(metricEl.GetDouble(), ssim);

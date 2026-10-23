@@ -135,7 +135,8 @@ static class TextLayerBuilder
         // with no tab in it can only mean the space; one with tabs means a tab where the gap is wide,
         // unless the line is justified, where wide gaps are the norm.
         var paragraph = line.Paragraph;
-        var tabsPossible = paragraph.Runs.Any(_ => _.IsTab) && paragraph.Properties.Alignment != TextAlignment.Justify;
+        var tabsPossible = paragraph.Runs.Any(_ => _.IsTab) &&
+                           paragraph.Properties.Alignment != TextAlignment.Justify;
 
         SpanNode? previous = null;
         var leaderPending = false;
@@ -166,7 +167,9 @@ static class TextLayerBuilder
                      !char.IsWhiteSpace(text[0]) &&
                      !ImageCovers(line.Images, gapStart, run.X)))
                 {
-                    var tab = leaderPending || (tabsPossible && gap > before.Size / 2);
+                    var tab = leaderPending ||
+                              (tabsPossible &&
+                               gap > before.Size / 2);
                     node.Spans.Add(new(tab ? "\t" : " ", gapStart, Math.Max(gap, 0), before.Size, before.Bold, before.Italic, true, 0, null));
                 }
             }
@@ -305,7 +308,8 @@ static class TextLayerBuilder
     {
         foreach (var image in images)
         {
-            if (image.X < gapEnd && image.X + image.Width > gapStart)
+            if (image.X < gapEnd &&
+                image.X + image.Width > gapStart)
             {
                 return true;
             }

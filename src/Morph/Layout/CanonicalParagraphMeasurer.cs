@@ -80,7 +80,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 // for the measured height the way it is for the placed one: in a cell the mark's
                 // font is not resolved (ParseParagraphProperties omits it there), and floored on the
                 // stand-in an icon's row came out taller than Word's (cover-letters/06, resumes/19).
-                if (wrapped[i].Segments.Count == 0 && props.LineSpacingRule == LineSpacingRule.Auto)
+                if (wrapped[i].Segments.Count == 0 &&
+                    props.LineSpacingRule == LineSpacingRule.Auto)
                 {
                     var markPitch = MarkPitch(paragraph);
                     height += (float) CanonicalTextMeasurer.LineHeightPoints(markPitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints) - markPitch;
@@ -182,7 +183,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // text line's sits 11.4; resumes/12's coral rule sat 9px high on the mark ascent.
             // The leading a multiple adds lies under that image, as it lies under a line of text.
             var imageOnlyLeading = props.LineSpacingRule == LineSpacingRule.Auto ? Math.Max(0f, textHeight - naturalPitch) : 0f;
-            var ascent = maxImageHeight > 0 && !hasText ? lineHeight - imageOnlyLeading : Math.Max(textAscent, maxImageHeight);
+            var ascent = maxImageHeight > 0 &&
+                         !hasText ? lineHeight - imageOnlyLeading : Math.Max(textAscent, maxImageHeight);
 
             // The leading an expanding multiple adds under the baseline may hang past the bottom margin;
             // the natural box above it has to fit (see Fragmenter's fit loop for the probe). It never
@@ -278,7 +280,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return textHeight;
         }
 
-        if (!hasText && rule == LineSpacingRule.Auto)
+        if (!hasText &&
+            rule == LineSpacingRule.Auto)
         {
             return Math.Max(naturalPitch, tallestImage) + (textHeight - naturalPitch);
         }
@@ -323,7 +326,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             // A run whose text begins with a space draws its box inside the line and reserves nothing
             // (BorderStroke.RunBorderReserves).
-            if (segment.Properties.Border is { } border && !segment.BorderInside)
+            if (segment.Properties.Border is { } border &&
+                !segment.BorderInside)
             {
                 pad = Math.Max(pad, BorderStroke.RunBorderReserve(border));
             }
@@ -460,7 +464,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             FontFamily = useBulletFont ? "Morph Bullets" : firstProperties.FontFamily,
             FontSizePoints = numbering.FontSizePoints ?? firstProperties.FontSizePoints,
-            Bold = !useBulletFont && firstProperties.Bold,
+            Bold = !useBulletFont &&
+                   firstProperties.Bold,
             ColorHex = numbering.ColorHex ?? firstProperties.ColorHex
         };
     }
@@ -601,7 +606,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // docDefaults - see DocumentParser (_probe_kern_* and _probe_kerncascade fixtures). The painters
     // ask the same question to kern what they draw (CanonicalTextMeasurer.KernShiftsPoints).
     internal static bool KerningEnabled(RunProperties properties) =>
-        properties.KerningMinFontSizePoints > 0 && properties.FontSizePoints >= properties.KerningMinFontSizePoints;
+        properties.KerningMinFontSizePoints > 0 &&
+        properties.FontSizePoints >= properties.KerningMinFontSizePoints;
 
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth)
     {
@@ -793,7 +799,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 IsTab: false,
                 IsInset: false
             } &&
-            piece.Text.Length > 1 && !Fits(piece.Pixels + piece.FitPixels);
+            piece.Text.Length > 1 &&
+            !Fits(piece.Pixels + piece.FitPixels);
 
         if (widthPoints <= 0 || !pieces.Exists(Overlong))
         {
@@ -825,12 +832,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 // The longest prefix that fits, of at least one character so the line always advances.
                 var take = text.Length;
-                while (take > 1 && !Fits(Width(text[..take])))
+                while (take > 1 &&
+                       !Fits(Width(text[..take])))
                 {
                     take--;
                 }
 
-                if (char.IsHighSurrogate(text[take - 1]) && take < text.Length)
+                if (char.IsHighSurrogate(text[take - 1]) &&
+                    take < text.Length)
                 {
                     take++;
                 }
@@ -839,7 +848,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 result.Add(piece with
                 {
                     Text = chunk,
-                    Pixels = take == text.Length && first ? piece.Pixels : Width(chunk),
+                    Pixels = take == text.Length &&
+                             first ? piece.Pixels : Width(chunk),
                     BreaksBefore = first ? piece.BreaksBefore : true,
                     FootnoteReferenceId = first ? piece.FootnoteReferenceId : null,
                     EndnoteReferenceId = first ? piece.EndnoteReferenceId : null
@@ -897,7 +907,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         // What the squeeze test below needs to know about the line so far: how many spaces it holds,
         // how wide they are, whether a tab sits on it (a tab's advance is not known until the line is
         // built, so such a line is never squeezed), and whether its last word was taken squeezed.
-        var squeezes = squeezeJustifiedLines && paragraph.Properties.Alignment == TextAlignment.Justify;
+        var squeezes = squeezeJustifiedLines &&
+                       paragraph.Properties.Alignment == TextAlignment.Justify;
         double lineSpacePixels = 0;
         var lineSpaces = 0;
         var lineHasTab = false;
@@ -957,7 +968,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             foreach (var piece in gapPieces)
             {
                 reserved |= piece.IsInset;
-                if (!reserved || (wrapped && !piece.IsInset))
+                if (!reserved || (wrapped &&
+                                  !piece.IsInset))
                 {
                     continue;
                 }
@@ -1048,7 +1060,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             var extraGapPixels = 0.0;
-            if (lineSqueezed || (justify && paragraph.Properties.Alignment == TextAlignment.Justify))
+            if (lineSqueezed || (justify &&
+                                 paragraph.Properties.Alignment == TextAlignment.Justify))
             {
                 var gaps = 0;
                 foreach (var piece in linePieces)
@@ -1095,7 +1108,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             var width = (float) CanonicalTextMeasurer.PixelsToPoints(endPixels);
-            if (extraGapPixels == 0 && images.Count == 0 && !HasTab(linePieces))
+            if (extraGapPixels == 0 &&
+                images.Count == 0 &&
+                !HasTab(linePieces))
             {
                 width += WidenEmboldened(segments, CanonicalTextMeasurer.PixelsToPoints(measurePixels - endPixels - lineFit));
             }
@@ -1127,7 +1142,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // text begins with a space (" boxed "): it belongs to the word after that space, and must
             // not be left on a line the word does not fit.
             if (pieces[index].IsSpace ||
-                (pieces[index] is {IsInset: true, Closes: false} && index + 1 < pieces.Count && pieces[index + 1].IsSpace))
+                (pieces[index] is
+                {
+                    IsInset: true,
+                    Closes: false
+                } &&
+                 index + 1 < pieces.Count &&
+                 pieces[index + 1].IsSpace))
             {
                 gapPixels += pieces[index].Pixels;
                 gapFit += pieces[index].FitPixels;
@@ -1145,8 +1166,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             double wordFit = 0;
             float wordPitch = 0;
             var wordPieces = new List<Piece>();
-            while (index < pieces.Count && !pieces[index].IsSpace && !pieces[index].IsBreak &&
-                   (wordPieces.Count == 0 || !pieces[index].BreaksBefore))
+            while (index < pieces.Count &&
+                   !pieces[index].IsSpace &&
+                   !pieces[index].IsBreak &&
+                   (wordPieces.Count == 0 ||
+                    !pieces[index].BreaksBefore))
             {
                 wordPixels += pieces[index].Pixels;
                 wordFit += pieces[index].FitPixels;
@@ -1158,22 +1182,32 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // A bordered run's closing reserve that its own trailing spaces part from the word: the
             // word has already been charged for it (below), so it follows the word onto the line
             // unasked, the spaces between them with it.
-            var closesAfterSpaces = lineHasWord && gapPieces.Count > 0 && wordPieces is [{IsInset: true, Closes: true}];
+            var closesAfterSpaces = lineHasWord &&
+                                    gapPieces.Count > 0 &&
+                                    wordPieces is [{IsInset: true, Closes: true}];
 
             // The closing reserve this word has to fit WITH, when spaces stand between the two. Word
             // charges a bordered run both its sides before the run's trailing space is counted.
             var closingReserve = 0.0;
             var ahead = index;
-            while (ahead < pieces.Count && pieces[ahead].IsSpace)
+            while (ahead < pieces.Count &&
+                   pieces[ahead].IsSpace)
             {
                 ahead++;
             }
 
-            if (ahead > index && ahead < pieces.Count && pieces[ahead] is {IsInset: true, Closes: true} closing)
+            if (ahead > index &&
+                ahead < pieces.Count &&
+                pieces[ahead] is
+                {
+                    IsInset: true,
+                    Closes: true
+                } closing)
             {
                 closingReserve = closing.Pixels + closing.FitPixels;
                 ahead++;
-                while (ahead < pieces.Count && pieces[ahead].IsSpace)
+                while (ahead < pieces.Count &&
+                       pieces[ahead].IsSpace)
                 {
                     ahead++;
                 }
@@ -1184,7 +1218,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // line both sides of the piece of the box the space stands in: of the probe's two-run
             // lines, the FIRST run stays up only from the measure that also holds the second run's
             // reserve (triple at 2.25pt: from 412px, where it alone needs 371).
-            if (ahead > index && ahead + 1 < pieces.Count && pieces[ahead] is {IsInset: true, Closes: false} opening && pieces[ahead + 1].IsSpace)
+            if (ahead > index &&
+                ahead + 1 < pieces.Count &&
+                pieces[ahead] is
+                {
+                    IsInset: true,
+                    Closes: false
+                } opening &&
+                pieces[ahead + 1].IsSpace)
             {
                 closingReserve += 2 * (opening.Pixels + opening.FitPixels);
             }
@@ -1198,7 +1239,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 var candidatePixels = linePixels + lineFit + gapPixels + gapFit + wordPixels + wordFit + closingReserve;
                 var fits = closesAfterSpaces || LinearPoints(candidatePixels) <= LineWrapWidth() + fitTolerancePoints;
-                var squeezed = !fits && squeezes && FitsSqueezed(candidatePixels, wordPieces);
+                var squeezed = !fits &&
+                               squeezes &&
+                               FitsSqueezed(candidatePixels, wordPieces);
                 if (fits || squeezed)
                 {
                     var (gapSpaces, gapSpacePixels) = GapSpaces();
@@ -1226,7 +1269,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             CommitLine(justify: false);
         }
-        else if (pieces.Count > 0 && pieces[^1].IsBreak)
+        else if (pieces.Count > 0 &&
+                 pieces[^1].IsBreak)
         {
             // A paragraph ENDING in an explicit line break still carries its paragraph mark on the
             // line after it — Word draws that box. A cell of seven <w:br/> runs is EIGHT line boxes
@@ -1339,7 +1383,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                 // A leadered stop (a TOC's dot leader, a signature underscore) leaves a filler across the gap
                 // the tab opened; the painter tiles the glyph or strokes the rule. No leader on a default stop.
-                if (matchedStop is { Leader: not TabLeader.None } && cursor > tabStart)
+                if (matchedStop is
+                    {
+                        Leader: not TabLeader.None
+                    } &&
+                    cursor > tabStart)
                 {
                     var leaderX = (float) CanonicalTextMeasurer.PixelsToPoints(tabStart);
                     var leaderWidth = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) - leaderX;
@@ -1360,7 +1408,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // When justifying, a space is a widened gap between words, not part of a segment: end the
             // current word and advance past the space plus its even share of the leftover width. On a
             // squeezed line the share is negative and the gap is narrowed by it.
-            if (extraGapPixels != 0 && piece.IsSpace)
+            if (extraGapPixels != 0 &&
+                piece.IsSpace)
             {
                 FlushSegment();
                 cursor += piece.Pixels + extraGapPixels;
@@ -1528,7 +1577,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // w:caps upper-cases the run; a soft line break (the parser emits it as "\n") splits the run
             // into parts with a forced break between them.
             var runText = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
-            var borderInside = run.Properties.Border != null && !BorderStroke.RunBorderReserves(runText);
+            var borderInside = run.Properties.Border != null &&
+                               !BorderStroke.RunBorderReserves(runText);
             var parts = runText.Split('\n');
             for (var partIndex = 0; partIndex < parts.Length; partIndex++)
             {
@@ -1556,7 +1606,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // The pair that straddles two tokens goes to the earlier one, whose last glyph it
                     // adjusts. Measuring token by token would otherwise drop every pair against a space,
                     // and Word's layout counts those (CanonicalTextMeasurer.KernPixelsBetween).
-                    if (kerning && previousToken >= 0)
+                    if (kerning &&
+                        previousToken >= 0)
                     {
                         var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, WidthScale(run.Properties));
                         if (between != 0)
@@ -1749,7 +1800,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var start = 0;
         for (var i = 1; i <= text.Length; i++)
         {
-            if (i != text.Length && text[i] == ' ' == (text[start] == ' '))
+            if (i != text.Length &&
+                text[i] == ' ' == (text[start] == ' '))
             {
                 continue;
             }

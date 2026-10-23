@@ -70,7 +70,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             shape.RotationDegrees,
             shape.FlipHorizontal,
             shape.FlipVertical,
-            ClipToEllipse: shape.Subpaths == null && shape.Preset == PresetShape.Ellipse,
+            ClipToEllipse: shape.Subpaths == null &&
+                           shape.Preset == PresetShape.Ellipse,
             ClipSubpaths: shape.Subpaths,
             Crop: shape.ImageCrop,
             Opacity: shape.ImageOpacity,
@@ -116,10 +117,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // to the new page size, margins and column layout (ApplyGeometry). The initial values are the
         // document's first section, from the constructor's page.
         PageSettings current = page;
+
         // Set in Run from the first page's reserved top, which cannot be a field initializer: HeaderReservedTop
         // measures the header band, so it reads the caches this class owns. Three initializers used to compute
         // that one value three times over.
         float contentTop;
+
         // The bottom the flow breaks against. Equal to pageContentBottom — the bottom margin — until a
         // footnote area opens on the current column, when it rises by the area's height
         // (RefreshContentBottom): Word's body stops where the notes begin (_probe_fn_d, 40 of 44 lines).
@@ -134,6 +137,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         readonly List<LaidOutPage> pages = [];
 
         List<PlacedItem> items = [];
+
         // Each finished page's body items with the section geometry it was laid out at, kept until the flow
         // ends so the bands can resolve NUMPAGES and each page renders at its own section's size and margins.
         // SectionFirst marks the first page of a section (it takes the w:titlePg variant and a w:pgNumType
@@ -160,6 +164,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         };
 
         SectionBands Bands(PageSettings settings) => settings.Bands ?? defaultBands;
+
         // Body floating shapes/images, each tagged with the page it was anchored on and whether it paints
         // behind the text; assembled into their page's items once the flow ends. Order is the float's place
         // in the document's own sequence of floats, which is the order a page paints them in: the
@@ -167,30 +172,39 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // in pendingFloats for its page must not fall behind a paragraph-anchored one declared after
         // it for the waiting (page_vertical_alignment's two overlapping squares swapped over).
         readonly List<(int Page, PlacedItem Item, bool Behind, int Order)> bodyFloats = [];
+
         int floatOrder;
+
         // Where in bodyFloats the floats emitted since the last non-float element begin.
         int floatRunStart;
+
         // Absolutely-positioned body floats (page/margin anchor) awaiting page resolution: their element is
         // reached before the content they belong to has flowed, so the page is only known once the next
         // visible line or row commits (a page-2 background is declared before page-1 finishes). Resolved into
         // bodyFloats there; a flow-anchored float never lands here — its page is the emit-time cursor page.
         readonly List<(PlacedItem Item, bool Behind, int Order)> pendingFloats = [];
+
         // Boxes a wrapping float (wp:wrapSquare / wrapTight / wrapThrough / wrapTopAndBottom) carves out of
         // the text measure, in absolute page points. Page-scoped: cleared when a page starts, since a float
         // never carries its exclusion across a break. A wrapNone or behind-text float registers nothing —
         // overlap is its design. Mirrors RenderContextBase's list, which the production renderers consume.
         readonly List<FloatExclusion> floatExclusions = [];
         int currentColumn;
+
         float y;
+
         // Y where the current page's columns begin. Normally the content top, but a continuous section break
         // that switches column count starts the new columns at the break point (below a full-width masthead),
         // so each column on that page tops out there rather than at the page top. Reset to the content top on
         // every new page. Set in Run alongside contentTop.
         float columnTop;
+
         // Top of the current *region* — a fresh column or a fresh page. Space-before is dropped here and a
         // line/row is never pushed off it (nothing better to do), the same rule at a column or page top.
         bool atRegionTop = true;
+
         float lastAfter;
+
         // Style and contextual-spacing flag of the previous flow paragraph, for w:contextualSpacing: a
         // contextual paragraph drops its own space-before against a same-style paragraph before it and
         // its own space-after against one after it (ParagraphGap) — Word's tight address blocks and list
@@ -198,18 +212,23 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // with what came before.
         bool lastContextual;
         string? lastStyleId;
+
         bool lastIsParagraph;
+
         // Whether the flow element just placed keeps with the one being placed (w:keepNext — see
         // KeepsWithNext). Keep never breaks across that boundary, so it is no place to push the element to
         // the next region: once a chain has had its one chance to move — at its first element — its
         // later elements may split inside themselves but not move whole away from the element before.
         bool keptBefore;
+
         bool currentPageExplicit;
+
         // True while the current page was started by a non-continuous section break — Word KEEPS a
         // paragraph's spacing-before at the top of such a page (a new page setup), unlike a page
         // reached by automatic overflow (business-plans/08's page 2 ran 22pt high without this).
         // Mirrors the deleted production ShouldSuppressPageTopSpacingBefore's section-break carve-out.
         bool currentPageSectionStart;
+
         // The trailing after-spacing of the page that just finished. Word's flow adds a paragraph's
         // after when it completes and the NEXT paragraph adds only the excess of its before — and that
         // carry survives a section-break page boundary: business-plans/08's page-2 Heading1
@@ -220,12 +239,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // The w:vAlign of the section flowing now. Tracked apart from `current` because a same-column
         // continuous break adopts no geometry, yet its section's alignment governs the pages it fills.
         PageVerticalAlignment verticalAlignment = page.VerticalAlignment;
+
         // True once a continuous break has landed on the in-progress page after content: Word top-aligns
         // a page that carries two sections, whichever of them asked for alignment (_probe_valign J/K).
         bool pageMixesSections;
+
         // True while a paragraph is part-placed, so a page it overflows closes without the paragraph's
         // space-after (lastAfter is still the previous paragraph's then).
         bool paragraphOpen;
+
         // A continuous break's section settings, adopted in full when the page it landed on ends — until
         // then that page keeps the margins it started with (see ApplySectionBreak).
         PageSettings? pendingSettings;
@@ -245,13 +267,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // draws (probe group E: two paragraphs 12pt apart share one box spanning the gap).
         ParagraphProperties? borderRunProperties;
         float borderRunTop;
+
         float borderRunBottom;
+
         // The run's content width, taken from its first member. Members share indents by construction, so
         // this only differs if a wrapping float narrows a later member's measure — rare enough that Word's
         // behaviour there is unprobed, and the first member's measure is the honest default.
         float borderRunWidth;
+
         // Y of each internal member boundary that a visible w:between edge rules.
         readonly List<float> borderRunBetweens = [];
+
         // Where in `items` the run's first member began, so a shaded box's fill can be INSERTED
         // there — behind the member lines already placed — rather than appended over them.
         int borderRunItemsIndex;
@@ -260,7 +286,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         float ColumnLeft => fullContentLeft + currentColumn * (columnWidth + columnSpacing);
 
         // Top of a fresh *page* — the first column's region top. Page-level breaks skip when already here.
-        bool AtPageTop => atRegionTop && currentColumn == 0;
+        bool AtPageTop => atRegionTop &&
+                          currentColumn == 0;
 
         // Adopts a new section's page geometry — page size, margins and column layout — recomputing the
         // derived content box and column metrics so subsequent flow uses the new section's dimensions.
@@ -300,7 +327,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         float NoteAreaHeight(int column)
         {
-            if (column < noteAreas.Length && noteAreas[column] is { } area)
+            if (column < noteAreas.Length &&
+                noteAreas[column] is { } area)
             {
                 return area.Height;
             }
@@ -321,7 +349,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var rows = new List<NoteRow>();
-            if (notes != null && notes.Footnotes.TryGetValue(id, out var elements))
+            if (notes != null &&
+                notes.Footnotes.TryGetValue(id, out var elements))
             {
                 foreach (var element in elements)
                 {
@@ -369,7 +398,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // behind them (CommitLineNotes) rather than jumping ahead.
         List<string>? NewFootnotes(LaidOutLine line)
         {
-            if (notes == null || pendingNoteRows.Count > 0 || line.FootnoteReferenceIds is not { Count: > 0 } ids)
+            if (notes == null || pendingNoteRows.Count > 0 || line.FootnoteReferenceIds is not {Count: > 0} ids)
             {
                 return null;
             }
@@ -377,7 +406,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             List<string>? result = null;
             foreach (var id in ids)
             {
-                if (!placedFootnotes.Contains(id) && notes.Footnotes.ContainsKey(id) && (result == null || !result.Contains(id)))
+                if (!placedFootnotes.Contains(id) &&
+                    notes.Footnotes.ContainsKey(id) &&
+                    (result == null || !result.Contains(id)))
                 {
                     (result ??= []).Add(id);
                 }
@@ -455,7 +486,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var accepted = 0;
             foreach (var row in rows)
             {
-                if (placedLine && used + row.Height > available + 0.01f)
+                if (placedLine &&
+                    used + row.Height > available + 0.01f)
                 {
                     break;
                 }
@@ -474,12 +506,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // spilling), its endnotes join the document-end list.
         void CommitLineNotes(LaidOutLine line, float bodyBottom)
         {
-            if (line.EndnoteReferenceIds is { Count: > 0 } endnoteIds)
+            if (line.EndnoteReferenceIds is {Count: > 0} endnoteIds)
             {
                 CiteEndnotes(endnoteIds);
             }
 
-            if (line.FootnoteReferenceIds is not { Count: > 0 } || notes == null)
+            if (line.FootnoteReferenceIds is not {Count: > 0} || notes == null)
             {
                 return;
             }
@@ -488,7 +520,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 foreach (var id in line.FootnoteReferenceIds)
                 {
-                    if (placedFootnotes.Add(id) && notes.Footnotes.ContainsKey(id))
+                    if (placedFootnotes.Add(id) &&
+                        notes.Footnotes.ContainsKey(id))
                     {
                         pendingNoteRows.AddRange(NoteRows(id));
                     }
@@ -541,7 +574,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 foreach (var id in footnoteIds)
                 {
-                    if (placedFootnotes.Add(id) && notes.Footnotes.ContainsKey(id))
+                    if (placedFootnotes.Add(id) &&
+                        notes.Footnotes.ContainsKey(id))
                     {
                         pendingNoteRows.AddRange(NoteRows(id));
                     }
@@ -550,7 +584,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return;
             }
 
-            var fresh = footnoteIds.Where(_ => !placedFootnotes.Contains(_) && notes.Footnotes.ContainsKey(_)).Distinct().ToList();
+            var fresh = footnoteIds.Where(_ => !placedFootnotes.Contains(_) &&
+                                               notes.Footnotes.ContainsKey(_)).Distinct().ToList();
             if (fresh.Count > 0)
             {
                 CommitFootnotes(fresh, rowBottom);
@@ -610,7 +645,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var area = noteAreas[0] ??= new();
-            List<NoteRow> rows = [SeparatorRow(notes!.FootnoteContinuationSeparator, true), ..pendingNoteRows];
+            List<NoteRow> rows = [SeparatorRow(notes!.FootnoteContinuationSeparator, true), .. pendingNoteRows];
             pendingNoteRows.Clear();
             AcceptNoteRows(area, rows, pageContentBottom - contentTop);
             RefreshContentBottom();
@@ -690,7 +725,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // Strict against the bottom, not HasSpaceFor's 2% slack: _probe_fn_h's 43 lines leave 18pt,
             // the block needs 29.3, and the slack would have kept it where Word moves it.
             var gap = atRegionTop ? 0 : Math.Max(lastAfter, (float) separator.Properties.SpacingBeforePoints);
-            if (!atRegionTop && y + gap + separatorLine.Height + FirstEndnoteLineHeight() > contentBottom)
+            if (!atRegionTop &&
+                y + gap + separatorLine.Height + FirstEndnoteLineHeight() > contentBottom)
             {
                 AdvanceColumnOrPage();
                 gap = 0;
@@ -733,7 +769,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             foreach (var id in citedEndnotes)
             {
-                if (notes!.Endnotes.TryGetValue(id, out var elements) && elements.OfType<ParagraphElement>().FirstOrDefault() is { } paragraph)
+                if (notes!.Endnotes.TryGetValue(id, out var elements) &&
+                    elements.OfType<ParagraphElement>().FirstOrDefault() is { } paragraph)
                 {
                     var lines = measurer.LayoutLineContents(paragraph, columnWidth);
                     return (float) paragraph.Properties.SpacingBeforePoints + (lines.Count > 0 ? lines[0].Height : 0);
@@ -814,7 +851,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // 36pt lines in three columns): continuous 3/3/3, into one column or into three again, and on
             // the spill page of a section that overflowed its first; next-page, even-page and odd-page all
             // nine in column 1. Runs before the geometry switch, on the columns just laid.
-            if (columnCount > 1 && sectionBreak.BreakType == SectionBreakType.Continuous)
+            if (columnCount > 1 &&
+                sectionBreak.BreakType == SectionBreakType.Continuous)
             {
                 BalanceCurrentColumns();
             }
@@ -905,7 +943,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Word's duplex rule (_probe_sect_b: a start=1 section reached on page 4 opens on page 5
                 // behind a page with no band at all; _probe_sect_c, the same document without
                 // w:evenAndOddHeaders, has no filler).
-                if (Bands(settings).EvenAndOddHeaders && settings.PageNumberStart is { } start && start % 2 != (bodies.Count + 1) % 2)
+                if (Bands(settings).EvenAndOddHeaders &&
+                    settings.PageNumberStart is { } start &&
+                    start % 2 != (bodies.Count + 1) % 2)
                 {
                     currentPageExplicit = true;
                     currentPageFiller = true;
@@ -925,7 +965,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // w:lnNumType restart="newSection" numbers each section from Start again; "continuous"
             // carries the count across, and "newPage" resets in FinishPage anyway.
-            if (current.LineNumbers is { Restart: LineNumberRestart.NewSection })
+            if (current.LineNumbers is {Restart: LineNumberRestart.NewSection})
             {
                 lineNumberCount = 0;
             }
@@ -983,7 +1023,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             foreach (var line in lines)
             {
                 var usedInColumn = columnY - columnTop;
-                if (column < columnCount - 1 && usedInColumn > 0 && usedInColumn + line.Height > target + 0.01f)
+                if (column < columnCount - 1 &&
+                    usedInColumn > 0 &&
+                    usedInColumn + line.Height > target + 0.01f)
                 {
                     column++;
                     columnY = columnTop;
@@ -1229,7 +1271,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             if (items.Count > 0 || currentPageExplicit || bodies.Count == 0)
             {
-                bodies.Add((items, current, pageStartsSection && !currentPageFiller, currentPageFiller));
+                bodies.Add((items, current, pageStartsSection &&
+                                            !currentPageFiller, currentPageFiller));
                 pageStartsSection = false;
             }
 
@@ -1259,7 +1302,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             floatExclusions.Clear();
 
             // w:lnNumType restart="newPage" (the OOXML default) numbers each page from Start again.
-            if (current.LineNumbers is { Restart: LineNumberRestart.NewPage })
+            if (current.LineNumbers is {Restart: LineNumberRestart.NewPage})
             {
                 lineNumberCount = 0;
             }
@@ -1465,7 +1508,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 for (var position = 0; position < order.Length; position++)
                 {
                     var unit = units[order[position]];
-                    if (unit.Top < item.Y + item.Height - 0.01f && unit.Bottom > item.Y + 0.01f)
+                    if (unit.Top < item.Y + item.Height - 0.01f &&
+                        unit.Bottom > item.Y + 0.01f)
                     {
                         if (first < 0)
                         {
@@ -1483,7 +1527,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var groups = 0;
             for (var position = 0; position < order.Length; position++)
             {
-                if (position > 0 && !welded[position])
+                if (position > 0 &&
+                    !welded[position])
                 {
                     groups++;
                 }
@@ -1498,6 +1543,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var step = slack / groups;
+
             float ShiftAt(float top)
             {
                 // The group of the last unit starting at or above this top; the first when none does.
@@ -1559,12 +1605,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 PlacedTableRow row => row with
                 {
                     Y = row.Y + dy,
-                    Cells = [.. row.Cells.Select(cell => cell with
-                    {
-                        Y = cell.Y + dy,
-                        Content = [.. cell.Content.Select(inner => ShiftItem(inner, dy))],
-                        Floats = [.. cell.Floats.Select(inner => ShiftItem(inner, dy))]
-                    })]
+                    Cells =
+                    [
+                        .. row.Cells.Select(cell => cell with
+                        {
+                            Y = cell.Y + dy,
+                            Content = [.. cell.Content.Select(inner => ShiftItem(inner, dy))],
+                            Floats = [.. cell.Floats.Select(inner => ShiftItem(inner, dy))]
+                        })
+                    ]
                 },
                 // A rotated group's items sit in its unrotated box, so they move with it.
                 PlacedRotatedGroup group => group with
@@ -1655,8 +1704,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Body floats: behind-text ones paint under the body (over the header background), in-front
                 // ones over it. Anchored on the page they were reached on.
                 var pageFloats = index;
-                var behindFloats = bodyFloats.Where(_ => _.Page == pageFloats && _.Behind).OrderBy(_ => _.Order).Select(_ => _.Item).ToList();
-                var frontFloats = bodyFloats.Where(_ => _.Page == pageFloats && !_.Behind).OrderBy(_ => _.Order).Select(_ => _.Item).ToList();
+                var behindFloats = bodyFloats
+                    .Where(_ => _.Page == pageFloats &&
+                                _.Behind)
+                    .OrderBy(_ => _.Order)
+                    .Select(_ => _.Item)
+                    .ToList();
+                var frontFloats = bodyFloats
+                    .Where(_ => _.Page == pageFloats &&
+                                !_.Behind)
+                    .OrderBy(_ => _.Order)
+                    .Select(_ => _.Item)
+                    .ToList();
 
                 // The whole header/footer story paints BELOW every body item, floats included — w:behindDoc
                 // orders a float against the body TEXT and says nothing about the bands, which are under it
@@ -1669,7 +1728,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // footer on top of the grey title rectangle — a behind-text body float spanning 575.4pt to
                 // the page bottom — where Word has it buried; business-plans/15's TOC pages are the same
                 // shape. The header band was already ordered correctly.
-                var pageItems = backgroundImages.Count == 0 && footerImages.Count == 0 && headerBand.Count == 0 && footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
+                var pageItems = backgroundImages.Count == 0 &&
+                                footerImages.Count == 0 &&
+                                headerBand.Count == 0 &&
+                                footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
                     ? body
                     : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. footerImages, .. headerBand, .. footerBand, .. behindFloats, .. body, .. frontFloats];
                 pages.Add(new(pageNumber, settings, pageItems));
@@ -1753,7 +1815,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // True when EmitBodyFloatAt would register a wrap exclusion for this element — such a float
         // cannot defer past its anchor paragraph, whose flow band must see the exclusion.
         static bool RegistersExclusion(DocumentElement element) =>
-            element is FloatingImageElement { BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom };
+            element is FloatingImageElement {BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom};
 
         // Emits a body float now when its Y is absolute (page/margin) or it has no recorded anchor;
         // defers a paragraph-anchored one until its anchor paragraph's top is known. Resolving from the
@@ -1762,12 +1824,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // anchor serves both.
         void EmitBodyFloat(DocumentElement element, VerticalAnchor verticalAnchor, ParagraphElement? anchor)
         {
-            if (anchor != null && mirrorSubstitutes.TryGetValue(anchor, out var substituted))
+            if (anchor != null &&
+                mirrorSubstitutes.TryGetValue(anchor, out var substituted))
             {
                 anchor = substituted;
             }
 
-            if (!IsAbsoluteY(verticalAnchor) && anchor != null &&
+            if (!IsAbsoluteY(verticalAnchor) &&
+                anchor != null &&
                 paragraphPreSpacingTops.TryGetValue(anchor, out var placedTop))
             {
                 // The anchor paragraph laid out BEFORE this float reached the flow (a background-shape
@@ -1781,7 +1845,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // to the anchor would wait for a first line that has come and gone, stranding the float until
             // the flow's end drained it onto the document's LAST page (_probe_valign's H: a page-anchored
             // box after its paragraph's text landed eight pages late).
-            if (anchor != null && paragraphPreSpacingTops.ContainsKey(anchor))
+            if (anchor != null &&
+                paragraphPreSpacingTops.ContainsKey(anchor))
             {
                 EmitBodyFloatAt(element, y);
                 ResolvePendingFloats();
@@ -1795,7 +1860,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // keeps the cursor value; that is exact whenever the anchor does not move. (An earlier
             // flush-at-page-end deferral shifted wedding/07 86px; flushing at the anchor's own
             // placement keeps the old timing byte-for-byte in the no-break case.)
-            if (anchor != null && !RegistersExclusion(element))
+            if (anchor != null &&
+                !RegistersExclusion(element))
             {
                 if (!anchorDeferredFloats.TryGetValue(anchor, out var deferred))
                 {
@@ -1841,7 +1907,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     break;
                 }
 
-                case FloatingShapeElement {ImageData: { Length: > 0 } shapeImage} shape when shape.ImageContentType != "image/svg+xml":
+                case FloatingShapeElement {ImageData: {Length: > 0} shapeImage} shape when shape.ImageContentType != "image/svg+xml":
                     AddBodyFloat(ShapeImage(shape, FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), shapeImage), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
 
@@ -1863,7 +1929,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // rules and slices become placed shapes and its labels laid-out paragraphs (ChartComposer).
         void PlaceChart(FloatingChartElement chart, float chartX, float chartY)
         {
-            var composer = new ChartComposer(measurer, (content, x, boxY, width, height, alignment) => LayoutCellContent(new() { Content = content }, x, boxY, width, height, alignment));
+            var composer = new ChartComposer(measurer, (content, x, boxY, width, height, alignment) => LayoutCellContent(new() {Content = content}, x, boxY, width, height, alignment));
             foreach (var item in composer.Compose(chart.Chart, chartX, chartY, (float) chart.WidthPoints, (float) chart.HeightPoints, chart.Scale))
             {
                 AddBodyFloat(item, false, IsAbsoluteY(chart.VerticalAnchor));
@@ -1996,12 +2062,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         // An explicit @wrapText side restricts which side of THIS float text may use;
                         // BothSides/Largest leave both segments available and the widest wins below, since a
                         // single band cannot carry both sides at once.
-                        if (blockLeft > start && exclusion.Side != WrapTextSide.Right)
+                        if (blockLeft > start &&
+                            exclusion.Side != WrapTextSide.Right)
                         {
                             remaining.Add((start, blockLeft));
                         }
 
-                        if (blockRight < end && exclusion.Side != WrapTextSide.Left)
+                        if (blockRight < end &&
+                            exclusion.Side != WrapTextSide.Left)
                         {
                             remaining.Add((blockRight, end));
                         }
@@ -2068,7 +2136,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var bottom = float.MinValue;
                 foreach (var item in pageItems)
                 {
-                    if (item is PlacedTableRow {IsRepeatedHeader: false} row && ReferenceEquals(row.Table, sheet))
+                    if (item is PlacedTableRow {IsRepeatedHeader: false} row &&
+                        ReferenceEquals(row.Table, sheet))
                     {
                         top = Math.Min(top, row.Y);
                         bottom = Math.Max(bottom, row.Y + row.Height);
@@ -2225,7 +2294,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // Lifted frames paint over the flow (FrameGrouper appends them after the in-flow content), and
             // their anchors are page/margin (the ShouldLift gate), so they defer like the other absolute floats.
-            foreach (var item in LayoutCellContent(new() { Content = frame.Content }, FrameX(frame, frameWidth), FrameY(frame, frameHeight), frameWidth, frameHeight, CellVerticalAlignment.Top))
+            foreach (var item in LayoutCellContent(new() {Content = frame.Content}, FrameX(frame, frameWidth), FrameY(frame, frameHeight), frameWidth, frameHeight, CellVerticalAlignment.Top))
             {
                 AddBodyFloat(item, behind: false, absoluteY: true);
             }
@@ -2362,14 +2431,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // presets (arch/wave/envelope/…) are a later slice; the corpus templates are all unwarped.
         IReadOnlyList<PlacedItem> LayoutWordArtText(string text, string fontFamily, double fontSizePoints, bool bold, bool italic, string? fillColorHex, float boxX, float boxY, float boxWidth, float boxHeight)
         {
-            var properties = new RunProperties { FontFamily = fontFamily, FontSizePoints = fontSizePoints, Bold = bold, Italic = italic, ColorHex = fillColorHex };
+            var properties = new RunProperties {FontFamily = fontFamily, FontSizePoints = fontSizePoints, Bold = bold, Italic = italic, ColorHex = fillColorHex};
             var textWidth = measurer.MeasureRunWidth(text, properties);
             var widthScale = textWidth > 0 ? boxWidth / textWidth : 1f;
             var heightScale = fontSizePoints > 0 ? boxHeight / (float) (fontSizePoints * 1.2) : 1f;
             var scale = Math.Min(Math.Min(widthScale, heightScale), 1f);
             var paragraph = new ParagraphElement
             {
-                Runs = [
+                Runs =
+                [
                     new()
                     {
                         Text = text,
@@ -2377,20 +2447,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         {
                             FontSizePoints = fontSizePoints * scale
                         }
-                    }],
+                    }
+                ],
                 Properties = new()
                 {
                     Alignment = TextAlignment.Center
                 }
             };
-            return LayoutCellContent(new() { Content = [paragraph] }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
+            return LayoutCellContent(new() {Content = [paragraph]}, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
         }
 
         // The box chrome of an unwarped WordArt shape (business/06's frame, wedding/08's ellipse badge): its
         // fill and outline painted as a shape, or null when the WordArt has no box. Floating WordArt has none.
         static PlacedShape? WordArtBoxShape(WordArtElement wordArt, float boxX, float boxY)
         {
-            if (wordArt.BoxFillColorHex == null && wordArt.BoxLineColorHex == null)
+            if (wordArt.BoxFillColorHex == null &&
+                wordArt.BoxLineColorHex == null)
             {
                 return null;
             }
@@ -2571,8 +2643,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // the right band's outer one, and the right band from the top rule's inner face down to
             // the bottom band's foot; under the double it is the whole 9pt stack. A box flagged on its
             // top edge alone got none.
-            var rightBand = borders.Right.Shadow && BorderStroke.Draws(borders.Right) ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints) : 0f;
-            var bottomBand = borders.Bottom.Shadow && BorderStroke.Draws(borders.Bottom) ? (float) BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints) : 0f;
+            var rightBand = borders.Right.Shadow &&
+                            BorderStroke.Draws(borders.Right)
+                ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints)
+                : 0f;
+            var bottomBand = borders.Bottom.Shadow &&
+                             BorderStroke.Draws(borders.Bottom)
+                ? (float) BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints)
+                : 0f;
             if (rightBand > 0 || bottomBand > 0)
             {
                 var outerRight = left + width + (BorderStroke.Draws(borders.Right) ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints) : 0f);
@@ -2645,7 +2723,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // A paragraph that does not continue the open border run closes it here — before any of this
             // paragraph's own items are appended, so the box cannot paint over the content that follows it.
-            if (borderRunProperties is { } openRun && !openRun.SharesBorderGroupWith(properties))
+            if (borderRunProperties is { } openRun &&
+                !openRun.SharesBorderGroupWith(properties))
             {
                 FlushBorderRun();
             }
@@ -2655,7 +2734,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // a blank page holding the first (COMPASS's stocktake report, read back from Word 2026-09-30 —
             // its appendix opened a page later than the engine put it, which put every TOC entry after it
             // one low).
-            if (properties.PageBreakBefore && !AtPageTop)
+            if (properties.PageBreakBefore &&
+                !AtPageTop)
             {
                 FinishPage(nextPageExplicit: true);
             }
@@ -2690,9 +2770,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             paragraphPreSpacingTops[paragraph] = y;
             paragraphOpen = true;
 
-            var atDocumentStart = bodies.Count == 0 && items.Count == 0 && currentColumn == 0;
-            var atSectionStart = AtPageTop && currentPageSectionStart && items.Count == 0;
-            var atOwnPageBreak = AtPageTop && properties.PageBreakBefore && items.Count == 0 && compatibility.KeepsSpacingBeforeAfterPageBreakBefore;
+            var atDocumentStart = bodies.Count == 0 &&
+                                  items.Count == 0 &&
+                                  currentColumn == 0;
+            var atSectionStart = AtPageTop &&
+                                 currentPageSectionStart &&
+                                 items.Count == 0;
+            var atOwnPageBreak = AtPageTop &&
+                                 properties.PageBreakBefore &&
+                                 items.Count == 0 &&
+                                 compatibility.KeepsSpacingBeforeAfterPageBreakBefore;
             if (!atRegionTop || atDocumentStart)
             {
                 var (keptAfter, keptBefore) = ParagraphGap.Between(lastAfter, lastContextual, lastStyleId, lastIsParagraph, properties);
@@ -2712,7 +2799,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // merging with it (probe R3, 12pt before plus a 6pt space, put the line 70px down against
             // control R6's 54px). Reserving scales with the space as measured at 0 / 6 / 20pt: 3 / 14 / 45px
             // against a predicted 3.1 / 15.6 / 44.8.
-            if (borderRunProperties == null && properties.Borders is { HasAnyBorder: true } opening)
+            if (borderRunProperties == null &&
+                properties.Borders is {HasAnyBorder: true} opening)
             {
                 y += EdgeReserve(opening.Top, properties.BorderTopSpacePoints);
             }
@@ -2721,7 +2809,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // either side take room of their own below the spacing just charged
             // (ParagraphProperties.BorderBetweenReservePoints), and the rule's foot is where it draws to.
             float? betweenRule = null;
-            if (borderRunProperties != null && properties.BorderBetweenReservePoints > 0)
+            if (borderRunProperties != null &&
+                properties.BorderBetweenReservePoints > 0)
             {
                 betweenRule = y + (float) (properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
                 y += (float) properties.BorderBetweenReservePoints;
@@ -2809,12 +2898,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // plus rule at the margin exactly, at w:space 0, 12 and 24 and for a 1pt line alike,
                     // in compatibility modes 12 and 15; on a three-line paragraph the reserve moved the
                     // last line, not the paragraph).
-                    if (closingReserve > 0 && lineIndex + fit == paragraphLines.Count - 1)
+                    if (closingReserve > 0 &&
+                        lineIndex + fit == paragraphLines.Count - 1)
                     {
                         reserved = Math.Max(reserved, candidate.Height) + closingReserve;
                     }
 
-                    if (!(atRegionTop && fit == 0) && probeY + reserved > probeBottom)
+                    if (!(atRegionTop &&
+                          fit == 0) &&
+                        probeY + reserved > probeBottom)
                     {
                         break;
                     }
@@ -2854,23 +2946,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // not the boundary with an element that keeps with it. Without one only a split that
                 // leaves lines here is taken, and otherwise the keep is abandoned, as Word abandons a
                 // chain it cannot rescue.
-                if (keepAfter > 0 && fit == remaining && probeY + closingReserve + keepAfter > probeBottom)
+                if (keepAfter > 0 &&
+                    fit == remaining &&
+                    probeY + closingReserve + keepAfter > probeBottom)
                 {
                     var kept = KeptLines(properties, remaining);
-                    var canMove = !atRegionTop && !(lineIndex == 0 && keptBefore);
+                    var canMove = !atRegionTop &&
+                                  !(lineIndex == 0 &&
+                                    keptBefore);
                     if (kept > 0 || canMove)
                     {
                         fit = kept;
                     }
                 }
 
-                if (!atRegionTop && fit < remaining)
+                if (!atRegionTop &&
+                    fit < remaining)
                 {
                     if (properties.KeepLines)
                     {
                         fit = 0;
                     }
-                    else if (properties.WidowControl && remaining >= 2)
+                    else if (properties.WidowControl &&
+                             remaining >= 2)
                     {
                         if (fit == remaining - 1)
                         {
@@ -2899,7 +2997,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         // below, where the spacing-before is dropped. border_style_variants' second
                         // page opens on such a box: Word's rule is at the margin (72.8pt) and the text
                         // 11pt further down than a line set at the margin.
-                        if (borderRunProperties == null && properties.Borders is { HasAnyBorder: true } carried)
+                        if (borderRunProperties == null &&
+                            properties.Borders is {HasAnyBorder: true} carried)
                         {
                             y += EdgeReserve(carried.Top, properties.BorderTopSpacePoints);
                         }
@@ -2910,7 +3009,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The first line's region is now final: floats deferred to this anchor emit here, tagged
                 // with the page the paragraph actually starts on.
-                if (lineIndex == 0 && anchorDeferredFloats.Remove(paragraph, out var deferredFloats))
+                if (lineIndex == 0 &&
+                    anchorDeferredFloats.Remove(paragraph, out var deferredFloats))
                 {
                     foreach (var deferred in deferredFloats)
                     {
@@ -2945,7 +3045,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // line's own font — restored 2026-08-19 (the deleted production TextRenderers
                     // drew these; the engine did not, so the gutters vanished in the flip).
                     // Suppressed paragraphs (w:suppressLineNumbers) neither draw nor count.
-                    if (current.LineNumbers is { } lineNumbers && !properties.SuppressLineNumbers)
+                    if (current.LineNumbers is { } lineNumbers &&
+                        !properties.SuppressLineNumbers)
                     {
                         // w:start is the value BEFORE the first counted line — Word's UI "start
                         // at 1" writes w:start="0", and the references for start="1" number their
@@ -2966,7 +3067,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             lineRuns =
                             [
                                 new(ColumnLeft - (float) lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties),
-                                ..lineRuns
+                                .. lineRuns
                             ];
                         }
                     }
@@ -2984,7 +3085,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // A deferred float anchored above this paragraph belongs to the page this line landed on —
                     // but only once a line with real content appears, so an empty spacer paragraph at a page
                     // boundary does not claim the float for the wrong page.
-                    if (pendingFloats.Count > 0 && (placedLine.Images.Count > 0 || placedLine.Runs.Any(run => !string.IsNullOrWhiteSpace(run.Text))))
+                    if (pendingFloats.Count > 0 &&
+                        (placedLine.Images.Count > 0 || placedLine.Runs.Any(run => !string.IsNullOrWhiteSpace(run.Text))))
                     {
                         ResolvePendingFloats();
                     }
@@ -3006,7 +3108,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // Fold this paragraph into the open border run, or open one. The box is NOT stroked here — its
             // bottom is only known once the run ends, so FlushBorderRun emits it. A paragraph that broke
             // across a region has no single box to contribute to and ends the run instead.
-            if (!borderBroke && borderTop is { } boxTop && properties.Borders is { HasAnyBorder: true })
+            if (!borderBroke &&
+                borderTop is { } boxTop &&
+                properties.Borders is {HasAnyBorder: true})
             {
                 if (borderRunProperties == null)
                 {
@@ -3103,7 +3207,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // A table that merely misses the space LEFT is deliberately not routed here — the exact-row
             // pre-advance and the routing below get first refusal on it.
             if (totalHeight > contentHeight * 1.10f ||
-                (atRegionTop && !TableFitsHere(table, totalHeight, atTop: true)))
+                (atRegionTop &&
+                 !TableFitsHere(table, totalHeight, atTop: true)))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -3116,7 +3221,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // letter row opens page 2; the whole-table lift this replaces carried both, and the
             // recipient block landed four lines low). Ahead of the slack-tolerant routing below, since
             // the 2% slack is exactly what let a 610pt table into a 600pt remainder.
-            if (!atRegionTop && HasExactRow(table) && totalHeight > contentBottom - y)
+            if (!atRegionTop &&
+                HasExactRow(table) &&
+                totalHeight > contentBottom - y)
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -3130,7 +3237,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // pathological splits (unbreakable content force-placed into the remainder, or a trHeight floor
             // mistaken for content) back into whole-row moves. What fits is TableFitsHere's call: strictly
             // for a Word table, with the whole-table move's slack for a spreadsheet grid.
-            if (!atRegionTop && !TableFitsHere(table, totalHeight, atTop: false))
+            if (!atRegionTop &&
+                !TableFitsHere(table, totalHeight, atTop: false))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -3144,7 +3252,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // slack: only the sum of the rows' declared heights is tested, so a table that fits by its
             // content and misses only by rounding still squeezes on as before. Placed AFTER the row-by-row
             // routing, so a long floored table still flows from where it stands rather than moving whole.
-            if (!atRegionTop && DeclaredRowFloors(table) > contentBottom - y)
+            if (!atRegionTop &&
+                DeclaredRowFloors(table) > contentBottom - y)
             {
                 AdvanceColumnOrPage();
             }
@@ -3226,7 +3335,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         void PlaceTableRowByRow(TableElement table, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, float keepAfter)
         {
             var headerCount = 0;
-            while (headerCount < table.Rows.Count && table.Rows[headerCount].IsHeader)
+            while (headerCount < table.Rows.Count &&
+                   table.Rows[headerCount].IsHeader)
             {
                 headerCount++;
             }
@@ -3308,25 +3418,33 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var overflows = HasMergedCell(row)
                     ? !HasSpaceFor(rowHeight)
                     : y + rowHeight > contentBottom;
-                var doesNotFitHere = !atRegionTop && overflows && !TableHeightCalculator.IsPinnedExact(row);
+                var doesNotFitHere = !atRegionTop &&
+                                     overflows &&
+                                     !TableHeightCalculator.IsPinnedExact(row);
                 var oversize = rowHeight > contentHeight;
 
                 // A fit-triggered split may be rejected (the fragment placed in the remainder must
                 // genuinely split — see PlaceSplitRow), falling through to the move-whole path below. An
                 // oversize row has no such escape: moving it cannot rescue it, so its split always stands.
-                if ((oversize || doesNotFitHere) && CanSplitRow(row) &&
+                if ((oversize || doesNotFitHere) &&
+                    CanSplitRow(row) &&
                     PlaceSplitRow(table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, headerCount, allowReject: !oversize))
                 {
                     continue;
                 }
 
                 // The move mirrors EnsureSpaceFor with the same floor-strict fit as the trigger above.
-                if (!atRegionTop && !oversize && overflows)
+                if (!atRegionTop &&
+                    !oversize &&
+                    overflows)
                 {
                     AdvanceColumnOrPage();
                     broke = true;
                 }
-                if (broke && headerCount > 0 && rowIndex >= headerCount)
+
+                if (broke &&
+                    headerCount > 0 &&
+                    rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
                     {
@@ -3428,7 +3546,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // region rather than emitting a stub. minFragmentHeight is one generous line.
                 const float minFragmentHeight = 24f;
                 var advanced = false;
-                if (!atRegionTop && contentBottom - y < minFragmentHeight)
+                if (!atRegionTop &&
+                    contentBottom - y < minFragmentHeight)
                 {
                     AdvanceColumnOrPage();
                     advanced = true;
@@ -3447,7 +3566,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // first data row: content-sized at 11pt against Word's declared 21.6pt, shifting the eight
                 // rows below it 23px up the page (measured, 150 DPI).
                 var carriedToRegionTop = atRegionTop;
-                if ((!isFirstFragment || advanced) && headerCount > 0 && rowIndex >= headerCount)
+                if ((!isFirstFragment || advanced) &&
+                    headerCount > 0 &&
+                    rowIndex >= headerCount)
                 {
                     for (var headerIndex = 0; headerIndex < headerCount; headerIndex++)
                     {
@@ -3472,7 +3593,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The acceptance test. Nothing has been emitted yet on this path (no advance, so no header
                 // re-emission either), so rejection leaves the cursor untouched for the caller's move.
-                if (allowReject && isFirstFragment && !advanced && (finished || contentHeight > available + 0.5f))
+                if (allowReject &&
+                    isFirstFragment &&
+                    !advanced &&
+                    (finished || contentHeight > available + 0.5f))
                 {
                     return false;
                 }
@@ -3486,7 +3610,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // alone in its table or second in it, as twelve paragraphs or as one; with 128pt left
                 // the 100pt-floored row splits six and six. business-plans/15 opens its seventh page
                 // on such a row, which split here and left the page a paragraph's last line.
-                if (allowReject && isFirstFragment && !advanced &&
+                if (allowReject &&
+                    isFirstFragment &&
+                    !advanced &&
                     TableLayout.DeclaredRowHeight(row, table.Properties) is { } declaredHeight &&
                     declaredHeight > contentBottom - y + 0.5f)
                 {
@@ -3501,7 +3627,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // low. Read off Word's XPS (copies of table_multipage and header_row_repeat/01,
                 // 2026-10-11): the first row of a continuation page is pitched as every other row, 28.2pt
                 // behind 3pt rules where the fragment made 31.0, and 25.8 behind 0.5pt rules against 26.0.
-                if (isFirstFragment && advanced && finished)
+                if (isFirstFragment &&
+                    advanced &&
+                    finished)
                 {
                     items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                     ResolvePendingFloats();
@@ -3568,13 +3696,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var bottomEdge = chargesEdges ? TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: false) : 0f;
             var horizontalEdges = topEdge + bottomEdge;
 
-            for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
+            for (var cellIndex = 0;
+                 cellIndex < row.Cells.Count &&
+                 gridColIndex < colCount;
+                 cellIndex++)
             {
                 var cell = row.Cells[cellIndex];
                 var span = cell.Properties.GridSpan;
 
                 var cellWidth = 0f;
-                for (var offset = 0; offset < span && gridColIndex + offset < colCount; offset++)
+                for (var offset = 0;
+                     offset < span &&
+                     gridColIndex + offset < colCount;
+                     offset++)
                 {
                     cellWidth += colWidths[gridColIndex + offset];
                 }
@@ -3611,7 +3745,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Cell-anchored behind-text art belongs to the row's first fragment; repeating it on every
                 // continuation would stamp it down the document.
                 var floatShapes = isFirstFragment ? ResolveCellFloatShapes(cell, cellX, rowY) : [];
-                if (isFirstFragment && ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is {Count: > 0} frontShapes)
+                if (isFirstFragment &&
+                    ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is {Count: > 0} frontShapes)
                 {
                     content = [.. content, .. frontShapes];
                 }
@@ -3648,6 +3783,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 fragmentHeight = Math.Min(available, Math.Max(fragmentHeight, declaredFloor));
             }
+
             var boxed = new List<PlacedCell>(cells.Count);
             foreach (var cell in cells)
             {
@@ -3673,7 +3809,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         static float LeadingGridWidth(float[] colWidths, int gridBefore)
         {
             var width = 0f;
-            for (var column = 0; column < gridBefore && column < colWidths.Length; column++)
+            for (var column = 0;
+                 column < gridBefore &&
+                 column < colWidths.Length;
+                 column++)
             {
                 width += colWidths[column];
             }
@@ -3703,7 +3842,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // on every row, top/bottom closing the first/last — with each cell's box inset inside
             // its slot (TableLayout.CellSpacingInsets carries the Word-probed gap law). A synthetic
             // content-less cell carries the frame so the painters need no new item kind.
-            if (detached && table.Properties.DefaultBorders is {HasAnyBorder: true} frame)
+            if (detached &&
+                table.Properties.DefaultBorders is {HasAnyBorder: true} frame)
             {
                 var frameEdges = new CellBorders
                 {
@@ -3791,7 +3931,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (endRowIndex > rowIndex)
                 {
                     var segments = TableLayout.MergeSegmentBorders(table, rowIndex, endRowIndex, gridColIndex, colCount);
-                    if (detached || segments.All(_ => _.Left == segments[0].Left && _.Right == segments[0].Right))
+                    if (detached ||
+                        segments.All(_ => _.Left == segments[0].Left &&
+                                          _.Right == segments[0].Right))
                     {
                         drawnBorders = segments[0] with {Bottom = segments[^1].Bottom};
                     }
@@ -3855,7 +3997,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var image = line.Images[imageIndex];
                     var over = image.X + image.Width - cellRight;
                     if (over <= 0.5f ||
-                        (image.Data == null && image.Vector == null) ||
+                        (image.Data == null &&
+                         image.Vector == null) ||
                         image.RotationDegrees != 0 ||
                         image.X >= cellRight)
                     {
@@ -3911,7 +4054,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 var shapeX = cellX + (float) shape.HorizontalPositionPoints;
                 var shapeY = cellY + (float) shape.VerticalPositionPoints;
-                if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
+                if (shape.ImageData is {Length: > 0} shapeImage &&
+                    shape.ImageContentType != "image/svg+xml")
                 {
                     shapes.Add(ShapeImage(shape, shapeX, shapeY, shapeImage));
                 }
@@ -4121,7 +4265,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // Anything already placed and no room left for this element: stop here and let the caller
                 // continue the cell on the next page.
-                if (budget != null && lines.Count > 0 && cellY >= limit)
+                if (budget != null &&
+                    lines.Count > 0 &&
+                    cellY >= limit)
                 {
                     continuation = new(elementIndex, resumeLine);
                     break;
@@ -4236,10 +4382,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // A paragraph that does not continue the open border run closes it here, before its own
                 // spacing is charged — mirroring PlaceParagraph's order in the page flow.
-                if (cellBorderRun is { } openCellRun && !openCellRun.SharesBorderGroupWith(properties))
+                if (cellBorderRun is { } openCellRun &&
+                    !openCellRun.SharesBorderGroupWith(properties))
                 {
                     FlushCellBorderRun();
                 }
+
                 // Space-before, collapsed with the previous paragraph's after (max, not sum). Unlike page
                 // flow, a cell's FIRST paragraph keeps its space-before — TableHeightCalculator sizes the
                 // cell with it, so the content must be positioned with it too or it floats to the top and
@@ -4286,14 +4434,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // Opening a border run reserves its top rule and w:space, exactly as the page flow does
                 // after the collapsed spacing-before.
-                if (cellBorderRun == null && properties.Borders is {HasAnyBorder: true} openingBorders)
+                if (cellBorderRun == null &&
+                    properties.Borders is {HasAnyBorder: true} openingBorders)
                 {
                     cellY += EdgeReserve(openingBorders.Top, properties.BorderTopSpacePoints);
                 }
 
                 // A member continuing the open box under a w:between rule, as in the page flow.
                 float? cellBetweenRule = null;
-                if (cellBorderRun != null && properties.BorderBetweenReservePoints > 0)
+                if (cellBorderRun != null &&
+                    properties.BorderBetweenReservePoints > 0)
                 {
                     cellBetweenRule = cellY + (float) (properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
                     cellY += (float) properties.BorderBetweenReservePoints;
@@ -4331,7 +4481,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         var candidate = paragraphLines[lineIndex];
                         var afterReserve = lineIndex == paragraphLines.Count - 1 ? (float) properties.SpacingAfterPoints : 0f;
-                        if ((lines.Count > 0 || take > 0) && probeY + candidate.Height + afterReserve > limit)
+                        if ((lines.Count > 0 || take > 0) &&
+                            probeY + candidate.Height + afterReserve > limit)
                         {
                             break;
                         }
@@ -4342,13 +4493,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                     // Only when a break actually falls here and there is somewhere better to put the
                     // paragraph — with nothing placed yet, moving it on would just empty this fragment.
-                    if (lines.Count > 0 && take < remaining)
+                    if (lines.Count > 0 &&
+                        take < remaining)
                     {
                         if (properties.KeepLines)
                         {
                             take = 0;
                         }
-                        else if (properties.WidowControl && remaining >= 2)
+                        else if (properties.WidowControl &&
+                                 remaining >= 2)
                         {
                             // Word settles the two rules in order and lets the second act on the first's
                             // result. A widow — one line alone at the top of the next page — is fixed by
@@ -4400,7 +4553,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // Fold this whole-placed paragraph into the open border run, or open one. A paragraph
                 // resumed mid-way (a continuation fragment) has no single box and ends the run instead.
-                if (resumeLine == 0 && properties.Borders is {HasAnyBorder: true})
+                if (resumeLine == 0 &&
+                    properties.Borders is {HasAnyBorder: true})
                 {
                     if (cellBorderRun == null)
                     {
@@ -4444,7 +4598,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low). A
             // trailing EMPTY paragraph's after is excluded, mirroring ParagraphHasVisibleContent. A
             // fragment that continues overleaf has no trailing paragraph yet, so it charges none.
-            if (continuation == null && !ParagraphGap.DropsCellEndAfter(row, cell))
+            if (continuation == null &&
+                !ParagraphGap.DropsCellEndAfter(row, cell))
             {
                 cellY += lastCellVisibleAfter;
             }
@@ -4493,7 +4648,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var runs = new PlacedRun[line.Runs.Count];
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
-                runs[runIndex] = line.Runs[runIndex] with { X = line.Runs[runIndex].X + dx };
+                runs[runIndex] = line.Runs[runIndex] with {X = line.Runs[runIndex].X + dx};
             }
 
             var images = line.Images;
@@ -4529,7 +4684,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             item switch
             {
                 PlacedLine line => ShiftLine(line, dx, dy),
-                _ => item with { X = item.X + dx, Y = item.Y + dy }
+                _ => item with {X = item.X + dx, Y = item.Y + dy}
             };
 
         // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each
@@ -4661,7 +4816,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         HeaderFooterContent? SelectVariant(PageSettings settings, bool sectionFirst, int pageNumber, bool isHeader)
         {
             var bands = Bands(settings);
-            if (sectionFirst && settings.DifferentFirstPage)
+            if (sectionFirst &&
+                settings.DifferentFirstPage)
             {
                 if (isHeader)
                 {
@@ -4671,7 +4827,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return bands.FirstPageFooter;
             }
 
-            if (pageNumber % 2 == 0 && bands.EvenAndOddHeaders)
+            if (pageNumber % 2 == 0 &&
+                bands.EvenAndOddHeaders)
             {
                 if (isHeader)
                 {
@@ -4735,36 +4892,43 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var result = new List<DocumentElement>(elements.Count);
             foreach (var element in elements)
             {
-                if (element is TableElement table && HasPageField([table]))
+                if (element is TableElement table &&
+                    HasPageField([table]))
                 {
                     result.Add(
                         new TableElement
                         {
                             Properties = table.Properties,
-                            Rows = [.. table.Rows
-                                .Select(_ => new TableRow
-                                {
-                                    Cells = [.. _.Cells
-                                        .Select(cell => new TableCell
-                                        {
-                                            Content = SubstitutePageFields(cell.Content, numbering, sectionFormat),
-                                            Floats = cell.Floats,
-                                            FloatAnchorParagraphOrdinals = cell.FloatAnchorParagraphOrdinals,
-                                            Properties = cell.Properties
-                                        })],
-                                    HeightPoints = _.HeightPoints,
-                                    IsExactHeight = _.IsExactHeight,
-                                    IsHeader = _.IsHeader,
-                                    CannotSplit = _.CannotSplit,
-                                    OverrideBorders = _.OverrideBorders,
-                                    OverrideInsideHBorder = _.OverrideInsideHBorder,
-                                    OverrideInsideVBorder = _.OverrideInsideVBorder,
-                                    OverrideCellPadding = _.OverrideCellPadding
-                                })]
+                            Rows =
+                            [
+                                .. table.Rows
+                                    .Select(_ => new TableRow
+                                    {
+                                        Cells =
+                                        [
+                                            .. _.Cells
+                                                .Select(cell => new TableCell
+                                                {
+                                                    Content = SubstitutePageFields(cell.Content, numbering, sectionFormat),
+                                                    Floats = cell.Floats,
+                                                    FloatAnchorParagraphOrdinals = cell.FloatAnchorParagraphOrdinals,
+                                                    Properties = cell.Properties
+                                                })
+                                        ],
+                                        HeightPoints = _.HeightPoints,
+                                        IsExactHeight = _.IsExactHeight,
+                                        IsHeader = _.IsHeader,
+                                        CannotSplit = _.CannotSplit,
+                                        OverrideBorders = _.OverrideBorders,
+                                        OverrideInsideHBorder = _.OverrideInsideHBorder,
+                                        OverrideInsideVBorder = _.OverrideInsideVBorder,
+                                        OverrideCellPadding = _.OverrideCellPadding
+                                    })
+                            ]
                         });
                 }
                 else if (element is ParagraphElement paragraph &&
-                    paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
+                         paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
                 {
                     var runs = paragraph.Runs
                         .Select(_ => _.PageField switch
@@ -4777,14 +4941,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         .ToList();
                     result.Add(
                         new ParagraphElement
-                    {
-                        Runs = runs,
-                        Properties = paragraph.Properties,
-                        Source = paragraph.Source,
-                        IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
-                        IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
-                        IsSectionBreakMark = paragraph.IsSectionBreakMark
-                    });
+                        {
+                            Runs = runs,
+                            Properties = paragraph.Properties,
+                            Source = paragraph.Source,
+                            IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
+                            IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
+                            IsSectionBreakMark = paragraph.IsSectionBreakMark
+                        });
                 }
                 else
                 {
@@ -4864,11 +5028,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // the body, so its front-text shapes also sat under the body content — cards/05's two
                     // 0.5pt fold-guide rules (a full-height vertical and a full-width horizontal, both
                     // front-text page-anchored header shapes) were silently dropped by the behind-only gate.
-                    if (shape.ImageData is { Length: > 0 } shapeImage && shape.ImageContentType != "image/svg+xml")
+                    if (shape.ImageData is {Length: > 0} shapeImage &&
+                        shape.ImageContentType != "image/svg+xml")
                     {
                         items.Add(ShapeImage(shape, shapeX, shapeY, shapeImage));
                     }
-                    else if (shape.ImageData == null && (shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null))
+                    else if (shape.ImageData == null &&
+                             (shape.Gradient != null ||
+                              shape.FillColorHex != null ||
+                              shape.LineColorHex != null))
                     {
                         items.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
                     }
@@ -5016,7 +5184,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // region, so only those opening lines are held; one that cannot split is held whole.
                     var lines = measurer.LayoutLineContents(paragraph, columnWidth);
                     var together = properties.WidowControl ? 2 : 1;
-                    var splits = !properties.KeepLines && lines.Count >= together * 2;
+                    var splits = !properties.KeepLines &&
+                                 lines.Count >= together * 2;
                     var held = splits ? together : lines.Count;
                     for (var line = 0; line < held; line++)
                     {
@@ -5145,8 +5314,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return 0;
             }
 
-            var kept = remaining - (properties.WidowControl && remaining >= 2 ? 2 : 1);
-            if (properties.WidowControl && kept == 1)
+            var kept = remaining - (properties.WidowControl &&
+                                    remaining >= 2
+                ? 2
+                : 1);
+            if (properties.WidowControl &&
+                kept == 1)
             {
                 return 0;
             }
@@ -5168,7 +5341,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     return RowKeeps(table.Rows[rowIndex]) ? run + keepAfter : run;
                 }
 
-                if (!RowKeeps(table.Rows[rowIndex]) && !IsMergeContinuation(table.Rows[rowIndex + 1]))
+                if (!RowKeeps(table.Rows[rowIndex]) &&
+                    !IsMergeContinuation(table.Rows[rowIndex + 1]))
                 {
                     return run;
                 }
@@ -5187,8 +5361,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 var row = table.Rows[rowIndex];
                 var startsRun = rowIndex == 0
-                    ? !atRegionTop && !keptBefore
-                    : !RowKeeps(table.Rows[rowIndex - 1]) && !IsMergeContinuation(row);
+                    ? !atRegionTop &&
+                      !keptBefore
+                    : !RowKeeps(table.Rows[rowIndex - 1]) &&
+                      !IsMergeContinuation(row);
                 if (startsRun &&
                     RowKeeps(row) &&
                     top + KeptRun(table, rowHeights, rowIndex, keepAfter) > contentBottom)
@@ -5226,7 +5402,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         static float AlignmentOffset(TextAlignment alignment, float availableWidth, float lineWidth, bool allowOverhang = false)
         {
             var slack = availableWidth - lineWidth;
-            if (slack <= 0 && !allowOverhang)
+            if (slack <= 0 &&
+                !allowOverhang)
             {
                 return 0;
             }
@@ -5246,7 +5423,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // (see MarkerRun) while the text stays at the LeftIndent on every line, so the text must not shift.
         static float FirstLineIndentOffset(ParagraphProperties properties, int lineIndex)
         {
-            if (lineIndex == 0 && properties.Numbering is not { Text.Length: > 0 })
+            if (lineIndex == 0 &&
+                properties.Numbering is not {Text.Length: > 0})
             {
                 return (float) (properties.FirstLineIndentPoints - properties.HangingIndentPoints);
             }
@@ -5258,7 +5436,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // paragraph — the list marker positioned in the hanging-indent gutter to the left of the text.
         IReadOnlyList<PlacedRun> LineRuns(ParagraphElement paragraph, LaidOutLine line, int lineIndex, float lineLeft)
         {
-            if (lineIndex == 0 && paragraph.Properties.Numbering is { Text.Length: > 0 } numbering)
+            if (lineIndex == 0 &&
+                paragraph.Properties.Numbering is {Text.Length: > 0} numbering)
             {
                 // The marker and the FIRST line's text where the level's suffix puts them
                 // (CanonicalParagraphMeasurer.MarkerPlacement, whose text shift the wrap
@@ -5319,7 +5498,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var y = baseline - effectBottom - image.Height;
                 if (image.Chart is { } chart)
                 {
-                    var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() { Content = content }, left, top, width, height, alignment));
+                    var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() {Content = content}, left, top, width, height, alignment));
                     images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: composer.Compose(chart, x, y, image.Width, image.Height));
                     continue;
                 }

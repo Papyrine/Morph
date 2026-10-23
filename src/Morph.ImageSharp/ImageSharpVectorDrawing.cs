@@ -30,7 +30,8 @@ static class ImageSharpVectorDrawing
         {
             var clip = paths[start].Clip;
             var end = start + 1;
-            while (end < paths.Count && ReferenceEquals(paths[end].Clip, clip))
+            while (end < paths.Count &&
+                   ReferenceEquals(paths[end].Clip, clip))
             {
                 end++;
             }

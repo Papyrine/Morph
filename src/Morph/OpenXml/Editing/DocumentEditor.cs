@@ -162,7 +162,8 @@ static partial class DocumentEditor
     public static OpenXmlElement? NextBlock(OpenXmlElement element)
     {
         var next = element.NextSibling();
-        while (next != null && IsRangeMark(next))
+        while (next != null &&
+               IsRangeMark(next))
         {
             next = next.NextSibling();
         }
@@ -174,7 +175,8 @@ static partial class DocumentEditor
     public static OpenXmlElement? PreviousBlock(OpenXmlElement element)
     {
         var previous = element.PreviousSibling();
-        while (previous != null && IsRangeMark(previous))
+        while (previous != null &&
+               IsRangeMark(previous))
         {
             previous = previous.PreviousSibling();
         }
@@ -238,12 +240,14 @@ static partial class DocumentEditor
         {
             if (!cell.Mark)
             {
-                if (Right is { } right && right.Unit == cell.Unit)
+                if (Right is { } right &&
+                    right.Unit == cell.Unit)
                 {
                     return AtRight;
                 }
 
-                if (Gone is { } gone && gone.Unit == cell.Unit)
+                if (Gone is { } gone &&
+                    gone.Unit == cell.Unit)
                 {
                     return AtGone;
                 }
@@ -423,7 +427,8 @@ static partial class DocumentEditor
                     }
 
                     if (item.Unit >= units.Count ||
-                        (item.Unit >= 0 && !units[item.Unit].Editable))
+                        (item.Unit >= 0 &&
+                         !units[item.Unit].Editable))
                     {
                         throw new InvalidOperationException($"The paragraph has no text unit {item.Unit}.");
                     }
@@ -484,7 +489,8 @@ static partial class DocumentEditor
             {
                 var last = index;
                 var kind = steps[index].Kind;
-                while (index >= 0 && steps[index].Kind == kind)
+                while (index >= 0 &&
+                       steps[index].Kind == kind)
                 {
                     index--;
                 }
@@ -522,7 +528,8 @@ static partial class DocumentEditor
             for (var step = first - 1; step >= 0; step--)
             {
                 if (steps[step].Kind == StepKind.Keep ||
-                    (options.Track && steps[step].Kind == StepKind.Delete))
+                    (options.Track &&
+                     steps[step].Kind == StepKind.Delete))
                 {
                     return old[steps[step].Old];
                 }
@@ -719,10 +726,12 @@ static partial class DocumentEditor
             var end = pieces.Count;
             Point? point = null;
             var reach = int.MaxValue;
-            var intoLeft = beside.Left is { } before && Joins(pieces[0], before);
+            var intoLeft = beside.Left is { } before &&
+                           Joins(pieces[0], before);
             if (beside.Right is { } after &&
                 Joins(pieces[^1], after) &&
-                !(intoLeft && end == 1))
+                !(intoLeft &&
+                  end == 1))
             {
                 var (child, index) = Into(after.Cell.Run, after.Cell.Child, after.Cell.Index, pieces[^1]);
                 end--;
@@ -799,7 +808,8 @@ static partial class DocumentEditor
                 if (piece[0].Mark ||
                     piece[0].Unit < 0 ||
                     units[piece[0].Unit].Run.Ancestors<Hyperlink>().FirstOrDefault() is not { } own ||
-                    (link != null && own != link))
+                    (link != null &&
+                     own != link))
                 {
                     return null;
                 }
@@ -860,7 +870,8 @@ static partial class DocumentEditor
                 return true;
             }
 
-            return Insertion(neighbour.Cell.Run) is { } insertion && IsOwn(insertion);
+            return Insertion(neighbour.Cell.Run) is { } insertion &&
+                   IsOwn(insertion);
         }
 
         // Where inserted text goes when no run takes it in.
@@ -1201,7 +1212,8 @@ static partial class DocumentEditor
             foreach (var character in text.Replace("\r\n", "\n").Replace('\r', '\n'))
             {
                 if (character is '\t' or '\n' ||
-                    (character >= ' ' && character is not ('￾' or '￿')))
+                    (character >= ' ' &&
+                     character is not ('￾' or '￿')))
                 {
                     builder.Append(character);
                 }
@@ -1432,7 +1444,8 @@ static partial class DocumentEditor
         {
             var insertion = Insertion(run);
             if (!options.Track ||
-                (insertion != null && IsOwn(insertion)))
+                (insertion != null &&
+                 IsOwn(insertion)))
             {
                 Erase(cells);
                 return;
@@ -1614,7 +1627,8 @@ static partial class DocumentEditor
         List<List<Cell>> Between(SourcePosition start, SourcePosition end)
         {
             if (end.Run < start.Run ||
-                (end.Run == start.Run && end.Offset < start.Offset))
+                (end.Run == start.Run &&
+                 end.Offset < start.Offset))
             {
                 (start, end) = (end, start);
             }
@@ -1667,7 +1681,8 @@ static partial class DocumentEditor
         OoxmlRunProperties Rerun(OoxmlRun run)
         {
             if (options.Track &&
-                !(Insertion(run) is { } insertion && IsOwn(insertion)) &&
+                !(Insertion(run) is { } insertion &&
+                  IsOwn(insertion)) &&
                 run.RunProperties?.GetFirstChild<RunPropertiesChange>() == null)
             {
                 var previous = new PreviousRunProperties();
@@ -1915,7 +1930,8 @@ static partial class DocumentEditor
             var mark = first.ParagraphProperties?.ParagraphMarkRunProperties;
             var inserted = mark?.ChildElements.FirstOrDefault(_ => _ is Inserted or MoveTo);
             if (options.Track &&
-                !(inserted != null && IsOwn(inserted)))
+                !(inserted != null &&
+                  IsOwn(inserted)))
             {
                 // The break stays in the file, struck out. Until the deletion is settled the two
                 // are still two paragraphs.

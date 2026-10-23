@@ -197,7 +197,8 @@ public class NumberingTests
         {
             foreach (var element in elements)
             {
-                if (element is ParagraphElement paragraph && string.Concat(paragraph.Runs.Select(_ => _.Text)).Contains("Membership"))
+                if (element is ParagraphElement paragraph &&
+                    string.Concat(paragraph.Runs.Select(_ => _.Text)).Contains("Membership"))
                 {
                     return paragraph;
                 }

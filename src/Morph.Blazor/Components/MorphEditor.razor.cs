@@ -108,7 +108,8 @@ public partial class MorphEditor
             yield return reviewTab;
             yield return view;
             // A contextual tab, after the others, as Word's Table Layout is.
-            if (InTable && IsWord)
+            if (InTable &&
+                IsWord)
             {
                 yield return table;
             }

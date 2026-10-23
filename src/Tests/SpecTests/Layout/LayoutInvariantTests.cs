@@ -37,7 +37,8 @@ public class LayoutInvariantTests
             var bodyLines = new List<PlacedLine>();
             foreach (var item in page.Items)
             {
-                if (item is PlacedLine line && body.Contains(line.Paragraph))
+                if (item is PlacedLine line &&
+                    body.Contains(line.Paragraph))
                 {
                     bodyLines.Add(line);
                     foreach (var run in Inked(line))
@@ -79,7 +80,8 @@ public class LayoutInvariantTests
 
                     var horizontal = Math.Min(a.X + a.Width, b.X + b.Width) - Math.Max(a.X, b.X);
                     var vertical = Math.Min(a.Y + a.Height, b.Y + b.Height) - Math.Max(a.Y, b.Y);
-                    if (horizontal > tolerance && vertical > tolerance)
+                    if (horizontal > tolerance &&
+                        vertical > tolerance)
                     {
                         violations.Add($"page {page.Number}: '{Inked(a).First().Text}' and '{Inked(b).First().Text}' overlap by {vertical:F1}pt");
                     }

@@ -14,7 +14,6 @@ public sealed record ImageExportOptions : ExportOptions
     /// </summary>
     public double FontWidthScale { get; init; } = DefaultFontSettings.FontWidthScale;
 
-
     /// <summary>
     /// Overrides <see cref="DefaultFontSettings.DeterministicRendering"/> for this conversion. When
     /// true the Skia backend renders glyphs with greyscale AA, integer x positions, and no font

@@ -266,7 +266,8 @@ static class ImageSharpPainter
         // w:w stretches the run about its own start, glyphs and advances alike (SkiaPainter.PaintLine).
         // A nested Save replaces the transform rather than composing with it, so the shear and the
         // stretch go in as one matrix: x' = scale * (x - skew * (y - baseline) - penX) + penX.
-        var oblique = properties.Italic && !font.IsItalic;
+        var oblique = properties.Italic &&
+                      !font.IsItalic;
         var scale = (float) (properties.CharacterScalePercent / 100);
         var transformed = oblique || scale != 1;
         if (transformed)
@@ -296,7 +297,8 @@ static class ImageSharpPainter
             var x = P(context, penX);
             for (var i = 0; i < text.Length; i++)
             {
-                var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+                var length = char.IsHighSurrogate(text[i]) &&
+                             i + 1 < text.Length ? 2 : 1;
                 var piece = text.Substring(i, length);
                 canvas.DrawText(Options(context, font, x, baselineY, properties), piece.AsSpan(), brush, pen);
                 x += P(context, context.MeasureText(font, piece)) + trackingPixels;
@@ -459,7 +461,8 @@ static class ImageSharpPainter
         {
             // A tiled fill is composed into a picture of the box's size first (see SkiaPainter.DrawPicture);
             // one too finely tiled to compose falls back to the stretch.
-            processed = image.Tile is { } tile && Math.Abs(image.RotationDegrees) <= 0.01
+            processed = image.Tile is { } tile &&
+                        Math.Abs(image.RotationDegrees) <= 0.01
                 ? context.GetTiledImage(data, width, height, tile, image.Width, image.Height, image.Recolor, image.Opacity)
                 : null;
             processed ??= context.GetProcessedImage(data, width, height, image.Crop, image.Recolor, (float) image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.Opacity);
@@ -472,7 +475,8 @@ static class ImageSharpPainter
 
         // The outline the picture is cut to (see SkiaPainter.PaintImage). A turned picture's bitmap is
         // its turned bounds, which the outline no longer fits, so it is left uncut.
-        var cut = (image.ClipToEllipse || image.ClipSubpaths != null) && Math.Abs(image.RotationDegrees) <= 0.01;
+        var cut = (image.ClipToEllipse || image.ClipSubpaths != null) &&
+                  Math.Abs(image.RotationDegrees) <= 0.01;
         if (cut)
         {
             processed = context.GetClippedImage(processed, image.ClipSubpaths, image.FlipHorizontal, image.FlipVertical) ?? processed;
@@ -495,7 +499,8 @@ static class ImageSharpPainter
         canvas.DrawImage(processed, new(left, top));
 
         // The picture's a:ln (see SkiaPainter.PaintImageOutline): a band outside the unrotated box.
-        if (image.Outline is { } outline && !cut)
+        if (image.Outline is { } outline &&
+            !cut)
         {
             var strokeWidth = P(context, (float) outline.WidthPoints);
             var half = strokeWidth / 2;
@@ -650,7 +655,8 @@ static class ImageSharpPainter
             line = DashedPen(lineColor, lineWidth, shape.LineDashPattern) ?? context.GetPen(lineColor, lineWidth);
         }
 
-        if (fill == null && line == null)
+        if (fill == null &&
+            line == null)
         {
             return;
         }
@@ -808,7 +814,8 @@ static class ImageSharpPainter
 
         void Wave(BorderEdge edge, bool horizontal, float from, float to, float at, int outward)
         {
-            if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+            if (BorderStroke.Draws(edge) &&
+                BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
             {
                 StrokeWaves(context, canvas, edge, waves, horizontal, from, to, at, outward);
             }

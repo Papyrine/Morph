@@ -66,8 +66,8 @@ public class CanonicalFragmenterTests
         // 260pt column of Page(): 20 + (260 − 300) / 2 = 0.
         var table = new TableElement
         {
-            Rows = [new() { Cells = [new() { Properties = new() { WidthPoints = 150 }, Content = [P("a")] }, new() { Properties = new() { WidthPoints = 150 }, Content = [P("b")] }] }],
-            Properties = new() { GridColumnWidths = [150, 150], PreferredWidthPoints = 300, IsAutoFit = true, Alignment = TextAlignment.Center }
+            Rows = [new() {Cells = [new() {Properties = new() {WidthPoints = 150}, Content = [P("a")]}, new() {Properties = new() {WidthPoints = 150}, Content = [P("b")]}]}],
+            Properties = new() {GridColumnWidths = [150, 150], PreferredWidthPoints = 300, IsAutoFit = true, Alignment = TextAlignment.Center}
         };
 
         var document = fragmenter.Layout([table], Page(200));
@@ -144,7 +144,7 @@ public class CanonicalFragmenterTests
     [Arguments(0.5)]
     public async Task An_auto_spaced_line_fits_its_natural_box_and_lets_added_leading_overhang(double multiplier)
     {
-        var properties = new ParagraphProperties { LineSpacingMultiplier = multiplier };
+        var properties = new ParagraphProperties {LineSpacingMultiplier = multiplier};
         var paragraph = P(string.Join(' ', Enumerable.Repeat("lorem", 98)), properties);
         var lines = LayoutTestFonts.Measurer.LayoutLineContents(paragraph, (float) Page(400).ContentWidth);
         var line = lines[0];
@@ -588,14 +588,15 @@ public class CanonicalFragmenterTests
                 .Where(_ => ReferenceEquals(_.Paragraph, paragraph))
                 .Select(_ => number + 1)));
 
+    // A one-column table of one-line rows. Row `index` keeps with next when `keeps(index)`: its first
     static string RowPages(LaidOutDocument document, TableElement table) =>
         string.Concat(
             document.Pages.SelectMany((page, number) => page.Items
                 .OfType<PlacedTableRow>()
-                .Where(_ => ReferenceEquals(_.Table, table) && !_.IsRepeatedHeader)
+                .Where(_ => ReferenceEquals(_.Table, table) &&
+                            !_.IsRepeatedHeader)
                 .Select(_ => number + 1)));
 
-    // A one-column table of one-line rows. Row `index` keeps with next when `keeps(index)`: its first
     // cell's first paragraph carries the flag, which is what Word reads a row's keep from. `cells` adds
     // unkept cells beside it, and `keepInCell` moves the flag into that cell instead.
     static TableElement KeptRowsTable(int rows, Func<int, bool> keeps, int cells = 1, int keepInCell = 0) =>
@@ -610,7 +611,14 @@ public class CanonicalFragmenterTests
                     [
                         .. Enumerable.Range(0, cells).Select(cell => new TableCell
                         {
-                            Content = [P($"Row {row} cell {cell}", keeps(row) && cell == keepInCell ? Kept : null)],
+                            Content =
+                            [
+                                P($"Row {row} cell {cell}",
+                                    keeps(row) &&
+                                    cell == keepInCell
+                                        ? Kept
+                                        : null)
+                            ],
                             Properties = new()
                         })
                     ]
@@ -687,7 +695,7 @@ public class CanonicalFragmenterTests
     [Arguments(5, "1", "1122")]
     public async Task A_chain_of_kept_paragraphs_moves_as_one(int free, string chainPage, string nextPages)
     {
-        var chain = new[] { Lines("A", 1, Kept), Lines("B", 1, Kept), Lines("C", 1, Kept) };
+        var chain = new[] {Lines("A", 1, Kept), Lines("B", 1, Kept), Lines("C", 1, Kept)};
         var next = Lines("D", 4);
 
         // Four free lines hold the chain and one line of D, which its orphan rule will not leave alone;
@@ -1472,15 +1480,15 @@ public class CanonicalFragmenterTests
             [
                 new TableElement
                 {
-                    Properties = new() { GridColumnWidths = [100, 100] },
+                    Properties = new() {GridColumnWidths = [100, 100]},
                     Rows =
                     [
                         new()
                         {
                             Cells =
                             [
-                                new() { Content = [new ParagraphElement { Runs = [TextRun("left")] }] },
-                                new() { Content = [new ParagraphElement { Runs = [field] }] }
+                                new() {Content = [new ParagraphElement {Runs = [TextRun("left")]}]},
+                                new() {Content = [new ParagraphElement {Runs = [field]}]}
                             ]
                         }
                     ]
@@ -1600,7 +1608,8 @@ public class CanonicalFragmenterTests
         // cards/02's code box: a line that starts inside the box stays, even cut by its edge; a line
         // that starts past its bottom is not shown. A box that grows to its text shows everything.
         // Single-spaced 11pt lines about 13.4pt apart: "second" starts inside the 20pt box, "third" below it.
-        var single = new ParagraphProperties { SpacingAfterPoints = 0, LineSpacingMultiplier = 1 };
+        var single = new ParagraphProperties {SpacingAfterPoints = 0, LineSpacingMultiplier = 1};
+
         FloatingTextBoxElement Box(bool hidesOverflow) => new()
         {
             Content = [P("first", single), P("second", single), P("third", single)],
@@ -3226,11 +3235,11 @@ public class CanonicalFragmenterTests
     {
         // Exact 20pt lines: the 360pt band of Page(400) holds 18; the continued section's 200pt bottom
         // margin leaves a 180pt band, 9 lines.
-        var exact = new ParagraphProperties { LineSpacingRule = LineSpacingRule.Exactly, LineSpacingPoints = 20 };
-        var second = Page(400) with { MarginBottom = 200, ColumnCount = columns, ColumnSpacing = 20 };
+        var exact = new ParagraphProperties {LineSpacingRule = LineSpacingRule.Exactly, LineSpacingPoints = 20};
+        var second = Page(400) with {MarginBottom = 200, ColumnCount = columns, ColumnSpacing = 20};
         var lines = Enumerable.Range(1, 60).Select(DocumentElement (_) => P($"line{_}", exact));
         var document = fragmenter.Layout(
-            [P("first", exact), new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = second }, .. lines],
+            [P("first", exact), new SectionBreakElement {BreakType = SectionBreakType.Continuous, NewSectionSettings = second}, .. lines],
             Page(400));
 
         static float Lowest(LaidOutPage page) => page.Items.OfType<PlacedLine>().Max(_ => _.Y + _.Height);
@@ -3417,7 +3426,7 @@ public class CanonicalFragmenterTests
     {
         var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
         var document = fragmenter.Layout(
-            [.. items, new SectionBreakElement { BreakType = Enum.Parse<SectionBreakType>(type), NewSectionSettings = ThreeColumnSheet(1) }, P("footer")],
+            [.. items, new SectionBreakElement {BreakType = Enum.Parse<SectionBreakType>(type), NewSectionSettings = ThreeColumnSheet(1)}, P("footer")],
             ThreeColumnSheet(3));
 
         var itemLines = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(_ => _.Text.StartsWith("Item"))).ToList();
@@ -3435,7 +3444,7 @@ public class CanonicalFragmenterTests
     {
         var items = Enumerable.Range(1, 6).Select(_ => P($"Item {_}")).ToArray();
         var document = fragmenter.Layout(
-            [.. items, new SectionBreakElement { BreakType = SectionBreakType.Continuous, NewSectionSettings = ThreeColumnSheet(3) }, P("tail")],
+            [.. items, new SectionBreakElement {BreakType = SectionBreakType.Continuous, NewSectionSettings = ThreeColumnSheet(3)}, P("tail")],
             ThreeColumnSheet(3));
 
         var lines = document.Pages[0].Items.OfType<PlacedLine>().ToList();

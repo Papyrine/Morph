@@ -256,7 +256,8 @@ static class FontMetricsReader
 
         var fsSelection = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(62, 2));
         var version = BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(0, 2));
-        var codePages = version >= 1 && bytes.Length >= 82 ? BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(78, 4)) : 0u;
+        var codePages = version >= 1 &&
+                        bytes.Length >= 82 ? BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(78, 4)) : 0u;
         return (
             BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(74, 2)),
             BinaryPrimitives.ReadUInt16BigEndian(bytes.AsSpan(76, 2)),
@@ -317,7 +318,8 @@ static class FontMetricsReader
                 (0, _) => 2,
                 _ => -1
             };
-            if (score > bestScore && subtableOffset < (uint) bytes.Length)
+            if (score > bestScore &&
+                subtableOffset < (uint) bytes.Length)
             {
                 bestScore = score;
                 bestOffset = subtableOffset;

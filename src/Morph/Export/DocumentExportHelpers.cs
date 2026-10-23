@@ -86,7 +86,9 @@ static class DocumentExportHelpers
             }
         }
 
-        return hasDigit || (hasLetter && hasSeparator);
+        return hasDigit ||
+               (hasLetter &&
+                hasSeparator);
     }
 
     /// <summary>
@@ -140,7 +142,8 @@ static class DocumentExportHelpers
     static bool IsShallower(ListNode ancestor, ListNode node)
     {
         if (ancestor.Level is {} ancestorLevel &&
-            node.Level is {} nodeLevel && ancestorLevel != nodeLevel)
+            node.Level is {} nodeLevel &&
+            ancestorLevel != nodeLevel)
         {
             return ancestorLevel < nodeLevel;
         }
@@ -350,7 +353,8 @@ static class DocumentExportHelpers
             }
 
             var start = index;
-            while (index < text.Length && char.IsAsciiDigit(text[index]))
+            while (index < text.Length &&
+                   char.IsAsciiDigit(text[index]))
             {
                 index++;
             }
@@ -396,7 +400,8 @@ static class DocumentExportHelpers
                 continue;
             }
 
-            value += previous != 0 && previous < digit ? digit - 2 * previous : digit;
+            value += previous != 0 &&
+                     previous < digit ? digit - 2 * previous : digit;
             previous = digit;
             matched++;
         }

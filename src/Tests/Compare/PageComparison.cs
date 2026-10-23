@@ -52,7 +52,8 @@ static class PageComparison
             return null;
         }
 
-        if (expected.Width == actual.Width && expected.Height == actual.Height)
+        if (expected.Width == actual.Width &&
+            expected.Height == actual.Height)
         {
             return Math.Round(Ssim.Compare(expected, actual), 4);
         }
@@ -64,7 +65,8 @@ static class PageComparison
 
     static PngImage Crop(PngImage image, int width, int height)
     {
-        if (image.Width == width && image.Height == height)
+        if (image.Width == width &&
+            image.Height == height)
         {
             return image;
         }

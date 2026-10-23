@@ -193,7 +193,8 @@ public class BundledBoldCoverageTests
 
         var fallbackName = FontHelpers.FindFallback(candidates);
         if (fallbackName == null ||
-            (face != null && delta < weightFallbackThreshold))
+            (face != null &&
+             delta < weightFallbackThreshold))
         {
             return face;
         }

@@ -157,7 +157,8 @@ public static class ImageCompressor
 
         // absent from widths means no drawing states a size for it, so there is nothing to say how
         // many pixels it needs and it must not be resampled
-        var drawnInches = widths.TryGetValue(partName, out var inches) && inches > 0 ? inches : (double?) null;
+        var drawnInches = widths.TryGetValue(partName, out var inches) &&
+                          inches > 0 ? inches : (double?) null;
         var renderedDpi = drawnInches is null ? null : probe.Width / drawnInches;
 
         var targetWidth = TargetWidth(probe, options, drawnInches, renderedDpi);
@@ -331,9 +332,15 @@ public static class ImageCompressor
             // keep the target relative when it started that way and still can be, since that is
             // how Word writes them; otherwise fall back to the always-valid absolute form
             var owning = PackagePaths.OwningDirectory(relsPartName);
-            target.Value = !target.Value.StartsWith('/') && renamed.StartsWith(owning, StringComparison.OrdinalIgnoreCase)
-                ? renamed[owning.Length..]
-                : $"/{renamed}";
+            if (!target.Value.StartsWith('/') &&
+                renamed.StartsWith(owning, StringComparison.OrdinalIgnoreCase))
+            {
+                target.Value = renamed[owning.Length..];
+            }
+            else
+            {
+                target.Value = $"/{renamed}";
+            }
         }
     }
 

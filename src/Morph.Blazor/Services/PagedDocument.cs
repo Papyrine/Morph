@@ -191,7 +191,11 @@ sealed class PagedDocument : IDisposable
                 {
                     switch (item)
                     {
-                        case PlacedImage {Data: { } data} placed when sources.TryGetValue(data, out var source) && source is { } from:
+                        case PlacedImage
+                        {
+                            Data: { } data
+                        } placed when sources.TryGetValue(data, out var source) &&
+                                      source is { } from:
                             if (outline.ParagraphOf(from.Run) is { } paragraph &&
                                 paragraph.OffsetOf(new(from.Run, from.Start)) is { } offset)
                             {

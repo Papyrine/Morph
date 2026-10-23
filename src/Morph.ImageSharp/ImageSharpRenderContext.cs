@@ -178,7 +178,8 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         // flags and its name call for.
         var effectiveBold = bold || FontHelpers.ImpliesBold(fontFamily);
         var style = FontStyle.Regular;
-        if (effectiveBold && italic)
+        if (effectiveBold &&
+            italic)
         {
             style = FontStyle.BoldItalic;
         }
@@ -399,7 +400,8 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     {
         var key = (font, kerning);
         var isSpace = text == " ";
-        if (isSpace && spaceWidthCache.TryGetValue(key, out var spaceWidth))
+        if (isSpace &&
+            spaceWidthCache.TryGetValue(key, out var spaceWidth))
         {
             return spaceWidth;
         }
@@ -596,7 +598,8 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
         }
 
         Image<Rgba32>? image = null;
-        if (width > 0 && height > 0)
+        if (width > 0 &&
+            height > 0)
         {
             try
             {
@@ -685,7 +688,9 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
 
         Image<Rgba32>? composed = null;
         var corners = tile.Corners(boxWidthPoints, boxHeightPoints).Take(maxTiles + 1).ToList();
-        if (corners.Count is > 0 and <= maxTiles && width > 0 && height > 0)
+        if (corners.Count is > 0 and <= maxTiles &&
+            width > 0 &&
+            height > 0)
         {
             composed = new(width, height);
             foreach (var (cornerX, cornerY) in corners)

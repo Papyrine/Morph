@@ -317,14 +317,17 @@ public class VectorPageComparison
                     var shiftedRow = (y + shiftY) * width;
                     for (var x = Math.Max(0, -shiftX); x < Math.Min(width, width - shiftX); x++)
                     {
-                        if (light[row + x] && pngInk[row + x] && svgInk[shiftedRow + x + shiftX])
+                        if (light[row + x] &&
+                            pngInk[row + x] &&
+                            svgInk[shiftedRow + x + shiftX])
                         {
                             overlap++;
                         }
                     }
                 }
 
-                if (overlap > bestOverlap || (overlap == bestOverlap && Math.Abs(shiftX) + Math.Abs(shiftY) < Math.Abs(bestX) + Math.Abs(bestY)))
+                if (overlap > bestOverlap || (overlap == bestOverlap &&
+                                              Math.Abs(shiftX) + Math.Abs(shiftY) < Math.Abs(bestX) + Math.Abs(bestY)))
                 {
                     (bestX, bestY, bestOverlap) = (shiftX, shiftY, overlap);
                 }
@@ -426,7 +429,9 @@ public class VectorPageComparison
                 for (var offset = -radius; offset <= radius; offset++)
                 {
                     var column = x + offset;
-                    if (column >= 0 && column < width && mask[y * width + column])
+                    if (column >= 0 &&
+                        column < width &&
+                        mask[y * width + column])
                     {
                         across[y * width + x] = true;
                         break;
@@ -443,7 +448,9 @@ public class VectorPageComparison
                 for (var offset = -radius; offset <= radius; offset++)
                 {
                     var row = y + offset;
-                    if (row >= 0 && row < height && across[row * width + x])
+                    if (row >= 0 &&
+                        row < height &&
+                        across[row * width + x])
                     {
                         spread[y * width + x] = true;
                         break;

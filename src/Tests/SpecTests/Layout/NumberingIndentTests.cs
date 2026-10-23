@@ -13,8 +13,11 @@ public class NumberingIndentTests
     public async Task A_style_that_switches_numbering_off_sheds_the_base_style_numbering_indent()
     {
         var document = new DocumentParser().Parse(Fixture);
-        var title = AllParagraphs(document.Elements).First(_ => _.Properties.StyleId == "Title" && _.Runs.Any(run => run.Text == "Business"));
-        var heading = AllParagraphs(document.Elements).First(_ => _.Properties.StyleId == "Heading1");
+        var title = AllParagraphs(document.Elements)
+            .First(_ => _.Properties.StyleId == "Title" &&
+                        _.Runs.Any(run => run.Text == "Business"));
+        var heading = AllParagraphs(document.Elements)
+            .First(_ => _.Properties.StyleId == "Heading1");
 
         await Assert.That(title.Properties.LeftIndentPoints).IsEqualTo(0).Within(0.01);
         await Assert.That(title.Properties.HangingIndentPoints).IsEqualTo(0).Within(0.01);

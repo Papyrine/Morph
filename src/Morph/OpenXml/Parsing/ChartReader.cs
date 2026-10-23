@@ -84,7 +84,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             CategoryAxis = axes.FirstOrDefault(_ => _.LocalName is "catAx" or "dateAx") is { } categoryAxis ? Axis(categoryAxis, labelText) : null,
             ValueAxis = axes.FirstOrDefault(_ => _.LocalName == "valAx") is { } valueAxis ? Axis(valueAxis, labelText) : null,
             Legend = Child(chart, "legend") is { } legend ? Legend(legend, labelText) : null,
-            Title = Child(chart, "title") is { } title && !autoTitleDeleted ? Title(title, text, series) : null,
+            Title = Child(chart, "title") is { } title &&
+                    !autoTitleDeleted ? Title(title, text, series) : null,
             PlotLayout = Rect(layout),
             PlotLayoutIsInner = Attribute(Child(layout, "layoutTarget"), "val") == "inner",
             Area = Fill(Child(chartSpace, "spPr"), defaultFill: "FFFFFF", defaultLine: new("D9D9D9", 0.75, 1)),
@@ -171,10 +172,16 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
 
         // A point's own dLbl can carry the flags and text the series' block leaves out; the block's own
         // settles the rest.
-        var styled = labels.Elements().FirstOrDefault(_ => _.LocalName == "dLbl" && Child(_, "txPr") != null);
+        var styled = labels
+            .Elements()
+            .FirstOrDefault(_ => _.LocalName == "dLbl" &&
+                                 Child(_, "txPr") != null);
         var result = new ChartDataLabels
         {
-            ShowValue = Flag(labels, "showVal") || labels.Elements().Any(_ => _.LocalName == "dLbl" && Flag(_, "showVal")),
+            ShowValue = Flag(labels, "showVal") ||
+                        labels.Elements()
+                            .Any(_ => _.LocalName == "dLbl" &&
+                                      Flag(_, "showVal")),
             ShowPercent = Flag(labels, "showPercent"),
             ShowCategory = Flag(labels, "showCatName"),
             FormatCode = Attribute(Child(labels, "numFmt"), "formatCode"),
@@ -256,7 +263,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             return inherited;
         }
 
-        var size = Attribute(defaults, "sz") is { } hundredths && double.TryParse(hundredths, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+        var size = Attribute(defaults, "sz") is { } hundredths &&
+                   double.TryParse(hundredths, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
             ? parsed / 100
             : inherited.SizePoints;
         var family = Attribute(Child(defaults, "latin"), "typeface") switch
@@ -296,7 +304,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             return null;
         }
 
-        var width = Attribute(line, "w") is { } emus && long.TryParse(emus, out var parsed) ? parsed / OoxmlUnits.EmusPerPoint : 0.75;
+        var width = Attribute(line, "w") is { } emus &&
+                    long.TryParse(emus, out var parsed) ? parsed / OoxmlUnits.EmusPerPoint : 0.75;
         return new(color, width, ShapeParser.ExtractSolidFillAlpha(solid));
     }
 
@@ -366,7 +375,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         Array.Fill(result, "");
         foreach (var point in level.Elements().Where(_ => _.LocalName == "pt"))
         {
-            if (int.TryParse(Attribute(point, "idx"), out var index) && index >= 0)
+            if (int.TryParse(Attribute(point, "idx"), out var index) &&
+                index >= 0)
             {
                 if (index >= result.Length)
                 {
@@ -400,7 +410,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
 
     // A CT_Boolean: present with no val means on.
     static bool On(OpenXmlElement? element) =>
-        element != null && (Value(element) ?? 1) == 1;
+        element != null &&
+        (Value(element) ?? 1) == 1;
 
     static OpenXmlElement? Child(OpenXmlElement? parent, string localName) =>
         parent?.Elements().FirstOrDefault(_ => _.LocalName == localName);

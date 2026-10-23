@@ -331,7 +331,8 @@ public class TableAutofitTests
                 foreach (var token in run.Text.Split(' '))
                 {
                     var tokenLen = (float)token.Length;
-                    if (current > 0 && current + 1 + tokenLen > maxWidth)
+                    if (current > 0 &&
+                        current + 1 + tokenLen > maxWidth)
                     {
                         if (current > widest)
                         {

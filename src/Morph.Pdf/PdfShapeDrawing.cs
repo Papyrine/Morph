@@ -172,7 +172,8 @@ static class PdfShapeDrawing
         var data = shape.ImageContentType == "image/svg+xml"
             ? shape.ImageRasterFallbackData
             : shape.ImageData;
-        if (vector == null && data == null)
+        if (vector == null &&
+            data == null)
         {
             return;
         }

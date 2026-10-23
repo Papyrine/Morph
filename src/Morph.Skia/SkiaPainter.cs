@@ -58,7 +58,9 @@ static class SkiaPainter
     // rather than composing with it. Both painters therefore work the same way.
     static void Encode(SKBitmap bitmap, (int X, int Y, int Width, int Height) rect, Action<Action<Stream>> pageCallback)
     {
-        if (rect is { X: 0, Y: 0 } && rect.Width == bitmap.Width && rect.Height == bitmap.Height)
+        if (rect is { X: 0, Y: 0 } &&
+            rect.Width == bitmap.Width &&
+            rect.Height == bitmap.Height)
         {
             Write(bitmap, pageCallback);
             return;
@@ -300,7 +302,9 @@ static class SkiaPainter
 
     static void DrawSpaced(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, float y, SKFont font, SKPaint paint, double[]? kernShifts)
     {
-        if ((properties.CharacterSpacingPoints == 0 && kernShifts == null) || text.Length <= 1)
+        if ((properties.CharacterSpacingPoints == 0 &&
+             kernShifts == null) ||
+            text.Length <= 1)
         {
             canvas.DrawText(text, P(context, penX), y, font, paint);
             return;
@@ -332,7 +336,8 @@ static class SkiaPainter
     {
         if (tracked || kernShifts == null)
         {
-            if (char.IsHighSurrogate(text[start]) && start + 1 < text.Length)
+            if (char.IsHighSurrogate(text[start]) &&
+                start + 1 < text.Length)
             {
                 return start + 2;
             }
@@ -458,7 +463,8 @@ static class SkiaPainter
         // fallback for every inline and floating picture: the layout engine handed it nothing else,
         // so icons_multiple's red and green stars — whose fallbacks are one blue PNG — came out blue.
         SKBitmap? bitmap = null;
-        if (image.Vector == null && (image.Data is not { } data || (bitmap = context.GetBitmap(data)) == null))
+        if (image.Vector == null &&
+            (image.Data is not { } data || (bitmap = context.GetBitmap(data)) == null))
         {
             return;
         }
@@ -485,7 +491,8 @@ static class SkiaPainter
         // turns and mirrors with the picture.
         using var clip = ImageClip(image, box);
         var transformed = Math.Abs(image.RotationDegrees) > 0.01 || image.FlipHorizontal || image.FlipVertical;
-        if (!transformed && clip == null)
+        if (!transformed &&
+            clip == null)
         {
             DrawPicture(context, canvas, bitmap, box, image, paint);
             PaintImageOutline(context, canvas, image, box);
@@ -748,7 +755,8 @@ static class SkiaPainter
                     IsAntialias = true
                 };
                 using var strokeDash = Dash(strokePaint, shape.LineDashPattern);
-                if (shape.OpenOutline && SkiaShapeDrawing.BuildGroupShapePath(shape, rect, close: false) is { } openPath)
+                if (shape.OpenOutline &&
+                    SkiaShapeDrawing.BuildGroupShapePath(shape, rect, close: false) is { } openPath)
                 {
                     canvas.DrawPath(openPath, strokePaint);
                     openPath.Dispose();
@@ -1004,7 +1012,8 @@ static class SkiaPainter
 
         void Wave(BorderEdge edge, bool horizontal, float from, float to, float at, int outward)
         {
-            if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+            if (BorderStroke.Draws(edge) &&
+                BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
             {
                 StrokeWaves(context, canvas, edge, waves, horizontal, from, to, at, outward);
             }

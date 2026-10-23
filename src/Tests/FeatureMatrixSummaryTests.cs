@@ -116,7 +116,8 @@ public class FeatureMatrixSummaryTests
                 problems.Add($"**Total** {status}: row says {total.Counts[index]}, headings have {expected}");
             }
 
-            if (pie.TryGetValue(pieLabels[index], out var slice) && slice != expected)
+            if (pie.TryGetValue(pieLabels[index], out var slice) &&
+                slice != expected)
             {
                 problems.Add($"coverage pie \"{pieLabels[index]}\": says {slice}, headings have {expected}");
             }
@@ -162,7 +163,8 @@ public class FeatureMatrixSummaryTests
             }
 
             var feature = featureHeading.Match(line);
-            if (feature.Success && section is {} current)
+            if (feature.Success &&
+                section is {} current)
             {
                 counted[current][feature.Groups[1].Value]++;
             }

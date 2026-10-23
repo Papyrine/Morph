@@ -105,7 +105,8 @@ sealed class DocumentOutline
         }
 
         var defaultStyle = styles.Values
-            .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value ?? "Normal";
+            .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph &&
+                                 _.Default?.Value == true)?.StyleId?.Value ?? "Normal";
         var paragraphs = new List<EditParagraph>();
         var unindents = DocumentEditor.Unindents(document);
         var paragraphOfRun = new Dictionary<int, int>();
@@ -143,7 +144,8 @@ sealed class DocumentOutline
         return new()
         {
             Paragraphs = paragraphs,
-            AllowsEditing = editable && allows,
+            AllowsEditing = editable &&
+                            allows,
             Tracking = document.MainDocumentPart.DocumentSettingsPart?.Settings?.GetFirstChild<TrackRevisions>() is { } tracking &&
                        tracking.Val?.Value != false,
             ForcesTracking = forces,
@@ -151,7 +153,8 @@ sealed class DocumentOutline
             Fonts = document.MainDocumentPart.FontTablePart?.Fonts?.Elements<Font>()
                 .Select(_ => _.Name?.Value)
                 .OfType<string>()
-                .Where(_ => _.Length > 0 && !_.StartsWith('@'))
+                .Where(_ => _.Length > 0 &&
+                            !_.StartsWith('@'))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList() ?? [],
             DefaultStyle = defaultStyle,

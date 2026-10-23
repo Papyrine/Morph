@@ -133,8 +133,10 @@ sealed class SkiaRenderContext(
         }
 
         var scaledSize = fontSize * Scale;
-        var embolden = props.SyntheticBold == SyntheticBold.None && ShouldSyntheticallyEmbolden(typeface, props);
-        var oblique = props.Italic && typeface.FontStyle.Slant == SKFontStyleSlant.Upright;
+        var embolden = props.SyntheticBold == SyntheticBold.None &&
+                       ShouldSyntheticallyEmbolden(typeface, props);
+        var oblique = props.Italic &&
+                      typeface.FontStyle.Slant == SKFontStyleSlant.Upright;
         var font = GetOrCreateCachedFont(typeface, scaledSize, embolden, oblique);
         requestFontCache[requestKey] = font;
         return font;

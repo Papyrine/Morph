@@ -60,7 +60,8 @@ static class PdfPainter
         for (var index = 0; index < document.Pages.Count; index++)
         {
             var number = index + 1;
-            if (pages is { } range && (number < range.Start || number > range.End))
+            if (pages is { } range &&
+                (number < range.Start || number > range.End))
             {
                 continue;
             }
@@ -227,7 +228,8 @@ static class PdfPainter
             }
 
             // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
-            if (run.Properties.IsRevisionMark && !revisionBarDrawn)
+            if (run.Properties.IsRevisionMark &&
+                !revisionBarDrawn)
             {
                 revisionBarDrawn = true;
                 var barX = context.PageSettings.MarginLeft / 2;
@@ -331,7 +333,8 @@ static class PdfPainter
         {
             var codepoint = char.ConvertToUtf32(text, i);
             units += metrics.AdvanceUnits(codepoint);
-            i += char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            i += char.IsHighSurrogate(text[i]) &&
+                 i + 1 < text.Length ? 2 : 1;
         }
 
         return units / metrics.UnitsPerEm * sizePoints;
@@ -395,7 +398,8 @@ static class PdfPainter
         var i = 0;
         while (i < text.Length)
         {
-            var length = char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+            var length = char.IsHighSurrogate(text[i]) &&
+                         i + 1 < text.Length ? 2 : 1;
             var codepoint = char.ConvertToUtf32(text, i);
             var advance = metrics.AdvanceUnits(codepoint) * unitsPerEm / metrics.UnitsPerEm + trackingPoints * pointsToUnits;
             var offset = kernShifts == null ? 0 : kernShifts[i] * pointsToUnits;
@@ -482,7 +486,8 @@ static class PdfPainter
         // (see SkiaPainter.PaintImage). A translucent one keeps to its fallback when it has one: a
         // bitmap fades as a whole but a graphic only path by path.
         var vector = image.Opacity >= 1 || image.Data is not { Length: > 0 } ? image.Vector : null;
-        if (vector == null && image.Data is not { Length: > 0 })
+        if (vector == null &&
+            image.Data is not { Length: > 0 })
         {
             return;
         }
@@ -694,7 +699,8 @@ static class PdfPainter
             if (shape.LineWidthEmu > 0)
             {
                 var widthPoints = shape.LineWidthEmu / OoxmlUnits.EmusPerPoint;
-                if (shape.OpenOutline && PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height, close: false) is { } openPath)
+                if (shape.OpenOutline &&
+                    PdfShapeDrawing.BuildGroupShapePath(shape, x, y, width, height, close: false) is { } openPath)
                 {
                     // An open stroke shows its ends, so it takes the declared cap rather than the
                     // square one the connector pieces need.
@@ -775,7 +781,8 @@ static class PdfPainter
             stroke = PdfShapeDrawing.Dashed(context.GetStroke(color, ShapeStroke.WidthPoints(shape.LineWidthPoints)), shape.LineDashPattern);
         }
 
-        if (fill == null && stroke == null)
+        if (fill == null &&
+            stroke == null)
         {
             return;
         }
@@ -910,7 +917,8 @@ static class PdfPainter
 
         void Wave(BorderEdge edge, bool horizontal, double from, double to, double at, int outward)
         {
-            if (BorderStroke.Draws(edge) && BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
+            if (BorderStroke.Draws(edge) &&
+                BorderStroke.Waves(edge.Style) is {Length: > 0} waves)
             {
                 StrokeWaves(context, surface, edge, waves, horizontal, from, to, at, outward);
             }

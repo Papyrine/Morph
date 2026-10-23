@@ -18,7 +18,8 @@ sealed record DocumentNotes(
     /// </summary>
     public static DocumentNotes? From(ParsedDocument document)
     {
-        if (document.Footnotes.Count == 0 && document.Endnotes.Count == 0)
+        if (document.Footnotes.Count == 0 &&
+            document.Endnotes.Count == 0)
         {
             return null;
         }

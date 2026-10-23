@@ -51,7 +51,7 @@ static partial class DocumentEditor
 
         static void Indent(OoxmlParagraphProperties properties, ParagraphFormat format)
         {
-            if (format is { LeftPoints: null, RightPoints: null, FirstLinePoints: null })
+            if (format is {LeftPoints: null, RightPoints: null, FirstLinePoints: null})
             {
                 return;
             }
@@ -94,7 +94,7 @@ static partial class DocumentEditor
 
         static void Space(OoxmlParagraphProperties properties, ParagraphFormat format)
         {
-            if (format is { BeforePoints: null, AfterPoints: null, LineRule: null })
+            if (format is {BeforePoints: null, AfterPoints: null, LineRule: null})
             {
                 return;
             }
@@ -114,7 +114,7 @@ static partial class DocumentEditor
                 lines.AfterAutoSpacing = null;
             }
 
-            if (format is { LineRule: { } rule, LineValue: { } value })
+            if (format is {LineRule: { } rule, LineValue: { } value})
             {
                 if (rule == LineSpacingRule.Auto)
                 {
@@ -171,11 +171,14 @@ static partial class DocumentEditor
         {
             var styles = main.StyleDefinitionsPart?.Styles;
             var id = paragraph.ParagraphProperties?.ParagraphStyleId?.Val?.Value ??
-                     styles?.Elements<Style>().FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph && _.Default?.Value == true)?.StyleId?.Value;
+                     styles?.Elements<Style>()
+                         .FirstOrDefault(_ => _.Type?.Value == StyleValues.Paragraph &&
+                                              _.Default?.Value == true)?.StyleId?.Value;
             var seen = new HashSet<string>(StringComparer.Ordinal);
             while (id != null &&
                    seen.Add(id) &&
-                   styles?.Elements<Style>().FirstOrDefault(_ => _.StyleId?.Value == id) is { } style)
+                   styles?.Elements<Style>()
+                       .FirstOrDefault(_ => _.StyleId?.Value == id) is { } style)
             {
                 if (style.StyleParagraphProperties is { } own &&
                     own.Elements<T>().FirstOrDefault() is { } said)
@@ -186,7 +189,9 @@ static partial class DocumentEditor
                 id = style.BasedOn?.Val?.Value;
             }
 
-            var defaults = styles?.DocDefaults?.ParagraphPropertiesDefault?.ParagraphPropertiesBaseStyle;
+            var defaults = styles?.DocDefaults?
+                .ParagraphPropertiesDefault?
+                .ParagraphPropertiesBaseStyle;
             if (defaults?.Elements<T>().FirstOrDefault() is { } given)
             {
                 return given.Val?.Value ?? true;
