@@ -533,10 +533,10 @@ public partial class MorphViewer
     internal Task ResolveAllAsync(bool accept) =>
         ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
 
-    Task UndoAsync() =>
+    internal Task UndoAsync() =>
         StepAsync(undo, redo);
 
-    Task RedoAsync() =>
+    internal Task RedoAsync() =>
         StepAsync(redo, undo);
 
     async Task StepAsync(List<byte[]> from, List<byte[]> to)
@@ -613,7 +613,7 @@ public partial class MorphViewer
             if (relayout)
             {
                 var opening = ++generation;
-                var opened = await Task.Run(() => Open(bytes, InputFormat.Docx, fonts), lifetime.Token);
+                var opened = await Task.Run(() => Open(bytes, InputFormat.Docx, fonts, true), lifetime.Token);
                 if (opening != generation || disposed)
                 {
                     opened.Document.Dispose();
@@ -628,6 +628,7 @@ public partial class MorphViewer
                 currentPage = Math.Clamp(currentPage, 1, Math.Max(1, pageCount));
                 pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
                 await viewer.ReloadAsync(opening, pageSizes, opened.Json);
+                await viewer.SetPicturesAsync(opening, opened.Pictures);
                 if (findOpen && findQuery.Trim().Length > 0)
                 {
                     await RunSearchAsync();

@@ -82,11 +82,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // ParagraphElement.Source: what lets the viewer's editor find the w:p a paragraph on a page is.
     Dictionary<Paragraph, int>? paragraphSources;
 
-    // Floating tables (w:tblpPr) discovered while parsing nested cells.
-    // Lifted to body-level after the body is parsed so they participate in normal page-flow,
-    // pagination, and rendering logic instead of being rendered inside a cell that may
-    // paginate or get clipped.
-    List<TableElement>? pendingLiftedFloatingTables;
 
     // Theme fonts for the current document being parsed
     ThemeFonts? currentThemeFonts;
@@ -278,6 +273,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
     double defaultTabStopPoints = 36;
 
+    // The document grid's line pitch (GridLinePitchPoints) from the body's own w:sectPr, 0 off a grid.
+    // Styles are resolved once for the whole document, so the line unit beforeLines / afterLines count
+    // in, and the grid paragraphs snap to, are the document's rather than each section's.
+    double documentGridPitchPoints;
+
+    // w:compat/w:adjustLineHeightInTable: table cells snap to the grid only when it is set.
+    bool adjustLineHeightInTable;
+
     // Note reference-mark number formats (settings.xml w:footnotePr / w:endnotePr). Word defaults:
     // decimal footnotes, lowercase-roman endnotes.
     NumberFormatValues footnoteNumberFormat = NumberFormatValues.Decimal;
@@ -332,6 +335,34 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
+    // Set while a borrowed package is parsed: how to undo each change parsing makes to its tree.
+    List<Action>? restore;
+
+    /// <summary>
+    /// Parses a package another owner keeps open — the editor's live one (<c>DocumentReading.Borrow</c>),
+    /// whose tree is the file it just saved — and leaves it as it was found. Parsing changes the tree in
+    /// two places, dropping a style defined twice and folding relative sizes into anchors' extents, and
+    /// both are undone, in reverse order, once the document is read; left in, the next save would write
+    /// them into the file.
+    /// </summary>
+    public ParsedDocument Parse(WordprocessingDocument document)
+    {
+        restore = [];
+        try
+        {
+            return ParseDocument(document);
+        }
+        finally
+        {
+            for (var index = restore.Count - 1; index >= 0; index--)
+            {
+                restore[index]();
+            }
+
+            restore = null;
+        }
+    }
+
     ParsedDocument ParseDocument(WordprocessingDocument doc)
     {
         var mainPart = doc.MainDocumentPart
@@ -348,7 +379,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         runOrdinals = captureSources ? SourceRuns.IndexAll(stories) : null;
         paragraphSources = captureSources ? SourceRuns.IndexAllParagraphs(stories) : null;
 
-        DropRedefinedStyles(mainPart);
+        DropRedefinedStyles(mainPart, restore);
 
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
         currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
@@ -366,6 +397,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
         automaticRunColorHex = ComputeAutomaticRunColor(documentBackgroundColor);
+
+        // The document grid, before anything resolves a spacing counted in lines.
+        documentGridPitchPoints = body.GetFirstChild<SectionProperties>() is { } bodySection ? GridLinePitchPoints(bodySection) : 0;
+        adjustLineHeightInTable = mainPart.DocumentSettingsPart?.Settings?
+            .GetFirstChild<Compatibility>()?.GetFirstChild<AdjustLineHeightInTable>() != null;
 
         // Extract document default spacing from pPrDefault
         ExtractDefaultParagraphProperties(mainPart);
@@ -460,15 +496,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var elements = ParseElements(body, mainPart);
-
-        // Append floating tables that were nested inside cells. Lifting them here lets the
-        // top-level rendering loop handle pagination and absolute positioning, rather than
-        // attempting to render them within a parent cell whose page-flow may differ.
-        if (pendingLiftedFloatingTables is {Count: > 0} lifted)
-        {
-            elements.AddRange(lifted);
-            pendingLiftedFloatingTables = null;
-        }
 
         // Pull consecutive w:framePr-positioned paragraphs out of normal flow into floating
         // text-frame elements (Word's text-frame feature).
@@ -642,7 +669,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        if (headerPart.GetPartById(relId) is not ImagePart imagePart)
+        if (headerPart.PartOrNull(relId) is not ImagePart imagePart)
         {
             return null;
         }
@@ -1446,12 +1473,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var bold = baseProps?.Bold ?? false;
                 var italic = baseProps?.Italic ?? false;
                 var underline = baseProps?.Underline ?? false;
+                var underlineStyle = baseProps?.UnderlineStyle ?? UnderlineStyle.Single;
                 var strikethrough = baseProps?.Strikethrough ?? false;
+                var doubleStrikethrough = baseProps?.DoubleStrikethrough ?? false;
                 var allCaps = baseProps?.AllCaps ?? false;
                 var smallCaps = baseProps?.SmallCaps ?? false;
                 var color = baseProps?.ColorHex ?? defaultRunColorHex;
                 var backgroundColor = baseProps?.BackgroundColorHex;
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
+                var characterScale = baseProps?.CharacterScalePercent ?? 100;
 
                 // The kerning threshold comes down the chain like the rest. Leaving it off the style
                 // measured every run that takes its properties from a style UNKERNED, whatever the
@@ -1470,12 +1500,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         Bold = bold,
                         Italic = italic,
                         Underline = underline,
+                        UnderlineStyle = underlineStyle,
                         Strikethrough = strikethrough,
+                        DoubleStrikethrough = doubleStrikethrough,
                         AllCaps = allCaps,
                         SmallCaps = smallCaps,
                         ColorHex = color,
                         BackgroundColorHex = backgroundColor,
                         CharacterSpacingPoints = characterSpacing,
+                        CharacterScalePercent = characterScale,
                         KerningMinFontSizePoints = kerningMinFontSize
                     };
                     processed.Add(styleId);
@@ -1532,6 +1565,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     underlineElement.Val?.Value != UnderlineValues.None)
                 {
                     underline = true;
+                    underlineStyle = UnderlineStyleOf(underlineElement);
                 }
 
                 // Strikethrough
@@ -1539,6 +1573,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 if (strikeElement != null)
                 {
                     strikethrough = strikeElement.IsOn();
+                }
+
+                var doubleStrikeElement = runProps.GetFirstChild<DoubleStrike>();
+                if (doubleStrikeElement != null)
+                {
+                    doubleStrikethrough = doubleStrikeElement.IsOn();
                 }
 
                 // All caps
@@ -1560,6 +1600,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 if (spacingElement?.Val?.HasValue == true)
                 {
                     characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
+                }
+
+                // Character scale (w:w in rPr), a percent of the glyphs' width.
+                if (CharacterScaleOf(runProps.GetFirstChild<CharacterScale>()) is { } styleScale)
+                {
+                    characterScale = styleScale;
                 }
 
                 // Kerning threshold (w:kern in rPr); w:val="0" switches it off for this style.
@@ -1601,12 +1647,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     Bold = bold,
                     Italic = italic,
                     Underline = underline,
+                    UnderlineStyle = underlineStyle,
                     Strikethrough = strikethrough,
+                    DoubleStrikethrough = doubleStrikethrough,
                     AllCaps = allCaps,
                     SmallCaps = smallCaps,
                     ColorHex = color,
                     BackgroundColorHex = backgroundColor,
                     CharacterSpacingPoints = characterSpacing,
+                    CharacterScalePercent = characterScale,
                     KerningMinFontSizePoints = kerningMinFontSize
                 };
                 processed.Add(styleId);
@@ -1619,7 +1668,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Reads what a single style's own <c>w:pPr</c> declares, leaving anything absent null.
     /// </summary>
-    static StyleParagraphSpacing ReadDeclaredSpacing(StyleParagraphProperties? pPr)
+    StyleParagraphSpacing ReadDeclaredSpacing(StyleParagraphProperties? pPr)
     {
         if (pPr == null)
         {
@@ -1633,8 +1682,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacing != null)
         {
             before = spacing.Before.TwipsToPoints() ?? before;
+            before = LineUnitsToPoints(spacing.BeforeLines) ?? before;
 
             after = spacing.After.TwipsToPoints() ?? after;
+            after = LineUnitsToPoints(spacing.AfterLines) ?? after;
 
             if (spacing.Line?.HasValue == true)
             {
@@ -1683,7 +1734,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// type. Table styles feed the table-style cascade step; paragraph styles say where that step
     /// is allowed to apply (a paragraph style that declares a value outranks the table style).
     /// </summary>
-    static Dictionary<string, StyleParagraphSpacing> ExtractDeclaredSpacing(
+    Dictionary<string, StyleParagraphSpacing> ExtractDeclaredSpacing(
         MainDocumentPart mainPart,
         StyleValues styleType)
     {
@@ -1886,7 +1937,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         TabStops = baseProps?.TabStops ?? [],
                         DefaultTabStopPoints = defaultTabStopPoints,
                         Frame = baseProps?.Frame,
-                        PageBreakBefore = pageBreakBefore
+                        PageBreakBefore = pageBreakBefore,
+                        SnapToGrid = baseProps?.SnapToGrid ?? true,
+                        FontAlignment = baseProps?.FontAlignment ?? FontAlignment.Baseline
                     };
                     processed.Add(styleId);
                     continue;
@@ -1929,8 +1982,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 if (spacing != null)
                 {
                     spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
+                    spacingBefore = LineUnitsToPoints(spacing.BeforeLines) ?? spacingBefore;
 
                     spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
+                    spacingAfter = LineUnitsToPoints(spacing.AfterLines) ?? spacingAfter;
                     spacingBeforeAuto = spacing.BeforeAutoSpacing?.Value ?? spacingBeforeAuto;
                     spacingAfterAuto = spacing.AfterAutoSpacing?.Value ?? spacingAfterAuto;
 
@@ -2112,7 +2167,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     TabStops = ParseTabs(paraProps, baseProps?.TabStops ?? []),
                     DefaultTabStopPoints = defaultTabStopPoints,
                     Frame = frame,
-                    PageBreakBefore = pageBreakBefore
+                    PageBreakBefore = pageBreakBefore,
+                    SnapToGrid = paraProps.GetFirstChild<SnapToGrid>() is { } styleSnap ? styleSnap.IsOn() : baseProps?.SnapToGrid ?? true,
+                    FontAlignment = FontAlignmentOf(paraProps.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TextAlignment>()) ?? baseProps?.FontAlignment ?? FontAlignment.Baseline
                 };
                 processed.Add(styleId);
             }
@@ -2139,6 +2196,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         /// <summary><c>w:lvlJc="right"</c> — the marker right-aligns at the number position
         /// (see <see cref="NumberingInfo.MarkerRightAligned"/> for the probe law).</summary>
         public bool RightAligned { get; init; }
+
+        public ListMarkerSuffix Suffix { get; init; }
 
         /// <summary>
         /// OOXML <c>w:lvlRestart</c>. <c>null</c> = default behaviour (restart whenever any
@@ -2238,6 +2297,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     StartNumber = startNumber,
                     NumberFormat = numFmt ?? NumberFormatValues.Decimal,
                     LevelRestart = lvlRestart,
+                    Suffix = MarkerSuffix(level),
                     RightAligned = rightAligned
                 };
             }
@@ -2287,7 +2347,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         IsBullet = baseDef.IsBullet,
                         StartNumber = startOverride.Value,
                         NumberFormat = baseDef.NumberFormat,
-                        RightAligned = baseDef.RightAligned
+                        RightAligned = baseDef.RightAligned,
+                        Suffix = baseDef.Suffix
                     };
                 }
             }
@@ -3351,6 +3412,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             IndentPoints = levelDef.LeftIndentPoints,
             HangingIndentPoints = levelDef.HangingIndentPoints,
             MarkerRightAligned = levelDef.RightAligned,
+            Suffix = levelDef.Suffix,
             Format = levelDef.IsBullet ? ListNumberFormat.Bullet : MapNumberFormat(levelDef.NumberFormat)
         };
     }
@@ -3553,6 +3615,136 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     static int ClampGridSpan(int value) => Math.Clamp(value, 1, maxGridSpan);
 
+    // w:docGrid/@w:linePitch in points when @w:type puts the section on a grid, else 0. Word writes a
+    // bare <w:docGrid w:linePitch="360"/> with no @type into most documents as a stored default and
+    // lays nothing out on it.
+    static double GridLinePitchPoints(SectionProperties section)
+    {
+        var grid = section.GetFirstChild<DocGrid>();
+        if (grid?.LinePitch?.HasValue == true &&
+            grid.Type?.Value is { } type &&
+            type != DocGridValues.Default &&
+            grid.LinePitch.Value > 0)
+        {
+            return grid.LinePitch.Value / OoxmlUnits.TwipsPerPoint;
+        }
+
+        return 0;
+    }
+
+    // w:spacing/@w:beforeLines or @w:afterLines in points: hundredths of a line, a line being the
+    // document grid's pitch, or 12pt off a grid. Word-probed (_probe_grid_*, 2026-10-21): a positive
+    // value outranks the twips value beside it, and 0 is ignored — agendas-minutes/17's
+    // afterLines="0" beside after="40" keeps its 2pt.
+    double? LineUnitsToPoints(Int32Value? lines)
+    {
+        if (lines?.Value is not > 0)
+        {
+            return null;
+        }
+
+        var line = documentGridPitchPoints > 0 ? documentGridPitchPoints : 12;
+        return lines.Value / 100.0 * line;
+    }
+
+    // w:w as a percent, within the 1-600 the schema allows; null when absent or unreadable.
+    static double? CharacterScaleOf(CharacterScale? scale)
+    {
+        if (scale?.Val?.Value is not { } percent || percent <= 0)
+        {
+            return null;
+        }
+
+        return Math.Clamp(percent, 1, 600);
+    }
+
+    // w:u/@w:val as the style it draws in (TextDecorations); a value Word has and Morph does not, or
+    // none at all, draws single.
+    static UnderlineStyle UnderlineStyleOf(Underline underline)
+    {
+        if (underline.Val?.Value is { } value &&
+            underlineStyles.TryGetValue(value, out var style))
+        {
+            return style;
+        }
+
+        return UnderlineStyle.Single;
+    }
+
+    static readonly Dictionary<UnderlineValues, UnderlineStyle> underlineStyles = new()
+    {
+        [UnderlineValues.Words] = UnderlineStyle.Words,
+        [UnderlineValues.Double] = UnderlineStyle.Double,
+        [UnderlineValues.Thick] = UnderlineStyle.Thick,
+        [UnderlineValues.Dotted] = UnderlineStyle.Dotted,
+        [UnderlineValues.DottedHeavy] = UnderlineStyle.DottedHeavy,
+        [UnderlineValues.Dash] = UnderlineStyle.Dash,
+        [UnderlineValues.DashedHeavy] = UnderlineStyle.DashedHeavy,
+        [UnderlineValues.DashLong] = UnderlineStyle.DashLong,
+        [UnderlineValues.DashLongHeavy] = UnderlineStyle.DashLongHeavy,
+        [UnderlineValues.DotDash] = UnderlineStyle.DotDash,
+        [UnderlineValues.DashDotHeavy] = UnderlineStyle.DashDotHeavy,
+        [UnderlineValues.DotDotDash] = UnderlineStyle.DotDotDash,
+        [UnderlineValues.DashDotDotHeavy] = UnderlineStyle.DashDotDotHeavy,
+        [UnderlineValues.Wave] = UnderlineStyle.Wave,
+        [UnderlineValues.WavyHeavy] = UnderlineStyle.WavyHeavy,
+        [UnderlineValues.WavyDouble] = UnderlineStyle.WavyDouble
+    };
+
+    // w:textAlignment as the vertical placement of a line's smaller runs; null when absent. Auto is the
+    // baseline for horizontal text.
+    static FontAlignment? FontAlignmentOf(DocumentFormat.OpenXml.Wordprocessing.TextAlignment? alignment)
+    {
+        var value = alignment?.Val?.Value;
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (value == VerticalTextAlignmentValues.Top)
+        {
+            return FontAlignment.Top;
+        }
+
+        if (value == VerticalTextAlignmentValues.Center)
+        {
+            return FontAlignment.Center;
+        }
+
+        if (value == VerticalTextAlignmentValues.Bottom)
+        {
+            return FontAlignment.Bottom;
+        }
+
+        return FontAlignment.Baseline;
+    }
+
+    // w:lvl/w:suff — what follows a list marker; absent is a tab (ECMA-376 §17.9.29).
+    static ListMarkerSuffix MarkerSuffix(Level level)
+    {
+        var suffix = level.LevelSuffix?.Val?.Value;
+        if (suffix == LevelSuffixValues.Space)
+        {
+            return ListMarkerSuffix.Space;
+        }
+
+        if (suffix == LevelSuffixValues.Nothing)
+        {
+            return ListMarkerSuffix.Nothing;
+        }
+
+        return ListMarkerSuffix.Tab;
+    }
+
+    // w:trPr/w:gridBefore and w:gridAfter — grid columns the row leaves empty at either end (TableRow.GridBefore).
+    static (int Before, int After) RowGridSkips(OpenXmlElement row)
+    {
+        var properties = row.GetFirstChild<TableRowProperties>();
+        var before = properties?.GetFirstChild<GridBefore>()?.Val?.Value ?? 0;
+        var after = properties?.GetFirstChild<GridAfter>()?.Val?.Value ?? 0;
+        return (Math.Clamp(before, 0, maxGridSpan), Math.Clamp(after, 0, maxGridSpan));
+    }
+
     // A page dimension (w:pgSz w:w/@w:h) is an unbounded twips measure in the file. Left raw it scales
     // straight into each backend's raster surface (an SKBitmap's width is WidthPoints x DPI/72 at
     // 4 bytes/px), so a crafted value would allocate — or integer-overflow — a bitmap of billions of
@@ -3562,6 +3754,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     const double maxPageDimensionPoints = 14400;
 
     static double ClampPageDimension(double points) => Math.Clamp(points, 1, maxPageDimensionPoints);
+
+    // Two opposite margins shrunk in proportion, when they would leave the page less than an inch of
+    // content (half the page, on one smaller than two inches). Real margins are never near it; only a
+    // crafted pair is touched.
+    static (double Near, double Far) FitMargins(double near, double far, double extent)
+    {
+        var room = extent - Math.Min(72, extent / 2);
+        if (near + far <= room)
+        {
+            return (near, far);
+        }
+
+        var factor = room / (near + far);
+        return (near * factor, far * factor);
+    }
 
     static string ToLetter(int number)
     {
@@ -3795,6 +4002,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
+        // A crafted w:pgMar can ask for margins wider than the page they stand on — the page is clamped
+        // (ClampPageDimension), its margins are not — and a content box of no size, or less, sends the
+        // fragmenter looking forever for a page anything fits on.
+        (marginLeft, marginRight) = FitMargins(marginLeft, marginRight, width);
+        (marginTop, marginBottom) = FitMargins(marginTop, marginBottom, height);
+
         // Parse column settings
         var columns = sectionProps.GetFirstChild<Columns>();
         if (columns != null)
@@ -3818,14 +4031,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // <w:docGrid w:linePitch="360"/> with no @type into most documents as a stored
         // default and applies no grid to layout. Treating that pitch as a per-line floor
         // inflated business-plans/13's 11pt body lines to 18pt, overflowing pages Word fits.
-        double documentGridLinePitchPoints = 0;
-        var docGrid = sectionProps.GetFirstChild<DocGrid>();
-        if (docGrid?.LinePitch?.HasValue == true &&
-            docGrid.Type?.Value is { } gridType &&
-            gridType != DocGridValues.Default)
-        {
-            documentGridLinePitchPoints = docGrid.LinePitch.Value / OoxmlUnits.TwipsPerPoint;
-        }
+        var documentGridLinePitchPoints = GridLinePitchPoints(sectionProps);
 
         // Parse page borders (w:pgBorders)
         var pageBorders = ParsePageBorders(sectionProps.GetFirstChild<OoxmlPageBorders>());
@@ -4290,8 +4496,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacing != null)
         {
             defaultSpacingAfterPoints = spacing.After.TwipsToPoints() ?? defaultSpacingAfterPoints;
+            defaultSpacingAfterPoints = LineUnitsToPoints(spacing.AfterLines) ?? defaultSpacingAfterPoints;
 
             defaultSpacingBeforePoints = spacing.Before.TwipsToPoints() ?? defaultSpacingBeforePoints;
+            defaultSpacingBeforePoints = LineUnitsToPoints(spacing.BeforeLines) ?? defaultSpacingBeforePoints;
 
             // w:line is a multiplier only under lineRule="auto" (absent defaults to auto); under
             // "exact"/"atLeast" it is a twip measurement and belongs to the per-paragraph path.
@@ -4404,9 +4612,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             previous = bands;
         }
 
-        // A band's lifted floating tables are not body content; parsing the bands ahead of the body
-        // must not hand them to it.
-        pendingLiftedFloatingTables = null;
         return result;
     }
 
@@ -4417,7 +4622,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // on the second definitions' spacing, and adding italics, centring and an indent to the FIRST
     // definition moved nothing. Every reader of the styles walks the part in order and takes the
     // first match, so the earlier definitions are dropped from the tree before anything reads it.
-    static void DropRedefinedStyles(MainDocumentPart mainPart)
+    static void DropRedefinedStyles(MainDocumentPart mainPart, List<Action>? restore)
     {
         if (mainPart.StyleDefinitionsPart?.Styles is not { } styles)
         {
@@ -4448,6 +4653,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         foreach (var style in redefined)
         {
+            if (restore != null &&
+                style.Parent is { } parent)
+            {
+                var previous = style.PreviousSibling();
+                restore.Add(
+                    () =>
+                    {
+                        if (previous == null)
+                        {
+                            parent.PrependChild(style);
+                        }
+                        else
+                        {
+                            parent.InsertAfter(style, previous);
+                        }
+                    });
+            }
+
             style.Remove();
         }
     }
@@ -4466,7 +4689,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 page = ExtractPageSettings(section);
             }
 
-            child.FoldRelativeSizes(page);
+            child.FoldRelativeSizes(page, restore);
         }
     }
 
@@ -4490,7 +4713,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // first section's page, as its aligned art does.
         if (anchorAlignmentPage != null)
         {
-            rootElement.FoldRelativeSizes(anchorAlignmentPage);
+            rootElement.FoldRelativeSizes(anchorAlignmentPage, restore);
         }
 
         var elements = new List<DocumentElement>();
@@ -4641,10 +4864,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return [];
         }
 
-        var part = mainPart.GetPartById(altChunk.Id.Value);
+        var part = mainPart.PartOrNull(altChunk.Id.Value);
         if (part is AlternativeFormatImportPart altPart)
         {
-            using var stream = altPart.GetStream();
+            using var stream = altPart.GetStream(FileMode.Open, FileAccess.Read);
             using var reader = new StreamReader(stream, Encoding.UTF8);
             var html = reader.ReadToEnd();
 
@@ -4713,15 +4936,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         currentTableStyleId = table.GetFirstChild<OoxmlTableProperties>()?
                                   .GetFirstChild<TableStyle>()?.Val?.Value
                               ?? defaultTableStyleId;
+        tableDepth++;
         try
         {
             return ParseTableCore(table, mainPart);
         }
         finally
         {
+            tableDepth--;
             currentTableStyleId = previousTableStyleId;
         }
     }
+
+    // How deep tables nest before the parser stops building tables. Parsing, measuring and laying a table
+    // out each recurse into the tables in its cells, so a document of tables nested hundreds deep
+    // overflowed the stack — 300 of them killed the process from the parser, beyond any catch
+    // (MalformedPackageTests). Past the bound a nested table's paragraphs are kept, in order, as the
+    // cell's own: the text survives without the boxes around it. No corpus document nests past 3.
+    const int maxTableDepth = 64;
+    int tableDepth;
+
+    IEnumerable<DocumentElement> FlattenTable(Table table, MainDocumentPart mainPart) =>
+        table.Descendants<Paragraph>().SelectMany(_ => ParseParagraph(_, mainPart));
 
     /// <summary>
     /// A row's cells in document order, unwrapping any cell-level content control. Word wraps a
@@ -4894,6 +5130,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var totalCols = gridColumnWidths?.Count ?? 0;
         if (totalCols == 0 && rowList.Count > 0)
         {
+            var (firstBefore, firstAfter) = RowGridSkips(rowList[0]);
+            totalCols = firstBefore + firstAfter;
             foreach (var cell in RowCells(rowList[0]))
             {
                 var span = ClampGridSpan(cell.GetFirstChild<OoxmlTableCellProperties>()?.GetFirstChild<GridSpan>()?.Val?.Value ?? 1);
@@ -4905,7 +5143,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             var row = rowList[rowIndex];
             var cells = new List<TableCell>();
-            var gridColIndex = 0;
+            var (gridBefore, gridAfter) = RowGridSkips(row);
+            var gridColIndex = gridBefore;
             var rowFlags = ParseConditionalFormatFlags(row.GetFirstChild<TableRowProperties>()?.GetFirstChild<ConditionalFormatStyle>());
 
             foreach (var cell in RowCells(row))
@@ -4946,21 +5185,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         case Paragraph para:
                             cellContent.AddRange(ParseParagraph(para, mainPart));
                             break;
+                        case Table tooDeep when tableDepth >= maxTableDepth:
+                            cellContent.AddRange(FlattenTable(tooDeep, mainPart));
+                            break;
                         case Table nestedTable:
-                            var nested = ParseTable(nestedTable, mainPart);
-                            if (nested != null)
+                            // A floating table stays in its cell, which places it at its offset
+                            // from there (Fragmenter.LayoutCellFragment). Lifted to the end of the
+                            // document, labels/09's ticket numbers landed below the last ticket, off
+                            // the page.
+                            if (ParseTable(nestedTable, mainPart) is { } nested)
                             {
-                                if (nested.Properties.IsFloating)
-                                {
-                                    // Lift floating tables to body level so they participate in
-                                    // page-flow / pagination at the document level rather than
-                                    // being rendered inside a cell that may clip or paginate.
-                                    (pendingLiftedFloatingTables ??= []).Add(nested);
-                                }
-                                else
-                                {
-                                    cellContent.Add(nested);
-                                }
+                                cellContent.Add(nested);
                             }
 
                             break;
@@ -4974,17 +5209,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 }
                                 else if (sdtChild is Table sdtTable)
                                 {
-                                    var nestedSdt = ParseTable(sdtTable, mainPart);
-                                    if (nestedSdt != null)
+                                    if (tableDepth >= maxTableDepth)
                                     {
-                                        if (nestedSdt.Properties.IsFloating)
-                                        {
-                                            (pendingLiftedFloatingTables ??= []).Add(nestedSdt);
-                                        }
-                                        else
-                                        {
-                                            cellContent.Add(nestedSdt);
-                                        }
+                                        cellContent.AddRange(FlattenTable(sdtTable, mainPart));
+                                    }
+                                    else if (ParseTable(sdtTable, mainPart) is { } nestedSdt)
+                                    {
+                                        cellContent.Add(nestedSdt);
                                     }
                                 }
                             }
@@ -5365,6 +5596,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 new()
                 {
                     Cells = cells,
+                    GridBefore = gridBefore,
+                    GridAfter = gridAfter,
                     HeightPoints = rowHeight,
                     IsExactHeight = isExactHeight,
                     IsHeader = isHeader,
@@ -7021,6 +7254,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     case FloatingTextBoxElement {AnchorParagraph: null} textBox:
                         textBox.AnchorParagraph = anchorParagraph;
                         break;
+                    case FloatingChartElement {AnchorParagraph: null} chart:
+                        chart.AnchorParagraph = anchorParagraph;
+                        break;
                 }
             }
         }
@@ -7483,12 +7719,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     continue;
                 }
 
-                imageData = GetPartBytes(hostPart.GetPartById(svgEmbed));
+                if (hostPart.PartOrNull(svgEmbed) is not { } svgSource)
+                {
+                    continue;
+                }
+
+                imageData = GetPartBytes(svgSource);
                 contentType = "image/svg+xml";
             }
         }
 
-        if (hostPart.GetPartById(embed) is ImagePart imagePart)
+        if (hostPart.PartOrNull(embed) is ImagePart imagePart)
         {
             var rasterBytes = GetPartBytes(imagePart);
             if (rasterBytes.Length > 0)
@@ -7714,15 +7955,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     }
 
     /// <summary>
-    /// An inline pie or doughnut chart, as an inline group of its slices: each slice a filled outline
-    /// in the plot circle's box, coloured and stroked as its <c>c:dPt</c> says (or from the theme's
-    /// accents in turn when the chart varies its colours and the point names none). Slices run
-    /// clockwise from <c>c:firstSliceAng</c> degrees past twelve o'clock, each a share of the circle
-    /// proportional to its cached value; the plot circle is the largest that fits the plot area's
-    /// manual layout (the whole chart when there is none), and a doughnut's hole is
-    /// <c>c:holeSize</c> percent of its diameter. business-plans/12's SWOT ring is the case: four
-    /// quarters around a half-width hole. Titles, legends and data labels are not drawn, and other
-    /// chart kinds are not read (null: the run then carries nothing, as before).
+    /// An inline chart: its box on the line, and the chart read as the model a sheet's charts use
+    /// (<see cref="ChartReader"/>), which layout composes into the box with its title, legend, axes and
+    /// data labels (<c>ChartComposer</c>) for every chart kind the reader knows. A pie or doughnut also
+    /// keeps its slices as an inline group (<see cref="PieSliceRun"/>), which is how the HTML exporter
+    /// draws it. A chart the reader cannot read keeps just those slices when it has any, as before.
     /// </summary>
     Run? ParseInlineChartRun(Drawing drawing, OpenXmlElement chartReference, OpenXmlPart hostPart, RunProperties runProps)
     {
@@ -7743,6 +7980,67 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
+        var slices = PieSliceRun(chartSpace, extent.Cx.Value, extent.Cy.Value, runProps);
+        if (new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
+        {
+            return slices;
+        }
+
+        return new()
+        {
+            Text = "",
+            Properties = runProps,
+            InlineImageWidthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint,
+            InlineImageHeightPoints = extent.Cy.Value / OoxmlUnits.EmusPerPoint,
+            InlineShapeGroup = slices?.InlineShapeGroup,
+            InlineChart = model
+        };
+    }
+
+    /// <summary>
+    /// An anchored chart (<c>c:chart</c> under a <c>wp:anchor</c>): its box at the anchor's position, with the
+    /// chart read as the model a sheet's charts use, so it is composed and placed as they are. Null when the
+    /// drawing holds no chart, or one the reader cannot read.
+    /// </summary>
+    FloatingChartElement? AnchoredChart(Drawing drawing, DW.Anchor anchor, OpenXmlPart hostPart)
+    {
+        if (drawing.Descendants().FirstOrDefault(_ => _.LocalName == "chart" && _.Parent?.LocalName == "graphicData") is not { } chartReference ||
+            anchor.Extent is not { Cx: { } width, Cy: { } height } ||
+            width.Value <= 0 ||
+            height.Value <= 0 ||
+            chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value is not { Length: > 0 } relationshipId ||
+            hostPart.PartOrNull(relationshipId)?.RootElement is not { } chartSpace ||
+            new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
+        {
+            return null;
+        }
+
+        var positioning = anchor.ParsePositioning(0, 0, anchorAlignmentPage);
+        return new()
+        {
+            Chart = model,
+            WidthPoints = width.Value / OoxmlUnits.EmusPerPoint,
+            HeightPoints = height.Value / OoxmlUnits.EmusPerPoint,
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints,
+            VerticalPositionPoints = positioning.VerticalPositionPoints,
+            HorizontalAnchor = positioning.HorizontalAnchor,
+            VerticalAnchor = positioning.VerticalAnchor,
+            RelativeHeight = positioning.RelativeHeight
+        };
+    }
+
+    /// <summary>
+    /// A pie or doughnut chart as an inline group of its slices: each slice a filled outline in the plot
+    /// circle's box, coloured and stroked as its <c>c:dPt</c> says (or from the theme's accents in turn
+    /// when the chart varies its colours and the point names none). Slices run clockwise from
+    /// <c>c:firstSliceAng</c> degrees past twelve o'clock, each a share of the circle proportional to its
+    /// cached value; the plot circle is the largest that fits the plot area's manual layout (the whole
+    /// chart when there is none), and a doughnut's hole is <c>c:holeSize</c> percent of its diameter.
+    /// business-plans/12's SWOT ring is the case: four quarters around a half-width hole. Null for any
+    /// other chart kind.
+    /// </summary>
+    Run? PieSliceRun(OpenXmlPartRootElement? chartSpace, long extentWidth, long extentHeight, RunProperties runProps)
+    {
         var plotArea = chartSpace?.Descendants().FirstOrDefault(_ => _.LocalName == "plotArea");
         var chart = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "doughnutChart" or "pieChart");
         var series = chart?.Elements().FirstOrDefault(_ => _.LocalName == "ser");
@@ -7789,10 +8087,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // The plot area's manual layout, as fractions of the chart; the whole chart without one.
         var layout = Child(Child(plotArea, "layout"), "manualLayout");
-        var plotX = (Value(Child(layout, "x")) ?? 0) * extent.Cx.Value;
-        var plotY = (Value(Child(layout, "y")) ?? 0) * extent.Cy.Value;
-        var plotWidth = (Value(Child(layout, "w")) ?? 1) * extent.Cx.Value;
-        var plotHeight = (Value(Child(layout, "h")) ?? 1) * extent.Cy.Value;
+        var plotX = (Value(Child(layout, "x")) ?? 0) * extentWidth;
+        var plotY = (Value(Child(layout, "y")) ?? 0) * extentHeight;
+        var plotWidth = (Value(Child(layout, "w")) ?? 1) * extentWidth;
+        var plotHeight = (Value(Child(layout, "h")) ?? 1) * extentHeight;
         var diameter = Math.Min(plotWidth, plotHeight);
         if (diameter <= 0)
         {
@@ -7837,12 +8135,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             Text = "",
             Properties = runProps,
-            InlineImageWidthPoints = extent.Cx.Value / OoxmlUnits.EmusPerPoint,
-            InlineImageHeightPoints = extent.Cy.Value / OoxmlUnits.EmusPerPoint,
+            InlineImageWidthPoints = extentWidth / OoxmlUnits.EmusPerPoint,
+            InlineImageHeightPoints = extentHeight / OoxmlUnits.EmusPerPoint,
             InlineShapeGroup = new()
             {
-                ChildExtentX = extent.Cx.Value,
-                ChildExtentY = extent.Cy.Value,
+                ChildExtentX = extentWidth,
+                ChildExtentY = extentHeight,
                 Shapes = shapes
             }
         };
@@ -8735,6 +9033,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         var anchor = drawing.GetFirstChild<DW.Anchor>();
 
+        // An anchored chart floats where its anchor puts it, composed at layout like a sheet's chart
+        // (Fragmenter.PlaceChart); an inline one is a run on its line (ParseInlineChartRun).
+        if (anchor != null &&
+            AnchoredChart(drawing, anchor, hostPart) is { } floatingChart)
+        {
+            result.Add(floatingChart);
+            return result;
+        }
+
         // Get the group transform if present (for coordinate system)
         long groupOffsetX = 0, groupOffsetY = 0;
         double groupScaleX = 1.0, groupScaleY = 1.0;
@@ -8890,9 +9197,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         var svgBlip = extEl.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip");
                         if (svgBlip != null)
                         {
-                            if (svgBlip.AttributeValue("embed") is { } svgEmbed)
+                            if (svgBlip.AttributeValue("embed") is { } svgEmbed && hostPart.PartOrNull(svgEmbed) is { } svgPart)
                             {
-                                var svgPart = hostPart.GetPartById(svgEmbed);
                                 imageData = GetPartBytes(svgPart);
                                 contentType = "image/svg+xml";
                             }
@@ -8904,7 +9210,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // Read the raster blob the blip points to. When SVG is set, this becomes the
             // raster fallback for backends that can't render SVG; otherwise it's the
             // primary imageData.
-            if (hostPart.GetPartById(embed) is ImagePart rasterPart)
+            if (hostPart.PartOrNull(embed) is ImagePart rasterPart)
             {
                 var rasterBytes = GetPartBytes(rasterPart);
                 if (rasterBytes.Length > 0)
@@ -8969,6 +9275,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// Parses an anchored image with additional X/Y offset within a group.
     /// </summary>
+    // Where an anchored drawing is, under captureSources: its run's ordinal, and its place in the run
+    // counted as SourceRuns counts — what the children ahead of it take. Read only; nothing is written.
+    RunSource? AnchorSource(DW.Anchor anchor)
+    {
+        if (runOrdinals == null ||
+            anchor.Ancestors<OoxmlRun>().FirstOrDefault() is not { } run ||
+            !runOrdinals.TryGetValue(run, out var ordinal))
+        {
+            return null;
+        }
+
+        var position = 0;
+        foreach (var child in run.ChildElements)
+        {
+            if (ReferenceEquals(child, anchor) ||
+                child.Descendants<DW.Anchor>().Any(_ => ReferenceEquals(_, anchor)))
+            {
+                return new RunSource(ordinal, position, true);
+            }
+
+            position += SourceRuns.Length(child);
+        }
+
+        return null;
+    }
+
     FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null, double opacity = 1, ImageOutline? outline = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints, anchorAlignmentPage);
@@ -8976,6 +9308,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         return new()
         {
+            Source = AnchorSource(anchor),
             Outline = outline,
             ImageData = imageData,
             WidthPoints = widthPoints,
@@ -11766,8 +12099,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacing != null)
         {
             spacingBefore = spacing.Before.TwipsToPoints() ?? spacingBefore;
+            spacingBefore = LineUnitsToPoints(spacing.BeforeLines) ?? spacingBefore;
 
             spacingAfter = spacing.After.TwipsToPoints() ?? spacingAfter;
+            spacingAfter = LineUnitsToPoints(spacing.AfterLines) ?? spacingAfter;
             spacingBeforeAuto = spacing.BeforeAutoSpacing?.Value ?? spacingBeforeAuto;
             spacingAfterAuto = spacing.AfterAutoSpacing?.Value ?? spacingAfterAuto;
 
@@ -11853,6 +12188,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var mirrorIndents = (styleDefaults?.MirrorIndents ?? false) || mirrorIndentsElement != null;
+        var snapToGrid = props.GetFirstChild<SnapToGrid>() is { } snapElement ? snapElement.IsOn() : styleDefaults?.SnapToGrid ?? true;
+        var fontAlignment = FontAlignmentOf(props.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TextAlignment>()) ?? styleDefaults?.FontAlignment ?? FontAlignment.Baseline;
 
         // A mirror paragraph keeps its declared indents in the model. Which side each indent lands
         // on is a PAGE-PARITY question the Fragmenter answers at placement (Word-measured,
@@ -12055,8 +12392,39 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             DropCapLines = dropCapLines,
             Frame = frame,
             IsRightToLeft = paraRtl,
-            MirrorIndents = mirrorIndents
+            MirrorIndents = mirrorIndents,
+            SnapToGrid = snapToGrid,
+            FontAlignment = fontAlignment,
+            GridLinePitchPoints = snapToGrid && SnapsToGrid(paragraph) ? documentGridPitchPoints : 0
         };
+    }
+
+    // Whether a paragraph in this place snaps to the document grid. Word-probed (_probe_grid_table /
+    // _probe_grid_table_adjust, 2026-10-21, 36pt grid): body paragraphs do, a header's do not, and a
+    // table cell's do only under w:adjustLineHeightInTable.
+    bool SnapsToGrid(Paragraph? paragraph)
+    {
+        if (documentGridPitchPoints <= 0 ||
+            paragraph == null)
+        {
+            return false;
+        }
+
+        foreach (var ancestor in paragraph.Ancestors())
+        {
+            switch (ancestor)
+            {
+                case DocumentFormat.OpenXml.Wordprocessing.Header:
+                case DocumentFormat.OpenXml.Wordprocessing.Footer:
+                case DocumentFormat.OpenXml.Wordprocessing.Footnote:
+                case DocumentFormat.OpenXml.Wordprocessing.Endnote:
+                    return false;
+                case DocumentFormat.OpenXml.Wordprocessing.TableCell when !adjustLineHeightInTable:
+                    return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -12176,7 +12544,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     {
         if (!imagePartBytes.TryGetValue(part, out var bytes))
         {
-            using var stream = part.GetStream();
+            // Read-only: a part of a package open for writing that is opened read-write is written back
+            // out, deflated again, by every save after — and the parse reads the editor's live package.
+            using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
             using var buffer = new MemoryStream();
             stream.CopyTo(buffer);
             bytes = buffer.ToArray();
@@ -12640,7 +13010,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var bold = styleDefaults?.Bold ?? false;
         var italic = styleDefaults?.Italic ?? false;
         var underline = styleDefaults?.Underline ?? false;
+        var underlineStyle = styleDefaults?.UnderlineStyle ?? UnderlineStyle.Single;
         var strikethrough = styleDefaults?.Strikethrough ?? false;
+        var doubleStrikethrough = styleDefaults?.DoubleStrikethrough ?? false;
         var allCaps = styleDefaults?.AllCaps ?? false;
         var smallCaps = styleDefaults?.SmallCaps ?? false;
         var color = styleDefaults?.ColorHex ?? defaultRunColorHex ?? automaticRunColorHex;
@@ -12680,6 +13052,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var backgroundColor = styleDefaults?.BackgroundColorHex;
         var verticalAlignment = styleDefaults?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
         var characterSpacing = styleDefaults?.CharacterSpacingPoints ?? 0.0;
+        var characterScale = styleDefaults?.CharacterScalePercent ?? 100;
 
         // Override with inline properties if specified. One pass over the children replaces
         // ~35 GetFirstChild probes (each restarts at FirstChild and rescans the siblings);
@@ -12690,9 +13063,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         Italic? italicElement = null;
         Underline? underlineElement = null;
         Strike? strikeElement = null;
+        DoubleStrike? doubleStrikeElement = null;
         Caps? capsElement = null;
         SmallCaps? smallCapsElement = null;
         Spacing? spacingElement = null;
+        CharacterScale? characterScaleElement = null;
         Kern? kernElement = null;
         DocumentFormat.OpenXml.Office2010.Word.Ligatures? ligaturesElement = null;
         RightToLeftText? rtlElement = null;
@@ -12737,6 +13112,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 case Strike element:
                     strikeElement ??= element;
                     break;
+                case DoubleStrike element:
+                    doubleStrikeElement ??= element;
+                    break;
                 case Caps element:
                     capsElement ??= element;
                     break;
@@ -12745,6 +13123,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     break;
                 case Spacing element:
                     spacingElement ??= element;
+                    break;
+                case CharacterScale element:
+                    characterScaleElement ??= element;
                     break;
                 case Kern element:
                     kernElement ??= element;
@@ -12841,11 +13222,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var underlineColorHex = (string?) null;
-        var doubleUnderline = false;
         if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
         {
             underline = true;
-            doubleUnderline = underlineElement.Val?.Value == UnderlineValues.Double;
+            underlineStyle = UnderlineStyleOf(underlineElement);
 
             // w:u/@w:color — the rule's own colour. "auto" (and absence) means the text colour,
             // which a null carries.
@@ -12862,6 +13242,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             strikethrough = strikeElement.IsOn();
         }
 
+        if (doubleStrikeElement != null)
+        {
+            doubleStrikethrough = doubleStrikeElement.IsOn();
+        }
+
         if (capsElement != null)
         {
             allCaps = capsElement.IsOn();
@@ -12876,6 +13261,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (spacingElement?.Val?.HasValue == true)
         {
             characterSpacing = spacingElement.Val.Value / OoxmlUnits.TwipsPerPoint;
+        }
+
+        if (CharacterScaleOf(characterScaleElement) is { } directScale)
+        {
+            characterScale = directScale;
         }
 
         // Kerning threshold (w:kern in rPr — half-points; 0 disables). An absent inline kern leaves
@@ -13017,11 +13407,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (underlineElement == null && originalRPr?.GetFirstChild<Underline>() != null)
             {
                 underline = runStyleProps.Underline;
+                underlineStyle = runStyleProps.UnderlineStyle;
             }
 
             if (strikeElement == null && originalRPr?.GetFirstChild<Strike>() is { } styleStrike)
             {
                 strikethrough = styleStrike.IsOn() ? !strikethrough : false;
+            }
+
+            if (doubleStrikeElement == null && originalRPr?.GetFirstChild<DoubleStrike>() is { } styleDoubleStrike)
+            {
+                doubleStrikethrough = styleDoubleStrike.IsOn() ? !doubleStrikethrough : false;
             }
 
             if (capsElement == null && originalRPr?.GetFirstChild<Caps>() is { } styleCaps)
@@ -13037,6 +13433,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             if (spacingElement == null && originalRPr?.GetFirstChild<Spacing>() != null)
             {
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
+            }
+
+            if (characterScaleElement == null && originalRPr?.GetFirstChild<CharacterScale>() != null)
+            {
+                characterScale = runStyleProps.CharacterScalePercent;
             }
 
             // A character style's w:kern outranks the paragraph style's and yields to the run's own.
@@ -13135,13 +13536,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Italic = italic,
             Underline = underline,
             UnderlineColorHex = underlineColorHex,
-            DoubleUnderline = doubleUnderline,
+            UnderlineStyle = underlineStyle,
+            DoubleStrikethrough = doubleStrikethrough,
+            DirectUnderline = underlineElement?.Val?.InnerText,
+            DirectDoubleStrikethrough = doubleStrikeElement?.IsOn() == true ? true : null,
             Strikethrough = strikethrough,
             AllCaps = allCaps,
             SmallCaps = smallCaps,
             ColorHex = color,
             BackgroundColorHex = backgroundColor,
             CharacterSpacingPoints = characterSpacing,
+            CharacterScalePercent = characterScale,
             VerticalAlignment = verticalAlignment,
             KerningMinFontSizePoints = kerningMinFontSize,
             Ligatures = ligatures,

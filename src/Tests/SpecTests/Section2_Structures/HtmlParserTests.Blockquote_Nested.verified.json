@@ -12,8 +12,10 @@
           "DoubleUnderline": false,
           "IsRevisionMark": false,
           "Strikethrough": false,
+          "DoubleStrikethrough": false,
           "AllCaps": false,
           "SmallCaps": false,
+          "CharacterScalePercent": 100.0,
           "Ligatures": "Standard",
           "IsRightToLeft": false,
           "HasReflection": false,
@@ -30,6 +32,7 @@
     ],
     "Properties": {
       "LineSpacingMultiplier": 1.0,
+      "SnapToGrid": true,
       "LeftIndentPoints": 72.0,
       "ContextualSpacing": false,
       "SuppressLineNumbers": false,

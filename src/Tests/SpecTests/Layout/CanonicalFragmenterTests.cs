@@ -3685,8 +3685,10 @@ public class CanonicalFragmenterTests
         await Assert.That(cells[0].ClipSpillLeft).IsEqualTo(30f);
         await Assert.That(cells[0].ClipSpillRight).IsEqualTo(12f);
 
-        // A cell that did not ask for it is unclipped, so Word's overflow is untouched.
-        await Assert.That(cells[1].ClipContent).IsFalse();
+        // A cell that did not ask for it is cut only at its sides, as Word cuts every cell, and runs on
+        // below its box.
+        await Assert.That(cells[1].ClipVertically).IsFalse();
+        await Assert.That(cells[1].ClipHorizontally).IsTrue();
         await Assert.That(cells[1].ClipSpillLeft).IsEqualTo(0f);
     }
 }

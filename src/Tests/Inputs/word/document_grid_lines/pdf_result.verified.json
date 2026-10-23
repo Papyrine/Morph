@@ -1,0 +1,60 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 3,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "A0 12pt\nA1 12pt\nA2 12pt\nB0 30pt\nB1 30pt\nC0 40pt\nC1 40pt\nD0 72pt\nD1 72pt\nE0 nosnap\nE1 nosnap\nF0 auto360"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "F1 auto360\nG0 auto480\nG1 auto480\nH0 exact400\nH1 exact400\nI0 least1000\nI1 least1000\nJ0 before240\nJ1 before240\nK0 beforeLines100\nK1 beforeLines100\nL0 afterLines50"
+      },
+      {
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "L1 afterLines50\nM0 afterLines0 after480\nM1 afterLines0 after480\nN0 beforeLines0 before480\nN1 beforeLines0 before480\nO0 before480 beforeLines50\nO1 before480 beforeLines50\nP end"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.01,
+      "Ssim": 0.9934,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0094,
+      "Ssim": 0.9918,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0094,
+      "Ssim": 0.9963,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

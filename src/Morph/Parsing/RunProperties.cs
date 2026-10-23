@@ -15,8 +15,25 @@ sealed record RunProperties
     /// </summary>
     public string? UnderlineColorHex { get; init; }
 
+    /// <summary>The underline's style (<c>w:u/@w:val</c>); meaningful only when <see cref="Underline"/> is set.</summary>
+    public UnderlineStyle UnderlineStyle { get; init; }
+
     /// <summary>Whether <c>w:u/@w:val</c> is <c>double</c> — two thin rules instead of one.</summary>
-    public bool DoubleUnderline { get; init; }
+    public bool DoubleUnderline => UnderlineStyle == UnderlineStyle.Double;
+
+    /// <summary>
+    /// The underline's kind as w:u writes it (<c>single</c>, <c>dotted</c>, <c>wave</c> …), when the
+    /// run's own properties name one; null when they do not. Read by the editor's Font dialog, which
+    /// shows what is set rather than what is inherited; rendering draws the resolved
+    /// <see cref="UnderlineStyle"/>.
+    /// </summary>
+    public string? DirectUnderline { get; init; }
+
+    /// <summary>
+    /// Double strikethrough (w:dstrike), when the run's own properties turn it on; null otherwise. Read by
+    /// the editor's Font dialog; rendering draws the resolved <see cref="DoubleStrikethrough"/>.
+    /// </summary>
+    public bool? DirectDoubleStrikethrough { get; init; }
 
     /// <summary>
     /// Whether the run carries a tracked change (insertion or deletion). Word's markup view
@@ -24,6 +41,12 @@ sealed record RunProperties
     /// </summary>
     public bool IsRevisionMark { get; init; }
     public bool Strikethrough { get; init; }
+
+    /// <summary>
+    /// <c>w:dstrike</c> — two strike rules instead of one (<see cref="TextDecorations"/>). Word draws the
+    /// double alone when both are on.
+    /// </summary>
+    public bool DoubleStrikethrough { get; init; }
     public bool AllCaps { get; init; }
     public bool SmallCaps { get; init; }
     // null = black
@@ -39,6 +62,14 @@ sealed record RunProperties
     /// Positive values expand, negative values condense.
     /// </summary>
     public double CharacterSpacingPoints { get; init; }
+
+    /// <summary>
+    /// <c>w:w</c>: the run's glyphs stretched or condensed horizontally, as a percent of their width —
+    /// advances and outlines alike, heights untouched. Word-probed (<c>character_scale</c>, 2026-10-21):
+    /// the XPS draws a scaled run under a pure x-scale matrix (<c>0.5,0,0,1</c> at 50%), and the line
+    /// breaks where the scaled widths say.
+    /// </summary>
+    public double CharacterScalePercent { get; init; } = 100;
 
     /// <summary>
     /// Set by the layout engine, never by a parser: this bold run resolved a face that is not bold, so a

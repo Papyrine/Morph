@@ -24,6 +24,14 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask SetPageImageAsync(int documentId, int pageIndex, byte[] png, int dpi) =>
         controller.InvokeVoidAsync("setPageImage", documentId, pageIndex, png, dpi);
 
+    // A page as SVG markup in place of a picture; its <image data-i="n"> elements show the n-th of the
+    // pictures packed end to end in images, lengths long. measure has the script time its part.
+    public ValueTask SetPageSvgAsync(int documentId, int pageIndex, string markup, byte[] images, int[] lengths, bool measure) =>
+        controller.InvokeVoidAsync("setPageSvg", documentId, pageIndex, markup, images, lengths, measure);
+
+    public ValueTask SetThumbnailSvgAsync(int documentId, int pageIndex, string markup, byte[] images, int[] lengths) =>
+        controller.InvokeVoidAsync("setThumbnailSvg", documentId, pageIndex, markup, images, lengths);
+
     public ValueTask SetThumbnailAsync(int documentId, int pageIndex, byte[] png) =>
         controller.InvokeVoidAsync("setThumbnail", documentId, pageIndex, png);
 
@@ -89,6 +97,27 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
 
     // The editor's draft (morph-draft.js): whether the page asks before it is left, the file kept in
     // the browser's storage, and the draft read back.
+    // Word's ruler over the pages, from the model MorphEditor.RulerModel writes; null takes it away.
+    public ValueTask SetRulerAsync(string? model) =>
+        controller.InvokeVoidAsync("setRuler", model);
+
+    // The right-click menu MorphEditor just drew at the pointer: kept inside the editor.
+    public ValueTask PlaceMenuAsync() =>
+        controller.InvokeVoidAsync("placeMenu");
+
+    // Word's formatting marks over the pages' text, or none.
+    public ValueTask SetMarksAsync(bool on) =>
+        controller.InvokeVoidAsync("setMarks", on);
+
+    // The floating pictures of a document's pages, seven numbers each: page, x, y, width, height (in
+    // points), paragraph and place. A click on one in the editor selects it to size it.
+    public ValueTask SetPicturesAsync(int documentId, double[] pictures) =>
+        controller.InvokeVoidAsync("setPictures", documentId, pictures);
+
+    // Format Painter on or off: while on, the next text selected on the pages is handed to OnPaint.
+    public ValueTask SetPaintingAsync(bool on) =>
+        controller.InvokeVoidAsync("setPainting", on);
+
     public ValueTask SetUnsavedAsync(bool unsaved) =>
         controller.InvokeVoidAsync("setUnsaved", unsaved);
 
@@ -113,6 +142,10 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
 
     public ValueTask AddPrintPageAsync(int pageIndex, byte[] png) =>
         controller.InvokeVoidAsync("addPrintPage", pageIndex, png);
+
+    // A printed page as SVG, its pictures packed as SetPageSvgAsync packs them.
+    public ValueTask AddPrintPageSvgAsync(int pageIndex, string markup, byte[] images, int[] lengths) =>
+        controller.InvokeVoidAsync("addPrintPageSvg", pageIndex, markup, images, lengths);
 
     // Resolves once the browser's print dialog has closed and the print pages are cleaned up.
     public ValueTask FinishPrintAsync() =>

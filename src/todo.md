@@ -34,7 +34,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - **#5 Floating/anchored decorative art missing or misplaced.** Architecture, parse-path authority rules and the attempted-and-reverted decision log are in `docs/floating-art-pipeline.md`. Still open: `brochures/06`'s quote-box hatching (the dash column sits at the box's right edge where Word hatches inside), and in the HTML export the `cards/12`/`18` fold guides and `labels/03`'s tear lines.
 - **#6 Shape geometry defects.** Preset polygons, text-box chrome, picture flips, line alpha, connector assembly and outline-only/stroked-fill shapes are resolved across both parse paths (`docs/word-features.md`, `docs/floating-art-pipeline.md`). Still open: `business-plans/02`'s arrow construction.
 - **#8 Picture effects.** The colour transforms (duotone/greyscale/washout through one shared `ImageRecolor.Rows` recipe) and the `a:alphaModFix` transparency on shape fills landed 2026-08-29 on all four outputs (`docs/word-features.md`). Still open: shape fills carry no COLOUR transforms (`FloatingShapeElement` has no effect fields; nothing in the corpus needs it yet); `a:clrChange`/`a:biLevel` parse to `None`; soft-focus/blur (`business-plans/02`) and warm-tone (`newsletters/07`) are unmodelled.
-- **#47 Charts other than pie and doughnut are empty space**, and no chart draws its title, legend or data labels (`docs/word-features.md`, Charts). `business-plans/12`'s SWOT ring draws since 2026-10-11 without its "SWOT" title; the spreadsheet and presentation inputs do not go through that path at all.
+- **#47 Charts** go through the sheet chart composer since 2026-10-21 (`docs/word-features.md`, Charts). Still open: area, scatter and radar charts are not read; a line chart beside a right legend plots about 12pt wider than Word's; lines end square where `cap="rnd"` asks for round; and the HTML export draws only a pie or doughnut's slices.
 - **#9 Text measure inside shapes and text boxes.** Centred text can still wrap in a narrower measure than Word in containers other than pct tables — `cards/02`'s ticket-back TEXT BOX is ~40px narrow and its placeholder barely moved.
 - **#10 Table-style conditional-region inheritance.** The conditional `w:tblStylePr` blocks merge through `w:basedOn` per property (`DocumentParser.ResolveStyleConditionals`, `TableStyleConditionalInheritanceTests`), modelled on the whole-table rules' measured behaviour and not probed for the conditional regions themselves. The autofit half is closed: Word distributes columns by the CSS auto-table rule, probed (`docs/word-features.md`, Table Auto-fit).
 - **#12 TOC page numbers.** Tab-stop clamp and Hyperlink-style suppression landed. Still open: numbers are the document's cached values (live PAGEREF needs a bookmark→page map), and they sit ~4pt left of Word because the clamp lands at the cell content edge where Word spills into the right cell padding. Deferred as risk-heavy for a 4pt MEDIUM: the clamp input is the layout's `maxWidth`, and letting it spill means plumbing the cell's right padding into paragraph layout, whose `pagedLayoutCache` is keyed by (paragraph, ContentWidth) — that width key is load-bearing, so a padding-aware clamp needs the padding in the cache key too.
@@ -71,6 +71,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
 
 - **#32** `newsletters/12` draws an olive stripe Word hides — verify against the DOCX before treating Word as wrong.
+- **#49** `brochures/07`'s reference was rendered with a regular Quire Sans that this machine no longer has. The theme sets Quire Sans for everything, and only its Bold (weight 700, `Quire_Sans.ttf` in both Windows font folders, byte-identical to `src/Fonts/Quire_Sans_700.ttf`) is installed. Word re-rendering the package today embeds only that 700 face and draws the body bold, wrapping exactly as the render does (checked 2026-10-21, crops of the lorem panel), where the committed `expected_0001.png` shows the lighter regular. So the "bolder than Word" body text is the reference, not the engine. Closing it needs the regular face, an Office cloud font, bundled, or the reference regenerated, which would give up the intended look.
 
 ---
 
@@ -111,9 +112,8 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### brochures/07
 
-- MEDIUM | all | p1,p2 | body text (lorem paragraphs, contact text, right-rail paragraphs) rendered visibly bolder/heavier than Word, with shifted wrap points
+- MEDIUM | all | p1,p2 | body text renders bolder than the reference, with shifted wrap points: the reference's regular Quire Sans is not bundled (#49), and Word on this machine draws it as the render does
 - MEDIUM | html | - | the ABOUT US quote now renders in its yellow panel (2026-10-01), but the lightbulb photo block overlaps the second column's LOREM IPSUM heading
-- MEDIUM | html | - | body text renders bold where Word shows regular weight
 
 ### business-plans/02
 
@@ -137,7 +137,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### business-plans/12
 
 - MEDIUM | all | p1 | the cover's 520x461pt inline photo renders at its full height where Word shows only ~264pt of it (the photo visibly ends at ~311pt): the lower half is overdrawn by later rows' fills in Word's cover collage, a z-order/overdraw the engine does not reproduce. Undug
-- MINOR | all | p9 | the SWOT ring draws without its "SWOT" title (a chart title, #47)
 
 ### business-plans/13
 
@@ -161,7 +160,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### business/06
 
-- MINOR | all | p1 | the body block sits 11-13px high of Word, measured 2026-10-11 (17 bands, the first and last at Word's)
+- MINOR | all | p1 | everything from "Memo" down sits 5pt high of Word: baselines 131.30 / 169.39 / 266.14 / 675.70 against Word's 136.58 / 174.50 / 271.25 / 680.62 (Word's XPS, 2026-10-21), the "LOGO" box itself in place. The step is in the second paragraph, which holds only an INLINE text box (`wp:inline`, 32.33pt tall) on a Normal line of `w:line="288"` (1.2) with 12pt after: Morph makes that paragraph exactly the box's height and "Memo" (24pt before) follows at 108.60, where Word's follows 5.28pt lower. So Word sizes a line holding an inline object under a line multiple differently. A probe varying the multiple (1.0 / 1.2) and the box height (x1 / x2) was built by cloning this package's paragraphs, but Word failed to open it (COM "Command failed"; duplicated content-control docParts are the likely cause) — build the next one from a clean package instead. The text looks heavier in Word only because its Calibri Light is rasterised differently (the XPS shows the same faces and bold simulation Morph uses)
 
 ### comments/01
 
@@ -169,13 +168,9 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | body text drawn full-size at the normal top margin instead of Word's shrunk-to-fit-markup layout (Word scales the body down and places it lower to reserve the markup column)
 - MAJOR | html | - | comment content "Commented [R1]: Looks good to me." missing from the HTML export (only the body sentence is present)
 
-### feature_capture/01
-
-- MINOR | all | p1 | Word breaks the rotated header cell's "Header" mid-word into two stacked columns against a 24pt row where Morph grows the row to the word's 35pt: Word sizes the row by the other cells and wraps the rotated text against it, Morph lets `MeasureVerticalCellHeight` grow the row to the rotated text's natural width — the wrap-at-row-height equilibrium is unprobed
-
 ### html_complex
 
-- MEDIUM | all | p1,p2 | everything under the data table sits about 31pt high of Word's: the table's rows stand 32.6pt apart against Word's 35.4 (the cell-paragraph spacing of html_table), and the "3. Lists" heading opens 20pt closer to the table than Word's, whose headings keep their space above after a table. Page 1 so takes the "5. Styled Boxes" heading that opens Word's page 2. The intro wraps as Word's since 2026-10-11
+- MEDIUM | all | p1,p2 | the "3. Lists" heading opens 20pt closer to the data table than Word's, whose headings keep their space above after a table, so everything under it sits high. The table's rows are Word's since 2026-10-21 (35.20pt against 35.28, `docs/html-import.md`, Cell paragraph spacing); the intro wraps as Word's since 2026-10-11
 
 ### html_css_alignment
 
@@ -192,7 +187,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_table
 
-- MEDIUM | all | p1 | Table rows far more compact than Word: row pitch against Word's 58-59px at 150 DPI on identical ~17px text — the missing ~14pt/row cell-paragraph after-spacing, which is not flat (attempted twice and reverted; the `_probe_cellpad_sweep` data to model it from is in `docs/html-import.md`, Known gaps)
+- MINOR | all | p1 | rows stand 26.35pt apart against Word's 28.08 (read off its XPS): the cell-paragraph spacing is Word's since 2026-10-21, and this table, with no `cellpadding` or `border` attribute, is 1.7pt a row short of the rest — HTML's default 1px padding is the likeliest cause, unprobed (`docs/html-import.md`, Known gaps)
 
 ### html_table_cell_margin_css
 

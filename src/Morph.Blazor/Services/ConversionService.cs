@@ -72,15 +72,15 @@ public static class ConversionService
     /// resolution to the bundled Aptos faces (see <see cref="FontStore"/>): without it the renderer walks
     /// its OS-font fallback chain and throws in the browser / on a clean CI runner.
     /// </summary>
-    public static IReadOnlyList<byte[]> RenderPngPages(byte[] bytes, InputFormat source, ImageSettings settings, string fontDirectory)
+    public static IReadOnlyList<byte[]> RenderPngPages(byte[] bytes, InputFormat source, ImageSettings settings, string fontDirectory, Cancel cancel = default)
     {
         using var stream = new MemoryStream(bytes);
         var options = ImageOptions(settings.Dpi, fontDirectory, settings.Crop);
         return source switch
         {
-            InputFormat.Docx => new ImageSharpDocumentConverter().ConvertToImageData(stream, options),
-            InputFormat.Xlsx => new ImageSharpExcelConverter().ConvertToImageData(stream, options),
-            InputFormat.Pptx => new ImageSharpPowerPointConverter().ConvertToImageData(stream, options),
+            InputFormat.Docx => new ImageSharpDocumentConverter().ConvertToImageData(stream, options, cancel),
+            InputFormat.Xlsx => new ImageSharpExcelConverter().ConvertToImageData(stream, options, cancel),
+            InputFormat.Pptx => new ImageSharpPowerPointConverter().ConvertToImageData(stream, options, cancel),
             _ => throw UnknownSource(source),
         };
     }
@@ -91,12 +91,14 @@ public static class ConversionService
     /// once for all of it. Always the whole sheet — a text layer cannot line up with a cropped image — so
     /// <see cref="RenderPngPages"/> remains the call for a cropped download.
     /// </summary>
-    public static IReadOnlyList<RenderedPage> RenderPages(byte[] bytes, InputFormat source, int dpi, string fontDirectory)
+    public static IReadOnlyList<RenderedPage> RenderPages(byte[] bytes, InputFormat source, int dpi, string fontDirectory, Cancel cancel = default)
     {
+        cancel.ThrowIfCancellationRequested();
         using var document = PagedDocument.Open(bytes, source, fontDirectory);
         var pages = new List<RenderedPage>(document.PageCount);
         for (var index = 0; index < document.PageCount; index++)
         {
+            cancel.ThrowIfCancellationRequested();
             pages.Add(new(document.RenderPage(index, dpi), document.WidthPoints(index), document.HeightPoints(index), document.TextLayer(index)));
         }
 
@@ -192,7 +194,7 @@ public static class ConversionService
     /// the PDF backend — in the browser this is the in-memory directory <see cref="FontStore"/> populates, since
     /// the PDF backend can't reach Morph's embedded fonts.
     /// </summary>
-    public static byte[] ToPdf(byte[] bytes, InputFormat source, string fontDirectory)
+    public static byte[] ToPdf(byte[] bytes, InputFormat source, string fontDirectory, Cancel cancel = default)
     {
         using var stream = new MemoryStream(bytes);
         PdfExportOptions options = new()
@@ -202,9 +204,9 @@ public static class ConversionService
         };
         return source switch
         {
-            InputFormat.Docx => PdfDocumentConverter.ConvertToPdf(stream, options),
-            InputFormat.Xlsx => PdfExcelConverter.ConvertToPdf(stream, options),
-            InputFormat.Pptx => PdfPowerPointConverter.ConvertToPdf(stream, options),
+            InputFormat.Docx => PdfDocumentConverter.ConvertToPdf(stream, options, cancel),
+            InputFormat.Xlsx => PdfExcelConverter.ConvertToPdf(stream, options, cancel),
+            InputFormat.Pptx => PdfPowerPointConverter.ConvertToPdf(stream, options, cancel),
             _ => throw UnknownSource(source),
         };
     }
@@ -215,18 +217,22 @@ public static class ConversionService
     /// the extension and content type therefore travel with the bytes rather than being read off
     /// <see cref="FormatInfo"/>, which can't know the page count up front. <paramref name="fontDirectory"/>
     /// pins font resolution for every format — the text ones draw nothing, but a workbook's column widths
-    /// are measured off its body font (see <see cref="ToHtml"/>).
+    /// are measured off its body font (see <see cref="ToHtml"/>). <paramref name="cancel"/> stops the
+    /// PNG and PDF renders between pages; the text exports are quick, so it is checked only before them.
     /// </summary>
-    public static DownloadPayload BuildDownload(byte[] bytes, InputFormat source, OutputFormat format, ImageSettings image, string fontDirectory) =>
-        format switch
+    public static DownloadPayload BuildDownload(byte[] bytes, InputFormat source, OutputFormat format, ImageSettings image, string fontDirectory, Cancel cancel = default)
+    {
+        cancel.ThrowIfCancellationRequested();
+        return format switch
         {
-            OutputFormat.Png => PngDownload(RenderPngPages(bytes, source, image, fontDirectory)),
-            OutputFormat.Pdf => new(ToPdf(bytes, source, fontDirectory), ".pdf", "application/pdf"),
+            OutputFormat.Png => PngDownload(RenderPngPages(bytes, source, image, fontDirectory, cancel)),
+            OutputFormat.Pdf => new(ToPdf(bytes, source, fontDirectory, cancel), ".pdf", "application/pdf"),
             OutputFormat.Html => new(Encoding.UTF8.GetBytes(ToHtml(bytes, source, fontDirectory)), ".html", "text/html"),
             OutputFormat.Markdown => new(Encoding.UTF8.GetBytes(ToMarkdown(bytes, source, fontDirectory)), ".md", "text/markdown"),
             OutputFormat.Text => new(Encoding.UTF8.GetBytes(ToText(bytes, source, fontDirectory)), ".txt", "text/plain"),
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown output format."),
         };
+    }
 
     static ArgumentOutOfRangeException UnknownSource(InputFormat source) =>
         new(nameof(source), source, "Unknown input format.");

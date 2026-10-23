@@ -10,6 +10,8 @@
     MaxRenderDpi: 288,
     MaxFileSize: 26214400,
     ShowIssueLink: true,
+    VectorPages: true,
+    MeasurePaint: false,
     ShowReview: true,
     OpenReview: false,
     ReadOnly: false

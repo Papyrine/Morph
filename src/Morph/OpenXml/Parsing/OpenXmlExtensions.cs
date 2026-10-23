@@ -30,6 +30,23 @@ static class OpenXmlExtensions
     /// Returns true when an OnOff-style element is present and not explicitly set to false.
     /// OOXML semantics: a bare element (no w:val) is "on", w:val="false"/"0" is "off".
     /// </summary>
+    /// <summary>
+    /// The part a relationship id names, or null when the host has no such relationship. A package whose
+    /// relationships part is missing or stale names ids that resolve to nothing, and
+    /// <see cref="OpenXmlPartContainer.GetPartById"/> throws for each; Word opens such a file with the
+    /// pictures, charts and chunks left out, and so does Morph.
+    /// </summary>
+    public static OpenXmlPart? PartOrNull(this OpenXmlPartContainer host, string? id)
+    {
+        if (string.IsNullOrEmpty(id) ||
+            !host.TryGetPartById(id, out var part))
+        {
+            return null;
+        }
+
+        return part;
+    }
+
     public static bool IsOn(this OnOffType? element) =>
         element != null && element.Val?.Value != false;
 
@@ -391,9 +408,10 @@ static class OpenXmlExtensions
     /// extent leaves a letter-size sidebar declared 100% of the page's height 50pt short of an A4
     /// page's foot (cover-letters/09, resumes/04), and menus/09's 93%-wide chalkboard 9pt narrow.
     /// Every reader of an anchor's size goes through its extent, and a group's children scale by it,
-    /// so the fold is made once, on the element, before the part is parsed.
+    /// so the fold is made once, on the element, before the part is parsed. Given
+    /// <paramref name="restore"/>, how to put each extent back is added to it.
     /// </summary>
-    public static void FoldRelativeSizes(this OpenXmlElement root, PageSettings page)
+    public static void FoldRelativeSizes(this OpenXmlElement root, PageSettings page, List<Action>? restore = null)
     {
         foreach (var anchor in root.Descendants<DW.Anchor>())
         {
@@ -409,12 +427,16 @@ static class OpenXmlExtensions
                     ParsePercentChild(child, "pctWidth") is { } widthFraction &&
                     RelativeSizeReference(child, page, horizontal: true) is { } widthReference)
                 {
+                    var width = extent.Cx;
+                    restore?.Add(() => extent.Cx = width);
                     extent.Cx = (long) Math.Round(widthFraction * widthReference * OoxmlUnits.EmusPerPoint);
                 }
                 else if (child.LocalName == "sizeRelV" &&
                          ParsePercentChild(child, "pctHeight") is { } heightFraction &&
                          RelativeSizeReference(child, page, horizontal: false) is { } heightReference)
                 {
+                    var height = extent.Cy;
+                    restore?.Add(() => extent.Cy = height);
                     extent.Cy = (long) Math.Round(heightFraction * heightReference * OoxmlUnits.EmusPerPoint);
                 }
             }

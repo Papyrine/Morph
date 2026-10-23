@@ -38,6 +38,12 @@ sealed class DocumentOutline
     /// <summary>The fonts the document's font table names, in its order, less the vertical (<c>@</c>) forms.</summary>
     public IReadOnlyList<string> Fonts { get; init; } = [];
 
+    /// <summary>The bookmarks that start in a paragraph, in the document's order.</summary>
+    public IReadOnlyList<BookmarkPlace> Bookmarks { get; init; } = [];
+
+    /// <summary>Whether the body has a table of contents, which References > Update Table updates.</summary>
+    public bool HasContents { get; init; }
+
     public static DocumentOutline Empty { get; } = new()
     {
         Paragraphs = [],
@@ -103,17 +109,23 @@ sealed class DocumentOutline
         var paragraphs = new List<EditParagraph>();
         var unindents = DocumentEditor.Unindents(document);
         var paragraphOfRun = new Dictionary<int, int>();
+        var bookmarks = new List<BookmarkPlace>();
+        var contents = false;
         var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, _.Paragraph, _.Units)));
         foreach (var (part, paragraph, units) in read)
         {
+            // Only a paragraph a field is in is looked into for one.
+            contents = contents ||
+                       (part == ReviewPart.Body &&
+                        units.Any(_ => _.Kind == EditUnitKind.Field) &&
+                        DocumentEditor.HasContents(paragraph));
             var ordinal = paragraphs.Count;
             foreach (var (run, _, _) in ParagraphContent.Runs(paragraph))
             {
                 paragraphOfRun[runs[run]] = ordinal;
             }
 
-            paragraphs.Add(
-                new(ordinal, units.Select(_ => Unit(_, runs)).ToList())
+            var edited = new EditParagraph(ordinal, units.Select(_ => Unit(_, runs)).ToList())
                 {
                     Part = part,
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
@@ -122,7 +134,9 @@ sealed class DocumentOutline
                     ListLevel = ListLevel(paragraph, styles, defaultStyle),
                     Indented = unindents(paragraph),
                     NextStyle = NextStyle(paragraph, styles)
-                });
+                };
+            paragraphs.Add(edited);
+            bookmarks.AddRange(BookmarksIn(paragraph, edited, runs));
         }
 
         var (allows, forces) = Permissions(document);
@@ -141,8 +155,44 @@ sealed class DocumentOutline
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList() ?? [],
             DefaultStyle = defaultStyle,
+            Bookmarks = bookmarks,
+            HasContents = contents,
             paragraphOfRun = paragraphOfRun
         };
+    }
+
+    // Where each bookmark of a paragraph starts: at the next run's first place, or at the paragraph's end.
+    static IEnumerable<BookmarkPlace> BookmarksIn(Paragraph paragraph, EditParagraph read, Dictionary<DocumentFormat.OpenXml.Wordprocessing.Run, int> runs)
+    {
+        var waiting = new List<string>();
+        foreach (var element in paragraph.Descendants())
+        {
+            if (element is BookmarkStart { Name.Value: { Length: > 0 } name })
+            {
+                waiting.Add(name);
+                continue;
+            }
+
+            if (waiting.Count == 0 ||
+                element is not DocumentFormat.OpenXml.Wordprocessing.Run run ||
+                !runs.TryGetValue(run, out var ordinal) ||
+                read.OffsetOf(new(ordinal, 0)) is not { } offset)
+            {
+                continue;
+            }
+
+            foreach (var each in waiting)
+            {
+                yield return new(each, read.Ordinal, offset);
+            }
+
+            waiting.Clear();
+        }
+
+        foreach (var each in waiting)
+        {
+            yield return new(each, read.Ordinal, read.Length);
+        }
     }
 
     // The level of the list a paragraph is in: its own numbering's, or else its style's. A list id

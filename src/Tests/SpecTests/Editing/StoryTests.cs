@@ -141,6 +141,54 @@ public class StoryTests
         await Assert.That(Footnotes(result.Document)).Contains("<w:ins ");
     }
 
+    // An endnote is written as a footnote is (Word-probed 2026-10-21): its reference in the Endnote
+    // Reference style, its note in the endnotes part after Word's separators, in Endnote Text.
+    [Test]
+    public async Task AnEndnote_IsItsReference_AndItsNote()
+    {
+        var result = DocumentEditor.InsertEndnote(Document(), 0, 4, Plain);
+
+        await Assert.That(Xml(result.Document)).StartsWith(
+            "<w:p><w:r><w:t xml:space=\"preserve\">Body</w:t></w:r><w:r><w:rPr><w:rStyle w:val=\"EndnoteReference\" /></w:rPr><w:endnoteReference w:id=\"1\" /></w:r><w:r><w:t xml:space=\"preserve\"> one</w:t></w:r></w:p>");
+        var notes = Endnotes(result.Document);
+        await Assert.That(notes).StartsWith("<w:endnote w:type=\"separator\" w:id=\"-1\"><w:p><w:pPr><w:spacing w:after=\"0\" w:line=\"240\" w:lineRule=\"auto\" /></w:pPr><w:r><w:separator /></w:r></w:p></w:endnote>");
+        await Assert.That(notes).EndsWith(
+            "<w:endnote w:id=\"1\"><w:p><w:pPr><w:pStyle w:val=\"EndnoteText\" /></w:pPr><w:r><w:rPr><w:rStyle w:val=\"EndnoteReference\" /></w:rPr><w:endnoteRef /></w:r><w:r><w:t xml:space=\"preserve\"> </w:t></w:r></w:p></w:endnote>");
+        await Assert.That(StyleIds(result.Document)).Contains("EndnoteText");
+        await Assert.That(StyleIds(result.Document)).Contains("EndnoteReference");
+
+        var outline = DocumentOutline.Read(result.Document);
+        await Assert.That(outline.Paragraphs[result.Paragraph].Part).IsEqualTo(ReviewPart.Endnotes);
+    }
+
+    // Word names each kind of note's separators in the settings, footnotes before endnotes, both
+    // before the compatibility settings.
+    [Test]
+    public async Task TheSeparators_AreNamedInTheSettings()
+    {
+        var footnoted = DocumentEditor.InsertFootnote(WithSettings(Document()), 0, 4, Plain);
+        var both = DocumentEditor.InsertEndnote(footnoted.Document, 0, 2, Plain);
+
+        await Assert.That(Bare(Read(both.Document, _ => _.MainDocumentPart!.DocumentSettingsPart!.Settings!.InnerXml))).IsEqualTo(
+            "<w:footnotePr><w:footnote w:id=\"-1\" /><w:footnote w:id=\"0\" /></w:footnotePr><w:endnotePr><w:endnote w:id=\"-1\" /><w:endnote w:id=\"0\" /></w:endnotePr><w:compat />");
+    }
+
+    static string Endnotes(byte[] docx) =>
+        Bare(Read(docx, _ => _.MainDocumentPart!.EndnotesPart!.Endnotes!.InnerXml));
+
+    static byte[] WithSettings(byte[] docx)
+    {
+        using var stream = new MemoryStream();
+        stream.Write(docx);
+        using (var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, true))
+        {
+            package.MainDocumentPart!.AddNewPart<DocumentFormat.OpenXml.Packaging.DocumentSettingsPart>().Settings =
+                new(new DocumentFormat.OpenXml.Wordprocessing.Compatibility());
+        }
+
+        return stream.ToArray();
+    }
+
     [Test]
     public async Task AFootnote_InAHeader_IsRefused()
     {

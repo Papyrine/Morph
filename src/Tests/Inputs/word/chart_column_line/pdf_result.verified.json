@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "An inline clustered column chart with a title, two series, data labels, gridlines and a bottom\nlegend:\nNorth South\n42\n30\n55\n38\n61\n52\n48\n64\n0\n10\n20\n30\n40\n50\n60\n70\nQ1 Q2 Q3 Q4\nQuarterly Sales\nAn inline line chart with a title and a right legend:\nVisitors\nOrders\n0\n50\n100\n150\n200\n250\nQ1 Q2 Q3 Q4\nWeb Traffic"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0524,
+      "Ssim": 0.9053,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

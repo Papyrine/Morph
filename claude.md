@@ -233,8 +233,11 @@ component is `ExportOptionsPanel`: `ExportOptions` is already Morph's own record
 
 `MorphViewer` is the package's second widget: a browser-PDF-viewer-style view of a `.docx`/`.xlsx`/`.pptx`
 (thumbnails, zoom and fit modes, rotation, find, presentation mode, print, download). It rests on
-`PagedDocument`, which parses and runs the `Fragmenter` once and paints any page at any DPI through
-`ImageSharpPainter`, and on `TextLayerBuilder`, which reads each page's runs off the laid-out tree into the
+`PagedDocument`, which parses and runs the `Fragmenter` once and writes any page as SVG through
+`SvgPainter` (Morph.ImageSharp; the browser draws it, `MorphViewer.VectorPages`, the default) or paints it
+at any DPI through `ImageSharpPainter`. `SvgPainter` reads the same tree in the same order as
+`ImageSharpPainter`, with each glyph at the x SixLabors.Fonts lays it at, so a drawing change made to one
+painter belongs in the other too. It also rests on `TextLayerBuilder`, which reads each page's runs off the laid-out tree into the
 selectable text layer (`wwwroot/morph-text.js`) that the converter's preview carries too. Both use Morph
 internals: `Morph` and `Morph.ImageSharp` grant `Morph.Blazor` `InternalsVisibleTo`, so a change to the
 layout tree (`PlacedItem` kinds, `PlacedRun`) can break the Blazor build — and
@@ -312,7 +315,15 @@ page to open like the body's (`EditMap` keys blocks by ordinal; a header repeate
 block that starts the paragraph afresh, which `EditSession`'s skip has to know). An edit that makes a
 relationship — a picture's image, a link's address — makes it on the part the paragraph is in
 (`Editing.PartOf`). `DocumentEditor.Stories.cs` makes a section's header or footer and puts in
-footnotes, as Word writes them.
+footnotes and endnotes, as Word writes them; `DocumentEditor.Bookmarks.cs` adds, moves and deletes
+bookmarks (Word's dialog's name rule, `IsBookmarkName`), and `DocumentOutline.Bookmarks` says where each
+starts. `DocumentEditor.ParagraphFormat.cs` is Word's Paragraph dialog (`ParagraphFormat`: indents,
+spacing, line rule, pagination switches written only where they differ from the style), and `RunFormat`
+carries the Font dialog's underline styles and effects; the dialogs themselves are
+`MorphEditor.Dialogs.cs`. Word's formatting marks are drawn by morph-text.js (`setMarks`) as
+aria-hidden elements over each page's text layer, so selection and copy never see them; the ruler is
+drawn by morph-viewer.js (`setRuler`) from `MorphEditor.RulerModel`, and hands dragged indents back to
+`OnRulerIndent`.
 `DocumentEditor.Sections.cs` sets a section's margins, orientation and paper and breaks sections (a
 section is the paragraphs up to the one whose `pPr` holds its `sectPr`; how a section starts is said
 in its OWN `sectPr`, so a continuous break marks the section after it);
@@ -322,7 +333,17 @@ is `RunFormat` through the same `Format` as bold, and `ClearFormatting` takes a 
 but leaves its character style. `DocumentEditor.Atoms.cs` deletes what is not text — a picture, a
 break, a field from its beginning to its end, a note's reference with its note — when a rewritten
 paragraph leaves it out or a deletion spans it; tracked, its runs are struck (`w:delText`,
-`w:delInstrText`) so rejecting puts it back. Word's own markup for each was **probed over COM** and is recorded beside the
+`w:delInstrText`) so rejecting puts it back. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
+DATE fields and Word's Automatic Table 1 table of contents — whose page numbers only the layout knows,
+so the editor lays the edited file out and writes them in (`SetContentsPages`) within the same edit;
+`DocumentEditor.Lists.cs` is the Bullets and Numbering libraries (`ListTemplates.Bullets`/`Numbers`,
+each differing from the default list in its first level only) and Restart at 1 / Continue numbering;
+`DocumentEditor.ParagraphBorders.cs` paragraph borders and shading; `DocumentEditor.FormatPainter.cs`
+Format Painter; `DocumentEditor.Pictures.cs` also wraps a picture (`SetPictureWrap`, inline ↔
+`wp:anchor`). A floating picture is selected on the page without the layout growing a source link:
+the parser stamps `FloatingImageElement.Source` under `captureSources`, and `PagedDocument.Pictures`
+finds each placed picture by its image's byte array — the very array the parser read — so an array two
+pictures share is not offered. Word's own markup for each was **probed over COM** and is recorded beside the
 code: `BuiltInStyles` holds Word's definitions of the styles it builds in, added to a document the first
 time one is used, and `ListTemplates` Word's nine-level bullet and number lists. Their tests are
 `ParagraphFormatTests`, `InsertTests`, `TableEditTests`, `CharacterFormatTests` and `AtomDeletionTests` under
@@ -333,10 +354,39 @@ where its caret was, in paragraph ordinals (`EditSession` gives the script each 
 A new document is `wwwroot/blank.docx`: Word's own blank document with its author, rsids and document
 ids taken out.
 
+The ribbon's buttons, the verbs its menus offer, Word's keys and the buttons the script handles itself
+(`data-edit-command`) are **one table of commands**, `MorphEditor.Commands` (`MorphEditor.Commands.cs`):
+each an `EditorCommand` — the name the script hands `OnEditCommand` / `OnEditKey`, its label, icon and
+key, and its `Enabled`, `Visible` and `Checked` rules — asked of one `EditorState`, worked out at the
+start of each render and again when a command runs, so a key is refused where its button is greyed out.
+The markup draws each button from its entry (`Tool`, `MenuItem`) and holds no rule of its own; a menu's
+choices (the margins, the colours, the wrap styles) are not commands. A new control is a new entry, which
+has to join the table's `all` list as well (`EditorCommandTests.TheTable_HoldsEveryCommand` fails
+otherwise), and its rule then shows in `EditorCommandTests`' snapshots. A command that cannot be used is
+greyed out, never taken away — only the contextual Table tab comes and goes. Only what is cheap to know
+goes in the state: what needs the file read (the caret's page setup, a picture's wrap) is asked by the
+menu that shows it, while it is open. The script still binds the keys (`wordKey`) and still keeps bold's
+and the alignments' pressed state as the caret moves — crossing to .NET for those would cost a render on
+the one WebAssembly thread per caret move — and it tells .NET only when a picture comes to be selected
+alone in the open paragraph, or stops being (`OnEditPicture`).
+
+**Menus are data**: a `MenuLine` is a command (its rule greys the line out), a choice, a heading, a
+separator, or a submenu of lines, and one fragment (`Menu`) draws every menu that is a list — the
+ribbon's dropdowns (`MorphEditor.Menus.cs` makes each where what it offers is known) and Word's
+right-click menu. The dropdowns that are pictures — the palettes, the table grid, the list libraries, the
+fonts and styles drawn as themselves — keep markup of their own. A right-click (`onContextMenu` in
+morph-viewer.js) selects what is under it first — a floating picture, the open paragraph's own place,
+text already selected left as it is, or the paragraph there opened as a click opens it — then calls
+`OnContextMenu`, and `ContextLines` offers only what belongs to that place, as Word's does (the
+ribbon greys out instead, so it never moves); `placeMenu` then keeps the menu inside the editor. A
+command line the script handles carries `data-edit-command`, so its press is the script's as the
+ribbon's button is. Escape with a menu or a dialog open is caught at the document, before the open
+paragraph's own Escape abandons what was typed, and handed to `OnMenuEscape`.
+
 Word's keys that change what a paragraph IS rather than what it says — Tab/Shift+Tab in a list, Enter
 in an empty list paragraph, Backspace at a list paragraph's start, Enter at a heading's end,
 Ctrl+Alt+1-3, Ctrl+K — are read by `onParagraphKey` in morph-edit.js and handed to .NET by name
-(`MorphViewer.OnEditKey`), which carries them out like a ribbon command; the session JSON says whether
+(`MorphViewer.OnEditKey`), which runs the command of that name as a ribbon press does; the session JSON says whether
 the paragraph is in a list (`list`) and whether its style names another to follow it (`follow`), from
 `EditParagraph.ListLevel` / `NextStyle`. What they do was **probed by sending keys to Word** (a visible
 Word window, with keys sent only while it is in the foreground — COM's `TypeParagraph` /
@@ -362,7 +412,20 @@ file in IndexedDB after each edit, which the start page offers back. One slot; s
 drops it, and only a draft this session wrote is dropped.
 
 An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
-pages cannot disagree with what Download saves. **A change to `CanonicalParagraphMeasurer.Flatten` — what
+pages cannot disagree with what Download saves. The viewer's edits (under `DocumentReading.Capture`)
+keep the package of the file each returns open, and both the next edit to that file and the parse of
+it (`DocumentReading.Borrow`, from `PagedDocument.Open`) read that tree rather than the file's XML —
+which is the file, since it is what was just saved; on the WebAssembly runtime reading the business
+plan's body was ~580ms, twice per hand-in. Opening a Word document (and an undo) does the same from
+the other end: the viewer opens the file for editing first (`DocumentReading.Prepare`), so the parse,
+the reading of its review and outline (`DocumentReading.Read`) and the first edit share that one
+tree, and a read-only viewer lets it go once read. **The parser must therefore leave the tree as it found
+it**: its two writes (`DropRedefinedStyles`, `FoldRelativeSizes`) are journalled and undone when it
+parses a borrowed package (`DocumentParser.Parse(WordprocessingDocument)`), and it reads part
+streams read-only, since a read-write stream of a package open for writing is deflated again on
+every save. A new write to the tree in the parser has to join the journal: `LivePackageTests` parses
+every corpus document both ways, after an edit and from a prepared package, and compares the next
+edit's parts, and fails otherwise. **A change to `CanonicalParagraphMeasurer.Flatten` — what
 text a run lays out as — has to be mirrored in `SourceIndex.Cursor.Drawn`**; `SourceIndexTests.Corpus_IsFollowedThroughout`
 fails if the two part ways.
 
@@ -384,7 +447,14 @@ locks it, refreshes the lock, saves through the editor's `OnSave` and unlocks wi
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
 extracted into `Morph.Blazor` this project is only the shell — header with Convert | View | Edit links,
 theme toggle, footer — around `<MorphConverter />` at `/`, `<MorphViewer />` at `/view` and
-`<MorphEditor />` at `/edit`. See
+`<MorphEditor />` at `/edit`. **The deploy is AOT-compiled and nothing else is**: only the publish line
+in `.github/workflows/deploy-blazor.yml` passes `RunAOTCompilation` (main only), so local builds, the
+tests' own publish and pull requests stay interpreted — never set it in a csproj, or every test build
+becomes a 15-minute AOT publish. **After a local AOT publish, delete `src/Morph.Web/obj/Release` before the
+next interpreted one**: the interpreted publish reuses the AOT build's assemblies, whose IL AOT stripped, and
+the tests then serve an app that never starts. The workarounds AOT needs are in `Morph.Blazor/build/Morph.Blazor.targets`,
+and the deploy's `test-aot` job runs the browser tests against the AOT app
+(`Morph.Web.Tests -p:SkipBlazorPublish=true` serves whatever is in `bin/Release/blazor-publish`). See
 `src/Morph.Web/README.md`.
 
 For a complete feature-by-feature mapping to code locations, see `docs/word-features.md` — render

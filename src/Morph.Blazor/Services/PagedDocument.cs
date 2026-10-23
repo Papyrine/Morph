@@ -62,14 +62,20 @@ sealed class PagedDocument : IDisposable
         // What the public render entry points do before parsing: it locks the process-wide default font.
         DefaultFontSettings.MarkRenderOccurred();
 
-        using var stream = new MemoryStream(bytes);
-        var document = source switch
+        // A file the editor has just written is read from the package its edit still holds open, whose
+        // tree is that file's: reading the body's XML again was half of the parse.
+        if (source != InputFormat.Docx ||
+            !DocumentReading.Borrow(bytes, _ => DocumentConverter.Parse(_, options.DefaultFont, options.UseLetterPageSize, traceSources), out var document))
         {
-            InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources),
-            InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
-            InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont),
-            _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown input format.")
-        };
+            using var stream = new MemoryStream(bytes);
+            document = source switch
+            {
+                InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources),
+                InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
+                InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont),
+                _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown input format.")
+            };
+        }
 
         return new(document, ImageSharpDocumentConverter.Layout(document, options), options);
     }
@@ -135,6 +141,78 @@ sealed class PagedDocument : IDisposable
         }
     }
 
+    /// <summary>
+    /// The body's floating pictures on a page, for the editor to select and size. The layout keeps no
+    /// note of where a picture came from, and must not grow one for the viewer's sake; a picture is
+    /// found instead by its image's bytes — the very array the parser read, which the layout draws
+    /// (the raster fallback, for an SVG) — and the parser's note on the picture of where its drawing
+    /// is (<see cref="FloatingImageElement.Source"/>). An SVG with no raster fallback, a picture in a
+    /// header, a footer or a rotated group, and two pictures sharing one array, are not offered.
+    /// </summary>
+    public IReadOnlyList<PagePicture> Pictures(int pageIndex, DocumentOutline outline)
+    {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            var sources = new Dictionary<byte[], RunSource?>(ReferenceEqualityComparer.Instance);
+            Collect(document.Elements);
+            var found = new List<PagePicture>();
+            Walk(laidOut.Pages[pageIndex].Items);
+            return found;
+
+            void Collect(IEnumerable<DocumentElement> elements)
+            {
+                foreach (var element in elements)
+                {
+                    if (element is FloatingImageElement image)
+                    {
+                        foreach (var data in new[] {image.ImageData, image.RasterFallbackData}.OfType<byte[]>())
+                        {
+                            // An array two pictures share cannot say which is which.
+                            if (!sources.TryAdd(data, image.Source))
+                            {
+                                sources[data] = null;
+                            }
+                        }
+                    }
+                    else if (element is TableElement table)
+                    {
+                        foreach (var cell in table.Rows.SelectMany(_ => _.Cells))
+                        {
+                            Collect(cell.Content);
+                        }
+                    }
+                }
+            }
+
+            void Walk(IReadOnlyList<PlacedItem> items)
+            {
+                foreach (var item in items)
+                {
+                    switch (item)
+                    {
+                        case PlacedImage {Data: { } data} placed when sources.TryGetValue(data, out var source) && source is { } from:
+                            if (outline.ParagraphOf(from.Run) is { } paragraph &&
+                                paragraph.OffsetOf(new(from.Run, from.Start)) is { } offset)
+                            {
+                                found.Add(new(placed.X, placed.Y, placed.Width, placed.Height, paragraph.Ordinal, offset));
+                            }
+
+                            break;
+                        case PlacedTableRow row:
+                            foreach (var cell in row.Cells)
+                            {
+                                Walk(cell.Floats);
+                                Walk(cell.Content);
+                            }
+
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
     SourceIndex? SourcesLocked()
     {
         if (!sourcesBuilt)
@@ -163,6 +241,30 @@ sealed class PagedDocument : IDisposable
             finally
             {
                 // The context outlives the page; its decoded pictures must not.
+                context.ReleaseImages();
+            }
+        }
+    }
+
+    /// <summary>
+    /// The page (zero-based <paramref name="index"/>) as SVG for the browser to draw (<see cref="SvgPainter"/>),
+    /// its text in <paramref name="fontFamily"/> — the face morph-text.js registers, which is the Aptos every
+    /// family maps to here. <paramref name="dpi"/> only sets what the SVG still carries as pixels (warped
+    /// WordArt). A page the SVG cannot carry whole (<see cref="SvgPage.Complete"/>) is painted with
+    /// <see cref="RenderPage"/> instead.
+    /// </summary>
+    public SvgPage RenderSvg(int index, int dpi, string fontFamily = "Morph Text")
+    {
+        lock (gate)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            var context = ContextFor(dpi);
+            try
+            {
+                return SvgPainter.PaintPage(laidOut.Pages[index], context, fontFamily);
+            }
+            finally
+            {
                 context.ReleaseImages();
             }
         }

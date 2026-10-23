@@ -1,4 +1,4 @@
-# All HTML export scenarios (336)
+# All HTML export scenarios (346)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -79,6 +79,9 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [cards/16](#cards16)
 - [cards/18](#cards18)
 - [cards/19](#cards19)
+- [character_scale](#character_scale)
+- [chart_anchored](#chart_anchored)
+- [chart_column_line](#chart_column_line)
 - [colored_text](#colored_text)
 - [color_transform_hsl](#color_transform_hsl)
 - [color_transform_order](#color_transform_order)
@@ -110,6 +113,8 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [decimal_tabs/01](#decimal_tabs01)
 - [deep_nested_list](#deep_nested_list)
 - [document_capture/01](#document_capture01)
+- [document_grid_lines](#document_grid_lines)
+- [document_grid_table](#document_grid_table)
 - [document_protection/01](#document_protection01)
 - [dot_points](#dot_points)
 - [embedded_font](#embedded_font)
@@ -120,6 +125,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [feature_capture/01](#feature_capture01)
 - [field_codes_simple/01](#field_codes_simple01)
 - [first_line_indent](#first_line_indent)
+- [font_alignment](#font_alignment)
 - [font_families](#font_families)
 - [font_sizes](#font_sizes)
 - [footer](#footer)
@@ -210,6 +216,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [line_spacing](#line_spacing)
 - [line_spacing_at_least](#line_spacing_at_least)
 - [line_spacing_exactly](#line_spacing_exactly)
+- [list_marker_suffix](#list_marker_suffix)
 - [long_paragraph](#long_paragraph)
 - [menus/01](#menus01)
 - [menus/02](#menus02)
@@ -289,6 +296,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [simple_paragraph](#simple_paragraph)
 - [simple_table](#simple_table)
 - [small_caps](#small_caps)
+- [spacing_line_units](#spacing_line_units)
 - [strikethrough_text](#strikethrough_text)
 - [subscript_superscript](#subscript_superscript)
 - [table_alignment/01](#table_alignment01)
@@ -308,6 +316,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [table_default_style_outer_borders](#table_default_style_outer_borders)
 - [table_diagonal_borders/01](#table_diagonal_borders01)
 - [table_explicit_heights](#table_explicit_heights)
+- [table_grid_before_after](#table_grid_before_after)
 - [table_grid_styling_padding](#table_grid_styling_padding)
 - [table_indent](#table_indent)
 - [table_layout_tall_row](#table_layout_tall_row)
@@ -325,6 +334,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [three_columns](#three_columns)
 - [tracked_changes/01](#tracked_changes01)
 - [two_columns](#two_columns)
+- [underline_styles](#underline_styles)
 - [underline_text](#underline_text)
 - [wedding/01](#wedding01)
 - [wedding/02](#wedding02)
@@ -788,6 +798,24 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="cards/19/expected_0001.png" width="500"><br><img src="cards/19/expected_0002.png" width="500"><br><img src="cards/19/expected_0003.png" width="500"><br><img src="cards/19/expected_0004.png" width="500"> | <img src="cards/19/html_result.verified.png" width="500"> |
 
+## character_scale
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="character_scale/expected_0001.png" width="500"> | <img src="character_scale/html_result.verified.png" width="500"> |
+
+## chart_anchored
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart_anchored/expected_0001.png" width="500"> | <img src="chart_anchored/html_result.verified.png" width="500"> |
+
+## chart_column_line
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart_column_line/expected_0001.png" width="500"> | <img src="chart_column_line/html_result.verified.png" width="500"> |
+
 ## colored_text
 
 | Expected (Word) | Morph HTML |
@@ -974,6 +1002,18 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="document_capture/01/expected_0001.png" width="500"> | <img src="document_capture/01/html_result.verified.png" width="500"> |
 
+## document_grid_lines
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="document_grid_lines/expected_0001.png" width="500"><br><img src="document_grid_lines/expected_0002.png" width="500"><br><img src="document_grid_lines/expected_0003.png" width="500"> | <img src="document_grid_lines/html_result.verified.png" width="500"> |
+
+## document_grid_table
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="document_grid_table/expected_0001.png" width="500"> | <img src="document_grid_table/html_result.verified.png" width="500"> |
+
 ## document_protection/01
 
 | Expected (Word) | Morph HTML |
@@ -1033,6 +1073,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="first_line_indent/expected_0001.png" width="500"> | <img src="first_line_indent/html_result.verified.png" width="500"> |
+
+## font_alignment
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="font_alignment/expected_0001.png" width="500"><br><img src="font_alignment/expected_0002.png" width="500"> | <img src="font_alignment/html_result.verified.png" width="500"> |
 
 ## font_families
 
@@ -1574,6 +1620,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="line_spacing_exactly/expected_0001.png" width="500"> | <img src="line_spacing_exactly/html_result.verified.png" width="500"> |
 
+## list_marker_suffix
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="list_marker_suffix/expected_0001.png" width="500"> | <img src="list_marker_suffix/html_result.verified.png" width="500"> |
+
 ## long_paragraph
 
 | Expected (Word) | Morph HTML |
@@ -2048,6 +2100,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="small_caps/expected_0001.png" width="500"> | <img src="small_caps/html_result.verified.png" width="500"> |
 
+## spacing_line_units
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="spacing_line_units/expected_0001.png" width="500"><br><img src="spacing_line_units/expected_0002.png" width="500"> | <img src="spacing_line_units/html_result.verified.png" width="500"> |
+
 ## strikethrough_text
 
 | Expected (Word) | Morph HTML |
@@ -2162,6 +2220,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="table_explicit_heights/expected_0001.png" width="500"> | <img src="table_explicit_heights/html_result.verified.png" width="500"> |
 
+## table_grid_before_after
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="table_grid_before_after/expected_0001.png" width="500"> | <img src="table_grid_before_after/html_result.verified.png" width="500"> |
+
 ## table_grid_styling_padding
 
 | Expected (Word) | Morph HTML |
@@ -2263,6 +2327,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="two_columns/expected_0001.png" width="500"> | <img src="two_columns/html_result.verified.png" width="500"> |
+
+## underline_styles
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="underline_styles/expected_0001.png" width="500"><br><img src="underline_styles/expected_0002.png" width="500"> | <img src="underline_styles/html_result.verified.png" width="500"> |
 
 ## underline_text
 

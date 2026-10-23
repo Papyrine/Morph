@@ -1,4 +1,4 @@
-﻿# Morph Feature Matrix
+# Morph Feature Matrix
 
 Comprehensive inventory of Microsoft Word DOCX features — what Morph supports today, what is partial, and what remains to be implemented. This document serves as both reference documentation and a living roadmap.
 
@@ -242,29 +242,53 @@ Italic style applied to text runs.
 
 #### Underline `DONE`
 
-Underline decoration on text. Rendered 2px below the text baseline. `w:u/@w:color` paints the
-rule in its own colour (absent or `auto` means the run's text colour), and `w:val="double"`
-draws a second rule one gap below the first — every backend, plus
+Underline decoration on text, in every `w:u/@w:val` style. `w:u/@w:color` paints the rule in its
+own colour (absent or `auto` means the run's text colour) — every backend, plus
 `text-decoration-color` / `text-decoration-style: double` in the HTML export.
 
-- **OOXML**: `w:u` with `w:val` (single, double, dotted, dash, etc.) and `w:color`
+- **OOXML**: `w:u` with `w:val` (single, words, double, thick, dotted, dash, dashLong, dotDash, dotDotDash, their heavy forms, wave, wavyHeavy, wavyDouble) and `w:color`
 - **Spec**: [Underline](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.underline)
-- **Model**: `RunProperties.Underline`, `RunProperties.UnderlineColorHex`, `RunProperties.DoubleUnderline`
-- **Test**: `underline_text/`, `wordart/` (page 9: red single + blue double)
+- **Model**: `RunProperties.Underline`, `RunProperties.UnderlineStyle`, `RunProperties.UnderlineColorHex`
+- **Render**: `TextDecorations.Collect`, stroked by each painter's `PaintDecorations`
+- **Test**: `underline_text/`, `underline_styles/`, `wordart/` (page 9: red single + blue double), `TextDecorationTests`
 
-> **Consumers**: Underline types beyond single/double (dotted, dash, wave, etc.) are detected but render as a single solid underline.
+> **Every style, Word-probed (2026-10-21, `underline_styles` at 48pt and again at 24pt, read from
+> the XPS).** Each style is placed against the single underline's band — offset `p` below the
+> baseline, thickness `t` — and every law held at both sizes:
+>
+> | style | Word draws |
+> | --- | --- |
+> | single, words, light dashes | band `[p, p+t]`; words leaves the spaces bare |
+> | double | two `t/2` rules filling `[p/2, p+t]` |
+> | thick, every heavy style | band `[p/2, p+t/2]` |
+> | wave / wavyHeavy | 2.4pt period, top at `p/2`, 0.06 em crest to trough, stroked 0.24pt / 0.96pt |
+> | wavyDouble | two waves at half that, the second 0.54 of a wave lower |
+>
+> Dashes are **fixed lengths in points**, identical at 24pt and 48pt, patterned from the run's
+> start: dotted 1.44/1.44, dash 3.96/1.92, dashLong 7.92/3.96, dotDash 3.0/.96/.96/.96,
+> dotDotDash 2.16 then .72 five times; a heavy style keeps its light style's pattern. Morph's
+> single underline keeps its own placement (`size * 0.12`, `size / 16` thick), and the other
+> styles are placed against it as Word places them against the font's. Before this, every style
+> but double drew a single solid rule, and double drew its second rule a full gap below the first.
+> A style also now survives a paragraph or character style: the cascade carried only whether there
+> was an underline, so a styled dotted underline drew solid.
 
 
 #### Strikethrough `DONE`
 
-Line through the middle of text. Rendered at 30% above the text baseline.
+Line through the middle of text. Rendered at 30% of the line's ascent above the text baseline.
 
 - **OOXML**: `w:strike`, `w:dstrike` (double strikethrough)
 - **Spec**: [Strikethrough](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.strikethrough)
-- **Model**: `RunProperties.Strikethrough`
-- **Test**: `strikethrough_text/`
+- **Model**: `RunProperties.Strikethrough`, `RunProperties.DoubleStrikethrough`
+- **Render**: `TextDecorations.Collect`
+- **Test**: `strikethrough_text/`, `underline_styles/` (page 2), `TextDecorationTests`
 
-> **Consumers**: Both single and double strikethrough are parsed; both render as single strikethrough.
+> **Double strikethrough (Word-probed 2026-10-21, `underline_styles`).** Word draws two rules of the
+> strike's own thickness, each one thickness above and below where the single strike's centre is:
+> at 48pt Arial the single band is -12.48 / 2.40 and the double's are -14.88 and -10.08; at 24pt
+> -6.24 / 1.20 against -7.44 and -5.04. `w:dstrike` is read through the style cascade and toggles
+> like `w:strike`. Before this it drew as a single strike.
 
 
 #### All Caps `DONE`
@@ -352,6 +376,23 @@ Lowers text below the baseline, typically at a smaller font size.
 - **Test**: `subscript_superscript/`
 
 > **Contributors**: the same 65% size, lowered by 35% of the full-size descent — the reduced glyph's descent bottom stays on the full one (1 − 0.65): Calibri 0.094 × size against its 0.269 descent, Times 0.075 against 0.216, Segoe UI 0.088 against 0.251, each within a pixel of the XPS (`VerticalRunPosition.BaselineShiftPoints`).
+
+
+#### Character Scale `DONE`
+
+Characters stretched or condensed horizontally, as a percent of their width.
+
+- **OOXML**: `w:w` within `w:rPr` (1-600)
+- **Spec**: [CharacterScale](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.characterscale)
+- **Model**: `RunProperties.CharacterScalePercent`
+- **Layout**: the measurer's width scale per run (`CanonicalParagraphMeasurer.WidthScale`); every painter draws the run under the same x-scale about its start
+- **Test**: `character_scale/`, `CharacterScaleTests`
+
+> **Word-probed (2026-10-21, `character_scale`, XPS).** Word draws a scaled run under a pure
+> horizontal scale matrix about its origin (`0.5,0,0,1` at 50%, `3,0,0,1` at 300%): outlines and
+> advances scale together, heights and line heights do not, and lines break where the scaled widths
+> say. 66% draws at 0.659, the em rounded onto Word's pixel grid; the layout takes the declared
+> percent. Read through the style cascade like `w:spacing`. Not read before.
 
 
 #### Kerning `DONE`
@@ -612,6 +653,24 @@ Text spread to fill the full width, with extra space distributed between words.
 > A line left with no space once the word is taken off has nothing to stretch, so only the quarter applies. The paragraph's last line is squeezed by the same test although it is not justified. Left-aligned text is never squeezed, and in modes 14 and older a justified line breaks exactly where a left-aligned one does (16 of 16 thresholds at `ceil(linear width)`). The squeezed line ends at the measure: each space gives back an equal share of the overrun. The engine reproduces 1,605 of the 1,606 probed lines; the one it misses holds an `ff` ligature, whose advance Word's layout takes and the measurer does not (`src/todo.md` #43). letters/04 and newsletters/03 are the corpus cases.
 
 
+#### Font Alignment `DONE`
+
+Where a line's smaller runs sit against its largest.
+
+- **OOXML**: `w:textAlignment` within `w:pPr` (`auto`, `baseline`, `top`, `center`, `bottom`)
+- **Spec**: [TextAlignment](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.textalignment)
+- **Model**: `ParagraphProperties.FontAlignment`
+- **Layout**: `CanonicalParagraphMeasurer.AlignToLargest`, as a baseline shift per run
+- **Test**: `font_alignment/`, `FontAlignmentTests`
+
+> **Word-probed (2026-10-21, `font_alignment`, XPS, two faces at two size pairs).** A run moves by
+> a fixed fraction of how much smaller it is than the line's largest: up 0.895 for `top`, up 0.34
+> for `center`, down 0.105 for `bottom`; `auto` and `baseline` leave it on the baseline. The
+> fractions hold within 0.015 across Arial and Times New Roman, whose ascents differ widely, so Word
+> places the runs on their em boxes and not by the faces' metrics. The line keeps its height. Not
+> read before.
+
+
 ### 2.2 Spacing
 
 
@@ -621,10 +680,17 @@ Vertical space above and below a paragraph, in points.
 
 > **"Auto" spacing is 14pt, and nothing where the paragraph has no neighbour to be set off from (2026-10-11).** `w:spacing/@w:beforeAutospacing` and `@w:afterAutospacing` (what the HTML importer writes, what Normal (Web) carries, and what several template Title styles declare) replace the amount declared beside them. `DocumentParser.ResolveAutoSpacing` resolves the pair at parse, the flags cascading through `w:basedOn` like any other paragraph property (`ParagraphProperties.SpacingBeforeAuto` / `SpacingAfterAuto`). Word-probed on `_probe_autospace_a` to `_d` (one-line paragraphs of exact 20pt lines, baselines off the XPS, compatibility modes 12 and 15 identical): auto before with 5pt declared opens 14.2pt and with 40pt declared 13.6; auto after 14.2; an auto after against an auto before leaves 14.2, the two collapsing like any others. Three list items with auto on both sides stand 20.4 and 19.8 apart, 13.6 above the first and 14.2 under the last, so between two consecutive items of one list it is nothing. A cell's only paragraph sits on the baseline of the plain paragraph in the cell beside it and adds nothing under itself, and of three paragraphs in a cell the first takes no auto before, the last no auto after and the middle one 14.2 either side; an empty paragraph behaves the same. `w:compat/w:doNotUseHTMLParagraphAutoSpacing` (`CompatibilitySettings.UsesFixedAutoSpacing`) switches all of it off: the declared amounts stand, at a cell's edges and in lists too. Unmodelled: under that setting two auto spacings that meet are added, not collapsed (5 and 5 leave 10), and a 30pt paragraph on single line spacing took 19.5pt before and left 5.6 after. `newsletters/02`'s masthead Title, first in its cell, had been given its declared 5pt and the page stood 5pt low.
 
-- **OOXML**: `w:spacing` — `w:before`, `w:after` (in twentieths of a point)
+- **OOXML**: `w:spacing` — `w:before`, `w:after` (in twentieths of a point), `w:beforeLines`, `w:afterLines` (in hundredths of a line)
 - **Spec**: [Paragraph Spacing](http://officeopenxml.com/WPspacing.php)
 - **Model**: `ParagraphProperties.SpacingBeforePoints`, `SpacingAfterPoints`
-- **Test**: `paragraph_spacing/`
+- **Parse**: `DocumentParser.LineUnitsToPoints` at every spacing site (docDefaults, styles, declared table-style spacing, direct)
+- **Test**: `paragraph_spacing/`, `spacing_line_units/`, `document_grid_lines/`, `DocumentGridTests`
+
+> **Spacing in lines (Word-probed 2026-10-21, `spacing_line_units` / `document_grid_lines`).** A line
+> is the document grid's pitch (Document Grid, below), or 12pt off a grid: `beforeLines="100"` adds
+> 12pt with no grid and 36pt on a 36pt one. A positive value outranks the twips value beside it, and
+> `0` is ignored rather than zeroing the spacing — agendas-minutes/17's style declares
+> `afterLines="0"` beside `after="40"` and keeps its 2pt. Not read before.
 
 > **Contributors**: Adjacent paragraph spacing uses margin collapsing: `max(after, before)`, not sum. A body paragraph at the top of an automatically broken page gets no spacing-before (compatibilityMode 15 also after explicit page breaks; section breaks and the first page keep it) — one-shot `SuppressPageTopSpacingBefore` computed by the page renderers, consumed in `TextRenderer` / `PdfTextEngine`. The document default after-spacing (`DocumentParser.ExtractDefaultParagraphProperties`) is Word's 8pt built-in (with the 278/240 line multiplier) when nothing in the package has replaced the built-in Normal: no `styles.xml`, no `docDefaults`, or — refined 2026-08-19 — `docDefaults` present but with NO `w:pPrDefault` element at all and no default paragraph style defined (`even_odd_headers/02`'s footer line and `decimal_tabs/01`'s rows each sit exactly the built-in spacing below a zero-spacing render; the row pitch is 46.5px against the 25.5px bare line at 150 DPI). An EMPTY `<w:pPrDefault/>` is an explicit "no paragraph defaults" and reads as zero — `wordart` declares one and Word's reference is tight — as does a package that defines a default paragraph style (`resumes/13`, `cover-letters/03`, `letters/09`, `wedding/05`). The same extraction reads `pPrDefault/w:jc` into the base of the alignment cascade (card/label/menu templates centre every paragraph there; a style or paragraph `w:jc` — including an explicit "left" — still overrides).
 
@@ -710,6 +776,35 @@ Vertical distance between lines within a paragraph. Three modes: Auto (multiplie
 > **Where the baseline sits inside an `exact` or `atLeast` box** (settled 2026-08-19 by the fixtures themselves, which sweep 12/18/24/36pt against Word's references): an EXACT box hard-sets the baseline at **80% of the declared height**, whatever the font's natural ascent — the rule LibreOffice implements for Word compatibility (`itrform2.cxx`) — and an AT-LEAST box that grows past the natural pitch anchors its ink at the BOTTOM, the whole excess landing above the text. `CanonicalTextMeasurer.LineAscentPoints` carries both. Keeping the natural ascent left `line_spacing_exactly`'s band gaps at 42/54/67px against Word's 51/65/87 (the 0.8 rule predicts 51.7/64.2/86.7) and `line_spacing_at_least`'s at 47/55/66 against Word's 55/66/92 (bottom-anchoring predicts 54.1/66.7/91.7); with both rules the two fixtures match Word's band starts within 1px at every magnitude.
 >
 > **Consumers**: Single (1.0), 1.5, and Double (2.0) spacing all supported. Exactly mode fixes line height; AtLeast sets a minimum.
+
+
+#### Document Grid `DONE`
+
+A section's line grid: lines of text take whole grid pitches, as East Asian documents set them.
+
+- **OOXML**: `w:sectPr/w:docGrid` (`@w:type` `lines` / `linesAndChars` / `snapToChars`, `@w:linePitch`), `w:pPr/w:snapToGrid`, `w:compat/w:adjustLineHeightInTable`
+- **Spec**: [DocGrid](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.docgrid)
+- **Model**: `ParagraphProperties.SnapToGrid`, `ParagraphProperties.GridLinePitchPoints` (the pitch the paragraph's lines snap to, 0 when they do not)
+- **Parse**: `DocumentParser.GridLinePitchPoints`, `SnapsToGrid`
+- **Layout**: `CanonicalTextMeasurer.GridLine`, applied by `CanonicalParagraphMeasurer.OnGrid` to both `LayoutLines` and `LayoutLineContents`
+- **Test**: `document_grid_lines/`, `document_grid_table/`, `DocumentGridTests`
+
+> **Word-probed (2026-10-21, `document_grid_lines` at a 36pt pitch and again at 25pt and as
+> `linesAndChars`, `document_grid_table`, baselines from the XPS).** An auto line's natural height
+> rounds up to whole pitches, then takes its multiple, and the text is centred in the box by its
+> natural height: at 36pt, 12pt and 30pt Arial take one pitch, 40pt two and 72pt three; at 25pt,
+> 30pt and 40pt take two and 72pt four; 1.5 lines take 54pt at 36 and 37.5pt at 25. Every baseline
+> lands within 0.15pt of the natural ascent plus half the slack. Exact and at-least lines lay out
+> as off the grid, as does a `snapToGrid="0"` paragraph; spacing in twips is not rounded. The grid
+> sets heights only — lines stack from where the block before them ended, not from grid lines
+> fixed on the page. `linesAndChars` lays lines out exactly as `lines` (character pitch is not
+> modelled). A header's paragraphs never snap, and a table cell's only under
+> `adjustLineHeightInTable`; the parser keeps footers and notes off the grid too.
+>
+> Styles are resolved once for the document, so the grid every paragraph snaps to, and the line
+> its line units count in, is the body's own `w:sectPr`'s — exact for a document with one grid,
+> which no corpus document contradicts (none has a typed grid at all). An untyped
+> `<w:docGrid w:linePitch="360"/>` is Word's stored default and lays nothing out.
 
 
 #### Contextual Spacing `DONE`
@@ -1189,6 +1284,28 @@ Lists with multiple indent levels, each with its own bullet or numbering style.
 >   width and to `Fragmenter.LineRuns`' placement so measure and paint agree; continuation lines
 >   stay at the LeftIndent.
 
+
+#### List Marker Suffix `DONE`
+
+What follows a list marker — a tab, a space, or nothing — and so where the first line's text
+starts.
+
+- **OOXML**: `w:lvl/w:suff` (`tab` when absent)
+- **Spec**: [Level Suffix](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.levelsuffix)
+- **Model**: `NumberingInfo.Suffix` (`ListMarkerSuffix`)
+- **Layout**: `CanonicalParagraphMeasurer.MarkerPlacement` — the marker's position and the first line's text shift, used by the wrap and by `Fragmenter.LineRuns` alike
+- **Test**: `list_marker_suffix/`, `ListMarkerSuffixTests`
+
+> **Word-probed (2026-10-21, `list_marker_suffix`, 28pt Arial over three indents).** The marker
+> starts at the first line's own indent, left + firstLine − hanging (a right-aligned marker ends
+> there). A **tab** runs to the hanging indent's stop when the marker ends before it, else to the
+> next default stop (the overflow law above); with **no hanging indent** there is no stop at the
+> left indent, so "1." at 36pt puts its text at 72pt. A **space** sets the text one space, in the
+> marker's font, after the marker; **nothing** sets it against the marker, whatever the indents.
+> Custom tab stops are not consulted. Before this, `w:suff` was not read, and with no hanging
+> indent the marker was drawn ending 3pt short of the left indent with the text at the left
+> indent.
+
 ---
 
 
@@ -1463,6 +1580,25 @@ Cells spanning multiple columns.
 - **Model**: `TableCellProperties.GridSpan`
 
 
+#### Skipped Grid Columns (gridBefore / gridAfter) `DONE`
+
+Grid columns a row leaves empty before its first cell or after its last.
+
+- **OOXML**: `w:trPr/w:gridBefore`, `w:trPr/w:gridAfter` (`w:wBefore` / `w:wAfter` are not read)
+- **Spec**: [GridBefore](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.gridbefore)
+- **Model**: `TableRow.GridBefore`, `TableRow.GridAfter`
+- **Layout**: every walk of a row's cells starts its grid cursor at `GridBefore` (`TableLayout`, `TableHeightCalculator`, `Fragmenter.BuildRow` / row splitting, which also offsets the first cell by `LeadingGridWidth`); the column count includes both skips
+- **Export**: HTML writes one empty cell spanning the skipped leading columns; Markdown pads them with empty cells
+- **Test**: `table_grid_before_after/`, `TableGridSkipTests`
+
+> **Word-probed (2026-10-21, `table_grid_before_after`, fixed and autofit, 3pt borders).** A row's
+> first cell starts at grid column `gridBefore`, every cell keeps its grid width, and the skipped
+> columns draw nothing — no border, no shading — so a short row leaves the edges of its neighbours
+> open. Fixed and autofit layouts agree, and `wBefore` / `wAfter` change nothing when the grid gives
+> the widths. Before this, neither element was read and every row's cells were packed from grid
+> column 0, so a stepped table collapsed into a ragged left-aligned one.
+
+
 #### Vertical Merge `DONE`
 
 Cells spanning multiple rows.
@@ -1516,6 +1652,8 @@ Explicit row height control: exact (fixed) or atLeast (minimum).
 > draws it 176.5pt and the engine had 158.9. The margins are the row's (see Cell Padding).
 
 > **Contributors — an exact row is a verbatim box, in both directions (2026-09-06).** Word's reference for `table_layout_tall_row` (an 80pt exact company row, then a 530pt exact letter row, after two body lines) settles two rules the engine had inverted. Pagination: the table misses the remainder, and Word keeps the 80pt row on page 1 and opens page 2 with the 530pt row — it flows row by row and moves the exact row that does not fit, whole; it does not lift the rows before it. The engine's "exact-row pre-advance" had moved the whole table (the recipient block landed four lines low on page 2), so `Fragmenter.PlaceTable` now routes an exact-row table that misses the HARD remainder into `PlaceTableRowByRow`, where an unfitting exact row already moved whole (the split exception). Clipping: the company cell's three paragraphs need ~112pt and Word shows two lines of them, the third hidden below the 80pt box — an exact row clips its cells' overflow, so `BuildRow` sets `PlacedCell.ClipContent` for every cell of an exact row (it had been Excel's pinned-row rule alone; the atLeast row keeps growing to its content). Page 1 is now band-for-band Word.
+
+> **Contributors — every cell is cut at its sides (2026-10-21).** Sideways, Word clips a cell's content at the cell's edges in every row, not only an exact one: `PlacedCell.ClipVertically` is the exact-row rule above, and `ClipHorizontally` is now on for every Word and HTML cell. labels/15's swash "from" sets an "f" whose loop reaches 10.8pt left of its pen (the glyph's `xMin` is −338 units at 32pt), and Word cuts it on a vertical line at about 24.6pt, the cell's left edge (20.15pt margin plus 4.5pt `w:tblInd`), its descender tip and crossbar ending on the same line. The glyph itself is not the difference: Word's embedded subset and `src/Fonts`' face carry the identical outline (three contours, the same bounding box). Probed with the same sheet's twenty rows switched from `exact` to `atLeast` (the table then moves to page 2), and the cut is the same. Morph had drawn the loop over the previous label's "21098". labels/15 (Skia SSIM 0.746 → 0.757), newsletters/03 and brochures/06 move toward Word, and no scenario moves away by more than noise.
 
 > **Contributors**: Multi-pass calculation in `TableHeightCalculator.CalculateRowHeights`: content heights first, then explicit `w:trHeight`, then vMerge distribution, then a border-collapse pass. Two Word-matching rules in the content pass: (1) the *last* paragraph's space-after **stacks** on the bottom cell margin (table_default_style: 3pt margins, 8pt after, one 12pt line → Word's 31pt row; an earlier `max(after, bottomMargin)` overlap rule predicted 28pt); (2) the border-collapse pass grows every row by the horizontal edge above it and the last row by its bottom edge too — the full DECLARED stack of the wider of the two rows sharing the line (see Cell Borders, *Cell scope on the grid*). The same overlap rule is mirrored in the fragmenter's vertical-alignment measurement so centred/bottom content stays consistent.
 
@@ -1725,7 +1863,7 @@ Rotated text direction within cells (bottom-to-top, top-to-bottom).
 - **Test**: `table_text_direction/`, `RotatedCellTests`
 - **Layout**: `Fragmenter.LayoutRotatedCellContent` lays the content out in an unrotated box of the cell's height by its width, centred on the cell, and wraps it in a `PlacedRotatedGroup` (−90° for `btLr`, +90° for `tbRl`) that every painter draws rotated about that box's centre — restored 2026-09-05; the direction had been parsed and never consumed since the engine flip (feature_capture/01's "Header" ran horizontal)
 
-> **Contributors**: Row-height contribution for vertical cells comes from `MeasureParagraphNaturalWidth` — the longest paragraph's natural single-line width becomes the cell's vertical extent. Multiple paragraphs in one vertical cell stack horizontally (along the row direction) so they don't add to the cell's height contribution. Cells where the rotated text exceeds the column's available height aren't reflowed; vertical-alignment within rotated cells is currently treated as Top.
+> **Contributors — a rotated cell's text asks nothing of its row (2026-10-21).** `TableHeightCalculator.MeasureVerticalCellHeight` charges an auto row only what the cell's paragraphs would need with their text taken out: a line at each paragraph mark's pitch. The text then wraps against the height the row takes from its other cells, breaking mid-word where a word is longer (the long-word split), and a rotated cell clips its content at its box in both directions (`PlacedCell.ClipVertically`). Word-probed (`_probe_rotated`, a 20pt rotated "Header" per row, 150 DPI): beside one 20pt line the row is 52px, that line's height, and the word sets "He / ad / er"; beside four lines it is 203px and the word stands whole; alone, or beside an empty cell, it is 32px, one 11pt mark line, the word broken a letter a column with its "r" cut off at the cell's side; a 36pt mark makes that row 95px; 8pt and 72pt text leave it at 32px, the 72pt "H" cut at the box. Morph lands 53 / 206 / 33 / 33 / 94 / 33 / 33px with the same breaks. The engine had grown the row to the text's natural width, so feature_capture/01's "Header" stood whole in a 35pt row where Word sets "Hea / der" in 24pt. Vertical alignment within rotated cells is still treated as Top.
 
 
 #### Row-Level Table Property Exceptions `DONE`
@@ -1867,13 +2005,17 @@ Accessibility metadata describing the table for screen readers and exported alt-
 - **Render**: no-op — both elements only matter for assistive-technology consumers
 
 
-#### Floating Table Overlap `DONE`
+#### Floating Table Overlap `PARTIAL`
 
-Whether two floating tables on the same page may overlap. Only meaningful for floating tables (`w:tblpPr`); inline tables ignore it. Morph's floating-table support already lays each table out independently, so the flag is captured-but-unused.
+Whether two floating tables on the same page may overlap. Only meaningful for floating tables (`w:tblpPr`); inline tables ignore it.
 
 - **OOXML**: `w:tblOverlap` within `w:tblPr` (values: `overlap` / `never`)
 - **Spec**: [TableOverlap](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.tableoverlap)
-- **Render**: no-op — collision detection between floating tables isn't implemented; the rendered layout matches Word's `overlap=overlap` default
+- **Parse**: not read
+- **Render**: what a floating table does follows from where it is placed, not from the flag. A body-level text-anchored one flows (`Fragmenter.PlaceFloatingTable`), so two never overlap — `never`'s behaviour whatever the document says. One in a cell stands at its offset and takes no room (`Fragmenter.LayoutCellFragment`), so two anchored alike would overlap — `overlap`'s behaviour, with `never` unhonoured. Neither corpus document that sets the flag (labels/09 and agendas-minutes/14, both `never`, one float per cell) has two floats that could meet, so it is unprobed.
+- **Test**: `labels/09` (a floating table in each ticket's stub cell)
+
+> **Contributors — a floating table stays in its cell (2026-10-21).** The parser used to lift every floating table out of the cell it was written in and append it to the END of the document, to keep it out of cell clipping and pagination. labels/09's ticket numbers are four such tables, one in each stub after the first, so all four were laid out after the last ticket, beyond the page, and tickets 2-5 rendered with blank stubs; agendas-minutes/14's only looked right because its table is the last thing in the document. They now stay in the cell and stand at their `tblpX`/`tblpY` offset from the cell's text (or the margin or page their anchors name), outside the cell's flow, which `TableHeightCalculator` already assumed.
 
 ---
 
@@ -2081,6 +2223,8 @@ Content repeated at the top/bottom of every page.
 > **Contributors — header space reservation**: A positive `w:pgMar/@top` is a MINIMUM, not a fixed offset. Word starts the body at `max(top, header + headerContentHeight)`, so a header taller than the top margin pushes the body down instead of being drawn through by it — and it shortens the page's content area, which moves where pagination breaks (`header_footer`'s page 1 holds 24 paragraphs like Word's, not 25). `PageRendererBase.RenderHeader` reserves the space via `RenderContextBase.SetPageHeaderBottom` from the header it just painted, PER PAGE: the active header varies (first/even/default) and those differ in height, so a `titlePg` banner in the first-page header reserves nothing if only the default header is measured. Reserving from the rendered header also removes any chance of a separate measurement pass drifting out of step with what is drawn. A page with no header releases the previous page's reservation. A NEGATIVE `w:top` is exempt (ECMA-376 §17.6.11 makes it the absolute body offset and Word lets the header overlap) — spec-driven, but note no corpus scenario exercises that render path: `agendas-minutes/11` is the only document with a negative `w:top` and it has no header at all.
 
 > **Contributors — the engine reserves from a MEASUREMENT, and must measure band tables.** `Fragmenter.HeaderReservedTop` is the live implementation of the rule above (the `PageRendererBase` account beside it is history). Unlike the deleted renderer it cannot reserve from what it just painted — the body flows before the bands assemble — so it re-measures the header, and it has to stack it the same way `LayoutBand` will: paragraphs AND tables. Counting only the paragraphs reserved a banner header's two lines of marking text and none of the bar below them, dropping the body ~40pt and landing the first heading inside the bar (`header_full_bleed_banner` and `nonstandard_main_part_name`, page 1 of each). `FooterBand` had always summed both; the two now agree.
+
+> **Contributors — an empty header paragraph's space after counts (2026-10-21).** In the body an empty paragraph's after-spacing is dropped (`CanonicalParagraphMeasurer.MeasureParagraphHeightWithWidth`), but the header's reservation keeps it: `HeaderReservedTop` sums every paragraph's before, lines and after. Word-probed by cloning wedding/01 and varying only its header's lone empty paragraph (`_probe_hdrafter_*`, read from the XPS): 24pt after put the body's first baseline at 54.12pt and 48pt at 78.14pt, 24pt apart, and a paragraph holding "X" at 48pt put it at 78.14pt too. Morph lands 54.05 / 78.05 / 78.05. wedding/01's own 6pt held its whole page that much high (SSIM 0.555 → 0.835). The footer's reservation is unprobed and keeps the body's rule.
 
 
 #### First-Page Different Headers / Footers `DONE`
@@ -2648,11 +2792,18 @@ Handwriting and pen annotations with stroke properties and optional pressure dat
 Embedded chart visualizations (bar, line, pie, area, etc.).
 
 - **OOXML**: `c:chartSpace` in separate `chart.xml` part, referenced via `c:chart` inside an `a:graphicData`.
-- **Model**: presence detected via `ParsedDocument.Features.HasCharts`.
-- **Render**: an inline pie or doughnut chart is drawn (`DocumentParser.ParseInlineChartRun`, 2026-10-11): each slice becomes a filled outline in an `InlineShapeGroup`, so every backend and the HTML exporter draw it through the inline-group path with no chart code of their own. Slices run clockwise from `c:firstSliceAng` past twelve o'clock, each a share of the circle proportional to its cached `c:val`; the plot circle is the largest that fits the plot area's `c:manualLayout` (the whole chart without one), a doughnut's hole is `c:holeSize` percent of its diameter, and each slice takes the fill and outline its `c:dPt` names, or the theme's accents in turn under `c:varyColors`. business-plans/12's SWOT ring is the corpus case and matches Word's ring to the pixel in size and place. Titles, legends and data labels are not drawn (that ring's "SWOT" title is missing), and every other chart kind still renders as empty space matching its `wp:extent`, the surrounding paragraph reserving the slot so the page does not reflow.
-- **Test**: `PictureFillTests.An_inline_doughnut_chart_is_a_group_of_its_slices`
+- **Model**: `ChartModel` (`Parsing/ChartModel.cs`), read by `ChartReader` — the same model and reader a sheet's charts use. An inline chart is a `Run` carrying `InlineChart` (its box is the run's inline extent); an anchored one is a `FloatingChartElement`. Presence is also flagged on `ParsedDocument.Features.HasCharts`.
+- **Parse**: `DocumentParser.ParseInlineChartRun` (inline) and `AnchoredChart` (`wp:anchor`, positioned by the anchor as a picture is). A pie or doughnut also keeps its slices as an `InlineShapeGroup` (`PieSliceRun`), which is how the HTML exporter still draws it.
+- **Render**: composed at layout by `ChartComposer` — bar and column (clustered, stacked, percent; vertical or horizontal), line, pie and doughnut, with the title, legend, axes, gridlines and data labels — in every backend. An inline chart is composed when its line is placed (`Fragmenter.MapImages`), into its box on the line, and the painters draw the result (`PlacedImage.Composed`); an anchored one is placed as a body float (`Fragmenter.PlaceChart`). Area, scatter and radar charts are not read.
+- **Test**: `chart_column_line/` (an inline column chart and line chart, Word-referenced), `chart_anchored/` (a page-anchored horizontal bar chart), business-plans/12 (the SWOT doughnut and its title); `PictureFillTests.An_inline_doughnut_chart_is_a_group_of_its_slices`
 
-> **AI**: A general chart renderer needs the full ECMA-376 chart model (axes, series, legends, data points, plot areas) — comparable in scope to a small charting library. Pie and doughnut charts need none of that and are drawn; for the rest the pragmatic path is to extract a cached preview image when the docx ships one (`a:blip` inside an `mc:Fallback` next to the chart graphic), but the test corpus's chart-bearing scenarios don't ship fallbacks, so the placeholder remains the documented behaviour for them.
+> **Contributors — Word's charts through the sheet chart composer (2026-10-21).** Word charts had been pie and doughnut slices only, with no title, legend or labels, and every other kind left an empty box. They now go through the reader and composer built for sheets, which gave Word documents bar, column and line charts in one step; `chart_column_line` and `chart_anchored` were authored for it, with Word's renders as their references. What reading Word's renders of them added:
+> - A title with a manual layout (`c:title/c:layout`) stands where that puts its box, and Word sets the text 2.9pt in and 1.4pt down inside it, the same at 14pt and 36pt (`_probe_charttitle`, read off the XPS); an automatic title takes the same drop. The title is drawn last, over the plot — business-plans/12's "SWOT" sits in its doughnut's hole, where a plot laid out over the whole chart had painted over it.
+> - A point's own outline (`c:dPt/c:spPr/a:ln`) strokes its slice: the SWOT ring's white separators.
+> - A line series is keyed in the legend by a stroke of its line, twice the legend's font size long, where a column series takes a square swatch.
+> - Horizontal bars list their series in the legend bottom-up, as they stack ("South, North" for North then South).
+>
+> Still short of Word: a line chart's plot runs about 12pt wider than Word's beside a right legend, lines are drawn with square ends where `cap="rnd"` asks for round ones, and the HTML export draws only a pie or doughnut's slices.
 
 
 #### SmartArt `DONE`
@@ -3445,10 +3596,10 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Wontfix | Total |
 |----------|------|---------|------|---------|-------|
-| 1. Text Formatting | 26 | 0 | 3 | 0 | 29 |
-| 2. Paragraph Formatting | 23 | 1 | 0 | 0 | 24 |
-| 3. Lists & Numbering | 6 | 0 | 0 | 0 | 6 |
-| 4. Tables | 28 | 0 | 0 | 0 | 28 |
+| 1. Text Formatting | 27 | 0 | 3 | 0 | 30 |
+| 2. Paragraph Formatting | 25 | 1 | 0 | 0 | 26 |
+| 3. Lists & Numbering | 7 | 0 | 0 | 0 | 7 |
+| 4. Tables | 28 | 1 | 0 | 0 | 29 |
 | 5. Page Layout & Sections | 20 | 0 | 0 | 0 | 20 |
 | 6. Graphics & Media | 22 | 3 | 1 | 1 | 27 |
 | 7. Form Controls | 10 | 0 | 1 | 0 | 11 |
@@ -3457,15 +3608,15 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **163** | **4** | **5** | **1** | **173** |
+| **Total** | **167** | **5** | **5** | **1** | **178** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 163
-    "Partial" : 4
+    "Done" : 167
+    "Partial" : 5
     "Todo" : 5
     "Wontfix" : 1
 ```

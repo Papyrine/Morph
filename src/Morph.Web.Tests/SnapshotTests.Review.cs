@@ -30,7 +30,8 @@ public partial class SnapshotTests
     {
         var page = await OpenReviewAsync(TrackedChanges);
         await Assert.That(await page.Locator(".review-change").CountAsync()).IsEqualTo(2);
-        var before = await page.GetAttributeAsync(".viewer-page[data-current] img", "src");
+        // Whatever draws the page — a picture or an SVG — is replaced when the page is drawn again.
+        await page.EvaluateAsync("() => window.drawnBefore = document.querySelector('.viewer-page[data-current] .viewer-sheet > :first-child')");
         await Assert.That(await LayerTextAsync(page)).IsEqualTo("Hello inserted world removed.");
 
         await page.ClickAsync("text=Accept all");
@@ -42,8 +43,8 @@ public partial class SnapshotTests
                 Timeout = 60000
             });
         await page.WaitForFunctionAsync(
-            "before => { const image = document.querySelector('.viewer-page[data-current][data-rendered-dpi] img'); return image && image.src !== before; }",
-            before,
+            "() => { const drawn = document.querySelector('.viewer-page[data-current][data-rendered-dpi] .viewer-sheet > :first-child'); return drawn && drawn !== window.drawnBefore; }",
+            null,
             new()
             {
                 Timeout = 60000
@@ -256,7 +257,7 @@ public partial class SnapshotTests
             new[] { start, end });
 
     // Clicks the middle of one character of the first page's text.
-    static async Task ClickTextAsync(IPage page, int offset)
+    static async Task ClickTextAsync(IPage page, int offset, MouseButton button = MouseButton.Left)
     {
         var box = await page.EvaluateAsync<double[]>(
             """
@@ -267,6 +268,8 @@ public partial class SnapshotTests
                 for (let node = walker.nextNode(); node; node = walker.nextNode()) {
                     const next = start + node.data.length;
                     if (offset >= start && offset < next) {
+                        // Into view first: a click is where the text is drawn, which may be below the pages' fold.
+                        node.parentElement.scrollIntoView({ block: 'center' });
                         const range = document.createRange();
                         range.setStart(node, offset - start);
                         range.setEnd(node, offset - start + 1);
@@ -281,6 +284,12 @@ public partial class SnapshotTests
             }
             """,
             offset);
-        await page.Mouse.ClickAsync((float) box[0], (float) box[1]);
+        await page.Mouse.ClickAsync(
+            (float) box[0],
+            (float) box[1],
+            new()
+            {
+                Button = button
+            });
     }
 }

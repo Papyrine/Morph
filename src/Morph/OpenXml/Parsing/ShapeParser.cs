@@ -1161,7 +1161,7 @@ static class ShapeParser
         }
 
         // Try to get the image part
-        if (hostPart.GetPartById(embedAttribute) is not ImagePart imagePart)
+        if (hostPart.PartOrNull(embedAttribute) is not ImagePart imagePart)
         {
             return (null, null);
         }
@@ -1173,7 +1173,7 @@ static class ShapeParser
         }
         else
         {
-            using var stream = imagePart.GetStream();
+            using var stream = imagePart.GetStream(FileMode.Open, FileAccess.Read);
             using var ms = new MemoryStream();
             stream.CopyTo(ms);
             imageData = ms.ToArray();

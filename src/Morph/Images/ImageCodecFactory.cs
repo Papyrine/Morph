@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 /// Locates an <see cref="ImageCodec"/> from whichever raster backend is deployed, so core
 /// <c>Morph</c> can recompress images without a compile-time dependency on an imaging library.
@@ -27,7 +29,7 @@ static class ImageCodecFactory
         {
             if (!probed)
             {
-                cached = Load("Morph.ImageSharp") ?? Load("Morph.Skia");
+                cached = Load(Type.GetType("Morph.ImageSharpImageCodec, Morph.ImageSharp")) ?? Load(Type.GetType("Morph.SkiaImageCodec, Morph.Skia"));
                 probed = true;
             }
         }
@@ -35,26 +37,25 @@ static class ImageCodecFactory
         return cached;
     }
 
-    static ImageCodec? Load(string assemblyName)
+    // The backend's type is named literally, which is what lets a trimmed or native AOT app keep it: the
+    // trimmer reads the name, keeps the type's constructors when its assembly is deployed (the
+    // annotation below), and leaves null for one that is not. Scanning the assembly's types, as this did,
+    // found nothing once trimming had removed them, which no build reported.
+    static ImageCodec? Load([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type? type)
     {
+        if (type == null)
+        {
+            return null;
+        }
+
         try
         {
-            var assembly = Assembly.Load(assemblyName);
-            foreach (var type in assembly.GetTypes())
-            {
-                if (type is {IsAbstract: false} &&
-                    typeof(ImageCodec).IsAssignableFrom(type))
-                {
-                    return (ImageCodec?)Activator.CreateInstance(type, true);
-                }
-            }
+            return (ImageCodec?) Activator.CreateInstance(type, true);
         }
         catch
         {
-            // Assembly not deployed (FileNotFoundException), a load/reflection failure, or a
-            // missing parameterless constructor — treat as "no codec available here".
+            // A load or construction failure: treat as "no backend available here".
+            return null;
         }
-
-        return null;
     }
 }

@@ -17,8 +17,8 @@
 // (morph-edit.js lays an editor over the paragraph, and nothing crosses to .NET while the reader types);
 // which paragraph a click is in, what it holds and what becomes of it afterwards are .NET's.
 
-import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt } from './morph-text.js';
-import { ParagraphEditor } from './morph-edit.js';
+import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt, setMarks as showMarks } from './morph-text.js';
+import { ParagraphEditor, wordKey } from './morph-edit.js';
 import { DraftKeeper } from './morph-draft.js';
 
 // PDF.js's zoom steps.
@@ -39,6 +39,9 @@ const maxImages = 24;
 // this many characters of layer data only the pages around the current one are built.
 const textBudget = 24000000;
 
+// The ribbon's Clipboard group: run by the script, inside the press, as the clipboard asks.
+const clipboardCommands = ['cut', 'copy', 'paste'];
+
 export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
     const viewer = new Viewer(root, dotNet, maxDpi, maxPagePixels);
     // Plain closures, so the calls work however the interop layer binds `this`.
@@ -47,7 +50,9 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         reload: (documentId, sizes, texts) => viewer.reload(documentId, sizes, texts),
         unload: () => viewer.unload(),
         setPageImage: (documentId, pageIndex, png, dpi) => viewer.setPageImage(documentId, pageIndex, png, dpi),
+        setPageSvg: (documentId, pageIndex, markup, images, lengths, measure) => viewer.setPageSvg(documentId, pageIndex, markup, images, lengths, measure),
         setThumbnail: (documentId, pageIndex, png) => viewer.setThumbnail(documentId, pageIndex, png),
+        setThumbnailSvg: (documentId, pageIndex, markup, images, lengths) => viewer.setThumbnailSvg(documentId, pageIndex, markup, images, lengths),
         setPageError: (documentId, pageIndex, message) => viewer.setPageError(documentId, pageIndex, message),
         goToPage: pageIndex => viewer.goToPage(pageIndex),
         stepPage: delta => viewer.stepPage(delta),
@@ -61,6 +66,11 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setReview: (documentId, comments, current, scroll) => viewer.setReview(documentId, comments, current, scroll),
         revealReviewCard: key => viewer.revealReviewCard(key),
         setEditMode: on => viewer.setEditMode(on),
+        setMarks: on => showMarks(on),
+        setPainting: on => viewer.setPainting(on),
+        setPictures: (documentId, numbers) => viewer.setPictures(documentId, numbers),
+        setRuler: model => viewer.setRuler(model),
+        placeMenu: () => viewer.placeMenu(),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
         setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
@@ -72,10 +82,66 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         zoneOffset: () => -new Date().getTimezoneOffset(),
         beginPrint: sizes => viewer.beginPrint(sizes),
         addPrintPage: (pageIndex, png) => viewer.addPrintPage(pageIndex, png),
+        addPrintPageSvg: (pageIndex, markup, images, lengths) => viewer.addPrintPageSvg(pageIndex, markup, images, lengths),
         finishPrint: () => viewer.finishPrint(),
         cancelPrint: () => viewer.cancelPrint(),
         dispose: () => viewer.dispose(),
     };
+}
+
+// What a page drawn as SVG counts as for the render queue: sharp at every zoom.
+const vectorDpi = 1e9;
+
+// Frees the pictures a page's SVG showed, once something else has taken its place.
+function dropVector(page) {
+    if (page.vector) {
+        page.vector.forEach(_ => URL.revokeObjectURL(_));
+        page.vector = null;
+    }
+}
+
+function dropThumbVector(thumb) {
+    if (thumb.vector) {
+        thumb.vector.forEach(_ => URL.revokeObjectURL(_));
+        thumb.vector = null;
+    }
+}
+
+// The element for a page written as SVG (SvgPainter), with its pictures swapped in from the bytes .NET
+// packed end to end and decoded, so it never shows a hole once it is put in the page. Its text is set in
+// the text layer's own faces. The SVG comes in a holder that draws no box of its own and is inert, so the
+// browser's own find leaves that text to the text layer: `inert` is an HTML attribute, which does nothing
+// on the svg itself, and there Chromium's find bar counted every word of a page three times — in the text
+// layer, the page and its thumbnail.
+async function vectorFrom(markup, images, lengths, className) {
+    await ensureFonts();
+    const holder = document.createElement('div');
+    holder.className = 'viewer-vector-holder';
+    holder.inert = true;
+    holder.setAttribute('aria-hidden', 'true');
+    holder.innerHTML = markup;
+    const svg = holder.firstElementChild;
+    svg.setAttribute('class', className);
+    const urls = [];
+    let offset = 0;
+    for (const length of lengths) {
+        urls.push(URL.createObjectURL(new Blob([images.subarray(offset, offset + length)])));
+        offset += length;
+    }
+
+    if (urls.length) {
+        for (const image of svg.querySelectorAll('image[data-i]')) {
+            image.setAttribute('href', urls[Number(image.dataset.i)]);
+        }
+
+        await Promise.all(urls.map(url => {
+            const probe = new Image();
+            probe.src = url;
+            return whenReady(probe);
+        }));
+    }
+
+    return { picture: holder, urls };
 }
 
 function clamp(value, low, high) {
@@ -216,6 +282,7 @@ class Viewer {
 
         this.root.addEventListener('keydown', event => this.onKeyDown(event), { signal });
         this.root.addEventListener('click', event => this.onClick(event), { signal });
+        this.root.addEventListener('contextmenu', event => this.onContextMenu(event), { signal });
         // A press on an editing button must not take the focus, and with it the selection the
         // button is for.
         this.root.addEventListener('mousedown', event => {
@@ -424,6 +491,10 @@ class Viewer {
         this.texts = texts;
         this.textCharacters = 0;
 
+        // .NET forgets the selection with the file it was made in, so the same text selected again
+        // is news to it.
+        this.lastSelection = '';
+
         const count = sizes.length / 2;
         const noun = capitalise(this.pageNoun);
         for (let index = 0; index < count; index++) {
@@ -448,7 +519,7 @@ class Viewer {
             // Shown until it is replaced, and first in line to be.
             page.dpi = 0;
             page.failed = false;
-            page.thumb.stale = page.thumb.url !== null;
+            page.thumb.stale = page.thumb.url !== null || !!page.thumb.vector;
             page.element.classList.remove('viewer-page-failed');
             page.element.querySelector('.viewer-page-message')?.remove();
             delete page.element.dataset.renderedDpi;
@@ -475,6 +546,8 @@ class Viewer {
                 URL.revokeObjectURL(page.url);
             }
 
+            dropVector(page);
+            dropThumbVector(page.thumb);
             if (page.thumb.url) {
                 URL.revokeObjectURL(page.thumb.url);
             }
@@ -527,6 +600,8 @@ class Viewer {
                 URL.revokeObjectURL(page.url);
             }
 
+            dropVector(page);
+            dropThumbVector(page.thumb);
             if (page.thumb.url) {
                 URL.revokeObjectURL(page.thumb.url);
             }
@@ -593,6 +668,7 @@ class Viewer {
             URL.revokeObjectURL(page.url);
         }
 
+        dropVector(page);
         page.url = url;
         page.dpi = dpi;
         page.failed = false;
@@ -600,6 +676,80 @@ class Viewer {
         page.element.classList.remove('viewer-page-failed');
         this.settle(page);
         this.evict();
+        this.scheduleQueue(0);
+    }
+
+    // A page as SVG (MorphViewer.VectorPages): the markup takes the picture's place, and the browser draws
+    // it at whatever size the page is shown — so it is never asked for again at another zoom. Its text is
+    // set in the text layer's own faces, and its pictures are swapped in from the bytes .NET packed.
+    async setPageSvg(documentId, pageIndex, markup, images, lengths, measure) {
+        const page = documentId === this.documentId ? this.pages[pageIndex] : null;
+        if (!page) {
+            return;
+        }
+
+        const started = performance.now();
+        const { picture, urls } = await vectorFrom(markup, images, lengths, 'viewer-vector');
+        if (documentId !== this.documentId) {
+            urls.forEach(_ => URL.revokeObjectURL(_));
+            return;
+        }
+
+        const built = performance.now();
+        page.image.replaceWith(picture);
+        page.image = picture;
+        if (page.url) {
+            URL.revokeObjectURL(page.url);
+            page.url = null;
+        }
+
+        dropVector(page);
+        page.vector = urls;
+        page.dpi = vectorDpi;
+        page.failed = false;
+        page.element.dataset.renderedDpi = 'vector';
+        page.element.classList.remove('viewer-page-failed');
+        this.settle(page);
+        this.evict();
+        this.scheduleQueue(0);
+
+        // MorphViewer.MeasurePaint: the script's part, and the frame that first draws the page.
+        if (measure) {
+            const timings = window.morphVectorTimings ??= [];
+            const entry = { page: pageIndex + 1, script: built - started, characters: markup.length, frame: 0 };
+            timings.push(entry);
+            requestAnimationFrame(() => {
+                const channel = new MessageChannel();
+                channel.port1.onmessage = () => entry.frame = performance.now() - built;
+                channel.port2.postMessage(null);
+            });
+        }
+    }
+
+    // A thumbnail as SVG: the page's own markup, drawn small over the thumbnail's picture.
+    async setThumbnailSvg(documentId, pageIndex, markup, images, lengths) {
+        const page = documentId === this.documentId ? this.pages[pageIndex] : null;
+        if (!page) {
+            return;
+        }
+
+        const { picture, urls } = await vectorFrom(markup, images, lengths, 'viewer-thumb-vector');
+        if (documentId !== this.documentId) {
+            urls.forEach(_ => URL.revokeObjectURL(_));
+            return;
+        }
+
+        page.thumb.sheet.querySelector(':scope > .viewer-vector-holder')?.remove();
+        page.thumb.sheet.append(picture);
+        dropThumbVector(page.thumb);
+        page.thumb.vector = urls;
+        page.thumb.image.removeAttribute('src');
+        if (page.thumb.url) {
+            URL.revokeObjectURL(page.thumb.url);
+            page.thumb.url = null;
+        }
+
+        page.thumb.stale = false;
         this.scheduleQueue(0);
     }
 
@@ -615,11 +765,13 @@ class Viewer {
             URL.revokeObjectURL(page.thumb.url);
         }
 
+        page.thumb.sheet.querySelector(':scope > .viewer-vector-holder')?.remove();
+        dropThumbVector(page.thumb);
         page.thumb.url = url;
         page.thumb.stale = false;
 
         // A page whose full image was evicted shows the thumbnail meanwhile.
-        if (!page.url) {
+        if (!page.url && !page.vector) {
             page.image.src = url;
         }
 
@@ -646,9 +798,10 @@ class Viewer {
     }
 
     // Keeps the most recently useful full-resolution images and lets the rest fall back to their
-    // thumbnails — decoded page images are the bulk of the page's memory.
+    // thumbnails — decoded page images are the bulk of the page's memory. A page drawn as SVG counts as
+    // one too: it holds its pictures, and drawing it again when it comes back is cheap.
     evict() {
-        const rendered = this.pages.filter(_ => _.url);
+        const rendered = this.pages.filter(_ => _.url || _.vector);
         let excess = rendered.length - maxImages;
         if (excess <= 0) {
             return;
@@ -665,8 +818,19 @@ class Viewer {
                 continue;
             }
 
-            URL.revokeObjectURL(page.url);
-            page.url = null;
+            if (page.vector) {
+                const image = document.createElement('img');
+                image.className = 'viewer-image';
+                image.alt = '';
+                image.draggable = false;
+                page.image.replaceWith(image);
+                page.image = image;
+                dropVector(page);
+            } else {
+                URL.revokeObjectURL(page.url);
+                page.url = null;
+            }
+
             page.dpi = 0;
             delete page.element.dataset.renderedDpi;
             if (page.thumb.url) {
@@ -725,7 +889,7 @@ class Viewer {
         if (this.sidebarOpen && !this.presenting) {
             for (const index of [...this.visibleThumbs].sort((first, second) => first - second)) {
                 const page = this.pages[index];
-                if (page && (!page.thumb.url || page.thumb.stale) && !page.failed) {
+                if (page && ((!page.thumb.url && !page.thumb.vector) || page.thumb.stale) && !page.failed) {
                     jobs.push(1, index, this.thumbnailDpi(page));
                 }
             }
@@ -990,6 +1154,8 @@ class Viewer {
             return;
         }
 
+        this.drawRuler();
+
         if (this.zoomMode !== 'custom') {
             const scale = this.fitScale(this.zoomMode);
             if (Math.abs(scale - this.scale) > 0.001) {
@@ -1101,6 +1267,8 @@ class Viewer {
         if (this.presenting || !this.pages.length) {
             return;
         }
+
+        this.drawRuler();
 
         const box = this.scroller.getBoundingClientRect();
         const visibleArea = page => {
@@ -1299,6 +1467,29 @@ class Viewer {
         }
 
         if (this.editMode && !this.presenting && this.scroller.contains(target)) {
+            // With Format Painter on, the text selected is painted, as Word paints it when the
+            // mouse is let go — rather than opening the paragraph it was selected in.
+            if (this.painting && target.closest('.viewer-page')) {
+                const selected = this.selectedText();
+                if (selected) {
+                    this.setPainting(false);
+                    this.dotNet.invokeMethodAsync('OnPaint', selected).catch(() => {});
+                }
+
+                return;
+            }
+
+            // A floating picture is not in any line: a click on one selects it, to size it.
+            if (!target.closest('.edit-box') && !target.closest('.viewer-picture-frame') && this.pictureAt(event)) {
+                return;
+            }
+
+            if (target.closest('.viewer-picture-frame')) {
+                return;
+            }
+
+            this.selectPicture(null);
+
             // A click in the editor is the editor's; one anywhere else on a page opens what is there.
             if (!target.closest('.edit-box') && target.closest('.viewer-page')) {
                 this.onEditClick(event);
@@ -1335,6 +1526,13 @@ class Viewer {
         }
 
         const typing = isTyping(event.target);
+        // Word's Show/Hide ¶, typing or not.
+        if (this.editMode && (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === 'Digit8') {
+            event.preventDefault();
+            this.call('OnMarksRequested');
+            return;
+        }
+
         if (this.editMode && !typing && !this.presenting && this.onEditKey(event)) {
             return;
         }
@@ -1445,6 +1643,16 @@ class Viewer {
 
     // Ctrl+P while focus is in the viewer prints the document rather than the host page around it.
     onDocumentKeyDown(event) {
+        // Escape closes the editor's menu or dialog that is open, and goes no further: the paragraph
+        // being typed in keeps what was typed, as Word's does. Neither has the focus — the ribbon does
+        // not take it — so the key is caught here, before the paragraph's own Escape.
+        if (event.key === 'Escape' && this.root.querySelector('.editor-menu, .editor-dialog')) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.call('OnMenuEscape');
+            return;
+        }
+
         if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' &&
             this.pages.length && (this.presenting || this.root.contains(document.activeElement))) {
             event.preventDefault();
@@ -1868,6 +2076,121 @@ class Viewer {
     // over it. What is typed is handed in when the reader moves on (OnEditCommit), and the editor
     // stays up until the page has been drawn again.
 
+    // Floating pictures: where each page draws its own, from .NET (PagedDocument.Pictures), in points.
+    setPictures(documentId, numbers) {
+        if (documentId !== this.documentId) {
+            return;
+        }
+
+        this.pictures = [];
+        for (let index = 0; index + 6 < numbers.length; index += 7) {
+            const [page, x, y, width, height, paragraph, offset] = numbers.slice(index, index + 7);
+            this.pictures.push({ page, x, y, width, height, paragraph, offset });
+        }
+
+        this.selectPicture(null);
+    }
+
+    // The floating picture under a click, selected; whether there was one. The last drawn is on top.
+    pictureAt(event) {
+        if (!this.pictures?.length || this.rotation !== 0) {
+            return false;
+        }
+
+        const page = this.pageOf(event.target);
+        if (!page) {
+            return false;
+        }
+
+        const [x, y] = this.pagePoint(page, event.clientX, event.clientY);
+        const hit = this.pictures.filter(_ => _.page === page.index && x >= _.x && x <= _.x + _.width && y >= _.y && y <= _.y + _.height).pop();
+        if (!hit) {
+            return false;
+        }
+
+        this.selectPicture(hit);
+        return true;
+    }
+
+    // Frames a floating picture with handles at its right-hand corners, which size it in proportion
+    // from its top left, where it stands (a left-hand corner would move it too); null takes
+    // the frame away. .NET is told which picture is selected, for Wrap Text, and its new size.
+    selectPicture(picture) {
+        this.pictureFrame?.remove();
+        this.pictureFrame = null;
+        const was = this.selectedPicture ?? null;
+        this.selectedPicture = picture;
+        if (picture) {
+            const page = this.pages[picture.page];
+            const frame = document.createElement('div');
+            frame.className = 'viewer-picture-frame';
+            frame.setAttribute('role', 'img');
+            frame.setAttribute('aria-label', 'Selected picture');
+            const place = (width, height) => {
+                frame.style.left = `${picture.x / page.width * 100}%`;
+                frame.style.top = `${picture.y / page.height * 100}%`;
+                frame.style.width = `${width / page.width * 100}%`;
+                frame.style.height = `${height / page.height * 100}%`;
+                frame.dataset.size = `${Math.round(width * 10) / 10} × ${Math.round(height * 10) / 10} pt`;
+            };
+            place(picture.width, picture.height);
+            for (const corner of ['ne', 'se']) {
+                const handle = document.createElement('span');
+                handle.className = 'viewer-picture-handle';
+                handle.dataset.corner = corner;
+                handle.addEventListener('pointerdown', event => this.dragPicture(event, picture, corner, place));
+                frame.appendChild(handle);
+            }
+
+            page.element.appendChild(frame);
+            this.pictureFrame = frame;
+        }
+
+        if (picture !== was) {
+            this.dotNet.invokeMethodAsync('OnPictureSelected', picture?.paragraph ?? -1, picture?.offset ?? -1).catch(() => {});
+        }
+    }
+
+    // A corner dragged: the picture is sized in proportion from its top left, and its size
+    // handed to .NET when the corner is let go.
+    dragPicture(event, picture, corner, place) {
+        event.preventDefault();
+        event.stopPropagation();
+        const page = this.pages[picture.page];
+        const handle = event.currentTarget;
+        handle.setPointerCapture(event.pointerId);
+        const scale = page.element.getBoundingClientRect().width / page.width;
+        const startX = event.clientX;
+        const ratio = picture.height / picture.width;
+        let width = picture.width;
+        const move = moved => {
+            width = Math.max(8, picture.width + (moved.clientX - startX) / scale);
+            place(width, width * ratio);
+        };
+        const up = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', up);
+            if (Math.abs(width - picture.width) >= 0.5) {
+                this.dotNet.invokeMethodAsync('OnPictureResize', picture.paragraph, picture.offset, width, width * ratio).catch(() => {});
+            }
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+        handle.addEventListener('pointercancel', up);
+    }
+
+    // Format Painter on or off: while on, the pages show the painter's cursor, and the next text
+    // selected on them is painted (onClick).
+    setPainting(on) {
+        this.painting = on;
+        if (on) {
+            this.root.dataset.painting = 'on';
+        } else {
+            delete this.root.dataset.painting;
+        }
+    }
+
     async setEditMode(on) {
         if (!on) {
             await this.closeEditor();
@@ -1936,6 +2259,7 @@ class Viewer {
             key: name => this.editKey(name),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
+            note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
     }
@@ -2000,6 +2324,14 @@ class Viewer {
     // Which of the editing bar's buttons are pressed: null when no paragraph is open. The font and
     // size the caret is in show in the ribbon (data-edit-show), as of the last place it was.
     showEditState(state) {
+        // Whether a picture is selected alone decides what the ribbon offers, so .NET is told — but only
+        // when that changes, never as the caret moves.
+        const picture = state?.picture === true;
+        if (picture !== (this.editPicture ?? false)) {
+            this.editPicture = picture;
+            this.dotNet.invokeMethodAsync('OnEditPicture', picture).catch(() => {});
+        }
+
         if (state) {
             for (const shown of this.root.querySelectorAll('[data-edit-show]')) {
                 const value = state[shown.dataset.editShow];
@@ -2011,7 +2343,12 @@ class Viewer {
 
         for (const button of this.root.querySelectorAll('[data-edit-command]')) {
             const name = button.dataset.editCommand;
-            if (name === 'track' || name === 'undo' || name === 'redo') {
+            // The ribbon's Paste needs the clipboard API: without it, Ctrl+V is the way.
+            if (name === 'paste') {
+                button.hidden = !navigator.clipboard?.readText;
+            }
+
+            if (name === 'track' || name === 'undo' || name === 'redo' || clipboardCommands.includes(name)) {
                 continue;
             }
 
@@ -2035,9 +2372,159 @@ class Viewer {
             }
 
             await editor.commit(0);
+        } else if (clipboardCommands.includes(name)) {
+            // Text selected on the pages: copied as Ctrl+C copies it, and cut by deleting it after.
+            // There is nowhere to paste.
+            if (name === 'paste' || !this.selectedText()) {
+                return;
+            }
+
+            document.execCommand('copy');
+            if (name === 'copy') {
+                return;
+            }
+
+            name = 'delete';
         }
 
         this.dotNet.invokeMethodAsync('OnEditCommand', name).catch(() => {});
+    }
+
+    // Word's ruler, over the current page: the page's width in centimetres counted from its left margin,
+    // the margins grey, and the paragraph's markers — the first line's indent (top), the hanging indent
+    // (bottom), the left indent's box under it, which moves both, and the right indent. A marker is
+    // dragged in Word's 0.25 cm steps; let go, its indents go to .NET, which sets them as Word's
+    // Paragraph dialog does. The model is MorphEditor.RulerModel's, in points.
+    setRuler(model) {
+        this.ruler = model ? JSON.parse(model) : null;
+        this.drawRuler();
+    }
+
+    drawRuler() {
+        const element = this.root.querySelector('.editor-ruler');
+        if (!element) {
+            return;
+        }
+
+        const model = this.ruler;
+        const page = this.pages[this.current]?.element;
+        if (!model || !page) {
+            element.replaceChildren();
+            return;
+        }
+
+        const box = page.getBoundingClientRect();
+        const own = element.getBoundingClientRect();
+        const scale = box.width / model.w;
+        const at = points => box.left - own.left + points * scale;
+        const strip = document.createElement('div');
+        strip.className = 'ruler-strip';
+        strip.style.cssText = `left:${at(0)}px;width:${model.w * scale}px`;
+        for (const [from, to] of [[0, model.ml], [model.w - model.mr, model.w]]) {
+            const margin = document.createElement('div');
+            margin.className = 'ruler-margin';
+            margin.style.cssText = `left:${from * scale}px;width:${(to - from) * scale}px`;
+            strip.append(margin);
+        }
+
+        // A tick each quarter centimetre, longer at the half, and the count at each centimetre, counted
+        // out from the left margin both ways, as Word counts.
+        const quarter = 72 / 2.54 / 4;
+        const first = -Math.floor(model.ml / quarter);
+        const last = Math.floor((model.w - model.ml) / quarter);
+        for (let step = first; step <= last; step++) {
+            if (step === 0) {
+                continue;
+            }
+
+            const x = (model.ml + step * quarter) * scale;
+            if (step % 4 === 0) {
+                const label = document.createElement('span');
+                label.className = 'ruler-number';
+                label.textContent = String(Math.abs(step / 4));
+                label.style.left = `${x}px`;
+                strip.append(label);
+                continue;
+            }
+
+            const tick = document.createElement('span');
+            tick.className = step % 2 === 0 ? 'ruler-tick ruler-tick-half' : 'ruler-tick';
+            tick.style.left = `${x}px`;
+            strip.append(tick);
+        }
+
+        if (!model.t) {
+            const left = model.ml + model.l;
+            const markers = [
+                ['first', left + model.f, 'First line indent'],
+                ['hanging', left, 'Hanging indent'],
+                ['left', left, 'Left indent'],
+                ['right', model.w - model.mr - model.r, 'Right indent']
+            ];
+            for (const [kind, x, title] of markers) {
+                const marker = document.createElement('span');
+                marker.className = `ruler-marker ruler-${kind}`;
+                marker.dataset.marker = kind;
+                marker.title = title;
+                marker.style.left = `${x * scale}px`;
+                marker.addEventListener('pointerdown', event => this.onRulerDown(event, kind, model, scale, strip));
+                strip.append(marker);
+            }
+        }
+
+        element.replaceChildren(strip);
+    }
+
+    onRulerDown(event, kind, model, scale, strip) {
+        // The press must not take the focus from the paragraph being typed in.
+        event.preventDefault();
+        const marker = event.currentTarget;
+        marker.setPointerCapture(event.pointerId);
+        const quarter = 72 / 2.54 / 4;
+        const start = strip.getBoundingClientRect().left;
+        let moved = { l: model.l, r: model.r, f: model.f };
+        const move = moveEvent => {
+            let points = (moveEvent.clientX - start) / scale;
+            if (!moveEvent.altKey) {
+                points = model.ml + Math.round((points - model.ml) / quarter) * quarter;
+            }
+
+            points = Math.min(Math.max(points, 0), model.w);
+            const firstLine = model.ml + model.l + model.f;
+            switch (kind) {
+                case 'first':
+                    moved = { ...moved, f: points - model.ml - moved.l };
+                    break;
+                case 'hanging':
+                    // The text's left edge moves; the first line stays where it starts.
+                    moved = { ...moved, l: points - model.ml, f: firstLine - points };
+                    break;
+                case 'left':
+                    moved = { ...moved, l: points - model.ml };
+                    break;
+                default:
+                    moved = { ...moved, r: model.w - model.mr - points };
+                    break;
+            }
+
+            const left = model.ml + moved.l;
+            for (const each of strip.querySelectorAll('.ruler-marker')) {
+                const at = { first: left + moved.f, hanging: left, left, right: model.w - model.mr - moved.r }[each.dataset.marker];
+                each.style.left = `${at * scale}px`;
+            }
+        };
+        const up = () => {
+            marker.removeEventListener('pointermove', move);
+            marker.removeEventListener('pointerup', up);
+            marker.removeEventListener('pointercancel', up);
+            if (moved.l !== model.l || moved.r !== model.r || moved.f !== model.f) {
+                const round = value => Math.round(value * 100) / 100;
+                this.dotNet.invokeMethodAsync('OnRulerIndent', round(moved.l), round(moved.r), round(moved.f)).catch(() => {});
+            }
+        };
+        marker.addEventListener('pointermove', move);
+        marker.addEventListener('pointerup', up);
+        marker.addEventListener('pointercancel', up);
     }
 
     // Keys while editing is on and no paragraph is open. Says whether the key was one of them.
@@ -2045,6 +2532,18 @@ class Viewer {
         if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
             event.preventDefault();
             this.editKey(`heading${event.code.slice(-1)}`);
+            return true;
+        }
+
+        const word = wordKey(event);
+        if (word) {
+            event.preventDefault();
+            if (word.command) {
+                this.editCommand(word.command);
+            } else {
+                this.editKey(word.key);
+            }
+
             return true;
         }
 
@@ -2156,6 +2655,90 @@ class Viewer {
         }
     }
 
+    // Word's right-click menu, while editing. What was right-clicked is selected first, as Word selects
+    // it: a floating picture; in the paragraph being typed, where its own mousedown put the caret (or the
+    // picture it framed); text already selected on the pages, left as it is; anywhere else on a page, the
+    // paragraph there, opened as a click opens it. Then .NET opens the menu where the pointer was
+    // (MorphEditor.ContextLines). Shift+right-click keeps the browser's own menu, as does all that is not
+    // the pages.
+    async onContextMenu(event) {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target || !this.editMode || this.presenting || event.shiftKey || !this.scroller.contains(target)) {
+            return;
+        }
+
+        const page = this.pageOf(target);
+        const typing = Boolean(target.closest('.edit-box'));
+        if (!page && !typing) {
+            return;
+        }
+
+        event.preventDefault();
+        let { clientX, clientY } = event;
+        // From the keyboard (the menu key, Shift+F10) there is no pointer: the menu opens at the caret.
+        if (clientX === 0 && clientY === 0) {
+            const selection = getSelection();
+            const box = selection?.rangeCount ? selection.getRangeAt(0).getBoundingClientRect() : target.getBoundingClientRect();
+            clientX = box.left;
+            clientY = box.bottom;
+        }
+
+        if (typing || target.closest('.viewer-picture-frame')) {
+            // The paragraph's own place, or the picture already selected.
+        } else if (this.pictureAt(event)) {
+            // A floating picture, now selected.
+        } else if (!this.inSelection(clientX, clientY)) {
+            this.selectPicture(null);
+            await this.closeEditor();
+            this.ensureText(page);
+            const offset = this.caretOffset(page, clientX, clientY);
+            await this.sendHit(page, clientX, clientY, offset, offset);
+        }
+
+        const bounds = this.root.getBoundingClientRect();
+        this.dotNet.invokeMethodAsync('OnContextMenu', clientX - bounds.left, clientY - bounds.top).catch(() => {});
+    }
+
+    // Whether a point is on the text selected on the pages.
+    inSelection(clientX, clientY) {
+        const selection = getSelection();
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+            return false;
+        }
+
+        for (const box of selection.getRangeAt(0).getClientRects()) {
+            if (clientX >= box.left && clientX <= box.right && clientY >= box.top && clientY <= box.bottom) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The right-click menu, just drawn by .NET where the pointer was: moved in from the editor's right
+    // and bottom edges where it would run past them — up from the pointer when there is room above —
+    // and its submenus set to open on the side that has room.
+    placeMenu() {
+        const menu = this.root.querySelector('.editor-context-menu');
+        if (!menu) {
+            return;
+        }
+
+        const bounds = this.root.getBoundingClientRect();
+        let box = menu.getBoundingClientRect();
+        if (box.right > bounds.right) {
+            menu.style.left = `${Math.max(0, bounds.width - box.width - 4)}px`;
+        }
+
+        if (box.bottom > bounds.bottom) {
+            const above = box.top - bounds.top - box.height;
+            menu.style.top = `${Math.max(0, above >= 0 ? above : bounds.height - box.height)}px`;
+        }
+
+        box = menu.getBoundingClientRect();
+        menu.toggleAttribute('data-flip', box.right + box.width > bounds.right);
+    }
+
     // An arrow key took the caret out of the top or the bottom of a paragraph: the paragraph that way
     // is the first text a point moved that way, half a line at a time, comes to.
     async leaveEditor(direction, clientX, clientY, line) {
@@ -2243,6 +2826,44 @@ class Viewer {
         page.append(image);
         print.container.append(page);
         print.images.push(image);
+    }
+
+    // A printed page as SVG (MorphViewer.VectorPages): vector text on paper, its pictures as on screen.
+    async addPrintPageSvg(pageIndex, markup, images, lengths) {
+        const print = this.print;
+        if (!print) {
+            return;
+        }
+
+        await ensureFonts();
+        const page = document.createElement('div');
+        page.className = 'print-page';
+        let css = `width:${print.sizes[2 * pageIndex]}pt;height:${print.sizes[2 * pageIndex + 1]}pt`;
+        if (print.named) {
+            css += `;page:${print.pageNames[pageIndex]}`;
+        }
+
+        page.style.cssText = css;
+        page.innerHTML = markup;
+        let offset = 0;
+        const urls = lengths.map(length => {
+            const url = URL.createObjectURL(new Blob([images.subarray(offset, offset + length)]));
+            offset += length;
+            return url;
+        });
+        for (const image of page.querySelectorAll('image[data-i]')) {
+            image.setAttribute('href', urls[Number(image.dataset.i)]);
+        }
+
+        // finishPrint waits for these, as for a printed page's picture.
+        for (const url of urls) {
+            const probe = new Image();
+            probe.src = url;
+            print.images.push(probe);
+        }
+
+        print.urls.push(...urls);
+        print.container.append(page);
     }
 
     async finishPrint() {

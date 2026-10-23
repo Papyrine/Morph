@@ -20,28 +20,35 @@ static class SkiaPainter
     {
         foreach (var laidOutPage in document.Pages)
         {
-            var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
-            using var bitmap = new SKBitmap(pageWidth, pageHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
-            using var canvas = new SKCanvas(bitmap);
-
-            var background = laidOutPage.Settings.BackgroundColorHex;
-            canvas.Clear(string.IsNullOrEmpty(background) ? SKColors.White : SkiaRenderContext.ParseColor(background));
-
-            foreach (var item in laidOutPage.Items)
-            {
-                PaintItem(context, canvas, item);
-            }
-
-            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
-            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
-            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
-            {
-                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
-            }
-
-            Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
+            PaintPage(laidOutPage, context, crop, pageCallback);
         }
+    }
+
+    // One page, drawn and encoded. Touches no state but the context's, so pages on different threads
+    // need only different contexts (ParallelPages).
+    public static void PaintPage(LaidOutPage laidOutPage, SkiaRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
+    {
+        var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
+        using var bitmap = new SKBitmap(pageWidth, pageHeight, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bitmap);
+
+        var background = laidOutPage.Settings.BackgroundColorHex;
+        canvas.Clear(string.IsNullOrEmpty(background) ? SKColors.White : SkiaRenderContext.ParseColor(background));
+
+        foreach (var item in laidOutPage.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+        // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+        if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+        {
+            var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+            PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
+        }
+
+        Encode(bitmap, context.PageRect(laidOutPage.Settings, crop), pageCallback);
     }
 
     // The page is always painted whole and a rectangle of it emitted, rather than the canvas being
@@ -65,11 +72,12 @@ static class SkiaPainter
         Write(cropped, pageCallback);
     }
 
+    // A page is opaque (its background is painted first), so premultiplied pixels are its colours as
+    // they stand, and PngWriter picks the smallest PNG form they allow.
     static void Write(SKBitmap bitmap, Action<Action<Stream>> pageCallback)
     {
         using var pixmap = bitmap.PeekPixels();
-        using var data = pixmap.Encode(SKEncodedImageFormat.Png, 100)!;
-        pageCallback(data.SaveTo);
+        pageCallback(_ => PngWriter.Write(_, pixmap.GetPixelSpan(), pixmap.Width, pixmap.Height, pixmap.RowBytes));
     }
 
     // Points (the tree's unit) to device pixels (Skia's unit).
@@ -182,28 +190,22 @@ static class SkiaPainter
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
-
-            var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
-            if (properties.Underline)
+            // w:w stretches the run about its own start, glyphs and advances alike, as Word's XPS draws it.
+            if (properties.CharacterScalePercent != 100)
             {
-                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
-                var underlineColor = properties.UnderlineColorHex == null
-                    ? color
-                    : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = P(context, baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(P(context, run.X), underlineY, P(context, run.X + run.Width), underlineY, context.GetReusableRulePaint(underlineColor, strokeWidth));
-                if (properties.DoubleUnderline)
-                {
-                    var secondY = underlineY + strokeWidth * 2;
-                    canvas.DrawLine(P(context, run.X), secondY, P(context, run.X + run.Width), secondY, context.GetReusableRulePaint(underlineColor, strokeWidth));
-                }
+                canvas.Save();
+                canvas.Scale((float) (properties.CharacterScalePercent / 100), 1, P(context, run.X), 0);
+                DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+                canvas.Restore();
+            }
+            else
+            {
+                DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
             }
 
-            if (properties.Strikethrough)
+            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                var strikeY = P(context, baseline - ascent * 0.3);
-                canvas.DrawLine(P(context, run.X), strikeY, P(context, run.X + run.Width), strikeY, context.GetReusableRulePaint(color, strokeWidth));
+                PaintDecorations(context, canvas, run, properties, color, (float) baseline, (float) ascent);
             }
 
             // w:bdr — a box around this run alone, over the glyphs like Word's, its rules the drawn
@@ -218,8 +220,54 @@ static class SkiaPainter
 
         foreach (var image in line.Images)
         {
+            // An inline chart arrives drawn: its shapes and labels, placed (PlacedImage.Composed).
+            if (image.Composed is { } composed)
+            {
+                foreach (var item in composed)
+                {
+                    PaintItem(context, canvas, item);
+                }
+
+                continue;
+            }
+
             PaintImage(context, canvas, image);
         }
+    }
+
+    // The run's underline and strike rules (TextDecorations). w:u/@w:color paints the underline in its
+    // own colour; absent means the text colour, which the strike always takes.
+    static void PaintDecorations(SkiaRenderContext context, SKCanvas canvas, PlacedRun run, RunProperties properties, SKColor color, float baseline, float ascent)
+    {
+        var underlineColor = properties.UnderlineColorHex == null
+            ? color
+            : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
+        var rules = new List<TextDecorations.Rule>();
+        var waves = new List<TextDecorations.Wave>();
+        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => MeasurePrefix(context, properties, _), rules, waves);
+        foreach (var rule in rules)
+        {
+            var y = P(context, rule.Y);
+            canvas.DrawLine(P(context, rule.X0), y, P(context, rule.X1), y, context.GetReusableRulePaint(rule.IsStrike ? color : underlineColor, P(context, rule.Thickness)));
+        }
+
+        foreach (var wave in waves)
+        {
+            var paint = context.GetReusableRulePaint(underlineColor, P(context, wave.Thickness));
+            for (var index = 1; index < wave.Points.Count; index++)
+            {
+                var (x0, y0) = wave.Points[index - 1];
+                var (x1, y1) = wave.Points[index];
+                canvas.DrawLine(P(context, x0), P(context, y0), P(context, x1), P(context, y1), paint);
+            }
+        }
+    }
+
+    // The drawn width in points of a prefix of a run's text, as DrawTracked advances it (kerning aside).
+    static float MeasurePrefix(SkiaRenderContext context, RunProperties properties, string prefix)
+    {
+        var font = context.CreateFont(properties);
+        return (float) ((font.MeasureText(prefix) / context.Scale) + properties.CharacterSpacingPoints * prefix.Length);
     }
 
     // Draws text, spreading each character by w:spacing tracking and pulling each by its kern. The run's
@@ -883,9 +931,9 @@ static class SkiaPainter
                 canvas.Save();
                 canvas.ClipRect(new(
                     cell.ClipHorizontally ? P(context, cell.X - cell.ClipSpillLeft) : float.MinValue / 2,
-                    P(context, cell.Y),
+                    cell.ClipVertically ? P(context, cell.Y) : float.MinValue / 2,
                     cell.ClipHorizontally ? P(context, cell.X + cell.Width + cell.ClipSpillRight) : float.MaxValue / 2,
-                    P(context, cell.Y + cell.Height)));
+                    cell.ClipVertically ? P(context, cell.Y + cell.Height) : float.MaxValue / 2));
             }
 
             foreach (var content in cell.Content)

@@ -12,6 +12,15 @@ name: Deploy GH Pages
 # screenshot snapshots are recorded on Windows: they assert on what the app does in a browser, which
 # another OS adds nothing to. The build job publishes on Linux, and the deploy waits for both.
 #
+# What is deployed is compiled ahead of time (RunAOTCompilation, on the publish line below and nowhere
+# else). The editor's edits run 4–5x faster AOT, at the price of a ~23 MB larger first download (gzip,
+# which is what Pages serves), a 1.3 s rather than 0.6 s boot from cache, and a publish of 15–25 minutes
+# instead of one — so only pushes to main and manual runs pay it, and a pull request publishes
+# interpreted. The csproj never turns it on: Morph.Web.Tests publishes the app on every build, and every
+# local test build would become an AOT publish. The workarounds AOT needs live in Morph.Blazor's
+# build/Morph.Blazor.targets. The test job therefore runs the interpreted build; the test-aot job runs
+# the same browser tests against the AOT app the build job made, and the deploy waits for it too.
+#
 # A pull request runs the build and test jobs only — compile, test and publish, with no Pages upload
 # and no deploy. Nothing else compiles Morph.Web.Tests, so without that a change to a type its tests
 # stub (an interface in Morph, say) first fails here, on main, after the merge.
@@ -64,6 +73,9 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    # An AOT publish measured 12 minutes on 24 cores; on the runner's 4 it takes longer. The bound turns a
+    # hung emscripten link into a failure rather than six hours of waiting.
+    timeout-minutes: 60
     # SponsorCheck (referenced by every packable project — Morph, Morph.ImageSharp, Morph.Pdf,
     # Morph.Skia and Morph.Blazor) is for the nuget pack builds and
     # needs a GitHub credential this deploy has no reason to hold. The csprojs already drop the
@@ -81,14 +93,25 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # The app builds native (WasmBuildNative) to link Krilla's PDF archive into its .wasm with emcc, which
-      # lives in the wasm-tools workload. Without it the build fails rather than shipping an app whose
-      # PDF export cannot load its native.
+      # The app builds native (WasmBuildNative) to link Krilla's PDF archive into its .wasm with emcc, and
+      # an AOT publish compiles every assembly with it; both live in the wasm-tools workload. Without it
+      # the build fails rather than shipping an app whose PDF export cannot load its native. emscripten
+      # also needs python3, which ubuntu-latest has.
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
 
+      # AOT for what is deployed (pushes to main, manual runs); a pull request publishes interpreted.
       - name: Publish
-        run: dotnet publish src/Morph.Web --configuration Release --output publish
+        run: dotnet publish src/Morph.Web --configuration Release --output publish -p:RunAOTCompilation=${{ github.event_name != 'pull_request' }}
+
+      # The app as published, for test-aot to run the browser tests against before it is deployed.
+      - name: Upload the AOT app for test-aot
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-aot
+          path: publish/wwwroot
+          retention-days: 1
 
       # The site is served at the root of the custom domain (morph.papyrine.org), so the
       # published <base href="/" /> is already correct — no subpath rewrite. (When it was served
@@ -113,13 +136,43 @@ jobs:
         with:
           path: publish/wwwroot
 
+  # The browser tests against the AOT app the build job made, which is the one deployed: the test job
+  # runs them against an interpreted publish of its own. The tests are built without publishing the app
+  # (SkipBlazorPublish), and serve whatever is in bin/Release/blazor-publish.
+  test-aot:
+    if: github.event_name != 'pull_request'
+    runs-on: windows-latest
+    needs: build
+    env:
+      MORPH_TEST_CONTAINER: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download the AOT app
+        uses: actions/download-artifact@v8
+        with:
+          name: web-aot
+          path: src/Morph.Web.Tests/bin/Release/blazor-publish/wwwroot
+
+      - name: Build tests, without publishing the app
+        run: dotnet build src/Morph.Web.Tests --configuration Release -p:SkipBlazorPublish=true
+
+      - name: Run the browser tests against the AOT app
+        run: dotnet src/Morph.Web.Tests/bin/Release/net10.0/Morph.Web.Tests.dll --treenode-filter "/*/*/SnapshotTests/*"
+
   deploy:
     if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: [build, test]
+    needs: [build, test, test-aot]
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

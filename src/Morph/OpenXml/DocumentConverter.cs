@@ -10,16 +10,17 @@
 public abstract class DocumentConverter
 {
     /// <summary>Converts a DOCX file to PNG images saved to <paramref name="outputDirectory"/>.</summary>
-    public ConversionResult ConvertToImages(string docxPath, string outputDirectory, ImageExportOptions? options = null)
+    public ConversionResult ConvertToImages(string docxPath, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
         using var stream = File.OpenRead(docxPath);
-        return ConvertToImages(stream, outputDirectory, options);
+        return ConvertToImages(stream, outputDirectory, options, cancel);
     }
 
     /// <summary>Converts a DOCX stream to PNG images saved to <paramref name="outputDirectory"/>.</summary>
-    public ConversionResult ConvertToImages(Stream docxStream, string outputDirectory, ImageExportOptions? options = null)
+    public ConversionResult ConvertToImages(Stream docxStream, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
+        options = (options ?? new()) with { Cancellation = cancel };
+        cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
         var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
         return PageSink.ToDirectory(
@@ -28,16 +29,17 @@ public abstract class DocumentConverter
     }
 
     /// <summary>Converts a DOCX file to PNG image data in memory.</summary>
-    public IReadOnlyList<byte[]> ConvertToImageData(string docxPath, ImageExportOptions? options = null)
+    public IReadOnlyList<byte[]> ConvertToImageData(string docxPath, ImageExportOptions? options = null, Cancel cancel = default)
     {
         using var stream = File.OpenRead(docxPath);
-        return ConvertToImageData(stream, options);
+        return ConvertToImageData(stream, options, cancel);
     }
 
     /// <summary>Converts a DOCX stream to PNG image data in memory.</summary>
-    public IReadOnlyList<byte[]> ConvertToImageData(Stream docxStream, ImageExportOptions? options = null)
+    public IReadOnlyList<byte[]> ConvertToImageData(Stream docxStream, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options ??= new();
+        options = (options ?? new()) with { Cancellation = cancel };
+        cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 
         var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
@@ -301,6 +303,10 @@ public abstract class DocumentConverter
     // the viewer asks for it, to tie a place on a page back to the markup a comment is anchored in.
     internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
         new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(docxStream);
+
+    // A package someone else holds open, read as it stands and left as it was (DocumentParser.Parse).
+    internal static ParsedDocument Parse(WordprocessingDocument document, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
+        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(document);
 
     /// <summary>
     /// Renders a parsed document, invoking <paramref name="pageCallback"/> for each page (the

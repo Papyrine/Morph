@@ -63,6 +63,54 @@ function same(first, second) {
     return first.b === second.b && first.o === second.o;
 }
 
+// Word's keys for a ribbon command, whether a paragraph is open or text is selected on the pages: a
+// `command` the script carries out as the ribbon's button does (data-edit-command), or a `key` .NET
+// carries out (MorphViewer.OnEditKey). By the key's place where the character differs by layout or by
+// Shift. Null for any other key.
+export function wordKey(event) {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+        return null;
+    }
+
+    if (event.shiftKey) {
+        switch (event.code) {
+            case 'Equal':
+                return { key: 'superscript' };
+            case 'KeyL':
+                return { key: 'bullets' };
+        }
+
+        return null;
+    }
+
+    switch (event.code) {
+        case 'KeyL':
+            return { command: 'align-left' };
+        case 'KeyE':
+            return { command: 'align-center' };
+        case 'KeyR':
+            return { command: 'align-right' };
+        case 'KeyJ':
+            return { command: 'align-justify' };
+        case 'BracketLeft':
+            return { key: 'shrink' };
+        case 'BracketRight':
+            return { key: 'grow' };
+        case 'Equal':
+            return { key: 'subscript' };
+        case 'Space':
+            return { key: 'clear-formatting' };
+        case 'Digit1':
+            return { key: 'line-single' };
+        case 'Digit2':
+            return { key: 'line-double' };
+        case 'Digit5':
+            return { key: 'line-one-and-half' };
+    }
+
+    return null;
+}
+
 export class ParagraphEditor {
     /**
      * sheet is the page's own element (.viewer-sheet), session what EditSession wrote, and callbacks
@@ -643,6 +691,47 @@ export class ParagraphEditor {
         return true;
     }
 
+    // The ribbon's Paste: what Ctrl+V would have pasted, read from the clipboard (the browser may ask
+    // the reader first, and a refusal pastes nothing). HTML goes to .NET as a pasted one does.
+    async pasteFromClipboard() {
+        const range = this.range();
+        if (!range || !navigator.clipboard) {
+            return;
+        }
+
+        let html = '';
+        let text = '';
+        try {
+            if (navigator.clipboard.read) {
+                for (const item of await navigator.clipboard.read()) {
+                    if (item.types.includes('text/html')) {
+                        html = await (await item.getType('text/html')).text();
+                    }
+
+                    if (item.types.includes('text/plain')) {
+                        text = await (await item.getType('text/plain')).text();
+                    }
+                }
+            } else {
+                text = await navigator.clipboard.readText();
+            }
+        } catch {
+            this.callbacks.note?.('The browser did not let the page read the clipboard: paste with Ctrl+V.');
+            return;
+        }
+
+        if (this.pending || this.closed) {
+            return;
+        }
+
+        const data = { getData: type => ({ 'text/html': html, 'text/plain': text })[type] ?? '' };
+        if (!this.pasteHtml(range, data)) {
+            this.replace(range, text, 'paste');
+        }
+
+        this.box.focus({ preventScroll: true });
+    }
+
     lineBreak(range) {
         this.record('break');
         const like = this.faceAt(range.from);
@@ -1119,6 +1208,18 @@ export class ParagraphEditor {
             return;
         }
 
+        const word = wordKey(event);
+        if (word) {
+            event.preventDefault();
+            if (word.command) {
+                this.command(word.command);
+            } else {
+                this.callbacks.key(word.key);
+            }
+
+            return;
+        }
+
         const command = (event.ctrlKey || event.metaKey) && !event.altKey;
         const key = event.key.toLowerCase();
         if (command) {
@@ -1330,6 +1431,17 @@ export class ParagraphEditor {
             return this.undo();
         } else if (name === 'redo') {
             return this.redo();
+        } else if (name === 'copy') {
+            // What is selected in the box, as Ctrl+C copies it.
+            document.execCommand('copy');
+        } else if (name === 'cut') {
+            const range = this.range();
+            if (range && !same(range.from, range.to)) {
+                document.execCommand('copy');
+                this.replace(range, '', 'delete');
+            }
+        } else if (name === 'paste') {
+            this.pasteFromClipboard();
         } else {
             return false;
         }
@@ -1394,7 +1506,9 @@ export class ParagraphEditor {
             italic: (face & italic) !== 0,
             underline: (face & underline) !== 0,
             strike: (face & strike) !== 0,
-            align: this.blocks[selected.from.b].align ?? this.session.align
+            align: this.blocks[selected.from.b].align ?? this.session.align,
+            // A picture selected alone, framed: what Layout > Wrap Text acts on.
+            picture: Boolean(this.frame)
         });
     }
 

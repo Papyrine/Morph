@@ -1,12 +1,13 @@
 ﻿
-<div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-link-title" blazor:onkeydown="40">
+<div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-link-title" blazor:onkeydown="74">
 	<h2 id="editor-link-title" class="editor-dialog-title">Insert link</h2>
 	<label class="editor-field">
 		Address
-		<input type="url" class="editor-input" placeholder="https://example.com or #bookmark" value="https://" blazor:oninput="41" blazor:elementreference="scrubbed">
+		<input type="url" class="editor-input" placeholder="https://example.com or #bookmark" list="editor-link-places" value="https://" blazor:oninput="75" blazor:elementreference="scrubbed">
+		<datalist id="editor-link-places"></datalist>
 	</label>
 	<div class="editor-dialog-buttons">
-		<button type="button" class="editor-button editor-button-primary" blazor:onclick="42">Insert</button>
-		<button type="button" class="editor-button" blazor:onclick="43">Cancel</button>
+		<button type="button" class="editor-button editor-button-primary" blazor:onclick="76">Insert</button>
+		<button type="button" class="editor-button" blazor:onclick="77">Cancel</button>
 	</div>
 </div>

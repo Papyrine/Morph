@@ -51,8 +51,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var result = new MeasuredLine[wrapped.Count];
         for (var i = 0; i < wrapped.Count; i++)
         {
-            var height = (float) CanonicalTextMeasurer.LineHeightPoints(
-                wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints)
+            var grid = OnGrid(props, wrapped[i].Pitch);
+            var height = (grid?.Height ?? (float) CanonicalTextMeasurer.LineHeightPoints(
+                             wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints))
                          + 2 * RunBorderPad(wrapped[i]);
 
             // An inline image grows the line exactly as LayoutLineContents places it — measure and
@@ -69,7 +70,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             if (tallestImage > 0)
             {
                 var ascent = (float) CanonicalTextMeasurer.LineAscentPoints(
-                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch);
+                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch)
+                             + (grid?.AscentShift ?? 0);
                 height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]), wrapped[i].Pitch);
 
                 // A picture alone on its line has no pitch of its own in the wrap, so the leading a
@@ -120,6 +122,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
+            AlignToLargest(runs, props.FontAlignment);
+
             // An empty mark line has no runs; its baseline still needs the mark's ascent, and its height the
             // mark font's line pitch. Without the height, an image-only line — a heading-rule drawing in an
             // otherwise blank paragraph (resumes/18's section rules) — collapses to the tiny image height, so
@@ -143,6 +147,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var naturalPitch = segments.Count == 0 ? MarkPitch(paragraph) : wrapped[i].Pitch;
             textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
                 textAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
+
+            // On the document grid the box is whole grid pitches and the text is centred in it.
+            if (OnGrid(props, naturalPitch) is { } grid)
+            {
+                textHeight = grid.Height;
+                textAscent += grid.AscentShift;
+            }
 
             // A run border (w:bdr) reserves its stack plus w:space above and below the font's line box —
             // the line grows by twice the tallest such reserve and the baseline drops by it, exactly as
@@ -187,6 +198,49 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         }
 
         return result;
+    }
+
+    // w:textAlignment: each run moves by a fixed fraction of how much smaller it is than the line's
+    // largest — up for top and center, down for bottom (FontAlignment, Word-probed). The runs stay inside
+    // the largest run's box, so the line keeps its height.
+    static void AlignToLargest(LaidOutRun[] runs, FontAlignment alignment)
+    {
+        if (alignment == FontAlignment.Baseline ||
+            runs.Length < 2)
+        {
+            return;
+        }
+
+        var factor = alignment switch
+        {
+            FontAlignment.Top => 0.895f,
+            FontAlignment.Center => 0.34f,
+            _ => -0.105f
+        };
+        var largest = runs.Max(_ => (float) _.Properties.FontSizePoints);
+        for (var index = 0; index < runs.Length; index++)
+        {
+            var smaller = largest - (float) runs[index].Properties.FontSizePoints;
+            if (smaller > 0)
+            {
+                runs[index] = runs[index] with {BaselineShift = runs[index].BaselineShift + factor * smaller};
+            }
+        }
+    }
+
+    // The height a line takes on the document grid and how far its baseline drops for it
+    // (CanonicalTextMeasurer.GridLine); null when the paragraph is not on the grid or its line rule is
+    // not "auto", which Word lays out off the grid.
+    static (float Height, float AscentShift)? OnGrid(ParagraphProperties props, float naturalPitch)
+    {
+        if (props.GridLinePitchPoints <= 0 ||
+            props.LineSpacingRule != LineSpacingRule.Auto)
+        {
+            return null;
+        }
+
+        var (height, shift) = CanonicalTextMeasurer.GridLine(naturalPitch, props.GridLinePitchPoints, props.LineSpacingMultiplier);
+        return ((float) height, (float) shift);
     }
 
     /// <summary>
@@ -295,7 +349,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureLongestTokenWidth(ParagraphElement paragraph) =>
         longestTokenCache.GetOrAdd(
             paragraph,
-            static (key, measurer) => WidestLine(measurer.BuildWrap(key, minimumMeasure, buildItems: false)),
+            static (key, measurer) => WidestLine(measurer.BuildWrap(key, minimumMeasure, buildItems: false, splitOverlong: false)),
             this);
 
     // 1pt: narrow enough that no word fits beside another, so every word breaks onto its own line.
@@ -377,6 +431,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// The width in points of a short run of text in the given font — for placing a right-aligned list
     /// marker just before its text. Zero when the font does not resolve.
     /// </summary>
+    // The horizontal scale a run's advances measure at: the conversion's own font width scale, then the
+    // run's w:w (RunProperties.CharacterScalePercent).
+    double WidthScale(RunProperties properties) =>
+        fontWidthScale * properties.CharacterScalePercent / 100;
+
     public float MeasureRunWidth(string text, RunProperties properties)
     {
         var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
@@ -385,7 +444,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, fontWidthScale, KerningEnabled(properties));
+        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, WidthScale(properties), KerningEnabled(properties));
     }
 
     /// <summary>
@@ -465,40 +524,75 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     }
 
     /// <summary>
-    /// How far the FIRST line's text starts right of the paragraph's LeftIndent when the list
-    /// marker overruns it. Word's numbering suffix is a tab: the text lands at the first stop
-    /// past the marker's end — the text indent itself when the marker ends before it (the
-    /// ordinary case, zero shift), else the next DEFAULT-interval stop. Probed at 24pt
-    /// (<c>_probe_numtab</c>): a "888." ending 96.5pt from the margin put its text at exactly
-    /// 108pt, the next 36pt multiple. A right-aligned marker ends AT the number position and
-    /// never overruns. Continuation lines stay at the LeftIndent.
+    /// How far the FIRST line's text starts right of the paragraph's LeftIndent (negative: left of
+    /// it), past the list marker. Continuation lines stay at the LeftIndent.
     /// </summary>
-    public float MarkerTextShift(ParagraphElement paragraph)
+    public float MarkerTextShift(ParagraphElement paragraph) =>
+        MarkerPlacement(paragraph).TextShift;
+
+    /// <summary>
+    /// Where a list paragraph's first line puts its marker and its text, both relative to the
+    /// paragraph's LeftIndent.
+    ///
+    /// The marker starts at the first line's own indent (left + firstLine − hanging), or ends there
+    /// when right-aligned. What follows it is the level's suffix (<c>w:lvl/w:suff</c>), Word-probed in
+    /// <c>_probe_list_suffix</c> at 28pt over three hanging indents:
+    /// * a tab runs to the first stop past the marker's end — the hanging indent's own stop at the
+    ///   LeftIndent when the marker ends before it (the ordinary case), else the next DEFAULT-interval
+    ///   stop. <c>_probe_numtab</c>: a "888." ending 96.5pt from the margin put its text at exactly 108pt,
+    ///   the next 36pt multiple. With no hanging indent there is no stop at the LeftIndent, so the text
+    ///   goes to the next default stop: "1." at 36pt with its text at 72pt.
+    /// * a space sets the text one space (in the marker's font) after the marker's end;
+    /// * nothing sets the text against it.
+    /// Custom tab stops are not consulted.
+    /// </summary>
+    public (float MarkerOffset, float TextShift) MarkerPlacement(ParagraphElement paragraph)
     {
         var properties = paragraph.Properties;
-        if (properties.Numbering is not { Text.Length: > 0 } numbering ||
-            numbering.MarkerRightAligned)
+        if (properties.Numbering is not { Text.Length: > 0 } numbering)
         {
-            return 0;
+            return (0, 0);
         }
 
+        var markerProperties = MarkerProperties(paragraph, numbering);
+        var markerWidth = MeasureRunWidth(numbering.Text, markerProperties);
         var hanging = (float) properties.HangingIndentPoints;
-        if (hanging <= 0.01f)
+        var start = (float) properties.FirstLineIndentPoints - hanging;
+
+        // w:lvlJc="right" anchors the marker's RIGHT edge at the number position, the numeral
+        // growing leftward into the margin so the periods of I./VIII./XVIII. line up —
+        // _probe_numtab's right edges landed within 3px of the position at two geometries.
+        float markerOffset;
+        float markerEnd;
+        if (numbering.MarkerRightAligned)
         {
-            // The no-hanging branch draws the marker to the LEFT of the text position.
-            return 0;
+            markerOffset = start - markerWidth;
+            markerEnd = start;
+        }
+        else
+        {
+            markerOffset = start;
+            markerEnd = start + markerWidth;
         }
 
-        var markerWidth = MeasureRunWidth(numbering.Text, MarkerProperties(paragraph, numbering));
-        var markerEnd = properties.LeftIndentPoints - hanging + markerWidth;
-        if (markerEnd <= properties.LeftIndentPoints - 0.01)
+        switch (numbering.Suffix)
         {
-            return 0;
+            case ListMarkerSuffix.Nothing:
+                return (markerOffset, markerEnd);
+            case ListMarkerSuffix.Space:
+                return (markerOffset, markerEnd + MeasureRunWidth(" ", markerProperties));
+        }
+
+        if (start < -0.01f &&
+            markerEnd <= -0.01f)
+        {
+            return (markerOffset, 0);
         }
 
         var interval = properties.DefaultTabStopPoints > 0.01 ? properties.DefaultTabStopPoints : 36.0;
-        var stop = (Math.Floor(markerEnd / interval) + 1) * interval;
-        return (float) (stop - properties.LeftIndentPoints);
+        var absoluteEnd = properties.LeftIndentPoints + markerEnd;
+        var stop = (Math.Floor(absoluteEnd / interval) + 1) * interval;
+        return (markerOffset, (float) (stop - properties.LeftIndentPoints));
     }
 
     // Word applies pair kerning to a run whose size reaches the resolved w:kern threshold; zero
@@ -677,7 +771,79 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // buildItems false skips BuildLineItems and leaves every line's segments and images empty. A line's
     // WIDTH is the accumulated pen pixels, quantized in CommitLine below — BuildLineItems only positions
     // what the line already contains — so the widths a caller reads are identical either way.
-    IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems)
+    /// <summary>
+    /// A word wider than the line breaks where it overflows, as Word breaks it: the corpus layout
+    /// invariants (LayoutInvariantTests) caught business-plans/13's "Marketing/Advertising", 7.8pt wider
+    /// than its 90pt cell, running on into the next column where Word sets "Marketing/Advertis" and
+    /// "ing" on two lines. A piece wider than <paramref name="widthPoints"/> is cut into the longest
+    /// prefixes that fit, each after the first marked as a break opportunity, so the wrap sets them on
+    /// lines of their own. A piece no wider than the line is left alone, as is one that is not text.
+    /// </summary>
+    List<Piece> SplitOverlong(List<Piece> pieces, float widthPoints)
+    {
+        // The wrap's own fit test, tolerance and all: a column autofit sized to its longest word holds
+        // that word only within the tolerance, and must not see it split.
+        bool Fits(double pixels) => LinearPoints(pixels) <= widthPoints + fitTolerancePoints;
+
+        bool Overlong(Piece piece) =>
+            !piece.IsSpace && piece.Image == null && !piece.IsTab && !piece.IsInset && piece.Text.Length > 1 && !Fits(piece.Pixels + piece.FitPixels);
+
+        if (widthPoints <= 0 || !pieces.Exists(Overlong))
+        {
+            return pieces;
+        }
+
+        var result = new List<Piece>(pieces.Count + 4);
+        foreach (var piece in pieces)
+        {
+            if (!Overlong(piece) ||
+                resolveFont(piece.Properties.FontFamily, piece.Properties.Bold, piece.Properties.Italic) is not { } metrics)
+            {
+                result.Add(piece);
+                continue;
+            }
+
+            var size = VerticalRunPosition.RenderSizePoints(piece.Properties);
+            var scale = WidthScale(piece.Properties);
+            var tracking = piece.Properties.CharacterSpacingPoints;
+            double Width(string text) =>
+                CanonicalTextMeasurer.LinearPixels(metrics, text, size, scale, false) +
+                (tracking != 0 ? CanonicalTextMeasurer.PixelsFromPoints((float) (tracking * text.Length)) : 0);
+
+            var text = piece.Text;
+            var first = true;
+            while (text.Length > 0)
+            {
+                // The longest prefix that fits, of at least one character so the line always advances.
+                var take = text.Length;
+                while (take > 1 && !Fits(Width(text[..take])))
+                {
+                    take--;
+                }
+
+                if (char.IsHighSurrogate(text[take - 1]) && take < text.Length)
+                {
+                    take++;
+                }
+
+                var chunk = text[..take];
+                result.Add(piece with
+                {
+                    Text = chunk,
+                    Pixels = take == text.Length && first ? piece.Pixels : Width(chunk),
+                    BreaksBefore = first ? piece.BreaksBefore : true,
+                    FootnoteReferenceId = first ? piece.FootnoteReferenceId : null,
+                    EndnoteReferenceId = first ? piece.EndnoteReferenceId : null
+                });
+                text = text[take..];
+                first = false;
+            }
+        }
+
+        return result;
+    }
+
+    IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems, bool splitOverlong = true)
     {
         var pieces = Flatten(paragraph);
         var wrapWidth = maxWidth - (float) paragraph.Properties.LeftIndentPoints - (float) paragraph.Properties.RightIndentPoints;
@@ -693,6 +859,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             : wrapWidth
               - (float) paragraph.Properties.FirstLineIndentPoints
               + (float) paragraph.Properties.HangingIndentPoints;
+
+        // Not for the autofit minimum: Word sizes a column to its longest word whole, never to a piece of it.
+        if (splitOverlong)
+        {
+            pieces = SplitOverlong(pieces, Math.Min(wrapWidth, firstLineWidth));
+        }
 
         var lines = new List<WrapLine>();
         float LineWrapWidth()
@@ -1260,7 +1432,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // unbreakable box whose display width counts toward the line and whose height grows the line,
             // carried on a LaidOutImage with no bytes and its ShapeGroup set. The display size is on the
             // run's inline-image extent, since the two are mutually exclusive.
-            if (run.InlineShapeGroup is { } shapeGroup)
+            // An inline chart takes the same box, composed into it at layout; a pie or doughnut also
+            // carries its slices, which the chart outranks.
+            if (run.InlineShapeGroup is { } || run.InlineChart is { })
             {
                 // A straight connector is a box with no height (or no width) at all, and that is its
                 // size on the line: it stands on the baseline and adds nothing to the line's height.
@@ -1270,7 +1444,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 var sized = run.InlineImageWidthPoints > 0 || run.InlineImageHeightPoints > 0;
                 var groupWidth = (float) (sized ? run.InlineImageWidthPoints : 12);
                 var groupHeight = (float) (sized ? run.InlineImageHeightPoints : 12);
-                var group = new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: shapeGroup, EffectExtent: run.InlineImageEffectExtent);
+                var group = new LaidOutImage(0, groupWidth, groupHeight, null, ShapeGroup: run.InlineShapeGroup, EffectExtent: run.InlineImageEffectExtent, Chart: run.InlineChart);
                 pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(group.BoxWidth), 0, "", run.Properties, group, false, false));
                 continue;
             }
@@ -1364,7 +1538,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // resolved it to .notdef's wide advance, so "to improve" drew with a
                     // double-width gap where Word shows a single space (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
-                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, fontWidthScale, kerning);
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, WidthScale(run.Properties), kerning);
                     if (trackingPerChar != 0)
                     {
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
@@ -1375,7 +1549,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // and Word's layout counts those (CanonicalTextMeasurer.KernPixelsBetween).
                     if (kerning && previousToken >= 0)
                     {
-                        var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, fontWidthScale);
+                        var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, WidthScale(run.Properties));
                         if (between != 0)
                         {
                             pieces[previousToken] = pieces[previousToken] with {Pixels = pieces[previousToken].Pixels + between};

@@ -37,13 +37,14 @@ public partial class SnapshotTests
 
         using var document = PagedDocument.Open(Sample.BytesFor(source), source, Sample.FontDirectory);
         await Assert.That(await page.GetAttributeAsync(".viewer", "data-page-count")).IsEqualTo(document.PageCount.ToString(CultureInfo.InvariantCulture));
-        await Assert.That(await page.GetAttributeAsync(".viewer-page[data-current] img", "src")).StartsWith("blob:");
+        await Assert.That(await page.Locator(".viewer-page[data-current] svg.viewer-vector text").CountAsync()).IsGreaterThan(0);
     }
 
+    // Painted pages (?pages=png): a zoom asks for the page again at a resolution to match.
     [Test]
     public async Task ViewerToolbar_ZoomsNavigatesRotatesAndShowsThumbnails()
     {
-        var page = await OpenViewerAsync(InputFormat.Docx);
+        var page = await OpenViewerAsync(InputFormat.Docx, query: "?pages=png");
         var scale = await NumberAsync(page, "() => document.querySelector('.viewer').dataset.scale");
         var dpi = await NumberAsync(page, "() => document.querySelector('.viewer-page[data-current]').dataset.renderedDpi");
 
@@ -105,6 +106,21 @@ public partial class SnapshotTests
         await page.WaitForFunctionAsync("() => document.querySelector('.viewer-find-status')?.textContent === '2 of 2'");
     }
 
+    // Stands in for the browser's print dialog: records what the print pages hold, then closes.
+    const string printStub =
+        """
+        window.print = () => {
+            const container = document.querySelector('.print-container');
+            window.printed = JSON.stringify({
+                widths: container ? [...container.querySelectorAll('img')].map(_ => _.naturalWidth) : [],
+                vectors: container ? [...container.querySelectorAll('.print-page > svg')].map(_ => _.getAttribute('viewBox')) : [],
+                texts: container ? container.querySelectorAll('.print-page > svg text').length : 0,
+                printing: document.documentElement.hasAttribute('data-morph-printing')
+            });
+            setTimeout(() => window.dispatchEvent(new Event('afterprint')), 50);
+        };
+        """;
+
     [Test]
     public async Task ViewerDownload_SavesTheOriginalFile()
     {
@@ -123,23 +139,13 @@ public partial class SnapshotTests
     }
 
     // The browser's dialog is stubbed: it records what print CSS would show — every page, at the print
-    // resolution — then closes, and the viewer must clean the print pages away.
+    // resolution — then closes, and the viewer must clean the print pages away. Painted pages (?pages=png).
     [Test]
     public async Task ViewerPrint_LaysOutEveryPage_ThenCleansUp()
     {
         var page = await browser!.NewPageAsync();
-        await page.AddInitScriptAsync(
-            """
-            window.print = () => {
-                const container = document.querySelector('.print-container');
-                window.printed = JSON.stringify({
-                    widths: container ? [...container.querySelectorAll('img')].map(_ => _.naturalWidth) : [],
-                    printing: document.documentElement.hasAttribute('data-morph-printing')
-                });
-                setTimeout(() => window.dispatchEvent(new Event('afterprint')), 50);
-            };
-            """);
-        await OpenViewerAsync(InputFormat.Docx, page);
+        await page.AddInitScriptAsync(printStub);
+        await OpenViewerAsync(InputFormat.Docx, page, "?pages=png");
 
         await page.ClickAsync("button[aria-label=Print]");
         await page.WaitForFunctionAsync(
@@ -195,10 +201,10 @@ public partial class SnapshotTests
 
     // Opens /view (in page, if given) and loads the format's bundled sample, waiting until the first page
     // has painted and has its text layer.
-    static async Task<IPage> OpenViewerAsync(InputFormat source, IPage? page = null)
+    static async Task<IPage> OpenViewerAsync(InputFormat source, IPage? page = null, string query = "")
     {
         page ??= await browser!.NewPageAsync();
-        await page.GotoAsync($"http://localhost:{port}/view");
+        await page.GotoAsync($"http://localhost:{port}/view{query}");
         var index = ConversionService.ReadableFormats.ToList().FindIndex(_ => _.Format == source) + 1;
         await page.ClickAsync(
             $".viewer-empty .sample-btn:nth-of-type({index})",

@@ -35,7 +35,7 @@ static class TableHeightCalculator
             // w:trHeight are applied verbatim in the second pass.
             float maxHeight = 0;
 
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
                 var cell = row.Cells[cellIndex];
@@ -126,7 +126,7 @@ static class TableHeightCalculator
         for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
 
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
@@ -297,7 +297,7 @@ static class TableHeightCalculator
         var row = table.Rows[rowIndex];
         var rowMargin = (float) TableLayout.RowVerticalPadding(row, table.Properties).Top;
         var inset = rowIndex > 0 ? Math.Max(rowMargin, RowEdgeWidth(table, colCount, rowIndex - 1, top: false)) : rowMargin;
-        var gridColIndex = 0;
+        var gridColIndex = row.GridBefore;
         for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
         {
             var properties = row.Cells[cellIndex].Properties;
@@ -314,7 +314,7 @@ static class TableHeightCalculator
     {
         var row = table.Rows[rowIndex];
         var width = 0f;
-        var gridColIndex = 0;
+        var gridColIndex = row.GridBefore;
         for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
         {
             var cell = row.Cells[cellIndex];
@@ -558,9 +558,15 @@ static class TableHeightCalculator
     }
 
     /// <summary>
-    /// Height contribution of a btLr / tbRl cell: the longest paragraph's natural single-line
-    /// width becomes the cell's vertical extent. Multiple paragraphs stack horizontally
-    /// (along the row direction) so they don't add to the cell's height contribution.
+    /// Height contribution of a btLr / tbRl cell: what its paragraphs would ask with their text taken
+    /// out, a line at each mark's pitch. The text itself asks nothing of the row; it wraps against the
+    /// height the row takes from its other cells, breaking mid-word where a word is longer than that.
+    /// Word-probed (_probe_rotated, a 20pt rotated "Header" in rows of their own): beside one 20pt
+    /// line the row is that line's height and the word sets as "He / ad / er"; beside four lines the
+    /// row is four lines tall and the word stands whole; alone, or beside an empty cell, the row is one
+    /// line of the default 11pt mark, and the word breaks a letter a column. A 36pt mark grows that
+    /// row to a 36pt line, while 8pt or 72pt text leaves it where it was. feature_capture/01's
+    /// rotated "Header" is the corpus case, set "Hea / der" in its 24pt row.
     /// </summary>
     public static float MeasureVerticalCellHeight(
         TableCell cell,
@@ -568,32 +574,22 @@ static class TableHeightCalculator
         CellSpacing margin,
         IParagraphMeasurer measurer)
     {
-        var widest = 0f;
+        var height = (float) (padding.Vertical + margin.Vertical);
         foreach (var element in cell.Content)
         {
-            var para = element as ParagraphElement;
-            if (para == null &&
-                element is ContentControlElement {Runs.Count: > 0} cc)
+            var properties = element switch
             {
-                para = new()
-                {
-                    Runs = cc.Runs,
-                    Properties = new()
-                };
-            }
+                ParagraphElement paragraph => paragraph.Properties,
+                ContentControlElement {Runs.Count: > 0} => new ParagraphProperties(),
+                _ => null
+            };
 
-            if (para == null)
+            if (properties != null)
             {
-                continue;
-            }
-
-            var natural = measurer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
-            if (natural > widest)
-            {
-                widest = natural;
+                height += measurer.MeasureParagraphHeightWithWidth(new() { Runs = [], Properties = properties }, UnboundedWidth);
             }
         }
 
-        return (float) (padding.Vertical + margin.Vertical) + widest;
+        return height;
     }
 }

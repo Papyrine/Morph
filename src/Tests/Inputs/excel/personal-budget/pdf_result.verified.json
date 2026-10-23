@@ -11,7 +11,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "Personal budget\nPercentage of income spent Summary\nTOTAL MONTHLY INCOME\n$3,750\nTOTAL MONTHLY EXPENSES\n$2,336\nTOTAL MONTHLY SAVINGS\n$550\nCASH BALANCE\n$864"
+        "Text": "Personal budget\nPercentage of income spent Summary\nTOTAL MONTHLY INCOME\n$3,750\nTOTAL MONTHLY EXPENSES\n$2,336\nTOTAL MONTHLY SAVINGS\n$550\nCASH BALANCE\n$864\n62%\nIncome Expenses\n$0\n$500\n$1,000\n$1,500\n$2,000\n$2,500\n$3,000\n$3,500\n$4,000"
       },
       {
         "Number": 2,
@@ -26,8 +26,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0982,
-      "Ssim": 0.9148,
+      "ErrorMetric": 0.065,
+      "Ssim": 0.922,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

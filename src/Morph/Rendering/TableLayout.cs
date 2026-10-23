@@ -13,7 +13,7 @@ static class TableLayout
         var maxSpan = 0;
         foreach (var row in table.Rows)
         {
-            var rowSpan = 0;
+            var rowSpan = row.GridBefore + row.GridAfter;
             foreach (var cell in row.Cells)
             {
                 rowSpan += cell.Properties.GridSpan;
@@ -231,11 +231,11 @@ static class TableLayout
         // A neighbour whose explicit facing edge is VISIBLE changes nothing here: both cells then
         // draw the same edge, which overdraws harmlessly.
         var span = Math.Max(1, cellProps.GridSpan);
-        var sameRow = row?.Cells;
+        var sameRow = row;
         var suppressLeft = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex - 1)?.Borders, BorderSides.Right);
         var suppressRight = FacingEdgeExplicitlyInvisible(FacingCell(rows, sameRow, rowIndex, colIndex + span)?.Borders, BorderSides.Left);
-        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders, BorderSides.Bottom);
-        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowCells(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders, BorderSides.Top);
+        var suppressTop = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowAt(rows, rowIndex - 1), rowIndex - 1, colIndex)?.Borders, BorderSides.Bottom);
+        var suppressBottom = FacingEdgeExplicitlyInvisible(FacingCell(rows, RowAt(rows, rowIndex + 1), rowIndex + 1, colIndex)?.Borders, BorderSides.Top);
 
         return new()
         {
@@ -256,9 +256,9 @@ static class TableLayout
     /// continuation up to its span head — the merged region is ONE cell, so its head's explicit
     /// borders speak for every row it covers.
     /// </summary>
-    static TableCellProperties? FacingCell(IReadOnlyList<TableRow>? rows, IReadOnlyList<TableCell>? cells, int rowIndex, int gridColumn)
+    static TableCellProperties? FacingCell(IReadOnlyList<TableRow>? rows, TableRow? cellsRow, int rowIndex, int gridColumn)
     {
-        var facing = CellCovering(cells, gridColumn);
+        var facing = CellCovering(cellsRow, gridColumn);
         if (facing is not {VerticalMerge: VerticalMergeType.Continue, Borders: null} || rows == null)
         {
             return facing;
@@ -266,7 +266,7 @@ static class TableLayout
 
         for (var above = rowIndex - 1; above >= 0; above--)
         {
-            var candidate = CellCovering(rows[above].Cells, gridColumn);
+            var candidate = CellCovering(rows[above], gridColumn);
             if (candidate == null)
             {
                 return facing;
@@ -281,26 +281,26 @@ static class TableLayout
         return facing;
     }
 
-    static IReadOnlyList<TableCell>? RowCells(IReadOnlyList<TableRow>? rows, int rowIndex)
+    static TableRow? RowAt(IReadOnlyList<TableRow>? rows, int rowIndex)
     {
         if (rows != null && rowIndex >= 0 && rowIndex < rows.Count)
         {
-            return rows[rowIndex].Cells;
+            return rows[rowIndex];
         }
 
         return null;
     }
 
     /// <summary>The cell whose grid span covers <paramref name="gridColumn"/>, or null.</summary>
-    static TableCellProperties? CellCovering(IReadOnlyList<TableCell>? cells, int gridColumn)
+    static TableCellProperties? CellCovering(TableRow? row, int gridColumn)
     {
-        if (cells == null || gridColumn < 0)
+        if (row == null || gridColumn < row.GridBefore)
         {
             return null;
         }
 
-        var start = 0;
-        foreach (var cell in cells)
+        var start = row.GridBefore;
+        foreach (var cell in row.Cells)
         {
             var width = Math.Max(1, cell.Properties.GridSpan);
             if (gridColumn < start + width)
@@ -373,7 +373,7 @@ static class TableLayout
 
         foreach (var row in table.Rows)
         {
-            var gridColIndex = 0;
+            var gridColIndex = row.GridBefore;
             for (var cellIndex = 0; cellIndex < row.Cells.Count && gridColIndex < colCount; cellIndex++)
             {
                 var cell = row.Cells[cellIndex];
@@ -587,7 +587,60 @@ static class TableLayout
             }
         }
 
+        if (isAutoFit && measurer != null)
+        {
+            WidenToMinimums(table, widths, measurer);
+        }
+
         return widths;
+    }
+
+    /// <summary>
+    /// An autofit column narrower than its longest unbreakable word is widened to hold it, and the
+    /// difference is taken from the other columns in proportion to their slack over their own
+    /// minimums, so the table keeps its width. header_full_bleed_banner's first column is 1125
+    /// twips (56.25pt) of grid, and its "Available" heading needs 59.1pt with padding; Word lays the
+    /// column out at about 59pt and narrows Bill, Minister and Comment by about 2, 0.2 and 0.25pt —
+    /// mostly Bill, which has the most room to give. Without it, the word is broken mid-word to fit
+    /// the column (CanonicalParagraphMeasurer.SplitOverlong), which Word does only where no
+    /// width is left to give: a FIXED-layout table, or columns already at their minimums.
+    /// </summary>
+    static void WidenToMinimums(TableElement table, float[] widths, IParagraphMeasurer measurer)
+    {
+        var (_, mins) = ColumnContentWidths(table, widths.Length, measurer, preferred: false);
+        var deficit = 0f;
+        var slack = 0f;
+        for (var i = 0; i < widths.Length; i++)
+        {
+            var difference = mins[i] - widths[i];
+            if (difference > 0)
+            {
+                deficit += difference;
+            }
+            else
+            {
+                slack -= difference;
+            }
+        }
+
+        // Within the wrap's own tolerance a word already fits, and there is nothing to move.
+        if (deficit <= 0.01f || slack < deficit)
+        {
+            return;
+        }
+
+        var share = deficit / slack;
+        for (var i = 0; i < widths.Length; i++)
+        {
+            if (mins[i] > widths[i])
+            {
+                widths[i] = mins[i];
+            }
+            else
+            {
+                widths[i] -= (widths[i] - mins[i]) * share;
+            }
+        }
     }
 
     /// <summary>
@@ -659,81 +712,8 @@ static class TableLayout
     /// </summary>
     static float[] CalculateContentBasedColumnWidths(TableElement table, int colCount, float availableWidth, IParagraphMeasurer measurer, float[]? declaredPrefs = null)
     {
-        var prefs = new float[colCount];
-        var mins = new float[colCount];
         var tableProps = table.Properties;
-
-        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
-        {
-            var row = table.Rows[rowIndex];
-            var gridColIndex = 0;
-            foreach (var cell in row.Cells)
-            {
-                if (gridColIndex >= colCount)
-                {
-                    break;
-                }
-
-                var props = cell.Properties;
-                var span = Math.Max(1, props.GridSpan);
-
-                if (props.VerticalMerge == VerticalMergeType.Continue)
-                {
-                    gridColIndex += span;
-                    continue;
-                }
-
-                var padding = GetEffectivePadding(props, tableProps, row);
-                var margin = GetEffectiveMargin(props, tableProps);
-
-                // Word insets a cell's content by the LARGER of its margin and half its border, not
-                // by their sum. Word-probed two ways at 150 DPI: sweeping the border 1/3/6pt against
-                // a ZERO w:tblCellMar (_probe_autofitborder) the column grows by exactly one border
-                // width — 2/6/12px over the content advance — while the same sweep against a 10pt
-                // margin grows by nothing, which is what rules out the additive reading. The margin
-                // sweep itself (_probe_autofit, 4/8/16/32 Courier New chars against 0/10/20pt) fits
-                // width = advance + 2 × margin with no residual slack at all, so this half-border
-                // term is the whole of what the engine was missing.
-                //
-                // It bites where the margin is small: 72 corpus scenarios declare a left/right
-                // w:tblCellMar of 2pt or less, most of them exactly zero, and there any declared
-                // border wins.
-                var borders = ResolveCellBorders(props, tableProps, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
-                var horizontalChrome = (float) (
-                    Math.Max(padding.Left, HalfBorder(borders?.Left)) +
-                    Math.Max(padding.Right, HalfBorder(borders?.Right)) +
-                    margin.Horizontal);
-
-                // Detached spacing (w:tblCellSpacing / HTML cellspacing) insets each cell's box
-                // inside its slot, so the slot must carry the content width PLUS those insets —
-                // without this term the spacing is paid out of the text measure and the columns
-                // re-wrap, which is what sank two earlier attempts at HTML per-cell borders.
-                horizontalChrome += (float) CellSpacingInsets(tableProps, gridColIndex, span, colCount).Horizontal;
-
-                var (cellPref, cellMin) = MeasureCellContentWidth(cell, measurer);
-
-                cellPref += horizontalChrome;
-                cellMin += horizontalChrome;
-
-                var perColPref = cellPref / span;
-                var perColMin = cellMin / span;
-
-                for (var s = 0; s < span && gridColIndex + s < colCount; s++)
-                {
-                    if (perColPref > prefs[gridColIndex + s])
-                    {
-                        prefs[gridColIndex + s] = perColPref;
-                    }
-
-                    if (perColMin > mins[gridColIndex + s])
-                    {
-                        mins[gridColIndex + s] = perColMin;
-                    }
-                }
-
-                gridColIndex += span;
-            }
-        }
+        var (prefs, mins) = ColumnContentWidths(table, colCount, measurer, preferred: true);
 
         var widths = new float[colCount];
 
@@ -840,7 +820,103 @@ static class TableLayout
         return widths;
     }
 
-    static (float Preferred, float Minimum) MeasureCellContentWidth(TableCell cell, IParagraphMeasurer measurer)
+    /// <summary>
+    /// Per column, the widest preferred (single-line natural) and minimum (longest unbreakable token)
+    /// width over its cells, each with the cell's chrome. <paramref name="preferred"/> false measures
+    /// the minimums alone, leaving every preferred width zero.
+    /// </summary>
+    static (float[] Prefs, float[] Mins) ColumnContentWidths(TableElement table, int colCount, IParagraphMeasurer measurer, bool preferred)
+    {
+        var prefs = new float[colCount];
+        var mins = new float[colCount];
+        var tableProps = table.Properties;
+
+        for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
+        {
+            var row = table.Rows[rowIndex];
+            var gridColIndex = row.GridBefore;
+            foreach (var cell in row.Cells)
+            {
+                if (gridColIndex >= colCount)
+                {
+                    break;
+                }
+
+                var props = cell.Properties;
+                var span = Math.Max(1, props.GridSpan);
+
+                if (props.VerticalMerge == VerticalMergeType.Continue)
+                {
+                    gridColIndex += span;
+                    continue;
+                }
+
+                var padding = GetEffectivePadding(props, tableProps, row);
+                var margin = GetEffectiveMargin(props, tableProps);
+
+                // Word insets a cell's content by the LARGER of its margin and half its border, not
+                // by their sum. Word-probed two ways at 150 DPI: sweeping the border 1/3/6pt against
+                // a ZERO w:tblCellMar (_probe_autofitborder) the column grows by exactly one border
+                // width — 2/6/12px over the content advance — while the same sweep against a 10pt
+                // margin grows by nothing, which is what rules out the additive reading. The margin
+                // sweep itself (_probe_autofit, 4/8/16/32 Courier New chars against 0/10/20pt) fits
+                // width = advance + 2 × margin with no residual slack at all, so this half-border
+                // term is the whole of what the engine was missing.
+                //
+                // It bites where the margin is small: 72 corpus scenarios declare a left/right
+                // w:tblCellMar of 2pt or less, most of them exactly zero, and there any declared
+                // border wins.
+                var borders = ResolveCellBorders(props, tableProps, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
+                var horizontalChrome = (float) (
+                    Math.Max(padding.Left, HalfBorder(borders?.Left)) +
+                    Math.Max(padding.Right, HalfBorder(borders?.Right)) +
+                    margin.Horizontal);
+
+                // Detached spacing (w:tblCellSpacing / HTML cellspacing) insets each cell's box
+                // inside its slot, so the slot must carry the content width PLUS those insets —
+                // without this term the spacing is paid out of the text measure and the columns
+                // re-wrap, which is what sank two earlier attempts at HTML per-cell borders.
+                horizontalChrome += (float) CellSpacingInsets(tableProps, gridColIndex, span, colCount).Horizontal;
+
+                var (cellPref, cellMin) = MeasureCellContentWidth(cell, measurer, preferred);
+
+                // The minimums alone are asked for a word that would otherwise break: a cell with no
+                // text needs no width for its padding's sake, a spanned cell's word is held by its
+                // columns together, which an even share of it does not describe, and a rotated
+                // cell's words run down the column rather than across it.
+                if (!preferred && (cellMin <= 0 || span > 1 || props.TextDirection != CellTextDirection.LeftToRight))
+                {
+                    gridColIndex += span;
+                    continue;
+                }
+
+                cellPref += horizontalChrome;
+                cellMin += horizontalChrome;
+
+                var perColPref = cellPref / span;
+                var perColMin = cellMin / span;
+
+                for (var s = 0; s < span && gridColIndex + s < colCount; s++)
+                {
+                    if (perColPref > prefs[gridColIndex + s])
+                    {
+                        prefs[gridColIndex + s] = perColPref;
+                    }
+
+                    if (perColMin > mins[gridColIndex + s])
+                    {
+                        mins[gridColIndex + s] = perColMin;
+                    }
+                }
+
+                gridColIndex += span;
+            }
+        }
+
+        return (prefs, mins);
+    }
+
+    static (float Preferred, float Minimum) MeasureCellContentWidth(TableCell cell, IParagraphMeasurer measurer, bool preferred = true)
     {
         var pref = 0f;
         var min = 0f;
@@ -866,7 +942,12 @@ static class TableLayout
             }
 
             // Natural single-line width: pass an effectively unbounded width so nothing wraps.
-            var natural = measurer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
+            var natural = 0f;
+            if (preferred)
+            {
+                natural = measurer.MeasureParagraphNaturalWidth(para, float.MaxValue / 4);
+            }
+
             // Minimum width: the longest unbreakable token (e.g. "john@company.com"), which is the
             // paragraph laid out at a 1pt measure — every word on its own line, widest one wins.
             var minimum = measurer.MeasureLongestTokenWidth(para);
@@ -901,7 +982,7 @@ static class TableLayout
             for (var r = 0; r < keyTable.Rows.Count; r++)
             {
                 var starts = new HashSet<int>();
-                var col = 0;
+                var col = keyTable.Rows[r].GridBefore;
                 foreach (var cell in keyTable.Rows[r].Cells)
                 {
                     if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
@@ -961,7 +1042,7 @@ static class TableLayout
         for (var rowIndex = startRowIndex; rowIndex <= endRowIndex; rowIndex++)
         {
             var row = table.Rows[rowIndex];
-            var properties = CellCovering(row.Cells, gridColIndex) ?? new TableCellProperties();
+            var properties = CellCovering(row, gridColIndex) ?? new TableCellProperties();
             var resolved = ResolveCellBorders(properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows) ?? new CellBorders();
             segments[rowIndex - startRowIndex] = resolved with
             {

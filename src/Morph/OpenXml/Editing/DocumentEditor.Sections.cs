@@ -98,6 +98,52 @@ static partial class DocumentEditor
             }).Document;
 
     /// <summary>
+    /// Sets the text of the section the paragraph is in in <paramref name="count"/> columns of one
+    /// width, a line between them or not, as Layout > Columns does. Word-probed 2026-10-23:
+    /// <c>&lt;w:cols w:num="2" w:space="708"/&gt;</c>, <c>w:sep="1"</c> for the line, and one column
+    /// is the element with no <c>w:num</c> at all. Columns of their own widths go with it.
+    /// </summary>
+    public static byte[] SetColumns(byte[] docx, int paragraph, int count, bool lineBetween, EditOptions options)
+    {
+        if (count is < 1 or > 45)
+        {
+            throw new InvalidOperationException("A section has 1 to 45 columns.");
+        }
+
+        return Edit(
+            docx,
+            options,
+            edit =>
+            {
+                // Made afresh, so nothing of a layout of its own widths is left on it.
+                var section = edit.SectionOf(paragraph);
+                var old = section.GetFirstChild<Columns>();
+                var columns = new Columns();
+                if (count > 1)
+                {
+                    columns.ColumnCount = (short) count;
+                    if (lineBetween)
+                    {
+                        columns.Separator = Editing.Literal<OnOffValue>("1");
+                    }
+                }
+
+                columns.Space = old?.Space?.Value ?? "708";
+                if (old == null)
+                {
+                    section.AddChild(columns);
+                }
+                else
+                {
+                    old.InsertBeforeSelf(columns);
+                    old.Remove();
+                }
+
+                return null;
+            }).Document;
+    }
+
+    /// <summary>
     /// Ends a section at a place: what is before it is a section, and what is after starts on a new
     /// page or, <paramref name="continuous"/>, on the same one. The place returned is where the text
     /// after the break starts.
@@ -109,6 +155,14 @@ static partial class DocumentEditor
     {
         var size = section.GetFirstChild<PageSize>();
         var margins = section.GetFirstChild<PageMargin>();
+        var columns = section.GetFirstChild<Columns>();
+        var count = columns?.ColumnCount?.Value is > 1 and var number ? number : 1;
+        if (columns?.EqualWidth?.Value == false &&
+            columns.Elements<Column>().Count() is > 1 and var listed)
+        {
+            count = listed;
+        }
+
         return new(
             (int) (size?.Width?.Value ?? 11906),
             (int) (size?.Height?.Value ?? 16838),
@@ -116,7 +170,11 @@ static partial class DocumentEditor
             (int) (margins?.Right?.Value ?? 1440),
             margins?.Bottom?.Value ?? 1440,
             (int) (margins?.Left?.Value ?? 1440),
-            size != null && Landscape(size));
+            size != null && Landscape(size))
+        {
+            Columns = (int) count,
+            LineBetween = columns?.Separator?.Value == true
+        };
     }
 
     static bool Landscape(PageSize size) =>

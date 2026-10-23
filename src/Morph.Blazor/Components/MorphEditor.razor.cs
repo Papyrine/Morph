@@ -27,6 +27,12 @@ public partial class MorphEditor
     const string orientationMenu = "orientation";
     const string sizeOfPageMenu = "paper";
     const string breaksMenu = "breaks";
+    const string columnsMenu = "columns";
+    const string bulletsMenu = "bullets";
+    const string numberingMenu = "numbering";
+    const string paragraphBordersMenu = "paragraph-borders";
+    const string paragraphShadingMenu = "paragraph-shading";
+    const string wrapMenu = "wrap";
     const string bordersMenu = "borders";
     const string shadingMenu = "shading";
 
@@ -36,6 +42,7 @@ public partial class MorphEditor
     const string home = "Home";
     const string insert = "Insert";
     const string layout = "Layout";
+    const string references = "References";
     const string table = "Table";
     const string reviewTab = "Review";
     const string view = "View";
@@ -45,6 +52,10 @@ public partial class MorphEditor
     const string discardDialog = "discard";
     const string splitDialog = "split";
     const string marginsDialog = "margins";
+    const string bookmarkDialog = "bookmark";
+
+    const int galleryRows = 2;
+    const int galleryColumns = 4;
 
     const int gridRows = 8;
     const int gridColumns = 10;
@@ -56,6 +67,8 @@ public partial class MorphEditor
     ElementReference linkInput;
     bool focusLink;
     (int Rows, int Columns) hover = (1, 1);
+    int galleryStart;
+    string? galleryStyle;
 
     /// <summary>
     /// Whether the File menu offers a new blank document. Default true; a host that opened one file for
@@ -89,15 +102,16 @@ public partial class MorphEditor
             if (IsWord)
             {
                 yield return layout;
-            }
-
-            if (InTable && IsWord)
-            {
-                yield return table;
+                yield return references;
             }
 
             yield return reviewTab;
             yield return view;
+            // A contextual tab, after the others, as Word's Table Layout is.
+            if (InTable && IsWord)
+            {
+                yield return table;
+            }
         }
     }
 
@@ -149,10 +163,70 @@ public partial class MorphEditor
     string Expanded(string name) =>
         Pressed(menu == name);
 
-    // A style's name drawn the way its text is, as Word's gallery draws it, at a size the menu holds.
-    static string StylePreview(StyleChoice style)
+    // The style gallery: the styles a document puts in it (and the caret's, wherever it is from), two
+    // rows at a time. It turns to the row the caret's style is on whenever that style changes, and is
+    // otherwise left where the reader paged it.
+    IReadOnlyList<StyleChoice> GalleryChoices
     {
-        var size = Math.Clamp(style.SizePoints, 9, 20).ToString("0.#", CultureInfo.InvariantCulture);
+        get
+        {
+            var choices = Styles.Where(_ => _.Gallery).ToList();
+            if (choices.Count == 0)
+            {
+                choices = [.. Styles];
+            }
+
+            if (choices.All(_ => _.Id != CurrentStyle) &&
+                Styles.FirstOrDefault(_ => _.Id == CurrentStyle) is { } current)
+            {
+                choices.Insert(0, current);
+            }
+
+            return choices;
+        }
+    }
+
+    IReadOnlyList<StyleChoice> GalleryShown
+    {
+        get
+        {
+            var choices = GalleryChoices;
+            if (galleryStyle != CurrentStyle)
+            {
+                galleryStyle = CurrentStyle;
+                var index = choices.ToList().FindIndex(_ => _.Id == CurrentStyle);
+                if (index >= 0 &&
+                    (index < galleryStart || index >= galleryStart + galleryRows * galleryColumns))
+                {
+                    galleryStart = index / galleryColumns * galleryColumns;
+                }
+            }
+
+            return [.. choices.Skip(galleryStart).Take(galleryRows * galleryColumns)];
+        }
+    }
+
+    bool CanPageGallery(int rows)
+    {
+        if (rows < 0)
+        {
+            return galleryStart > 0;
+        }
+
+        return galleryStart + galleryRows * galleryColumns < GalleryChoices.Count;
+    }
+
+    void PageGallery(int rows) =>
+        galleryStart = Math.Max(0, galleryStart + rows * galleryColumns);
+
+    // A style in the gallery: drawn as its text is, at a size a tile holds.
+    static string GalleryPreview(StyleChoice style) =>
+        StylePreview(style, 13);
+
+    // A style's name drawn the way its text is, as Word's gallery draws it, at a size the menu holds.
+    static string StylePreview(StyleChoice style, double largest = 20)
+    {
+        var size = Math.Clamp(style.SizePoints, 9, largest).ToString("0.#", CultureInfo.InvariantCulture);
         var css = $"font-size: {size}pt;";
         if (style.Bold)
         {
@@ -175,6 +249,14 @@ public partial class MorphEditor
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
+        await SyncRulerAsync();
+        if (placeMenu &&
+            menu == contextMenu)
+        {
+            placeMenu = false;
+            await PlaceMenuAsync();
+        }
+
         if (firstRender)
         {
             await FindDraftAsync();
@@ -191,11 +273,15 @@ public partial class MorphEditor
     void ToggleMenu(string name)
     {
         menu = menu == name ? null : name;
+        openSubmenu = null;
         hover = (1, 1);
     }
 
-    void CloseMenu() =>
+    void CloseMenu()
+    {
         menu = null;
+        openSubmenu = null;
+    }
 
     void OnMenuKeyDown(KeyboardEventArgs args)
     {
@@ -227,22 +313,10 @@ public partial class MorphEditor
         return ApplyStyleAsync(styleId);
     }
 
-    Task SpacingFromMenuAsync(ParagraphSpacing spacing)
+    Task ListStyleFromMenuAsync(ListStyle style)
     {
         menu = null;
-        return SpaceAsync(spacing);
-    }
-
-    Task SpaceBeforeFromMenuAsync()
-    {
-        menu = null;
-        return ToggleSpaceBeforeAsync();
-    }
-
-    Task SpaceAfterFromMenuAsync()
-    {
-        menu = null;
-        return ToggleSpaceAfterAsync();
+        return SetListStyleAsync(style);
     }
 
     Task TableFromMenuAsync(int rows, int columns)
@@ -261,35 +335,8 @@ public partial class MorphEditor
     static string Centimetres(int twips) =>
         (twips * 2.54 / 1440).ToString("0.##", CultureInfo.InvariantCulture) + " cm";
 
-    Task MarginsFromMenuAsync((int Top, int Right, int Bottom, int Left) margins)
-    {
-        menu = null;
-        return SetMarginsAsync(margins.Top, margins.Right, margins.Bottom, margins.Left);
-    }
-
-    Task OrientationFromMenuAsync(bool landscape)
-    {
-        menu = null;
-        return SetOrientationAsync(landscape);
-    }
-
-    Task PaperFromMenuAsync((int Width, int Height) paper)
-    {
-        menu = null;
-        return SetPaperSizeAsync(paper.Width, paper.Height);
-    }
-
-    Task PageBreakFromMenuAsync()
-    {
-        menu = null;
-        return InsertPageBreakAsync();
-    }
-
-    Task SectionBreakFromMenuAsync(bool continuous)
-    {
-        menu = null;
-        return InsertSectionBreakAsync(continuous);
-    }
+    // Layout > Columns' equal choices, as Word's menu names them.
+    internal static readonly (int Count, string Name)[] ColumnChoices = [(1, "One"), (2, "Two"), (3, "Three")];
 
     void OpenMargins()
     {
@@ -360,16 +407,34 @@ public partial class MorphEditor
     int splitColumns = 2;
     int splitRows = 1;
 
-    Task FitFromMenuAsync(TableFit fit)
-    {
-        menu = null;
-        return FitTableAsync(fit);
-    }
+    // Home > Borders' menu, in Word's order.
+    internal static readonly (ParagraphBorder Border, string Name)[] ParagraphBorders =
+    [
+        (ParagraphBorder.Bottom, "Bottom border"),
+        (ParagraphBorder.Top, "Top border"),
+        (ParagraphBorder.Left, "Left border"),
+        (ParagraphBorder.Right, "Right border"),
+        (ParagraphBorder.None, "No border"),
+        (ParagraphBorder.All, "All borders"),
+        (ParagraphBorder.Outside, "Outside borders"),
+        (ParagraphBorder.Inside, "Inside horizontal border")
+    ];
 
-    Task BordersFromMenuAsync(BorderPreset preset)
+    // Layout > Wrap Text's choices, in Word's order.
+    internal static readonly (PictureWrap Wrap, string Name)[] WrapChoices =
+    [
+        (PictureWrap.Inline, "In line with text"),
+        (PictureWrap.Square, "Square"),
+        (PictureWrap.Tight, "Tight"),
+        (PictureWrap.TopAndBottom, "Top and bottom"),
+        (PictureWrap.BehindText, "Behind text"),
+        (PictureWrap.InFrontOfText, "In front of text")
+    ];
+
+    Task ParagraphShadingFromMenuAsync(string? fill)
     {
         menu = null;
-        return SetTableBordersAsync(preset);
+        return ShadeParagraphsAsync(fill);
     }
 
     Task ShadingFromMenuAsync(string? fill)
@@ -531,16 +596,6 @@ public partial class MorphEditor
 
     // Links
 
-    internal override Task KeyAsync(string name)
-    {
-        if (name == "link")
-        {
-            return OpenLinkAsync();
-        }
-
-        return base.KeyAsync(name);
-    }
-
     async Task OpenLinkAsync()
     {
         if (!await BeginLinkAsync())
@@ -550,7 +605,8 @@ public partial class MorphEditor
 
         linkAddress = "https://";
         dialog = linkDialog;
-        focusLink = true;
+        // The address is asked for only of a selection: in a link with none, the dialog only removes it.
+        focusLink = linkTarget is {HasSelection: true};
     }
 
     void OnLinkInput(ChangeEventArgs args) =>
@@ -566,6 +622,72 @@ public partial class MorphEditor
     {
         dialog = null;
         return UnlinkAsync();
+    }
+
+    // Word's Bookmark dialog: a name for the caret's place or the text selected; one of the document's
+    // chosen from the list is deleted or gone to.
+    string bookmarkName = "";
+    EditTarget? bookmarkTarget;
+
+    async Task OpenBookmarkAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        bookmarkTarget = target;
+        bookmarkName = "";
+        dialog = bookmarkDialog;
+    }
+
+    bool BookmarkExists =>
+        Bookmarks.Any(_ => _.Name == bookmarkName);
+
+    void OnBookmarkInput(ChangeEventArgs args) =>
+        bookmarkName = (args.Value as string ?? "").Trim();
+
+    async Task AddBookmarkFromDialogAsync()
+    {
+        dialog = null;
+        if (bookmarkTarget is { } target &&
+            DocumentEditor.IsBookmarkName(bookmarkName))
+        {
+            await AddBookmarkAsync(target, bookmarkName);
+        }
+    }
+
+    async Task DeleteBookmarkFromDialogAsync()
+    {
+        if (bookmarkTarget is { } target &&
+            BookmarkExists)
+        {
+            await DeleteBookmarkAsync(target, bookmarkName);
+            bookmarkName = "";
+        }
+    }
+
+    Task GoToBookmarkFromDialogAsync()
+    {
+        dialog = null;
+        return GoToBookmarkAsync(bookmarkName);
+    }
+
+    Task OnBookmarkKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            CloseDialog();
+            return Task.CompletedTask;
+        }
+
+        if (args.Key == "Enter" &&
+            DocumentEditor.IsBookmarkName(bookmarkName))
+        {
+            return AddBookmarkFromDialogAsync();
+        }
+
+        return Task.CompletedTask;
     }
 
     Task OnLinkKeyDownAsync(KeyboardEventArgs args)

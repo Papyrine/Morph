@@ -40,9 +40,52 @@ public class RotatedCellTests
         await Assert.That(row.Cells[1].Content.OfType<PlacedRotatedGroup>().Count()).IsEqualTo(0);
     }
 
-    static ParagraphElement Paragraph(string text) => new()
+    // The rotated text asks nothing of an auto row: the row is the height its other cell needs, or one
+    // line of an empty mark when nothing else is there, and the text wraps against that, breaking
+    // mid-word (_probe_rotated, MeasureVerticalCellHeight).
+    [Test]
+    public async Task A_rotated_cell_takes_its_row_height_from_the_other_cells()
     {
-        Runs = [new() { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = 11 } }],
+        var page = new PageSettings { WidthPoints = 400, HeightPoints = 400, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
+        var beside = Row(new TableCell { Properties = new(), Content = [Paragraph("body", 20)] });
+        var alone = Row();
+        var empty = new TableElement
+        {
+            Rows = [new() { Cells = [new() { Properties = new(), Content = [Paragraph("body", 20)] }] }],
+            Properties = new() { GridColumnWidths = [60] }
+        };
+
+        var fragmenter = new Fragmenter(LayoutTestFonts.Measurer);
+        var besideRow = fragmenter.Layout([beside], page).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var aloneRow = fragmenter.Layout([alone], page).Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var lineRow = fragmenter.Layout([empty], page).Pages[0].Items.OfType<PlacedTableRow>().Single();
+
+        await Assert.That(besideRow.Height).IsEqualTo(lineRow.Height).Within(0.01f);
+        await Assert.That(aloneRow.Height).IsLessThan(lineRow.Height);
+        var lines = aloneRow.Cells[0].Content.OfType<PlacedRotatedGroup>().Single().Items.OfType<PlacedLine>().Count();
+        await Assert.That(lines).IsGreaterThan(1);
+        await Assert.That(aloneRow.Cells[0].ClipVertically).IsTrue();
+
+        static TableElement Row(params TableCell[] others) => new()
+        {
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new() { Properties = new() { TextDirection = CellTextDirection.BottomToTop }, Content = [Paragraph("Header", 20)] },
+                        .. others
+                    ]
+                }
+            ],
+            Properties = new() { GridColumnWidths = [60, .. others.Select(_ => 60f)] }
+        };
+    }
+
+    static ParagraphElement Paragraph(string text, double size = 11) => new()
+    {
+        Runs = [new() { Text = text, Properties = new() { FontFamily = "Aptos", FontSizePoints = size } }],
         Properties = new()
     };
 }

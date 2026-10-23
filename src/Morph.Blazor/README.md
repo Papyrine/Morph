@@ -123,6 +123,28 @@ converter's — `AddMorph()`, a base-addressed `HttpClient` and the stylesheet.
 Keyboard, with focus in the viewer: ←/→ page when the page does not scroll sideways, Home/End go to the
 first/last page, Ctrl+`+`/`-`/`0` zoom in/out/back to automatic, Ctrl+A selects the pages' text.
 
+### Pages drawn as SVG
+
+A page is not painted on the WebAssembly runtime (`VectorPages`, the default): `SvgPainter` (in
+Morph.ImageSharp, beside `ImageSharpPainter`) writes the laid-out page as SVG in points, and the browser
+draws it — at any zoom, so a page is never asked for twice. Writing a page takes tens of milliseconds where
+painting it took most of a second. Pagination and positions are still Morph's: every glyph carries its own
+`x`, taken from the layout the PNG painter draws, and the text is set in the text layer's Aptos faces
+(`Morph Text`). Rules, shading, borders, shapes, gradients and pictures are SVG elements; a picture the
+browser cannot take as it is (stored as SVG, tiled, recoloured, a format no browser decodes) and warped
+WordArt are embedded as the bitmap the PNG painter draws of them. Thumbnails and printed pages are SVG too.
+A page the SVG cannot carry whole (`SvgPage.Complete`) is painted as a PNG.
+
+The SVG stands in an `inert`, `aria-hidden` holder that draws no box (`display: contents`): its text is
+the text layer's to select, copy and find, and it leaves out spaces, which draw nothing. The holder is
+what makes it inert — `inert` is an HTML attribute and does nothing on an `<svg>`, where the browser's own
+find bar counted every word three times (the text layer, the page and its thumbnail). Pages far from the one in view are let go like painted ones (24 kept) and
+drawn again when they come near.
+
+`?pages=png` in Morph.Web paints instead; `?pages=svg-timed` sets `MeasurePaint`. `VectorPageComparison`
+(Morph.Web.Tests, explicit) compares SVG pages with painted ones over the corpus, and
+`SnapshotTests.Benchmark_VectorPages` times both on the real runtime.
+
 ## Editor
 
 ```razor
@@ -135,20 +157,35 @@ viewer underneath — the same pages, sidebar, find bar and review pane — with
 edited where it stands. It takes every `MorphViewer` parameter; with nothing open it offers a new blank
 document, Open, and (with `ShowSamples`) the sample document. A workbook or a deck opens to be read.
 
+The ribbon is laid out as Word's: the tabs on a title band with the file's name and Save, the chosen
+tab open onto the ribbon under it; each tab's commands in named groups, a group's main command a large
+button with its name under its icon and the rest small buttons beside it. In a narrower window the
+groups give up room rather than wrap, as Word's do — the style gallery shows fewer styles, then Home's
+small buttons keep only their icons — and on a phone the ribbon scrolls sideways.
+
 | ribbon | what it does |
 | --- | --- |
 | File | New blank document (Word's own, as Word makes it), Open, Save a copy, Export as PNG, PDF, HTML, Markdown or plain text, Print. A new document over edits not yet saved asks first. |
-| Home | Undo, Redo; the paragraph style — every style the document offers and Word's own gallery, each drawn as it looks; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets, numbering, decrease and increase indent; alignment; line spacing (1 to 3) and space before and after; find, and replace (Ctrl+H). |
-| Insert | Page break; Header and Footer, which open the section's for typing (made if it has none); Footnote, a note at the caret, opened for typing; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to `#bookmark`, and Remove link. |
-| Layout | The page of the section the caret is in: margins (Word's Normal, Narrow, Moderate and Wide, or custom, in centimetres), portrait or landscape, the paper size; breaks — a page break, or a section break that starts the next section on a new page or on the same one. Page setup is not tracked. |
-| Table | Shown while the caret is in a table: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
-| Review | Track changes; New comment on what is selected; the comments and changes pane; Accept all, Reject all; Word count. |
-| View | Thumbnails; zoom; page navigation; presentation mode. |
+| Home | Undo, Redo; Paste, Cut and Copy (Paste reads the clipboard, which the browser may ask the reader for; refused, the status bar says to use Ctrl+V); Format Painter — pressed, it picks up the character formatting where the caret is and its paragraph's, and the text selected next on the pages takes them: the characters' in place of its own, and a paragraph's too where the selection takes the paragraph whole, as Word's painter does; pressed again, it is off; the style gallery — the styles of Word's gallery drawn as their text looks, two rows at a time with arrows to page through, and a button for every style the document offers; the font (the document's own first, then common ones) and size, grow and shrink font; bold, italic, underline, strikethrough, superscript, subscript; font colour and highlight, each a button for the colour last chosen beside a palette; clear formatting; bullets and numbering, each a button beside its library — Word's six bullets (disc, circle, square, diamonds, arrow, check mark) and seven numberings (1. 1) I. A. a) a. i.), which a list the caret is in takes whole and other paragraphs start or join — with Restart at 1 and Continue numbering under the numbering's; decrease and increase indent; Show/Hide ¶ (Ctrl+Shift+8), Word's formatting marks over the pages — a dot for each space, an arrow for each tab, a pilcrow at each paragraph's end and ¤ at a cell's; alignment; line spacing (1 to 3) and space before and after; paragraph shading, and paragraph borders (bottom, top, left, right, none, all, outside, inside horizontal, at a width — a box round several paragraphs is the same borders on each, as Word draws it); find, and replace (Ctrl+H). The launchers at the foot of the Font and Paragraph groups open Word's dialogs: Font — the font, style, size, colour, underline style (single, words only, double, thick, dotted, dashed, wave) and effects (strikethrough, double strikethrough, superscript, subscript, small caps, all caps, hidden), with a preview; Paragraph (also the spacing menu's Line spacing options…) — alignment, left and right indents in centimetres, a first-line or hanging indent, space before and after in points, line spacing (single, 1.5, double, at least, exactly, multiple), and widow and orphan control, keep with next, keep lines together and page break before. A dialog sets only what was changed in it. |
+| Insert | Page break; table, sized on an 8 × 10 grid; picture (PNG, JPEG, GIF, BMP); link, to a web address or to one of the document's bookmarks (`#name`, which the address field offers), and Remove link; Bookmark, Word's dialog — a name for the caret's place or the text selected, the document's bookmarks listed to delete or go to; Header and Footer, which open the section's for typing (made if it has none); Page number — the page's number, or the number of pages, as a field at the caret, which the pages draw for each page they are on; Date & time, Word's dialog — a date in a format of its kinds, from the reader's own clock, as a field that updates or as text. |
+| Layout | The page of the section the caret is in: margins (Word's Normal, Narrow, Moderate and Wide, or custom, in centimetres), portrait or landscape, the paper size; columns (one, two or three, a line between them or not); breaks — a page break, or a section break that starts the next section on a new page or on the same one; Wrap text, for the picture selected — in line with text, square, tight, top and bottom, behind text, in front of text. Page setup and wrapping are not tracked. |
+| References | Table of contents — Word's Automatic Table 1 before the caret's paragraph: a "Contents" heading, then the body's headings of levels 1 to 3, each a link to it with its page's number, worked out from the pages as they are once the table is in; Update table, which lists the headings again as they now are; Footnote and Endnote: a note at the caret, opened for typing. |
+| Table | Shown while the caret is in a table, after the other tabs, as Word's Table Layout is: insert a row above or below, a column left or right; delete the row, the column or the table; merge the cells a selection spans, and split a cell into columns and rows (or a merged cell back into its cells); a column's width in centimetres, distribute the columns, AutoFit to contents, to the window or fixed; the table's borders (all, outside, inside, none, at a width) and the cells' shading. Table formatting is not tracked. |
+| Review | Word count; New comment on what is selected; the comments and changes pane; Track changes; Accept all, Reject all. |
+| View | Thumbnails; the Ruler — Word's, over the current page: the page in centimetres counted from the left margin, the margins grey, and the paragraph's first-line, hanging, left and right indent markers, dragged in quarter-centimetre steps (Alt for none) to set its indents; zoom; page navigation; presentation mode. |
 
 A ribbon press does not take the focus: it acts on the paragraph being typed in — what was typed is
 handed in first — and the caret is back where it was afterwards, the paragraph laid out again in its new
 style, list or spacing. With text selected across the pages instead, it acts on every paragraph the
 selection touches.
+
+A command that cannot be used where the reader is, is greyed out rather than taken away, as Word's are,
+so the ribbon never moves under the pointer: the Table tab's commands outside a table (the tab itself is
+there only inside one), Remove link outside a link, Restart at 1 and Continue numbering outside a
+numbered list, Wrap text until a picture is selected, Update table until there is a table of contents,
+Accept all and Reject all while there are no tracked changes, and every edit in a read-only document. A
+button, its menu's items and its key are one command (`MorphEditor.Commands`), enabled by one rule, so a
+key does nothing where its button is greyed out; a button's tooltip names its key, as Word's do.
 
 What each does to the file is what Word does, probed against Word over COM: a style is Word's own
 definition, added the first time it is used, and applying one clears the paragraph's own formatting and
@@ -176,11 +213,15 @@ again, and the page redrawn.
 | Enter in an empty paragraph of a list | Ends the list: the paragraph is taken out of it, at no indent. |
 | Backspace at the start of a list's paragraph, or an indented one | Takes its number or bullet off and leaves the text where it stood; then takes its indent off a step at a time, as Word does — first to where the paragraph above starts its first line, when the text lines up under that paragraph's — and only then joins it to the paragraph before. |
 | Ctrl+Alt+1, 2, 3; Ctrl+K | Heading 1, 2 or 3; a link on what is selected. |
+| Ctrl+L, E, R, J; Ctrl+1, 2, 5; Ctrl+Shift+L | Align left, centre, right, justify; single, double or 1.5 line spacing; bullets — as Word's keys, on the open paragraph or the paragraphs selected on the pages. |
+| Ctrl+[, Ctrl+]; Ctrl+=, Ctrl+Shift+=; Ctrl+Space | Shrink and grow the font; subscript and superscript; clear formatting — on what is selected, or the word the caret is in, as the ribbon's buttons do. |
 | Backspace at the start, Delete at the end | Joins the paragraph to the one before or after it. The first of the two keeps its formatting, unless it is empty. |
 | A click on a picture in the line | Selects it and frames it: its corner handles size it in proportion, its side handles stretch it one way, and Reset size puts it back to the size its image was made for. Its size shows as it changes. |
+| A click on a picture that floats | Selects it and frames it on the page: its right-hand corners size it in proportion from its top left, and Layout > Wrap text sets how it stands with the text. |
 | Backspace or Delete beside a picture, a page break, a field or a note's reference | Deletes it, whole, as a selection that takes one in does. A note's reference takes its note with it. |
 | ↑ ↓ ← → at the paragraph's edge | Goes on to the paragraph that way. |
-| Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. |
+| Ctrl+Enter, Escape | Hands the paragraph in; abandons what was typed. With a menu or a dialog open, Escape closes that instead, and what was typed stays. |
+| A right-click | Word's right-click menu, where the pointer is. What is under it is selected first, as Word selects it — a picture; text already selected, left as it is; anywhere else, the paragraph there, opened as a click opens it — and the menu offers what belongs there: Cut, Copy and Paste; Font… and Paragraph…; for a picture, Wrap text; in a numbered list, Restart at 1 and Continue numbering; in a table, Insert (a row above or below, a column to the left or right), Delete (the row, the column, the table), Merge cells and Split cells…; Link…, or Remove link in a link; New comment. What belongs but cannot be done there is greyed out, by the ribbon's own rules. Shift+right-click gives the browser's own menu, and its spelling suggestions. |
 | Bold, Italic, Underline, Strikethrough (Ctrl+B / I / U) | Applies to what is selected in the open paragraph — or, with none open, to text selected across the pages. With nothing selected it applies to what is typed next. |
 | Font, size, grow and shrink, colour, highlight, superscript, subscript, clear formatting | Apply to what is selected — in the open paragraph or across the pages — or, with nothing selected, to the word the caret is in, as Word's do. The paragraph opens again with the same text selected. The font and size shown are those of the text at the caret. |
 | Align left, centre, right, justify | Aligns the open paragraph, or the paragraphs of the text selected on the pages. |
@@ -270,10 +311,22 @@ Limits worth knowing:
   is; a first-page or even-page header that a document has of its own is edited where the pages show
   it, and the editor makes only the one every page shows.
 - Pictures, tables, page breaks and links are put in from the ribbon; a picture, a field or a note
-  already there can be deleted but not typed into. A picture that floats beside the text, rather than
-  standing in a line of it, is not sized here. A workbook or a deck is not edited.
+  already there can be deleted but not typed into. A workbook or a deck is not edited.
+- A picture that floats is sized from its top left and is not moved; one in a header or footer, in a
+  rotated group, or an SVG without a raster copy, is not selected on the page. A picture made to float
+  stands at the column's left, level with its paragraph — Word leaves it where it stood in the line —
+  and Tight wraps round its box, where Word wraps a little inside it.
+- A table of contents numbers its pages by their place in the document, from 1: a section that starts
+  its numbering afresh is not followed. What is typed into a table of contents is lost when it is
+  updated, as in Word.
+- The menus are not walked with the arrow keys: a line is chosen with the pointer, and Escape or a
+  press anywhere else closes a menu.
 - A pasted table's rows are pasted as paragraphs, their cells a tab apart, and a pasted picture is
   left out.
+- An underline style other than single or double, and double strikethrough, are written to the file as
+  Word writes them, but the pages draw them as a single underline and no strikethrough.
+- The ruler leaves out its indent markers in a table, whose ruler in Word is the cell's, and shows no tab
+  stops.
 - A font chosen is written to the file and shown in the ribbon, but the pages here are drawn in the
   bundled Aptos faces whatever the font (see [Fonts](#fonts)); Word draws it in the font itself.
 - Ctrl+Enter hands the paragraph in, so it is not a page break as in Word; Insert > Page break is.
@@ -316,9 +369,11 @@ Limits worth knowing:
 | `MaxRenderDpi` | `288` | The sharpest a zoomed page renders; a page too large for its pixel budget renders lower still. |
 | `MaxFileSize` | 25 MB | Largest file the viewer will read. |
 | `ShowIssueLink` | `true` | Whether an unexpected failure offers a pre-filled GitHub issue against the Morph repo. |
+| `VectorPages` | `true` | Draws pages as SVG the browser rasterises rather than painting PNGs. See [Pages drawn as SVG](#pages-drawn-as-svg). |
+| `MeasurePaint` | `false` | With `VectorPages`: also paints each page as a PNG, unseen, and logs both times to the console. |
 | `Class` | — | Extra CSS classes for the root element. Any other attribute is splatted onto it too. |
 
-Print is a raster at `PrintDpi` rather than vector text. A document mixing page sizes prints each at its
+Print is vector text, the pages' SVG; with `VectorPages` off, a raster at `PrintDpi`. A document mixing page sizes prints each at its
 own size where the browser supports named pages (Chromium, Firefox); elsewhere every sheet takes the first
 page's size.
 
@@ -336,6 +391,8 @@ wins, whatever the stylesheet link order:
 | `--morph-text` | body text | `#333` |
 | `--morph-muted` | secondary text (captions, notes, progress labels) | `#6c757d` |
 | `--morph-border` | every border and divider | `#dee2e6` |
+| `--morph-band` | the editor's title band, which carries its tabs and the file's name | `--morph-primary`, darkened |
+| `--morph-on-band` | text and icons on the band | `#ffffff` |
 | `--morph-selection` | selected text on a rendered page | `rgb(0 96 223 / 0.3)` |
 | `--morph-find` | the viewer's find matches | `rgb(255 200 0 / 0.45)` |
 | `--morph-find-current` | the viewer's current find match | `rgb(255 110 0 / 0.55)` |
@@ -408,6 +465,22 @@ The package ships MSBuild targets that root the reflection-heavy dependencies
 resolve types by name at runtime, so a full trim would strip types they need and surface only as a
 browser-side crash part-way through a conversion. Nothing to configure — `PublishTrimmed=true` keeps
 working.
+
+## AOT
+
+An app can publish with `RunAOTCompilation=true` (the `wasm-tools` workload installed, and trimming on, as
+a Blazor WebAssembly publish has by default). The same targets then supply the two workarounds it needs:
+PdfSharp is left interpreted, since it is rooted whole and one of its code samples references a library
+it does not depend on; and SixLabors.Fonts' `UnmanagedCallConv` attributes are trimmed away
+(`Morph.Blazor.AotLinkAttributes.xml`), since Mono's WebAssembly AOT compiler (10.0.13, and 11.0 RC2)
+crashes decoding them ([dotnet/runtime#136351](https://github.com/dotnet/runtime/issues/136351)). Both use internal SDK settings; if one stops working, the publish fails with a build error rather
+than the app at runtime.
+
+What it is worth: on morph.papyrine.org an edit to an 18-page document is back in 0.53 s rather than
+2.5 s, for a download of 33.5 MB rather than 10.5 MB (gzip), a 15–25 minute publish, and a
+`dotnet.native.wasm` that changes with every change to the code. Leaving ImageSharp interpreted to save
+size does not pay: calls between compiled and interpreted code make ImageSharp 2.7x slower than an
+interpreted build. See `src/Morph.Web/README.md`.
 
 ## Backends
 

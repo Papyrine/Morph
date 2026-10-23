@@ -61,8 +61,9 @@ public class FontFaceResolutionTests
         await Assert.That(metrics.AdvanceWidths.Count).IsGreaterThan(1000);
     }
 
-    // newsletters/07's body is "AvenirNext LT Pro Medium": the resolver scores the bundled Regular closest,
-    // and ImageSharp drew the Bold because "Medium" reads as a bold word.
+    // newsletters/07's body is "AvenirNext LT Pro Medium": the resolver scores the Regular of its face
+    // closest (Calibri's, since the name falls back as Word's does), and ImageSharp had drawn the Bold
+    // because "Medium" reads as a bold word.
     [Test]
     [Arguments("AvenirNext LT Pro Medium", false)]
     [Arguments("Avenir Next LT Pro Light", false)]

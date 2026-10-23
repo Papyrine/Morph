@@ -18,8 +18,10 @@
                       "DoubleUnderline": false,
                       "IsRevisionMark": false,
                       "Strikethrough": false,
+                      "DoubleStrikethrough": false,
                       "AllCaps": false,
                       "SmallCaps": false,
+                      "CharacterScalePercent": 100.0,
                       "Ligatures": "Standard",
                       "IsRightToLeft": false,
                       "HasReflection": false,
@@ -35,7 +37,9 @@
                   }
                 ],
                 "Properties": {
-                  "LineSpacingMultiplier": 1.08,
+                  "SpacingAfterPoints": 8.0,
+                  "LineSpacingMultiplier": 1.15,
+                  "SnapToGrid": true,
                   "ContextualSpacing": false,
                   "SuppressLineNumbers": false,
                   "SuppressAutoHyphens": false,
@@ -99,15 +103,15 @@
         "HasAnyBorder": false
       },
       "DefaultCellPadding": {
-        "Top": 3.75,
-        "Right": 3.75,
-        "Bottom": 3.75,
-        "Left": 3.75,
-        "Horizontal": 7.5,
-        "Vertical": 7.5
+        "Top": 3.0,
+        "Right": 3.0,
+        "Bottom": 3.0,
+        "Left": 3.0,
+        "Horizontal": 6.0,
+        "Vertical": 6.0
       },
       "DefaultCellMargin": {},
-      "IndentPoints": -5.25,
+      "IndentPoints": -4.5,
       "FillContainer": false,
       "IsAutoFit": true,
       "CellSpacingPoints": 0.75

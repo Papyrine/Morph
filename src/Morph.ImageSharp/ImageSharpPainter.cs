@@ -21,39 +21,57 @@ static class ImageSharpPainter
     {
         foreach (var laidOutPage in document.Pages)
         {
-            var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
-            using var image = new Image<Rgba32>(pageWidth, pageHeight);
-            using (var canvas = image.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
-            {
-                var background = laidOutPage.Settings.BackgroundColorHex;
-                var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
-                canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
-
-                foreach (var item in laidOutPage.Items)
-                {
-                    PaintItem(context, canvas, item);
-                }
-
-                // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
-                // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
-                if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
-                {
-                    var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
-                    PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
-                }
-            }
-
-            // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
-            // for why both painters do it this way. It has to follow the canvas's disposal above,
-            // since that is what flushes the deferred draw ops into the image.
-            var rect = context.PageRect(laidOutPage.Settings, crop);
-            if (rect is not { X: 0, Y: 0 } || rect.Width != pageWidth || rect.Height != pageHeight)
-            {
-                image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));
-            }
-
-            pageCallback(image.SaveAsPng);
+            PaintPage(laidOutPage, context, crop, pageCallback);
         }
+    }
+
+    // One page, drawn and encoded — see SkiaPainter.PaintPage.
+    public static void PaintPage(LaidOutPage laidOutPage, ImageSharpRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
+    {
+        var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
+        var background = laidOutPage.Settings.BackgroundColorHex;
+        var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
+
+        // An opaque background is what the image starts as, rather than a rectangle filled over a blank
+        // one: the pixels are the same, and filling the whole page through the canvas cost ~270 ms a page
+        // on the WebAssembly runtime the viewer paints in. A translucent one is blended as before.
+        var backgroundPixel = backgroundColor.ToPixel<Rgba32>();
+        var opaque = backgroundPixel.A == byte.MaxValue;
+        using var image = opaque ? new Image<Rgba32>(pageWidth, pageHeight, backgroundPixel) : new Image<Rgba32>(pageWidth, pageHeight);
+        using (var canvas = image.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
+        {
+            if (!opaque)
+            {
+                canvas.Fill(context.GetBrush(backgroundColor), new RectangleF(0, 0, pageWidth, pageHeight));
+            }
+
+            foreach (var item in laidOutPage.Items)
+            {
+                PaintItem(context, canvas, item);
+            }
+
+            // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
+            // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
+            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            {
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
+            }
+        }
+
+        // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
+        // for why both painters do it this way. It has to follow the canvas's disposal above,
+        // since that is what flushes the deferred draw ops into the image.
+        var rect = context.PageRect(laidOutPage.Settings, crop);
+        if (rect is not { X: 0, Y: 0 } || rect.Width != pageWidth || rect.Height != pageHeight)
+        {
+            image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));
+        }
+
+        // PngWriter picks the smallest PNG form the page's pixels allow (see SkiaPainter.Write).
+        var pixels = new byte[image.Width * image.Height * 4];
+        image.CopyPixelDataTo(pixels);
+        pageCallback(_ => PngWriter.Write(_, pixels, image.Width, image.Height, image.Width * 4));
     }
 
     static float P(ImageSharpRenderContext context, double points) => context.PointsToPixels((float) points);
@@ -165,26 +183,9 @@ static class ImageSharpPainter
             var baseline = line.Baseline - run.BaselineShift;
             DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
 
-            var strokeWidth = P(context, Math.Max(0.5, properties.FontSizePoints / 16));
-            if (properties.Underline)
+            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
-                var underlineColor = properties.UnderlineColorHex == null
-                    ? color
-                    : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underlineY = P(context, baseline + properties.FontSizePoints * 0.12);
-                canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), underlineY), new PointF(P(context, run.X + run.Width), underlineY));
-                if (properties.DoubleUnderline)
-                {
-                    var secondY = underlineY + strokeWidth * 2;
-                    canvas.DrawLine(context.GetPen(underlineColor, strokeWidth), new PointF(P(context, run.X), secondY), new PointF(P(context, run.X + run.Width), secondY));
-                }
-            }
-
-            if (properties.Strikethrough)
-            {
-                var strikeY = P(context, baseline - ascent * 0.3);
-                canvas.DrawLine(context.GetPen(color, strokeWidth), new PointF(P(context, run.X), strikeY), new PointF(P(context, run.X + run.Width), strikeY));
+                PaintDecorations(context, canvas, run, properties, color, (float) baseline, (float) ascent);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.
@@ -198,9 +199,51 @@ static class ImageSharpPainter
 
         foreach (var image in line.Images)
         {
+            // An inline chart arrives drawn: its shapes and labels, placed (PlacedImage.Composed).
+            if (image.Composed is { } composed)
+            {
+                foreach (var item in composed)
+                {
+                    PaintItem(context, canvas, item);
+                }
+
+                continue;
+            }
+
             PaintImage(context, canvas, image);
         }
     }
+
+    // The run's underline and strike rules — see SkiaPainter.PaintDecorations.
+    static void PaintDecorations(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedRun run, RunProperties properties, Color color, float baseline, float ascent)
+    {
+        var underlineColor = properties.UnderlineColorHex == null
+            ? color
+            : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
+        var rules = new List<TextDecorations.Rule>();
+        var waves = new List<TextDecorations.Wave>();
+        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => MeasurePrefix(context, properties, _), rules, waves);
+        foreach (var rule in rules)
+        {
+            var y = P(context, rule.Y);
+            canvas.DrawLine(context.GetPen(rule.IsStrike ? color : underlineColor, P(context, rule.Thickness)), new PointF(P(context, rule.X0), y), new PointF(P(context, rule.X1), y));
+        }
+
+        foreach (var wave in waves)
+        {
+            var points = new PointF[wave.Points.Count];
+            for (var index = 0; index < points.Length; index++)
+            {
+                points[index] = new(P(context, wave.Points[index].X), P(context, wave.Points[index].Y));
+            }
+
+            canvas.DrawLine(context.GetPen(underlineColor, P(context, wave.Thickness)), points);
+        }
+    }
+
+    // The drawn width in points of a prefix of a run's text, as DrawTracked advances it (kerning aside).
+    static float MeasurePrefix(ImageSharpRenderContext context, RunProperties properties, string prefix) =>
+        (float) (context.MeasureText(context.GetFont(properties), prefix) + properties.CharacterSpacingPoints * prefix.Length);
 
     // Text is anchored at the engine's baseline (TextBaseline.Alphabetic in Options) — the one place
     // ImageSharp used to diverge from Skia and PDF, which draw at PlacedLine.Baseline directly. The
@@ -217,14 +260,21 @@ static class ImageSharpPainter
         // An italic run whose family bundles no italic face resolved a non-italic style
         // (PickAvailableStyle): Word synthesizes an oblique, so shear the glyphs right about
         // the baseline by the Word-measured skew. Advances are unchanged, matching Word.
+        //
+        // w:w stretches the run about its own start, glyphs and advances alike (SkiaPainter.PaintLine).
+        // A nested Save replaces the transform rather than composing with it, so the shear and the
+        // stretch go in as one matrix: x' = scale * (x - skew * (y - baseline) - penX) + penX.
         var oblique = properties.Italic && !font.IsItalic;
-        if (oblique)
+        var scale = (float) (properties.CharacterScalePercent / 100);
+        var transformed = oblique || scale != 1;
+        if (transformed)
         {
-            var skew = (float) FontHelpers.SyntheticItalicSkew;
+            var skew = oblique ? (float) FontHelpers.SyntheticItalicSkew : 0;
+            var penPixels = P(context, penX);
             canvas.Save(
                 new()
                 {
-                    Transform = new(new(1, 0, -skew, 1, skew * baselineY, 0))
+                    Transform = new(new(scale, 0, -scale * skew, 1, scale * skew * baselineY + penPixels * (1 - scale), 0))
                 });
         }
 
@@ -252,7 +302,7 @@ static class ImageSharpPainter
             }
         }
 
-        if (oblique)
+        if (transformed)
         {
             canvas.Restore();
         }
@@ -682,13 +732,13 @@ static class ImageSharpPainter
             if (clipped)
             {
                 canvas.Save();
-                canvas.Clip(cell.ClipHorizontally
-                    ? new RectanglePolygon(
-                        P(context, cell.X - cell.ClipSpillLeft),
-                        P(context, cell.Y),
-                        P(context, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight),
-                        P(context, cell.Height))
-                    : new RectanglePolygon(-100000f, P(context, cell.Y), 200000f, P(context, cell.Height)));
+                var (clipX, clipWidth) = cell.ClipHorizontally
+                    ? (P(context, cell.X - cell.ClipSpillLeft), P(context, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight))
+                    : (-100000f, 200000f);
+                var (clipY, clipHeight) = cell.ClipVertically
+                    ? (P(context, cell.Y), P(context, cell.Height))
+                    : (-100000f, 200000f);
+                canvas.Clip(new RectanglePolygon(clipX, clipY, clipWidth, clipHeight));
             }
 
             foreach (var content in cell.Content)

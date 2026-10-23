@@ -15,13 +15,14 @@
 ///   <item><see cref="FontFileCache"/> indexed at startup from the merged host caches.</item>
 ///   <item>Backend-supplied OS font manager (e.g. <c>SKTypeface.FromFamilyName</c> /
 ///   <c>SystemFonts.TryGet</c>).</item>
-///   <item>Configured fallback name (<see cref="FontHelpers.FindFallback"/>) and
-///   user-supplied <c>fontFallback</c> delegate, re-entered through the same chain.</item>
+///   <item>Configured fallback name (<see cref="FontHelpers.FindFallback"/>), then the
+///   user-supplied <c>fontFallback</c> delegate when that alias does not resolve, each
+///   re-entered through the same chain.</item>
 /// </list>
 /// <para>
 /// In directory mode (<c>fontDirectory</c> non-null), only the directory's index and the
-/// fallback names are consulted — system caches and the OS font manager are skipped, and
-/// a missing font throws.
+/// fallback names are consulted — system caches and the OS font manager are skipped. In
+/// either mode a font that nothing resolves throws.
 /// </para>
 /// </remarks>
 sealed class FontResolver<TFont> : IDisposable where TFont : class
@@ -170,72 +171,71 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         //    didn't index" plus localized system fonts on macOS/Linux).
         font ??= systemFallback?.Invoke(candidates, targetWeight, targetItalic);
 
-        // 3. Configured/runtime fallback name (e.g. "Segoe UI Variable" → "Segoe UI") —
-        //    re-resolve the alias through the same path. Also fires when we did find a
-        //    face but its weight is far from what was asked (e.g. only Bold available
-        //    when Light was requested) and a fallback to a closer-weight family exists.
-        // The delegate is asked only when its answer could be used, so a family that resolves well
-        // never reaches it.
-        var fallbackName = font == null || weightDelta >= weightFallbackThreshold
-            ? FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily)
-            : null;
-        if (fallbackName != null)
-        {
-            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
-            var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-            var fallback = TryResolveFromCache(allFontsCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
-                           ?? systemFallback?.Invoke(fallbackCandidates, fallbackWeight, targetItalic)
-                           ?? TryResolveEmbedded(fallbackCandidates, fallbackWeight, targetItalic);
-            if (fallback != null &&
-                (font == null ||
-                 fbDelta < weightDelta))
-            {
-                font = fallback;
-            }
-        }
-
-        return font;
+        // 3. Configured/runtime fallback names (e.g. "Segoe UI Variable" → "Segoe UI"),
+        //    re-resolved through the same path.
+        return ApplyFallbacks(font, weightDelta, allFontsCache, systemFallback, candidates, fontFamily, bold, targetItalic);
     }
 
     TFont? TryResolveDirectoryMode(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
     {
         var directoryCache = GetDirectoryCache(fontDirectory!);
         var font = TryResolveFromCache(directoryCache, candidates, targetWeight, targetItalic, out var weightDelta);
+        return ApplyFallbacks(font, weightDelta, directoryCache, system: null, candidates, fontFamily, bold, targetItalic);
+    }
 
-        // If the direct match is a poor weight match (e.g. only Bold available for Light
-        // request), prefer the configured fallback when it offers a closer weight. The delegate is
-        // asked only when its answer could be used.
-        var fallbackName = font == null || weightDelta >= weightFallbackThreshold
-            ? FontHelpers.FindFallback(candidates) ?? fontFallback?.Invoke(fontFamily)
-            : null;
-        if (fallbackName != null)
-        {
-            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
-            var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-            var fallback = TryResolveFromCache(directoryCache, fallbackCandidates, fallbackWeight, targetItalic, out var fbDelta)
-                           ?? TryResolveEmbedded(fallbackCandidates, fallbackWeight, targetItalic);
-            if (fallback != null &&
-                (font == null ||
-                 fbDelta < weightDelta))
-            {
-                return fallback;
-            }
-        }
-
-        if (font != null)
+    /// <summary>
+    /// Replaces a missing <paramref name="font"/>, or one whose weight is far from what was asked
+    /// (e.g. only Bold available when Light was requested), with the first fallback name that
+    /// resolves: the curated <see cref="FontHelpers.FontFallbacks"/> alias, then the caller's
+    /// <c>fontFallback</c>. The first name that resolves settles it, so a curated alias that loads
+    /// keeps the caller's delegate out of it; but an alias whose target is absent — Avenir Next LT
+    /// Pro's Century Gothic in a directory holding only Aptos — moves on to the delegate rather
+    /// than leaving the family unresolved.
+    /// </summary>
+    TFont? ApplyFallbacks(
+        TFont? font,
+        int weightDelta,
+        FontFileCache fileCache,
+        SystemFallbackFunc? system,
+        FontNameCandidates candidates,
+        string fontFamily,
+        bool bold,
+        bool targetItalic)
+    {
+        if (font != null &&
+            weightDelta < weightFallbackThreshold)
         {
             return font;
         }
 
-        if (fallbackName == null)
+        foreach (var fallbackName in FallbackNames(candidates, fontFamily))
         {
-            throw new InvalidOperationException($"Font '{fontFamily}' not found in '{fontDirectory}'.");
+            var fallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
+            var fallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
+            var fallback = TryResolveFromCache(fileCache, fallbackCandidates, fallbackWeight, targetItalic, out var fallbackDelta)
+                           ?? system?.Invoke(fallbackCandidates, fallbackWeight, targetItalic)
+                           ?? TryResolveEmbedded(fallbackCandidates, fallbackWeight, targetItalic);
+            if (fallback != null)
+            {
+                return font == null || fallbackDelta < weightDelta ? fallback : font;
+            }
         }
 
-        var lastFallbackCandidates = FontHelpers.GetCandidateNames(fallbackName);
-        var lastFallbackWeight = FontHelpers.ResolveTargetWeight(fallbackName, bold);
-        return TryResolveFromCache(directoryCache, lastFallbackCandidates, lastFallbackWeight, targetItalic) ??
-               TryResolveEmbedded(lastFallbackCandidates, lastFallbackWeight, targetItalic);
+        return font;
+    }
+
+    // Lazy, so the caller's delegate runs only once the curated alias has missed.
+    IEnumerable<string> FallbackNames(FontNameCandidates candidates, string fontFamily)
+    {
+        if (FontHelpers.FindFallback(candidates) is { } curated)
+        {
+            yield return curated;
+        }
+
+        if (fontFallback?.Invoke(fontFamily) is { Length: > 0 } substitute)
+        {
+            yield return substitute;
+        }
     }
 
     /// <summary>
@@ -296,8 +296,10 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     // Daytona Bold (700) is bundled gives a delta of 400 — Calibri Light (300) is closer.
     const int weightFallbackThreshold = 300;
 
-    static string BuildNotFoundMessage(string fontFamily) =>
-        $"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}";
+    string BuildNotFoundMessage(string fontFamily) =>
+        fontDirectory == null
+            ? $"Font '{fontFamily}' not found. Checked:{Environment.NewLine}  {string.Join($"{Environment.NewLine}  ", FontCacheLoader.GetSearchedPaths())}"
+            : $"Font '{fontFamily}' not found in '{fontDirectory}'.";
 
     public void Dispose()
     {

@@ -23,24 +23,24 @@
 
 ![](data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwLjIxIDIzOC45OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgaWQ9IkxheWVyXzEiIG92ZXJmbG93PSJoaWRkZW4iPjxzdHlsZT4NCi5Nc2Z0T2ZjVGhtX0FjY2VudDFfRmlsbF92MiB7DQogZmlsbDojMDAzNzgwOyANCn0NCjwvc3R5bGU+DQo8ZGVmcz48L2RlZnM+PHBhdGggZD0iTTIwMC4yMSAxMjIuNjVDMTgxLjI3IDE0MC45MiAxNTUuNTIgMTUyLjE3IDEyNy4xOSAxNTIuMTcgNjkuMTQgMTUyLjE3IDIxLjkyIDEwNC45NCAyMS45MiA0Ni45IDIxLjkyIDMwLjA2IDI1LjkgMTQuMTMgMzIuOTYgMi4xMzE2M2UtMTRMMjkuNjEgMi4xMzE2M2UtMTRDMjIuNzYgMTQuMiAxOC45MiAzMC4xMSAxOC45MiA0Ni45IDE4LjkyIDEwNi42IDY3LjQ5IDE1NS4xNyAxMjcuMTkgMTU1LjE3IDE1NS4zIDE1NS4xNyAxODAuOTUgMTQ0LjQgMjAwLjIxIDEyNi43N0wyMDAuMjEgMTIyLjY1WiIgY2xhc3M9Ik1zZnRPZmNUaG1fQWNjZW50MV9GaWxsX3YyIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiBmaWxsPSIjRkFENUQ1IiBmaWxsLW9wYWNpdHk9IjEiLz48L3N2Zz4=)
 
-|  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- |
-|  | **PROJECT 2** |  |  |  |  |
-|  | **TO-DO LIST** |  |  |  |  |
-|  | TO BE COMPLETED BY |  | **Iris Lepik** |  |  |
-|  | DEADLINE |  | **01/31/20XX** |  |  |
-|  |  |  |  |  |  |
-|  | % Done | Phase | Due By | Notes |  |
-|  | **100%** | Planning |  |  |  |
-|  | **100%** | Preparation |  |  |  |
-|  | **75%** | Task a |  |  |  |
-|  | **53%** | Task b |  |  |  |
-|  | **23%** | Task c |  |  |  |
-|  | **0%** | Task d |  |  |  |
-|  | **0%** | Task e |  |  |  |
-|  | **0%** | Task f |  |  |  |
-|  | **0%** | Follow-up |  |  |  |
-|  |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- | --- |
+|  | **PROJECT 2** |  |  |  |  |  |
+|  | **TO-DO LIST** |  |  |  |  |  |
+|  | TO BE COMPLETED BY |  | **Iris Lepik** |  |  |  |
+|  | DEADLINE |  | **01/31/20XX** |  |  |  |
+|  |  |  |  |  |  |  |
+|  | % Done | Phase | Due By | Notes |  |  |
+|  | **100%** | Planning |  |  |  |  |
+|  | **100%** | Preparation |  |  |  |  |
+|  | **75%** | Task a |  |  |  |  |
+|  | **53%** | Task b |  |  |  |  |
+|  | **23%** | Task c |  |  |  |  |
+|  | **0%** | Task d |  |  |  |  |
+|  | **0%** | Task e |  |  |  |  |
+|  | **0%** | Task f |  |  |  |  |
+|  | **0%** | Follow-up |  |  |  |  |
+|  |  |  |  |  |  |  |
 
 ![](data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjU5LjggMTkyLjYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48c3R5bGU+DQouTXNmdE9mY1RobV9BY2NlbnQ2X0ZpbGxfdjIgew0KIGZpbGw6I0ZBRDVENTsgDQp9DQo8L3N0eWxlPg0KPGRlZnM+PC9kZWZzPjxwYXRoIGQ9Ik0xODcuNDMgMCAxMjkuOSA1OS4xMSAwIDE5Mi42IDI1OS44IDE5Mi42IDI1OS44IDAgMTg3LjQzIDBaIiBjbGFzcz0iTXNmdE9mY1RobV9BY2NlbnQ2X0ZpbGxfdjIiIGZpbGw9IiNGQUQ1RDUiLz48L3N2Zz4=)
 

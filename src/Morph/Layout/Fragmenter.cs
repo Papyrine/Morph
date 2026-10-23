@@ -781,7 +781,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 if (element is ParagraphElement paragraph)
                 {
-                    headerHeight += measurer.MeasureParagraphHeightWithWidth(paragraph, bandWidth);
+                    // Every paragraph's space after counts, an empty one's too, though the body drops an
+                    // empty paragraph's (MeasureParagraphHeightWithWidth). Word-probed on wedding/01's
+                    // header, a lone empty paragraph (_probe_hdrafter_*): its space after at 24pt and at
+                    // 48pt put the body's first baseline at 54.12pt and 78.14pt, 24pt apart, and a
+                    // paragraph holding "X" at 48pt put it at 78.14pt too. The corpus case is that
+                    // header's 6pt, which held wedding/01's whole page 6pt high.
+                    var properties = paragraph.Properties;
+                    headerHeight += (float) properties.SpacingBeforePoints +
+                                    measurer.LayoutParagraphForMeasurement(paragraph, bandWidth).Sum() +
+                                    (float) properties.SpacingAfterPoints;
                 }
                 else if (element is TableElement table)
                 {
@@ -1094,6 +1103,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         EmitBodyFloat(textBox, textBox.VerticalAnchor, textBox.AnchorParagraph);
                         break;
 
+                    case FloatingChartElement chart:
+                        EmitBodyFloat(chart, chart.VerticalAnchor, chart.AnchorParagraph);
+                        break;
+
                     case WordArtElement wordArt:
                         PlaceWordArt(wordArt);
                         break;
@@ -1144,7 +1157,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The floats emitted since the last thing that is not one: what leads a sheet's grid
                 // (PlaceSheetUnderFloats).
-                if (element is not (FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement))
+                if (element is not (FloatingImageElement or FloatingShapeElement or FloatingTextBoxElement or FloatingWordArtElement or FloatingChartElement))
                 {
                     floatRunStart = bodyFloats.Count;
                 }
@@ -1840,6 +1853,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 case FloatingTextBoxElement textBox:
                     PlaceTextBox(textBox, AnchoredY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent));
                     break;
+
+                case FloatingChartElement chart:
+                    PlaceChart(chart, FloatX(chart.HorizontalAnchor, chart.HorizontalPositionPoints, null), AnchoredY(chart.VerticalAnchor, chart.VerticalPositionPoints, null));
+                    break;
+            }
+        }
+
+        // A chart is drawn here rather than at parse, where its labels could not be measured: its bars,
+        // rules and slices become placed shapes and its labels laid-out paragraphs (ChartComposer).
+        void PlaceChart(FloatingChartElement chart, float chartX, float chartY)
+        {
+            var composer = new ChartComposer(measurer, (content, x, boxY, width, height, alignment) => LayoutCellContent(new() { Content = content }, x, boxY, width, height, alignment));
+            foreach (var item in composer.Compose(chart.Chart, chartX, chartY, (float) chart.WidthPoints, (float) chart.HeightPoints, chart.Scale))
+            {
+                AddBodyFloat(item, false, IsAbsoluteY(chart.VerticalAnchor));
             }
         }
 
@@ -3523,8 +3551,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var row = table.Rows[rowIndex];
             var cells = new List<PlacedCell>();
             var continuations = new CellSplitPoint?[row.Cells.Count];
-            var cellX = tableX;
-            var gridColIndex = 0;
+            var cellX = tableX + LeadingGridWidth(colWidths, row.GridBefore);
+            var gridColIndex = row.GridBefore;
             var usedHeight = 0f;
             var anyContinues = false;
 
@@ -3643,13 +3671,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the
         // raster backend's grid — merge-continuation cells contribute nothing (the originating cell covers
         // them), and a merge-restart cell's box spans the merged rows' heights.
+        // The width of the grid columns a row's w:gridBefore leaves empty — where its first cell starts.
+        static float LeadingGridWidth(float[] colWidths, int gridBefore)
+        {
+            var width = 0f;
+            for (var column = 0; column < gridBefore && column < colWidths.Length; column++)
+            {
+                width += colWidths[column];
+            }
+
+            return width;
+        }
+
         PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
         {
             var row = table.Rows[rowIndex];
             var rowHeight = rowHeights[rowIndex];
             var cells = new List<PlacedCell>();
-            var cellX = tableX;
-            var gridColIndex = 0;
+            var cellX = tableX + LeadingGridWidth(colWidths, row.GridBefore);
+            var gridColIndex = row.GridBefore;
             var detached = table.Properties.CellSpacingPoints > 0;
 
             // The horizontal edges TableHeightCalculator charged this row: its top edge always (an exact
@@ -3734,10 +3774,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     content = [.. content, .. frontShapes];
                 }
 
-                // A w:hRule="exact" row clips what its cells cannot hold — Word's reference for
+                // A cell's content is cut at its sides (labels/15's swash "f", PlacedCell), and a
+                // w:hRule="exact" row clips what its cells cannot hold below too — Word's reference for
                 // table_layout_tall_row shows two of the company cell's three lines in its 80pt row, the
-                // third hidden. The engine had drawn the overflow (ClipContent was Excel's alone).
-                var clip = cell.Properties.ClipOverflow || row.IsExactHeight;
+                // third hidden. Any other row grows to its content, so nothing runs out of its foot —
+                // except a rotated cell, whose text asks nothing of the row (MeasureVerticalCellHeight)
+                // and is cut at the box: _probe_rotated's 72pt "Header" alone in its row shows only the
+                // part of the "H" inside the row, where the render drew it up over the line above.
+                var clipVertically = cell.Properties.ClipOverflow || row.IsExactHeight || cell.Properties.TextDirection != CellTextDirection.LeftToRight;
 
                 // A vertical merge takes its top from the head, its bottom from its LAST cell and each
                 // row's stretch of its sides from that row's cell (TableLayout.MergeSegmentBorders).
@@ -3760,7 +3804,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, clip, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipHorizontally: cell.Properties.ClipOverflow));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, true, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipVertically: clipVertically));
 
                 if (sideSegments != null)
                 {
@@ -4083,6 +4127,31 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     continuation = new(elementIndex, resumeLine);
                     break;
+                }
+
+                // A floating table in a cell stands at its offset from where it is anchored and takes no
+                // room in the cell's flow, which is why TableHeightCalculator leaves it out of the row.
+                // labels/09's ticket numbers are such tables, one in each ticket's left stub,
+                // text-anchored a twip in; anchored to the margin or the page, it stands where that puts
+                // it on the page.
+                if (element is TableElement {Properties.IsFloating: true} floatingTable)
+                {
+                    var floating = floatingTable.Properties;
+                    var floatingWidth = TableLayout.CalculateColumnWidths(floatingTable, TableLayout.GetColumnCount(floatingTable), contentWidth, measurer).Sum();
+                    var floatingLeft = floating.FloatingHorizontalAnchor switch
+                    {
+                        FloatingTableHorizontalAnchor.Page => (float) floating.FloatingXOffsetPoints,
+                        FloatingTableHorizontalAnchor.Margin => fullContentLeft + (float) floating.FloatingXOffsetPoints,
+                        _ => contentLeft + (float) floating.FloatingXOffsetPoints
+                    };
+                    var floatingTop = floating.FloatingVerticalAnchor switch
+                    {
+                        FloatingTableVerticalAnchor.Page => (float) floating.FloatingYOffsetPoints,
+                        FloatingTableVerticalAnchor.Margin => this.contentTop + (float) floating.FloatingYOffsetPoints,
+                        _ => cellY + (float) floating.FloatingYOffsetPoints
+                    };
+                    lines.AddRange(LayoutNestedTable(floatingTable, floatingLeft, floatingTop, floatingWidth).Items);
+                    continue;
                 }
 
                 // A nested table lays out at the cell cursor with no page breaks — the outer row height
@@ -4438,7 +4507,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     shifted[imageIndex] = images[imageIndex] with
                     {
                         X = images[imageIndex].X + dx,
-                        Y = images[imageIndex].Y + dy
+                        Y = images[imageIndex].Y + dy,
+                        Composed = images[imageIndex].Composed?.Select(_ => ShiftComposed(_, dx, dy)).ToList()
                     };
                 }
 
@@ -4454,6 +4524,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 Images = images
             };
         }
+
+        // An inline chart's drawn items move with its line: a label is a line of its own, and a shape is
+        // drawn from its box.
+        static PlacedItem ShiftComposed(PlacedItem item, float dx, float dy) =>
+            item switch
+            {
+                PlacedLine line => ShiftLine(line, dx, dy),
+                _ => item with { X = item.X + dx, Y = item.Y + dy }
+            };
 
         // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each
         // paragraph to the band width and stacking it with its own spacing — no page breaks (a band fits
@@ -5185,11 +5264,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             if (lineIndex == 0 && paragraph.Properties.Numbering is { Text.Length: > 0 } numbering)
             {
-                // A marker that overruns the text indent pushes the FIRST line's text to the
-                // next tab stop (see CanonicalParagraphMeasurer.MarkerTextShift, which narrowed
-                // the wrap by the same amount); the marker itself stays in the gutter.
-                var shift = measurer.MarkerTextShift(paragraph);
-                return [MarkerRun(paragraph, numbering, lineLeft), .. MapRuns(line, lineLeft + shift)];
+                // The marker and the FIRST line's text where the level's suffix puts them
+                // (CanonicalParagraphMeasurer.MarkerPlacement, whose text shift the wrap
+                // narrowed the first line by).
+                var (markerOffset, shift) = measurer.MarkerPlacement(paragraph);
+                return [MarkerRun(paragraph, numbering, lineLeft + markerOffset), .. MapRuns(line, lineLeft + shift)];
             }
 
             return MapRuns(line, lineLeft);
@@ -5199,21 +5278,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // left of the text (or right-aligned just before it when there is no hanging indent). Font, colour
         // and position mirror PdfTextEngine's marker placement; the paragraph's LeftIndent already sets the
         // text edge, so the marker offsets back from there.
-        PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float lineLeft)
+        PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float markerX)
         {
             var markerProperties = measurer.Drawn(CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering));
             var markerWidth = measurer.MeasureRunWidth(numbering.Text, markerProperties);
-            var hanging = (float) paragraph.Properties.HangingIndentPoints;
-
-            // w:lvlJc="right" anchors the marker's RIGHT edge at the number position, the numeral
-            // growing leftward into the margin so the periods of I./VIII./XVIII. line up —
-            // _probe_numtab's right edges landed within 3px of the position at two geometries.
-            var markerX = hanging > 0.01f
-                ? numbering.MarkerRightAligned
-                    ? lineLeft - hanging - markerWidth
-                    : lineLeft - hanging
-                : lineLeft - markerWidth - 3f;
-
             return new(markerX, markerWidth, numbering.Text, markerProperties);
         }
 
@@ -5233,8 +5301,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Projects a laid-out line's inline boxes (images and shape groups) to placed images: the line's
         // left edge plus each box's offset, with its bottom sitting on the text baseline. A shape-group box
-        // carries its group through and leaves Data null.
-        static IReadOnlyList<PlacedImage> MapImages(LaidOutLine line, float lineLeft, float baseline)
+        // carries its group through and leaves Data null; a chart's box is composed here, where the box
+        // finally has a place on the page and the chart's labels can be laid out (PlaceChart).
+        IReadOnlyList<PlacedImage> MapImages(LaidOutLine line, float lineLeft, float baseline)
         {
             if (line.Images.Count == 0)
             {
@@ -5250,7 +5319,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // picture draws inside it, offset by the left and top effect edges (ImageEffectExtent).
                 var effectLeft = (float) (image.EffectExtent?.Left ?? 0) + (float) (image.ShapeGroup?.DrawOffsetXPoints ?? 0);
                 var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0) - (float) (image.ShapeGroup?.DrawOffsetYPoints ?? 0);
-                images[imageIndex] = new(lineLeft + image.X + effectLeft, baseline - effectBottom - image.Height, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
+                var x = lineLeft + image.X + effectLeft;
+                var y = baseline - effectBottom - image.Height;
+                if (image.Chart is { } chart)
+                {
+                    var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() { Content = content }, left, top, width, height, alignment));
+                    images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: composer.Compose(chart, x, y, image.Width, image.Height));
+                    continue;
+                }
+
+                images[imageIndex] = new(x, y, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
             }
 
             return images;

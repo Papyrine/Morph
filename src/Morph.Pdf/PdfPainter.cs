@@ -54,7 +54,8 @@ static class PdfPainter
         PdfRenderContext context,
         bool rasterizeWordArt = true,
         Action<ExportWarning>? onWarning = null,
-        PageRange? pages = null)
+        PageRange? pages = null,
+        Cancel cancel = default)
     {
         for (var index = 0; index < document.Pages.Count; index++)
         {
@@ -63,6 +64,8 @@ static class PdfPainter
             {
                 continue;
             }
+
+            cancel.ThrowIfCancellationRequested();
 
             var laidOutPage = document.Pages[index];
             var width = laidOutPage.Settings.WidthPoints;
@@ -242,30 +245,20 @@ static class PdfPainter
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            DrawTracked(context, surface, run.Text, properties, color, run.X, baseline);
-
-            // Underline below the baseline, strike through the x-height.
-            var strokeWidth = Math.Max(0.5, properties.FontSizePoints / 16);
-            if (properties.Underline)
+            // w:w stretches the run about its own start, glyphs and advances alike (SkiaPainter.PaintLine).
+            Layer? scaled = null;
+            if (properties.CharacterScalePercent != 100)
             {
-                // w:u/@w:color paints the rule in its own colour; absent means the text colour.
-                var underlineColor = properties.UnderlineColorHex == null
-                    ? color
-                    : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
-                var underline = context.GetStroke(underlineColor, strokeWidth);
-                var underlineY = baseline + properties.FontSizePoints * 0.12;
-                PdfShapeDrawing.StrokeLine(surface, underline, run.X, underlineY, run.X + run.Width, underlineY);
-                if (properties.DoubleUnderline)
-                {
-                    var secondY = underlineY + strokeWidth * 2;
-                    PdfShapeDrawing.StrokeLine(surface, underline, run.X, secondY, run.X + run.Width, secondY);
-                }
+                scaled = surface.PushTransform(Matrix3x2.CreateScale((float) (properties.CharacterScalePercent / 100), 1, new((float) run.X, (float) baseline)));
             }
 
-            if (properties.Strikethrough)
+            DrawTracked(context, surface, run.Text, properties, color, run.X, baseline);
+            scaled?.Dispose();
+
+            // Underline below the baseline, strike through the x-height (TextDecorations).
+            if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
             {
-                var strikeY = baseline - ascent * 0.3;
-                PdfShapeDrawing.StrokeLine(surface, context.GetStroke(color, strokeWidth), run.X, strikeY, run.X + run.Width, strikeY);
+                PaintDecorations(context, surface, run, properties, color, (float) baseline, (float) ascent);
             }
 
             // w:bdr — see SkiaPainter.PaintLine.
@@ -279,8 +272,69 @@ static class PdfPainter
 
         foreach (var image in line.Images)
         {
+            // An inline chart arrives drawn: its shapes and labels, placed (PlacedImage.Composed).
+            if (image.Composed is { } composed)
+            {
+                foreach (var item in composed)
+                {
+                    PaintItem(context, surface, item);
+                }
+
+                continue;
+            }
+
             PaintImage(context, surface, image);
         }
+    }
+
+    // The run's underline and strike rules — see SkiaPainter.PaintDecorations. PDF space is points. A
+    // word's width is the face's own advances plus tracking, the steps DrawTracked draws by.
+    static void PaintDecorations(PdfRenderContext context, Surface surface, PlacedRun run, RunProperties properties, PdfColor color, float baseline, float ascent)
+    {
+        var underlineColor = properties.UnderlineColorHex == null
+            ? color
+            : PdfRenderContext.ParseColor(properties.UnderlineColorHex);
+        var face = context.GetFace(properties);
+        var sizePoints = VerticalRunPosition.RenderSizePoints(properties);
+        var rules = new List<TextDecorations.Rule>();
+        var waves = new List<TextDecorations.Wave>();
+        TextDecorations.Collect(
+            properties,
+            run.Text,
+            run.X,
+            run.Width,
+            baseline,
+            ascent,
+            _ => (float) (Advance(face, _, sizePoints) + properties.CharacterSpacingPoints * _.Length),
+            rules,
+            waves);
+        foreach (var rule in rules)
+        {
+            PdfShapeDrawing.StrokeLine(surface, context.GetStroke(rule.IsStrike ? color : underlineColor, rule.Thickness), rule.X0, rule.Y, rule.X1, rule.Y);
+        }
+
+        foreach (var wave in waves)
+        {
+            if (PdfShapeDrawing.Polyline(wave.Points.Select(_ => ((double) _.X, (double) _.Y)).ToArray()) is { } path)
+            {
+                PdfShapeDrawing.Stroke(surface, path, context.GetStroke(underlineColor, wave.Thickness));
+            }
+        }
+    }
+
+    static double Advance(PdfFace face, string text, double sizePoints)
+    {
+        var metrics = face.Metrics;
+        var units = 0d;
+        var i = 0;
+        while (i < text.Length)
+        {
+            var codepoint = char.ConvertToUtf32(text, i);
+            units += metrics.AdvanceUnits(codepoint);
+            i += char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+        }
+
+        return units / metrics.UnitsPerEm * sizePoints;
     }
 
     // Draws a run's text as one glyph run, each glyph at the face's own advance for its character,
@@ -787,9 +841,13 @@ static class PdfPainter
             Layer? clip = null;
             if (cell.ClipContent)
             {
-                clip = cell.ClipHorizontally
-                    ? PdfShapeDrawing.ClipRectangle(surface, cell.X - cell.ClipSpillLeft, cell.Y, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight, cell.Height)
-                    : PdfShapeDrawing.ClipRectangle(surface, -100000, cell.Y, 200000, cell.Height);
+                var (clipX, clipWidth) = cell.ClipHorizontally
+                    ? (cell.X - cell.ClipSpillLeft, cell.Width + cell.ClipSpillLeft + cell.ClipSpillRight)
+                    : (-100000f, 200000f);
+                var (clipY, clipHeight) = cell.ClipVertically
+                    ? (cell.Y, cell.Height)
+                    : (-100000f, 200000f);
+                clip = PdfShapeDrawing.ClipRectangle(surface, clipX, clipY, clipWidth, clipHeight);
             }
 
             foreach (var content in cell.Content)

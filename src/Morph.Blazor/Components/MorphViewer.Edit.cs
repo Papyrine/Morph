@@ -55,6 +55,8 @@ public partial class MorphViewer
         editMap = EditMap.Empty;
         session = null;
         editNote = null;
+        floatingPicture = null;
+        inlinePicture = false;
     }
 
     /// <summary>
@@ -263,26 +265,26 @@ public partial class MorphViewer
             });
 
     /// <summary>
-    /// Called from JavaScript for a key whose command is carried out here, where the reader is: Tab
-    /// and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty paragraph of one
-    /// (<c>end-list</c>), Backspace at the start of one or of an indented paragraph (<c>unindent</c>),
-    /// Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3 (<c>heading1</c> to
-    /// <c>heading3</c>) and Ctrl+K (<c>link</c>).
+    /// Called from JavaScript for a key whose command is carried out here, where the reader is, by the
+    /// command's name: Tab and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty
+    /// paragraph of one (<c>end-list</c>), Backspace at the start of one or of an indented paragraph
+    /// (<c>unindent</c>), Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3
+    /// (<c>heading1</c> to <c>heading3</c>), Ctrl+K (<c>link</c>), and the Font and Paragraph groups'
+    /// keys (<c>grow</c>, <c>shrink</c>, <c>subscript</c>, <c>superscript</c>, <c>clear-formatting</c>,
+    /// <c>bullets</c>, <c>line-single</c>, <c>line-double</c>, <c>line-one-and-half</c>).
     /// </summary>
     [JSInvokable]
     public Task OnEditKey(string name) =>
         InvokeAsync(
             async () =>
             {
-                if (!editOpen ||
-                    !CanWrite ||
-                    revising)
+                if (!editOpen)
                 {
                     return;
                 }
 
                 editNote = null;
-                await KeyAsync(name);
+                await CommandAsync(name);
                 StateHasChanged();
             });
 
@@ -328,21 +330,6 @@ public partial class MorphViewer
                 StateHasChanged();
             });
 
-    internal virtual Task KeyAsync(string name) =>
-        name switch
-        {
-            "indent" => TabInListAsync(1),
-            "outdent" => TabInListAsync(-1),
-            "end-list" => EndListAsync(),
-            "unindent" => UnindentAsync(),
-            "follow-on" => FollowOnAsync(),
-            "reset-picture" => ResetPictureAsync(),
-            "heading1" => ApplyStyleAsync("Heading1"),
-            "heading2" => ApplyStyleAsync("Heading2"),
-            "heading3" => ApplyStyleAsync("Heading3"),
-            _ => Task.CompletedTask
-        };
-
     /// <summary>Called from JavaScript when the reader abandons what they were typing.</summary>
     [JSInvokable]
     public Task OnEditCancel(int id) =>
@@ -356,7 +343,7 @@ public partial class MorphViewer
             });
 
     // Goes on editing where an edit left off.
-    Task ResumeAsync(int paragraph, int offset)
+    internal Task ResumeAsync(int paragraph, int offset)
     {
         if (!editOpen ||
             handle is not { } viewer ||
@@ -372,61 +359,82 @@ public partial class MorphViewer
     async Task<EditOptions> EditOptionsAsync() =>
         new(Signature, await ReaderClockAsync(), Tracking);
 
+    /// <summary>Called from JavaScript with a note for the status bar, as when the clipboard could not be read.</summary>
+    [JSInvokable]
+    public Task OnEditNote(string note) =>
+        InvokeAsync(
+            () =>
+            {
+                editNote = note;
+                StateHasChanged();
+            });
+
     /// <summary>
-    /// Called from JavaScript for a toolbar button or a key pressed while no paragraph is open: the
-    /// command applies to the text selected on the pages.
+    /// Called from JavaScript for a button the script handles itself (<c>data-edit-command</c>), or its
+    /// key, when no paragraph is open to take it: the command applies to the text selected on the pages.
     /// </summary>
     [JSInvokable]
     public Task OnEditCommand(string command) =>
         InvokeAsync(
             async () =>
             {
-                if (!editOpen ||
-                    !CanWrite ||
-                    revising)
+                if (!editOpen)
                 {
                     return;
                 }
 
                 editNote = null;
-                await RunAsync(command);
+                await CommandAsync(command);
                 StateHasChanged();
             });
 
-    Task RunAsync(string command)
-    {
-        switch (command)
-        {
-            case "undo":
-                return UndoAsync();
-            case "redo":
-                return RedoAsync();
-            case "track":
-                return SetTrackingAsync(!outline.Tracking);
-            case "bold":
-                return FormatAsync(_ => _.Bold, _ => new(Bold: _));
-            case "italic":
-                return FormatAsync(_ => _.Italic, _ => new(Italic: _));
-            case "underline":
-                return FormatAsync(_ => _.Underline, _ => new(Underline: _));
-            case "strike":
-                return FormatAsync(_ => _.Strikethrough, _ => new(Strike: _));
-            case "align-left":
-                return AlignAsync(TextAlignment.Left);
-            case "align-center":
-                return AlignAsync(TextAlignment.Center);
-            case "align-right":
-                return AlignAsync(TextAlignment.Right);
-            case "align-justify":
-                return AlignAsync(TextAlignment.Justify);
-            case "delete":
-                return DeleteAsync();
-        }
+    // One of the editor's commands, by the name the script gives it: MorphEditor's table, which says when
+    // each can run. The viewer has none.
+    internal virtual Task CommandAsync(string name) =>
+        Task.CompletedTask;
 
-        return Task.CompletedTask;
+    /// <summary>
+    /// Called from JavaScript for a right-click while editing, once what was right-clicked has been
+    /// selected — a picture, a place in the paragraph being typed, or the paragraph there opened as a
+    /// click opens it: where, in pixels from the editor's top left.
+    /// </summary>
+    [JSInvokable]
+    public Task OnContextMenu(double x, double y) =>
+        InvokeAsync(
+            () =>
+            {
+                if (!editOpen)
+                {
+                    return;
+                }
+
+                OpenContextMenu(x, y);
+                StateHasChanged();
+            });
+
+    /// <summary>
+    /// Called from JavaScript for Escape while a menu or a dialog is open: that closes, and the key goes no
+    /// further, so the paragraph being typed in keeps what was typed.
+    /// </summary>
+    [JSInvokable]
+    public Task OnMenuEscape() =>
+        InvokeAsync(
+            () =>
+            {
+                CloseMenus();
+                StateHasChanged();
+            });
+
+    // MorphEditor's: the viewer has no right-click menu, and no menus of its own to close.
+    internal virtual void OpenContextMenu(double x, double y)
+    {
     }
 
-    Task SetTrackingAsync(bool on)
+    internal virtual void CloseMenus()
+    {
+    }
+
+    internal Task SetTrackingAsync(bool on)
     {
         if (outline.ForcesTracking)
         {
@@ -453,7 +461,7 @@ public partial class MorphViewer
     }
 
     // As a word processor's buttons do: on, unless all of what is selected already is.
-    async Task FormatAsync(Func<RunProperties, bool> has, Func<bool, RunFormat> format)
+    internal async Task FormatAsync(Func<RunProperties, bool> has, Func<bool, RunFormat> format)
     {
         if (Selected() is not var (start, end))
         {
@@ -466,7 +474,7 @@ public partial class MorphViewer
         await ReviseAsync(_ => DocumentEditor.Format(_, start, end, format(!all), options), relayout: true, () => activeKey);
     }
 
-    async Task AlignAsync(TextAlignment alignment)
+    internal async Task AlignAsync(TextAlignment alignment)
     {
         if (Selected() == null)
         {
@@ -487,7 +495,7 @@ public partial class MorphViewer
         await ReviseAsync(_ => DocumentEditor.Align(_, paragraphs, alignment, options), relayout: true, () => activeKey);
     }
 
-    async Task DeleteAsync()
+    internal async Task DeleteAsync()
     {
         if (Selected() is not var (start, end))
         {

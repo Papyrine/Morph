@@ -4,6 +4,9 @@
 sealed record ParagraphProperties
 {
     public TextAlignment Alignment { get; init; } = TextAlignment.Left;
+
+    /// <summary><c>w:textAlignment</c>: where the line's smaller runs sit against its largest.</summary>
+    public FontAlignment FontAlignment { get; init; }
     public double SpacingBeforePoints { get; init; }
     // OpenXML default when not specified
     public double SpacingAfterPoints { get; init; }
@@ -35,6 +38,19 @@ sealed record ParagraphProperties
     /// The line spacing rule to apply.
     /// </summary>
     public LineSpacingRule LineSpacingRule { get; init; } = LineSpacingRule.Auto;
+
+    /// <summary>
+    /// <c>w:snapToGrid</c> as the paragraph and its styles resolve it: whether its lines snap to the
+    /// document grid. On unless switched off.
+    /// </summary>
+    public bool SnapToGrid { get; init; } = true;
+
+    /// <summary>
+    /// The document grid's line pitch this paragraph's lines snap to (<c>w:docGrid</c>), 0 when they do
+    /// not: off a grid, <see cref="SnapToGrid"/> off, in a header, footer or note, or in a table cell
+    /// without <c>w:adjustLineHeightInTable</c>. See <see cref="CanonicalTextMeasurer.GridLine"/>.
+    /// </summary>
+    public double GridLinePitchPoints { get; init; }
 
     public double FirstLineIndentPoints { get; init; }
     public double LeftIndentPoints { get; init; }

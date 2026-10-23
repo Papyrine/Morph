@@ -3,12 +3,13 @@
 	<div class="editor-titlebar">
 		<div class="editor-tabs" role="tablist" aria-label="Ribbon">
 			<button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="49">Home</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="50">Insert</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="51">Layout</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="52">Table</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="53">Review</button>
-			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="54">View</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="106">Home</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="true" blazor:onmousedown:preventdefault="" blazor:onclick="107">Insert</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="108">Layout</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="109">References</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="110">Review</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="111">View</button>
+			<button type="button" role="tab" class="editor-tab" aria-selected="false" blazor:onmousedown:preventdefault="" blazor:onclick="112">Table</button>
 		</div>
 		<span class="editor-name" title="edit.docx">edit.docx</span>
 		<div class="editor-quick">
@@ -31,56 +32,28 @@
 	</div>
 	<div class="editor-tools" role="tabpanel" aria-label="Insert">
 		<div class="editor-group" role="group" aria-label="Pages">
-			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="55">
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="113">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 16l-4 4l-4-4m-5-4h18M8 8l4-4l4 4"></path>
-				</svg>
-				Page break
-			</button>
-		</div>
-		<div class="editor-group" role="group" aria-label="Header, footer and notes">
-			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="56">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
-						<path d="M3 9h18"></path>
-					</g>
-				</svg>
-				Header
-			</button>
-			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="57">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
-						<path d="M3 15h18"></path>
-					</g>
-				</svg>
-				Footer
-			</button>
-			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="58">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 19l8-8m0 8l-8-8m16 1h-4c0-1.5.442-2 1.5-2.5S20 8.334 20 7.002c0-.472-.17-.93-.484-1.29a2.105 2.105 0 0 0-2.617-.436c-.42.239-.738.614-.899 1.06"></path>
-				</svg>
-				Footnote
-			</button>
+				</svg>Page break</button>
 		</div>
 		<div class="editor-group" role="group" aria-label="Tables">
-			<button type="button" class="editor-tool" aria-haspopup="dialog" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="59">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-						<path d="M12 3v18"></path>
-						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
-						<path d="M3 9h18M3 15h18"></path>
-					</g>
-				</svg>
-				Table
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="editor-caret" aria-hidden="true" focusable="false">
-					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path>
-				</svg>
-			</button>
+			<span class="editor-anchor">
+				<button type="button" class="editor-tool editor-large" aria-haspopup="dialog" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="114">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+							<path d="M12 3v18"></path>
+							<rect width="18" height="18" x="3" y="3" rx="2"></rect>
+							<path d="M3 9h18M3 15h18"></path>
+						</g>
+					</svg>Table<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="editor-caret" aria-hidden="true" focusable="false">
+						<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path>
+					</svg>
+				</button>
+			</span>
 		</div>
 		<div class="editor-group" role="group" aria-label="Illustrations">
-			<label class="editor-tool " blazor:onmousedown:preventdefault="" blazor:onclick="60">
+			<label class="editor-tool editor-large " blazor:onmousedown:preventdefault="" blazor:onclick="115">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 						<path d="M16 5h6m-3-3v6m2 3.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5"></path>
@@ -93,15 +66,56 @@
 			</label>
 		</div>
 		<div class="editor-group" role="group" aria-label="Links">
-			<button type="button" class="editor-tool" blazor:onmousedown:preventdefault="" blazor:onclick="61">
+			<button type="button" class="editor-tool editor-large" title="Link (Ctrl+K)" aria-keyshortcuts="Control+K" aria-haspopup="dialog" blazor:onmousedown:preventdefault="" blazor:onclick="116">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
 						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
 					</g>
-				</svg>
-				Link
-			</button>
+				</svg>Link</button>
+			<button type="button" class="editor-tool editor-large" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="117">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18.84 12.25l1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07a5.006 5.006 0 0 0-6.95 0l-1.72 1.71m-6.58 6.57l-1.71 1.71a5.004 5.004 0 0 0 .12 7.07a5.006 5.006 0 0 0 6.95 0l1.71-1.71M8 2v3M2 8h3m11 11v3m3-6h3"></path>
+				</svg>Remove link</button>
+			<button type="button" class="editor-tool editor-large" aria-haspopup="dialog" blazor:onmousedown:preventdefault="" blazor:onclick="118">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path>
+				</svg>Bookmark</button>
+		</div>
+		<div class="editor-group" role="group" aria-label="Header and footer">
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="119">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
+						<path d="M3 9h18"></path>
+					</g>
+				</svg>Header</button>
+			<button type="button" class="editor-tool editor-large" blazor:onmousedown:preventdefault="" blazor:onclick="120">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
+						<path d="M3 15h18"></path>
+					</g>
+				</svg>Footer</button>
+			<span class="editor-anchor">
+				<button type="button" class="editor-tool editor-large" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="121">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 9h16M4 15h16M10 3L8 21m8-18l-2 18"></path>
+					</svg>Page number<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="editor-caret" aria-hidden="true" focusable="false">
+						<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path>
+					</svg>
+				</button>
+			</span>
+		</div>
+		<div class="editor-group" role="group" aria-label="Text">
+			<button type="button" class="editor-tool editor-large" aria-haspopup="dialog" blazor:onmousedown:preventdefault="" blazor:onclick="122">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+						<path d="M8 2v3m8-3v3"></path>
+						<rect width="18" height="18" x="3" y="3" rx="2"></rect>
+						<path d="M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"></path>
+					</g>
+				</svg>Date &amp; time</button>
 		</div>
 	</div>
 </div>
