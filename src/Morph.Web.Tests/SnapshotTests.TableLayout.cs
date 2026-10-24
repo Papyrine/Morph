@@ -190,7 +190,7 @@ public partial class SnapshotTests
         }
 
         var rows = table.Elements<WordRow>().ToList();
-        var text = string.Join("/", rows.Select(row => string.Join("|", row.Elements<WordCell>().Select(_ => _.InnerText))));
+        var text = string.Join('/', rows.Select(row => string.Join('|', row.Elements<WordCell>().Select(_ => _.InnerText))));
         var widths = rows[0].Elements<WordCell>().Select(_ => _.TableCellProperties?.TableCellWidth?.Width?.Value ?? "").ToList();
         return new(rows.Count, table.GetFirstChild<TableGrid>()?.Elements<GridColumn>().Count() ?? 0, text, table.OuterXml, widths);
     }

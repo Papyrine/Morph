@@ -156,13 +156,13 @@ public class SvgPictureLayoutTests
         var fills = Images(fragmenter.Layout(document.Elements, document.PageSettings))
             .Select(_ => _.Vector?.Paths.Single().FillColorHex);
 
-        await Assert.That(string.Join(" ", fills)).IsEqualTo("4285F4 EA4335 34A853");
+        await Assert.That(string.Join(' ', fills)).IsEqualTo("4285F4 EA4335 34A853");
     }
 
     [Test]
     public async Task A_PowerPoint_picture_that_is_only_an_SVG_is_parsed_and_placed()
     {
-        // education-infographics-poster's cap, microscope and figures: an a:blip with no r:embed,
+        // education-infographics-poser's cap, microscope and figures: an a:blip with no r:embed,
         // only the asvg:svgBlip extension.
         await using var stream = File.OpenRead(Input("powerpoint/education-infographics-poster"));
         var document = PowerPointConverter.Parse(stream, null);
@@ -218,7 +218,7 @@ public class SvgPictureLayoutTests
         }
 
         await Assert.That(read).IsGreaterThanOrEqualTo(110);
-        await Assert.That(string.Join("\n", givenUp)).IsEqualTo(
+        await Assert.That(string.Join('\n', givenUp)).IsEqualTo(
             """
             excel/inventory-list-with-highlighting: a gradient fill
             word/cards/12: opacity on a group of shapes that overlap

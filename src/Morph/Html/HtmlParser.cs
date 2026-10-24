@@ -1693,13 +1693,16 @@ sealed class HtmlParser
                     var runStyles = ParseStyleAttribute(fontStyle)
                         .Where(_ => _.Key is not ("background" or "background-color" or "color"))
                         .Select(_ => $"{_.Key}:{_.Value}");
-                    cellRunProperties = ApplyStyleToRunProps(string.Join(";", runStyles), cellRunProperties);
+                    cellRunProperties = ApplyStyleToRunProps(string.Join(';', runStyles), cellRunProperties);
                 }
 
                 // The cell's inline content keeps its own formatting (<b>, <i>, <span style>...)
                 // layered over the cell's run properties, rather than flattening to one run.
                 var cellRuns = ParseInlineElements(cell, cellRunProperties);
-                if (cellRuns.Any(_ => _.InlineImageData != null || _.InlineShapeGroup != null || !string.IsNullOrWhiteSpace(_.Text)))
+                if (cellRuns.Any(_ =>
+                        _.InlineImageData != null ||
+                        _.InlineShapeGroup != null ||
+                        !string.IsNullOrWhiteSpace(_.Text)))
                 {
                     cellElements.Add(
                         new ParagraphElement

@@ -101,7 +101,7 @@ public partial class SnapshotTests
             await page.WaitForTimeoutAsync(250);
         }
 
-        throw new($"The lists did not become {string.Join(" ", expected)}.");
+        throw new($"The lists did not become {string.Join(' ', expected)}.");
     }
 
     static async Task WaitForNumberingAsync(IPage page, Func<string, bool> expected)

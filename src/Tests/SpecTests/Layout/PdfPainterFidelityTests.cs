@@ -96,7 +96,7 @@ public class PdfPainterFidelityTests
         report.Add("");
         report.Add("Worst 12:");
         report.AddRange(ordered.AsEnumerable().Reverse().Take(12).Select(_ => $"  {_.Ssim:F3}  {_.Name} ({_.Pages}p)"));
-        Console.WriteLine(string.Join("\n", report));
+        Console.WriteLine(string.Join('\n', report));
 
         // MORPH_FID_REPORT: the TUnit runner swallows the Console output above, so when this env var is
         // set write the full per-document ranking to the named file for fidelity-floor triage. Off by default.
