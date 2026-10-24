@@ -1731,7 +1731,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var pageItems = backgroundImages.Count == 0 &&
                                 footerImages.Count == 0 &&
                                 headerBand.Count == 0 &&
-                                footerBand.Count == 0 && behindFloats.Count == 0 && frontFloats.Count == 0
+                                footerBand.Count == 0 &&
+                                behindFloats.Count == 0 &&
+                                frontFloats.Count == 0
                     ? body
                     : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. footerImages, .. headerBand, .. footerBand, .. behindFloats, .. body, .. frontFloats];
                 pages.Add(new(pageNumber, settings, pageItems));

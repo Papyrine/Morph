@@ -28,7 +28,8 @@ sealed record CellBorders
 
     /// <summary>True when the given side is declared here AND declared invisible (<c>nil</c>/<c>none</c>).</summary>
     public bool DeclaresInvisible(BorderSides side) =>
-        (Declared & side) != 0 && !Edge(side).IsVisible;
+        (Declared & side) != 0 &&
+        !Edge(side).IsVisible;
 
     public BorderEdge Edge(BorderSides side) => side switch
     {

@@ -91,7 +91,8 @@ sealed class DefinedNames
             }
 
             // A row band is digits only ("1:4"); a column band would be letters.
-            if (int.TryParse(bounds[0], out var first) && int.TryParse(bounds[1], out var last))
+            if (int.TryParse(bounds[0], out var first) &&
+                int.TryParse(bounds[1], out var last))
             {
                 return (Math.Min(first, last), Math.Max(first, last));
             }

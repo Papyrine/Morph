@@ -89,7 +89,8 @@ static partial class NumberFormat
                 if (candidate.Condition == null)
                 {
                     // The first unconditional section is the else branch.
-                    return (candidate, value < 0 && sections.Count > 1);
+                    return (candidate, value < 0 &&
+                                       sections.Count > 1);
                 }
 
                 if (candidate.Condition.Value.Matches(value))
@@ -101,12 +102,14 @@ static partial class NumberFormat
             return (sections[^1], false);
         }
 
-        if (value < 0 && sections.Count > 1)
+        if (value < 0 &&
+            sections.Count > 1)
         {
             return (sections[1], true);
         }
 
-        if (value == 0 && sections.Count > 2)
+        if (value == 0 &&
+            sections.Count > 2)
         {
             return (sections[2], false);
         }
@@ -134,13 +137,15 @@ static partial class NumberFormat
                 continue;
             }
 
-            if (ch == '\\' && i + 1 < formatCode.Length)
+            if (ch == '\\' &&
+                i + 1 < formatCode.Length)
             {
                 current.Append(ch).Append(formatCode[++i]);
                 continue;
             }
 
-            if (ch == ';' && !quoted)
+            if (ch == ';' &&
+                !quoted)
             {
                 sections.Add(Section.Parse(current.ToString()));
                 current.Clear();
@@ -199,7 +204,8 @@ static partial class NumberFormat
 
                 // An elapsed-time bracket is the one bracket group that IS a date token.
                 var inner = body[(i + 1)..close];
-                if (inner.Length > 0 && inner.All(_ => _ is 'h' or 'm' or 's' or 'H' or 'M' or 'S'))
+                if (inner.Length > 0 &&
+                    inner.All(_ => _ is 'h' or 'm' or 's' or 'H' or 'M' or 'S'))
                 {
                     return true;
                 }
@@ -219,7 +225,8 @@ static partial class NumberFormat
 
     static string General(double value)
     {
-        if (value == Math.Floor(value) && Math.Abs(value) < 1e15)
+        if (value == Math.Floor(value) &&
+            Math.Abs(value) < 1e15)
         {
             return ((long) value).ToString(CultureInfo.InvariantCulture);
         }

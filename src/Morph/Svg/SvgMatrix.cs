@@ -71,7 +71,8 @@ readonly record struct SvgMatrix(double A, double B, double C, double D, double 
         while (position < span.Length)
         {
             var nameStart = position;
-            while (position < span.Length && char.IsAsciiLetter(span[position]))
+            while (position < span.Length &&
+                   char.IsAsciiLetter(span[position]))
             {
                 position++;
             }

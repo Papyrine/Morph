@@ -96,7 +96,8 @@ static class PngWriter
                 // of a page is such rows — its margins, and the whole of a page with nothing on it — and
                 // trying all five filters on each had made encoding a large page cost twenty times its
                 // painting (MalformedPackageTests' 14,400pt pages). The bytes are the five-way search's.
-                if (y > 0 && current.AsSpan().SequenceEqual(previous))
+                if (y > 0 &&
+                    current.AsSpan().SequenceEqual(previous))
                 {
                     best[0] = current.AsSpan().IndexOfAnyExcept((byte) 0) < 0 ? (byte) 0 : (byte) 2;
                     best.AsSpan(1).Clear();
@@ -141,7 +142,8 @@ static class PngWriter
 
             // A row the same as the one above holds nothing new: its pixels were all checked there, and
             // its indices are that row's.
-            if (y > 0 && row.SequenceEqual(rgba.Slice((y - 1) * stride, width * 4)))
+            if (y > 0 &&
+                row.SequenceEqual(rgba.Slice((y - 1) * stride, width * 4)))
             {
                 if (palette != null)
                 {
@@ -257,7 +259,8 @@ static class PngWriter
         var toLeft = Math.Abs(estimate - left);
         var toUp = Math.Abs(estimate - up);
         var toUpLeft = Math.Abs(estimate - upLeft);
-        if (toLeft <= toUp && toLeft <= toUpLeft)
+        if (toLeft <= toUp &&
+            toLeft <= toUpLeft)
         {
             return left;
         }

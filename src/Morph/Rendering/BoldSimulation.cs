@@ -43,7 +43,8 @@ static class BoldSimulation
     /// face that declares no weight is taken as it comes.
     /// </summary>
     public static bool Applies(bool bold, int faceWeight) =>
-        bold && faceWeight is > 0 and < emboldenedBelow;
+        bold &&
+        faceWeight is > 0 and < emboldenedBelow;
 
     /// <summary>How a run asking for <paramref name="bold"/> is drawn in the face it resolved.</summary>
     public static SyntheticBold For(bool bold, FontMetrics face)

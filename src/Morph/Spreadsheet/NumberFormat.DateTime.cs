@@ -249,14 +249,16 @@ static partial class NumberFormat
     static int RunLength(string body, int index, out char token)
     {
         var ch = char.ToLowerInvariant(body[index]);
-        if (ch is 'a' && body.Length - index >= 5 &&
+        if (ch is 'a' &&
+            body.Length - index >= 5 &&
             body[index..(index + 5)].Equals("AM/PM", StringComparison.OrdinalIgnoreCase))
         {
             token = 'a';
             return 5;
         }
 
-        if (ch is 'a' && body.Length - index >= 3 &&
+        if (ch is 'a' &&
+            body.Length - index >= 3 &&
             body[index..(index + 3)].Equals("A/P", StringComparison.OrdinalIgnoreCase))
         {
             token = 'a';
@@ -271,7 +273,8 @@ static partial class NumberFormat
 
         token = ch;
         var run = 1;
-        while (index + run < body.Length && char.ToLowerInvariant(body[index + run]) == ch)
+        while (index + run < body.Length &&
+               char.ToLowerInvariant(body[index + run]) == ch)
         {
             run++;
         }

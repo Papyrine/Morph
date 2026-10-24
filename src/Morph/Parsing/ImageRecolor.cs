@@ -82,7 +82,8 @@ sealed record ImageRecolor(BlipColorEffect Effect, string? DarkHex, string? Ligh
     // still renders as a ramp rather than collapsing to a flat fill.
     static (float Red, float Green, float Blue) Channels(string? hex, float fallback)
     {
-        if (hex != null && hex.TryParse(out var red, out var green, out var blue))
+        if (hex != null &&
+            hex.TryParse(out var red, out var green, out var blue))
         {
             return (red / 255f, green / 255f, blue / 255f);
         }

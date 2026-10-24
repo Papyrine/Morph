@@ -12,13 +12,15 @@ static class OpenXmlExtensions
     /// </summary>
     public static string TrimmedToString(this StringBuilder builder)
     {
-        while (builder.Length > 0 && char.IsWhiteSpace(builder[^1]))
+        while (builder.Length > 0 &&
+               char.IsWhiteSpace(builder[^1]))
         {
             builder.Length--;
         }
 
         var start = 0;
-        while (start < builder.Length && char.IsWhiteSpace(builder[start]))
+        while (start < builder.Length &&
+               char.IsWhiteSpace(builder[start]))
         {
             start++;
         }
@@ -48,7 +50,8 @@ static class OpenXmlExtensions
     }
 
     public static bool IsOn(this OnOffType? element) =>
-        element != null && element.Val?.Value != false;
+        element != null &&
+        element.Val?.Value != false;
 
     /// <summary>
     /// Extracts dimensions from a Drawing element (works with both Inline and Anchor).
@@ -129,7 +132,8 @@ static class OpenXmlExtensions
             // children then inherit the group's delta through the ordinary transform math
             // (inline_group_crop's 568pt board centres on a 468pt margin area, left edge
             // 50pt LEFT of the margin; unfolded it sat AT the margin, ~100px right of Word).
-            if (emuOffset == null && pctOffset == null && page != null &&
+            if (emuOffset == null &&
+                pctOffset == null && page != null &&
                 ReadAlignValue(posH) is { } alignH &&
                 anchor.Extent.GetDimensions() is { } sizeH &&
                 !IsCellOrTextBoxAnchored(anchor))
@@ -176,7 +180,8 @@ static class OpenXmlExtensions
             // Vertical wp:align folds only against page/margin boxes — paragraph- and
             // line-relative alignment needs the flow position, which parse time doesn't
             // have (and render-side ResolveShapeY already approximates those anchors).
-            if (emuOffset == null && pctOffset == null && page != null &&
+            if (emuOffset == null &&
+                pctOffset == null && page != null &&
                 ReadAlignValue(posV) is { } alignV &&
                 anchor.Extent.GetDimensions() is { } sizeV &&
                 !IsCellOrTextBoxAnchored(anchor))
@@ -264,7 +269,8 @@ static class OpenXmlExtensions
             OpenXmlElement? fallback = null;
             foreach (var branch in child.ChildElements)
             {
-                if (branch.LocalName == "Choice" && IsChoiceUnderstood(branch))
+                if (branch.LocalName == "Choice" &&
+                    IsChoiceUnderstood(branch))
                 {
                     choice = branch;
                 }

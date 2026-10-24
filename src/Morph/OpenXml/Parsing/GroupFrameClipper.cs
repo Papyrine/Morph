@@ -40,7 +40,10 @@ static class GroupFrameClipper
         var clipBottom = clipTop + frameHeight / shapeHeight;
 
         // Shape fully inside the frame: nothing to do.
-        if (clipLeft <= 0 && clipTop <= 0 && clipRight >= 1 && clipBottom >= 1)
+        if (clipLeft <= 0 &&
+            clipTop <= 0 &&
+            clipRight >= 1 &&
+            clipBottom >= 1)
         {
             return subpaths;
         }

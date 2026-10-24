@@ -181,7 +181,8 @@ sealed record ColorTransforms
         }
 
         // ReSharper disable once CompareOfFloatsByEqualityOperator — exact 1.0/0.0 means "no-op".
-        if (lumMod == 1.0 && lumOff == 0.0)
+        if (lumMod == 1.0 &&
+            lumOff == 0.0)
         {
             return;
         }

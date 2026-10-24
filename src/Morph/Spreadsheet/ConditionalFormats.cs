@@ -64,8 +64,10 @@ sealed class ConditionalFormats
         ConditionalOverlay? overlay = null;
 
         var matches = blocks
-            .Where(_ => row >= _.Range.FirstRow && row <= _.Range.LastRow &&
-                        column >= _.Range.FirstColumn && column <= _.Range.LastColumn)
+            .Where(_ => row >= _.Range.FirstRow &&
+                        row <= _.Range.LastRow &&
+                        column >= _.Range.FirstColumn &&
+                        column <= _.Range.LastColumn)
             .SelectMany(_ => _.Rules)
             .Where(_ => Matches(_, text, number))
             .OrderByDescending(_ => _.Priority);
@@ -133,7 +135,9 @@ sealed class ConditionalFormats
 
         var first = rule.Formulas[0];
 
-        if (first.StartsWith('"') && first.EndsWith('"') && first.Length >= 2)
+        if (first.StartsWith('"') &&
+            first.EndsWith('"') &&
+            first.Length >= 2)
         {
             var literal = first[1..^1];
             return rule.Operator switch
@@ -164,8 +168,11 @@ sealed class ConditionalFormats
             "greaterThanOrEqual" => value >= operand,
             "lessThan" => value < operand,
             "lessThanOrEqual" => value <= operand,
-            "between" => second is { } high && value >= Math.Min(operand, high) && value <= Math.Max(operand, high),
-            "notBetween" => second is { } bound && (value < Math.Min(operand, bound) || value > Math.Max(operand, bound)),
+            "between" => second is { } high &&
+                         value >= Math.Min(operand, high) &&
+                         value <= Math.Max(operand, high),
+            "notBetween" => second is { } bound &&
+                            (value < Math.Min(operand, bound) || value > Math.Max(operand, bound)),
             _ => false
         };
     }
@@ -179,7 +186,8 @@ sealed class ConditionalFormats
         }
 
         var scale = type == "colorScale" ? ParseColorScale(rule) : null;
-        if (type == "colorScale" && scale == null)
+        if (type == "colorScale" &&
+            scale == null)
         {
             return null;
         }
@@ -243,7 +251,8 @@ sealed class ConditionalFormats
             return argb;
         }
 
-        if (color.Theme?.Value is { } theme && themeColors != null)
+        if (color.Theme?.Value is { } theme &&
+            themeColors != null)
         {
             return themeColors.ResolveColor(theme switch
             {

@@ -47,7 +47,8 @@ static class WordArtArch
     /// that width plus twice the ink height (both in the same unit, the ink height at the declared size).
     /// </summary>
     public static float Scale(float textRectWidth, float inkHeight) =>
-        textRectWidth > 0 && inkHeight > 0 ? textRectWidth / (textRectWidth + 2 * inkHeight) : 1;
+        textRectWidth > 0 &&
+        inkHeight > 0 ? textRectWidth / (textRectWidth + 2 * inkHeight) : 1;
 
     /// <summary>
     /// The side of the text rect <see cref="Scale"/> is taken on: the width for an arch, the longer

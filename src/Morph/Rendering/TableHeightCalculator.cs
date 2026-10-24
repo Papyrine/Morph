@@ -361,7 +361,8 @@ static class TableHeightCalculator
 
         // w:hideMark: when the cell's only content is an empty end-of-cell paragraph mark,
         // suppress its height contribution so the cell can collapse below one line of text.
-        if (cell.Properties.HideMark && IsOnlyEmptyParagraph(cell.Content))
+        if (cell.Properties.HideMark &&
+            IsOnlyEmptyParagraph(cell.Content))
         {
             return height;
         }
@@ -460,7 +461,8 @@ static class TableHeightCalculator
             // below its content: letters/04's four 18pt-after RecipientAddress lines left 54pt
             // of it, and the salutation and everything under it — down to the footer contact
             // strip, which landed in the navy band — shifted down the page by that much.
-            var previousIsParagraph = i > 0 && !separatedFromPrevious.Contains(i);
+            var previousIsParagraph = i > 0 &&
+                                      !separatedFromPrevious.Contains(i);
             var (keptAfter, keptBefore) = ParagraphGap.Between(previousAfter, previousContextual, previousStyleId, previousIsParagraph, props);
 
             // The previous paragraph's after is already in the height; what it does not keep
@@ -482,7 +484,8 @@ static class TableHeightCalculator
                 var opensGroup = i == 0 ||
                                  separatedFromPrevious.Contains(i) ||
                                  !paragraphs[i - 1].Properties.SharesBorderGroupWith(props);
-                if (opensGroup && BorderStroke.Draws(paragraphBorders.Top))
+                if (opensGroup &&
+                    BorderStroke.Draws(paragraphBorders.Top))
                 {
                     height += (float) (BorderStroke.Extent(paragraphBorders.Top.Style, paragraphBorders.Top.WidthPoints) + props.BorderTopSpacePoints);
                 }
@@ -497,7 +500,8 @@ static class TableHeightCalculator
                 var closesGroup = i == paragraphs.Count - 1 ||
                                   separatedFromPrevious.Contains(i + 1) ||
                                   !props.SharesBorderGroupWith(paragraphs[i + 1].Properties);
-                if (closesGroup && BorderStroke.Draws(paragraphBorders.Bottom))
+                if (closesGroup &&
+                    BorderStroke.Draws(paragraphBorders.Bottom))
                 {
                     height += (float) (BorderStroke.Extent(paragraphBorders.Bottom.Style, paragraphBorders.Bottom.WidthPoints) + props.BorderBottomSpacePoints);
                 }
@@ -519,7 +523,8 @@ static class TableHeightCalculator
         // The paragraph that ends the cell gives its after up to contextual spacing like any other:
         // against the next cell's first paragraph, or the row's own end mark
         // (ParagraphGap.DropsCellEndAfter).
-        if (paragraphs.Count > 0 && ParagraphGap.DropsCellEndAfter(row, cell))
+        if (paragraphs.Count > 0 &&
+            ParagraphGap.DropsCellEndAfter(row, cell))
         {
             height -= previousAfter;
         }

@@ -154,7 +154,8 @@ static class RevisionElements
         {
             var first = sorted[index];
             var last = first;
-            while (index + 1 < sorted.Count && sorted[index + 1] == last + 1)
+            while (index + 1 < sorted.Count &&
+                   sorted[index + 1] == last + 1)
             {
                 last = sorted[++index];
             }

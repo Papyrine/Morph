@@ -250,7 +250,8 @@ sealed class SpreadsheetParser(
         // declares A1:K, stops at F, and came out at 63% against Excel's cached 90%.
         var declaredRange = CellReference.ParseRange(worksheet.SheetDimension?.Reference?.Value);
         var populated = UsedRange(worksheet);
-        var used = declaredRange is { } dr && populated is { } pr
+        var used = declaredRange is { } dr &&
+                   populated is { } pr
             ? dr.Intersect(pr) is { IsEmpty: false } both ? both : populated
             // A sheet carrying no cells at all leaves dimension as the ONLY statement of extent,
             // with nothing to clip it against — so it is capped instead.
@@ -477,7 +478,8 @@ sealed class SpreadsheetParser(
 
         var shaped = worksheet.GetFirstChild<S.Columns>()?
             .Elements<S.Column>()
-            .Where(_ => _.CustomWidth?.Value == true && _.Max?.Value is < maxShapedColumn)
+            .Where(_ => _.CustomWidth?.Value == true &&
+                        _.Max?.Value is < maxShapedColumn)
             .Select(_ => (int) _.Max!.Value)
             .DefaultIfEmpty(0)
             .Max() ?? 0;
@@ -664,7 +666,8 @@ sealed class SpreadsheetParser(
         {
             var natural = builder.NaturalWidthPoints(worksheet, range);
             var available = settings.ContentWidth * pagesWide;
-            if (natural > available && natural > 0)
+            if (natural > available &&
+                natural > 0)
             {
                 scale = available / natural;
             }
@@ -674,7 +677,8 @@ sealed class SpreadsheetParser(
         {
             var natural = SheetGridBuilder.NaturalHeightPoints(worksheet, range);
             var available = (settings.HeightPoints - settings.MarginTop - settings.MarginBottom) * pagesTall;
-            if (natural > available && natural > 0)
+            if (natural > available &&
+                natural > 0)
             {
                 scale = Math.Min(scale, available / natural);
             }

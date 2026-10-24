@@ -53,7 +53,8 @@ static class TableLayout
         var (rowTop, rowBottom) = RowVerticalPadding(row, tableProps);
         var top = Math.Max(own.Top, rowTop);
         var bottom = Math.Max(own.Bottom, rowBottom);
-        return top == own.Top && bottom == own.Bottom ? own : own with {Top = top, Bottom = bottom};
+        return top == own.Top &&
+               bottom == own.Bottom ? own : own with {Top = top, Bottom = bottom};
     }
 
     internal static CellSpacing OwnPadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row) =>
@@ -144,7 +145,8 @@ static class TableLayout
         var left = leftInset + (gridCol == 0 ? leftInset : 0);
         var right = rightInset + (gridCol + span >= totalCols ? rightInset : 0);
         var top = topInset + (rowIndex == 0 ? topInset : 0);
-        var bottom = bottomInset + (rowIndex >= 0 && rowIndex == totalRows - 1 ? bottomInset : 0);
+        var bottom = bottomInset + (rowIndex >= 0 &&
+                                    rowIndex == totalRows - 1 ? bottomInset : 0);
         return new(top, right, bottom, left);
     }
 
@@ -154,7 +156,8 @@ static class TableLayout
     /// draws nothing. See <see cref="CellSpacingInsets"/>.
     /// </summary>
     internal static double SpacingInset(TableProperties tableProps, BorderEdge? edge) =>
-        tableProps.CellSpacingPoints + (edge != null && BorderStroke.Draws(edge) ? edge.WidthPoints : 0);
+        tableProps.CellSpacingPoints + (edge != null &&
+                                        BorderStroke.Draws(edge) ? edge.WidthPoints : 0);
 
     /// <summary>
     /// Half a cell edge's declared stack, which is how far it reaches into the cell — a vertical cell
@@ -167,7 +170,8 @@ static class TableLayout
     /// </summary>
     internal static double HalfBorder(BorderEdge? edge)
     {
-        if (edge != null && BorderStroke.Draws(edge))
+        if (edge != null &&
+            BorderStroke.Draws(edge))
         {
             return BorderStroke.Extent(edge.Style, edge.WidthPoints, BorderStroke.Scope.Cell) / 2;
         }
@@ -206,7 +210,8 @@ static class TableLayout
         // Detached-border model (w:tblCellSpacing > 0): every cell renders as an isolated
         // box with the table's *outer* border applied to all four edges. The inside
         // borders never appear because adjacent cells don't share an edge — there's a gap.
-        if (tableProps.CellSpacingPoints > 0 && outer != null)
+        if (tableProps.CellSpacingPoints > 0 &&
+            outer != null)
         {
             return new()
             {
@@ -282,7 +287,9 @@ static class TableLayout
 
     static TableRow? RowAt(IReadOnlyList<TableRow>? rows, int rowIndex)
     {
-        if (rows != null && rowIndex >= 0 && rowIndex < rows.Count)
+        if (rows != null &&
+            rowIndex >= 0 &&
+            rowIndex < rows.Count)
         {
             return rows[rowIndex];
         }
@@ -345,7 +352,9 @@ static class TableLayout
         // (mode 15) and 575.4 (mode 12, the outdented box). business-plans/15's cover is such a table —
         // 630pt centred, its title set in two lines — and squeezing it to the column wrapped the title
         // to three. A table with no w:tblW (or w:tblW auto) still squeezes, as before.
-        var squeezes = isAutoFit && table.Properties.PreferredWidthPoints == null && !table.Properties.FillContainer;
+        var squeezes = isAutoFit &&
+                       table.Properties.PreferredWidthPoints == null &&
+                       !table.Properties.FillContainer;
 
         // w:tblGrid defines the columns and the per-cell w:tcW is advisory, so the grid wins when they
         // disagree. labels/13 is the proof: its grid is 11376 twips, exactly the text column, while its
@@ -379,13 +388,15 @@ static class TableLayout
                 var props = cell.Properties;
                 var span = props.GridSpan;
 
-                if (span == 1 && props.WidthPoints.HasValue)
+                if (span == 1 &&
+                    props.WidthPoints.HasValue)
                 {
                     widths[gridColIndex] = Math.Max(widths[gridColIndex], (float) props.WidthPoints.Value);
                     columnHasExplicitWidth[gridColIndex] = true;
                     hasExplicitWidths = true;
                 }
-                else if (span == 1 && props.WidthFraction.HasValue)
+                else if (span == 1 &&
+                         props.WidthFraction.HasValue)
                 {
                     // Percent-preferred cell (w:tcW type="pct"): resolve against the table's
                     // available width so a 45% layout cell gets 45%, not an equal share.
@@ -421,7 +432,8 @@ static class TableLayout
         // branch below already handles them and nothing shows it is wrong. Fixed-layout tables keep
         // the grid because they are sized verbatim rather than fitted, and
         // header_full_bleed_banner's 625.4pt banner grid depends on it.
-        var explicitWidthsCoverAllColumns = hasExplicitWidths && Array.TrueForAll(columnHasExplicitWidth, _ => _);
+        var explicitWidthsCoverAllColumns = hasExplicitWidths &&
+                                            Array.TrueForAll(columnHasExplicitWidth, _ => _);
 
         if (explicitWidthsCoverAllColumns &&
             isAutoFit &&
@@ -431,7 +443,8 @@ static class TableLayout
             return CalculateContentBasedColumnWidths(table, colCount, outdented, measurer, widths);
         }
 
-        if (hasExplicitWidths && !gridIsAuthoritative)
+        if (hasExplicitWidths &&
+            !gridIsAuthoritative)
         {
             var totalExplicitWidth = 0f;
             var columnsWithoutWidth = 0;
@@ -453,7 +466,8 @@ static class TableLayout
             var fillTarget = table.Properties.PreferredWidthPoints is { } declaredWidth
                 ? Math.Min((float) declaredWidth, availableWidth)
                 : availableWidth;
-            if (columnsWithoutWidth > 0 && totalExplicitWidth < fillTarget)
+            if (columnsWithoutWidth > 0 &&
+                totalExplicitWidth < fillTarget)
             {
                 var remainingWidth = fillTarget - totalExplicitWidth;
                 var perColumnWidth = remainingWidth / columnsWithoutWidth;
@@ -469,7 +483,8 @@ static class TableLayout
                 totalExplicitWidth = fillTarget;
             }
 
-            if (totalExplicitWidth > outdented && squeezes)
+            if (totalExplicitWidth > outdented &&
+                squeezes)
             {
                 // Autofit with no declared width only: a FIXED-layout table, or one with a w:tblW of
                 // its own, keeps its widths even when they overflow the text column — see
@@ -480,7 +495,8 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if (totalExplicitWidth > 0 && table.Properties.FillContainer)
+            else if (totalExplicitWidth > 0 &&
+                     table.Properties.FillContainer)
             {
                 // Only grow columns when the table explicitly asked to (w:tblW w:type="pct"),
                 // to the PCT TARGET — fraction × container — and then regardless of
@@ -531,7 +547,8 @@ static class TableLayout
                 totalWidth += width;
             }
 
-            if (totalWidth > outdented && totalWidth > 0 && squeezes)
+            if (totalWidth > outdented &&
+                totalWidth > 0 && squeezes)
             {
                 // Autofit with no declared width only, as in the explicit-widths branch above.
                 var scale = outdented / totalWidth;
@@ -540,7 +557,8 @@ static class TableLayout
                     widths[i] *= scale;
                 }
             }
-            else if ((isAutoFit || table.Properties.FillContainer) && totalWidth > 0 &&
+            else if ((isAutoFit || table.Properties.FillContainer) &&
+                     totalWidth > 0 &&
                      table.Properties.PreferredWidthPoints == null &&
                      (table.Properties.FillContainer || !explicitWidthsCoverAllColumns))
             {
@@ -574,7 +592,8 @@ static class TableLayout
             // No explicit widths anywhere. With autofit + a measurer, distribute by content
             // (Word's default behaviour when w:tblGrid carries bare w:gridCol entries with no
             // w:w). Without a measurer (or with fixed layout), fall back to equal columns.
-            if (isAutoFit && measurer != null)
+            if (isAutoFit &&
+                measurer != null)
             {
                 return CalculateContentBasedColumnWidths(table, colCount, outdented, measurer);
             }
@@ -586,7 +605,8 @@ static class TableLayout
             }
         }
 
-        if (isAutoFit && measurer != null)
+        if (isAutoFit &&
+            measurer != null)
         {
             WidenToMinimums(table, widths, measurer);
         }
@@ -775,7 +795,8 @@ static class TableLayout
                     widths[i] = prefs[i] * scale;
                 }
             }
-            else if (declaredPrefs != null && tableProps.PreferredWidthPoints.HasValue)
+            else if (declaredPrefs != null &&
+                     tableProps.PreferredWidthPoints.HasValue)
             {
                 var scale = fitTarget / sumPref;
                 for (var i = 0; i < colCount; i++)
@@ -883,7 +904,8 @@ static class TableLayout
                 // text needs no width for its padding's sake, a spanned cell's word is held by its
                 // columns together, which an even share of it does not describe, and a rotated
                 // cell's words run down the column rather than across it.
-                if (!preferred && (cellMin <= 0 || span > 1 || props.TextDirection != CellTextDirection.LeftToRight))
+                if (!preferred &&
+                    (cellMin <= 0 || span > 1 || props.TextDirection != CellTextDirection.LeftToRight))
                 {
                     gridColIndex += span;
                     continue;

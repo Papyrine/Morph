@@ -161,7 +161,8 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
     /// </summary>
     static List<DocumentElement> ApplyTextStyle(List<DocumentElement> content, TableStyleCell styled)
     {
-        if (styled.ColorHex == null && !styled.Bold)
+        if (styled.ColorHex == null &&
+            !styled.Bold)
         {
             return content;
         }

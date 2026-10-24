@@ -57,7 +57,8 @@ static partial class DocumentEditor
                     var ahead = run < end.Run ||
                                 (run == end.Run &&
                                  unit.Start < end.Offset);
-                    if (after && ahead)
+                    if (after &&
+                        ahead)
                     {
                         found.Add(unit);
                     }

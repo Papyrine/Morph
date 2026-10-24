@@ -40,7 +40,8 @@ sealed class SheetGeometry
         for (var i = 0; i < columnWidths.Length; i++)
         {
             var column = range.FirstColumn + i;
-            var match = declared.FirstOrDefault(_ => _.Min?.Value <= column && _.Max?.Value >= column);
+            var match = declared.FirstOrDefault(_ => _.Min?.Value <= column &&
+                                                     _.Max?.Value >= column);
 
             // A hidden column occupies no width at all rather than its declared one.
             var chars = match?.Hidden?.Value == true ? 0 : match?.Width?.Value ?? fallbackWidth;
@@ -50,7 +51,8 @@ sealed class SheetGeometry
         defaultRowHeight = (worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints) * scale;
         rowHeights = worksheet.GetFirstChild<S.SheetData>()?
             .Elements<S.Row>()
-            .Where(_ => _.RowIndex?.Value != null && _.Height?.Value != null)
+            .Where(_ => _.RowIndex?.Value != null &&
+                        _.Height?.Value != null)
             .GroupBy(_ => (int) _.RowIndex!.Value)
             .ToDictionary(_ => _.Key, _ => _.First().Height!.Value * scale) ?? [];
     }

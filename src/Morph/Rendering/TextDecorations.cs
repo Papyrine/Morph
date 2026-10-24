@@ -167,7 +167,8 @@ static class TextDecorations
         var index = 0;
         while (index < text.Length)
         {
-            while (index < text.Length && char.IsWhiteSpace(text[index]))
+            while (index < text.Length &&
+                   char.IsWhiteSpace(text[index]))
             {
                 index++;
             }
@@ -178,7 +179,8 @@ static class TextDecorations
             }
 
             var wordStart = index;
-            while (index < text.Length && !char.IsWhiteSpace(text[index]))
+            while (index < text.Length &&
+                   !char.IsWhiteSpace(text[index]))
             {
                 index++;
             }

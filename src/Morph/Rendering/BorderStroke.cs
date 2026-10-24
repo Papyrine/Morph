@@ -294,7 +294,8 @@ static class BorderStroke
     /// </summary>
     internal static (double Thickness, double? Shade)[] CellStack(BorderEdge edge)
     {
-        if (Draws(edge) && Waves(edge.Style).Length == 0)
+        if (Draws(edge) &&
+            Waves(edge.Style).Length == 0)
         {
             return FlooredLayout(edge.Style, edge.WidthPoints);
         }
@@ -583,7 +584,8 @@ static class BorderStroke
         var pad = 0d;
         foreach (var run in runs)
         {
-            if (run.Properties.Border is { } border && !run.BorderInside)
+            if (run.Properties.Border is { } border &&
+                !run.BorderInside)
             {
                 pad = Math.Max(pad, RunBorderReserve(border));
             }
@@ -618,7 +620,9 @@ static class BorderStroke
 
     /// <summary>Whether this edge draws anything at all.</summary>
     internal static bool Draws(BorderEdge edge) =>
-        edge.IsVisible && edge.Style != BorderLineStyle.None && edge.WidthPoints > 0;
+        edge.IsVisible &&
+        edge.Style != BorderLineStyle.None &&
+        edge.WidthPoints > 0;
 
     internal static Band[] SingleBand => singleBand;
 }

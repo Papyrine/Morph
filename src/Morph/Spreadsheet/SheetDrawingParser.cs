@@ -62,7 +62,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
                 continue;
             }
 
-            var notPrinted = printed && anchor.GetFirstChild<XDR.ClientData>()?.PrintWithSheet?.Value == false;
+            var notPrinted = printed &&
+                             anchor.GetFirstChild<XDR.ClientData>()?.PrintWithSheet?.Value == false;
 
             // Anchors are measured from the GRID's left edge, but the elements come out anchored to
             // the page margin — so wherever the grid starts, the art has to start there too. That is
@@ -226,7 +227,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
 
         // A shape carrying text becomes a text box so its label renders; one carrying only a fill or
         // outline becomes a plain shape.
-        if (shape.TextBody is { } body && body.Descendants<A.Text>().Any(_ => !string.IsNullOrWhiteSpace(_.Text)))
+        if (shape.TextBody is { } body &&
+            body.Descendants<A.Text>().Any(_ => !string.IsNullOrWhiteSpace(_.Text)))
         {
             return new FloatingTextBoxElement
             {
@@ -245,7 +247,9 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             };
         }
 
-        if (fill == null && gradient == null && lineColor == null)
+        if (fill == null &&
+            gradient == null &&
+            lineColor == null)
         {
             return null;
         }
