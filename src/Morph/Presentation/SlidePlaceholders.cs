@@ -122,7 +122,8 @@ sealed class SlidePlaceholders
         // An idx-only reference against a layout slot that declared a different type — the corpus's
         // content placeholders (`<p:ph idx="1"/>` against `<p:ph type="body" idx="1"/>`) are already
         // covered by the type default, so this is the last resort before deferring to the master.
-        if (index is { } fallbackIndex && byIndex.TryGetValue(fallbackIndex, out var indexMatch))
+        if (index is { } fallbackIndex &&
+            byIndex.TryGetValue(fallbackIndex, out var indexMatch))
         {
             return indexMatch;
         }

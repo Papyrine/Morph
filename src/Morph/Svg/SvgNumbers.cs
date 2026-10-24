@@ -9,7 +9,8 @@ static class SvgNumbers
     public static void SkipSeparator(CharSpan text, ref int position)
     {
         SkipSpace(text, ref position);
-        if (position < text.Length && text[position] == ',')
+        if (position < text.Length &&
+            text[position] == ',')
         {
             position++;
             SkipSpace(text, ref position);
@@ -18,7 +19,8 @@ static class SvgNumbers
 
     public static void SkipSpace(CharSpan text, ref int position)
     {
-        while (position < text.Length && text[position] is ' ' or '\t' or '\r' or '\n' or '\f')
+        while (position < text.Length &&
+               text[position] is ' ' or '\t' or '\r' or '\n' or '\f')
         {
             position++;
         }
@@ -32,22 +34,26 @@ static class SvgNumbers
     {
         value = 0;
         var index = position;
-        if (index < text.Length && text[index] is '+' or '-')
+        if (index < text.Length &&
+            text[index] is '+' or '-')
         {
             index++;
         }
 
         var digits = 0;
-        while (index < text.Length && char.IsAsciiDigit(text[index]))
+        while (index < text.Length &&
+               char.IsAsciiDigit(text[index]))
         {
             index++;
             digits++;
         }
 
-        if (index < text.Length && text[index] == '.')
+        if (index < text.Length &&
+            text[index] == '.')
         {
             index++;
-            while (index < text.Length && char.IsAsciiDigit(text[index]))
+            while (index < text.Length &&
+                   char.IsAsciiDigit(text[index]))
             {
                 index++;
                 digits++;
@@ -61,17 +67,21 @@ static class SvgNumbers
 
         // An exponent only counts when digits follow it; otherwise the e belongs to whatever comes
         // next (the em of a length, say) and the number ends before it.
-        if (index < text.Length && text[index] is 'e' or 'E')
+        if (index < text.Length &&
+            text[index] is 'e' or 'E')
         {
             var exponent = index + 1;
-            if (exponent < text.Length && text[exponent] is '+' or '-')
+            if (exponent < text.Length &&
+                text[exponent] is '+' or '-')
             {
                 exponent++;
             }
 
-            if (exponent < text.Length && char.IsAsciiDigit(text[exponent]))
+            if (exponent < text.Length &&
+                char.IsAsciiDigit(text[exponent]))
             {
-                while (exponent < text.Length && char.IsAsciiDigit(text[exponent]))
+                while (exponent < text.Length &&
+                       char.IsAsciiDigit(text[exponent]))
                 {
                     exponent++;
                 }

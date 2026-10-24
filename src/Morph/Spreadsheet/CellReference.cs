@@ -68,7 +68,8 @@ static class CellReference
         }
 
         var digits = new string([.. reference.SkipWhile(char.IsAsciiLetter).TakeWhile(char.IsAsciiDigit)]);
-        if (int.TryParse(digits, out var row) && row <= MaxRow)
+        if (int.TryParse(digits, out var row) &&
+            row <= MaxRow)
         {
             return row;
         }
@@ -110,14 +111,16 @@ static class CellReference
             return null;
         }
 
-        if (parts.All(_ => _.Length > 0 && _.All(char.IsAsciiLetter)) &&
+        if (parts.All(_ => _.Length > 0 &&
+                           _.All(char.IsAsciiLetter)) &&
             ColumnOf(parts[0] + "1") is > 0 and var firstColumn &&
             ColumnOf(parts[1] + "1") is > 0 and var lastColumn)
         {
             return new(1, Math.Min(firstColumn, lastColumn), MaxRow, Math.Max(firstColumn, lastColumn));
         }
 
-        if (parts.All(_ => _.Length > 0 && _.All(char.IsAsciiDigit)) &&
+        if (parts.All(_ => _.Length > 0 &&
+                           _.All(char.IsAsciiDigit)) &&
             RowOf("A" + parts[0]) is > 0 and var firstRow &&
             RowOf("A" + parts[1]) is > 0 and var lastRow)
         {
@@ -183,7 +186,8 @@ readonly record struct SheetRange(int FirstRow, int FirstColumn, int LastRow, in
 
     public int ColumnCount => Math.Max(0, LastColumn - FirstColumn + 1);
 
-    public bool ContainsRow(int row) => row >= FirstRow && row <= LastRow;
+    public bool ContainsRow(int row) => row >= FirstRow &&
+                                        row <= LastRow;
 
     /// <summary>This range clipped to <paramref name="bounds"/>, for a print area inside a used range.</summary>
     public SheetRange Intersect(SheetRange bounds) =>

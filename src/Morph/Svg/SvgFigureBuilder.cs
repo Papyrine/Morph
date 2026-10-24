@@ -71,7 +71,8 @@ sealed class SvgFigureBuilder
     /// </summary>
     public void ArcTo(double radiusX, double radiusY, double rotationDegrees, bool largeArc, bool sweep, double x, double y)
     {
-        if (X == x && Y == y)
+        if (X == x &&
+            Y == y)
         {
             return;
         }
@@ -117,11 +118,13 @@ sealed class SvgFigureBuilder
         var startAngle = Math.Atan2((localY - localCentreY) / radiusY, (localX - localCentreX) / radiusX);
         var endAngle = Math.Atan2((-localY - localCentreY) / radiusY, (-localX - localCentreX) / radiusX);
         var turn = endAngle - startAngle;
-        if (sweep && turn < 0)
+        if (sweep &&
+            turn < 0)
         {
             turn += 2 * Math.PI;
         }
-        else if (!sweep && turn > 0)
+        else if (!sweep &&
+                 turn > 0)
         {
             turn -= 2 * Math.PI;
         }

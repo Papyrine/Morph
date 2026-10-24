@@ -114,7 +114,8 @@ sealed class CellStyles
             return argb;
         }
 
-        if (color.Theme?.Value is { } theme && themeColors != null)
+        if (color.Theme?.Value is { } theme &&
+            themeColors != null)
         {
             var name = ThemeColorName(theme);
             var tint = color.Tint?.Value ?? 0;

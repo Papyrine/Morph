@@ -22,7 +22,8 @@ static partial class NumberFormat
         var rounded = Math.Round(magnitude, shape.MaxDecimals, MidpointRounding.AwayFromZero);
 
         var integerDigits = ((long) Math.Truncate(rounded)).ToString(CultureInfo.InvariantCulture);
-        if (integerDigits == "0" && shape.MinIntegerDigits == 0)
+        if (integerDigits == "0" &&
+            shape.MinIntegerDigits == 0)
         {
             // "#.##" shows .5 rather than 0.5 — a '#' before the point suppresses a lone zero.
             integerDigits = string.Empty;
@@ -38,7 +39,8 @@ static partial class NumberFormat
         // The sign goes in front of everything the code emitted, including a leading currency
         // symbol: Excel renders -1234.5 through "$"#,##0.00 as -$1,234.50, not $-1,234.50. A code
         // that writes its own sign or parentheses suppresses this entirely.
-        if (negative && !HasExplicitSign(body))
+        if (negative &&
+            !HasExplicitSign(body))
         {
             return "-" + text;
         }
@@ -61,7 +63,8 @@ static partial class NumberFormat
         var fraction = digits[(digits.IndexOf('.') + 1)..];
 
         var length = fraction.Length;
-        while (length > shape.MinDecimals && fraction[length - 1] == '0')
+        while (length > shape.MinDecimals &&
+               fraction[length - 1] == '0')
         {
             length--;
         }
@@ -109,7 +112,8 @@ static partial class NumberFormat
                 continue;
             }
 
-            if (ch is '\\' or '_' or '*' && i + 1 < body.Length)
+            if (ch is '\\' or '_' or '*' &&
+                i + 1 < body.Length)
             {
                 i++;
                 inRun = false;
@@ -159,7 +163,8 @@ static partial class NumberFormat
                     // A comma still inside the placeholder run groups; one trailing the final
                     // placeholder scales by a thousand. Deciding by "is another placeholder coming"
                     // is what keeps #,##0 a grouped format rather than a scaled one.
-                    if (lastPlaceholder >= 0 && HasPlaceholderAfter(body, i))
+                    if (lastPlaceholder >= 0 &&
+                        HasPlaceholderAfter(body, i))
                     {
                         grouped = true;
                     }
@@ -372,13 +377,16 @@ static partial class NumberFormat
 
             // An escaped or width-reserved character is a literal, not a sign: the "_)" that pads an
             // accounting positive must not be read as the parenthesis of a negative.
-            if (!quoted && ch is '\\' or '_' && i + 1 < body.Length)
+            if (!quoted &&
+                ch is '\\' or '_' &&
+                i + 1 < body.Length)
             {
                 i++;
                 continue;
             }
 
-            if (!quoted && ch is '-' or '(')
+            if (!quoted &&
+                ch is '-' or '(')
             {
                 return true;
             }
@@ -397,7 +405,8 @@ static partial class NumberFormat
         var result = new StringBuilder();
         for (var i = 0; i < digits.Length; i++)
         {
-            if (i > 0 && (digits.Length - i) % 3 == 0)
+            if (i > 0 &&
+                (digits.Length - i) % 3 == 0)
             {
                 result.Append(',');
             }

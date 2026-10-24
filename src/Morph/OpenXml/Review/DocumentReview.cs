@@ -95,8 +95,10 @@ sealed class DocumentReview
                 .ThenBy(_ => _.Order)
                 .Select(_ => _.Change)],
             Editable = editable,
-            AllowsComments = editable && allowsComments,
-            AllowsResolving = editable && allowsResolving
+            AllowsComments = editable &&
+                             allowsComments,
+            AllowsResolving = editable &&
+                              allowsResolving
         };
     }
 
@@ -484,14 +486,16 @@ sealed class DocumentReview
         {
             switch (element)
             {
-                case CommentRangeStart start when Tracked && start.Id?.Value is { } id:
+                case CommentRangeStart start when Tracked &&
+                                                  start.Id?.Value is { } id:
                     openComments[id] = new()
                     {
                         Start = lastRun + 1
                     };
                     break;
 
-                case CommentRangeEnd end when Tracked && end.Id?.Value is { } id:
+                case CommentRangeEnd end when Tracked &&
+                                              end.Id?.Value is { } id:
                     if (openComments.Remove(id, out var closed))
                     {
                         comments.TryAdd(id, closed);
@@ -499,7 +503,8 @@ sealed class DocumentReview
 
                     break;
 
-                case CommentReference reference when Tracked && reference.Id?.Value is { } id:
+                case CommentReference reference when Tracked &&
+                                                     reference.Id?.Value is { } id:
                     references.TryAdd(id, Math.Max(0, lastRun));
                     break;
 
@@ -640,7 +645,8 @@ sealed class DocumentReview
                 moves[name] = builder = NewBuilder(ReviewChangeKind.Move, element);
             }
 
-            if (!from && !builder.TextFromDestination)
+            if (!from &&
+                !builder.TextFromDestination)
             {
                 // The destination is where the text now is: it names the change's place and its text.
                 builder.TextFromDestination = true;
@@ -738,7 +744,8 @@ sealed class DocumentReview
 
                 revised = true;
                 builder.Runs.Add(ordinal);
-                if (parent is MoveToRun && builder.Destination < 0)
+                if (parent is MoveToRun &&
+                    builder.Destination < 0)
                 {
                     builder.Destination = ordinal;
                 }
@@ -750,7 +757,8 @@ sealed class DocumentReview
                 }
             }
 
-            if (!revised && HasContent(run, text))
+            if (!revised &&
+                HasContent(run, text))
             {
                 Flow.Current = null;
             }

@@ -78,11 +78,15 @@ static class ImageHeader
                 break;
             }
 
-            if (type.SequenceEqual("pHYs"u8) && length == 9 && offset + 17 <= data.Length)
+            if (type.SequenceEqual("pHYs"u8) &&
+                length == 9 &&
+                offset + 17 <= data.Length)
             {
                 var perUnitX = BinaryPrimitives.ReadUInt32BigEndian(data[(offset + 8)..]);
                 var perUnitY = BinaryPrimitives.ReadUInt32BigEndian(data[(offset + 12)..]);
-                if (data[offset + 16] == 1 && perUnitX > 0 && perUnitY > 0)
+                if (data[offset + 16] == 1 &&
+                    perUnitX > 0 &&
+                    perUnitY > 0)
                 {
                     dpiX = perUnitX * 0.0254;
                     dpiY = perUnitY * 0.0254;
@@ -141,12 +145,15 @@ static class ImageHeader
 
             // JFIF: "JFIF\0", version, then the density unit (1 per inch, 2 per centimetre, 0 none)
             // and the density on each axis.
-            if (marker == 0xE0 && segment.Length >= 12 && segment[..5].SequenceEqual("JFIF\0"u8))
+            if (marker == 0xE0 &&
+                segment.Length >= 12 &&
+                segment[..5].SequenceEqual("JFIF\0"u8))
             {
                 var unit = segment[7];
                 var densityX = BinaryPrimitives.ReadUInt16BigEndian(segment[8..]);
                 var densityY = BinaryPrimitives.ReadUInt16BigEndian(segment[10..]);
-                if (densityX > 0 && densityY > 0)
+                if (densityX > 0 &&
+                    densityY > 0)
                 {
                     if (unit == 1)
                     {
@@ -163,7 +170,8 @@ static class ImageHeader
 
             // A start-of-frame segment carries the size: precision, height, width. C4, C8 and CC
             // share the range and are tables, not frames.
-            if (marker is >= 0xC0 and <= 0xCF and not (0xC4 or 0xC8 or 0xCC) && segment.Length >= 5)
+            if (marker is >= 0xC0 and <= 0xCF and not (0xC4 or 0xC8 or 0xCC) &&
+                segment.Length >= 5)
             {
                 height = BinaryPrimitives.ReadUInt16BigEndian(segment[1..]);
                 width = BinaryPrimitives.ReadUInt16BigEndian(segment[3..]);
@@ -205,7 +213,8 @@ static class ImageHeader
         height = Math.Abs(BinaryPrimitives.ReadInt32LittleEndian(data[22..]));
         var perMetreX = BinaryPrimitives.ReadInt32LittleEndian(data[38..]);
         var perMetreY = BinaryPrimitives.ReadInt32LittleEndian(data[42..]);
-        if (perMetreX > 0 && perMetreY > 0)
+        if (perMetreX > 0 &&
+            perMetreY > 0)
         {
             dpiX = perMetreX * 0.0254;
             dpiY = perMetreY * 0.0254;

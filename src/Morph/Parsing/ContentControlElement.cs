@@ -61,7 +61,8 @@ sealed class ContentControlElement : DocumentElement
                         Properties = new()
                     };
                 }
-                else if (ControlType == ContentControlType.Date && DateValue.HasValue)
+                else if (ControlType == ContentControlType.Date &&
+                         DateValue.HasValue)
                 {
                     // A date control whose display text was not captured as runs still shows its
                     // value, formatted per the control's declared format (invariant culture, so

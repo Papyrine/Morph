@@ -44,7 +44,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         var merges = MergeMap.For(worksheet, range);
         var widths = ColumnWidths(worksheet, range, scale);
         var rowsByIndex = sheetData.Elements<S.Row>()
-            .Where(_ => _.RowIndex?.Value is { } index && range.ContainsRow((int) index))
+            .Where(_ => _.RowIndex?.Value is { } index &&
+                        range.ContainsRow((int) index))
             .ToDictionary(_ => (int) _.RowIndex!.Value);
 
         var defaultHeight = (worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints) * scale;
@@ -53,7 +54,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         for (var rowIndex = range.FirstRow; rowIndex <= range.LastRow; rowIndex++)
         {
             rowsByIndex.TryGetValue(rowIndex, out var row);
-            var isHeader = titleRows is { } titles && rowIndex >= titles.First && rowIndex <= titles.Last;
+            var isHeader = titleRows is { } titles &&
+                           rowIndex >= titles.First && rowIndex <= titles.Last;
             rows.Add(BuildRow(row, rowIndex, range, merges, widths, defaultHeight, scale, isHeader, conditional));
         }
 
@@ -88,7 +90,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     {
         var cellsByColumn = row?.Elements<S.Cell>()
             .Select(cell => (Column: CellReference.ColumnOf(cell.CellReference?.Value), Cell: cell))
-            .Where(_ => _.Column >= range.FirstColumn && _.Column <= range.LastColumn)
+            .Where(_ => _.Column >= range.FirstColumn &&
+                        _.Column <= range.LastColumn)
             .GroupBy(_ => _.Column)
             .ToDictionary(_ => _.Key, _ => _.First().Cell) ?? [];
 
@@ -496,7 +499,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         {
             var column = range.FirstColumn + i;
             var match = declared.FirstOrDefault(_ =>
-                _.Min?.Value <= column && _.Max?.Value >= column);
+                _.Min?.Value <= column &&
+                _.Max?.Value >= column);
 
             // A hidden column occupies no width at all rather than its declared one.
             var chars = match?.Hidden?.Value == true
@@ -525,7 +529,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     {
         var declared = worksheet.GetFirstChild<S.SheetData>()?
             .Elements<S.Row>()
-            .Where(_ => _.RowIndex?.Value is { } index && range.ContainsRow((int) index))
+            .Where(_ => _.RowIndex?.Value is { } index &&
+                        range.ContainsRow((int) index))
             .ToDictionary(_ => (int) _.RowIndex!.Value, _ => _.Height?.Value) ?? [];
 
         var fallback = worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints;
@@ -533,7 +538,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         var total = 0d;
         for (var row = range.FirstRow; row <= range.LastRow; row++)
         {
-            total += declared.TryGetValue(row, out var height) && height is { } value ? value : fallback;
+            total += declared.TryGetValue(row, out var height) &&
+                     height is { } value ? value : fallback;
         }
 
         return total;

@@ -20,7 +20,8 @@ sealed class SharedStrings
 
     public string Get(int index)
     {
-        if (index >= 0 && index < entries.Length)
+        if (index >= 0 &&
+            index < entries.Length)
         {
             return entries[index];
         }

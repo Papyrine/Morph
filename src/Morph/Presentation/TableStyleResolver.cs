@@ -85,29 +85,38 @@ sealed class TableStyleResolver
         if (properties?.BandColumn?.Value == true)
         {
             var bodyColumn = columnIndex - (firstColumn ? 1 : 0);
-            if (bodyColumn >= 0 && Part(bodyColumn % 2 == 0 ? "band1V" : "band2V") is { } bandedColumn)
+            if (bodyColumn >= 0 &&
+                Part(bodyColumn % 2 == 0 ? "band1V" : "band2V") is { } bandedColumn)
             {
                 yield return bandedColumn;
             }
         }
 
-        if (firstColumn && columnIndex == 0 && Part("firstCol") is { } first)
+        if (firstColumn &&
+            columnIndex == 0 &&
+            Part("firstCol") is { } first)
         {
             yield return first;
         }
 
-        if (lastColumn && columnIndex == columnCount - 1 && Part("lastCol") is { } last)
+        if (lastColumn &&
+            columnIndex == columnCount - 1 &&
+            Part("lastCol") is { } last)
         {
             yield return last;
         }
 
         // The edge ROWS come last: a header row's fill wins over a first-column fill where they meet.
-        if (lastRow && rowIndex == rowCount - 1 && Part("lastRow") is { } bottom)
+        if (lastRow &&
+            rowIndex == rowCount - 1 &&
+            Part("lastRow") is { } bottom)
         {
             yield return bottom;
         }
 
-        if (firstRow && rowIndex == 0 && Part("firstRow") is { } top)
+        if (firstRow &&
+            rowIndex == 0 &&
+            Part("firstRow") is { } top)
         {
             yield return top;
         }
@@ -123,7 +132,8 @@ sealed class TableStyleResolver
             var cellStyle = part.Elements().FirstOrDefault(_ => _.LocalName == "tcStyle");
             var fill = cellStyle?.Elements().FirstOrDefault(_ => _.LocalName == "fill")?
                 .GetFirstChild<A.SolidFill>();
-            if (fill != null && ShapeParser.ExtractSolidFillColor(fill, themeColors) is { } background)
+            if (fill != null &&
+                ShapeParser.ExtractSolidFillColor(fill, themeColors) is { } background)
             {
                 result = result with { BackgroundColorHex = background };
             }

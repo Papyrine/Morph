@@ -215,7 +215,8 @@ static class ReviewEditor
         var paragraph = mark.Ancestors<Paragraph>().FirstOrDefault();
         var goes = mark is Deleted or MoveFrom == accept;
         mark.Remove();
-        if (goes && paragraph != null)
+        if (goes &&
+            paragraph != null)
         {
             MergeWithNext(paragraph);
         }
@@ -293,7 +294,8 @@ static class ReviewEditor
         var keptFirst = change is ParagraphMarkRunPropertiesChange or SectionPropertiesChange;
         foreach (var child in properties.ChildElements.ToList())
         {
-            if (!ReferenceEquals(child, change) && !Stays(change, child))
+            if (!ReferenceEquals(child, change) &&
+                !Stays(change, child))
             {
                 child.Remove();
             }
@@ -434,7 +436,8 @@ static class ReviewEditor
     static OpenXmlElement? NextBlock(OpenXmlElement element)
     {
         var next = element.NextSibling();
-        while (next != null && IsRangeMark(next))
+        while (next != null &&
+               IsRangeMark(next))
         {
             next = next.NextSibling();
         }
@@ -484,7 +487,8 @@ static class ReviewEditor
         }
 
         if (end.Run < start.Run ||
-            (end.Run == start.Run && end.Offset < start.Offset))
+            (end.Run == start.Run &&
+             end.Offset < start.Offset))
         {
             (start, end) = (end, start);
         }
@@ -588,7 +592,8 @@ static class ReviewEditor
     static OpenXmlElement AfterRevisions(OpenXmlElement element)
     {
         var place = element;
-        while (place.Parent is { } parent && RevisionElements.IsContainer(parent))
+        while (place.Parent is { } parent &&
+               RevisionElements.IsContainer(parent))
         {
             place = parent;
         }
@@ -644,7 +649,11 @@ static class ReviewEditor
         }
 
         var threadIds = thread.Select(_ => _.Id!.Value!).ToHashSet(StringComparer.Ordinal);
-        if (body.Descendants<CommentReference>().LastOrDefault(_ => _.Id?.Value is { } value && threadIds.Contains(value)) is {Parent: OoxmlRun lastReference})
+        if (body
+                .Descendants<CommentReference>()
+                .LastOrDefault(
+                    _ => _.Id?.Value is { } value &&
+                         threadIds.Contains(value)) is {Parent: OoxmlRun lastReference})
         {
             lastReference.InsertAfterSelf(ReferenceRun(main, id));
         }
@@ -703,7 +712,8 @@ static class ReviewEditor
 
         foreach (var entry in main.WordprocessingCommentsExPart?.CommentsEx?.Elements<W15.CommentEx>().ToList() ?? [])
         {
-            if (entry.ParaId?.Value is { } paraId && paragraphIds.Contains(paraId))
+            if (entry.ParaId?.Value is { } paraId &&
+                paragraphIds.Contains(paraId))
             {
                 entry.Remove();
             }
@@ -712,7 +722,8 @@ static class ReviewEditor
         var durableIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var entry in main.WordprocessingCommentsIdsPart?.CommentsIds?.Elements<W16Cid.CommentId>().ToList() ?? [])
         {
-            if (entry.ParaId?.Value is { } paraId && paragraphIds.Contains(paraId))
+            if (entry.ParaId?.Value is { } paraId &&
+                paragraphIds.Contains(paraId))
             {
                 if (entry.DurableId?.Value is { } durableId)
                 {
@@ -725,7 +736,8 @@ static class ReviewEditor
 
         foreach (var entry in main.WordCommentsExtensiblePart?.CommentsExtensible?.Elements<W16Cex.CommentExtensible>().ToList() ?? [])
         {
-            if (entry.DurableId?.Value is { } durableId && durableIds.Contains(durableId))
+            if (entry.DurableId?.Value is { } durableId &&
+                durableIds.Contains(durableId))
             {
                 entry.Remove();
             }

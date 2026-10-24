@@ -11768,7 +11768,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // The ending sectPr stands in only when no following sectPr exists.
         var typeSource = sectionProps;
         if (nextSectionProps != null &&
-            nextSectionProps.TryGetValue(sectionProps, out var followingProps) && followingProps != null)
+            nextSectionProps.TryGetValue(sectionProps, out var followingProps) &&
+            followingProps != null)
         {
             typeSource = followingProps;
         }
@@ -12033,9 +12034,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             var style = properties?.ParagraphStyleId?.Val?.Value ?? defaultParagraphStyleId;
-            return style != null && styleNumbering != null && styleNumbering.TryGetValue(style, out var inherited) && inherited.numId != 0
-                ? inherited.numId
-                : null;
+            if (style != null &&
+                styleNumbering != null &&
+                styleNumbering.TryGetValue(style, out var inherited) &&
+                inherited.numId != 0)
+            {
+                return inherited.numId;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 
@@ -12047,7 +12056,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // override the indent inherited from pPrDefault.
         ParagraphProperties? styleDefaults = null;
         var effectiveStyleId = styleId ?? defaultParagraphStyleId;
-        if (styleParagraphProperties != null && effectiveStyleId != null)
+        if (styleParagraphProperties != null &&
+            effectiveStyleId != null)
         {
             styleParagraphProperties.TryGetValue(effectiveStyleId, out styleDefaults);
         }
@@ -12117,29 +12127,34 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ? d
                 : new StyleParagraphSpacing();
 
-            if (declared.SpacingBeforePoints == null && fromTableStyle.SpacingBeforePoints is { } tsBefore)
+            if (declared.SpacingBeforePoints == null &&
+                fromTableStyle.SpacingBeforePoints is { } tsBefore)
             {
                 spacingBefore = tsBefore;
             }
 
-            if (declared.SpacingAfterPoints == null && fromTableStyle.SpacingAfterPoints is { } tsAfter)
+            if (declared.SpacingAfterPoints == null &&
+                fromTableStyle.SpacingAfterPoints is { } tsAfter)
             {
                 spacingAfter = tsAfter;
             }
 
-            if (declared.LineSpacingRule == null && fromTableStyle.LineSpacingRule is { } tsRule)
+            if (declared.LineSpacingRule == null &&
+                fromTableStyle.LineSpacingRule is { } tsRule)
             {
                 lineSpacingRule = tsRule;
                 lineSpacingMultiplier = fromTableStyle.LineSpacingMultiplier ?? lineSpacingMultiplier;
                 lineSpacingPoints = fromTableStyle.LineSpacingPoints ?? lineSpacingPoints;
             }
 
-            if (declared.LeftIndentPoints == null && fromTableStyle.LeftIndentPoints is { } tsLeft)
+            if (declared.LeftIndentPoints == null &&
+                fromTableStyle.LeftIndentPoints is { } tsLeft)
             {
                 leftIndent = tsLeft;
             }
 
-            if (declared.RightIndentPoints == null && fromTableStyle.RightIndentPoints is { } tsRight)
+            if (declared.RightIndentPoints == null &&
+                fromTableStyle.RightIndentPoints is { } tsRight)
             {
                 rightIndent = tsRight;
             }
@@ -12400,8 +12415,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             inlineBgColor = ResolveThemeFill(shadingElement);
 
             // Fall back to direct fill value
-            if (inlineBgColor == null && shadingElement.Fill?.HasValue == true &&
-                shadingElement.Fill.Value != "auto" && shadingElement.Fill.Value != "none")
+            if (inlineBgColor == null &&
+                shadingElement.Fill?.HasValue == true &&
+                shadingElement.Fill.Value != "auto" &&
+                shadingElement.Fill.Value != "none")
             {
                 inlineBgColor = shadingElement.Fill.Value;
             }
@@ -12517,11 +12534,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var frameAnchored = attributes.AttributeValue("wrap") != null ||
                                 attributes.AttributeValue("hAnchor") != null ||
                                 attributes.AttributeValue("vAnchor") != null;
-            if (frameAnchored && string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
+            if (frameAnchored &&
+                string.Equals(dropCapAttribute, "drop", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Drop;
             }
-            else if (frameAnchored && string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
+            else if (frameAnchored &&
+                     string.Equals(dropCapAttribute, "margin", StringComparison.OrdinalIgnoreCase))
             {
                 dropCap = DropCapPosition.Margin;
             }
@@ -12590,7 +12609,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             MirrorIndents = mirrorIndents,
             SnapToGrid = snapToGrid,
             FontAlignment = fontAlignment,
-            GridLinePitchPoints = snapToGrid && SnapsToGrid(paragraph) ? documentGridPitchPoints : 0
+            GridLinePitchPoints = snapToGrid &&
+                                  SnapsToGrid(paragraph) ? documentGridPitchPoints : 0
         };
     }
 
@@ -12649,7 +12669,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                              xAlignRaw != null || yAlignRaw != null ||
                              xRaw != null || yRaw != null ||
                              widthRaw != null || heightRaw != null;
-        if (!hasPositioning && baseFrame == null)
+        if (!hasPositioning &&
+            baseFrame == null)
         {
             return null;
         }
@@ -12688,8 +12709,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             },
             XPoints = int.TryParse(xRaw, out var xTwips) ? xTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.XPoints ?? 0,
             YPoints = int.TryParse(yRaw, out var yTwips) ? yTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.YPoints ?? 0,
-            WidthPoints = int.TryParse(widthRaw, out var widthTwips) && widthTwips > 0 ? widthTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.WidthPoints,
-            HeightPoints = int.TryParse(heightRaw, out var heightTwips) && heightTwips > 0 ? heightTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.HeightPoints
+            WidthPoints = int.TryParse(widthRaw, out var widthTwips) &&
+                          widthTwips > 0 ? widthTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.WidthPoints,
+            HeightPoints = int.TryParse(heightRaw, out var heightTwips) &&
+                           heightTwips > 0 ? heightTwips / OoxmlUnits.TwipsPerPoint : baseFrame?.HeightPoints
         };
     }
 
@@ -12865,7 +12888,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        if (fonts.EastAsiaTheme?.HasValue == true && currentThemeFonts != null)
+        if (fonts.EastAsiaTheme?.HasValue == true &&
+            currentThemeFonts != null)
         {
             var themeValue = ((IEnumValue) fonts.EastAsiaTheme.Value).Value;
             if (currentThemeFonts.ResolveFont(themeValue) is { } themed)
@@ -13171,7 +13195,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         //
         // A run inside a styled table skips this shortcut even with no rPr of its own: the table style's
         // rung still has to be layered in below, and taking the style defaults verbatim here would drop it.
-        if (props == null && tableStyleRunDefaults == null)
+        if (props == null &&
+            tableStyleRunDefaults == null)
         {
             if (styleDefaults != null)
             {
@@ -13385,7 +13410,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (runFonts != null)
         {
             // First try theme font reference
-            if (runFonts.AsciiTheme?.HasValue == true && currentThemeFonts != null)
+            if (runFonts.AsciiTheme?.HasValue == true &&
+                currentThemeFonts != null)
             {
                 var themeValue = ((IEnumValue) runFonts.AsciiTheme.Value).Value;
                 var resolvedFont = currentThemeFonts.ResolveFont(themeValue);
@@ -13417,7 +13443,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var underlineColorHex = (string?) null;
-        if (underlineElement != null && underlineElement.Val?.Value != UnderlineValues.None)
+        if (underlineElement != null &&
+            underlineElement.Val?.Value != UnderlineValues.None)
         {
             underline = true;
             underlineStyle = UnderlineStyleOf(underlineElement);
@@ -13523,8 +13550,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             inlineBgColor = ResolveThemeFill(shadingElement);
 
             // Fall back to direct fill value
-            if (inlineBgColor == null && shadingElement.Fill?.HasValue == true &&
-                shadingElement.Fill.Value != "auto" && shadingElement.Fill.Value != "none")
+            if (inlineBgColor == null &&
+                shadingElement.Fill?.HasValue == true &&
+                shadingElement.Fill.Value != "auto" &&
+                shadingElement.Fill.Value != "none")
             {
                 inlineBgColor = shadingElement.Fill.Value;
             }
@@ -13565,19 +13594,22 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             runStyleId = null;
         }
 
-        if (runStyleId != null && styleRunProperties != null && styleRunProperties.TryGetValue(runStyleId, out var runStyleProps))
+        if (runStyleId != null &&
+            styleRunProperties != null && styleRunProperties.TryGetValue(runStyleId, out var runStyleProps))
         {
             // Look up the original style definition to check which properties are explicitly defined
             var originalStyle = LookupStyle(mainPart, runStyleId);
             var originalRPr = originalStyle?.StyleRunProperties;
 
             // Only override with run style properties that are EXPLICITLY defined in the style
-            if (runFonts == null && originalRPr?.GetFirstChild<RunFonts>() != null)
+            if (runFonts == null &&
+                originalRPr?.GetFirstChild<RunFonts>() != null)
             {
                 fontFamily = runStyleProps.FontFamily;
             }
 
-            if (fontSizeElement == null && originalRPr?.GetFirstChild<FontSize>() != null)
+            if (fontSizeElement == null &&
+                originalRPr?.GetFirstChild<FontSize>() != null)
             {
                 fontSize = runStyleProps.FontSizePoints;
             }
@@ -13589,71 +13621,84 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // w:val="0" is not a toggle; it forces the property off. The XOR only diverges from
             // the old assignment when the paragraph chain already carries the property, so a
             // char style toggling over a plain chain behaves exactly as before.
-            if (boldElement == null && originalRPr?.GetFirstChild<Bold>() is { } styleBold)
+            if (boldElement == null &&
+                originalRPr?.GetFirstChild<Bold>() is { } styleBold)
             {
                 bold = styleBold.IsOn() ? !bold : false;
             }
 
-            if (italicElement == null && originalRPr?.GetFirstChild<Italic>() is { } styleItalic)
+            if (italicElement == null &&
+                originalRPr?.GetFirstChild<Italic>() is { } styleItalic)
             {
                 italic = styleItalic.IsOn() ? !italic : false;
             }
 
-            if (underlineElement == null && originalRPr?.GetFirstChild<Underline>() != null)
+            if (underlineElement == null &&
+                originalRPr?.GetFirstChild<Underline>() != null)
             {
                 underline = runStyleProps.Underline;
                 underlineStyle = runStyleProps.UnderlineStyle;
             }
 
-            if (strikeElement == null && originalRPr?.GetFirstChild<Strike>() is { } styleStrike)
+            if (strikeElement == null &&
+                originalRPr?.GetFirstChild<Strike>() is { } styleStrike)
             {
                 strikethrough = styleStrike.IsOn() ? !strikethrough : false;
             }
 
-            if (doubleStrikeElement == null && originalRPr?.GetFirstChild<DoubleStrike>() is { } styleDoubleStrike)
+            if (doubleStrikeElement == null &&
+                originalRPr?.GetFirstChild<DoubleStrike>() is { } styleDoubleStrike)
             {
                 doubleStrikethrough = styleDoubleStrike.IsOn() ? !doubleStrikethrough : false;
             }
 
-            if (capsElement == null && originalRPr?.GetFirstChild<Caps>() is { } styleCaps)
+            if (capsElement == null &&
+                originalRPr?.GetFirstChild<Caps>() is { } styleCaps)
             {
                 allCaps = styleCaps.IsOn() ? !allCaps : false;
             }
 
-            if (smallCapsElement == null && originalRPr?.GetFirstChild<SmallCaps>() is { } styleSmallCaps)
+            if (smallCapsElement == null &&
+                originalRPr?.GetFirstChild<SmallCaps>() is { } styleSmallCaps)
             {
                 smallCaps = styleSmallCaps.IsOn() ? !smallCaps : false;
             }
 
-            if (spacingElement == null && originalRPr?.GetFirstChild<Spacing>() != null)
+            if (spacingElement == null &&
+                originalRPr?.GetFirstChild<Spacing>() != null)
             {
                 characterSpacing = runStyleProps.CharacterSpacingPoints;
             }
 
-            if (characterScaleElement == null && originalRPr?.GetFirstChild<CharacterScale>() != null)
+            if (characterScaleElement == null &&
+                originalRPr?.GetFirstChild<CharacterScale>() != null)
             {
                 characterScale = runStyleProps.CharacterScalePercent;
             }
 
             // A character style's w:kern outranks the paragraph style's and yields to the run's own.
-            if (kernElement == null && DeclaredKerningMinPoints(originalRPr) != null)
+            if (kernElement == null &&
+                DeclaredKerningMinPoints(originalRPr) != null)
             {
                 kerningMinFontSize = runStyleProps.KerningMinFontSizePoints;
             }
 
-            if (colorElement == null && originalRPr?.GetFirstChild<Color>() != null)
+            if (colorElement == null &&
+                originalRPr?.GetFirstChild<Color>() != null)
             {
                 color = runStyleProps.ColorHex == automaticColorSentinel
                     ? automaticRunColorHex
                     : runStyleProps.ColorHex;
             }
 
-            if (shadingElement == null && originalRPr?.GetFirstChild<Shading>() != null)
+            if (shadingElement == null &&
+                originalRPr?.GetFirstChild<Shading>() != null)
             {
                 backgroundColor = runStyleProps.BackgroundColorHex;
             }
 
-            if (vertAlignElement == null && originalRPr?.GetFirstChild<VerticalTextAlignment>() != null)
+            if (vertAlignElement == null &&
+                originalRPr?.GetFirstChild<VerticalTextAlignment>() != null)
             {
                 verticalAlignment = runStyleProps.VerticalAlignment;
             }
@@ -13718,7 +13763,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // contrast rule cell and paragraph shading get. Resolved here rather than in a post-pass because
         // the run's own fill is only in hand at this point; a null colour is what "automatic" leaves
         // behind, so an explicit w:color is never flipped.
-        if (color == null && backgroundColor != null && IsDarkForAutomaticText(backgroundColor))
+        if (color == null &&
+            backgroundColor != null &&
+            IsDarkForAutomaticText(backgroundColor))
         {
             color = "FFFFFF";
         }
@@ -13886,7 +13933,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // "a² + b² = c²" — which OMML leaves implicit, so a bare operator token gains the
             // padding here.
             var isVariable = text.All(char.IsLetter);
-            if (text.Length == 1 && "+−-=<>×÷±≤≥≠".Contains(text[0]))
+            if (text.Length == 1 &&
+                "+−-=<>×÷±≤≥≠".Contains(text[0]))
             {
                 text = $" {text} ";
             }
@@ -13911,7 +13959,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // "All features" as plain small caps. Reading mere presence as "on" made the parsers invent
     // Word's UI defaults, which drew a shadow copy under the text in ImageSharp and a glow in Skia.
     static bool IsInertEffect([NotNullWhen(false)] OpenXmlElement? element) =>
-        element is null || (!element.HasAttributes && !element.HasChildren);
+        element is null ||
+        (!element.HasAttributes &&
+         !element.HasChildren);
 
     static TextOutline? ParseTextOutline(
         DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? element,

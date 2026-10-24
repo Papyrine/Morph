@@ -80,7 +80,10 @@ static class ShapeParser
             // The group's frame in anchor-relative points — children clip to it (Word cuts a
             // group's children at the group's extent box). A zero-area frame must not clip.
             (double Left, double Top, double Width, double Height)? groupFrame =
-                extent.Cx != null && extent.Cy != null && extent.Cx.Value > 0 && extent.Cy.Value > 0
+                extent.Cx != null &&
+                extent.Cy != null &&
+                extent.Cx.Value > 0 &&
+                extent.Cy.Value > 0
                     ? (positioning.HorizontalPositionPoints,
                         positioning.VerticalPositionPoints,
                         extent.Cx.Value.EmuToPoints(),
@@ -314,7 +317,8 @@ static class ShapeParser
         }
 
         var scheme = fillRef.GetFirstChild<A.SchemeColor>();
-        if (scheme?.Val?.HasValue == true && themeColors != null)
+        if (scheme?.Val?.HasValue == true &&
+            themeColors != null)
         {
             var value = ((IEnumValue) scheme.Val.Value).Value;
             return themeColors.ResolveColor(value, ExtractColorTransforms(scheme));
@@ -363,7 +367,8 @@ static class ShapeParser
             return null;
         }
 
-        if (subpaths == null && !HasStrokeablePresetOutline(shapeProps))
+        if (subpaths == null &&
+            !HasStrokeablePresetOutline(shapeProps))
         {
             return null;
         }
@@ -442,7 +447,8 @@ static class ShapeParser
         }
 
         var scheme = fontReference.GetFirstChild<A.SchemeColor>();
-        if (scheme?.Val?.HasValue == true && themeColors != null)
+        if (scheme?.Val?.HasValue == true &&
+            themeColors != null)
         {
             var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
             return themeColors.ResolveColor(schemeValue, ExtractColorTransforms(scheme));
@@ -479,7 +485,8 @@ static class ShapeParser
 
         string? refColor = null;
         var refScheme = lnRef.GetFirstChild<A.SchemeColor>();
-        if (refScheme?.Val?.HasValue == true && themeColors != null)
+        if (refScheme?.Val?.HasValue == true &&
+            themeColors != null)
         {
             var schemeValue = ((IEnumValue) refScheme.Val.Value).Value;
             var transforms = ExtractColorTransforms(refScheme);
@@ -797,7 +804,8 @@ static class ShapeParser
         // Word cuts group children at the group's frame; both boxes share the anchor's
         // coordinate space, so the clip is plain geometry on the unit-square contours.
         // Rotated shapes' contours turn about their centre at render and are left unclipped.
-        if (groupFrame is { } frame && rotation == 0)
+        if (groupFrame is { } frame &&
+            rotation == 0)
         {
             var contours = subpaths ?? [[(0d, 0d), (1d, 0d), (1d, 1d), (0d, 1d)]];
             var clipped = GroupFrameClipper.Clip(
@@ -864,7 +872,8 @@ static class ShapeParser
         // preset would paint its BOUNDING BOX (labels/04's hexagon accents drew as saturated
         // gradient boxes over Word's soft hexagons — worse than absent).
         var gradFill = shapeProps.GetFirstChild<A.GradientFill>();
-        if (gradFill != null && (subpaths != null || HasStrokeablePresetOutline(shapeProps)))
+        if (gradFill != null &&
+            (subpaths != null || HasStrokeablePresetOutline(shapeProps)))
         {
             var gradient = ExtractGradientFill(gradFill, themeColors);
             if (gradient != null)
@@ -1101,7 +1110,8 @@ static class ShapeParser
         }
 
         var scheme = stop.GetFirstChild<A.SchemeColor>();
-        if (scheme?.Val?.HasValue == true && themeColors != null)
+        if (scheme?.Val?.HasValue == true &&
+            themeColors != null)
         {
             var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
             var transforms = ExtractColorTransforms(scheme);
@@ -1128,7 +1138,8 @@ static class ShapeParser
         var (raster, rasterContentType) = ExtractBlipFillImage(blipFill, hostPart, partBytes);
         var extension = blipFill.GetFirstChild<A.Blip>()?
             .Descendants()
-            .FirstOrDefault(_ => _.LocalName == "ext" && _.AttributeValue("uri") == svgBlipExtensionUri);
+            .FirstOrDefault(_ => _.LocalName == "ext" &&
+                                 _.AttributeValue("uri") == svgBlipExtensionUri);
         if (extension?.Descendants().FirstOrDefault(_ => _.LocalName == "svgBlip")?.AttributeValue("embed") is not { } svgEmbed ||
             !hostPart.TryGetPartById(svgEmbed, out var svgPart) ||
             partBytes(svgPart) is not {Length: > 0} svg)

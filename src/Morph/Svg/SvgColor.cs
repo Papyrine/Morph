@@ -91,7 +91,8 @@ static class SvgColor
         }
 
         var name = value.AsSpan(0, open).Trim();
-        if (!name.Equals("rgb", StringComparison.OrdinalIgnoreCase) && !name.Equals("rgba", StringComparison.OrdinalIgnoreCase))
+        if (!name.Equals("rgb", StringComparison.OrdinalIgnoreCase) &&
+            !name.Equals("rgba", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

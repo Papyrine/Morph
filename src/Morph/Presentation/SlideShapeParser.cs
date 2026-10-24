@@ -97,7 +97,8 @@ sealed class SlideShapeParser(
 
         foreach (var child in tree.ChildElements)
         {
-            if (child is P.Shape shape && SlidePlaceholders.Placeholder(shape) != null)
+            if (child is P.Shape shape &&
+                SlidePlaceholders.Placeholder(shape) != null)
             {
                 continue;
             }
@@ -296,7 +297,9 @@ sealed class SlideShapeParser(
 
         // A shape with neither fill, outline nor text paints nothing — placeholders left empty by the
         // author are the bulk of these, and PowerPoint does not render their prompt text either.
-        if (fill.ColorHex == null && fill.Gradient == null && outline.ColorHex == null)
+        if (fill.ColorHex == null &&
+            fill.Gradient == null &&
+            outline.ColorHex == null)
         {
             return null;
         }
@@ -606,7 +609,9 @@ sealed class SlideShapeParser(
             };
         }
 
-        if (fill.ColorHex == null && fill.Gradient == null && outline.ColorHex == null)
+        if (fill.ColorHex == null &&
+            fill.Gradient == null &&
+            outline.ColorHex == null)
         {
             return null;
         }
@@ -659,7 +664,8 @@ sealed class SlideShapeParser(
         // Zero on ONE axis is legitimate and common: a horizontal rule is a connector with cy="0",
         // a vertical one has cx="0". Rejecting those (as an area test would) drops every divider a
         // template draws. Only a negative extent, or a shape with no extent at all, is degenerate.
-        if (extentX < 0 || extentY < 0 || (extentX == 0 && extentY == 0))
+        if (extentX < 0 || extentY < 0 || (extentX == 0 &&
+                                           extentY == 0))
         {
             return null;
         }
