@@ -21,7 +21,10 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
 
         // A page too large for the pixel budget paints at the highest resolution that fits it
         // (ImageExportOptions.MaxPagePixels).
-        var painting = options with { Dpi = options.EffectiveDpi(laidOut.Pages.Select(_ => _.Settings)) };
+        var painting = options with
+        {
+            Dpi = options.EffectiveDpi(laidOut.Pages.Select(_ => _.Settings))
+        };
         var settings = laidOut.ContextSettings(document.PageSettings);
         var parallelism = Math.Min(options.MaxDegreeOfParallelism, laidOut.Pages.Count);
         if (parallelism > 1)

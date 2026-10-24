@@ -225,7 +225,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var smaller = largest - (float) runs[index].Properties.FontSizePoints;
             if (smaller > 0)
             {
-                runs[index] = runs[index] with {BaselineShift = runs[index].BaselineShift + factor * smaller};
+                runs[index] = runs[index] with
+                {
+                    BaselineShift = runs[index].BaselineShift + factor * smaller
+                };
             }
         }
     }
@@ -506,7 +509,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         if (family == null)
         {
             // The label is in the text's face: it only stands taller when it is declared larger.
-            return numbering.FontSizePoints == null ? 0 : AscentPoints(firstProperties with {FontSizePoints = size});
+            if (numbering.FontSizePoints == null)
+            {
+                return 0;
+            }
+
+            return AscentPoints(
+                firstProperties with
+                {
+                    FontSizePoints = size
+                });
         }
 
         if (family.Equals("Symbol", StringComparison.OrdinalIgnoreCase))
@@ -715,7 +727,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             raised[index] = lines[index];
         }
 
-        raised[0] = lines[0] with {Pitch = lines[0].Pitch + rise};
+        raised[0] = lines[0] with
+        {
+            Pitch = lines[0].Pitch + rise
+        };
         return raised;
     }
 
@@ -1400,7 +1415,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             if (piece.Image is { } image)
             {
                 FlushSegment();
-                images.Add(image with { X = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) });
+                images.Add(
+                    image with
+                    {
+                        X = (float) CanonicalTextMeasurer.PixelsToPoints(cursor)
+                    });
                 cursor += piece.Pixels;
                 continue;
             }
@@ -1536,7 +1555,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var emboldened = BoldSimulation.For(run.Properties.Bold, metrics);
             var drawn = emboldened == SyntheticBold.None
                 ? run.Properties
-                : run.Properties with {SyntheticBold = emboldened};
+                : run.Properties with
+                {
+                    SyntheticBold = emboldened
+                };
 
             // A superscript or subscript measures at its reduced size and carries its shift; the line
             // pitch stays the run's declared size, since the reduced glyphs sit inside the full box.
@@ -1612,7 +1634,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         var between = CanonicalTextMeasurer.KernPixelsBetween(metrics, pieces[previousToken].Text, text, size, WidthScale(run.Properties));
                         if (between != 0)
                         {
-                            pieces[previousToken] = pieces[previousToken] with {Pixels = pieces[previousToken].Pixels + between};
+                            pieces[previousToken] = pieces[previousToken] with
+                            {
+                                Pixels = pieces[previousToken].Pixels + between
+                            };
                         }
                     }
 
@@ -1659,7 +1684,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return properties;
         }
 
-        return properties with {SyntheticBold = emboldened};
+        return properties with
+        {
+            SyntheticBold = emboldened
+        };
     }
 
     // Draws a line's emboldened runs as wide as Word draws them: each glyph BoldSimulation.AdvancePoints
@@ -1703,7 +1731,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var segment = segments[index];
             if (segment.Properties.SyntheticBold != SyntheticBold.Simulated)
             {
-                segments[index] = segment with {X = segment.X + shift};
+                segments[index] = segment with
+                {
+                    X = segment.X + shift
+                };
                 continue;
             }
 
@@ -1712,7 +1743,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 X = segment.X + shift,
                 Width = segment.Width + grown,
-                Properties = segment.Properties with {CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + perGlyph}
+                Properties = segment.Properties with
+                {
+                    CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + perGlyph
+                }
             };
             shift += grown;
         }

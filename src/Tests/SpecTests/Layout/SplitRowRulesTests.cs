@@ -28,8 +28,10 @@ public class SplitRowRulesTests
     // The first line overleaf, measured from where a cell with no spacing at all opens.
     static float OpeningOverleaf(double before, double after)
     {
-        var spaced = new Fragmenter(LayoutTestFonts.Measurer).Layout([Table([.. Enumerable.Range(0, 40).Select(_ => Paragraph($"para {_}", before, after))])], page);
-        var plain = new Fragmenter(LayoutTestFonts.Measurer).Layout([Table([.. Enumerable.Range(0, 40).Select(_ => Paragraph($"para {_}"))])], page);
+        var spaced = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Table([.. Enumerable.Range(0, 40).Select(_ => Paragraph($"para {_}", before, after))])], page);
+        var plain = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Table([.. Enumerable.Range(0, 40).Select(_ => Paragraph($"para {_}"))])], page);
         return CellLines(spaced.Pages[1])[0].Y - CellLines(plain.Pages[1])[0].Y;
     }
 
@@ -48,9 +50,11 @@ public class SplitRowRulesTests
     [Test]
     public async Task A_paragraph_resumed_part_way_takes_no_spacing()
     {
-        var words = string.Join(" ", Enumerable.Range(0, 700).Select(_ => $"word{_}"));
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Table([Paragraph("lead"), Paragraph(words, before: 30)])], page);
-        var plain = new Fragmenter(LayoutTestFonts.Measurer).Layout([Table([Paragraph("lead"), Paragraph(words)])], page);
+        var words = string.Join(' ', Enumerable.Range(0, 700).Select(_ => $"word{_}"));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Table([Paragraph("lead"), Paragraph(words, before: 30)])], page);
+        var plain = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Table([Paragraph("lead"), Paragraph(words)])], page);
 
         await Assert.That(laidOut.Pages.Count).IsGreaterThan(1);
         await Assert.That(CellLines(laidOut.Pages[1])[0].Y).IsEqualTo(CellLines(plain.Pages[1])[0].Y).Within(0.01f);
@@ -70,7 +74,8 @@ public class SplitRowRulesTests
         var filler = Enumerable.Range(0, fillerLines).Select(DocumentElement (_) => Paragraph($"fill {_}"));
         var row = Table([.. Enumerable.Range(0, 12).Select(_ => Paragraph($"cell {_}"))], floor);
 
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([.. filler, row], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([.. filler, row], page);
 
         await Assert.That(CellLines(laidOut.Pages[0]).Count).IsEqualTo(linesKept);
         await Assert.That(CellLines(laidOut.Pages[1]).Count).IsEqualTo(12 - linesKept);

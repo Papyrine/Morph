@@ -69,7 +69,18 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             // the page margin — so wherever the grid starts, the art has to start there too. That is
             // zero until printOptions/@horizontalCentered moves the grid off the margin, and every
             // sheet's logo detaches from its cells the moment the two disagree.
-            Walk(anchor, box with {X = box.X + gridLeftPoints}, SlideTransform.Identity, drawingsPart, elements, ref ordinal, anchorIsRoot: true, notPrinted);
+            Walk(
+                anchor,
+                box with
+                {
+                    X = box.X + gridLeftPoints
+                },
+                SlideTransform.Identity,
+                drawingsPart,
+                elements,
+                ref ordinal,
+                anchorIsRoot: true,
+                notPrinted);
         }
 
         return elements;

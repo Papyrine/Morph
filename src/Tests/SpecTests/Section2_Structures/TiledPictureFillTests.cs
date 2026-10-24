@@ -120,7 +120,8 @@ public class TiledPictureFillTests
         await Assert.That(wall.ImageTile.Alignment).IsEqualTo(ImageTileAlignment.TopLeft);
         await Assert.That(wall.Subpaths).IsNotNull();
 
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
         var placed = laidOut.Pages.SelectMany(_ => _.Items).OfType<PlacedImage>().Single(_ => _.Tile != null);
         await Assert.That(placed.Tile).IsEqualTo(wall.ImageTile);
         await Assert.That(placed.ClipSubpaths).IsNotNull();

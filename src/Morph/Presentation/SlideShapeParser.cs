@@ -491,7 +491,11 @@ sealed class SlideShapeParser(
         var offsetX = frame.Transform?.Offset?.X?.Value ?? 0;
         var offsetY = frame.Transform?.Offset?.Y?.Value ?? 0;
         var (frameX, frameY, _, _) = transform.Apply(offsetX, offsetY, 0, 0);
-        var frameTransform = transform with { OffsetX = frameX, OffsetY = frameY };
+        var frameTransform = transform with
+        {
+            OffsetX = frameX,
+            OffsetY = frameY
+        };
 
         var index = ordinal;
         foreach (var shape in drawing.Descendants()

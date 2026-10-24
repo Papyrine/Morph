@@ -23,7 +23,8 @@ internal class WordArtPlacementTests
     [Test]
     public async Task A_box_carried_to_a_fresh_page_keeps_its_after_spacing()
     {
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Box(200, 10), Box(200, 10), Box(60, 10)], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Box(200, 10), Box(200, 10), Box(60, 10)], page);
 
         await Assert.That(laidOut.Pages.Count).IsEqualTo(2);
         var carried = laidOut.Pages[1].Items.OfType<PlacedWordArt>().ToList();
@@ -46,7 +47,8 @@ internal class WordArtPlacementTests
             Properties = new() {GridColumnWidths = [260], DefaultCellPadding = new()}
         };
 
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page);
         var cell = laidOut.Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
         var box = cell.Content.OfType<PlacedWordArt>().Single();
 

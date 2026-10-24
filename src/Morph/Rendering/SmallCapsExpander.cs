@@ -59,7 +59,10 @@ static class SmallCapsExpander
             FontSizePoints = props.FontSizePoints * smallCapsScale,
             SmallCaps = false
         };
-        var fullProps = props with {SmallCaps = false};
+        var fullProps = props with
+        {
+            SmallCaps = false
+        };
 
         var text = run.Text;
         var start = 0;

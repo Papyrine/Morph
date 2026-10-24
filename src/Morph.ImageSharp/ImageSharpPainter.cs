@@ -16,7 +16,6 @@
 /// </summary>
 static class ImageSharpPainter
 {
-
     public static void Paint(LaidOutDocument document, ImageSharpRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
     {
         foreach (var laidOutPage in document.Pages)
@@ -28,8 +27,9 @@ static class ImageSharpPainter
     // One page, drawn and encoded — see SkiaPainter.PaintPage.
     public static void PaintPage(LaidOutPage laidOutPage, ImageSharpRenderContext context, PageCrop crop, Action<Action<Stream>> pageCallback)
     {
-        var (pageWidth, pageHeight) = context.PagePixels(laidOutPage.Settings);
-        var background = laidOutPage.Settings.BackgroundColorHex;
+        var settings = laidOutPage.Settings;
+        var (pageWidth, pageHeight) = context.PagePixels(settings);
+        var background = settings.BackgroundColorHex;
         var backgroundColor = string.IsNullOrEmpty(background) ? Color.White : ImageSharpRenderContext.ParseColor(background);
 
         // An opaque background is what the image starts as, rather than a rectangle filled over a blank
@@ -52,9 +52,9 @@ static class ImageSharpPainter
 
             // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
             // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
-            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            if (settings.PageBorders is { HasAnyBorder: true } pageBorders)
             {
-                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(settings);
                 PaintEdges(context, canvas, borderX, borderY, borderWidth, borderHeight, pageBorders.Edges, BorderStroke.Scope.Page);
             }
         }
@@ -62,7 +62,7 @@ static class ImageSharpPainter
         // Cropping the finished image rather than translating the canvas — see SkiaPainter.Encode
         // for why both painters do it this way. It has to follow the canvas's disposal above,
         // since that is what flushes the deferred draw ops into the image.
-        var rect = context.PageRect(laidOutPage.Settings, crop);
+        var rect = context.PageRect(settings, crop);
         if (rect is not { X: 0, Y: 0 } || rect.Width != pageWidth || rect.Height != pageHeight)
         {
             image.Mutate(_ => _.Crop(new(rect.X, rect.Y, rect.Width, rect.Height)));

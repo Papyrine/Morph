@@ -50,7 +50,8 @@ public class DrawingAndTableParseRulesTests
     {
         await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "page_vertical_alignment", "input.docx"));
         var document = new DocumentParser().Parse(stream);
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
         var pictures = laidOut.Pages[9].Items.OfType<PlacedImage>().ToList();
 
         await Assert.That(pictures.Count).IsEqualTo(2);

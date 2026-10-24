@@ -1753,13 +1753,19 @@ static class HtmlExporter
             var effective = borders;
             if (joinsPrevious)
             {
-                effective = effective with {Top = properties.BorderBetween};
+                effective = effective with
+                {
+                    Top = properties.BorderBetween
+                };
                 top = properties.BorderBetween.IsVisible ? properties.BorderBetweenSpacePoints : 0;
             }
 
             if (joinsNext)
             {
-                effective = effective with {Bottom = BorderEdge.None};
+                effective = effective with
+                {
+                    Bottom = BorderEdge.None
+                };
                 bottom = 0;
             }
 

@@ -12,7 +12,10 @@ public abstract class HtmlConverter
     /// <summary>Converts an HTML string to PNG images saved to <paramref name="outputDirectory"/>.</summary>
     public async Task<ConversionResult> ConvertToImages(string html, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options = (options ?? new()) with { Cancellation = cancel };
+        options = (options ?? new()) with
+        {
+            Cancellation = cancel
+        };
         DefaultFontSettings.MarkRenderOccurred();
         var document = await ParseHtml(html, cancel);
         return PageSink.ToDirectory(
@@ -23,7 +26,10 @@ public abstract class HtmlConverter
     /// <summary>Converts an HTML string to PNG image data in memory.</summary>
     public async Task<IReadOnlyList<byte[]>> ConvertToImageData(string html, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options = (options ?? new()) with { Cancellation = cancel };
+        options = (options ?? new()) with
+        {
+            Cancellation = cancel
+        };
         DefaultFontSettings.MarkRenderOccurred();
 
         var document = await ParseHtml(html, cancel);

@@ -26,7 +26,8 @@ public class RotatedCellTests
             Properties = new() { GridColumnWidths = [60, 300] }
         };
 
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page);
         var row = laidOut.Pages[0].Items.OfType<PlacedTableRow>().First();
         var group = row.Cells[0].Content.OfType<PlacedRotatedGroup>().Single();
 

@@ -1366,7 +1366,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 if (bodyFloats[index].Page == pageIndex)
                 {
-                    bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
+                    bodyFloats[index] = bodyFloats[index] with
+                    {
+                        Item = ShiftItem(bodyFloats[index].Item, offset)
+                    };
                 }
             }
         }
@@ -1446,7 +1449,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 if (bodyFloats[index].Page == pageIndex)
                 {
-                    bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, offset)};
+                    bodyFloats[index] = bodyFloats[index] with
+                    {
+                        Item = ShiftItem(bodyFloats[index].Item, offset)
+                    };
                 }
             }
         }
@@ -1588,7 +1594,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var dy = ShiftAt(bodyFloats[index].Item.Y);
                     if (dy > 0)
                     {
-                        bodyFloats[index] = bodyFloats[index] with {Item = ShiftItem(bodyFloats[index].Item, dy)};
+                        bodyFloats[index] =
+                            bodyFloats[index] with
+                        {
+                            Item = ShiftItem(bodyFloats[index].Item, dy)
+                        };
                     }
                 }
             }
@@ -1627,7 +1637,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     Y = clip.Y + dy,
                     Items = [.. clip.Items.Select(_ => ShiftItem(_, dy))]
                 },
-                _ => item with {Y = item.Y + dy}
+                _ => item with
+                {
+                    Y = item.Y + dy
+                }
             };
 
         // The empty paragraph that carries a next-page (or even/odd-page) section break: the parser emits it
@@ -3789,7 +3802,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var boxed = new List<PlacedCell>(cells.Count);
             foreach (var cell in cells)
             {
-                boxed.Add(cell with {Height = fragmentHeight});
+                boxed.Add(
+                    cell with
+                    {
+                        Height = fragmentHeight
+                    });
             }
 
             return (new(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight, usedHeight + horizontalEdges);
@@ -3937,7 +3954,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         segments.All(_ => _.Left == segments[0].Left &&
                                           _.Right == segments[0].Right))
                     {
-                        drawnBorders = segments[0] with {Bottom = segments[^1].Bottom};
+                        drawnBorders =
+                            segments[0] with
+                            {
+                                Bottom = segments[^1].Bottom
+                            };
                     }
                     else
                     {
@@ -4016,14 +4037,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     images[imageIndex] = image with
                     {
                         Width = cellRight - image.X,
-                        Crop = crop with {Right = crop.Right + shown * (1 - kept)}
+                        Crop = crop with
+                        {
+                            Right = crop.Right + shown * (1 - kept)
+                        }
                     };
                 }
 
                 if (images != null)
                 {
                     cut ??= [.. content];
-                    cut[index] = line with {Images = images};
+                    cut[index] = line with
+                    {
+                        Images = images
+                    };
                 }
             }
 

@@ -46,7 +46,8 @@ public class TableGridSkipTests
     }
 
     static List<PlacedTableRow> Rows(TableElement table) =>
-        new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+        new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
 
     // A borderless table over a grid of unequal columns, so a cell in the wrong column has the wrong width.
     static TableElement Table(params List<TableRow> rows) => new()

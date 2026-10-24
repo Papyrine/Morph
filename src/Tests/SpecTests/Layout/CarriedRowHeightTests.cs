@@ -12,7 +12,8 @@ public class CarriedRowHeightTests
     {
         using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", scenario, "input.docx"));
         var document = DocumentConverter.Parse(stream, null, false);
-        return new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        return new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
     }
 
     [Test]

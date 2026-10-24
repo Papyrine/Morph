@@ -486,7 +486,10 @@ sealed class SpreadsheetParser(
 
         if (shaped > bounds.LastColumn)
         {
-            return bounds with { LastColumn = shaped };
+            return bounds with
+            {
+                LastColumn = shaped
+            };
         }
 
         return bounds;

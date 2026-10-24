@@ -463,32 +463,50 @@ sealed class SvgReader
                 throw new UnsupportedException($"the colour '{color}'");
             }
 
-            style = style with {ColorHex = colorHex, ColorAlpha = colorAlpha};
+            style = style with
+            {
+                ColorHex = colorHex, ColorAlpha = colorAlpha
+            };
         }
 
         if (Declared("fill") is { } fill)
         {
-            style = style with {Fill = ReadPaint(fill, "fill", style)};
+            style = style with
+            {
+                Fill = ReadPaint(fill, "fill", style)
+            };
         }
 
         if (Declared("stroke") is { } stroke)
         {
-            style = style with {Stroke = ReadPaint(stroke, "stroke", style)};
+            style = style with
+            {
+                Stroke = ReadPaint(stroke, "stroke", style)
+            };
         }
 
         if (Declared("fill-opacity") != null)
         {
-            style = style with {FillOpacity = ReadOpacity(declared, "fill-opacity")};
+            style = style with
+            {
+                FillOpacity = ReadOpacity(declared, "fill-opacity")
+            };
         }
 
         if (Declared("stroke-opacity") != null)
         {
-            style = style with {StrokeOpacity = ReadOpacity(declared, "stroke-opacity")};
+            style = style with
+            {
+                StrokeOpacity = ReadOpacity(declared, "stroke-opacity")
+            };
         }
 
         if (Declared("stroke-width") is { } strokeWidth)
         {
-            style = style with {StrokeWidth = ParseLength(strokeWidth)};
+            style = style with
+            {
+                StrokeWidth = ParseLength(strokeWidth)
+            };
         }
 
         if (Declared("stroke-miterlimit") is { } miterLimit)
@@ -498,7 +516,10 @@ sealed class SvgReader
                 throw new UnsupportedException($"the miter limit '{miterLimit}'");
             }
 
-            style = style with {MiterLimit = limit};
+            style = style with
+            {
+                MiterLimit = limit
+            };
         }
 
         if (Declared("stroke-linecap") is { } cap)
@@ -533,22 +554,35 @@ sealed class SvgReader
         {
             // Office writes an empty dash array on solid strokes; that, none, and a list of zeros
             // are all a solid line. Anything else is a dash pattern, units or not.
-            style = style with {Dashed = dashes is not ("none" or "") && (SvgNumbers.ReadList(dashes) is not { } lengths || lengths.Exists(_ => _ != 0))};
+            style = style with
+            {
+                Dashed = dashes is not ("none" or "") &&
+                         (SvgNumbers.ReadList(dashes) is not { } lengths || lengths.Exists(_ => _ != 0))
+            };
         }
 
         if (Declared("fill-rule") is { } fillRule)
         {
-            style = style with {EvenOdd = ReadRule(fillRule)};
+            style = style with
+            {
+                EvenOdd = ReadRule(fillRule)
+            };
         }
 
         if (Declared("clip-rule") is { } clipRule)
         {
-            style = style with {ClipEvenOdd = ReadRule(clipRule)};
+            style = style with
+            {
+                ClipEvenOdd = ReadRule(clipRule)
+            };
         }
 
         if (Declared("visibility") is { } visibility)
         {
-            style = style with {Visible = visibility == "visible"};
+            style = style with
+            {
+                Visible = visibility == "visible"
+            };
         }
 
         return style;

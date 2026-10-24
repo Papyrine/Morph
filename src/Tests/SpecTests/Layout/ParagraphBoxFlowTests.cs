@@ -9,7 +9,8 @@ public class ParagraphBoxFlowTests
         var path = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "border_style_variants", "input.docx");
         using var stream = File.OpenRead(path);
         var document = new DocumentParser().Parse(stream);
-        return new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        return new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
     });
 
     static PlacedLine Line(LaidOutPage page, string text) =>

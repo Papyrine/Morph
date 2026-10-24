@@ -40,7 +40,10 @@ public abstract class PowerPointConverter
     /// <summary>Converts a PPTX stream to PNG image data in memory, one entry per slide.</summary>
     public IReadOnlyList<byte[]> ConvertToImageData(Stream pptxStream, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options = (options ?? new()) with { Cancellation = cancel };
+        options = (options ?? new()) with
+        {
+            Cancellation = cancel
+        };
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 
