@@ -385,12 +385,12 @@ sealed class EditMap
             // say where the text is, and they say nothing of the room there was beside it.
             var first = near ?? lines.Min(_ => _.X);
             var last = far ?? lines.Max(_ => _.X + _.Width);
-            if (far != null)
+            if (far == null)
             {
-                return (Math.Min(first, last - leastWidth), last);
+                return (first, Math.Max(last, first + leastWidth));
             }
 
-            return (first, Math.Max(last, first + leastWidth));
+            return (Math.Min(first, last - leastWidth), last);
         }
     }
 }

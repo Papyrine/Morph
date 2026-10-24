@@ -1,5 +1,3 @@
-using Morph;
-
 /// <summary>
 /// An Office file parsed once and laid out once, from which any page can be painted at any resolution
 /// and whose text geometry can be read back for the selectable text layer.

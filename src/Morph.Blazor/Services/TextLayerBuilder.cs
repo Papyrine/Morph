@@ -1,7 +1,3 @@
-using System.Buffers;
-using System.Text.Encodings.Web;
-using Morph;
-
 /// <summary>
 /// Reads one laid-out page's text back out of the layout tree for the browser's selectable text layer —
 /// the PDF.js technique: the page stays a picture, and a transparent copy of every run of text sits over

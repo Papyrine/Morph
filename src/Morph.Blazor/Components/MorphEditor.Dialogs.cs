@@ -421,7 +421,9 @@ public partial class MorphEditor
             return Task.CompletedTask;
         }
 
-        return EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+        return EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
     }
 
     // The Font dialog
