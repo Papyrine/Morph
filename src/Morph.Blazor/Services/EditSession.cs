@@ -281,7 +281,12 @@ sealed class EditSession
                 json.WriteString("s", "drawing");
                 Number(json, "w", unit.WidthPoints);
                 Number(json, "e", unit.HeightPoints);
-                if (Map.Picture(unit.Run, unit.Start) is {InlineImageData: { } data, InlineImageContentType: { } type})
+                if (Map.Picture(unit.Run, unit.Start)
+                    is
+                    {
+                        InlineImageData: { } data,
+                        InlineImageContentType: { } type
+                    })
                 {
                     // The picture itself, so the box shows it where the page did rather than a stand-in.
                     json.WriteString("img", $"data:{type};base64,{Convert.ToBase64String(data)}");
@@ -397,7 +402,13 @@ sealed class EditSession
 
             return paragraphs;
         }
-        catch (Exception exception) when (exception is JsonException or InvalidOperationException or KeyNotFoundException or IndexOutOfRangeException or FormatException)
+        catch (Exception exception)
+            when (exception is
+                      JsonException or
+                      InvalidOperationException or
+                      KeyNotFoundException or
+                      IndexOutOfRangeException or
+                      FormatException)
         {
             return null;
         }

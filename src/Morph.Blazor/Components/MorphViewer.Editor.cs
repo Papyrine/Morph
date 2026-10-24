@@ -1449,7 +1449,11 @@ public partial class MorphViewer
         {
             info = Image.Identify(bytes);
         }
-        catch (Exception exception) when (exception is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
+        catch (Exception exception)
+            when (exception is
+                      UnknownImageFormatException or
+                      InvalidImageContentException or
+                      NotSupportedException)
         {
             return null;
         }

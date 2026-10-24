@@ -88,7 +88,8 @@ static class BrowserScreenshot
             {
                 return await CaptureAsync(tempFile, deviceScale);
             }
-            catch (PlaywrightException exception) when (exception.Message.Contains(captureFailure))
+            catch (PlaywrightException exception)
+                when (exception.Message.Contains(captureFailure))
             {
                 Report($"{captureFailure}. {await DescribeBrowserAsync()} Capturing again on a new page.");
             }
