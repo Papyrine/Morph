@@ -10,7 +10,8 @@ public class SheetDrawingPaginationTests
     static readonly string workbook = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "invoice-accessibility-guide", "input.xlsx");
 
     static LaidOutDocument Layout(ParsedDocument document) =>
-        new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
 
     static ParsedDocument Parse(bool onePagePerSheet = false)
     {

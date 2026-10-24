@@ -73,7 +73,8 @@ public class PictureFillTests
     public async Task A_picture_filled_shape_paints_cut_to_its_outline()
     {
         var document = Parse("brochures/04");
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
 
         static IEnumerable<PlacedImage> Images(IEnumerable<PlacedItem> items) =>
             items.SelectMany(_ => _ switch

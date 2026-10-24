@@ -47,7 +47,8 @@ public class InlinePictureEffectExtentTests
     [Test]
     public async Task The_picture_draws_inside_the_box_offset_by_the_left_and_top_edges()
     {
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Picture(new(10, 20, 30, 40))], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Picture(new(10, 20, 30, 40))], page);
         var line = laidOut.Pages[0].Items.OfType<PlacedLine>().Single();
         var image = line.Images.Single();
 
@@ -86,7 +87,8 @@ public class InlinePictureEffectExtentTests
         };
 
         static PlacedLine Line(double offsetX, double offsetY) =>
-            new Fragmenter(LayoutTestFonts.Measurer).Layout([Group(offsetX, offsetY)], page).Pages[0].Items.OfType<PlacedLine>().Single();
+            new Fragmenter(LayoutTestFonts.Measurer)
+                .Layout([Group(offsetX, offsetY)], page).Pages[0].Items.OfType<PlacedLine>().Single();
 
         var plain = Line(0, 0);
         var moved = Line(13.5, 12);
@@ -101,8 +103,10 @@ public class InlinePictureEffectExtentTests
     public async Task A_following_paragraph_starts_below_the_whole_box()
     {
         var caption = new ParagraphElement { Runs = [new() { Text = "cap", Properties = new() { FontFamily = "Aptos", FontSizePoints = 12 } }], Properties = new() };
-        var bare = new Fragmenter(LayoutTestFonts.Measurer).Layout([Picture(null), caption], page);
-        var padded = new Fragmenter(LayoutTestFonts.Measurer).Layout([Picture(new(0, 0, 0, 30)), caption], page);
+        var bare = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Picture(null), caption], page);
+        var padded = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Picture(new(0, 0, 0, 30)), caption], page);
 
         var bareCaption = bare.Pages[0].Items.OfType<PlacedLine>().Last();
         var paddedCaption = padded.Pages[0].Items.OfType<PlacedLine>().Last();

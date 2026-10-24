@@ -86,7 +86,10 @@ sealed class ConditionalFormats
 
         if (rule.ColorScale is { } scale)
         {
-            return result with { BackgroundColorHex = scale.Resolve(number) ?? result.BackgroundColorHex };
+            return result with
+            {
+                BackgroundColorHex = scale.Resolve(number) ?? result.BackgroundColorHex
+            };
         }
 
         var format = rule.DifferentialFormatId is { } id

@@ -37,7 +37,8 @@ public class SectionMarkOverflowTests
     }
 
     static LaidOutDocument Layout(List<DocumentElement> elements) =>
-        new Fragmenter(LayoutTestFonts.Measurer).Layout(elements, page);
+        new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(elements, page);
 
     static string Text(LaidOutPage laidOutPage) =>
         string.Concat(laidOutPage.Items.OfType<PlacedLine>().SelectMany(_ => _.Runs).Select(_ => _.Text));

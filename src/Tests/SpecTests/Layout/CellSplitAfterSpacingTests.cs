@@ -20,7 +20,8 @@ public class CellSplitAfterSpacingTests
             Properties = new() { GridColumnWidths = [260] }
         };
 
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page);
         var firstPageRows = laidOut.Pages[0].Items.OfType<PlacedTableRow>().ToList();
         var cellLines = firstPageRows.SelectMany(_ => _.Cells).SelectMany(_ => _.Content).OfType<PlacedLine>().ToList();
 

@@ -53,8 +53,17 @@ static class TableLayout
         var (rowTop, rowBottom) = RowVerticalPadding(row, tableProps);
         var top = Math.Max(own.Top, rowTop);
         var bottom = Math.Max(own.Bottom, rowBottom);
-        return top == own.Top &&
-               bottom == own.Bottom ? own : own with {Top = top, Bottom = bottom};
+        if (top == own.Top &&
+            bottom == own.Bottom)
+        {
+            return own;
+        }
+
+        return own with
+        {
+            Top = top,
+            Bottom = bottom
+        };
     }
 
     internal static CellSpacing OwnPadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row) =>

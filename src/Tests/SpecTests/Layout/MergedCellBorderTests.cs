@@ -50,7 +50,8 @@ public class MergedCellBorderTests
         Rows(table)[0].Cells.First(_ => _.Content.Count > 0);
 
     static List<PlacedTableRow> Rows(TableElement table) =>
-        new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+        new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
 
     // A borderless two-column table whose first column merges down three 30pt rows.
     static TableElement Table(CellBorders? head, CellBorders? middle, CellBorders? last) => new()

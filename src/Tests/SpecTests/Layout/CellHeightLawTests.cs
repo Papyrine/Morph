@@ -131,7 +131,8 @@ public class CellHeightLawTests
     }
 
     static List<PlacedTableRow> Rows(TableElement table) =>
-        new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
+        new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().ToList();
 
     static TableElement Table(List<TableRow> rows, List<double> widths) =>
         new() { Rows = rows, Properties = new() { GridColumnWidths = widths } };

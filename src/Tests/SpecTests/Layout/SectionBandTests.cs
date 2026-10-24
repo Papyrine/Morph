@@ -13,16 +13,17 @@ public class SectionBandTests
     static LaidOutDocument Layout(string name)
     {
         var document = new DocumentParser().Parse(Fixture(name));
-        return new Fragmenter(LayoutTestFonts.Measurer).Layout(
-            document.Elements,
-            document.PageSettings,
-            document.Header,
-            document.Footer,
-            document.FirstPageHeader,
-            document.FirstPageFooter,
-            document.EvenPageHeader,
-            document.EvenPageFooter,
-            DocumentNotes.From(document));
+        return new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(
+                document.Elements,
+                document.PageSettings,
+                document.Header,
+                document.Footer,
+                document.FirstPageHeader,
+                document.FirstPageFooter,
+                document.EvenPageHeader,
+                document.EvenPageFooter,
+                DocumentNotes.From(document));
     }
 
     // The band text of a page: every run above the body's first line or below its last, joined.
@@ -130,11 +131,12 @@ public class SectionBandTests
             HeaderDistance = 36,
             DifferentFirstPage = true
         };
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(
-            [Text("body one"), new PageBreakElement(), Text("body two"), new PageBreakElement(), Text("body three")],
-            page,
-            header: Band(laterLines, "later"),
-            firstPageHeader: Band(firstLines, "first"));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(
+                [Text("body one"), new PageBreakElement(), Text("body two"), new PageBreakElement(), Text("body three")],
+                page,
+                header: Band(laterLines, "later"),
+                firstPageHeader: Band(firstLines, "first"));
 
         var tall = BodyTop(laidOut.Pages[firstLines > laterLines ? 0 : 1], firstLines > laterLines ? "body one" : "body two");
         var plain = BodyTop(laidOut.Pages[firstLines > laterLines ? 1 : 0], firstLines > laterLines ? "body two" : "body one");

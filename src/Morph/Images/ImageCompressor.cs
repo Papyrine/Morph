@@ -186,12 +186,26 @@ public static class ImageCompressor
         {
             options.OnWarning?.Invoke(
                 new(WarningKind.ImageRenderingFailed, $"'{partName}' could not be re-encoded, so it was left as it is."));
-            return new(report with {Outcome = ImageOutcome.Unreadable}, null, null, null);
+            return new(
+                report with
+                {
+                    Outcome = ImageOutcome.Unreadable
+                },
+                null,
+                null,
+                null);
         }
 
         if (replacement.Length >= bytes)
         {
-            return new(report with {Outcome = ImageOutcome.NoGain}, null, null, null);
+            return new(
+                report with
+                {
+                    Outcome = ImageOutcome.NoGain
+                },
+                null,
+                null,
+                null);
         }
 
         var newPartName = targetContentType == contentType

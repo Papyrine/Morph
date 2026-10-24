@@ -104,6 +104,12 @@ header {
     text-align: center;
     margin-bottom: 1.5rem;
     position: relative;
+    /* The title and the mode links share a row; the tagline wraps under both. */
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    column-gap: 1.25rem;
 }
 
 header h1 {
@@ -113,8 +119,10 @@ header h1 {
 }
 
 header p {
-    margin: 0.5rem auto 0;
-    max-width: 640px;
+    margin: 0.5rem 0 0;
+    flex-basis: 100%;
+    order: 1;
+    text-align: left;
     opacity: 0.9;
     font-size: 0.9rem;
 }
@@ -129,7 +137,6 @@ header p {
 .app-nav {
     display: inline-flex;
     gap: 0.25rem;
-    margin-top: 0.75rem;
     padding: 0.2rem;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
@@ -159,8 +166,19 @@ header p {
     max-width: none;
 }
 
+/* Above it, only the container's own padding, so the gap matches the one at its side. */
+header:has(+ .container .viewer) {
+    margin-bottom: 0;
+}
+
+/* And below it the same, the footer giving up its own margin and top padding. */
+.container:has(.viewer) + footer {
+    margin-top: 0;
+    padding-top: 0;
+}
+
 .container .viewer {
-    height: calc(100vh - 16rem);
+    height: calc(100vh - 8.5rem);
     min-height: 420px;
 }
 

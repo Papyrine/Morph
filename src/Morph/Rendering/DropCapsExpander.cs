@@ -53,7 +53,10 @@ static class DropCapsExpander
         // Cap font size to DropCapLines × current size; matches Word's "drop cap, lines: N" preset
         // closely enough for the common 2–4 line range.
         var capFontSize = firstRun.Properties.FontSizePoints * props.DropCapLines;
-        var capProps = firstRun.Properties with {FontSizePoints = capFontSize};
+        var capProps = firstRun.Properties with
+        {
+            FontSizePoints = capFontSize
+        };
 
         var expanded = new List<Run>(runs.Count + 2);
         for (var i = 0; i < firstIndex; i++)

@@ -14,7 +14,8 @@ public class TableFloorFitTests
         // Sixteen 14.5pt Aptos lines leave a remainder of roughly 28pt in the 260pt band; a 40pt floor
         // does not fit it, and its single 10pt line would fit with room to spare.
         var floored = Table(40, exact: false);
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([.. fill, floored], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([.. fill, floored], page);
 
         await Assert.That(laidOut.Pages.Count).IsEqualTo(2);
         await Assert.That(laidOut.Pages[0].Items.OfType<PlacedTableRow>().Count()).IsEqualTo(0);
@@ -28,7 +29,8 @@ public class TableFloorFitTests
         var fill = Enumerable.Range(1, 16).Select(DocumentElement (_) => Paragraph($"line {_}")).ToList();
 
         var plain = Table(null, exact: false);
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([.. fill, plain], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([.. fill, plain], page);
 
         await Assert.That(laidOut.Pages.Count).IsEqualTo(1);
     }

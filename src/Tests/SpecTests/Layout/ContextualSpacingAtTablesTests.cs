@@ -97,7 +97,8 @@ public class ContextualSpacingAtTablesTests
         var path = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "letters", "01", "input.docx");
         await using var stream = File.OpenRead(path);
         var document = new DocumentParser().Parse(stream);
-        var page = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings).Pages[0];
+        var page = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings).Pages[0];
 
         var row = page.Items.OfType<PlacedTableRow>().First();
         var before = page.Items.OfType<PlacedLine>().Last(_ => _.Y < row.Y);

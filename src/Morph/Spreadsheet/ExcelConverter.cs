@@ -23,7 +23,10 @@ public abstract class ExcelConverter
     /// <summary>Converts an XLSX stream to PNG images saved to <paramref name="outputDirectory"/>.</summary>
     public ConversionResult ConvertToImages(Stream xlsxStream, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options = (options ?? new()) with { Cancellation = cancel };
+        options = (options ?? new()) with
+        {
+            Cancellation = cancel
+        };
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
         var document = Parse(xlsxStream, options);
@@ -42,7 +45,10 @@ public abstract class ExcelConverter
     /// <summary>Converts an XLSX stream to PNG image data in memory.</summary>
     public IReadOnlyList<byte[]> ConvertToImageData(Stream xlsxStream, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options = (options ?? new()) with { Cancellation = cancel };
+        options = (options ?? new()) with
+        {
+            Cancellation = cancel
+        };
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 

@@ -492,7 +492,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (sectionBands.Count > 0)
         {
-            pageSettings = pageSettings with {Bands = sectionBands[0]};
+            pageSettings = pageSettings with
+            {
+                Bands = sectionBands[0]
+            };
         }
 
         var elements = ParseElements(body, mainPart);
@@ -6070,7 +6073,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             rebuilt ??= [.. paragraph.Runs];
             // WithProperties preserves every member — the previous manual copy silently dropped
             // hyperlink targets, footnote/endnote ids and page-field markers from recoloured runs.
-            rebuilt[i] = run.WithProperties(run.Properties with {ColorHex = color});
+            rebuilt[i] = run.WithProperties(
+                run.Properties with
+                {
+                    ColorHex = color
+                });
         }
 
         if (rebuilt == null)
@@ -6830,7 +6837,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             }
                         }
 
-                        props = props with {Alignment = mathAlignment};
+                        props = props with
+                        {
+                            Alignment = mathAlignment
+                        };
                     }
 
                     break;
@@ -7272,7 +7282,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     Runs = [],
                     Properties = sectionBreak != null
-                        ? props with {SuppressLineNumbers = true}
+                        ? props with
+                        {
+                            SuppressLineNumbers = true
+                        }
                         : props,
                     IsSectionBreakMark = sectionBreak is {BreakType: SectionBreakType.Continuous}
                 });
@@ -7301,7 +7314,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 new ParagraphElement
                 {
                     Runs = [],
-                    Properties = props with {SpacingBeforePoints = 0},
+                    Properties = props with
+                    {
+                        SpacingBeforePoints = 0
+                    },
                     IsAnchorOnlyMark = true
                 });
         }
@@ -9507,7 +9523,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// </summary>
     static (WrapType Type, WrapTextSide Side, double DistLeft, double DistTop, double DistRight, double DistBottom) ParseWrap(DW.Anchor anchor)
     {
-
         if (anchor.GetFirstChild<DW.WrapSquare>() is { } square)
         {
             return (WrapType.Square,
@@ -12954,7 +12969,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return properties;
         }
 
-        return properties with {FontFamily = family};
+        return properties with
+        {
+            FontFamily = family
+        };
     }
 
     static bool IsEastAsiaHinted(char ch) =>
@@ -13212,7 +13230,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     return styleDefaults;
                 }
 
-                return styleDefaults with {ColorHex = styleColor};
+                return styleDefaults with
+                {
+                    ColorHex = styleColor
+                };
             }
 
             return new()

@@ -135,7 +135,10 @@ sealed class TableStyleResolver
             if (fill != null &&
                 ShapeParser.ExtractSolidFillColor(fill, themeColors) is { } background)
             {
-                result = result with { BackgroundColorHex = background };
+                result = result with
+                {
+                    BackgroundColorHex = background
+                };
             }
 
             var borders = cellStyle?.Elements().FirstOrDefault(_ => _.LocalName == "tcBdr");
@@ -155,14 +158,20 @@ sealed class TableStyleResolver
             {
                 if (ShapeParser.ExtractSolidFillColor(textStyle, themeColors) is { } color)
                 {
-                    result = result with { ColorHex = color };
+                    result = result with
+                    {
+                        ColorHex = color
+                    };
                 }
 
                 // b/i are tri-state here ("on"/"off"/"def"); only an explicit "on" forces the weight.
                 var bold = textStyle.GetAttributes().FirstOrDefault(_ => _.LocalName == "b").Value;
                 if (bold is "on" or "1")
                 {
-                    result = result with { Bold = true };
+                    result = result with
+                    {
+                        Bold = true
+                    };
                 }
             }
         }

@@ -92,9 +92,31 @@ public class InlineImageLineTests
     {
         // resumes/11's divider rules: an inline straight connector, 540pt wide and 0 tall, alone in a
         // paragraph. The line is the mark's own, and the rule stands on its baseline.
-        var group = new InlineShapeGroup { ChildExtentX = 100, ChildExtentY = 100, Shapes = [] };
-        var rule = new Run { Text = "", Properties = new() { FontFamily = "Aptos", FontSizePoints = 12 }, InlineShapeGroup = group, InlineImageWidthPoints = 540, InlineImageHeightPoints = 0 };
-        var mark = Single with { ParagraphMarkRunProperties = new() { FontFamily = "Aptos", FontSizePoints = 12 } };
+        var group = new InlineShapeGroup
+        {
+            ChildExtentX = 100,
+            ChildExtentY = 100,
+            Shapes = []
+        };
+        var rule = new Run
+        {
+            Text = "",
+            Properties = new()
+            {
+                FontFamily = "Aptos",
+                FontSizePoints = 12
+            },
+            InlineShapeGroup = group,
+            InlineImageWidthPoints = 540,
+            InlineImageHeightPoints = 0
+        };
+        var mark = Single with
+        {
+            ParagraphMarkRunProperties = new()
+            {
+                FontFamily = "Aptos", FontSizePoints = 12
+            }
+        };
         var ruled = new ParagraphElement { Runs = [rule], Properties = mark };
         var empty = new ParagraphElement { Runs = [], Properties = mark };
 

@@ -456,7 +456,10 @@ public class BorderStrokeTests
         await Assert.That(textX + textWidth).IsEqualTo(564).Within(0.001);
         await Assert.That(textY + textHeight).IsEqualTo(744).Within(0.001);
 
-        var fromPage = text with { MeasureFromText = false };
+        var fromPage = text with
+        {
+            MeasureFromText = false
+        };
         var (pageX, _, pageWidth, _) = fromPage.EdgeRect(settings);
         await Assert.That(pageX).IsEqualTo(27).Within(0.001);
         await Assert.That(pageX + pageWidth).IsEqualTo(585).Within(0.001);

@@ -19,10 +19,11 @@ public class LayoutInvariantTests
     {
         var input = Path.Combine(ScenarioInputs.Root(ScenarioFormat.Word), scenario, "input.docx");
         var document = new DocumentParser().Parse(input);
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(
-            document.Elements, document.PageSettings, document.Header, document.Footer,
-            document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter,
-            DocumentNotes.From(document));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(
+                document.Elements, document.PageSettings, document.Header, document.Footer,
+                document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter,
+                DocumentNotes.From(document));
 
         await Assert.That(Violations(document, laidOut)).IsEmpty();
     }

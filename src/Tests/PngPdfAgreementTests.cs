@@ -22,7 +22,7 @@ public class PngPdfAgreementTests
     {
         // 18 DPI keeps the raster cheap: a page is a quarter of a pixel per point, which is all a size check needs.
         const int dpi = 18;
-        var images = new SkiaDocumentConverter().ConvertToImageData(Input(scenario), new() { FontDirectory = fonts, Dpi = dpi });
+        var images = new SkiaDocumentConverter().ConvertToImageData(Input(scenario), new() {FontDirectory = fonts, Dpi = dpi});
         using var pdf = PdfiumDocument.Load(
             PdfDocumentConverter.ConvertToPdf(
                 Input(scenario),
@@ -53,10 +53,11 @@ public class PngPdfAgreementTests
     public async Task Pdf_text_stands_on_the_laid_out_lines(string scenario)
     {
         var document = new DocumentParser().Parse(Input(scenario));
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(
-            document.Elements, document.PageSettings, document.Header, document.Footer,
-            document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter,
-            DocumentNotes.From(document));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(
+                document.Elements, document.PageSettings, document.Header, document.Footer,
+                document.FirstPageHeader, document.FirstPageFooter, document.EvenPageHeader, document.EvenPageFooter,
+                DocumentNotes.From(document));
         using var pdf = PdfiumDocument.Load(
             PdfDocumentConverter.ConvertToPdf(
                 Input(scenario),
@@ -118,5 +119,5 @@ public class PngPdfAgreementTests
 
     static (int Width, int Height) PngSize(byte[] png) =>
         ((png[16] << 24) | (png[17] << 16) | (png[18] << 8) | png[19],
-         (png[20] << 24) | (png[21] << 16) | (png[22] << 8) | png[23]);
+            (png[20] << 24) | (png[21] << 16) | (png[22] << 8) | png[23]);
 }

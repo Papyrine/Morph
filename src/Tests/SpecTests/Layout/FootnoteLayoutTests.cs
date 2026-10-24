@@ -21,7 +21,8 @@ public class FootnoteLayoutTests
     public async Task A_cited_note_sits_at_the_page_bottom_under_a_two_inch_rule()
     {
         var notes = Notes(("1", ["Note one."]));
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Paragraph("Body", footnote: "1")], page, notes: notes);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Paragraph("Body", footnote: "1")], page, notes: notes);
 
         await Assert.That(laidOut.Pages.Count).IsEqualTo(1);
         var items = laidOut.Pages[0].Items;
@@ -47,10 +48,23 @@ public class FootnoteLayoutTests
         var separator = new ParagraphElement
         {
             Runs = [],
-            Properties = new() { ParagraphMarkRunProperties = new() { FontFamily = "Calibri", FontSizePoints = 20 }, SpacingAfterPoints = 0, LineSpacingMultiplier = 1 }
+            Properties = new()
+            {
+                ParagraphMarkRunProperties = new()
+                {
+                    FontFamily = "Calibri",
+                    FontSizePoints = 20
+                },
+                SpacingAfterPoints = 0,
+                LineSpacingMultiplier = 1
+            }
         };
-        var notes = Notes(("1", ["Note one."])) with { FootnoteSeparator = separator };
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Paragraph("Body", footnote: "1")], page, notes: notes);
+        var notes = Notes(("1", ["Note one."])) with
+        {
+            FootnoteSeparator = separator
+        };
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Paragraph("Body", footnote: "1")], page, notes: notes);
 
         var rule = laidOut.Pages[0].Items.OfType<PlacedShading>().Single();
         var note = laidOut.Pages[0].Items.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "Note one."));
@@ -68,8 +82,10 @@ public class FootnoteLayoutTests
         // Twenty 13.43pt lines overfill the 260pt band on their own (19 fit); the note under line 1
         // takes the separator and one line, so two fewer body lines fit page 1.
         var fill = Enumerable.Range(1, 20).Select(DocumentElement (_) => Paragraph($"line {_}", footnote: _ == 1 ? "1" : null)).ToList();
-        var plain = new Fragmenter(LayoutTestFonts.Measurer).Layout(fill, page);
-        var noted = new Fragmenter(LayoutTestFonts.Measurer).Layout(fill, page, notes: Notes(("1", ["Note one."])));
+        var plain = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(fill, page);
+        var noted = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(fill, page, notes: Notes(("1", ["Note one."])));
 
         var plainFirstPage = plain.Pages[0].Items.OfType<PlacedLine>().Count();
         var notedFirstPage = noted.Pages[0].Items.OfType<PlacedLine>().Count(_ => _.Paragraph.Runs[0].Text.StartsWith("line"));
@@ -89,7 +105,8 @@ public class FootnoteLayoutTests
         // with the note's last four at the bottom under a full-width continuation rule.
         var body = Enumerable.Range(1, 10).Select(DocumentElement (_) => Paragraph($"line {_}", footnote: _ == 2 ? "1" : null)).ToList();
         var noteText = Enumerable.Range(1, 20).Select(_ => $"note {_}").ToArray();
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(body, page, notes: Notes(("1", noteText)));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(body, page, notes: Notes(("1", noteText)));
 
         await Assert.That(laidOut.Pages.Count).IsEqualTo(2);
         var first = laidOut.Pages[0].Items;
@@ -117,7 +134,8 @@ public class FootnoteLayoutTests
         // Nineteen 13.43pt lines fill the 260pt band; a note cited on line 19 needs the separator and a
         // line under it, so line 19 moves to page 2 with its note.
         var body = Enumerable.Range(1, 20).Select(DocumentElement (_) => Paragraph($"line {_}", footnote: _ == 19 ? "1" : null)).ToList();
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(body, page, notes: Notes(("1", ["Note one."])));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(body, page, notes: Notes(("1", ["Note one."])));
 
         var firstBody = laidOut.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Paragraph.Runs[0].Text.StartsWith("line")).Select(_ => _.Paragraph.Runs[0].Text).ToList();
         await Assert.That(firstBody).Contains("line 18");
@@ -136,7 +154,8 @@ public class FootnoteLayoutTests
             Properties = new() { GridColumnWidths = [260] }
         };
         List<DocumentElement> elements = [Paragraph("Body", footnote: "1"), table, Paragraph("Again", footnote: "1")];
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout(elements, page, notes: Notes(("1", ["Note one."]), ("2", ["Note two."])));
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(elements, page, notes: Notes(("1", ["Note one."]), ("2", ["Note two."])));
 
         var noteLines = laidOut.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Runs.Any(run => run.Text.StartsWith("Note"))).OrderBy(_ => _.Y).Select(_ => _.Runs[0].Text).ToList();
         await Assert.That(noteLines).IsEquivalentTo(["Note one.", "Note two."]);
@@ -145,10 +164,14 @@ public class FootnoteLayoutTests
     [Test]
     public async Task Endnotes_flow_after_the_body_and_move_whole_when_their_block_misses_the_page()
     {
-        var notes = Notes() with { Endnotes = new Dictionary<string, IReadOnlyList<DocumentElement>> { ["1"] = [Paragraph("Endnote one.")] } };
+        var notes = Notes() with
+        {
+            Endnotes = new Dictionary<string, IReadOnlyList<DocumentElement>> { ["1"] = [Paragraph("Endnote one.")] }
+        };
 
         // A short body: the rule follows it and the note follows the rule, on page 1.
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Paragraph("Body", endnote: "1")], page, notes: notes);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Paragraph("Body", endnote: "1")], page, notes: notes);
         var body = laidOut.Pages[0].Items.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "Body"));
         var rule = laidOut.Pages[0].Items.OfType<PlacedShading>().Single();
         var note = laidOut.Pages[0].Items.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text == "Endnote one."));
@@ -159,7 +182,8 @@ public class FootnoteLayoutTests
         // Eighteen lines leave one line of room: the separator and first note line do not both fit, so
         // the block opens page 2 at the margin top.
         var fill = Enumerable.Range(1, 18).Select(DocumentElement (_) => Paragraph($"line {_}", endnote: _ == 1 ? "1" : null)).ToList();
-        var moved = new Fragmenter(LayoutTestFonts.Measurer).Layout(fill, page, notes: notes);
+        var moved = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout(fill, page, notes: notes);
         await Assert.That(moved.Pages.Count).IsEqualTo(2);
         await Assert.That(moved.Pages[0].Items.OfType<PlacedShading>().Count()).IsEqualTo(0);
         var movedRule = moved.Pages[1].Items.OfType<PlacedShading>().Single();

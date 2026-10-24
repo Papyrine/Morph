@@ -31,7 +31,10 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         }
 
         var text = TextStyle(Child(chartSpace, "txPr"), new(themeFonts?.MinorFont ?? "Calibri", 10, defaultTextColor, false, false));
-        var labelText = text with {SizePoints = Child(chartSpace, "txPr") == null ? 9 : text.SizePoints};
+        var labelText = text with
+        {
+            SizePoints = Child(chartSpace, "txPr") == null ? 9 : text.SizePoints
+        };
 
         var kind = plot.LocalName switch
         {

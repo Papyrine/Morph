@@ -54,7 +54,8 @@ public class CellParagraphShadingTests
             Properties = new() { GridColumnWidths = [300] },
             Rows = [new() { Cells = [new() { Content = content }] }]
         };
-        return new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page).Pages[0].Items
+        return new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page).Pages[0].Items
             .OfType<PlacedTableRow>().Single().Cells.Single().Content.ToList();
     }
 

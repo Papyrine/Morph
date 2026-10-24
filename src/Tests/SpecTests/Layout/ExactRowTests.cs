@@ -18,7 +18,8 @@ public class ExactRowTests
             Rows = [ExactRow(40, "first"), ExactRow(200, "second")],
             Properties = new() { GridColumnWidths = [260] }
         };
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([.. fill, table], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([.. fill, table], page);
 
         await Assert.That(laidOut.Pages.Count).IsEqualTo(2);
         var first = laidOut.Pages[0].Items.OfType<PlacedTableRow>().ToList();
@@ -39,8 +40,10 @@ public class ExactRowTests
             Properties = new() { GridColumnWidths = [260] }
         };
 
-        var exactCell = new Fragmenter(LayoutTestFonts.Measurer).Layout([exact], page).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
-        var atLeastCell = new Fragmenter(LayoutTestFonts.Measurer).Layout([atLeast], page).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        var exactCell = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([exact], page).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
+        var atLeastCell = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([atLeast], page).Pages[0].Items.OfType<PlacedTableRow>().Single().Cells[0];
 
         await Assert.That(exactCell.ClipVertically).IsTrue();
         await Assert.That(exactCell.Height).IsEqualTo(10).Within(0.01f);

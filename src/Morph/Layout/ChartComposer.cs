@@ -760,13 +760,38 @@ sealed class ChartComposer(
         }
 
         ChartTextStyle Text(ChartTextStyle style) =>
-            style with { SizePoints = style.SizePoints * scale };
+            style with
+            {
+                SizePoints = style.SizePoints * scale
+            };
 
-        ChartStroke? Stroke(ChartStroke? stroke) =>
-            stroke == null ? null : stroke with { WidthPoints = stroke.WidthPoints * scale };
+        ChartStroke? Stroke(ChartStroke? stroke)
+        {
+            if (stroke == null)
+            {
+                return null;
+            }
 
-        ChartAxis? Axis(ChartAxis? axis) =>
-            axis == null ? null : axis with { Text = Text(axis.Text), Line = Stroke(axis.Line), MajorGridlines = Stroke(axis.MajorGridlines) };
+            return stroke with
+            {
+                WidthPoints = stroke.WidthPoints * scale
+            };
+        }
+
+        ChartAxis? Axis(ChartAxis? axis)
+        {
+            if (axis == null)
+            {
+                return null;
+            }
+
+            return axis with
+            {
+                Text = Text(axis.Text),
+                Line = Stroke(axis.Line),
+                MajorGridlines = Stroke(axis.MajorGridlines)
+            };
+        }
 
         return chart with
         {
@@ -775,8 +800,14 @@ sealed class ChartComposer(
             Legend = chart.Legend is { } legend ? legend with { Text = Text(legend.Text) } : null,
             CategoryAxis = Axis(chart.CategoryAxis),
             ValueAxis = Axis(chart.ValueAxis),
-            Area = chart.Area with { Line = Stroke(chart.Area.Line) },
-            Plot = chart.Plot with { Line = Stroke(chart.Plot.Line) },
+            Area = chart.Area with
+            {
+                Line = Stroke(chart.Area.Line)
+            },
+            Plot = chart.Plot with
+            {
+                Line = Stroke(chart.Plot.Line)
+            },
             Series = [.. chart.Series
                 .Select(_ => _ with
                 {

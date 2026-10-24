@@ -34,7 +34,8 @@ public class CellDiagonalPlacementTests
         };
         var page = new PageSettings { WidthPoints = 300, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
 
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page);
         var row = laidOut.Pages[0].Items.OfType<PlacedTableRow>().First();
 
         await Assert.That(row.Cells[0].Diagonals).IsSameReferenceAs(diagonals);

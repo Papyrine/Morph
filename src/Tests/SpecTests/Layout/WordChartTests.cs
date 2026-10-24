@@ -31,7 +31,8 @@ public class WordChartTests
     public async Task An_inline_chart_is_composed_into_its_box_on_the_line()
     {
         var document = Parse("chart_column_line");
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
         var boxes = laidOut.Pages[0].Items.OfType<PlacedLine>().SelectMany(_ => _.Images).Where(_ => _.Composed != null).ToList();
 
         await Assert.That(boxes.Count).IsEqualTo(2);

@@ -177,12 +177,18 @@ public class CanonicalContextualSpacingTests
     [Arguments(12, 20, true, 0)]
     public async Task A_page_break_before_keeps_the_excess_of_its_spacing_in_older_modes(int mode, int previousAfter, bool contextual, int expected)
     {
-        var document = new Fragmenter(LayoutTestFonts.Measurer, new() {CompatibilityMode = mode}).Layout(
-            [
-                Spaced("S", 0, previousAfter, false),
-                Spaced("S", 36, 0, contextual, pageBreakBefore: true)
-            ],
-            page);
+        var document = new Fragmenter(
+                LayoutTestFonts.Measurer,
+                new()
+                {
+                    CompatibilityMode = mode
+                })
+            .Layout(
+                [
+                    Spaced("S", 0, previousAfter, false),
+                    Spaced("S", 36, 0, contextual, pageBreakBefore: true)
+                ],
+                page);
 
         await Assert.That(document.Pages.Count).IsEqualTo(2);
         var top = document.Pages[1].Items.OfType<PlacedLine>().First().Y;

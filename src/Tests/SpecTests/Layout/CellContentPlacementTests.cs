@@ -62,7 +62,8 @@ public class CellContentPlacementTests
     [Test]
     public async Task A_picture_wider_than_the_body_runs_past_the_margin()
     {
-        var laidOut = new Fragmenter(LayoutTestFonts.Measurer).Layout([Picture(500)], page);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Picture(500)], page);
         var image = laidOut.Pages[0].Items.OfType<PlacedLine>().Single().Images.Single();
 
         await Assert.That(image.Width).IsEqualTo(500f).Within(0.01f);
@@ -114,7 +115,12 @@ public class CellContentPlacementTests
     }
 
     static PlacedTableRow Row(TableElement table) =>
-        new Fragmenter(LayoutTestFonts.Measurer).Layout([table], page).Pages[0].Items.OfType<PlacedTableRow>().First();
+        new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([table], page)
+            .Pages[0]
+            .Items
+            .OfType<PlacedTableRow>()
+            .First();
 
     static TableElement Table(ParagraphElement content) => new()
     {
