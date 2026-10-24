@@ -231,7 +231,8 @@ public partial class MorphConverter : IDisposable
             await RenderPreviewAsync();
             await EnsureResultPreviewAsync();
         }
-        catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+        catch (OperationCanceledException)
+            when (cancel.IsCancellationRequested)
         {
             // Replaced by another source, whose state is not this load's to touch.
         }
@@ -353,7 +354,8 @@ public partial class MorphConverter : IDisposable
                     result = converted;
                 }
             }
-            catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+            catch (OperationCanceledException)
+                when (cancel.IsCancellationRequested)
             {
                 return;
             }
@@ -445,7 +447,8 @@ public partial class MorphConverter : IDisposable
             var baseName = Path.GetFileNameWithoutExtension(sourceName) ?? "document";
             await Interop.DownloadAsync($"{baseName}{payload.Extension}", payload.ContentType, payload.Bytes);
         }
-        catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+        catch (OperationCanceledException)
+            when (cancel.IsCancellationRequested)
         {
             // The source was replaced, or the component went, before the download was ready.
         }

@@ -233,7 +233,11 @@ public partial class MorphWopi : IAsyncDisposable
                 await Interop.ForgetLeaveAsync();
                 await opened.UnlockAsync(id);
             }
-            catch (Exception exception) when (exception is HttpRequestException or JSException or JSDisconnectedException)
+            catch (Exception exception)
+                when (exception is
+                          HttpRequestException or
+                          JSException or
+                          JSDisconnectedException)
             {
             }
         }

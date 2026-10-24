@@ -122,7 +122,8 @@ public class VectorPageComparison
             {
                 await CompareDocumentAsync(page, scenario, corpus, fonts, dpi, pagesEach, results, output);
             }
-            catch (InvalidOperationException exception) when (exception.Message.Contains("not found"))
+            catch (InvalidOperationException exception)
+                when (exception.Message.Contains("not found"))
             {
                 Console.WriteLine($"{Name(scenario, corpus)}: neither painter can draw it ({exception.Message.Split('\n')[0]})");
                 continue;
