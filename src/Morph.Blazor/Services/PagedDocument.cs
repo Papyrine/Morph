@@ -20,10 +20,10 @@ sealed class PagedDocument : IDisposable
     // Three covers what a viewer holds at once — the zoomed pages, the sidebar thumbnails, and a print run.
     const int maxContexts = 3;
 
-    readonly ParsedDocument document;
-    readonly LaidOutDocument laidOut;
-    readonly ImageExportOptions options;
-    readonly PageTextLayer?[] textLayers;
+    ParsedDocument document;
+    LaidOutDocument laidOut;
+    ImageExportOptions options;
+    PageTextLayer?[] textLayers;
 
     // Where the placed text came from, read off the whole layout on the first text layer asked for: a
     // paragraph that runs over a page break is followed from the page it starts on.
@@ -31,10 +31,10 @@ sealed class PagedDocument : IDisposable
     bool sourcesBuilt;
 
     // Most recently used last.
-    readonly List<(int Dpi, ImageSharpRenderContext Context)> contexts = [];
+    List<(int Dpi, ImageSharpRenderContext Context)> contexts = [];
 
     // Uncontended in the browser (one thread), but the host test runner renders in parallel.
-    readonly Lock gate = new();
+    Lock gate = new();
     bool disposed;
 
     PagedDocument(ParsedDocument document, LaidOutDocument laidOut, ImageExportOptions options)

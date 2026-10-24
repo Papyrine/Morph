@@ -76,7 +76,10 @@ sealed class ReviewMap
                 ranges[^1] is var previous &&
                 source.Start - (previous.Start + previous.Length) <= bridge)
             {
-                ranges[^1] = previous with {Length = source.End - previous.Start};
+                ranges[^1] = previous with
+                {
+                    Length = source.End - previous.Start
+                };
             }
             else
             {

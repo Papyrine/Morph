@@ -246,19 +246,20 @@ sealed class SourceIndex
 
         static bool Continues(RunPiece piece, int index, RunSource position)
         {
+            var source = piece.Source;
             if (piece.Start + piece.Length != index ||
-                piece.Source.Run != position.Run ||
-                piece.Source.Atomic != position.Atomic)
+                source.Run != position.Run ||
+                source.Atomic != position.Atomic)
             {
                 return false;
             }
 
             if (position.Atomic)
             {
-                return piece.Source.Start == position.Start;
+                return source.Start == position.Start;
             }
 
-            return piece.Source.Start + piece.Length == position.Start;
+            return source.Start + piece.Length == position.Start;
         }
 
         // Moves to the next character of the paragraph that is the placed one, passing only over

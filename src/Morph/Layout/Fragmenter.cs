@@ -4713,7 +4713,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             item switch
             {
                 PlacedLine line => ShiftLine(line, dx, dy),
-                _ => item with {X = item.X + dx, Y = item.Y + dy}
+                _ => item with
+                {
+                    X = item.X + dx,
+                    Y = item.Y + dy
+                }
             };
 
         // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each

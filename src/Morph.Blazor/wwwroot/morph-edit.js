@@ -181,7 +181,11 @@ export class ParagraphEditor {
         const first = session.u.find(_ => _.k === 0 && _.t.length > 0);
         const size = first?.z ?? session.size;
         const { ascent, descent } = faceMetrics((first?.f ?? session.face) & 3);
-        const drawn = session.line / 2 + (ascent - (ascent + descent) / 2) * size;
+        // A picture ahead of the text that stands taller than that sits on the baseline from the line
+        // box's top, and takes the baseline down with it.
+        const lead = first ? session.u.slice(0, session.u.indexOf(first)) : session.u;
+        const picture = Math.max(0, ...lead.filter(_ => _.s === 'drawing').map(_ => _.e ?? 0));
+        const drawn = Math.max(session.line / 2 + (ascent - (ascent + descent) / 2) * size, picture);
         const shift = session.base - drawn;
         const hang = Math.min(session.indent, 0);
         const top = session.y + Math.min(shift, 0);
@@ -343,6 +347,10 @@ export class ParagraphEditor {
                 if (unit.w > 0 && unit.e > 0) {
                     span.style.cssText = `width:${this.cq(unit.w)};height:${this.cq(unit.e)}`;
                     span.title = 'Picture';
+                    if (unit.img) {
+                        span.classList.add('edit-picture');
+                        span.style.backgroundImage = `url("${unit.img}")`;
+                    }
                 } else {
                     // Anchored here and drawn elsewhere: it takes a place in the text and no room.
                     span.classList.add('edit-hidden');

@@ -277,6 +277,6 @@ public class PageVerticalAlignmentTests
             .Take(6);
 
         // A, B centre; C bottom; D both; E centre; F both — the fixture's first six sections.
-        await Assert.That(string.Join(",", alignments)).IsEqualTo("Center,Center,Bottom,Justified,Center,Justified");
+        await Assert.That(string.Join(',', alignments)).IsEqualTo("Center,Center,Bottom,Justified,Center,Justified");
     }
 }

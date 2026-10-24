@@ -37,7 +37,7 @@ static class SvgTestSupport
 
     public static string Describe(IEnumerable<SvgFigure> figures) =>
         string.Join(
-            " ",
+            ' ',
             figures.Select(_ =>
                 $"M{Number(_.StartX)},{Number(_.StartY)}" +
                 string.Concat(_.Segments.Select(segment => segment.IsCurve

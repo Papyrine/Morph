@@ -7753,7 +7753,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             InlineImageDuotoneLightColorHex = inlineDuotoneLightColorHex,
             InlineImageOpacity = inlineOpacity,
             InlineImageOutline = ReadPictureOutline(spPr),
-            InlineImageEffectExtent = ReadEffectExtent(drawing)
+            InlineImageEffectExtent = ReadEffectExtent(drawing),
+            Source = AnchorSource(drawing)
         };
     }
 
@@ -9444,7 +9445,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// </summary>
     // Where an anchored drawing is, under captureSources: its run's ordinal, and its place in the run
     // counted as SourceRuns counts — what the children ahead of it take. Read only; nothing is written.
-    RunSource? AnchorSource(DW.Anchor anchor)
+    // An inline picture's drawing is found the same way.
+    RunSource? AnchorSource(OpenXmlElement anchor)
     {
         if (runOrdinals == null ||
             anchor.Ancestors<OoxmlRun>().FirstOrDefault() is not { } run ||
@@ -9457,7 +9459,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         foreach (var child in run.ChildElements)
         {
             if (ReferenceEquals(child, anchor) ||
-                child.Descendants<DW.Anchor>().Any(_ => ReferenceEquals(_, anchor)))
+                child.Descendants().Any(_ => ReferenceEquals(_, anchor)))
             {
                 return new RunSource(ordinal, position, true);
             }

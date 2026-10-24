@@ -21,7 +21,10 @@ public abstract class PowerPointConverter
     /// <summary>Converts a PPTX stream to PNG images saved to <paramref name="outputDirectory"/>, one per slide.</summary>
     public ConversionResult ConvertToImages(Stream pptxStream, string outputDirectory, ImageExportOptions? options = null, Cancel cancel = default)
     {
-        options = (options ?? new()) with { Cancellation = cancel };
+        options = (options ?? new()) with
+        {
+            Cancellation = cancel
+        };
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
         var document = Parse(pptxStream, options.DefaultFont);

@@ -36,7 +36,8 @@ public static class ConversionService
     ];
 
     /// <summary>The <c>accept</c> list for the file input — every readable extension.</summary>
-    public static string ReadableAccept { get; } = string.Join(",", ReadableFormats.Select(_ => _.Extension));
+    public static string ReadableAccept { get; } =
+        string.Join(',', ReadableFormats.Select(_ => _.Extension));
 
     /// <summary>Looks up the <see cref="FormatInfo"/> for an output format.</summary>
     public static FormatInfo? Find(OutputFormat format) =>
@@ -223,13 +224,14 @@ public static class ConversionService
     public static DownloadPayload BuildDownload(byte[] bytes, InputFormat source, OutputFormat format, ImageSettings image, string fontDirectory, Cancel cancel = default)
     {
         cancel.ThrowIfCancellationRequested();
+        var utf8 = Encoding.UTF8;
         return format switch
         {
             OutputFormat.Png => PngDownload(RenderPngPages(bytes, source, image, fontDirectory, cancel)),
             OutputFormat.Pdf => new(ToPdf(bytes, source, fontDirectory, cancel), ".pdf", "application/pdf"),
-            OutputFormat.Html => new(Encoding.UTF8.GetBytes(ToHtml(bytes, source, fontDirectory)), ".html", "text/html"),
-            OutputFormat.Markdown => new(Encoding.UTF8.GetBytes(ToMarkdown(bytes, source, fontDirectory)), ".md", "text/markdown"),
-            OutputFormat.Text => new(Encoding.UTF8.GetBytes(ToText(bytes, source, fontDirectory)), ".txt", "text/plain"),
+            OutputFormat.Html => new(utf8.GetBytes(ToHtml(bytes, source, fontDirectory)), ".html", "text/html"),
+            OutputFormat.Markdown => new(utf8.GetBytes(ToMarkdown(bytes, source, fontDirectory)), ".md", "text/markdown"),
+            OutputFormat.Text => new(utf8.GetBytes(ToText(bytes, source, fontDirectory)), ".txt", "text/plain"),
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown output format."),
         };
     }

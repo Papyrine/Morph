@@ -198,5 +198,7 @@ public class StoryTests
     }
 
     static string StyleIds(byte[] docx) =>
-        string.Join(",", Read(docx, _ => _.MainDocumentPart!.StyleDefinitionsPart?.Styles?.Elements<DocumentFormat.OpenXml.Wordprocessing.Style>().Select(style => style.StyleId!.Value).ToList() ?? []));
+        string.Join(
+            ',',
+            Read(docx, _ => _.MainDocumentPart!.StyleDefinitionsPart?.Styles?.Elements<DocumentFormat.OpenXml.Wordprocessing.Style>().Select(style => style.StyleId!.Value).ToList() ?? []));
 }

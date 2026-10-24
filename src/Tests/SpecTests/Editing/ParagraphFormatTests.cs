@@ -16,7 +16,7 @@ public class ParagraphFormatTests
         Bare(Read(docx, _ => _.MainDocumentPart!.NumberingDefinitionsPart?.Numbering?.OuterXml ?? ""));
 
     static string StyleIds(byte[] docx) =>
-        string.Join(",", Read(docx, _ => _.MainDocumentPart!.StyleDefinitionsPart?.Styles?.Elements<DocumentFormat.OpenXml.Wordprocessing.Style>().Select(style => style.StyleId!.Value).ToList() ?? []));
+        string.Join(',', Read(docx, _ => _.MainDocumentPart!.StyleDefinitionsPart?.Styles?.Elements<DocumentFormat.OpenXml.Wordprocessing.Style>().Select(style => style.StyleId!.Value).ToList() ?? []));
 
     // Styles
 

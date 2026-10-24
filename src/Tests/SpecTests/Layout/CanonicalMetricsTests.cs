@@ -233,7 +233,7 @@ public class CanonicalMetricsTests
         }
 
         // Wrapping only inserts breaks at existing spaces — the words are preserved.
-        await Assert.That(string.Join(" ", lines)).IsEqualTo(text);
+        await Assert.That(string.Join(' ', lines)).IsEqualTo(text);
     }
 
     [Test]

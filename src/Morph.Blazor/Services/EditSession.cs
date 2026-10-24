@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Text.Encodings.Web;
-using System.Text.Json;
 
 /// <summary>
 /// One paragraph open for editing in place: what the script is given to show — the paragraph's text
@@ -25,7 +24,9 @@ using System.Text.Json;
 /// something shown and left alone (<c>s</c> says what: deleted, field, note, drawing, break) and 2
 /// for something unseen; <c>f</c> is the
 /// <see cref="Face"/> bits, and <c>a</c> the room a character of it took on the page
-/// (<see cref="EditMap.Advance"/>), which the script spaces its own text out to. <c>from</c> and <c>to</c> are where the selection starts and ends, in
+/// (<see cref="EditMap.Advance"/>), which the script spaces its own text out to. A drawing in the line
+/// carries its size (<c>w</c>, <c>e</c>) and, where the layout drew a picture, the picture as a data
+/// URL (<c>img</c>). <c>from</c> and <c>to</c> are where the selection starts and ends, in
 /// places of the paragraph (<see cref="EditParagraph.Length"/>).
 ///
 /// <para>From the script, a paragraph to each the one has become:</para>
@@ -54,10 +55,13 @@ sealed class EditSession
         SmallCaps = 32
     }
 
-    const Face editable = Face.Bold | Face.Italic | Face.Underline | Face.Strike;
+    const Face editable = Face.Bold |
+                          Face.Italic |
+                          Face.Underline |
+                          Face.Strike;
 
-    readonly Face[] faces;
-    readonly Face markFace;
+    Face[] faces;
+    Face markFace;
 
     public EditSession(int id, EditParagraph paragraph, EditBlock block, EditMap map)
     {
@@ -280,6 +284,12 @@ sealed class EditSession
                 json.WriteString("s", "drawing");
                 Number(json, "w", unit.WidthPoints);
                 Number(json, "e", unit.HeightPoints);
+                if (Map.Picture(unit.Run, unit.Start) is {InlineImageData: { } data, InlineImageContentType: { } type})
+                {
+                    // The picture itself, so the box shows it where the page did rather than a stand-in.
+                    json.WriteString("img", $"data:{type};base64,{Convert.ToBase64String(data)}");
+                }
+
                 break;
             case EditUnitKind.Break:
                 json.WriteString("s", "break");
