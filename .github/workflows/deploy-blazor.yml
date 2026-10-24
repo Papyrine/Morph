@@ -100,13 +100,6 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('global.json', '**/Directory.Packages.props', '**/Directory.Build.props', '**/*.csproj') }}
-          restore-keys: nuget-${{ runner.os }}-
-
       # The app builds native (WasmBuildNative) to link Krilla's PDF archive into its .wasm with emcc, and
       # an AOT publish compiles every assembly with it; both live in the wasm-tools workload. Without it
       # the build fails rather than shipping an app whose PDF export cannot load its native. emscripten
