@@ -19,7 +19,7 @@ public class TableEditTests
         "<w:tr>" + string.Concat(cells.Select(_ => $"<w:tc><w:tcPr><w:tcW w:w=\"2000\" w:type=\"dxa\"/></w:tcPr><w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr><w:r><w:t>{_}</w:t></w:r></w:p></w:tc>")) + "</w:tr>";
 
     static string Widths(byte[] docx) =>
-        string.Join(",", Read(docx, _ => _.MainDocumentPart!.Document!.Descendants<DocumentFormat.OpenXml.Wordprocessing.GridColumn>().Select(column => column.Width!.Value).ToList()));
+        string.Join(',', Read(docx, _ => _.MainDocumentPart!.Document!.Descendants<DocumentFormat.OpenXml.Wordprocessing.GridColumn>().Select(column => column.Width!.Value).ToList()));
 
     // Paragraph 0 is cell a, 1 is b, 2 is c, 3 is d.
 

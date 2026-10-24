@@ -382,13 +382,19 @@ public partial class MorphViewer
             if (now == null ||
                 Math.Abs(now.LeftIndentPoints - left) > 0.05)
             {
-                format = format with {LeftPoints = left};
+                format = format with
+                {
+                    LeftPoints = left
+                };
             }
 
             if (now == null ||
                 Math.Abs(now.RightIndentPoints - right) > 0.05)
             {
-                format = format with {RightPoints = right};
+                format = format with
+                {
+                    RightPoints = right
+                };
             }
 
             var first = 0.0;
@@ -399,12 +405,17 @@ public partial class MorphViewer
 
             if (Math.Abs(first - firstLine) > 0.05)
             {
-                format = format with {FirstLinePoints = firstLine};
+                format = format with
+                {
+                    FirstLinePoints = firstLine
+                };
             }
 
             if (format != default)
             {
-                await EditParagraphsAsync(target, (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+                await EditParagraphsAsync(
+                    target,
+                    (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
             }
 
             StateHasChanged();
@@ -416,7 +427,9 @@ public partial class MorphViewer
         EditAtAsync((_, options) => DocumentEditor.AddBookmark(_, target.Paragraph, target.Offset, target.Start, target.End, name, options));
 
     internal Task DeleteBookmarkAsync(EditTarget target, string name) =>
-        EditParagraphsAsync(target, (_, options) => DocumentEditor.DeleteBookmark(_, name, options));
+        EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.DeleteBookmark(_, name, options));
 
     // Opens the paragraph a bookmark starts in, the caret where it starts.
     internal Task GoToBookmarkAsync(string name)
@@ -493,7 +506,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetStyle(_, target.Paragraphs, styleId, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetStyle(_, target.Paragraphs, styleId, options));
     }
 
     // As Word's list buttons do: on, unless every paragraph is in a list of the kind already.
@@ -506,7 +521,9 @@ public partial class MorphViewer
 
         var listed = target.Paragraphs.All(_ => ListOf(_) == kind);
         var chosen = listed ? ListKind.None : kind;
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetList(_, target.Paragraphs, chosen, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetList(_, target.Paragraphs, chosen, options));
     }
 
     // A library item from the Bullets or Numbering menu: the list the caret is in takes its look, or
@@ -518,7 +535,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetListStyle(_, target.Paragraphs, style, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetListStyle(_, target.Paragraphs, style, options));
     }
 
     internal async Task RestartNumberingAsync(bool restart)
@@ -530,9 +549,15 @@ public partial class MorphViewer
 
         await EditParagraphsAsync(
             target,
-            (_, options) => restart
-                ? DocumentEditor.RestartNumbering(_, target.Paragraph, options)
-                : DocumentEditor.ContinueNumbering(_, target.Paragraph, options));
+            (_, options) =>
+            {
+                if (restart)
+                {
+                    return DocumentEditor.RestartNumbering(_, target.Paragraph, options);
+                }
+
+                return DocumentEditor.ContinueNumbering(_, target.Paragraph, options);
+            });
     }
 
     // The library item the caret's list looks like, for the menus to mark.
@@ -561,7 +586,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetList(_, [target.Paragraph], ListKind.None, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetList(_, [target.Paragraph], ListKind.None, options));
     }
 
     // Backspace at the start of a list's paragraph takes its number off, and at an indented one's a
@@ -575,7 +602,9 @@ public partial class MorphViewer
 
         if (outline.Paragraphs[target.Paragraph].Indented)
         {
-            await EditParagraphsAsync(target, (_, options) => DocumentEditor.Unindent(_, target.Paragraph, options));
+            await EditParagraphsAsync(
+                target,
+                (_, options) => DocumentEditor.Unindent(_, target.Paragraph, options));
             return;
         }
 
@@ -614,7 +643,11 @@ public partial class MorphViewer
         var content = PastedHtml.Read(html);
         if (content.Count == 0)
         {
-            content = text.Replace("\r\n", "\n").Split('\n').Select(_ => new PastedParagraph([new(_)])).ToList();
+            content = text
+                .Replace("\r\n", "\n")
+                .Split('\n')
+                .Select(_ => new PastedParagraph([new(_)]))
+                .ToList();
         }
 
         var options = await EditOptionsAsync();
@@ -642,7 +675,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.TabInList(_, target.Paragraphs, steps, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.TabInList(_, target.Paragraphs, steps, options));
     }
 
     // Enter at the end of a heading: the paragraph it began is in the file, in the style the heading
@@ -662,7 +697,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.Indent(_, target.Paragraphs, steps, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.Indent(_, target.Paragraphs, steps, options));
     }
 
     internal async Task SpaceAsync(ParagraphSpacing spacing)
@@ -672,7 +709,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.Space(_, target.Paragraphs, spacing, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.Space(_, target.Paragraphs, spacing, options));
     }
 
     internal Task ToggleSpaceBeforeAsync()
@@ -706,7 +745,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.InsertPageBreak(_, target.Paragraph, target.Offset, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertPageBreak(_, target.Paragraph, target.Offset, options));
     }
 
     internal async Task InsertTableAsync(int rows, int columns)
@@ -716,7 +756,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.InsertTable(_, target.Paragraph, target.Offset, rows, columns, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertTable(_, target.Paragraph, target.Offset, rows, columns, options));
     }
 
     internal async Task EditTableAsync(TableEdit change)
@@ -726,7 +767,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
     }
 
     // Headers, footers and footnotes. A header or footer is opened for typing, made if the section
@@ -738,7 +780,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.EditHeader(_, target.Paragraph, footer, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.EditHeader(_, target.Paragraph, footer, options));
     }
 
     internal async Task InsertFootnoteAsync()
@@ -748,7 +791,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.InsertFootnote(_, target.Paragraph, target.Offset, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertFootnote(_, target.Paragraph, target.Offset, options));
     }
 
     internal async Task InsertEndnoteAsync()
@@ -758,7 +802,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.InsertEndnote(_, target.Paragraph, target.Offset, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertEndnote(_, target.Paragraph, target.Offset, options));
     }
 
     // Fields and the table of contents. A page number and a date go in at the caret; a table of
@@ -773,7 +818,8 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync((_, options) => DocumentEditor.InsertPageNumber(_, target.Paragraph, target.Offset, total, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertPageNumber(_, target.Paragraph, target.Offset, total, options));
     }
 
     // Dates of the kinds Word's Date and Time dialog offers (not read off the dialog itself), each
@@ -804,7 +850,8 @@ public partial class MorphViewer
         }
 
         var now = await ReaderDateAsync();
-        await EditAtAsync((_, options) => DocumentEditor.InsertDate(_, target.Paragraph, target.Offset, format, now, update, options));
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertDate(_, target.Paragraph, target.Offset, format, now, update, options));
     }
 
     internal async Task InsertContentsAsync()
@@ -817,7 +864,10 @@ public partial class MorphViewer
         await EditAtAsync((_, options) =>
         {
             var inserted = DocumentEditor.InsertContents(_, target.Paragraph, target.Offset, options);
-            return inserted with {Document = Paginated(inserted.Document)};
+            return inserted with
+            {
+                Document = Paginated(inserted.Document)
+            };
         });
     }
 
@@ -877,7 +927,6 @@ public partial class MorphViewer
 
     byte[]? pageBytes;
     int pageParagraph = -1;
-    PageSetup? page;
 
     // The page of the section the caret is in, read once for each file and paragraph.
     internal PageSetup? CurrentPage
@@ -898,15 +947,15 @@ public partial class MorphViewer
                 pageParagraph = paragraph;
                 try
                 {
-                    page = DocumentEditor.PageSetupOf(bytes, paragraph);
+                    field = DocumentEditor.PageSetupOf(bytes, paragraph);
                 }
                 catch (Exception)
                 {
-                    page = null;
+                    field = null;
                 }
             }
 
-            return page;
+            return field;
         }
     }
 
@@ -917,7 +966,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetMargins(_, target.Paragraph, top, right, bottom, left, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetMargins(_, target.Paragraph, top, right, bottom, left, options));
     }
 
     internal async Task SetOrientationAsync(bool landscape)
@@ -927,7 +978,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetOrientation(_, target.Paragraph, landscape, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetOrientation(_, target.Paragraph, landscape, options));
     }
 
     internal async Task SetColumnsAsync(int count, bool lineBetween)
@@ -937,7 +990,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetColumns(_, target.Paragraph, count, lineBetween, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetColumns(_, target.Paragraph, count, lineBetween, options));
     }
 
     internal async Task SetPaperSizeAsync(int width, int height)
@@ -947,7 +1002,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetPaperSize(_, target.Paragraph, width, height, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetPaperSize(_, target.Paragraph, width, height, options));
     }
 
     internal async Task InsertSectionBreakAsync(bool continuous)
@@ -971,7 +1028,9 @@ public partial class MorphViewer
         }
 
         var (paragraph, offset) = PictureAt(target);
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options));
     }
 
     // Back to the size its image was made for, as when it was put in.
@@ -991,7 +1050,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.ResizePicture(_, paragraph, offset, natural.WidthPoints, natural.HeightPoints, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.ResizePicture(_, paragraph, offset, natural.WidthPoints, natural.HeightPoints, options));
     }
 
     static (int Paragraph, int Offset) PictureAt(EditTarget target)
@@ -1024,7 +1085,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetTableBorders(_, target.Paragraph, preset, BorderSize, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetTableBorders(_, target.Paragraph, preset, BorderSize, options));
     }
 
     // Pictures: a floating one selected on the page (the script frames it, and says which), or an
@@ -1214,7 +1277,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetParagraphBorders(_, target.Paragraphs, border, BorderSize, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetParagraphBorders(_, target.Paragraphs, border, BorderSize, options));
     }
 
     internal async Task ShadeParagraphsAsync(string? fill)
@@ -1229,7 +1294,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetParagraphShading(_, target.Paragraphs, fill, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetParagraphShading(_, target.Paragraphs, fill, options));
     }
 
     internal async Task ShadeCellsAsync(string? fill)
@@ -1245,7 +1312,9 @@ public partial class MorphViewer
         }
 
         var (first, last) = Cells(target);
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.ShadeCells(_, first, last, fill, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.ShadeCells(_, first, last, fill, options));
     }
 
     internal async Task MergeCellsAsync()
@@ -1279,7 +1348,9 @@ public partial class MorphViewer
         }
 
         var twips = (int) Math.Round(centimetres * 1440 / 2.54);
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.SetColumnWidth(_, target.Paragraph, twips, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetColumnWidth(_, target.Paragraph, twips, options));
     }
 
     internal async Task DistributeColumnsAsync()
@@ -1289,7 +1360,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.DistributeColumns(_, target.Paragraph, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.DistributeColumns(_, target.Paragraph, options));
     }
 
     internal async Task FitTableAsync(TableFit fit)
@@ -1299,7 +1372,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.FitTable(_, target.Paragraph, fit, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.FitTable(_, target.Paragraph, fit, options));
     }
 
     // Where a selection of cells starts and ends, in paragraphs; with none, the caret's cell.
@@ -1454,7 +1529,9 @@ public partial class MorphViewer
             address = $"https://{address}";
         }
 
-        return EditParagraphsAsync(target, (_, options) => DocumentEditor.Link(_, start, end, address, options));
+        return EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.Link(_, start, end, address, options));
     }
 
     internal async Task UnlinkAsync()
@@ -1474,7 +1551,9 @@ public partial class MorphViewer
             return;
         }
 
-        await EditParagraphsAsync(target, (_, options) => DocumentEditor.Unlink(_, from, to, options));
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.Unlink(_, from, to, options));
     }
 
     SourcePosition? CaretPosition(EditTarget target)
@@ -1881,7 +1960,15 @@ public partial class MorphViewer
             outline.Paragraphs[target.Paragraph].PositionAt(from, ending: false) is { } first &&
             outline.Paragraphs[target.Paragraph].PositionAt(to, ending: true) is { } last)
         {
-            return (target with {StartParagraph = target.Paragraph}, first, last, from, to);
+            return (
+                target with
+                {
+                    StartParagraph = target.Paragraph
+                },
+                first,
+                last,
+                from,
+                to);
         }
 
         editNote = note;

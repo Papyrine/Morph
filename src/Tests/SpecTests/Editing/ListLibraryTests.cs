@@ -14,7 +14,7 @@ public class ListLibraryTests
 
     // Each paragraph's list and level, as numId.ilvl.
     static string Lists(byte[] docx) =>
-        Read(docx, _ => string.Join(" ", _.MainDocumentPart!.Document!.Body!.Elements<Paragraph>().Select(paragraph =>
+        Read(docx, _ => string.Join(' ', _.MainDocumentPart!.Document!.Body!.Elements<Paragraph>().Select(paragraph =>
         {
             if (paragraph.ParagraphProperties?.NumberingProperties is {NumberingId.Val.Value: var id} numbering)
             {

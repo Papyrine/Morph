@@ -130,7 +130,11 @@ public class WordArtArchTests
     public async Task The_parse_carries_the_insets_the_inner_alignment_and_the_paragraph_spacing()
     {
         await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "wordart", "input.docx"));
-        var arch = new DocumentParser().Parse(stream).Elements.OfType<WordArtElement>().First(_ => _.Transform == WordArtTransform.ArchUp);
+        var arch = new DocumentParser()
+            .Parse(stream)
+            .Elements
+            .OfType<WordArtElement>()
+            .First(_ => _.Transform == WordArtTransform.ArchUp);
 
         await Assert.That(arch.Insets).IsEqualTo(WordArtInsets.Default);
         await Assert.That(arch.TextAlignment).IsEqualTo(TextAlignment.Center);

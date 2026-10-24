@@ -69,7 +69,7 @@ public class BoldSimulationTests
     [Test]
     public async Task The_line_is_broken_on_the_regular_advances()
     {
-        var text = string.Join(" ", Enumerable.Repeat("nnnnnn", 40));
+        var text = string.Join(' ', Enumerable.Repeat("nnnnnn", 40));
         for (var measure = 180f; measure <= 320f; measure += 7f)
         {
             var bold = LayoutTestFonts.Measurer.LayoutLineContents(Paragraph(text, "Franklin Gothic Book", true), measure);
@@ -87,7 +87,7 @@ public class BoldSimulationTests
     [Test]
     public async Task The_widening_never_carries_a_line_past_its_measure()
     {
-        var text = string.Join(" ", Enumerable.Repeat("nnnnnn", 40));
+        var text = string.Join(' ', Enumerable.Repeat("nnnnnn", 40));
         const float measure = 250f;
         var lines = LayoutTestFonts.Measurer.LayoutLineContents(Paragraph(text, "Franklin Gothic Book", true), measure);
 
@@ -102,7 +102,7 @@ public class BoldSimulationTests
     [Test]
     public async Task A_justified_line_is_not_widened()
     {
-        var text = string.Join(" ", Enumerable.Repeat("nnnnnn", 40));
+        var text = string.Join(' ', Enumerable.Repeat("nnnnnn", 40));
         var justified = LayoutTestFonts.Measurer.LayoutLineContents(Paragraph(text, "Franklin Gothic Book", true, TextAlignment.Justify), 250f);
 
         await Assert.That(justified[0].Runs[0].Properties.SyntheticBold).IsEqualTo(SyntheticBold.Simulated);

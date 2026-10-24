@@ -124,7 +124,7 @@ public partial class MorphEditor
             ["f"] = first,
             ["t"] = InTable || !CanWrite
         };
-        return System.Text.Json.JsonSerializer.Serialize(model);
+        return JsonSerializer.Serialize(model);
     }
 
     Task ToggleRuler()
@@ -253,7 +253,10 @@ public partial class MorphEditor
                 return null;
             }
 
-            format = format with { LeftPoints = left * pointsPerCentimetre };
+            format = format with
+            {
+                LeftPoints = left * pointsPerCentimetre
+            };
         }
 
         if (now.Right != was.Right)
@@ -263,7 +266,10 @@ public partial class MorphEditor
                 return null;
             }
 
-            format = format with { RightPoints = right * pointsPerCentimetre };
+            format = format with
+            {
+                RightPoints = right * pointsPerCentimetre
+            };
         }
 
         if (now.Special != was.Special ||
@@ -286,7 +292,10 @@ public partial class MorphEditor
                 by = -by;
             }
 
-            format = format with { FirstLinePoints = by };
+            format = format with
+            {
+                FirstLinePoints = by
+            };
         }
 
         if (now.Before != was.Before)
@@ -297,7 +306,10 @@ public partial class MorphEditor
                 return null;
             }
 
-            format = format with { BeforePoints = before };
+            format = format with
+            {
+                BeforePoints = before
+            };
         }
 
         if (now.After != was.After)
@@ -308,7 +320,10 @@ public partial class MorphEditor
                 return null;
             }
 
-            format = format with { AfterPoints = after };
+            format = format with
+            {
+                AfterPoints = after
+            };
         }
 
         if (now.Line != was.Line ||
@@ -328,27 +343,43 @@ public partial class MorphEditor
                 return null;
             }
 
-            format = format with { LineRule = rule, LineValue = value };
+            format = format with
+            {
+                LineRule = rule,
+                LineValue = value
+            };
         }
 
         if (now.WidowControl != was.WidowControl)
         {
-            format = format with { WidowControl = now.WidowControl };
+            format = format with
+            {
+                WidowControl = now.WidowControl
+            };
         }
 
         if (now.KeepNext != was.KeepNext)
         {
-            format = format with { KeepNext = now.KeepNext };
+            format = format with
+            {
+                KeepNext = now.KeepNext
+            };
         }
 
         if (now.KeepLines != was.KeepLines)
         {
-            format = format with { KeepLines = now.KeepLines };
+            format = format with
+            {
+                KeepLines = now.KeepLines
+            };
         }
 
         if (now.PageBreakBefore != was.PageBreakBefore)
         {
-            format = format with { PageBreakBefore = now.PageBreakBefore };
+            format = format with
+            {
+                PageBreakBefore = now.PageBreakBefore
+            };
         }
 
         return format;
@@ -457,7 +488,10 @@ public partial class MorphEditor
         if (now.Font.Trim() != was.Font &&
             now.Font.Trim().Length > 0)
         {
-            format = format with { Font = now.Font.Trim() };
+            format = format with
+            {
+                Font = now.Font.Trim()
+            };
         }
 
         if (now.Style != was.Style)
@@ -477,27 +511,42 @@ public partial class MorphEditor
                 return null;
             }
 
-            format = format with { SizePoints = size };
+            format = format with
+            {
+                SizePoints = size
+            };
         }
 
         if (now.Color != was.Color)
         {
-            format = format with { Color = now.Color };
+            format = format with
+            {
+                Color = now.Color
+            };
         }
 
         if (now.Underline != was.Underline)
         {
-            format = format with { UnderlineStyle = now.Underline };
+            format = format with
+            {
+                UnderlineStyle = now.Underline
+            };
         }
 
         if (now.Strike != was.Strike)
         {
-            format = format with { Strike = now.Strike };
+            format = format with
+            {
+                Strike = now.Strike
+            };
         }
 
         if (now.DoubleStrike != was.DoubleStrike)
         {
-            format = format with { DoubleStrike = now.DoubleStrike };
+            format = format with
+            {
+                DoubleStrike = now.DoubleStrike
+            };
         }
 
         if (now.Superscript != was.Superscript ||
@@ -513,22 +562,34 @@ public partial class MorphEditor
                 vertical = VerticalPositionValues.Subscript;
             }
 
-            format = format with { Vertical = vertical };
+            format = format with
+            {
+                Vertical = vertical
+            };
         }
 
         if (now.SmallCaps != was.SmallCaps)
         {
-            format = format with { SmallCaps = now.SmallCaps };
+            format = format with
+            {
+                SmallCaps = now.SmallCaps
+            };
         }
 
         if (now.AllCaps != was.AllCaps)
         {
-            format = format with { AllCaps = now.AllCaps };
+            format = format with
+            {
+                AllCaps = now.AllCaps
+            };
         }
 
         if (now.Hidden != was.Hidden)
         {
-            format = format with { Hidden = now.Hidden };
+            format = format with
+            {
+                Hidden = now.Hidden
+            };
         }
 
         return format;

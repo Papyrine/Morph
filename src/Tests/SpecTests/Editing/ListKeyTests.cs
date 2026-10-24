@@ -105,9 +105,9 @@ public class ListKeyTests
     }
 
     static string Levels(byte[] docx) =>
-        string.Join(" ", Read(docx, _ => _.MainDocumentPart!.NumberingDefinitionsPart!.Numbering!
+        string.Join(' ', Read(docx, _ => _.MainDocumentPart!.NumberingDefinitionsPart!.Numbering!
             .Elements<DocumentFormat.OpenXml.Wordprocessing.AbstractNum>()
-            .Select(definition => string.Join(",", definition.Elements<DocumentFormat.OpenXml.Wordprocessing.Level>()
+            .Select(definition => string.Join(',', definition.Elements<DocumentFormat.OpenXml.Wordprocessing.Level>()
                 .Take(3)
                 .Select(level => level.PreviousParagraphProperties!.Indentation!.Left!.Value)))
             .ToList()));

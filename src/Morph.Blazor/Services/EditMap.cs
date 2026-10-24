@@ -20,12 +20,13 @@ sealed class EditMap
     // The least room a block is given to type in, where only its lines say how wide it is.
     const float leastWidth = 144;
 
-    readonly List<EditBlock>[] pages;
-    readonly Dictionary<int, List<EditBlock>> byParagraph = [];
-    readonly Dictionary<int, RunProperties> formats = [];
+    List<EditBlock>[] pages;
+    Dictionary<int, List<EditBlock>> byParagraph = [];
+    Dictionary<int, RunProperties> formats = [];
+    Dictionary<(int Run, int Start), Run> pictures = [];
 
     // How much room each run's text took where it was drawn, and how many characters of it.
-    readonly Dictionary<int, (float Width, int Characters)> drawn = [];
+    Dictionary<int, (float Width, int Characters)> drawn = [];
 
     EditMap(int pageCount) =>
         pages = Enumerable.Range(0, pageCount).Select(_ => new List<EditBlock>()).ToArray();
@@ -65,6 +66,10 @@ sealed class EditMap
     /// <summary>How a run of the main part is formatted, as it was drawn; null for one that was not.</summary>
     public RunProperties? Format(int run) =>
         formats.GetValueOrDefault(run);
+
+    /// <summary>The picture drawn in the line at a place of a run, as the layout drew it; null for none.</summary>
+    public Run? Picture(int run, int start) =>
+        pictures.GetValueOrDefault((run, start));
 
     /// <summary>
     /// The room a character of a run took on average where it was drawn, in points; null when the
@@ -133,7 +138,7 @@ sealed class EditMap
         // The block being gathered: lines of one paragraph that follow one another in one container.
         int paragraph = -1;
         PlacedCell? container;
-        readonly List<PlacedLine> lines = [];
+        List<PlacedLine> lines = [];
 
         public void Items(IReadOnlyList<PlacedItem> items, PlacedCell? cell)
         {
@@ -168,7 +173,18 @@ sealed class EditMap
         {
             foreach (var run in line.Paragraph.Runs)
             {
-                if (run.Source is {Atomic: false} source)
+                if (run.Source is not { } source)
+                {
+                    continue;
+                }
+
+                if (run.InlineImageData != null)
+                {
+                    map.pictures.TryAdd((source.Run, source.Start), run);
+                    continue;
+                }
+
+                if (!source.Atomic)
                 {
                     map.formats.TryAdd(source.Run, run.Properties);
                 }

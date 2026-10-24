@@ -12,7 +12,7 @@ sealed class TextSearch(IEnumerable<string> pageTexts)
     // Past this the count reads "10000+" and the rest is not worth materialising.
     internal const int MaxMatches = 10_000;
 
-    readonly Page[] pages = pageTexts.Select(Collapse).ToArray();
+    Page[] pages = pageTexts.Select(Collapse).ToArray();
 
     public IReadOnlyList<TextMatch> Find(string query, bool matchCase)
     {

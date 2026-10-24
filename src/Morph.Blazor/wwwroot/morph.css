@@ -831,7 +831,7 @@
     position: absolute;
     overflow-x: hidden;
     overflow-y: auto;
-    outline: 1px solid var(--morph-primary, #2b579a);
+    outline: 1px solid #e3e3e3;
     outline-offset: 1px;
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
     background-color: #ffffff;
@@ -894,6 +894,14 @@
     vertical-align: baseline;
     border: 1px dashed var(--morph-muted, #6c757d);
     background-color: rgb(0 0 0 / 0.05);
+}
+
+/* The picture itself, drawn at the size the line gives it: no stand-in's frame or shade. */
+.edit-drawing.edit-picture {
+    border: none;
+    background-color: transparent;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
 }
 
 /* A picture selected in the line: a frame its handles size it by, its size, and a way back to the
