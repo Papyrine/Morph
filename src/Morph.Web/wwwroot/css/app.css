@@ -248,6 +248,10 @@ footer a:hover {
         justify-content: space-between;
         align-items: center;
         padding: 1rem;
+        /* One row on a phone: the tagline is hidden, and the margins below space the items, so the
+           wide layout's wrap and gap would only push the theme toggle onto a line of its own. */
+        flex-wrap: nowrap;
+        column-gap: 0;
     }
 
     header h1 {
