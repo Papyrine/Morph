@@ -154,6 +154,10 @@ jobs:
         with:
           global-json-file: global.json
 
+      # Building the tests still builds Morph.Web, which on .NET 11 needs the workload even unpublished.
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
       - name: Download the AOT app
         uses: actions/download-artifact@v8
         with:
