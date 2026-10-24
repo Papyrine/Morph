@@ -25,3 +25,5 @@ global using TUnit.Core;
 global using TUnit.Assertions;
 global using TUnit.Assertions.Extensions;
 global using static VerifyTUnit.Verifier;
+// Bunit has a TestContext too, and TUnit's generated hook code names its own unqualified.
+global using TestContext = TUnit.Core.TestContext;
