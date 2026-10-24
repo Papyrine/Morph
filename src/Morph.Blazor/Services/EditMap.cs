@@ -40,10 +40,11 @@ sealed class EditMap
     /// </summary>
     public static EditMap Build(LaidOutDocument document, SourceIndex? sources, Func<int, int?> paragraphOf, IReadOnlySet<int> body)
     {
-        var map = new EditMap(document.Pages.Count);
-        for (var index = 0; index < document.Pages.Count; index++)
+        var pages = document.Pages;
+        var map = new EditMap(pages.Count);
+        for (var index = 0; index < pages.Count; index++)
         {
-            var page = document.Pages[index];
+            var page = pages[index];
             var walk = new Walk(map, sources, index, page.Settings, paragraphOf, body);
             walk.Items(page.Items, null);
             walk.Close();
