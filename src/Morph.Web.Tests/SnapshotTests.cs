@@ -76,6 +76,26 @@ public partial class SnapshotTests
         }
     }
 
+    // Each page holds its own WASM runtime, and the tests leave theirs open. Without this the one browser
+    // grew past a hundred renderer processes over the class, and on a CI runner a late test's page could
+    // no longer boot inside its timeout.
+    [After(Test)]
+    public async Task ClosePages()
+    {
+        if (browser == null)
+        {
+            return;
+        }
+
+        foreach (var context in browser.Contexts)
+        {
+            foreach (var page in context.Pages.ToList())
+            {
+                await page.CloseAsync();
+            }
+        }
+    }
+
     [Test]
     public async Task HomePage()
     {
