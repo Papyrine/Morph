@@ -1,5 +1,3 @@
-using Morph;
-
 /// <summary>
 /// One of the editor's commands: what it is called and drawn with, where on the ribbon it is, Word's key
 /// for it, when it can be used, whether it is on, and what it does. The ribbon's buttons, its menus' items

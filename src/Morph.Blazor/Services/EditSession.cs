@@ -1,6 +1,3 @@
-using System.Buffers;
-using System.Text.Encodings.Web;
-
 /// <summary>
 /// One paragraph open for editing in place: what the script is given to show — the paragraph's text
 /// in its runs, formatted as the page drew it, in a box the size of the one the text is set in — and
