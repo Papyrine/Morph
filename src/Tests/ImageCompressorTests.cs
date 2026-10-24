@@ -564,7 +564,7 @@ public class ImageCompressorTests
                     <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
                     <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
                     <Default Extension="xml" ContentType="application/xml" />
-                    {string.Join("\n", extensions)}
+                    {string.Join('\n', extensions)}
                     <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" />
                     </Types>
                     """;
@@ -596,7 +596,7 @@ public class ImageCompressorTests
             return $"""
                     <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-                    {string.Join("\n", relationships)}
+                    {string.Join('\n', relationships)}
                     </Relationships>
                     """;
         }
@@ -618,7 +618,7 @@ public class ImageCompressorTests
                                 xmlns:v="urn:schemas-microsoft-com:vml"
                                 xmlns:o="urn:schemas-microsoft-com:office:office">
                     <w:body>
-                    {string.Join("\n", paragraphs)}
+                    {string.Join('\n', paragraphs)}
                     <w:sectPr><w:pgSz w:w="11906" w:h="16838" /></w:sectPr>
                     </w:body>
                     </w:document>

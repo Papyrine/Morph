@@ -244,7 +244,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         var rich = Child(Child(title, "tx"), "rich");
         var style = TextStyle(Child(title, "txPr") ?? rich, text with {SizePoints = 14});
         var content = rich != null
-            ? string.Join("\n", rich.Elements().Where(_ => _.LocalName == "p").Select(_ => string.Concat(_.Descendants<A.Text>().Select(run => run.Text))))
+            ? string.Join('\n', rich.Elements().Where(_ => _.LocalName == "p").Select(_ => string.Concat(_.Descendants<A.Text>().Select(run => run.Text))))
             : series.Count == 1
                 ? series[0].Name
                 : null;

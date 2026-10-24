@@ -416,7 +416,7 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find(".editor-context-menu").GetAttribute("style")).IsEqualTo("left: 120px; top: 200px");
         await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Link… | New comment");
         // The clipboard's lines are the script's to carry out, inside the press.
-        await Assert.That(string.Join(" ", cut.FindAll(".editor-context-menu [data-edit-command]").Select(_ => _.GetAttribute("data-edit-command")))).IsEqualTo("cut copy paste");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-context-menu [data-edit-command]").Select(_ => _.GetAttribute("data-edit-command")))).IsEqualTo("cut copy paste");
 
         await cut.InvokeAsync(() => cut.Instance.OnEditPicture(true));
         await cut.InvokeAsync(() => cut.Instance.OnContextMenu(120, 200));
@@ -819,7 +819,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.Find(".editor-status-button").ClickAsync(new());
 
-        await Assert.That(string.Join(" ", cut.FindAll(".editor-count dd").Select(_ => _.TextContent))).IsEqualTo("1 9 46 52 3 3");
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-count dd").Select(_ => _.TextContent))).IsEqualTo("1 9 46 52 3 3");
     }
 
     [Test]

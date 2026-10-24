@@ -395,6 +395,8 @@ public partial class SnapshotTests
     {
         using var stream = new MemoryStream(docx);
         using var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, false);
-        return string.Join(" ", package.MainDocumentPart!.HyperlinkRelationships.Select(_ => _.Uri.ToString()));
+        return string.Join(
+            ' ',
+            package.MainDocumentPart!.HyperlinkRelationships.Select(_ => _.Uri.ToString()));
     }
 }

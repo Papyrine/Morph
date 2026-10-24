@@ -3745,7 +3745,7 @@ static class HtmlExporter
                 return null;
             }
 
-            return $"transform: {string.Join(" ", transforms)}";
+            return $"transform: {string.Join(' ', transforms)}";
         }
 
         void AppendImageTag(
