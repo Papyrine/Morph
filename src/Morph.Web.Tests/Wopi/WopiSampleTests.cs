@@ -108,6 +108,41 @@ public class WopiSampleTests
         return reader.ReadToEnd();
     }
 
+    // What each page did — its frames' console, its dialogs and where it went — told when a wait for it fails.
+    static readonly ConditionalWeakTable<IPage, ConcurrentQueue<string>> logs = [];
+
+    static async Task<IPage> NewPageAsync()
+    {
+        var page = await browser!.NewPageAsync();
+        var log = logs.GetOrCreateValue(page);
+        page.Console += (_, message) => log.Enqueue($"console {message.Type} [{message.Location}] {message.Text}");
+        page.PageError += (_, error) => log.Enqueue($"error {error}");
+        page.FrameNavigated += (_, frame) => log.Enqueue($"navigated {(frame.ParentFrame == null ? "top" : frame.Name)} {frame.Url}");
+        page.RequestFailed += (_, request) => log.Enqueue($"request failed {request.Url} {request.Failure}");
+        // Handled, a dialog is no longer dismissed for the test; it is dismissed here as it was.
+        page.Dialog += async (_, dialog) =>
+        {
+            log.Enqueue($"dialog {dialog.Type} {dialog.Message}");
+            await dialog.DismissAsync();
+        };
+        return page;
+    }
+
+    // Close goes back to the host's page; when it does not, the page's log says what happened instead.
+    static async Task CloseAsync(IPage page, IFrame frame)
+    {
+        await frame.ClickAsync(".wopi-close");
+        try
+        {
+            await page.WaitForURLAsync($"{HostUrl}/");
+        }
+        catch (TimeoutException exception)
+        {
+            var log = logs.TryGetValue(page, out var entries) ? string.Join(Environment.NewLine, entries) : "(none)";
+            throw new TimeoutException($"Close did not reach {HostUrl}/; the page is at {page.Url}.{Environment.NewLine}{log}", exception);
+        }
+    }
+
     static async Task<IFrame> OpenAsync(IPage page)
     {
         await page.GotoAsync(HostUrl);
@@ -126,7 +161,7 @@ public class WopiSampleTests
     [Test]
     public async Task AFile_IsEditedAndSavedToTheHost()
     {
-        var page = await browser!.NewPageAsync();
+        var page = await NewPageAsync();
         var frame = await OpenAsync(page);
         await Assert.That(await frame.InnerTextAsync(".wopi-crumbs")).Contains("Report.docx");
 
@@ -151,8 +186,7 @@ public class WopiSampleTests
         await Assert.That(await frame.InnerTextAsync(".editor-name")).DoesNotContain("edited");
 
         // Close goes back to the host, and the file is unlocked: it opens to edit again.
-        await frame.ClickAsync(".wopi-close");
-        await page.WaitForURLAsync($"{HostUrl}/");
+        await CloseAsync(page, frame);
         var again = await OpenAsync(page);
         await Assert.That(await again.InnerTextAsync(".wopi-status")).DoesNotContain("Read-only");
     }
@@ -161,16 +195,15 @@ public class WopiSampleTests
     [Test]
     public async Task ALockedFile_OpensReadOnly()
     {
-        var first = await browser!.NewPageAsync();
+        var first = await NewPageAsync();
         var editing = await OpenAsync(first);
-        var second = await browser.NewPageAsync();
+        var second = await NewPageAsync();
 
         var frame = await OpenAsync(second);
 
         await Assert.That(await frame.InnerTextAsync(".wopi-status")).StartsWith("Read-only");
         // Closed as a user closes it, which unlocks the file for the other tests.
-        await editing.ClickAsync(".wopi-close");
-        await first.WaitForURLAsync($"{HostUrl}/");
+        await CloseAsync(first, editing);
         await first.CloseAsync();
         await second.CloseAsync();
     }
