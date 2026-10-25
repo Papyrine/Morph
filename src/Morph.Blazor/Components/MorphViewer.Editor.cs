@@ -1939,12 +1939,16 @@ public partial class MorphViewer
 
     internal bool IsSubscript => CurrentRun?.VerticalAlignment == VerticalRunAlignment.Subscript;
 
-    // Word's Grow Font and Shrink Font: to the next size on the list, or past its ends a point at a time.
+    // Word's Grow Font and Shrink Font (Ctrl+Shift+> and <) step along this ladder: a point at a time
+    // up to 8, then the gallery's sizes less 10.5, which joins the ladder at 11, and past 72 by tens
+    // (WordProbe E-88).
+    static readonly double[] sizeLadder = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72];
+
     internal static double Step(double size, int steps)
     {
         if (steps > 0)
         {
-            foreach (var each in FontSizes)
+            foreach (var each in sizeLadder)
             {
                 if (each > size + 0.01)
                 {
@@ -1952,19 +1956,66 @@ public partial class MorphViewer
                 }
             }
 
-            return Math.Min(1638, Math.Floor(size) + 1);
+            return Math.Min(1630, Math.Floor(size / 10) * 10 + 10);
         }
 
-        for (var index = FontSizes.Length - 1; index >= 0; index--)
+        if (size > 72.01)
         {
-            if (FontSizes[index] < size - 0.01)
+            return Math.Max(72, Math.Ceiling(size / 10) * 10 - 10);
+        }
+
+        for (var index = sizeLadder.Length - 1; index >= 0; index--)
+        {
+            if (sizeLadder[index] < size - 0.01)
             {
-                return FontSizes[index];
+                return sizeLadder[index];
             }
         }
 
-        return Math.Max(1, Math.Ceiling(size) - 1);
+        return 1;
     }
+
+    // Word's Ctrl+] and Ctrl+[: a point up or down from any size, 1 the floor (WordProbe E-87).
+    internal Task NudgeSizeAsync(int points) =>
+        SetSizeAsync(Math.Min(1638, Math.Max(1, CurrentSize + points)));
+
+    // A look the keys turn on and off, as Word's do: on, unless the text at the caret has it already.
+    internal Task ToggleLookAsync(Func<RunProperties, bool> has, Func<bool, RunFormat> format) =>
+        FormatAsync(format(!(CurrentRun is { } run && has(run))));
+
+    // Word's Ctrl+T and Ctrl+Shift+T: the left indent to the next (or previous) half-inch stop, the first
+    // line left where it starts, so the hang grows or shrinks by a stop; never past the first line, and a
+    // list's paragraph is left alone (WordProbe E-92, E-92b, E-92c).
+    internal async Task HangAsync(int steps)
+    {
+        if (CurrentParagraph?.ListLevel != null ||
+            await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var now = PropertiesOf(target.Paragraph);
+        var left = now?.LeftIndentPoints ?? 0;
+        var first = left + (now?.FirstLineIndentPoints ?? 0) - (now?.HangingIndentPoints ?? 0);
+        var stop = Math.Floor(left / halfInch + 0.001) * halfInch + halfInch;
+        if (steps < 0)
+        {
+            stop = Math.Ceiling(left / halfInch - 0.001) * halfInch - halfInch;
+            if (left <= first + 0.05)
+            {
+                return;
+            }
+
+            stop = Math.Max(stop, Math.Max(0, first));
+        }
+
+        var format = new ParagraphFormat(LeftPoints: stop, FirstLinePoints: first - stop);
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+    }
+
+    const double halfInch = 36;
 
     // What character formatting acts on: the text selected — in the paragraph open for typing, or
     // across the pages — or the word the caret is in.

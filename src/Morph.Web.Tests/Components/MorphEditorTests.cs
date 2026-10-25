@@ -637,14 +637,19 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("Select the text to format, or click in a word.");
     }
 
-    // Word's Grow Font and Shrink Font: along its list of sizes, and a point at a time past its ends.
+    // Word's Grow Font and Shrink Font: a point at a time up to 8, along its sizes less 10.5 to 72, and
+    // by tens past it (WordProbe E-88).
     [Test]
     [Arguments(11, 1, 12)]
-    [Arguments(11, -1, 10.5)]
+    [Arguments(11, -1, 10)]
     [Arguments(10.5, 1, 11)]
+    [Arguments(10.5, -1, 10)]
     [Arguments(13, 1, 14)]
     [Arguments(13, -1, 12)]
-    [Arguments(72, 1, 73)]
+    [Arguments(72, 1, 80)]
+    [Arguments(80, -1, 72)]
+    [Arguments(100, -1, 90)]
+    [Arguments(5, 1, 6)]
     [Arguments(8, -1, 7)]
     [Arguments(1, -1, 1)]
     public async Task GrowAndShrink_StepAlongWordsSizes(double size, int steps, double expected) =>

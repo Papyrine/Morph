@@ -254,6 +254,38 @@ draft. There is one draft, the last document edited and not saved, and like the 
 leaves the device. Where the browser refuses storage — a private window, blocked site data — there is
 no draft, and the prompt before leaving is all there is.
 
+### What is .NET's and what is the script's
+
+The editor is split between C# and two ES modules in `wwwroot/`, and the line between them is
+deliberate. **.NET decides what happens to the file**: what a command or a key does, the rules for
+when a command can be used (`MorphEditor.Commands`), layout, and reading and writing the document.
+**The script takes the input and does the drawing the browser has to do**:
+`morph-edit.js` is the box a paragraph is typed in, and `morph-viewer.js` the pages, zoom, scrolling,
+the ruler, the ribbon's folding and the keys and selection on the pages. Each hands .NET what it
+gathered by name (`OnEditKey`, `OnEditCommand`, `OnEditPaste`, …) and .NET hands back JSON.
+
+What keeps a piece in the script:
+
+- **Cancelling an event depends on what it is.** The box takes `beforeinput` and `keydown` before the
+  browser touches the page, and whether to cancel one depends on the key and on the paragraph's model.
+  Blazor's `preventDefault` is fixed in the markup, and a .NET handler runs after the browser has
+  already acted, so only a listener in the script can decide it per event.
+- **Typing must not cross to .NET.** WebAssembly runs .NET on the page's one thread, and every call
+  costs a render. So nothing crosses while the reader types: the box keeps its own model of the
+  paragraph and hands it in when the reader leaves it. For the same reason the script keeps what changes
+  as the caret moves — bold's and the alignments' pressed state, Cut and Copy greyed out, Overtype and
+  F8's extend mode.
+- **Some browser APIs answer only inside the event.** The clipboard (`execCommand('copy')`,
+  `navigator.clipboard`) works only within the press that asked for it, which is why Cut, Copy and Paste
+  are the script's (`data-edit-command`); the selection (`getSelection`, `Selection.modify`) and an input
+  method's composition are read and set there too.
+- **Measuring belongs where the elements are.** The pages' geometry, the render queue (the script asks
+  .NET for the pages it needs), the ruler's drags and the ribbon's folding — every group measured whole,
+  squeezed and folded within one frame — would each be many round trips a frame through interop.
+
+A new feature's rule goes in .NET; only the part that has to answer an event as it happens, or measure
+the page, goes in the script.
+
 ## WOPI
 
 `MorphWopi` is the editor as a [WOPI](https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/)

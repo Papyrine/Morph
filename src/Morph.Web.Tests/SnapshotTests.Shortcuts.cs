@@ -72,8 +72,8 @@ public partial class SnapshotTests
         throw new("The text could not be selected.");
     }
 
-    // Grow, subscript and superscript act on the word the caret is in, which stays selected, and
-    // Ctrl+Space takes them all off again.
+    // Grow a point (Ctrl+], WordProbe E-87), subscript and superscript act on the word the caret is in,
+    // which stays selected, and Ctrl+Space takes them all off again.
     [Test]
     public async Task Shortcut_FontKeys_FormatTheWordTheCaretIsIn()
     {
@@ -94,7 +94,7 @@ public partial class SnapshotTests
 
         var subscript = DocumentBody(await SaveAsync(page));
         await Assert.That(subscript).Contains("<w:vertAlign w:val=\"subscript\" />");
-        await Assert.That(subscript).Contains("<w:sz w:val=\"28\" />");
+        await Assert.That(subscript).Contains("<w:sz w:val=\"26\" />");
 
         await ClickInAsync(page, "paragraph here");
         await page.Keyboard.PressAsync("Home");
@@ -109,7 +109,7 @@ public partial class SnapshotTests
 
         var superscript = DocumentBody(await SaveAsync(page));
         await Assert.That(superscript).Contains("<w:vertAlign w:val=\"superscript\" />");
-        await Assert.That(superscript).DoesNotContain("<w:sz w:val=\"28\" />");
+        await Assert.That(superscript).DoesNotContain("<w:sz w:val=\"26\" />");
 
         await ClickInAsync(page, "paragraph here");
         await page.Keyboard.PressAsync("Home");

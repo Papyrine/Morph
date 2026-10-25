@@ -117,6 +117,36 @@ export function wordKey(event) {
             // Track Changes on or off (WordProbe E-101).
             case 'KeyE':
                 return { command: 'track' };
+            // Grow and Shrink Font, along Word's ladder of sizes (WordProbe E-88).
+            case 'Period':
+                return { key: 'grow' };
+            case 'Comma':
+                return { key: 'shrink' };
+            // All caps, small caps, double and word underline, hidden (WordProbe E-85, E-110).
+            case 'KeyA':
+                return { key: 'all-caps' };
+            case 'KeyK':
+                return { key: 'small-caps' };
+            case 'KeyD':
+                return { key: 'double-underline' };
+            case 'KeyW':
+                return { key: 'word-underline' };
+            case 'KeyH':
+                return { key: 'hidden' };
+            // Normal style, outdent and the hanging indent back (WordProbe E-83, E-91, E-92).
+            case 'KeyN':
+                return { key: 'normal-style' };
+            case 'KeyM':
+                return { key: 'decrease-indent' };
+            case 'KeyT':
+                return { key: 'unhang' };
+            // Reset Char, as Ctrl+Space (WordProbe E-110). Cmd+Shift+Z stays the Mac's redo.
+            case 'KeyZ':
+                if (event.ctrlKey && !event.metaKey) {
+                    return { key: 'clear-formatting' };
+                }
+
+                return null;
         }
 
         return null;
@@ -131,10 +161,18 @@ export function wordKey(event) {
             return { command: 'align-right' };
         case 'KeyJ':
             return { command: 'align-justify' };
+        // A point at a time (WordProbe E-87).
         case 'BracketLeft':
-            return { key: 'shrink' };
+            return { key: 'shrink-point' };
         case 'BracketRight':
-            return { key: 'grow' };
+            return { key: 'grow-point' };
+        // Indent a stop, a hanging indent a stop, 12pt before on and off (WordProbe E-90, E-91, E-92).
+        case 'KeyM':
+            return { key: 'increase-indent' };
+        case 'KeyT':
+            return { key: 'hang' };
+        case 'Digit0':
+            return { key: 'space-before' };
         case 'Equal':
             return { key: 'subscript' };
         case 'Space':
@@ -1008,6 +1046,143 @@ export class ParagraphEditor {
         this.select(selected.from, selected.to);
     }
 
+    // Word's alignment keys toggle against Left: Ctrl+E, Ctrl+R and Ctrl+J pressed on a paragraph
+    // already so aligned put it back to the left, and Ctrl+L on a left-aligned one justifies it
+    // (WordProbe E-89, E-89b).
+    alignByKey(name) {
+        const selected = this.range();
+        if (!selected) {
+            return;
+        }
+
+        const now = this.blocks[selected.from.b].align ?? this.session.align;
+        let value = alignments.indexOf(name.slice(6));
+        if (value === now) {
+            value = value === 0 ? alignments.indexOf('justify') : 0;
+        }
+
+        this.align(value);
+    }
+
+    // Word's Shift+F3 (WordProbe E-80, E-80b): the selection, or the word the caret is in, goes to
+    // lower case when it is all capitals, to Title Case when it is all lower case, and to capitals
+    // otherwise. At a word's end, with no word to take, nothing changes.
+    changeCase() {
+        let range = this.range();
+        if (!range) {
+            return;
+        }
+
+        if (same(range.from, range.to)) {
+            const text = this.blockText(range.from.b);
+            const letter = /[\p{L}\p{N}'\u2019]/u;
+            if (!letter.test(text[range.from.o] ?? '')) {
+                return;
+            }
+
+            const [from, to] = this.unitAround(range.from, 'word');
+            let end = to.o;
+            while (end > from.o && !letter.test(text[end - 1])) {
+                end--;
+            }
+
+            range = { from, to: { b: from.b, o: end } };
+        }
+
+        const items = this.textBetween(range.from, range.to);
+        const selected = items.map(_ => _.t).join('');
+        let mode = 'upper';
+        if (selected === selected.toUpperCase() && selected !== selected.toLowerCase()) {
+            mode = 'lower';
+        } else if (selected === selected.toLowerCase()) {
+            mode = 'title';
+        }
+
+        this.record('case');
+        // Title Case runs across items: a word's first letter may begin a later one.
+        let starts = true;
+        for (const item of items) {
+            if (mode === 'upper') {
+                item.t = item.t.toUpperCase();
+            } else if (mode === 'lower') {
+                item.t = item.t.toLowerCase();
+            } else {
+                item.t = [...item.t].map(character => {
+                    const changed = starts ? character.toUpperCase() : character;
+                    starts = /\s/.test(character);
+                    return changed;
+                }).join('');
+            }
+        }
+
+        this.tidy();
+        this.render();
+        this.select(range.from, range.to);
+    }
+
+    // Word's Ctrl+Backspace and Ctrl+Delete (WordProbe E-70, E-71): a word with its trailing spaces is
+    // one unit, a run of punctuation with its spaces another, a hyphen one of its own, and what is not
+    // text one. Null at the paragraph's edge, where the keys join paragraphs as Backspace and Delete do.
+    wordRange(place, backward) {
+        const text = this.blockText(place.b);
+        const kind = character => {
+            if (character === ' ' || character === '\t' || character === '\u00A0') {
+                return 'space';
+            }
+
+            if (character === '\uFFFC' || character === '-') {
+                return character;
+            }
+
+            if (/[\p{L}\p{N}_'\u2019]/u.test(character)) {
+                return 'word';
+            }
+
+            return 'mark';
+        };
+
+        let o = place.o;
+        if (backward) {
+            if (o === 0) {
+                return null;
+            }
+
+            while (o > 0 && kind(text[o - 1]) === 'space') {
+                o--;
+            }
+
+            if (o > 0) {
+                const first = kind(text[o - 1]);
+                o--;
+                if (first === 'word' || first === 'mark') {
+                    while (o > 0 && kind(text[o - 1]) === first) {
+                        o--;
+                    }
+                }
+            }
+
+            return { from: { b: place.b, o }, to: place };
+        }
+
+        if (o >= text.length) {
+            return null;
+        }
+
+        const first = kind(text[o]);
+        o++;
+        if (first === 'word' || first === 'mark' || first === 'space') {
+            while (o < text.length && kind(text[o]) === first) {
+                o++;
+            }
+        }
+
+        while (o < text.length && kind(text[o]) === 'space') {
+            o++;
+        }
+
+        return { from: place, to: { b: place.b, o } };
+    }
+
     // History: the paragraph as it was before each change, typing taken a burst at a time.
 
     record(kind) {
@@ -1354,6 +1529,18 @@ export class ParagraphEditor {
             case 'historyRedo':
                 this.redo();
                 break;
+            case 'deleteWordBackward':
+            case 'deleteWordForward': {
+                const backward = type.endsWith('Backward');
+                const caret = this.range();
+                if (caret && same(caret.from, caret.to)) {
+                    this.onDelete(this.wordRange(caret.from, backward) ?? caret, backward);
+                } else {
+                    this.onDelete(range, backward);
+                }
+
+                break;
+            }
             default:
                 if (type.startsWith('delete')) {
                     this.onDelete(range, type.endsWith('Backward'));
@@ -1436,7 +1623,9 @@ export class ParagraphEditor {
         const word = wordKey(event);
         if (word) {
             event.preventDefault();
-            if (word.command) {
+            if (word.command?.startsWith('align-')) {
+                this.alignByKey(word.command);
+            } else if (word.command) {
                 // One the box cannot carry out itself, such as Track Changes, is the page's: it hands
                 // the paragraph in first.
                 if (!this.command(word.command)) {
@@ -1503,6 +1692,13 @@ export class ParagraphEditor {
                 event.preventDefault();
                 event.stopPropagation();
                 this.cancel();
+                return;
+            case 'F3':
+                if (event.shiftKey && !event.altKey) {
+                    event.preventDefault();
+                    this.changeCase();
+                }
+
                 return;
             // Overtype on or off; Shift+Insert is the browser's paste.
             case 'Insert':
