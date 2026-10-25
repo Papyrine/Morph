@@ -1,4 +1,4 @@
-# All PDF export scenarios (29)
+# All PDF export scenarios (32)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -10,8 +10,11 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
 - [chart-pie](#chart-pie)
+- [chart-radar](#chart-radar)
+- [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
 - [color-block](#color-block)
 - [dappled](#dappled)
@@ -95,6 +98,18 @@ PDF: [Morph PDF](bohemian/pdf_result.verified.pdf)
 PDF: [Morph PDF](business-cards-horizontal-layout/pdf_result.verified.pdf)
 
 
+## chart-area
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0741 · SSIM: 0.9078** |
+| <img src="chart-area/expected_0001.png" width="500"> | <img src="chart-area/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0782 · SSIM: 0.8966** |
+| <img src="chart-area/expected_0002.png" width="500"> | <img src="chart-area/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-area/pdf_result.verified.pdf)
+
+
 ## chart-bar-column
 
 | Expected (Word) | Morph PDF |
@@ -115,6 +130,30 @@ PDF: [Morph PDF](chart-bar-column/pdf_result.verified.pdf)
 | <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](chart-pie/pdf_result.verified.pdf)
+
+
+## chart-radar
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0424 · SSIM: 0.9215** |
+| <img src="chart-radar/expected_0001.png" width="500"> | <img src="chart-radar/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0293 · SSIM: 0.9437** |
+| <img src="chart-radar/expected_0002.png" width="500"> | <img src="chart-radar/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-radar/pdf_result.verified.pdf)
+
+
+## chart-scatter
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0404 · SSIM: 0.8731** |
+| <img src="chart-scatter/expected_0001.png" width="500"> | <img src="chart-scatter/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0445 · SSIM: 0.8671** |
+| <img src="chart-scatter/expected_0002.png" width="500"> | <img src="chart-scatter/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-scatter/pdf_result.verified.pdf)
 
 
 ## chart-stacked-line

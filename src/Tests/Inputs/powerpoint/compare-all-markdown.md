@@ -1,4 +1,4 @@
-# All Markdown export scenarios (29)
+# All Markdown export scenarios (32)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -10,8 +10,11 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
 - [chart-pie](#chart-pie)
+- [chart-radar](#chart-radar)
+- [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
 - [color-block](#color-block)
 - [dappled](#dappled)
@@ -67,6 +70,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="business-cards-horizontal-layout/expected_0001.png" width="500"> | <img src="business-cards-horizontal-layout/md_result.verified.png" width="500"> |
 
+## chart-area
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-area/expected_0001.png" width="500"><br><img src="chart-area/expected_0002.png" width="500"> | <img src="chart-area/md_result.verified.png" width="500"> |
+
 ## chart-bar-column
 
 | Expected (Word) | Morph Markdown |
@@ -78,6 +87,18 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/md_result.verified.png" width="500"> |
+
+## chart-radar
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-radar/expected_0001.png" width="500"><br><img src="chart-radar/expected_0002.png" width="500"> | <img src="chart-radar/md_result.verified.png" width="500"> |
+
+## chart-scatter
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-scatter/expected_0001.png" width="500"><br><img src="chart-scatter/expected_0002.png" width="500"> | <img src="chart-scatter/md_result.verified.png" width="500"> |
 
 ## chart-stacked-line
 

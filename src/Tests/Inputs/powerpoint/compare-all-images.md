@@ -1,4 +1,4 @@
-# All scenarios (29)
+# All scenarios (32)
 
 <details>
 <summary>Contents</summary>
@@ -8,8 +8,11 @@
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
 - [chart-pie](#chart-pie)
+- [chart-radar](#chart-radar)
+- [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
 - [color-block](#color-block)
 - [dappled](#dappled)
@@ -78,6 +81,15 @@
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0645 · SSIM: 0.9028** | **Page 1. ErrorMetric: 0.0666 · SSIM: 0.9033** |
 | <img src="business-cards-horizontal-layout/expected_0001.png" width="500"> | <img src="business-cards-horizontal-layout/skia_result%23page_0001.verified.png" width="500"> | <img src="business-cards-horizontal-layout/imagesharp_result%23page_0001.verified.png" width="500"> |
 
+## chart-area
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0734 · SSIM: 0.9070** | **Page 1. ErrorMetric: 0.0732 · SSIM: 0.9087** |
+| <img src="chart-area/expected_0001.png" width="500"> | <img src="chart-area/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-area/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0772 · SSIM: 0.8964** | **Page 2. ErrorMetric: 0.0773 · SSIM: 0.8975** |
+| <img src="chart-area/expected_0002.png" width="500"> | <img src="chart-area/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-area/imagesharp_result%23page_0002.verified.png" width="500"> |
+
 ## chart-bar-column
 
 | Expected (Word) | Skia | ImageSharp |
@@ -93,6 +105,24 @@
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0342 · SSIM: 0.9428** | **Page 1. ErrorMetric: 0.0341 · SSIM: 0.9427** |
 | <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-pie/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## chart-radar
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0392 · SSIM: 0.9195** | **Page 1. ErrorMetric: 0.0404 · SSIM: 0.9215** |
+| <img src="chart-radar/expected_0001.png" width="500"> | <img src="chart-radar/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-radar/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0276 · SSIM: 0.9424** | **Page 2. ErrorMetric: 0.0278 · SSIM: 0.9437** |
+| <img src="chart-radar/expected_0002.png" width="500"> | <img src="chart-radar/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-radar/imagesharp_result%23page_0002.verified.png" width="500"> |
+
+## chart-scatter
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0401 · SSIM: 0.8648** | **Page 1. ErrorMetric: 0.0396 · SSIM: 0.8742** |
+| <img src="chart-scatter/expected_0001.png" width="500"> | <img src="chart-scatter/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-scatter/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0441 · SSIM: 0.8588** | **Page 2. ErrorMetric: 0.0442 · SSIM: 0.8682** |
+| <img src="chart-scatter/expected_0002.png" width="500"> | <img src="chart-scatter/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-scatter/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## chart-stacked-line
 
