@@ -1185,6 +1185,37 @@ public partial class MorphEditor
                 Enabled = ForText
             };
 
+        // Word's keys between cells and to a story's ends (WordProbe T-01, T-09, N-11), which only move.
+        public static readonly EditorCommand NextCell = Move("next-cell", "Next cell", _ => _.MoveInTableAsync("next"), "Tab");
+
+        public static readonly EditorCommand PreviousCell = Move("previous-cell", "Previous cell", _ => _.MoveInTableAsync("previous"), "Shift+Tab");
+
+        public static readonly EditorCommand RowStart = Move("row-start", "First cell in the row", _ => _.MoveInTableAsync("row-start"), "Alt+Home");
+
+        public static readonly EditorCommand RowEnd = Move("row-end", "Last cell in the row", _ => _.MoveInTableAsync("row-end"), "Alt+End");
+
+        public static readonly EditorCommand ColumnTop = Move("column-top", "Top cell in the column", _ => _.MoveInTableAsync("column-top"), "Alt+PgUp");
+
+        public static readonly EditorCommand ColumnBottom = Move("column-bottom", "Bottom cell in the column", _ => _.MoveInTableAsync("column-bottom"), "Alt+PgDn");
+
+        public static readonly EditorCommand StoryStart = Move("story-start", "Start of the document", _ => _.StoryEndAsync(false), "Ctrl+Home");
+
+        public static readonly EditorCommand StoryEnd = Move("story-end", "End of the document", _ => _.StoryEndAsync(true), "Ctrl+End");
+
+        public static readonly EditorCommand MoveUp =
+            new("move-up", "Move paragraph up", _ => _.MoveParagraphAsync(true))
+            {
+                Key = "Alt+Shift+Up",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand MoveDown =
+            new("move-down", "Move paragraph down", _ => _.MoveParagraphAsync(false))
+            {
+                Key = "Alt+Shift+Down",
+                Enabled = ForText
+            };
+
         public static readonly EditorCommand NormalStyle =
             new("normal-style", "Normal style", _ => _.ApplyStyleAsync("Normal"))
             {
@@ -1236,7 +1267,8 @@ public partial class MorphEditor
                 WordCount, NewComment, ReviewPane, Track, AcceptAll, RejectAll, Pages, Ruler, Present, ListLevelIn,
                 ListLevelOut, EndList, Unindent, FollowOn, ResetPicture, Heading1, Heading2, Heading3, SingleSpacing,
                 DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, GrowPoint, ShrinkPoint, AllCaps, SmallCaps,
-                DoubleUnderline, WordUnderline, Hidden, SymbolFont, ResetParagraph, Promote, Demote, NormalStyle, SpaceBefore, Hang, Unhang, Delete
+                DoubleUnderline, WordUnderline, Hidden, SymbolFont, ResetParagraph, Promote, Demote, NextCell, PreviousCell,
+                RowStart, RowEnd, ColumnTop, ColumnBottom, StoryStart, StoryEnd, MoveUp, MoveDown, NormalStyle, SpaceBefore, Hang, Unhang, Delete
             }.ToDictionary(_ => _.Name, StringComparer.Ordinal);
 
         public static IReadOnlyCollection<EditorCommand> All =>
@@ -1254,6 +1286,14 @@ public partial class MorphEditor
             };
 
         // Word's Ctrl+Alt+1 to 3.
+        // A key that moves the caret and changes nothing, so a read-only document takes it too.
+        static EditorCommand Move(string name, string label, Func<MorphEditor, Task> run, string key) =>
+            new(name, label, run)
+            {
+                Key = key,
+                Enabled = _ => true
+            };
+
         static EditorCommand Heading(int level) =>
             new(
                 $"heading{level}",

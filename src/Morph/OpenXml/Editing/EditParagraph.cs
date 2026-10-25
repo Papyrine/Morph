@@ -16,6 +16,12 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     /// <summary>Whether the paragraph is in a table's cell, which is what the table commands act on.</summary>
     public bool InTable { get; init; }
 
+    /// <summary>
+    /// The cell the paragraph is in — of the innermost table, when tables nest — or null outside one:
+    /// what Word's Tab, Alt+Home and Alt+PgUp move between.
+    /// </summary>
+    public EditCell? Cell { get; init; }
+
     /// <summary>The paragraph's level in the list it is in — by its own numbering or its style's — or null.</summary>
     public int? ListLevel { get; init; }
 

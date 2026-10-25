@@ -17,6 +17,7 @@ const replacements = new Map([
     ['(r)', '®'],
     ['(tm)', '™'],
     ['-->', '→'],
+    [':)', '☺'],
     ['<--', '←'],
     ['teh', 'the'],
     ['adn', 'and'],
@@ -135,6 +136,34 @@ export function corrections(text, end, trigger) {
     }
 
     return found;
+}
+
+const completions = [...days, 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september',
+    'october', 'november', 'december'];
+
+/**
+ * Word's AutoComplete (A-18): a day's or a month's name begun with at least four of its letters is
+ * offered whole, and Enter takes the offer — `Mond` becomes `Monday`, `Octo` `October`. The rest of the
+ * name to add, or null.
+ */
+export function completion(text, end) {
+    const from = start(text, end, _ => /\p{L}/u.test(_));
+    const word = text.slice(from, end);
+    if (word.length < 4) {
+        return null;
+    }
+
+    const name = completions.find(_ => _.startsWith(word.toLowerCase()) && _.length > word.length);
+    if (!name) {
+        return null;
+    }
+
+    return name.slice(word.length);
+}
+
+/** Whether what is typed before a Tab at a paragraph's start is a number leader that starts a list (A-11). */
+export function numberLeader(text) {
+    return numberLeaders.test(text);
 }
 
 // Where a run of characters that pass `test` ends at `end` starts.

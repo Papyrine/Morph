@@ -516,6 +516,14 @@ public partial class MorphViewer
             return;
         }
 
+        // Word's alignments toggle against Left: pressed on paragraphs that all have it already, they go
+        // back to the left (WordProbe E-89).
+        if (alignment != TextAlignment.Left &&
+            paragraphs.All(_ => PropertiesOf(_)?.Alignment == alignment))
+        {
+            alignment = TextAlignment.Left;
+        }
+
         var target = FromSelection();
         var options = await EditOptionsAsync();
         if (await ReviseAsync(_ => DocumentEditor.Align(_, paragraphs, alignment, options), relayout: true, () => activeKey) &&

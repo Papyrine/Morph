@@ -66,6 +66,21 @@ public class ParagraphFormatTests
         await Assert.That(Xml(edited)).Contains("<w:jc w:val=\"center\" /></w:pPr></w:pPrChange>");
     }
 
+    // Alt+Shift+Down and Up (WordProbe E-96): the paragraph and its mark past its neighbour, the caret
+    // going with it; nothing moves past the document's ends.
+    [Test]
+    public async Task MovingAParagraph_SwapsItWithItsNeighbour()
+    {
+        var docx = Build(P(R("one")) + P(R("two")) + P(R("three")));
+
+        var down = DocumentEditor.MoveParagraph(docx, 0, 2, up: false, Plain);
+        await Assert.That(Xml(down.Document)).IsEqualTo(Xml(Build(P(R("two")) + P(R("one")) + P(R("three")))));
+        await Assert.That((down.Paragraph, down.Offset)).IsEqualTo((1, 2));
+
+        var up = DocumentEditor.MoveParagraph(docx, 0, 0, up: true, Plain);
+        await Assert.That(Xml(up.Document)).IsEqualTo(Xml(docx));
+    }
+
     // A document with no styles part of its own still gets the definition, and what it is based on.
     [Test]
     public async Task ADocumentWithNoStyles_IsGivenThem()

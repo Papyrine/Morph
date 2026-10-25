@@ -20,7 +20,7 @@
 // That is the count .NET uses too (EditParagraph.Length), which is how the two agree on where a caret is.
 
 import { faceMetrics, naturalWidth } from './morph-text.js';
-import { corrections, smartQuote } from './morph-autocorrect.js';
+import { completion, corrections, numberLeader, smartQuote } from './morph-autocorrect.js';
 
 const bold = 1;
 const italic = 2;
@@ -108,7 +108,9 @@ export function wordKey(event) {
             KeyP: 'page-field',
             KeyT: 'time-field',
             ArrowLeft: 'promote',
-            ArrowRight: 'demote'
+            ArrowRight: 'demote',
+            ArrowUp: 'move-up',
+            ArrowDown: 'move-down'
         };
         if (keys[event.code]) {
             return { key: keys[event.code] };
@@ -754,6 +756,176 @@ export class ParagraphEditor {
         return { b: place.b + 1, o: 0 };
     }
 
+    // Word's keys the browser does differently, or not at all. Says whether the key was one of them.
+    onWordKey(event) {
+        const ctrl = event.ctrlKey || event.metaKey;
+        const selected = this.range();
+        if (!selected) {
+            return false;
+        }
+
+        // An arrow key ends a burst of typing, so what is typed after it is an undo entry of its own
+        // (WordProbe U-01).
+        // A look waiting for what is typed next is dropped by it too (WordProbe E-09b).
+        if (event.key.startsWith('Arrow') || event.key === 'Home' || event.key === 'End') {
+            this.lastKind = '';
+            this.pendingFace = null;
+        }
+
+        // Between a table's cells (WordProbe T-01, T-09): Tab and Shift+Tab, Alt+Home, Alt+End,
+        // Alt+PgUp and Alt+PgDn.
+        if (this.session.cell && !ctrl) {
+            const moves = { Home: 'row-start', End: 'row-end', PageUp: 'column-top', PageDown: 'column-bottom' };
+            if (event.key === 'Tab' && !event.altKey) {
+                this.callbacks.key(event.shiftKey ? 'previous-cell' : 'next-cell');
+                return true;
+            }
+
+            if (event.altKey && !event.shiftKey && moves[event.key]) {
+                this.callbacks.key(moves[event.key]);
+                return true;
+            }
+        }
+
+        // Ctrl+Home and Ctrl+End: the story's ends (WordProbe N-11).
+        if (ctrl && !event.shiftKey && !event.altKey && (event.key === 'Home' || event.key === 'End')) {
+            this.callbacks.key(event.key === 'Home' ? 'story-start' : 'story-end');
+            return true;
+        }
+
+        // F4 repeats the last action, as Ctrl+Y does with nothing to redo (WordProbe U-06).
+        if (event.key === 'F4' && !ctrl && !event.shiftKey && !event.altKey) {
+            this.repeat();
+            return true;
+        }
+
+        // Ctrl+Shift+V is Paste Text Only (WordProbe C-24): the clipboard's text, its look the caret's.
+        if (ctrl && event.shiftKey && !event.altKey && event.code === 'KeyV') {
+            this.pastePlain();
+            return true;
+        }
+
+        // Ctrl+Left and Ctrl+Right step by Word's word stops, with Shift extending (WordProbe N-02, S-05);
+        // Ctrl+Shift+Up and Down select to the paragraph's start and end (S-06).
+        if (ctrl && !event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+            const selection = getSelection();
+            const focus = this.toPlace(selection.focusNode, selection.focusOffset);
+            const anchor = this.toPlace(selection.anchorNode, selection.anchorOffset);
+            if (!focus || !anchor) {
+                return false;
+            }
+
+            const backward = event.key === 'ArrowLeft';
+            const step = this.wordRange(focus, backward);
+            if (!step) {
+                return false;
+            }
+
+            const to = backward ? step.from : step.to;
+            if (event.shiftKey) {
+                this.select(anchor, to);
+            } else {
+                this.select(to);
+            }
+
+            return true;
+        }
+
+        if (ctrl && event.shiftKey && !event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+            const selection = getSelection();
+            const anchor = this.toPlace(selection.anchorNode, selection.anchorOffset);
+            if (!anchor) {
+                return false;
+            }
+
+            const b = selected.from.b;
+            this.select(anchor, { b, o: event.key === 'ArrowUp' ? 0 : blockLength(this.blocks[b]) });
+            return true;
+        }
+
+        // A picture selected in the line (WordProbe I-03, X-03e): Esc leaves the caret before it, Tab does
+        // nothing, Enter breaks the line before it, and what is typed goes in before it.
+        const picture = this.pictureAt(selected);
+        if (picture && !ctrl && !event.altKey) {
+            if (event.key === 'Escape') {
+                event.stopPropagation();
+                this.select(picture);
+                return true;
+            }
+
+            if (event.key === 'Tab') {
+                return true;
+            }
+
+            if (event.key === 'Enter' && !event.shiftKey) {
+                this.paragraphBreak({ from: picture, to: picture });
+                return true;
+            }
+
+            if (event.key === 'Enter') {
+                this.lineBreak({ from: picture, to: picture });
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The place of a picture in the line that is what is selected, or null.
+    pictureAt(range) {
+        if (range.from.b !== range.to.b || range.to.o !== range.from.o + 1) {
+            return null;
+        }
+
+        const item = this.itemAt(range.from.b, range.from.o);
+        if (!item?.atom || this.session.u[item.u]?.s !== 'drawing') {
+            return null;
+        }
+
+        return range.from;
+    }
+
+    // Word's Paste Text Only: the clipboard's plain text, typed in with the caret's look.
+    async pastePlain() {
+        const range = this.range();
+        let text = '';
+        try {
+            text = await navigator.clipboard.readText();
+        } catch {
+            this.callbacks.note?.('The browser did not let the page read the clipboard.');
+            return;
+        }
+
+        if (this.pending || this.closed || !range) {
+            return;
+        }
+
+        this.replace(range, this.spaced(range, text), 'paste');
+    }
+
+    // Word's smart cut and paste (WordProbe C-01): a word pasted against another gets a space between
+    // them, so it stands apart. Only a paste of one line is spaced.
+    spaced(range, text) {
+        if (text.length === 0 || /[\r\n]/.test(text)) {
+            return text;
+        }
+
+        const block = this.blockText(range.from.b);
+        const before = block[range.from.o - 1] ?? '';
+        const after = range.from.b === range.to.b ? block[range.to.o] ?? '' : '';
+        const word = /[\p{L}\p{N}]/u;
+        let spaced = text;
+        if (word.test(before) && word.test(text[0])) {
+            spaced = ' ' + spaced;
+        }
+
+        if (word.test(after) && word.test(text[text.length - 1])) {
+            spaced += ' ';
+        }
+
+        return spaced;
+    }
+
     // Word's extend mode (WordProbe S-10). The first F8 turns it on where the caret is, without
     // selecting; each F8 after takes in more — the word with its trailing space, the sentence, the
     // paragraph, the document; in a cell or a list item the sentence is not a step. Shift+F8 steps
@@ -911,6 +1083,7 @@ export class ParagraphEditor {
     // Replaces what is selected with text; a line's end in the text ends the paragraph.
     replace(range, text, kind) {
         const typing = this.record(kind);
+        this.lastAction = null;
         if (kind === 'type') {
             this.typed = typing ? (this.typed ?? '') + text : text;
         }
@@ -1024,6 +1197,16 @@ export class ParagraphEditor {
             return;
         }
 
+        // A picture selected: what is typed next, before it, takes the look; the picture keeps its own
+        // (WordProbe I-03).
+        const picture = this.pictureAt(selected);
+        if (picture) {
+            this.select(picture);
+            this.pendingFace = (this.pendingFace ?? this.faceAt(picture).f) ^ bit;
+            this.notify();
+            return;
+        }
+
         let range = selected;
         if (same(selected.from, selected.to)) {
             // In or beside a word, the word with its trailing space, the caret staying where it is;
@@ -1049,6 +1232,7 @@ export class ParagraphEditor {
         }
 
         this.record('format');
+        this.lastAction = { toggle: bit };
         const touched = this.textBetween(range.from, range.to);
         const on = !touched.every(_ => _.f & bit);
         for (const item of touched) {
@@ -1093,7 +1277,31 @@ export class ParagraphEditor {
     // last burst of typing, at the caret, over what is selected.
     repeat() {
         const range = this.range();
-        if (!range || !this.typed) {
+        if (!range) {
+            return;
+        }
+
+        if (this.lastAction?.toggle) {
+            this.toggle(this.lastAction.toggle);
+            return;
+        }
+
+        if (this.lastAction && 'delete' in this.lastAction) {
+            const backward = this.lastAction.delete;
+            if (same(range.from, range.to)) {
+                const o = range.from.o + (backward ? -1 : 0);
+                if (o >= 0 && o < blockLength(this.blocks[range.from.b])) {
+                    this.replace({ from: { b: range.from.b, o }, to: { b: range.from.b, o: o + 1 } }, '', 'delete');
+                }
+            } else {
+                this.replace(range, '', 'delete');
+            }
+
+            this.lastAction = { delete: backward };
+            return;
+        }
+
+        if (!this.typed) {
             return;
         }
 
@@ -1105,6 +1313,11 @@ export class ParagraphEditor {
     // A character typed: a straight quote is typed as Word's smart quote, and a delimiter that finishes
     // a word runs Word's AutoCorrect over it (morph-autocorrect.js).
     typeText(range, text) {
+        const picture = this.pictureAt(range);
+        if (picture) {
+            range = { from: picture, to: picture };
+        }
+
         let typed = text;
         if (text === '"' || text === "'") {
             typed = smartQuote(this.blockText(range.from.b).slice(0, range.from.o), text);
@@ -1438,12 +1651,48 @@ export class ParagraphEditor {
         }, { signal });
         box.addEventListener('keydown', event => this.onKeyDown(event), { signal });
         box.addEventListener('mousedown', event => this.onPictureDown(event), { signal });
+        box.addEventListener('mousedown', () => {
+            this.lastKind = '';
+            this.pendingFace = null;
+        }, { signal });
+        box.addEventListener('click', event => this.onClickCount(event), { signal });
         box.addEventListener('focusout', () => this.onFocusOut(), { signal });
         document.addEventListener('selectionchange', () => {
             if (!this.closed && !this.pending && this.box.contains(getSelection()?.anchorNode ?? null)) {
                 this.notify();
             }
         }, { signal });
+    }
+
+    // Word's selections by the mouse (WordProbe M-10, M-20, M-24): a double-click takes the word with
+    // every space after it, a triple-click the paragraph, a Ctrl+click the sentence with its spaces.
+    onClickCount(event) {
+        if (this.pending || this.closed || event.button !== 0 ||
+            (event.target instanceof Element && event.target.closest('.edit-drawing, .edit-atom'))) {
+            return;
+        }
+
+        const caret = this.range();
+        if (!caret) {
+            return;
+        }
+
+        let unit = null;
+        if (event.detail === 2) {
+            unit = 'word';
+        } else if (event.detail === 3) {
+            unit = 'paragraph';
+        } else if (event.detail === 1 && (event.ctrlKey || event.metaKey) && same(caret.from, caret.to)) {
+            unit = 'sentence';
+        }
+
+        if (!unit) {
+            return;
+        }
+
+        const at = event.detail === 2 ? caret.from : caret.to;
+        const [from, to] = this.unitAround(at, unit);
+        this.select(from, to);
     }
 
     // Pictures
@@ -1621,13 +1870,19 @@ export class ParagraphEditor {
             case 'insertFromPasteAsQuotation':
             case 'insertFromDrop':
                 if (!this.pasteHtml(range, event.dataTransfer)) {
-                    this.replace(range, event.dataTransfer?.getData('text/plain') ?? event.data ?? '', 'paste');
+                    this.replace(range, this.spaced(range, event.dataTransfer?.getData('text/plain') ?? event.data ?? ''), 'paste');
                 }
 
                 break;
             case 'insertParagraph':
                 // Enter finishes the word before it, as a space does (WordProbe A-01, A-19).
                 if (same(range.from, range.to)) {
+                    const rest = completion(this.blockText(range.from.b), range.from.o);
+                    if (rest) {
+                        this.replace(range, rest, 'autocorrect');
+                        break;
+                    }
+
                     this.autoCorrect(range.from, '\n');
                     range = this.range() ?? range;
                 }
@@ -1660,7 +1915,14 @@ export class ParagraphEditor {
                 const backward = type.endsWith('Backward');
                 const caret = this.range();
                 if (caret && same(caret.from, caret.to)) {
-                    this.onDelete(this.wordRange(caret.from, backward) ?? caret, backward);
+                    let word = this.wordRange(caret.from, backward) ?? caret;
+                    const text = this.blockText(caret.from.b);
+                    if (backward && word.from.o > 0 && text[word.from.o - 1] === ' ' && /[,.;:!?]/.test(text[caret.from.o] ?? '')) {
+                        word = { from: { b: word.from.b, o: word.from.o - 1 }, to: word.to };
+                    }
+
+                    this.onDelete(word, backward);
+                    this.lastAction = { delete: backward };
                 } else {
                     this.onDelete(range, backward);
                 }
@@ -1755,6 +2017,11 @@ export class ParagraphEditor {
             return;
         }
 
+        if (this.onWordKey(event)) {
+            event.preventDefault();
+            return;
+        }
+
         // Word's Ctrl+Alt+1, 2 and 3: Heading 1, 2 and 3. By the key's place, since Alt changes what
         // it types.
         if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
@@ -1826,12 +2093,18 @@ export class ParagraphEditor {
                     event.preventDefault();
                     this.callbacks.key('link');
                     return;
-                // The whole document, in a cell too, as Word's Ctrl+A (WordProbe T-12).
+                // The whole document, in a cell too, as Word's Ctrl+A (WordProbe T-12); in a header, a
+                // footer or a note, the story's text, which is the paragraph open (H-07, H-09).
                 case 'a':
                     if (!event.shiftKey) {
                         event.preventDefault();
                         this.extend = 0;
-                        this.callbacks.selectAll?.();
+                        if (this.session.story) {
+                            const last = this.blocks.length - 1;
+                            this.select({ b: 0, o: 0 }, { b: last, o: blockLength(this.blocks[last]) });
+                        } else {
+                            this.callbacks.selectAll?.();
+                        }
                     }
 
                     return;
@@ -1868,7 +2141,23 @@ export class ParagraphEditor {
             case 'Tab':
                 event.preventDefault();
                 if (this.range() && !event.shiftKey) {
-                    this.replace(this.overtyped(this.range(), '\t'), '\t', 'type');
+                    const caret = this.range();
+                    const before = this.blockText(caret.from.b).slice(0, caret.from.o);
+                    if (caret.from.b === 0 && same(caret.from, caret.to) && numberLeader(before)) {
+                        this.record('autocorrect');
+                        this.remove({ b: 0, o: 0 }, caret.from);
+                        this.tidy();
+                        this.render();
+                        this.select({ b: 0, o: 0 });
+                        this.callbacks.key('numbering');
+                        return;
+                    }
+
+                    this.replace(this.overtyped(caret, '\t'), '\t', 'type');
+                    const after = this.range();
+                    if (after && same(after.from, after.to)) {
+                        this.autoCorrect({ b: after.from.b, o: after.from.o - 1 }, '\t');
+                    }
                 }
 
                 return;

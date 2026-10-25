@@ -196,6 +196,12 @@ sealed class EditSession
                 json.WriteBoolean("tracked", true);
             }
 
+            // Ctrl+A in a header, a footer or a note selects that story's text (WordProbe H-07, H-09).
+            if (Paragraph.Part != ReviewPart.Body)
+            {
+                json.WriteBoolean("story", true);
+            }
+
             // F8 steps from a word to the cell rather than the sentence (WordProbe S-10).
             if (Block.InCell)
             {
