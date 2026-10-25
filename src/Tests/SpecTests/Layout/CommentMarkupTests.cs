@@ -14,7 +14,7 @@ public class CommentMarkupTests
             .WithComments(document, LayoutTestFonts.Measurer, true);
 
     static PlacedScaledGroup Group(LaidOutPage page) =>
-        (PlacedScaledGroup) page.Items.Single();
+        (PlacedScaledGroup)page.Items.Single();
 
     static List<PlacedLine> BalloonLines(PlacedScaledGroup group) =>
         group.Items.OfType<PlacedLine>().Where(_ => _.Runs[0].Properties.FontSizePoints == 9).ToList();
@@ -71,6 +71,7 @@ public class CommentMarkupTests
             .OrderBy(_ => _.Y)
             .ToList();
         var lines = group.Items.OfType<PlacedLine>().ToList();
+
         float LineTop(string text) =>
             lines.Single(_ => _.Runs.Any(run => run.Text == text)).Y;
 
@@ -126,7 +127,12 @@ public class CommentMarkupTests
     [Test]
     public async Task Html_highlights_the_range_and_lists_the_comment()
     {
-        var html = DocumentConverter.ConvertToHtml(Input("01"), new HtmlExportOptions {ShowComments = true});
+        var html = DocumentConverter.ConvertToHtml(
+            Input("01"),
+            new()
+            {
+                ShowComments = true
+            });
 
         await Assert.That(html).Contains("""<mark class="comment" style="background-color: #F8DCDD"><span style="font-size: 12pt;">Some text with a review note attached.</span></mark><sup class="comment-ref"><a href="#comment-1">[R1]</a></sup>""");
         await Assert.That(html).Contains("""<p id="comment-1"><strong>Commented [R1]:</strong> Looks good to me.</p>""");
@@ -136,7 +142,12 @@ public class CommentMarkupTests
     [Test]
     public async Task Markdown_footnotes_the_comment()
     {
-        var markdown = DocumentConverter.ConvertToMarkdown(Input("01"), new MarkdownExportOptions {ShowComments = true});
+        var markdown = DocumentConverter.ConvertToMarkdown(
+            Input("01"),
+            new()
+            {
+                ShowComments = true
+            });
 
         await Assert.That(markdown).Contains("Some text with a review note attached.[^comment-1]");
         await Assert.That(markdown).Contains("[^comment-1]: **Commented [R1]:** Looks good to me.");

@@ -5,7 +5,7 @@ static class Program
     [STAThread]
     static int Main(string[] args)
     {
-        NativeMethods.SetProcessDpiAwarenessContext((IntPtr) (-4));
+        NativeMethods.SetProcessDpiAwarenessContext(-4);
         var screenWidth = NativeMethods.GetSystemMetrics(NativeMethods.ScreenWidth);
         if (args.Length == 0)
         {
@@ -88,7 +88,7 @@ static class Program
         Word.Application? application = null;
         try
         {
-            application = new Word.Application
+            application = new()
             {
                 Visible = false,
                 DisplayAlerts = Word.WdAlertLevel.wdAlertsNone

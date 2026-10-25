@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 /// <summary>
 /// The Summary block at the bottom of <c>docs/word-features.md</c> — the per-category table, its
 /// <c>**Total**</c> row and the mermaid coverage pie — is a hand-maintained tally of the

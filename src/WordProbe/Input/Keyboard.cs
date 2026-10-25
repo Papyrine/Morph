@@ -110,16 +110,13 @@ record KeyChord(Modifiers Modifiers, ushort VirtualKey, string Name)
             return code;
         }
 
-        if (key.Length == 2 &&
-            key[0] is 'F' or 'f' &&
+        if (key is ['F' or 'f', _] &&
             char.IsDigit(key[1]))
         {
             return (ushort) (0x70 + key[1] - '1');
         }
 
-        if (key.Length == 3 &&
-            key[0] is 'F' or 'f' &&
-            key[1] == '1' &&
+        if (key is ['F' or 'f', '1', _] &&
             char.IsDigit(key[2]))
         {
             return (ushort) (0x79 + key[2] - '0');
@@ -130,12 +127,12 @@ record KeyChord(Modifiers Modifiers, ushort VirtualKey, string Name)
             var character = key[0];
             if (char.IsLetter(character))
             {
-                return (ushort) char.ToUpperInvariant(character);
+                return char.ToUpperInvariant(character);
             }
 
             if (char.IsDigit(character))
             {
-                return (ushort) character;
+                return character;
             }
 
             // Shifted punctuation such as '>' or '*' is the base key with Shift.
@@ -155,20 +152,14 @@ record KeyChord(Modifiers Modifiers, ushort VirtualKey, string Name)
     }
 }
 
-sealed class Keyboard
+sealed class Keyboard(IntPtr wordWindow, Action? beforeInput)
 {
     const ushort shift = 0x10;
     const ushort control = 0x11;
     const ushort alt = 0x12;
 
-    readonly IntPtr layout;
-    readonly Action? beforeInput;
-
-    public Keyboard(IntPtr wordWindow, Action? beforeInput)
-    {
-        layout = NativeMethods.GetKeyboardLayout(NativeMethods.ThreadOf(wordWindow));
-        this.beforeInput = beforeInput;
-    }
+    IntPtr layout = NativeMethods.GetKeyboardLayout(NativeMethods.ThreadOf(wordWindow));
+    Action? beforeInput = beforeInput;
 
     public IntPtr Layout => layout;
 

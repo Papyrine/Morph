@@ -22,8 +22,8 @@ public class DocumentPreviewTests : BunitTestContext
     public Task PagesWithTextLayers_Snapshot()
     {
         var cut = Render<DocumentPreview>(_ => _
-            .Add(component => component.Pages, pages)
-            .Add(component => component.TextLayers, Layers()));
+            .Add(_ => _.Pages, pages)
+            .Add(_ => _.TextLayers, Layers()));
 
         return Verify(cut);
     }
@@ -32,8 +32,8 @@ public class DocumentPreviewTests : BunitTestContext
     public async Task EachLayer_IsBuiltOnce()
     {
         var cut = Render<DocumentPreview>(_ => _
-            .Add(component => component.Pages, pages)
-            .Add(component => component.TextLayers, Layers()));
+            .Add(_ => _.Pages, pages)
+            .Add(_ => _.TextLayers, Layers()));
 
         cut.Render();
 
@@ -45,10 +45,10 @@ public class DocumentPreviewTests : BunitTestContext
     public async Task NewLayers_AreBuiltAgain()
     {
         var cut = Render<DocumentPreview>(_ => _
-            .Add(component => component.Pages, pages)
-            .Add(component => component.TextLayers, Layers()));
+            .Add(_ => _.Pages, pages)
+            .Add(_ => _.TextLayers, Layers()));
 
-        cut.Render(_ => _.Add(component => component.TextLayers, Layers()));
+        cut.Render(_ => _.Add(_ => _.TextLayers, Layers()));
 
         textModule.VerifyInvoke("renderTextLayer", calledTimes: 4);
         await Assert.That(cut.FindAll(".text-layer").Count).IsEqualTo(2);
@@ -58,7 +58,7 @@ public class DocumentPreviewTests : BunitTestContext
     [Test]
     public async Task WithoutLayers_PagesArePlainImages()
     {
-        var cut = Render<DocumentPreview>(_ => _.Add(component => component.Pages, pages));
+        var cut = Render<DocumentPreview>(_ => _.Add(_ => _.Pages, pages));
 
         await Assert.That(cut.FindAll(".text-layer")).IsEmpty();
         await Assert.That(cut.Find("img.preview-page").GetAttribute("alt")).IsEqualTo("Rendered page preview");
@@ -69,10 +69,10 @@ public class DocumentPreviewTests : BunitTestContext
     public async Task Busy_ShowsProgressInsteadOfPages()
     {
         var cut = Render<DocumentPreview>(_ => _
-            .Add(component => component.Pages, pages)
-            .Add(component => component.TextLayers, Layers())
-            .Add(component => component.Busy, true)
-            .Add(component => component.Label, "Rendering preview…"));
+            .Add(_ => _.Pages, pages)
+            .Add(_ => _.TextLayers, Layers())
+            .Add(_ => _.Busy, true)
+            .Add(_ => _.Label, "Rendering preview…"));
 
         await Assert.That(cut.FindAll(".preview-sheet")).IsEmpty();
         await Assert.That(cut.Find(".progress-label").TextContent).Contains("Rendering preview…");

@@ -53,7 +53,7 @@ sealed class WordSession : IDisposable
         }
 
         Log.Info("Starting Word");
-        application = new Word.Application
+        application = new()
         {
             Visible = settings.Visible,
             DisplayAlerts = Word.WdAlertLevel.wdAlertsNone
@@ -106,7 +106,7 @@ sealed class WordSession : IDisposable
         CloseDocuments();
         var document = FixtureOpener.Open(Application, fixturePath);
         var window = document.ActiveWindow;
-        Window = (IntPtr) window.Hwnd;
+        Window = window.Hwnd;
         var windowProcess = NativeMethods.ProcessOf(Window);
         if (windowProcess != ProcessId)
         {

@@ -111,7 +111,7 @@ public class CancellationAndLimitTests
             stream.CopyTo(buffer);
             return buffer.ToArray();
         });
-        var document = System.Text.RegularExpressions.Regex.Replace(Encoding.UTF8.GetString(parts["word/document.xml"]), "<w:pgSz [^>]*/>", "<w:pgSz w:w=\"288000\" w:h=\"288000\"/>");
+        var document = Regex.Replace(Encoding.UTF8.GetString(parts["word/document.xml"]), "<w:pgSz [^>]*/>", "<w:pgSz w:w=\"288000\" w:h=\"288000\"/>");
         parts["word/document.xml"] = Encoding.UTF8.GetBytes(document);
         using var output = new MemoryStream();
         await using (var rebuilt = new ZipArchive(output, ZipArchiveMode.Create, true))

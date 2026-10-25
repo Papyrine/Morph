@@ -147,7 +147,9 @@ static class PositionParser
     static readonly Regex below = new(@"^below\s+P(?<n>\d+)$", RegexOptions.Compiled);
     static readonly Regex word = new(@"^word\((?<n>\d+)\)$", RegexOptions.Compiled);
     static readonly Regex wordEnd = new(@"^wordend\((?<n>\d+)\)$", RegexOptions.Compiled);
-    static readonly Regex find = new(@"^find\(""(?<text>[^""]*)""\)(?<end>:end)?$", RegexOptions.Compiled);
+    static readonly Regex find = new(
+        """^find\("(?<text>[^"]*)"\)(?<end>:end)?$""",
+        RegexOptions.Compiled);
 
     public static Position Parse(string text)
     {
@@ -236,11 +238,10 @@ static class PositionParser
     public static PositionRange ParseRange(string text)
     {
         text = text.Trim();
-        var arrow = text.IndexOf('-', StringComparison.Ordinal);
         // A '-' inside find("...") or a story prefix is not a range separator: find the one outside quotes/parens.
         var depth = 0;
         var quoted = false;
-        arrow = -1;
+        var arrow = -1;
         for (var i = 0; i < text.Length; i++)
         {
             var character = text[i];
@@ -271,7 +272,7 @@ static class PositionParser
         var from = Parse(text[..arrow]);
         var toText = text[(arrow + 1)..].Trim();
         Position to;
-        if (Regex.IsMatch(toText, @"^(\d+|start|end|mark|word\(\d+\)|wordend\(\d+\)|find\("".*""\)(:end)?)$"))
+        if (Regex.IsMatch(toText, """^(\d+|start|end|mark|word\(\d+\)|wordend\(\d+\)|find\(".*"\)(:end)?)$"""))
         {
             // Offset only: same paragraph or cell as 'from'.
             var offset = ParseOffsetText(toText);

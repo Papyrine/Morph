@@ -19,7 +19,10 @@ static class UndoStack
         }
         catch (Exception exception)
         {
-            var inner = exception is System.Reflection.TargetInvocationException {InnerException: { } wrapped} ? wrapped : exception;
+            var inner = exception is TargetInvocationException
+            {
+                InnerException: { } wrapped
+            } ? wrapped : exception;
             Log.Detail($"Undo control unavailable this time: {inner.GetType().Name}: {inner.Message}");
         }
 
@@ -34,7 +37,7 @@ static class UndoStack
 
     static List<string>? ReadControl(Word.Application application)
     {
-        dynamic bars = ((dynamic) application).CommandBars;
+        var bars = ((dynamic) application).CommandBars;
         // Word 365 (smoke-tested 2026-10-25): the visible QAT control with id 128 is a plain button (type 1); the
         // hidden one on the legacy Standard bar is the split dropdown (type 6) that carries the list.
         var strategies = new (string Name, Func<object?> Find)[]
@@ -75,7 +78,10 @@ static class UndoStack
             }
             catch (Exception exception)
             {
-                var inner = exception is System.Reflection.TargetInvocationException {InnerException: { } wrapped} ? wrapped : exception;
+                var inner = exception is TargetInvocationException
+                {
+                    InnerException: { } wrapped
+                } ? wrapped : exception;
                 Log.Detail($"Undo control: {name} failed: {inner.GetType().Name}: {inner.Message}");
             }
         }

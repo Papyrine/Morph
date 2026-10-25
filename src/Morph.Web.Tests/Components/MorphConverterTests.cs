@@ -41,7 +41,7 @@ public class MorphConverterTests : BunitTestContext
     [Test]
     public async Task ShowSamplesFalse_DropsTheSampleRow()
     {
-        var cut = Render<MorphConverter>(_ => _.Add(component => component.ShowSamples, false));
+        var cut = Render<MorphConverter>(_ => _.Add(_ => _.ShowSamples, false));
 
         await Assert.That(cut.FindAll(".sample-btn")).IsEmpty();
         await Assert.That(cut.FindAll(".upload-or")).IsEmpty();
@@ -55,7 +55,7 @@ public class MorphConverterTests : BunitTestContext
     public async Task Class_AndSplattedAttributes_ReachTheRootElement()
     {
         var cut = Render<MorphConverter>(_ => _
-            .Add(component => component.Class, "wide")
+            .Add(_ => _.Class, "wide")
             .AddUnmatched("data-test", "converter"));
 
         var root = cut.Find("div.converter");

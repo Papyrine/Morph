@@ -43,7 +43,7 @@ public class MorphViewerTests : BunitTestContext
     [Test]
     public async Task ShowSamples_OffersOneSamplePerFormat()
     {
-        var cut = Render<MorphViewer>(_ => _.Add(component => component.ShowSamples, true));
+        var cut = Render<MorphViewer>(_ => _.Add(_ => _.ShowSamples, true));
 
         await Assert.That(cut.FindAll(".sample-btn").Count).IsEqualTo(ConversionService.ReadableFormats.Count);
     }
@@ -52,9 +52,9 @@ public class MorphViewerTests : BunitTestContext
     public async Task ShowFlags_DropTheirButtons()
     {
         var cut = Render<MorphViewer>(_ => _
-            .Add(component => component.ShowOpenFile, false)
-            .Add(component => component.ShowPrint, false)
-            .Add(component => component.ShowDownload, false));
+            .Add(_ => _.ShowOpenFile, false)
+            .Add(_ => _.ShowPrint, false)
+            .Add(_ => _.ShowDownload, false));
 
         await Assert.That(cut.FindAll(".viewer-open")).IsEmpty();
         await Assert.That(cut.FindAll("button[aria-label=Print]")).IsEmpty();
@@ -86,8 +86,8 @@ public class MorphViewerTests : BunitTestContext
     public async Task InitialZoomAndPage_ReachTheScript()
     {
         await OpenSample(_ => _
-            .Add(component => component.InitialZoom, ViewerZoom.PageFit)
-            .Add(component => component.InitialPage, 2));
+            .Add(_ => _.InitialZoom, ViewerZoom.PageFit)
+            .Add(_ => _.InitialPage, 2));
 
         var load = controller.Invocations["load"].Single();
         await Assert.That(load.Arguments[3]).IsEqualTo(1);
@@ -203,7 +203,7 @@ public class MorphViewerTests : BunitTestContext
     [Test]
     public async Task Print_StreamsEveryPage_ThenOpensTheDialog()
     {
-        var cut = await OpenSample(_ => _.Add(component => component.VectorPages, false));
+        var cut = await OpenSample(_ => _.Add(_ => _.VectorPages, false));
 
         await cut.Find("button[aria-label=Print]").ClickAsync(new());
 
@@ -263,7 +263,7 @@ public class MorphViewerTests : BunitTestContext
     [Test]
     public async Task RenderQueue_PushesEachRequestedImage()
     {
-        var cut = await OpenSample(_ => _.Add(component => component.VectorPages, false));
+        var cut = await OpenSample(_ => _.Add(_ => _.VectorPages, false));
         var documentId = (int) controller.Invocations["load"].Single().Arguments[0]!;
 
         await cut.InvokeAsync(() => cut.Instance.OnRenderQueue([0, 1, 72, 1, 0, 36]));

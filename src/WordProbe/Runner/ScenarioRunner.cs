@@ -294,5 +294,5 @@ static class ScenarioRunner
     }
 
     static string Safe(string id) =>
-        Regex.Replace(id, @"[^A-Za-z0-9._-]+", "_");
+        Regex.Replace(id, "[^A-Za-z0-9._-]+", "_");
 }

@@ -4,16 +4,16 @@
 static class LateBound
 {
     public static object? Get(object comObject, string property) =>
-        comObject.GetType().InvokeMember(property, System.Reflection.BindingFlags.GetProperty, null, comObject, null, CultureInfo.InvariantCulture);
+        comObject.GetType().InvokeMember(property, BindingFlags.GetProperty, null, comObject, null, CultureInfo.InvariantCulture);
 
     public static object? Get(object comObject, string property, params object[] arguments) =>
-        comObject.GetType().InvokeMember(property, System.Reflection.BindingFlags.GetProperty, null, comObject, arguments, CultureInfo.InvariantCulture);
+        comObject.GetType().InvokeMember(property, BindingFlags.GetProperty, null, comObject, arguments, CultureInfo.InvariantCulture);
 
     public static void Set(object comObject, string property, object value) =>
-        comObject.GetType().InvokeMember(property, System.Reflection.BindingFlags.SetProperty, null, comObject, [value], CultureInfo.InvariantCulture);
+        comObject.GetType().InvokeMember(property, BindingFlags.SetProperty, null, comObject, [value], CultureInfo.InvariantCulture);
 
     public static object? Call(object comObject, string method, params object?[] arguments) =>
-        comObject.GetType().InvokeMember(method, System.Reflection.BindingFlags.InvokeMethod, null, comObject, arguments, CultureInfo.InvariantCulture);
+        comObject.GetType().InvokeMember(method, BindingFlags.InvokeMethod, null, comObject, arguments, CultureInfo.InvariantCulture);
 
     /// <summary>Unwraps TargetInvocationException to the COMException Word threw.</summary>
     public static T Try<T>(Func<T> read, T fallback)
@@ -22,7 +22,7 @@ static class LateBound
         {
             return read();
         }
-        catch (System.Reflection.TargetInvocationException)
+        catch (TargetInvocationException)
         {
             return fallback;
         }

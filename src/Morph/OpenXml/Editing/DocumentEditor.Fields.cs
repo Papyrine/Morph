@@ -506,7 +506,17 @@ static partial class DocumentEditor
                 entries.Add(entry);
             }
 
-            entries.Add(new Paragraph(new OoxmlRun(new OoxmlRunProperties(new Bold(), new BoldComplexScript(), new NoProof()), new FieldChar {FieldCharType = FieldCharValues.End})));
+            entries.Add(
+                new(
+                    new OoxmlRun(
+                        new OoxmlRunProperties(
+                            new Bold(),
+                            new BoldComplexScript(),
+                            new NoProof()),
+                        new FieldChar
+                        {
+                            FieldCharType = FieldCharValues.End
+                        })));
             return entries;
 
             static OoxmlRun Hidden(params OpenXmlElement[] content) =>

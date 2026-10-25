@@ -51,7 +51,7 @@ static partial class DocumentEditor
 
         static void Indent(OoxmlParagraphProperties properties, ParagraphFormat format)
         {
-            if (format is {LeftPoints: null, RightPoints: null, FirstLinePoints: null})
+            if (format is { LeftPoints: null, RightPoints: null, FirstLinePoints: null })
             {
                 return;
             }
@@ -94,7 +94,7 @@ static partial class DocumentEditor
 
         static void Space(OoxmlParagraphProperties properties, ParagraphFormat format)
         {
-            if (format is {BeforePoints: null, AfterPoints: null, LineRule: null})
+            if (format is { BeforePoints: null, AfterPoints: null, LineRule: null })
             {
                 return;
             }
@@ -114,11 +114,11 @@ static partial class DocumentEditor
                 lines.AfterAutoSpacing = null;
             }
 
-            if (format is {LineRule: { } rule, LineValue: { } value})
+            if (format is { LineRule: { } rule, LineValue: { } value })
             {
                 if (rule == LineSpacingRule.Auto)
                 {
-                    lines.Line = ((int) Math.Round(value * 240)).ToString(CultureInfo.InvariantCulture);
+                    lines.Line = ((int)Math.Round(value * 240)).ToString(CultureInfo.InvariantCulture);
                     lines.LineRule = LineSpacingRuleValues.Auto;
                 }
                 else
@@ -132,7 +132,7 @@ static partial class DocumentEditor
         }
 
         static string Twips(double points) =>
-            ((int) Math.Round(points * 20)).ToString(CultureInfo.InvariantCulture);
+            ((int)Math.Round(points * 20)).ToString(CultureInfo.InvariantCulture);
 
         // A switch the paragraph says only where its style says otherwise.
         void Switch<T>(Paragraph paragraph, OoxmlParagraphProperties properties, bool? wanted, bool unsaid, Action<OoxmlParagraphProperties, T?> write)
@@ -149,10 +149,12 @@ static partial class DocumentEditor
                 // Off as Word spells it: w:val="0".
                 if (!on)
                 {
-                    write(properties, new T
-                    {
-                        Val = Literal<OnOffValue>("0")
-                    });
+                    write(
+                        properties,
+                        new()
+                        {
+                            Val = Literal<OnOffValue>("0")
+                        });
                 }
 
                 return;

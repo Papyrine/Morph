@@ -4,7 +4,7 @@ public class ExportOptionsPanelTests : BunitTestContext
 {
     [Test]
     public Task Options_png() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Png)))
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Png)))
             .Snapshot(
                 """
                 {
@@ -19,7 +19,7 @@ public class ExportOptionsPanelTests : BunitTestContext
 
     [Test]
     public Task Options_pdf() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Pdf)))
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Pdf)))
             .Snapshot(
                 """
                 {
@@ -35,7 +35,7 @@ public class ExportOptionsPanelTests : BunitTestContext
 
     [Test]
     public Task Options_html() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Html)))
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Html)))
             .Snapshot(
                 """
                 {
@@ -51,7 +51,7 @@ public class ExportOptionsPanelTests : BunitTestContext
 
     [Test]
     public Task Options_markdown() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Markdown)))
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Markdown)))
             .Snapshot(
                 """
                 {
@@ -67,7 +67,7 @@ public class ExportOptionsPanelTests : BunitTestContext
 
     [Test]
     public Task Options_text() =>
-        Verify(Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Text)))
+        Verify(Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Text)))
             .Snapshot(
                 """
                 {
@@ -84,7 +84,7 @@ public class ExportOptionsPanelTests : BunitTestContext
     [Test]
     public async Task Png_ShowsResolutionSelector()
     {
-        var cut = Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Png));
+        var cut = Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Png));
 
         await Assert.That(cut.FindAll("#dpi-select").Count).IsEqualTo(1);
         await Assert.That(cut.FindAll(".no-options").Count).IsEqualTo(0);
@@ -93,7 +93,7 @@ public class ExportOptionsPanelTests : BunitTestContext
     [Test]
     public async Task Png_ShowsCropSelector()
     {
-        var cut = Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Png));
+        var cut = Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Png));
 
         await Assert.That(cut.FindAll("#crop-select").Count).IsEqualTo(1);
         await Assert.That(cut.FindAll("#crop-select option").Count).IsEqualTo(ExportOptionChoices.Crops.Length);
@@ -102,7 +102,7 @@ public class ExportOptionsPanelTests : BunitTestContext
     [Test]
     public async Task TextFormat_ShowsNoOptionsNote()
     {
-        var cut = Render<ExportOptionsPanel>(_ => _.Add(component => component.Target, OutputFormat.Text));
+        var cut = Render<ExportOptionsPanel>(_ => _.Add(_ => _.Target, OutputFormat.Text));
 
         await Assert.That(cut.FindAll(".no-options").Count).IsEqualTo(1);
         await Assert.That(cut.FindAll("#dpi-select").Count).IsEqualTo(0);
@@ -114,8 +114,8 @@ public class ExportOptionsPanelTests : BunitTestContext
     {
         var settings = new ImageSettings();
         var cut = Render<ExportOptionsPanel>(_ => _
-            .Add(component => component.Target, OutputFormat.Png)
-            .Add(component => component.Image, settings));
+            .Add(_ => _.Target, OutputFormat.Png)
+            .Add(_ => _.Image, settings));
 
         await cut.Find("#dpi-select").ChangeAsync("300");
 
@@ -129,8 +129,8 @@ public class ExportOptionsPanelTests : BunitTestContext
     {
         var settings = new ImageSettings();
         var cut = Render<ExportOptionsPanel>(_ => _
-            .Add(component => component.Target, OutputFormat.Png)
-            .Add(component => component.Image, settings));
+            .Add(_ => _.Target, OutputFormat.Png)
+            .Add(_ => _.Image, settings));
 
         await cut.Find("#crop-select").ChangeAsync(nameof(PageCrop.ContentBox));
 
