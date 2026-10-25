@@ -856,6 +856,18 @@ public partial class MorphViewer
             (_, options) => DocumentEditor.InsertDate(_, target.Paragraph, target.Offset, format, now, update, options));
     }
 
+    internal async Task InsertTimeAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var now = await ReaderDateAsync();
+        await EditAtAsync(
+            (_, options) => DocumentEditor.InsertTime(_, target.Paragraph, target.Offset, now, options));
+    }
+
     internal async Task InsertContentsAsync()
     {
         if (await RequireAsync("Click in the document where the table of contents is to go.") is not { } target)

@@ -67,6 +67,18 @@ public class FieldTests
         await Assert.That(result.Offset).IsEqualTo(16);
     }
 
+    // Word-probed 2026-10-24: Alt+Shift+T (WordProbe E-100).
+    [Test]
+    public async Task TheTime_IsATimeField_ShowingTheTime()
+    {
+        var docx = Build(P(R("At ")) + section);
+
+        var result = DocumentEditor.InsertTime(docx, 0, 3, new(2026, 10, 23, 14, 37, 0), Plain);
+
+        await Assert.That(Body(result.Document)).Contains(Field(" TIME \\@ \"h:mm am/pm\" ", "2:37 PM"));
+        await Assert.That(result.Offset).IsEqualTo(4);
+    }
+
     [Test]
     public async Task AField_Tracked_IsOneInsertion()
     {

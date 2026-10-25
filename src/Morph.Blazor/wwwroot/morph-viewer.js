@@ -2294,11 +2294,14 @@ class Viewer {
             },
             state: state => this.showEditState(state),
             key: name => this.editKey(name),
+            command: name => this.editCommand(name),
+            overtype: () => this.toggleOvertype(),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
             note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
         });
+        this.editor.overtype = this.overtype === true;
     }
 
     // Where a command .NET carries out itself — a style, a list, a table — is to act: in the paragraph
@@ -2577,8 +2580,25 @@ class Viewer {
         marker.addEventListener('pointercancel', up);
     }
 
+    // Overtype, which Insert turns on and off as in Word with its Insert key option on; it lasts from
+    // paragraph to paragraph, and .NET shows it in the status bar.
+    toggleOvertype() {
+        this.overtype = !this.overtype;
+        if (this.editor) {
+            this.editor.overtype = this.overtype;
+        }
+
+        this.dotNet.invokeMethodAsync('OnOvertype', this.overtype).catch(() => {});
+    }
+
     // Keys while editing is on and no paragraph is open. Says whether the key was one of them.
     onEditKey(event) {
+        if (event.key === 'Insert' && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            this.toggleOvertype();
+            return true;
+        }
+
         if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
             event.preventDefault();
             this.editKey(`heading${event.code.slice(-1)}`);

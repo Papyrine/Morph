@@ -23,7 +23,7 @@ writable, in a table, cells selected, in a link, in a numbered list, an inline p
 writable, in a table, cells selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
     bookmark, clear-formatting, cut, decrease-indent, delete, end-list, follow-on, font, font-colour, font-colours, font-size, footer, format-painter, header, heading1, heading2, heading3, increase-indent, indent, line-double, line-one-and-half, line-single, link, outdent, paste, picture, redo, reset-picture, table, undo, unindent
 writable, in a table, cells selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, tracked changes, tracking forced, comments allowed
-    contents, page-number
+    contents, page-field, page-number
 writable, in a table, cells selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in an endnote, tracked changes, tracking forced, comments allowed
     endnote
 writable, in a table, cells selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, tracked changes, tracking forced, comments allowed
@@ -33,6 +33,6 @@ writable, in a table, cells selected, in a link, in a numbered list, an inline p
 writable, in a table, cells selected, in a link, in a numbered list, an inline picture selected, tracked changes, tracking forced, comments allowed
     breaks, columns, page-break
 writable, in a table, cells selected, in a link, in a numbered list, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
-    date, more-paragraph-borders, paragraph-borders
+    date, date-field, more-paragraph-borders, paragraph-borders, time-field
 writable, revising, in a table, cells selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
     replace
