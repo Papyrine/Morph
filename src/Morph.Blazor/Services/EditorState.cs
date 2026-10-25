@@ -40,8 +40,14 @@ sealed record EditorState
     /// </summary>
     public bool PictureSelected { get; init; }
 
-    /// <summary>The body has a table of contents.</summary>
-    public bool HasContents { get; init; }
+    /// <summary>The picture selected is a floating one: Word then greys out what formats text.</summary>
+    public bool FloatingPicture { get; init; }
+
+    /// <summary>The part the caret's paragraph is in: the body, a header or footer, the footnotes or endnotes.</summary>
+    public ReviewPart Story { get; init; }
+
+    /// <summary>The text selected on the pages runs over more than one paragraph, as a selection of cells does.</summary>
+    public bool SpansParagraphs { get; init; }
 
     public bool Tracking { get; init; }
 
@@ -52,9 +58,6 @@ sealed record EditorState
 
     /// <summary>Tracked changes can be accepted and rejected here.</summary>
     public bool CanResolve { get; init; }
-
-    /// <summary>The document has tracked changes.</summary>
-    public bool HasChanges { get; init; }
 
     /// <summary>The host offers the review pane and its commands.</summary>
     public bool OffersReview { get; init; }

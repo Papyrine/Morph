@@ -20,7 +20,8 @@ record Observation(
     DialogInfo? Dialog,
     List<HotspotProbe> Hotspots,
     string? MarkupDiff,
-    List<string> Remarks);
+    List<string> Remarks,
+    RibbonState? Ribbon = null);
 
 record SelectionState(
     int Start,
@@ -95,3 +96,6 @@ record ContentControlState(int Index, string Kind, int Start, int End);
 record StoryState(string StoryType, List<ParagraphState> Paragraphs);
 
 record HotspotProbe(string Step, int X, int Y, string Under, string Cursor);
+
+/// <summary>The ribbon controls (by idMso) greyed out and pressed; see RibbonReader.</summary>
+record RibbonState(List<string> Disabled, List<string> Pressed, List<string> Unreadable);

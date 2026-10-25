@@ -66,9 +66,11 @@ static class Program
         }
     }
 
+    // Asks Windows rather than judging by the width: a 1920px display at 125% is just as aware as the
+    // 3440px one the catalogue was first recorded on (2 is DPI_AWARENESS_PER_MONITOR_AWARE).
     static void RequireDpi(int screenWidth)
     {
-        if (screenWidth < 2000)
+        if (NativeMethods.GetAwarenessFromDpiAwarenessContext(NativeMethods.GetThreadDpiAwarenessContext()) != 2)
         {
             throw new InvalidOperationException($"The process sees a {screenWidth}px wide screen: the PerMonitorV2 manifest did not apply, and clicks would land off target.");
         }

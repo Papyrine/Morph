@@ -16,6 +16,7 @@ enum Observe
     Revisions = 256,
     Story = 512,
     Markup = 1024,
+    Ribbon = 2048,
     Default = Selection | Text | Paragraphs | Undo
 }
 

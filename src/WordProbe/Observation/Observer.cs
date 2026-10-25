@@ -25,6 +25,8 @@ static class Observer
         // top of the undo list in every list fixture (lists family, 2026-10-25), so the names are taken
         // before anything else touches the document.
         var (undo, undoSource) = observe.HasFlag(Observe.Undo) ? UndoStack.Read(probe) : ([], "off");
+        // Before the rest for the same reason: Undo's own enabled state is on the ribbon.
+        var ribbon = observe.HasFlag(Observe.Ribbon) ? RibbonReader.Read(document.Application) : null;
         var revisions = ReadRevisions(document);
         var fields = ReadFields(document);
         var notes = ReadNotes(document);
@@ -50,7 +52,7 @@ static class Observer
             inlinePictures.Add(inlineShape.Range.Start);
         }
 
-        return new(selection, paragraphs, tables, shapes, fields, revisions, notes, comments, controls, inlinePictures, sectionEnds, undo, undoSource, tracking, story, dialog, hotspots, markupDiff, remarks);
+        return new(selection, paragraphs, tables, shapes, fields, revisions, notes, comments, controls, inlinePictures, sectionEnds, undo, undoSource, tracking, story, dialog, hotspots, markupDiff, remarks, ribbon);
     }
 
     static List<ContentControlState> ReadContentControls(Word.Document document)

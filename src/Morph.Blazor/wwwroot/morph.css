@@ -2194,13 +2194,22 @@
 }
 
 .editor-tool:disabled,
-.editor-tool-disabled {
+.editor-tool-disabled,
+.editor-tool[data-unselected] {
     opacity: 0.4;
     cursor: default;
 }
 
-.editor-tool-disabled {
+/* Cut and Copy at a caret, marked by the script (markClipboard in morph-viewer.js). */
+.editor-tool-disabled,
+.editor-tool[data-unselected],
+.editor-menu-item[data-unselected] {
     pointer-events: none;
+}
+
+.editor-menu-item[data-unselected] {
+    color: var(--morph-muted, #6c757d);
+    opacity: 0.55;
 }
 
 .editor-tool svg,

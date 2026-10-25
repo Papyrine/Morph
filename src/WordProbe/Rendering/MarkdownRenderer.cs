@@ -156,7 +156,11 @@ static class MarkdownRenderer
             builder.Append("Tests: ").Append(string.Join(", ", tests.Select(_ => $"`{_}`"))).Append("\n\n");
         }
 
-        if (scenario.IsParameterised && !scenario.IsTree)
+        if (scenario.Observe.HasFlag(Observe.Ribbon))
+        {
+            builder.Append(RenderRibbon(scenario, expanded, cases));
+        }
+        else if (scenario.IsParameterised && !scenario.IsTree)
         {
             builder.Append(RenderTable(scenario, expanded, cases));
         }
@@ -247,6 +251,11 @@ static class MarkdownRenderer
             builder.Append(lines[^1]).Append("\n\n");
         }
 
+        if (result.Observation?.Ribbon is { } ribbonState)
+        {
+            builder.Append(RibbonReader.Summary(ribbonState)).Append("\n\n");
+        }
+
         if (result.Status == "ok" &&
             result.Remarks.Count > 0)
         {
@@ -304,6 +313,68 @@ static class MarkdownRenderer
         }
 
         return string.Join(" · ", parts);
+    }
+
+    /// <summary>One row per case: where the selection was, and what the ribbon greyed out and pressed there.</summary>
+    static string RenderRibbon(Scenario scenario, List<ProbeCase> expanded, SortedDictionary<string, CaseResult> cases)
+    {
+        var builder = new StringBuilder();
+        builder.Append("steps `").Append(string.Join("` · `", scenario.Steps)).Append("`\n\n");
+        var headings = scenario.Axes.Select(_ => _.Name).ToList();
+        if (scenario.AlsoTracked)
+        {
+            headings.Add("tracked");
+        }
+
+        headings.AddRange(["selection", "greyed out", "pressed"]);
+        builder.Append("| ").Append(string.Join(" | ", headings)).Append(" |\n");
+        builder.Append('|').Append(string.Concat(headings.Select(_ => " --- |"))).Append('\n');
+        foreach (var probeCase in expanded)
+        {
+            if (!cases.TryGetValue(probeCase.Id, out var result) ||
+                result.Status == "not-applicable")
+            {
+                continue;
+            }
+
+            var row = probeCase.AxisValues.Select(_ => Cell(_.Value)).ToList();
+            if (scenario.AlsoTracked)
+            {
+                row.Add(probeCase.Tracked ? "on" : "off");
+            }
+
+            var ribbon = result.Observation?.Ribbon;
+            if (result.Status != "ok" ||
+                ribbon == null)
+            {
+                row.AddRange([$"_{result.Status}_", Cell(string.Join("; ", result.Remarks)), ""]);
+                builder.Append("| ").Append(string.Join(" | ", row)).Append(" |\n");
+                continue;
+            }
+
+            var selection = result.Observation!.Selection;
+            var where = $"{selection.Type} {selection.Start}–{selection.End}";
+            if (selection.StoryType != nameof(Word.WdStoryType.wdMainTextStory))
+            {
+                where += " " + selection.StoryType.Replace("wd", "").Replace("Story", "");
+            }
+
+            row.AddRange([where, Cell(Join(ribbon.Disabled)), Cell(Join(ribbon.Pressed))]);
+            builder.Append("| ").Append(string.Join(" | ", row)).Append(" |\n");
+        }
+
+        builder.Append('\n');
+        return builder.ToString();
+
+        static string Join(List<string> ids)
+        {
+            if (ids.Count == 0)
+            {
+                return "—";
+            }
+
+            return string.Join(", ", ids);
+        }
     }
 
     static string RenderTable(Scenario scenario, List<ProbeCase> expanded, SortedDictionary<string, CaseResult> cases)

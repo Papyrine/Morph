@@ -32,6 +32,7 @@ here; this file records what a key or click **does** to the document and the sel
 - [Headers, footers, notes, comments and text boxes](#headers-footers-notes-comments-and-text-boxes)
 - [Everything else](#everything-else)
 - [Keys that open a dialog, pane or view](#keys-that-open-a-dialog-pane-or-view)
+- [The ribbon's state where the selection is](#the-ribbons-state-where-the-selection-is)
 - [Unfiled](#unfiled)
 - [Open questions](#open-questions)
 
@@ -29715,6 +29716,259 @@ Selection: IP 0–0 · Undo —
 Notes: Ctrl+Alt+Y repeats the last find; there has been none in the fixture's session. Ctrl+PgDn and Ctrl+PgUp browse
 by the last browse object, pages by default.
 <!-- probe:end dialogs -->
+
+## The ribbon's state where the selection is
+
+Which of the ribbon controls Morph's editor has a command for Word greys out, and which it shows pressed, for each
+place the editor tells apart. `RibbonReader` (WordProbe) reads `CommandBars.GetEnabledMso` and `GetPressedMso` for
+each idMso in `RibbonReader.Controls`, which also names the `EditorCommand` each stands for, after the observer has
+read the undo list and before anything else touches the document. Recorded on Word build 16.0.19127 on a 1920x1200
+display, not the build in [Environment](#environment).
+
+Two things the reads cannot say. `GetVisibleMso` answered true for every contextual tab wherever the caret was, so
+whether the Table or Picture tab shows is not recorded; it is implied by whether that tab's controls are greyed out.
+Galleries and split buttons (Underline, Bullets, Numbering) do not answer `GetPressedMso`, so only true toggles (Bold,
+Italic, the alignments, Track Changes) can read as pressed.
+
+### Rules
+
+- **Always greyed out here:** Thumbnails. It was greyed out in every case, so its state is not about the selection.
+- **Undo / Redo** follow the undo list. Both are greyed out in a document just opened. After typing, Undo is enabled
+  and Redo greyed out. After an undo it is the other way round, and after a redo Redo is greyed out again (B-08 to
+  B-10).
+- **Cut / Copy** are greyed out at a caret and enabled with anything selected: text, cells, an inline or floating
+  picture. *Morph: the same; the script marks them (`markClipboard`), since only it knows the selection.*
+- **Table (Insert)** is greyed out whenever something is selected, cells included, and is enabled only at a caret
+  (inside a cell too, where it nests a table).
+- **Link and Date & Time** are greyed out with cells, a row, a column or the table selected. Date & Time is also greyed
+  out with a picture selected.
+- **The table commands** (Insert Above/Below/Left/Right, Delete Rows/Columns/Table, Split Cells, Distribute Columns,
+  AutoFit) are greyed out outside a table and enabled anywhere in one. **Merge Cells** also needs more than one cell
+  selected: it is greyed out at a caret in a cell. *Morph: Merge Cells needs a selection on the pages running over more than one
+  paragraph (`SpansParagraphs`), which does not tell two paragraphs of one cell from two cells.*
+- **Wrap Text** is enabled with a picture selected, inline or floating, and in a text box; elsewhere it is greyed out.
+- **An inline picture selected** greys out Borders and Date & Time. Everything else stays as it is in text, Align Left
+  still pressed.
+- **A floating picture selected** greys out the text commands: font size, Bold, Italic, Underline, Strikethrough,
+  Subscript, Superscript, Highlight, the Font dialog, Bullets, Numbering, the alignments, Line Spacing, Shading,
+  Borders, the Paragraph dialog and Styles. It also greys out Page Break, Breaks, Columns, Date & Time, Update Table
+  and Reject All. Nothing is pressed. Font colour, Clear Formatting, Cut and Copy stay enabled. *Morph: the same (`ForText`, `ForPages`), less Reject All.*
+- **In a header or footer** Word greys out Page Break, Breaks, Margins, Orientation, Size, Columns, Footnote, Endnote,
+  New Comment and Update Table. Header, Footer and Page Number stay enabled.
+- **In a footnote or endnote** Word greys out what it greys out in a header, less the note of the OTHER kind. It also
+  greys out Page Number, Table of Contents and Ruler. In a footnote Endnote is greyed out and Footnote enabled; in an
+  endnote it is the other way round.
+- **In a comment** it is as in a note, except New Comment and Ruler stay enabled and both notes are greyed out.
+- **In a text box** it is as in a header, and Wrap Text is enabled (it acts on the box).
+  *Morph: the same for headers, footers and notes (`EditorState.Story`). Morph does not edit comments or text
+  boxes in place, so those two are not modelled.*
+- **Never greyed out by the selection:** Paste (with something on the clipboard), Format Painter, Font, Font Size,
+  Clear Formatting, Font Colour, the Find and Replace dialogs, Picture, Bookmark, Header, Footer, Table of Contents,
+  Word Count, Track Changes, the Reviewing Pane and Ruler (outside notes).
+- **Update Table** is enabled in a document without a table of contents. *Morph: the same; pressed, it says there is none.*
+- **Accept All and Reject All** are enabled in a document with no revisions. *Morph: the same; pressed, they do nothing.*
+- **Pressed:** Bold and Italic are pressed at a caret in a bold or italic run, and with a selection that is bold or
+  italic throughout. They are not pressed for a selection that is only partly bold (B-02, `P1:3-P1:8`). Align Left
+  is pressed for a left-aligned paragraph, including in cells, notes and headers. Track Changes is pressed while
+  tracking.
+
+### Observations
+
+<!-- probe:begin ribbon -->
+#### B-01 · Plain text: a caret, a word, the whole paragraph
+
+`plain` · Morph: **PARTIAL**
+
+Expected before the run: Cut and Copy are greyed out at a caret only; Align Left is pressed; no contextual tab shows;
+Track Changes is pressed when tracked.
+
+steps `select({at})`
+
+| at | tracked | selection | greyed out | pressed |
+| --- | --- | --- | --- | --- |
+| P1:5 | off | IP 5–5 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| P1:5 | on | IP 5–5 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft, ReviewTrackChanges |
+| P1:4-P1:9 | off | Normal 4–9 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| P1:4-P1:9 | on | Normal 4–9 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft, ReviewTrackChanges |
+| P1:0-P1:end | off | Normal 0–44 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| P1:0-P1:end | on | Normal 0–44 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft, ReviewTrackChanges |
+
+#### B-02 · Character formatting under the caret and across mixed runs
+
+`runs` · Morph: **PARTIAL**
+
+Expected before the run: A caret in 'bold' shows Bold pressed, in 'italic' Italic, in 'under' the Underline gallery;
+a selection that is partly bold shows Bold not pressed (Word presses a toggle only when the whole selection has it).
+
+steps `select({at})`
+
+| at | selection | greyed out | pressed |
+| --- | --- | --- | --- |
+| P1:7 | IP 7–7 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | Bold, AlignLeft |
+| P1:13 | IP 13–13 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | Italic, AlignLeft |
+| P1:21 | IP 21–21 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| P1:6-P1:10 | Normal 6–10 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | Bold, AlignLeft |
+| P1:3-P1:8 | Normal 3–8 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| P1:0-P1:end | Normal 0–32 | Undo, Redo, TableInsertGallery, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+#### B-03 · Lists and headings
+
+`{fixture}` · Morph: **PARTIAL**
+
+Expected before the run: Bullets is pressed in a bulleted item and Numbering in a numbered one; Decrease Indent is
+enabled at level 1 of a list too.
+
+steps `select(P2:2)`
+
+| fixture | selection | greyed out | pressed |
+| --- | --- | --- | --- |
+| bullets | IP 8–8 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| bullets-nested | IP 8–8 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| numbers | IP 6–6 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| numbers-nested | IP 6–6 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| headings | IP 12–12 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| kinds | IP 15–15 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+#### B-04 · Tables: a cell, cells, a column, a row, the table, merged cells
+
+`{fixture}` · Morph: **PARTIAL**
+
+Expected before the run: The Table Design and Layout tabs show inside a table only; Merge Cells is greyed out for a
+single cell; Split Cells is enabled in a cell; the table commands are greyed out (or their tab gone) outside one.
+
+steps `select({at})`
+
+| fixture | at | selection | greyed out | pressed |
+| --- | --- | --- | --- | --- |
+| table-3x3 | C(2,2):0 | IP 31–31 | Undo, Redo, Cut, Copy, TextWrapGallery, MergeCells, Thumbnails | AlignLeft |
+| table-3x3 | C(1,1)-C(2,2) | Column 18–34 | Undo, Redo, TableInsertGallery, HyperlinkInsert, DateAndTimeInsert, TextWrapGallery, Thumbnails | AlignLeft |
+| table-3x3 | COL1 | Column 18–41 | Undo, Redo, TableInsertGallery, HyperlinkInsert, DateAndTimeInsert, TextWrapGallery, Thumbnails | AlignLeft |
+| table-3x3 | R1 | Row 18–28 | Undo, Redo, TableInsertGallery, HyperlinkInsert, DateAndTimeInsert, TextWrapGallery, Thumbnails | AlignLeft |
+| table-3x3 | T1 | Row 18–48 | Undo, Redo, TableInsertGallery, HyperlinkInsert, DateAndTimeInsert, TextWrapGallery, Thumbnails | AlignLeft |
+| table-3x3 | P1:0 | IP 0–0 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| table-merged | C(2,2):0 | IP 31–31 | Undo, Redo, Cut, Copy, TextWrapGallery, MergeCells, Thumbnails | AlignLeft |
+| table-merged | C(1,1)-C(2,2) | Column 18–34 | Undo, Redo, TableInsertGallery, HyperlinkInsert, DateAndTimeInsert, TextWrapGallery, Thumbnails | AlignLeft |
+| table-merged | T1 | Row 18–49 | Undo, Redo, TableInsertGallery, HyperlinkInsert, DateAndTimeInsert, TextWrapGallery, Thumbnails | AlignLeft |
+| table-merged | P1:0 | IP 0–0 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+#### B-05 · A picture selected, inline and floating
+
+`{fixture}` · Morph: **PARTIAL**
+
+Expected before the run: With a picture selected the Picture Format tab shows, Wrap Text is enabled, and the
+paragraph-only commands stay enabled for an inline picture; a floating picture greys out the text commands.
+
+steps `select({at})`
+
+| fixture | at | selection | greyed out | pressed |
+| --- | --- | --- | --- | --- |
+| image-inline | IMG1 | InlineShape 12–13 | Undo, Redo, BordersSelectionGallery, TableInsertGallery, DateAndTimeInsert, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| image-inline | P1:0 | IP 0–0 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| image-floating | SHP1 | Shape 0–1 | Undo, Redo, FontSizeIncreaseWord, FontSizeDecreaseWord, Bold, Italic, UnderlineGallery, Strikethrough, Subscript, Superscript, TextHighlightColorPicker, FontDialog, BulletsGalleryWord, NumberingGalleryWord, AlignLeft, AlignCenter, AlignRight, AlignJustify, LineSpacingGallery, ShadingColorPicker, BordersSelectionGallery, ParagraphDialog, QuickStylesGallery, PageBreakInsertWord, TableInsertGallery, DateAndTimeInsert, TableColumnsGallery, BreaksGallery, TableOfContentsUpdate, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, ReviewRejectAllChangesInDocument, Thumbnails | — |
+| image-floating | P1:0 | IP 0–0 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+#### B-06 · The caret in a header and a footer
+
+`header-footer` · Morph: **PARTIAL**
+
+Expected before the run: A page break, the page setup galleries, the notes and a comment are greyed out in a header
+and a footer.
+
+steps `select({at})`
+
+| at | selection | greyed out | pressed |
+| --- | --- | --- | --- |
+| HDR:P1:2 | IP 2–2 PrimaryHeader | Undo, Redo, Cut, Copy, PageBreakInsertWord, PageMarginsGallery, PageOrientationGallery, PageSizeGallery, TableColumnsGallery, BreaksGallery, TextWrapGallery, TableOfContentsUpdate, FootnoteInsert, EndnoteInsertWord, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, ReviewNewComment, Thumbnails | AlignLeft |
+| FTR:P1:0 | IP 0–0 PrimaryFooter | Undo, Redo, Cut, Copy, PageBreakInsertWord, PageMarginsGallery, PageOrientationGallery, PageSizeGallery, TableColumnsGallery, BreaksGallery, TextWrapGallery, TableOfContentsUpdate, FootnoteInsert, EndnoteInsertWord, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, ReviewNewComment, Thumbnails | AlignLeft |
+
+#### B-06b · The caret in a footnote and an endnote
+
+`footnote` · Morph: **PARTIAL**
+
+Expected before the run: As in a header, and a footnote is greyed out in a footnote, an endnote in an endnote.
+
+steps `select({at})`
+
+| at | selection | greyed out | pressed |
+| --- | --- | --- | --- |
+| FN1:P1:2 | IP 2–2 Footnotes | Undo, Redo, Cut, Copy, PageBreakInsertWord, HeaderFooterPageNumberInsert, PageMarginsGallery, PageOrientationGallery, PageSizeGallery, TableColumnsGallery, BreaksGallery, TextWrapGallery, TableOfContentsGallery, TableOfContentsUpdate, EndnoteInsertWord, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, ReviewNewComment, Thumbnails, ViewRulerWord | AlignLeft |
+| EN1:P1:2 | IP 2–2 Endnotes | Undo, Redo, Cut, Copy, PageBreakInsertWord, HeaderFooterPageNumberInsert, PageMarginsGallery, PageOrientationGallery, PageSizeGallery, TableColumnsGallery, BreaksGallery, TextWrapGallery, TableOfContentsGallery, TableOfContentsUpdate, FootnoteInsert, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, ReviewNewComment, Thumbnails, ViewRulerWord | AlignLeft |
+
+#### B-06c · The caret in a comment and a text box
+
+`{fixture}` · Morph: **TODO**
+
+Expected before the run: A comment greys out much what a note does; a text box greys out the page break and the notes
+but not the page setup.
+
+steps `select({at})`
+
+| fixture | at | selection | greyed out | pressed |
+| --- | --- | --- | --- | --- |
+| comment | CMT1:P1:0 | IP 0–0 Comments | Undo, Redo, Cut, Copy, PageBreakInsertWord, HeaderFooterPageNumberInsert, PageMarginsGallery, PageOrientationGallery, PageSizeGallery, TableColumnsGallery, BreaksGallery, TextWrapGallery, TableOfContentsGallery, TableOfContentsUpdate, FootnoteInsert, EndnoteInsertWord, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| text-box | TB1:P1:2 | IP 2–2 TextFrame | Undo, Redo, Cut, Copy, PageBreakInsertWord, PageMarginsGallery, PageOrientationGallery, PageSizeGallery, TableColumnsGallery, BreaksGallery, TableOfContentsUpdate, FootnoteInsert, EndnoteInsertWord, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, ReviewNewComment, Thumbnails | AlignLeft |
+
+#### B-07 · In a link, a field, a table of contents, a tracked change
+
+`{fixture}` · Morph: **PARTIAL**
+
+Expected before the run: Remove Link is not on the ribbon; Update Table is enabled only with a table of contents in
+the document; Accept All and Reject All only with revisions in it.
+
+steps `select(P1:{at})`
+
+| fixture | at | selection | greyed out | pressed |
+| --- | --- | --- | --- | --- |
+| hyperlink | find("site") | IP 43–43 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | Bold, AlignLeft |
+| hyperlink | 6 | IP 6–6 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| field-page | 6 | IP 6–6 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| contents | 6 | IP 6–6 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| tracked | 6 | IP 6–6 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+| tracked | find("added") | IP 5–5 | Undo, Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+Notes: Each fixture is paired with the one position that falls in its feature: 'site' in the link, 6 in the PAGE
+field, the table of contents' first entry, 'added' in the insertion; the other pairs are not applicable or land in
+plain text.
+
+#### B-08 · Undo and Redo after typing
+
+`plain` · Morph: **PARTIAL**
+
+Expected before the run: Undo is enabled; Redo is greyed out (or stands for Repeat Typing, which is enabled).
+
+steps `select(P1:5)` · `type("x")`
+
+| selection | greyed out | pressed |
+| --- | --- | --- |
+| IP 6–6 | Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+Notes: A fresh fixture opens with an empty undo list, so B-01 records Undo greyed out; Paste depends on what is on
+the clipboard and is not staged.
+
+#### B-09 · Undo and Redo after an undo
+
+`plain` · Morph: **PARTIAL**
+
+Expected before the run: Undo is greyed out again and Redo is enabled.
+
+steps `select(P1:5)` · `type("x")` · `Ctrl+Z`
+
+| selection | greyed out | pressed |
+| --- | --- | --- |
+| IP 5–5 | Undo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+
+#### B-10 · Undo and Redo after an undo and a redo
+
+`plain` · Morph: **PARTIAL**
+
+Expected before the run: Undo is enabled and Redo greyed out, as after the typing.
+
+steps `select(P1:5)` · `type("x")` · `Ctrl+Z` · `Ctrl+Y`
+
+| selection | greyed out | pressed |
+| --- | --- | --- |
+| IP 6–6 | Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
+<!-- probe:end ribbon -->
 
 ## Unfiled
 

@@ -367,19 +367,20 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(ToolDisabled(cut, "Wrap text")).IsFalse();
     }
 
-    // References > Update Table is greyed out until there is a table of contents to update.
+    // References > Update Table is enabled with no table of contents to update, as Word's is.
     [Test]
-    public async Task UpdateTable_IsGreyedOut_UntilThereIsATableOfContents()
+    public async Task UpdateTable_IsEnabled_WithoutATableOfContents()
     {
         var cut = await OpenEditing(Paragraphs);
         Caret(0, 0);
         await ChooseTabAsync(cut, "References");
 
-        await Assert.That(ToolDisabled(cut, "Update table")).IsTrue();
-
-        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Table of contents").ClickAsync(new());
-
+        // As Word's is (WordProbe B-01); pressed, it says there is none.
         await Assert.That(ToolDisabled(cut, "Update table")).IsFalse();
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Update table").ClickAsync(new());
+
+        await Assert.That(cut.Markup).Contains("The document has no table of contents.");
     }
 
     // What the script names runs by the same rule as the button: Restart at 1, greyed out outside a
@@ -1050,6 +1051,10 @@ public class MorphEditorTests : BunitTestContext
         await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Footer").ClickAsync(new());
         await Assert.That(Package(reported!, _ => _.MainDocumentPart!.FooterParts.Count())).IsEqualTo(1);
 
+        // Footnote is greyed out in the footer, as in Word, so the caret goes back to the body as a click there takes it.
+        await ChooseTabAsync(cut, "References");
+        await Assert.That(ToolDisabled(cut, "Footnote")).IsTrue();
+        await cut.InvokeAsync(() => cut.Instance.ResumeAsync(0, 5));
         Caret(0, 5);
         await ChooseTabAsync(cut, "References");
         await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Footnote").ClickAsync(new());

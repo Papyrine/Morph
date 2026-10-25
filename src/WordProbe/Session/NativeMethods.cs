@@ -209,6 +209,12 @@ static class NativeMethods
     [DllImport("user32.dll")]
     public static extern bool SetProcessDpiAwarenessContext(IntPtr context);
 
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetThreadDpiAwarenessContext();
+
+    [DllImport("user32.dll")]
+    public static extern int GetAwarenessFromDpiAwarenessContext(IntPtr context);
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern IntPtr SendMessageTimeoutW(IntPtr window, uint message, IntPtr wParam, IntPtr lParam, uint flags, uint timeout, out IntPtr result);
 
