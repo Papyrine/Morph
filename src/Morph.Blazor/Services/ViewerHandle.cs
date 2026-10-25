@@ -106,6 +106,10 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
         controller.InvokeVoidAsync("placeMenu");
 
     // Word's formatting marks over the pages' text, or none.
+    // Text selected on the pages again, from an offset into one page's text to one into another's.
+    public ValueTask SelectTextAsync(int firstPage, int start, int lastPage, int end) =>
+        controller.InvokeVoidAsync("selectText", firstPage, start, lastPage, end);
+
     public ValueTask SetMarksAsync(bool on) =>
         controller.InvokeVoidAsync("setMarks", on);
 

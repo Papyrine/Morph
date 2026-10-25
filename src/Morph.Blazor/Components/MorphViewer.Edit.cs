@@ -485,12 +485,18 @@ public partial class MorphViewer
             return;
         }
 
+        var target = FromSelection();
+
         var runs = reviewMap.Runs(selection[0], selection[1], selection[2], selection[3]);
         var all = runs.Count > 0 &&
                   runs.All(_ => editMap.Format(_) is { } properties &&
                                 has(properties));
         var options = await EditOptionsAsync();
-        await ReviseAsync(_ => DocumentEditor.Format(_, start, end, format(!all), options), relayout: true, () => activeKey);
+        if (await ReviseAsync(_ => DocumentEditor.Format(_, start, end, format(!all), options), relayout: true, () => activeKey) &&
+            target != null)
+        {
+            await ReselectAsync(target);
+        }
     }
 
     internal async Task AlignAsync(TextAlignment alignment)
@@ -510,8 +516,42 @@ public partial class MorphViewer
             return;
         }
 
+        var target = FromSelection();
         var options = await EditOptionsAsync();
-        await ReviseAsync(_ => DocumentEditor.Align(_, paragraphs, alignment, options), relayout: true, () => activeKey);
+        if (await ReviseAsync(_ => DocumentEditor.Align(_, paragraphs, alignment, options), relayout: true, () => activeKey) &&
+            target != null)
+        {
+            await ReselectAsync(target);
+        }
+    }
+
+    // Formatting text selected on the pages leaves it selected, as Word's does whichever way the change
+    // is made (WordProbe P-01, P-03): formatting changes no text, so the same paragraphs and offsets are
+    // the same text in the file just made, found again on its pages.
+    internal async Task ReselectAsync(EditTarget target)
+    {
+        if (target.Typing ||
+            !target.HasSelection ||
+            target.StartParagraph < 0 ||
+            target.Paragraph >= outline.Paragraphs.Count ||
+            target.StartParagraph >= outline.Paragraphs.Count ||
+            outline.Paragraphs[target.StartParagraph].PositionAt(target.StartOffset, ending: false) is not { } start ||
+            outline.Paragraphs[target.Paragraph].PositionAt(target.Offset, ending: true) is not { } end ||
+            reviewMap.Locate(start, after: false) is not var (firstPage, from) ||
+            reviewMap.Locate(end, after: true) is not var (lastPage, to) ||
+            handle is not { } viewer)
+        {
+            return;
+        }
+
+        try
+        {
+            await viewer.SelectTextAsync(firstPage, from, lastPage, to);
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is gone.
+        }
     }
 
     internal async Task DeleteAsync()

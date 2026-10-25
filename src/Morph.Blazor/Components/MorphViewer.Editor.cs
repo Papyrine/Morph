@@ -226,7 +226,17 @@ public partial class MorphViewer
             return null;
         }
 
-        return new(paragraphs[0], paragraphs[^1], paragraph.Ordinal, offset, start, end, Typing: false);
+        var target = new EditTarget(paragraphs[0], paragraphs[^1], paragraph.Ordinal, offset, start, end, Typing: false);
+        if (Place(start) is var (first, from))
+        {
+            target = target with
+            {
+                StartParagraph = first.Ordinal,
+                StartOffset = from
+            };
+        }
+
+        return target;
     }
 
     // A command with nowhere to act says so.
@@ -296,11 +306,18 @@ public partial class MorphViewer
     {
         var options = await EditOptionsAsync();
         var edited = await ReviseAsync(_ => edit(_, options), relayout: true, () => activeKey);
-        if (edited &&
-            target.Typing)
+        if (!edited)
+        {
+            return;
+        }
+
+        if (target.Typing)
         {
             await ResumeAsync(target.Paragraph, target.Offset);
+            return;
         }
+
+        await ReselectAsync(target);
     }
 
     // What the ribbon shows of the paragraph the reader is in
@@ -2174,9 +2191,14 @@ public partial class MorphViewer
     {
         var (target, start, end, from, to) = text;
         var options = await EditOptionsAsync();
-        if (!await ReviseAsync(edit(start, end, options), relayout: true, () => activeKey) ||
-            !target.Typing)
+        if (!await ReviseAsync(edit(start, end, options), relayout: true, () => activeKey))
         {
+            return;
+        }
+
+        if (!target.Typing)
+        {
+            await ReselectAsync(target);
             return;
         }
 

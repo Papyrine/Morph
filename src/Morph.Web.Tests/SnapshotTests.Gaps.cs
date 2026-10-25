@@ -95,6 +95,27 @@ public partial class SnapshotTests
         await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[First paragraph here.]");
     }
 
+    // Text selected across the pages stays selected through a format key and the ribbon's buttons, as
+    // Word's does whichever way the change is made (WordProbe P-01, P-03).
+    [Test]
+    public async Task Gap_Formatting_OnThePages_KeepsTheSelection()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await SelectOnPagesAsync(page, "here", "Second");
+        await page.Keyboard.PressAsync("Control+b");
+        await WaitForBodyAsync(page, _ => _.Split("<w:b />").Length > 2);
+        await page.WaitForFunctionAsync("() => getSelection().toString().replace(/\\s+/g, ' ') === 'here. Second'");
+
+        await page.ClickAsync("[aria-label='Italic']");
+        await WaitForBodyAsync(page, _ => _.Contains("<w:i />"));
+        await page.WaitForFunctionAsync("() => getSelection().toString().replace(/\\s+/g, ' ') === 'here. Second'");
+
+        await page.ClickAsync("[aria-label='Centre']");
+        await WaitForBodyAsync(page, _ => _.Split("<w:jc w:val=\"center\" />").Length > 2);
+        await page.WaitForFunctionAsync("() => getSelection().toString().replace(/\\s+/g, ' ') === 'here. Second'");
+    }
+
     // Delete with text selected across two paragraphs deletes it and joins what is left.
     [Test]
     public async Task Gap_Delete_OnThePages_JoinsTheParagraphs()
