@@ -196,12 +196,11 @@ public partial class SnapshotTests
 
         await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("[Dated on ][][][][1 May][][, by Ann!]");
 
-        // Everything selected and deleted: the field goes with the text.
+        // Everything selected and deleted: the field goes with the text. Ctrl+A in the paragraph selects
+        // the whole document, as Word's does, so Delete is the pages' own.
         await ClickInAsync(page, "by Ann");
         await page.Keyboard.PressAsync("Control+a");
         await page.Keyboard.PressAsync("Delete");
-        await Assert.That((await page.InnerTextAsync(editor)).Trim()).IsEqualTo("");
-        await HandInAsync(page);
 
         await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("");
     }

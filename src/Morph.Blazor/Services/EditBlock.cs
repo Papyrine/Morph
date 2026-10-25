@@ -26,6 +26,9 @@ sealed record EditBlock(int Paragraph, int Page, ParagraphElement Element, IRead
     /// <summary>What is behind the text: the paragraph's shading, its cell's, or the page's. Null for plain paper.</summary>
     public string? Fill { get; init; }
 
+    /// <summary>Whether the paragraph stands in a table's cell.</summary>
+    public bool InCell { get; init; }
+
     public float Width => Right - Left;
 
     public float Height => Bottom - Top;
