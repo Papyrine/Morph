@@ -4797,8 +4797,10 @@ Typing and inheritance
   whole word** (with its trailing space), and the word's new look is what later typing inherits (E-09).
   At an insertion point with no word adjacent (between two spaces) the format is PENDING: the next
   characters typed take it (`x` bold, ` x` bold with its space, 24pt → 26pt for Ctrl+Shift+>), and an
-  arrow key or a click before typing drops it, so `y` and `z` came out plain (E-09b). — Morph: TODO
-  (the editor formats nothing at an insertion point).
+  arrow key or a click before typing drops it, so `y` and `z` came out plain (E-09b). — Morph: PARTIAL
+  (Ctrl+B/I/U in the open paragraph take the word with its trailing space and leave the caret; between
+  spaces the look is pending, but an arrow key does not drop it; the size keys format the word through
+  .NET).
 - **R-E-4 Typing over a selection replaces it**; over a selection that spans paragraphs the survivor is
   one paragraph with the FIRST paragraph's properties (`Firsx‸d bold one.` lost P2's centring); over the
   whole document one paragraph remains (E-10, E-10b, E-10c). Typing over a selected cell, column, row or
@@ -4868,7 +4870,7 @@ Backspace and Delete
   for a border, space after or a heading, which merged on the first press (E-41b). Undo restores and
   redo repeats each (E-41 branches). Tracked, the merge is the first mark struck and the second
   paragraph's properties marked changed (`{~…~}`). — Morph: PARTIAL (the join keeps the first
-  paragraph; the strip-first steps exist for lists only).
+  paragraph; the strip-first steps exist for lists, indents and centring or right alignment).
 - **R-E-12 Delete at a paragraph's end merges with the next and the survivor keeps the FIRST
   paragraph's properties** (Normal + Heading → Normal; Heading + Bullet → Heading without a bullet), in
   every single-property pair of `merge-pairs` in both orders (centred, indented, bordered, spaced after,
@@ -4900,8 +4902,9 @@ Backspace and Delete
   hyperlink deletes character by character and the link is gone with its last character (E-45). A
   content control's text is selected by Backspace at its end or Delete at its start, then removed, the
   control staying with its placeholder (E-51c, E-63e). Tracked, each atom is struck in place (E-43,
-  E-44, E-61c tracked). — Morph: PARTIAL (atoms are deleted when a rewrite leaves them out; no
-  select-first step).
+  E-44, E-61c tracked). — Morph: PARTIAL (`ParagraphEditor.selectAtom` selects a field, a picture or
+  a note's reference first and the next press deletes it; Esc does not keep it selected, and a whole
+  hyperlink is not selected by Delete).
 - **R-E-15 Backspace, Delete and Ctrl+X on a selection delete it but never merge paragraphs; only typing
   over the selection merges them.** A selection from the middle of one paragraph to the middle of the
   next leaves two paragraphs (`Firs` and `d bold one.`, each with its own properties) under Backspace,
@@ -4936,7 +4939,8 @@ Character formatting keys
   paragraph formatting (list, centring, indents, space after off) and Ctrl+Shift+N ("Normal Style")
   applies Normal, removing the heading or list style (E-82, E-82b, E-83, E-83b). — Morph: PARTIAL
   (Ctrl+Space clears the run's look; Shift+F3 cycles case in the open paragraph; Ctrl+Shift+N applies
-  Normal, though a browser tab keeps that key for itself; Ctrl+Q TODO).
+  Normal, though a browser tab keeps that key for itself; Ctrl+Q takes the paragraph's own formatting off,
+  `DocumentEditor.ResetParagraphs`).
 - **R-E-19 Ctrl+B/I/U on a mixed selection sets the attribute everywhere first, then clears it everywhere**
   (bold+plain → all bold → all plain; a second press on an all-underlined selection removes the
   underline) (E-84, E-84b). Ctrl+Shift+A (all caps) and Ctrl+Shift+K (small caps) exclude each other;
@@ -4953,8 +4957,8 @@ Character formatting keys
   at its start, Ctrl+Shift+Q puts it in the Symbol font ("Symbol Font"), Ctrl+Shift+Z clears direct
   formatting like Ctrl+Space ("Reset Char") (E-110). Tracked, each is a formatting revision on the run
   (`{~…~}`). — Morph: PARTIAL (Ctrl+] and Ctrl+[ step a point, Ctrl+Shift+> and < the ladder;
-  Ctrl+Shift+A/K/D/W/H and Ctrl+Shift+Z are bound, each toggled by the run at the caret; Ctrl+Shift+W is
-  a browser tab's own; the mixed-selection rule and Ctrl+Shift+Q are not matched).
+  Ctrl+Shift+A/K/D/W/H/Q and Ctrl+Shift+Z are bound, each toggled by the run at the caret; Ctrl+Shift+W
+  is a browser tab's own; the mixed-selection rule is not matched).
 
 Paragraph formatting keys
 
@@ -4988,8 +4992,9 @@ Paragraph formatting keys
   Alt+Shift+Up move a paragraph (with its mark) past the next or previous one, a list item within its
   list keeping the numbering order, and a table row past the next row; on the paragraph before a table
   Alt+Shift+Down moved it into the first cell and reordered the rows (E-96, E-96b, E-96c, E-96d) ❓.
-  Tracked, a row moved is a row inserted plus the old one marked. — Morph: PARTIAL (Ctrl+Alt+1-3 and
-  Ctrl+Shift+L apply styles; the moves are TODO).
+  Tracked, a row moved is a row inserted plus the old one marked. — Morph: PARTIAL (Ctrl+Alt+1-3,
+  Ctrl+Shift+L and Alt+Shift+Left/Right apply styles; a list item keeps its numbering under the outline
+  keys; the moves and the linked character style are TODO).
 - **R-E-22 Keys that insert characters**: Ctrl+Shift+Space a non-breaking space, Alt+Ctrl+Minus (numeric
   pad) an optional hyphen, Ctrl+NumMinus an en dash, Alt+Ctrl+. an ellipsis, Alt+Ctrl+E/R/T the euro,
   registered and trade marks; Ctrl+- and Ctrl+Shift+- on the main row and Alt+Ctrl+C did nothing here
@@ -5007,7 +5012,8 @@ Paragraph formatting keys
   comment card that takes the keys; R-H-4 has the rule (H-16, H-17; E-104's letter landed in the body
   because it was sent before the card had focus). Ctrl+Shift+C then Ctrl+Shift+V pasted the system clipboard's text
   rather than copying formatting: in this Word build Ctrl+Shift+V is Paste Text Only, not Paste Format
-  (E-97) ❓. — Morph: PARTIAL (notes are inserted; comments exist in the review pane).
+  (E-97) ❓. — Morph: PARTIAL (Ctrl+Alt+F, Ctrl+Alt+D and Ctrl+Alt+M are bound, refused where their
+  buttons are greyed out; the comment is written in the review pane, not a draft card).
 - **R-E-25 Content controls**: typing inside one grows it; typing right before its start is outside;
   typing over a selected placeholder or content replaces the content and keeps the control; Space on a
   check box content control did not toggle it (the caret sat before the box and a space was inserted) ❓;
@@ -16449,7 +16455,8 @@ Ctrl+Y as repeat.
   Bold applies to the new selection, a paste pastes again, Delete deletes one character at the new
   caret, Ctrl+Alt+1 restyles the new paragraph (U-05a, U-05b, U-06a to U-06e). ❓ F4 right after an
   AutoCorrect inserted a new paragraph (U-06f). With nothing to undo or redo the keys do nothing (U-14).
-  — Morph: TODO (no repeat).
+  — Morph: PARTIAL (in the open paragraph Ctrl+Y with nothing to redo repeats the last typing;
+  formatting, paste and Delete are not repeated, and F4 is not bound).
 - **R-U-4 Each AutoCorrect and AutoFormat is its own entry, undone before the typing that triggered
   it**: `teh ` becomes `The ` through two corrections and the first undo gives `the `, the second
   `teh `, with the space kept; an automatic bullet, a border line and a hyperlink come off with one undo

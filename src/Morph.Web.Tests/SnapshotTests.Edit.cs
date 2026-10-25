@@ -205,8 +205,8 @@ public partial class SnapshotTests
         await Assert.That(string.Join(" / ", Read(await SaveAsync(page)))).IsEqualTo("");
     }
 
-    // Backspace just after a field deletes the field, whole, as Word's does; Delete just before a
-    // page break deletes the break.
+    // Backspace just after a field selects the field, whole, and the next deletes it, as Word's do
+    // (WordProbe E-43, E-44).
     [Test]
     public async Task Edit_BackspaceAndDelete_BesideWhatIsNotText_DeleteIt()
     {
@@ -222,6 +222,9 @@ public partial class SnapshotTests
             await page.Keyboard.PressAsync("ArrowRight");
         }
 
+        await page.Keyboard.PressAsync("Backspace");
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Dated 1 May by Ann");
+        await Assert.That(await page.EvaluateAsync<string>("() => getSelection().toString()")).IsEqualTo("1 May");
         await page.Keyboard.PressAsync("Backspace");
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Dated  by Ann");
         await HandInAsync(page);

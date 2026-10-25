@@ -24,6 +24,25 @@ static partial class DocumentEditor
             }).Document;
 
     /// <summary>
+    /// Takes a paragraph's own formatting off and leaves what its style says, as Word's Ctrl+Q
+    /// ("Paragraph Formatting") does: a list it was put in, its alignment, indents and spacing go; its
+    /// style, its section and its mark's look stay (WordProbe E-82). Tracked, a paragraph property change.
+    /// </summary>
+    public static byte[] ResetParagraphs(byte[] docx, IReadOnlyList<int> paragraphs, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                foreach (var paragraph in edit.FindAll(paragraphs))
+                {
+                    edit.Reset(paragraph);
+                }
+
+                return null;
+            }).Document;
+
+    /// <summary>
     /// Puts paragraphs in a list of a kind, or takes them out of the one they are in. A list starts
     /// where none of that kind is next to the paragraphs, and otherwise they join it.
     /// </summary>
@@ -264,6 +283,26 @@ static partial class DocumentEditor
             }
 
             Unformat(paragraph);
+            Unclutter(paragraph);
+        }
+
+        public void Reset(Paragraph paragraph)
+        {
+            if (paragraph.ParagraphProperties is not { } existing ||
+                !existing.ChildElements.Any(_ => _ is not (ParagraphStyleId or ParagraphMarkRunProperties or SectionProperties or ParagraphPropertiesChange)))
+            {
+                return;
+            }
+
+            var properties = Reformat(paragraph);
+            foreach (var child in properties.ChildElements.ToList())
+            {
+                if (child is not (ParagraphStyleId or ParagraphMarkRunProperties or SectionProperties or ParagraphPropertiesChange))
+                {
+                    child.Remove();
+                }
+            }
+
             Unclutter(paragraph);
         }
 

@@ -99,9 +99,26 @@ function same(first, second) {
 // carries out (MorphViewer.OnEditKey). By the key's place where the character differs by layout or by
 // Shift. Null for any other key.
 export function wordKey(event) {
-    // Alt+Shift+D, P and T: a DATE, PAGE and TIME field at the caret (WordProbe E-100).
+    // Alt+Shift+D, P and T: a DATE, PAGE and TIME field at the caret (WordProbe E-100); Alt+Shift+Left
+    // and Right, Word's outline keys (WordProbe E-95d, E-95e).
     if (event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
-        return { KeyD: { key: 'date-field' }, KeyP: { key: 'page-field' }, KeyT: { key: 'time-field' } }[event.code] ?? null;
+        const keys = {
+            KeyD: 'date-field',
+            KeyP: 'page-field',
+            KeyT: 'time-field',
+            ArrowLeft: 'promote',
+            ArrowRight: 'demote'
+        };
+        if (keys[event.code]) {
+            return { key: keys[event.code] };
+        }
+
+        return null;
+    }
+
+    // Ctrl+Alt+F and D a footnote and an endnote, Ctrl+Alt+M a comment (WordProbe E-103, E-104).
+    if (event.ctrlKey && event.altKey && !event.shiftKey && !event.metaKey) {
+        return { KeyF: { key: 'footnote' }, KeyD: { key: 'endnote' }, KeyM: { key: 'new-comment' } }[event.code] ?? null;
     }
 
     if (!(event.ctrlKey || event.metaKey) || event.altKey) {
@@ -133,6 +150,8 @@ export function wordKey(event) {
                 return { key: 'word-underline' };
             case 'KeyH':
                 return { key: 'hidden' };
+            case 'KeyQ':
+                return { key: 'symbol-font' };
             // Normal style, outdent and the hanging indent back (WordProbe E-83, E-91, E-92).
             case 'KeyN':
                 return { key: 'normal-style' };
@@ -173,6 +192,9 @@ export function wordKey(event) {
             return { key: 'hang' };
         case 'Digit0':
             return { key: 'space-before' };
+        // Reset the paragraph's own formatting (WordProbe E-82).
+        case 'KeyQ':
+            return { key: 'reset-paragraph' };
         case 'Equal':
             return { key: 'subscript' };
         case 'Space':
@@ -887,7 +909,11 @@ export class ParagraphEditor {
 
     // Replaces what is selected with text; a line's end in the text ends the paragraph.
     replace(range, text, kind) {
-        this.record(kind);
+        const typing = this.record(kind);
+        if (kind === 'type') {
+            this.typed = typing ? (this.typed ?? '') + text : text;
+        }
+
         const like = this.faceAt(same(range.from, range.to) ? range.from : { b: range.from.b, o: range.from.o + 1 });
         if (this.pendingFace !== null) {
             like.f = this.pendingFace;
@@ -997,16 +1023,32 @@ export class ParagraphEditor {
             return;
         }
 
+        let range = selected;
         if (same(selected.from, selected.to)) {
-            // Nothing selected: what is typed next.
-            const face = this.pendingFace ?? this.faceAt(selected.from).f;
-            this.pendingFace = face ^ bit;
-            this.notify();
-            return;
+            // In or beside a word, the word with its trailing space, the caret staying where it is;
+            // between spaces, what is typed next (WordProbe E-09, E-09b).
+            const text = this.blockText(selected.from.b);
+            const letter = /[\p{L}\p{N}'\u2019]/u;
+            let at = null;
+            if (letter.test(text[selected.from.o] ?? '')) {
+                at = selected.from;
+            } else if (selected.from.o > 0 && letter.test(text[selected.from.o - 1])) {
+                at = { b: selected.from.b, o: selected.from.o - 1 };
+            }
+
+            if (!at) {
+                const face = this.pendingFace ?? this.faceAt(selected.from).f;
+                this.pendingFace = face ^ bit;
+                this.notify();
+                return;
+            }
+
+            const [from, to] = this.unitAround(at, 'word');
+            range = { from, to };
         }
 
         this.record('format');
-        const touched = this.textBetween(selected.from, selected.to);
+        const touched = this.textBetween(range.from, range.to);
         const on = !touched.every(_ => _.f & bit);
         for (const item of touched) {
             item.f = on ? item.f | bit : item.f & ~bit;
@@ -1044,6 +1086,19 @@ export class ParagraphEditor {
 
         this.render();
         this.select(selected.from, selected.to);
+    }
+
+    // Word's Ctrl+Y with nothing to redo repeats the last action (WordProbe U-05a, U-06a): here, the
+    // last burst of typing, at the caret, over what is selected.
+    repeat() {
+        const range = this.range();
+        if (!range || !this.typed) {
+            return;
+        }
+
+        const typed = this.typed;
+        this.replace(range, typed, 'repeat');
+        this.typed = typed;
     }
 
     // Word's alignment keys toggle against Left: Ctrl+E, Ctrl+R and Ctrl+J pressed on a paragraph
@@ -1190,8 +1245,13 @@ export class ParagraphEditor {
         const typing = kind === 'type' && this.lastKind === 'type' && now - this.lastTime < 1000;
         this.lastKind = kind;
         this.lastTime = now;
+        // What Ctrl+Y repeats: the last burst of typing, while nothing else has been done since.
+        if (kind !== 'type') {
+            this.typed = null;
+        }
+
         if (typing) {
-            return;
+            return true;
         }
 
         this.undoStack.push(this.snapshot());
@@ -1542,12 +1602,31 @@ export class ParagraphEditor {
                 break;
             }
             default:
-                if (type.startsWith('delete')) {
+                if (type.startsWith('delete') && !this.selectAtom(type.endsWith('Backward'))) {
                     this.onDelete(range, type.endsWith('Backward'));
                 }
 
                 break;
         }
+    }
+
+    // Word selects a field, a picture or a note's reference beside the caret before it deletes it: the
+    // first Backspace after it (or Delete before it) selects it, the next removes it (WordProbe E-43,
+    // E-44, E-61b). A tab, a break and a space go in one press. Says whether it selected one.
+    selectAtom(backward) {
+        const caret = this.range();
+        if (!caret || !same(caret.from, caret.to)) {
+            return false;
+        }
+
+        const beside = backward ? caret.from.o - 1 : caret.from.o;
+        const item = beside >= 0 ? this.itemAt(caret.from.b, beside) : null;
+        if (!item || !this.removable(item) || !['field', 'note', 'drawing'].includes(this.session.u[item.u]?.s)) {
+            return false;
+        }
+
+        this.select({ b: caret.from.b, o: beside }, { b: caret.from.b, o: beside + 1 });
+        return true;
     }
 
     // Deleting at the very start of the paragraph, or at its very end, is deleting the break
@@ -1568,6 +1647,15 @@ export class ParagraphEditor {
         }
 
         const last = this.blocks.length - 1;
+        if (backward && range.from.o === 0) {
+            // Word strips before it joins: centring (or right alignment) goes first (WordProbe E-41 P4:0).
+            const align = this.blocks[range.from.b].align ?? this.session.align;
+            if (align === alignments.indexOf('center') || align === alignments.indexOf('right')) {
+                this.align(0);
+                return;
+            }
+        }
+
         if (backward && range.from.b === 0 && range.from.o === 0) {
             if (this.session.previous && this.session.skip <= 0) {
                 this.commit(1);
@@ -1659,7 +1747,10 @@ export class ParagraphEditor {
                     return;
                 case 'y':
                     event.preventDefault();
-                    this.redo();
+                    if (!this.redo()) {
+                        this.repeat();
+                    }
+
                     return;
                 case 'enter':
                     event.preventDefault();
