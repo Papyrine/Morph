@@ -93,6 +93,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     int lastRenderedPageBreakCount;
 
+    // The body's runs that stand in a comment's range (BodyScan.CommentedRuns), which take its id.
+    Dictionary<OoxmlRun, string>? commentedRuns;
+
     // Style definitions cached during parsing (styleId -> full run properties)
     Dictionary<string, RunProperties>? styleRunProperties;
 
@@ -372,6 +375,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                    ?? throw new InvalidOperationException("Document has no body");
 
         var scan = new BodyScan(body);
+        commentedRuns = scan.CommentedRuns;
         lastRenderedPageBreakCount = scan.LastRenderedPageBreaks;
         // Sources are counted across the body, the headers and footers, and the notes, the body first,
         // so that what an editor opens anywhere on a page can be found again in the markup.
@@ -1185,7 +1189,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
-    static List<Comment> ExtractComments(MainDocumentPart mainPart, BodyScan scan)
+    List<Comment> ExtractComments(MainDocumentPart mainPart, BodyScan scan)
     {
         var commentsPart = mainPart.WordprocessingCommentsPart;
         if (commentsPart?.Comments == null)
@@ -1197,12 +1201,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // shared with bookmark extraction and only materialized when a range start exists.
         Dictionary<Paragraph, int>? paragraphOrdinals = null;
         var anchorByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
+        var numberByCommentId = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var rangeStart in scan.CommentStarts)
         {
             if (rangeStart.Id?.Value is not { } rangeId)
             {
                 continue;
             }
+
+            numberByCommentId.TryAdd(rangeId, numberByCommentId.Count + 1);
 
             paragraphOrdinals ??= scan.ParagraphOrdinals();
             for (var current = rangeStart.Parent; current != null; current = current.Parent)
@@ -1238,13 +1245,29 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     Id = id,
                     Author = ooxmlComment.Author?.Value,
+                    Initials = ooxmlComment.Initials?.Value,
+                    FontFamily = CommentFont(ooxmlComment, mainPart),
                     Text = text,
+                    Paragraphs = [.. ooxmlComment.Elements<Paragraph>().Select(_ => string.Concat(_.Descendants<Text>().Select(text => text.Text)))],
+                    Number = numberByCommentId.TryGetValue(id, out var number) ? number : null,
                     Date = date,
                     AnchorParagraphIndex = anchor
                 });
         }
 
         return result;
+    }
+
+    string? CommentFont(DocumentFormat.OpenXml.Wordprocessing.Comment comment, MainDocumentPart mainPart)
+    {
+        var run = comment.Descendants<OoxmlRun>().FirstOrDefault();
+        if (run == null)
+        {
+            return null;
+        }
+
+        var styleId = run.Ancestors<Paragraph>().FirstOrDefault()?.ParagraphProperties?.ParagraphStyleId?.Val?.Value;
+        return ParseRunProperties(run.RunProperties, mainPart, styleId).FontFamily;
     }
 
     static List<Bookmark> ExtractBookmarks(BodyScan scan)
@@ -12876,6 +12899,20 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     // An insertion is underlined and a deletion struck through, both recoloured. Layered over the
     // run's own properties so its font, size and weight survive.
+    RunProperties ApplyComment(RunProperties properties, OoxmlRun run)
+    {
+        if (commentedRuns != null &&
+            commentedRuns.TryGetValue(run, out var id))
+        {
+            return properties with
+            {
+                CommentId = id
+            };
+        }
+
+        return properties;
+    }
+
     static RunProperties ApplyRevisionMark(RunProperties properties, RevisionMark mark) =>
         mark switch
         {
@@ -12990,9 +13027,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         RunProperties? properties = null;
 
         RunProperties GetProperties() =>
-            properties ??= ApplyRevisionMark(
-                ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
-                RevisionOf(run));
+            properties ??= ApplyComment(
+                ApplyRevisionMark(
+                    ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
+                    RevisionOf(run)),
+                run);
 
         // w:vanish / w:specVanish — drop hidden runs at parse time so they don't enter
         // measurement or rendering. Cheaper than filtering at every render call site.

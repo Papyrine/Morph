@@ -26,7 +26,9 @@ static class ScenarioRunner
             {
                 FontDirectory = fontsDirectory,
                 Pages = ScenarioInputs.Pages(format),
-                Dpi = ScenarioInputs.Dpi(format)
+                Dpi = ScenarioInputs.Dpi(format),
+                // Word prints with All Markup, so the references carry the comments
+                ShowComments = true
             });
 
         var expectedFiles = Directory.GetFiles(directory, "expected_*.png")

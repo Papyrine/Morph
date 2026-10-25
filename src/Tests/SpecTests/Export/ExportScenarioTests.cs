@@ -52,7 +52,8 @@ public class ExportScenarioTests
     public async Task HtmlOutput(string directory)
     {
         ContainerOnly.Require();
-        var html = ToHtml(ScenarioInputs.InputFile(directory));
+        // Word prints with All Markup, so the references carry the comments
+        var html = ToHtml(ScenarioInputs.InputFile(directory), new() {ShowComments = true});
         var png = await BrowserScreenshot.RenderHtmlAsync(
             html,
             ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
@@ -74,7 +75,7 @@ public class ExportScenarioTests
     public async Task MarkdownOutput(string directory)
     {
         ContainerOnly.Require();
-        var markdown = ToMarkdown(ScenarioInputs.InputFile(directory));
+        var markdown = ToMarkdown(ScenarioInputs.InputFile(directory), new() {ShowComments = true});
         var png = await BrowserScreenshot.RenderMarkdownAsync(
             markdown,
             ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
@@ -109,7 +110,9 @@ public class ExportScenarioTests
             new()
             {
                 FontDirectory = fontsDirectory,
-                Pages = ScenarioInputs.Pages(ScenarioInputs.FormatOf(directory))
+                Pages = ScenarioInputs.Pages(ScenarioInputs.FormatOf(directory)),
+                // Word prints with All Markup, so the references carry the comments
+                ShowComments = true
             });
 
         // Record a per-page ErrorMetric against the Word reference (expected_*.png), mirroring the

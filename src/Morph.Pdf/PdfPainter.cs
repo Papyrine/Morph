@@ -131,6 +131,19 @@ static class PdfPainter
             case PlacedClipGroup clip:
                 PaintClipGroup(context, surface, clip, rasterizeWordArt, onWarning);
                 break;
+            case PlacedScaledGroup scaled:
+                PaintScaledGroup(context, surface, scaled, rasterizeWordArt, onWarning);
+                break;
+        }
+    }
+
+    // See SkiaPainter.PaintScaledGroup.
+    static void PaintScaledGroup(PdfRenderContext context, Surface surface, PlacedScaledGroup group, bool rasterizeWordArt, Action<ExportWarning>? onWarning)
+    {
+        using var layer = surface.PushTransform(Matrix3x2.CreateScale(group.Scale) * Matrix3x2.CreateTranslation(group.X, group.Y));
+        foreach (var item in group.Items)
+        {
+            PaintItem(context, surface, item, rasterizeWordArt, onWarning);
         }
     }
 

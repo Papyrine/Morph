@@ -196,6 +196,13 @@ public abstract class DocumentConverter
                     }
 
                     break;
+                case PlacedScaledGroup scaled:
+                    foreach (var nested in Lines(scaled.Items))
+                    {
+                        yield return nested;
+                    }
+
+                    break;
             }
         }
     }

@@ -61,6 +61,7 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
             document.EvenPageHeader,
             document.EvenPageFooter,
             DocumentNotes.From(document))
+            .WithComments(document, measurer, options.ShowComments)
             .FitToContent(options.Dpi)
             .Restrict(options.Pages);
     }
