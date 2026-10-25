@@ -99,6 +99,12 @@ sealed class StepExecutor
             case ExpectDialogStep expect:
                 ExecuteDialog(expect);
                 break;
+            case RibbonStep ribbon:
+                GuardClick(false);
+                // Late bound, as RibbonReader reads the ribbon: the office interop assembly is not referenced.
+                ((dynamic) session.Application).CommandBars.ExecuteMso(ribbon.IdMso);
+                Wait(SettleProfile.Key);
+                break;
             default:
                 throw new ArgumentException($"Unknown step {step}.");
         }
@@ -261,7 +267,19 @@ sealed class StepExecutor
             }
 
             Dialog = dialog ?? new("(none)", "(no dialog appeared)", DateTime.Now);
-            if (dialog != null)
+            if (dialog != null &&
+                step.Accept)
+            {
+                Log.Detail($"dialog: {dialog.ClassName} \"{dialog.Title}\" (accepted)");
+                session.Keyboard.Press(KeyChord.Parse("Enter"), 1);
+                Thread.Sleep(500);
+                if (session.Watchdog.Snapshot() != null)
+                {
+                    Remarks.Add("dialog did not close on Enter");
+                    session.Watchdog.TryDismiss();
+                }
+            }
+            else if (dialog != null)
             {
                 Log.Detail($"dialog: {dialog.ClassName} \"{dialog.Title}\"");
                 if (!session.Watchdog.TryDismiss())

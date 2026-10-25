@@ -205,6 +205,48 @@ sealed class ReviewMap
         return null;
     }
 
+    /// <summary>
+    /// Where a place in the document is on the pages: the page, and the offset into its text — before
+    /// the character there or, <paramref name="after"/>, after the one before it. Null when no page drew
+    /// it.
+    /// </summary>
+    public (int Page, int Offset)? Locate(SourcePosition position, bool after)
+    {
+        if (!drawn.TryGetValue(position.Run, out var places))
+        {
+            return null;
+        }
+
+        foreach (var (page, index) in places)
+        {
+            var source = pages[page][index];
+            if (source.Atomic)
+            {
+                if (position.Offset == source.Offset)
+                {
+                    return (page, source.Start);
+                }
+
+                if (position.Offset == source.Offset + 1)
+                {
+                    return (page, source.End);
+                }
+
+                continue;
+            }
+
+            var into = position.Offset - source.Offset;
+            if (into >= 0 &&
+                (into < source.Length ||
+                 (after && into == source.Length)))
+            {
+                return (page, source.Start + into);
+            }
+        }
+
+        return null;
+    }
+
     static SourcePosition At(LayerSource source, int offset, bool after)
     {
         var step = after ? 1 : 0;

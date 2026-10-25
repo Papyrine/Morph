@@ -71,6 +71,7 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setPictures: (documentId, numbers) => viewer.setPictures(documentId, numbers),
         setRuler: model => viewer.setRuler(model),
         placeMenu: () => viewer.placeMenu(),
+        selectText: (firstPage, start, lastPage, end) => viewer.selectText(firstPage, start, lastPage, end),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
         setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
@@ -2245,6 +2246,33 @@ class Viewer {
     }
 
     // Hands in what is being typed, if anything is, and resolves once .NET has dealt with it.
+    // Text selected again on the pages after an edit that changed none of it (MorphViewer.ReselectAsync):
+    // from an offset into one page's text to an offset into another's, the layers built if they are not.
+    selectText(firstPage, start, lastPage, end) {
+        const first = this.pages[firstPage];
+        const last = this.pages[lastPage];
+        if (!first || !last) {
+            return;
+        }
+
+        this.ensureText(first);
+        this.ensureText(last);
+        const from = isBuilt(first.layer) ? textRange(first.layer, start, 0) : null;
+        const to = isBuilt(last.layer) ? textRange(last.layer, end, 0) : null;
+        if (!from || !to) {
+            return;
+        }
+
+        const range = document.createRange();
+        range.setStart(from.startContainer, from.startOffset);
+        range.setEnd(to.startContainer, to.startOffset);
+        const selection = getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        clearTimeout(this.selectionTimer);
+        this.sendSelection();
+    }
+
     // Every page's text, as Ctrl+A selects it: the paragraph being typed is handed in first.
     async selectAll() {
         await this.closeEditor();

@@ -14,6 +14,8 @@
 //           view(all|simple|none)             revisions markup
 //           wait(300)
 //           dialog(Ctrl+K)                    the inner key is expected to open a dialog, which is recorded and dismissed
+//           dialog(Ctrl+D, ok)                the same, the dialog accepted with Enter rather than dismissed
+//           ribbon(Bold)                      a ribbon control pressed, CommandBars.ExecuteMso as a click runs it
 //           clipboard("text")                 put plain text on the clipboard
 //           undo · redo                       Ctrl+Z / Ctrl+Y as keys, kept as words for readability
 enum MouseAction
@@ -67,7 +69,9 @@ record ViewStep(string Text, Word.WdRevisionsMarkup Markup) : Step(Text);
 
 record WaitStep(string Text, int Milliseconds) : Step(Text);
 
-record ExpectDialogStep(string Text, Step Inner) : Step(Text);
+record ExpectDialogStep(string Text, Step Inner, bool Accept = false) : Step(Text);
+
+record RibbonStep(string Text, string IdMso) : Step(Text);
 
 record ClipboardStep(string Text, string Content) : Step(Text);
 
@@ -136,7 +140,14 @@ static class StepParser
             case "wait":
                 return new WaitStep(text, int.Parse(arguments, CultureInfo.InvariantCulture));
             case "dialog":
+                if (arguments.EndsWith(", ok", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new ExpectDialogStep(text, Parse(arguments[..^4]), Accept: true);
+                }
+
                 return new ExpectDialogStep(text, Parse(arguments));
+            case "ribbon":
+                return new RibbonStep(text, arguments);
             case "clipboard":
                 return new ClipboardStep(text, Unquote(arguments));
         }

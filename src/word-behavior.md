@@ -33,6 +33,7 @@ here; this file records what a key or click **does** to the document and the sel
 - [Everything else](#everything-else)
 - [Keys that open a dialog, pane or view](#keys-that-open-a-dialog-pane-or-view)
 - [The ribbon's state where the selection is](#the-ribbons-state-where-the-selection-is)
+- [Formatting a selection](#formatting-a-selection)
 - [Unfiled](#unfiled)
 - [Open questions](#open-questions)
 
@@ -15369,28 +15370,20 @@ steps `select({at})` · `Enter` · `type("x")`
 
 | fixture | at | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "
-x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "
-x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P3:end | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "
-x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "
-x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
@@ -15892,10 +15885,8 @@ steps `select({at})` · `Enter` · `type("x")`
 | --- | --- | --- | --- |
 | P1:end | off | IP 16–16 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title] #Heading1 •1.0 1. ⇥36,-18<br>[x‸] ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
 | P1:end | on | IP 16–16 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title]{+ #Heading1 •1.0 1. ⇥36,-18<br>{~[x]+}‸~} ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "
-x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
 
 #### L-15 · A typed number after a list: continuation or restart
 
@@ -29996,6 +29987,112 @@ steps `select(P1:5)` · `type("x")` · `Ctrl+Z` · `Ctrl+Y`
 | --- | --- | --- |
 | IP 6–6 | Redo, Cut, Copy, TextWrapGallery, TableRowsInsertAboveWord, TableRowsInsertBelowWord, TableColumnsInsertLeft, TableColumnsInsertRight, TableRowsDelete, TableColumnsDelete, TableDelete, MergeCells, SplitCells, TableColumnsDistribute, TableAutoFitMenu, Thumbnails | AlignLeft |
 <!-- probe:end ribbon -->
+
+## Formatting a selection
+
+What becomes of the selection when its text is formatted, the same change made by a key, a ribbon
+control and a dialog (WordProbe's `keep` family, P-01 to P-03).
+
+### Rules
+
+- **R-P-1 Formatting a selection leaves it selected, however the change is made.** Bold, italic, a size
+  key, Grow Font, Reset Char, Change Case, centring, a heading style, bullets, an indent and the Font
+  dialog accepted left the same text selected, from a key, from the ribbon or from the dialog alike,
+  tracked or not (P-01); the active end stays where it was, so a selection made backwards is still
+  start-active (P-02); a selection across two paragraphs still runs from the first into the second,
+  whether the change was to characters or to the paragraphs (P-03). The Font dialog accepted with nothing
+  changed records no undo entry. — Morph: PARTIAL (text selected on the pages is selected again after the
+  edit — `MorphViewer.ReselectAsync`, `ReviewMap.Locate` — and text selected in the open paragraph stays
+  selected there; the reselection is always end-active, so P-02's direction is not kept).
+
+### Observations
+
+<!-- probe:begin keep -->
+#### P-01 · Formatting text selected inside a paragraph, made each way
+
+`three-paragraphs` · Morph: **PARTIAL**
+
+Expected before the run: The selection is the same text afterwards, whichever way the change was made: a character
+change and a paragraph change alike leave it selected, end-active as it was made.
+
+steps `select(P1:6-P1:15)` · `{how}`
+
+| how | tracked | selection | observed |
+| --- | --- | --- | --- |
+| Ctrl+B | off | Normal 6–15 end-active · Undo: Bold | `[First ][b:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+B | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Bold | `[First ]{~[b:⟦paragraph‸⟧]~}[b: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+I | off | Normal 6–15 end-active · Undo: Italic | `[First ][i:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+I | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Italic | `[First ]{~[i:⟦paragraph‸⟧]~}[i: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+] | off | Normal 6–15 end-active · Undo: Grow Font One Point | `[First ][13:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+] | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Grow Font One Point | `[First ]{~[13:⟦paragraph‸⟧]~}[13: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+Shift+> | off | Normal 6–15 end-active · Undo: Grow Font | `[First ][14:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+Shift+> | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Grow Font | `[First ]{~[14:⟦paragraph‸⟧]~}[14: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+Space | off | Normal 6–15 end-active · Undo: Reset Char | `[First ⟦paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+Space | on | Normal 6–15 end-active · Tracking · Revisions 0 · Undo: Reset Char | `[First ⟦paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Shift+F3 | off | Normal 6–15 end-active · Undo: Change Case | `[First ⟦Paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Shift+F3 | on | Normal 6–15 end-active · Tracking · Revisions 0 · Undo: Change Case | `[First ⟦Paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+E | off | Normal 6–15 end-active · Undo: Paragraph Alignment | `[First ⟦paragraph‸⟧ here.] (center)<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+E | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Paragraph Alignment | `{~[First ⟦paragraph‸⟧ here.]~} (center)<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+Alt+1 | off | Normal 6–15 end-active · Undo: Style | `[First ][20 Aptos Display:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+Alt+1 | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Style | `[First ]{~[20 Aptos Display:⟦paragraph‸⟧]~}[20 Aptos Display: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Bold) | off | Normal 6–15 end-active · Undo: Bold | `[First ][b:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Bold) | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Bold | `[First ]{~[b:⟦paragraph‸⟧]~}[b: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Italic) | off | Normal 6–15 end-active · Undo: Italic | `[First ][i:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Italic) | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Italic | `[First ]{~[i:⟦paragraph‸⟧]~}[i: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(FontSizeIncreaseWord) | off | Normal 6–15 end-active · Undo: Grow Font | `[First ][14:⟦paragraph‸⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(FontSizeIncreaseWord) | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Grow Font | `[First ]{~[14:⟦paragraph‸⟧]~}[14: ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(ClearFormatting) | off | Normal 6–15 end-active · Undo: Clear All Formatting | `[First ⟦paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(ClearFormatting) | on | Normal 6–15 end-active · Tracking · Revisions 0 · Undo: Clear All Formatting | `[First ⟦paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(AlignCenter) | off | Normal 6–15 end-active · Undo: Paragraph Alignment | `[First ⟦paragraph‸⟧ here.] (center)<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(AlignCenter) | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Paragraph Alignment | `{~[First ⟦paragraph‸⟧ here.]~} (center)<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(BulletsGalleryWord) | off | Normal 6–15 end-active · Undo: Bullet Default | `[First ⟦paragraph‸⟧ here.] #ListParagraph •1.0 ● ⇥36,-18<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(BulletsGalleryWord) | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Bullet Default | `{~[First ⟦paragraph‸⟧ here.]~} #ListParagraph •1.0 ● ⇥36,-18<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(IndentIncreaseWord) | off | Normal 6–15 end-active · Undo: Increase Indent | `[First ⟦paragraph‸⟧ here.] ⇥36,0<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(IndentIncreaseWord) | on | Normal 6–15 end-active · Tracking · Revisions 1 · Undo: Increase Indent | `{~[First ⟦paragraph‸⟧ here.]~} ⇥36,0<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| dialog(Ctrl+D, ok) | off | Normal 6–15 end-active · Undo — · Dialog "Font" (bosa_sdm_msword): +Body \| Times New Roman \| +Body CS \| Regular \| 12 \| 100% \| 1 \| -16777216 \| 0 | `[First ⟦paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| dialog(Ctrl+D, ok) | on | Normal 6–15 end-active · Tracking · Revisions 0 · Undo — · Dialog "Font" (bosa_sdm_msword): +Body \| Times New Roman \| +Body CS \| Regular \| 12 \| 100% \| 1 \| -16777216 \| 0 | `[First ⟦paragraph‸⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+
+#### P-02 · Formatting a selection made backwards, by Shift+Left
+
+`three-paragraphs` · Morph: **PARTIAL**
+
+Expected before the run: The selection stays, start-active: formatting does not turn it round.
+
+steps `select(P1:15)` · `Shift+Left x9` · `{how}`
+
+| how | selection | observed |
+| --- | --- | --- |
+| Ctrl+B | Normal 6–15 start-active · Undo: Bold | `[First ][b:⟦‸paragraph⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Bold) | Normal 6–15 start-active · Undo: Bold | `[First ][b:⟦‸paragraph⟧ ][here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+E | Normal 6–15 start-active · Undo: Paragraph Alignment | `[First ⟦‸paragraph⟧ here.] (center)<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(AlignCenter) | Normal 6–15 start-active · Undo: Paragraph Alignment | `[First ⟦‸paragraph⟧ here.] (center)<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| dialog(Ctrl+D, ok) | Normal 6–15 start-active · Undo — · Dialog "Font" (bosa_sdm_msword): +Body \| Times New Roman \| +Body CS \| Regular \| 12 \| 100% \| 1 \| -16777216 \| 0 | `[First ⟦‸paragraph⟧ here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+
+#### P-03 · Formatting a selection across two paragraphs
+
+`three-paragraphs` · Morph: **PARTIAL**
+
+Expected before the run: The selection still runs from the first paragraph into the second.
+
+steps `select(P1:6-P2:6)` · `{how}`
+
+| how | tracked | selection | observed |
+| --- | --- | --- | --- |
+| Ctrl+B | off | Normal 6–28 end-active · Undo: Bold | `[First ][b:⟦paragraph here.¶⟧]<br>⟦[b:Second‸⟧ bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+B | on | Normal 6–28 end-active · Tracking · Revisions 1 · Undo: Bold | `[First ]{~[b:⟦paragraph here.¶⟧]<br>⟦[b:Second‸⟧]~}[b: bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Bold) | off | Normal 6–28 end-active · Undo: Bold | `[First ][b:⟦paragraph here.¶⟧]<br>⟦[b:Second‸⟧ bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(Bold) | on | Normal 6–28 end-active · Tracking · Revisions 1 · Undo: Bold | `[First ]{~[b:⟦paragraph here.¶⟧]<br>⟦[b:Second‸⟧]~}[b: bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+] | off | Normal 6–28 end-active · Undo: Grow Font One Point | `[First ][13:⟦paragraph here.¶⟧]<br>⟦[13:Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+] | on | Normal 6–28 end-active · Tracking · Revisions 1 · Undo: Grow Font One Point | `[First ]{~[13:⟦paragraph here.¶⟧]<br>⟦[13:Second‸⟧]~}[13: ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(FontSizeIncreaseWord) | off | Normal 6–28 end-active · Undo: Grow Font | `[First ][14:⟦paragraph here.¶⟧]<br>⟦[14:Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(FontSizeIncreaseWord) | on | Normal 6–28 end-active · Tracking · Revisions 1 · Undo: Grow Font | `[First ]{~[14:⟦paragraph here.¶⟧]<br>⟦[14:Second‸⟧]~}[14: ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+E | off | Normal 6–28 end-active · Undo: Paragraph Alignment | `[First ⟦paragraph here.¶⟧] (center)<br>⟦[Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| Ctrl+E | on | Normal 6–28 end-active · Tracking · Revisions 1 · Undo: Paragraph Alignment | `{~[First ⟦paragraph here.¶]~}⟧ (center)<br>⟦[Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(AlignCenter) | off | Normal 6–28 end-active · Undo: Paragraph Alignment | `[First ⟦paragraph here.¶⟧] (center)<br>⟦[Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| ribbon(AlignCenter) | on | Normal 6–28 end-active · Tracking · Revisions 1 · Undo: Paragraph Alignment | `{~[First ⟦paragraph here.¶]~}⟧ (center)<br>⟦[Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| dialog(Ctrl+D, ok) | off | Normal 6–28 end-active · Undo — · Dialog "Font" (bosa_sdm_msword): +Body \| Times New Roman \| +Body CS \| Regular \| 12 \| 100% \| 1 \| -16777216 \| 0 | `[First ⟦paragraph here.¶⟧]<br>⟦[Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+| dialog(Ctrl+D, ok) | on | Normal 6–28 end-active · Tracking · Revisions 0 · Undo — · Dialog "Font" (bosa_sdm_msword): +Body \| Times New Roman \| +Body CS \| Regular \| 12 \| 100% \| 1 \| -16777216 \| 0 | `[First ⟦paragraph here.¶⟧]<br>⟦[Second‸⟧ ][b:bold ][one.] (center)<br>[Third and last.]` |
+<!-- probe:end keep -->
 
 ## Unfiled
 

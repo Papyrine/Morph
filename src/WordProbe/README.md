@@ -111,6 +111,13 @@ Caps Lock has to be off.
 - The DPI guard asks Windows for the process's awareness. It no longer requires a screen wider than 2000px, which
   only the 3440px display the catalogue was first recorded on satisfied.
 
+## What the keep run settled (2026-10-25)
+
+- `ribbon(idMso)` presses a ribbon control through `CommandBars.ExecuteMso`, late bound as `RibbonReader` reads
+  the ribbon, and `dialog(key, ok)` accepts a dialog with Enter where `dialog(key)` dismisses it with Esc.
+- Formatting a selection leaves it selected and its active end where it was, whichever way the change is made;
+  `keep.json` holds the 51 cases.
+
 Digests of a family's JSON for distilling rules were made with two scratch scripts (one line per
 paragraph with the caret or a selection, plus the undo part of the summary); `Results/<family>.json` holds
 everything they printed.
