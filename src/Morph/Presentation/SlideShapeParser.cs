@@ -30,6 +30,7 @@ sealed class SlideShapeParser(
 {
     readonly DrawingTextParser textParser = new(themeColors, themeFonts, defaultFont);
     readonly SlideTableParser tableParser = new(themeColors, new(themeColors, themeFonts, defaultFont));
+    readonly ChartReader chartReader = new(themeColors, themeFonts);
 
     /// <summary>
     /// Emits the slide's shapes in <c>spTree</c> order. Paint order is document order, which is also
@@ -473,10 +474,18 @@ sealed class SlideShapeParser(
             yield break;
         }
 
+        if (uri == "http://schemas.openxmlformats.org/drawingml/2006/chart")
+        {
+            if (ParseChart(frame, graphicData!, transform, hostPart, ordinal) is { } chart)
+            {
+                yield return chart;
+            }
+
+            yield break;
+        }
+
         if (uri != "http://schemas.openxmlformats.org/drawingml/2006/diagram")
         {
-            // A chart frame reserves nothing today, matching the DOCX policy of leaving the slot
-            // blank rather than drawing a wrong chart.
             yield break;
         }
 
@@ -518,6 +527,37 @@ sealed class SlideShapeParser(
     /// queue that a slide never drains. A text box places its content at absolute coordinates,
     /// touches no flow state, and lays out a nested table through the ordinary cell-content path.
     /// </summary>
+    /// <summary>
+    /// A chart frame's <c>c:chart/@r:id</c> names a chart part on the slide, read by the same
+    /// <see cref="ChartReader"/> as Word's and Excel's charts and composed at layout. A chart type the
+    /// reader does not draw yields nothing, leaving the slot blank rather than drawing a wrong chart.
+    /// </summary>
+    DocumentElement? ParseChart(P.GraphicFrame frame, A.GraphicData graphicData, SlideTransform transform, OpenXmlPart? hostPart, uint ordinal)
+    {
+        var reference = graphicData.Elements().FirstOrDefault(_ => _.LocalName == "chart");
+        var relationshipId = reference?.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value;
+        if (hostPart == null ||
+            string.IsNullOrEmpty(relationshipId) ||
+            !hostPart.TryGetPartById(relationshipId, out var part) ||
+            ResolveGeometry(frame.Transform, transform) is not { } box ||
+            chartReader.Read(part.RootElement) is not { } chart)
+        {
+            return null;
+        }
+
+        return new FloatingChartElement
+        {
+            Chart = chart,
+            WidthPoints = box.Width,
+            HeightPoints = box.Height,
+            HorizontalPositionPoints = box.X,
+            VerticalPositionPoints = box.Y,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Paragraph,
+            RelativeHeight = ordinal
+        };
+    }
+
     DocumentElement? ParseTable(P.GraphicFrame frame, A.GraphicData graphicData, SlideTransform transform, uint ordinal)
     {
         var table = graphicData.GetFirstChild<A.Table>();

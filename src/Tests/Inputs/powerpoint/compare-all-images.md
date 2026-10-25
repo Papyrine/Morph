@@ -1,4 +1,4 @@
-# All scenarios (26)
+# All scenarios (29)
 
 <details>
 <summary>Contents</summary>
@@ -8,6 +8,9 @@
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-bar-column](#chart-bar-column)
+- [chart-pie](#chart-pie)
+- [chart-stacked-line](#chart-stacked-line)
 - [color-block](#color-block)
 - [dappled](#dappled)
 - [education-infographics-poster](#education-infographics-poster)
@@ -74,6 +77,31 @@
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0645 · SSIM: 0.9028** | **Page 1. ErrorMetric: 0.0666 · SSIM: 0.9033** |
 | <img src="business-cards-horizontal-layout/expected_0001.png" width="500"> | <img src="business-cards-horizontal-layout/skia_result%23page_0001.verified.png" width="500"> | <img src="business-cards-horizontal-layout/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## chart-bar-column
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0859 · SSIM: 0.8497** | **Page 1. ErrorMetric: 0.0858 · SSIM: 0.8528** |
+| <img src="chart-bar-column/expected_0001.png" width="500"> | <img src="chart-bar-column/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-bar-column/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0899 · SSIM: 0.8469** | **Page 2. ErrorMetric: 0.0899 · SSIM: 0.8498** |
+| <img src="chart-bar-column/expected_0002.png" width="500"> | <img src="chart-bar-column/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-bar-column/imagesharp_result%23page_0002.verified.png" width="500"> |
+
+## chart-pie
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0342 · SSIM: 0.9428** | **Page 1. ErrorMetric: 0.0341 · SSIM: 0.9427** |
+| <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-pie/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## chart-stacked-line
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0581 · SSIM: 0.8757** | **Page 1. ErrorMetric: 0.0580 · SSIM: 0.8801** |
+| <img src="chart-stacked-line/expected_0001.png" width="500"> | <img src="chart-stacked-line/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-stacked-line/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0408 · SSIM: 0.8953** | **Page 2. ErrorMetric: 0.0408 · SSIM: 0.8998** |
+| <img src="chart-stacked-line/expected_0002.png" width="500"> | <img src="chart-stacked-line/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-stacked-line/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## color-block
 

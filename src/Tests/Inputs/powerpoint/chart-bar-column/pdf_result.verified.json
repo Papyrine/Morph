@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Series 3\nSeries 2\nSeries 1\n0 1 2 3 4 5 6\nCategory 1\nCategory 2\nCategory 3\nCategory 4\nChart Title"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Series 1\nSeries 2\nSeries 3\n0\n1\n2\n3\n4\n5\n6\nCategory 1 Category 2 Category 3 Category 4\nChart Title"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0835,
+      "Ssim": 0.8492,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0879,
+      "Ssim": 0.8517,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}
