@@ -1,0 +1,75 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Calibri, sans-serif; max-width: 468pt; padding: 72pt">
+<p style="line-height: 1.16"><mark class="comment" style="background-color: #F8DCDD"><span style="font-size: 12pt;">First paragraph.</span></mark><sup class="comment-ref"><a href="#comment-1">[R1]</a></sup></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler paragraph 0.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler paragraph 1.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler paragraph 2.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler paragraph 3.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler paragraph 4.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler paragraph 5.</span></p>
+<p style="line-height: 1.16"><mark class="comment" style="background-color: #F8DCDD"><span style="font-size: 12pt;">Second commented paragraph.</span></mark><sup class="comment-ref"><a href="#comment-2">[R2]</a></sup></p>
+<p style="line-height: 1.16"><mark class="comment" style="background-color: #F8DCDD"><span style="font-size: 12pt;">Third commented paragraph right after.</span></mark><sup class="comment-ref"><a href="#comment-3">[R3]</a></sup></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 0.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 1.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 2.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 3.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 4.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 5.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 6.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 7.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 8.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 9.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 10.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 11.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 12.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 13.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 14.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 15.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 16.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 17.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 18.</span></p>
+<p style="line-height: 1.16"><span style="font-size: 12pt;">Filler 19.</span></p>
+<p style="line-height: 1.16"><mark class="comment" style="background-color: #F8DCDD"><span style="font-size: 12pt;">Late comment far down.</span></mark><sup class="comment-ref"><a href="#comment-4">[R4]</a></sup></p>
+<section class="comments">
+  <p id="comment-1"><strong>Commented [R1]:</strong> This is a much longer comment that should wrap across several lines in the balloon so that its width can be read off the page. This is a much longer comment that should wrap across several lines in the balloon so that its width can be read off the page. </p>
+  <p id="comment-2"><strong>Commented [R2]:</strong> Two paragraphs here.<br>Second paragraph of the comment.</p>
+  <p id="comment-3"><strong>Commented [R3]:</strong> Collides with the one above.</p>
+  <p id="comment-4"><strong>Commented [R4]:</strong> Down low.</p>
+</section>
+</body>
+</html>

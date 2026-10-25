@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "First paragraph.\nFiller paragraph 0.\nFiller paragraph 1.\nFiller paragraph 2.\nFiller paragraph 3.\nFiller paragraph 4.\nFiller paragraph 5.\nSecond commented paragraph.\nThird commented paragraph right after.\nFiller 0.\nFiller 1.\nFiller 2.\nFiller 3.\nFiller 4.\nFiller 5.\nFiller 6.\nFiller 7.\nFiller 8.\nFiller 9.\nFiller 10.\nFiller 11.\nFiller 12.\nFiller 13.\nFiller 14.\nFiller 15.\nFiller 16.\nCommented [R1]: This is a much longer comment that\nshould wrap across several lines in the balloon so that its\nwidth can be read off the page. This is a much longer\ncomment that should wrap across several lines in the balloon\nso that its width can be read off the page.\nCommented [R2]: Two paragraphs here.\nSecond paragraph of the comment.\nCommented [R3]: Collides with the one above."
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Filler 17.\nFiller 18.\nFiller 19.\nLate comment far down. Commented [R4]: Down low."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.026,
+      "Ssim": 0.9615,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0053,
+      "Ssim": 0.9912,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-# All PDF export scenarios (346)
+# All PDF export scenarios (347)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -89,6 +89,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [color_transform_theme_fill](#color_transform_theme_fill)
 - [column_breaks](#column_breaks)
 - [comments/01](#comments01)
+- [comments/02](#comments02)
 - [compatibility_mode_14](#compatibility_mode_14)
 - [complex_document](#complex_document)
 - [complex_spacing](#complex_spacing)
@@ -1414,10 +1415,22 @@ PDF: [Morph PDF](column_breaks/pdf_result.verified.pdf)
 
 | Expected (Word) | Morph PDF |
 | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2497 · SSIM: 0.9843** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0052 · SSIM: 0.9919** |
 | <img src="comments/01/expected_0001.png" width="500"> | <img src="comments/01/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](comments/01/pdf_result.verified.pdf)
+
+
+## comments/02
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0260 · SSIM: 0.9615** |
+| <img src="comments/02/expected_0001.png" width="500"> | <img src="comments/02/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0053 · SSIM: 0.9912** |
+| <img src="comments/02/expected_0002.png" width="500"> | <img src="comments/02/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](comments/02/pdf_result.verified.pdf)
 
 
 ## compatibility_mode_14
