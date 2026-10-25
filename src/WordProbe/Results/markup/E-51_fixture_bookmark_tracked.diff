@@ -1,0 +1,7 @@
+-       <w:t>brown fox</w:t>
++       <w:t>brown fo</w:t>
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>x</w:delText>
++       </w:r>
++     </w:del>

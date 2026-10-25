@@ -1,0 +1,18 @@
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T15:16:00Z" w16du:dateUtc="2026-10-25T04:16:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:rPr>
++           <w:noProof />
++         </w:rPr>
++         <w:delText>B</w:delText>
++       </w:r>
++     </w:del>
+-       <w:t>Beta heading</w:t>
++       <w:t>eta heading</w:t>
+-     <w:bookmarkStart w:id="0" w:name="_Toc243828883" />
++     <w:bookmarkStart w:id="1" w:name="_Toc243828883" />
+-     <w:bookmarkEnd w:id="0" />
++     <w:bookmarkEnd w:id="1" />
+-     <w:bookmarkStart w:id="1" w:name="_Toc243828884" />
++     <w:bookmarkStart w:id="2" w:name="_Toc243828884" />
+-     <w:bookmarkEnd w:id="1" />
++     <w:bookmarkEnd w:id="2" />

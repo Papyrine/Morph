@@ -1,0 +1,9 @@
++       <w:t>Text</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:rStyle w:val="FootnoteReference" />
++       </w:rPr>
++       <w:footnoteReference w:id="2" />
++     </w:r>
++     <w:r>

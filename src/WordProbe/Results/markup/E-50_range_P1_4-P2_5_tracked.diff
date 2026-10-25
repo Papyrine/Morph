@@ -1,0 +1,25 @@
++     <w:pPr>
++       <w:rPr>
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
+-       <w:t>First paragraph here.</w:t>
++       <w:t>Firs</w:t>
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>t paragraph here.</w:delText>
++       </w:r>
++     </w:del>
+-       <w:jc w:val="center" />
++       <w:pPrChange w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++         <w:pPr>
++           <w:jc w:val="center" />
++         </w:pPr>
++       </w:pPrChange>
++     <w:del w:id="3" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Secon</w:delText>
++       </w:r>
++     </w:del>
+-       <w:t xml:space="preserve">Second </w:t>
++       <w:t xml:space="preserve">d </w:t>

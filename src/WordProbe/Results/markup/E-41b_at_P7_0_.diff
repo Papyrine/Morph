@@ -1,0 +1,10 @@
+-       <w:t>Plain six.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:spacing w:after="480" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Spaced seven.</w:t>
++       <w:t>Plain sixSpaced seven.</w:t>

@@ -1,0 +1,12 @@
+-     <w:r>
+-       <w:t xml:space="preserve">Line one </w:t>
+-     </w:r>
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:31:00Z" w16du:dateUtc="2026-10-25T03:31:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText xml:space="preserve">Line one </w:delText>
++       </w:r>
++       <w:r>
++         <w:br />
++       </w:r>
++     </w:del>
+-       <w:br />

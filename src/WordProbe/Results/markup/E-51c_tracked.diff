@@ -1,0 +1,14 @@
+-           <w:docPart w:val="651A51CC6EBA4D5A94B2894F49248F18" />
++           <w:docPart w:val="531696BF2C1B4832843AAD9F04715B2C" />
+-         <w:r>
+-           <w:t>content here</w:t>
+-         </w:r>
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:r>
++             <w:delText>content here</w:delText>
++           </w:r>
++         </w:del>
+-           <w:docPart w:val="651A51CC6EBA4D5A94B2894F49248F18" />
++           <w:docPart w:val="531696BF2C1B4832843AAD9F04715B2C" />
+-           <w:docPart w:val="01243D9864E14A53A210C8F3522EE9F2" />
++           <w:docPart w:val="80FA2622D1694A8E90B04EB715369036" />

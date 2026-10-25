@@ -1,0 +1,100 @@
+-     <w:r>
+-       <w:t>Normal kind.</w:t>
+-     </w:r>
++     <w:pPr>
++       <w:rPr>
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Normal kind.</w:delText>
++       </w:r>
++     </w:del>
++       <w:rPr>
++         <w:del w:id="2" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t>Heading kind</w:t>
+-     </w:r>
++     <w:del w:id="3" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Heading kind</w:delText>
++       </w:r>
++     </w:del>
++       <w:rPr>
++         <w:del w:id="4" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t>Bullet kind.</w:t>
+-     </w:r>
++     <w:del w:id="5" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Bullet kind.</w:delText>
++       </w:r>
++     </w:del>
++       <w:rPr>
++         <w:del w:id="6" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t>Centred kind.</w:t>
+-     </w:r>
++     <w:del w:id="7" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Centred kind.</w:delText>
++       </w:r>
++     </w:del>
++       <w:rPr>
++         <w:del w:id="8" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t>Bordered kind.</w:t>
+-     </w:r>
++     <w:del w:id="9" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Bordered kind.</w:delText>
++       </w:r>
++     </w:del>
++       <w:rPr>
++         <w:del w:id="10" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t>Indented kind.</w:t>
+-     </w:r>
++     <w:del w:id="11" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Indented kind.</w:delText>
++       </w:r>
++     </w:del>
+-   <w:p />
++       <w:rPr>
++         <w:del w:id="12" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
++   </w:p>
++   <w:p>
++     <w:pPr>
++       <w:rPr>
++         <w:del w:id="13" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t>Keep with next kind.</w:t>
+-     </w:r>
++     <w:del w:id="14" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Keep with next kind.</w:delText>
++       </w:r>
++     </w:del>
+-     <w:r>
+-       <w:t>Last plain kind.</w:t>
+-     </w:r>
++     <w:del w:id="15" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>Last plain kind.</w:delText>
++       </w:r>
++     </w:del>
++     <w:ins w:id="16" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>x</w:t>
++       </w:r>
++     </w:ins>

@@ -1,0 +1,38 @@
+-           <w:docPart w:val="0C2BA30317914460B27F984C62DE5C08" />
++           <w:docPart w:val="1118328D7D404065AC320BEBFF9A999F" />
+-           <w:docPart w:val="0C2BA30317914460B27F984C62DE5C08" />
++           <w:docPart w:val="1118328D7D404065AC320BEBFF9A999F" />
+-           <w:docPart w:val="918E15EF82E14F298FC965C1DD16FFD0" />
++           <w:docPart w:val="888C1B63AC7B488EA67136C4A3B296C7" />
++     <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" w16du:dateUtc="2026-10-25T03:57:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve"> </w:t>
++       </w:r>
++       <w:r>
++         <w:t xml:space="preserve">Rich: </w:t>
++       </w:r>
++     </w:ins>
++     <w:customXmlInsRangeStart w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" />
++     <w:sdt>
++       <w:sdtPr>
++         <w:id w:val="-1966037825" />
++         <w:placeholder>
++           <w:docPart w:val="59E95C22F4CF4A11A845926623434E5F" />
++         </w:placeholder>
++       </w:sdtPr>
++       <w:sdtContent>
++         <w:customXmlInsRangeEnd w:id="1" />
++         <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" w16du:dateUtc="2026-10-25T03:57:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:r>
++             <w:t>content here</w:t>
++           </w:r>
++         </w:ins>
++         <w:customXmlInsRangeStart w:id="3" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" />
++       </w:sdtContent>
++     </w:sdt>
++     <w:customXmlInsRangeEnd w:id="3" />
++     <w:ins w:id="4" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" w16du:dateUtc="2026-10-25T03:57:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve"> end.</w:t>
++       </w:r>
++     </w:ins>

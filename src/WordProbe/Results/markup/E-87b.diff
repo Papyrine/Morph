@@ -1,0 +1,14 @@
+-         <w:sz w:val="21" />
++         <w:sz w:val="23" />
++         <w:szCs w:val="26" />
+-         <w:sz w:val="21" />
++         <w:sz w:val="23" />
++         <w:szCs w:val="26" />
+-         <w:sz w:val="22" />
++         <w:szCs w:val="26" />
+-         <w:sz w:val="22" />
++         <w:szCs w:val="26" />
++       <w:rPr>
++         <w:sz w:val="26" />
++         <w:szCs w:val="26" />
++       </w:rPr>

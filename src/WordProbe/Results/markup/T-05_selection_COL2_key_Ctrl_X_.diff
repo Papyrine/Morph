@@ -1,0 +1,31 @@
+-       <w:gridCol w:w="3005" />
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b3</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>

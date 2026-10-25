@@ -1,0 +1,64 @@
+-     <w:r>
+-       <w:t xml:space="preserve">Rich: </w:t>
+-     </w:r>
++     <w:moveFromRangeStart w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w:name="move243838717" />
++     <w:moveFrom w:id="1" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve">Rich: </w:t>
++       </w:r>
++     </w:moveFrom>
+-           <w:docPart w:val="BB41946B7C9E4CF1B64CA1E4D63B90D0" />
++           <w:docPart w:val="8CC20B3AF2E447FF9041D43AC4AC8498" />
+-         <w:r>
+-           <w:t>content here</w:t>
+-         </w:r>
++         <w:moveFrom w:id="2" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:r>
++             <w:t>content here</w:t>
++           </w:r>
++         </w:moveFrom>
+-     <w:r>
+-       <w:t xml:space="preserve"> end.</w:t>
+-     </w:r>
++     <w:moveFrom w:id="3" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve"> end.</w:t>
++       </w:r>
++     </w:moveFrom>
++     <w:moveFromRangeEnd w:id="0" />
+-           <w:docPart w:val="BB41946B7C9E4CF1B64CA1E4D63B90D0" />
++           <w:docPart w:val="8CC20B3AF2E447FF9041D43AC4AC8498" />
+-           <w:docPart w:val="0439275288914CEB8F3BE3087B478FB4" />
++           <w:docPart w:val="EC3884F106E74DEE9888E3BF502E8585" />
++     <w:ins w:id="4" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve"> </w:t>
++       </w:r>
++     </w:ins>
++     <w:moveToRangeStart w:id="5" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w:name="move243838717" />
++     <w:moveTo w:id="6" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve">Rich: </w:t>
++       </w:r>
++     </w:moveTo>
++     <w:sdt>
++       <w:sdtPr>
++         <w:id w:val="1993363894" />
++         <w:placeholder>
++           <w:docPart w:val="91C6A04A689C4CD689DE99247A42D8ED" />
++         </w:placeholder>
++       </w:sdtPr>
++       <w:sdtContent>
++         <w:moveTo w:id="7" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:r>
++             <w:t>content here</w:t>
++           </w:r>
++         </w:moveTo>
++       </w:sdtContent>
++     </w:sdt>
++     <w:moveTo w:id="8" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve"> end.</w:t>
++       </w:r>
++     </w:moveTo>
++     <w:moveToRangeEnd w:id="5" />

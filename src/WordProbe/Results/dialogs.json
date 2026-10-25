@@ -1,0 +1,5634 @@
+{
+  "Family": "dialogs",
+  "Generated": "2026-10-25T16:18:16.6193445+11:00",
+  "Word": {
+    "Version": "16.0",
+    "Build": "16.0.20527",
+    "Ui": "unknown",
+    "Dpi": 120,
+    "ClickToRun": "16.0.20527.20088"
+  },
+  "Cases": {
+    "K-01[key=Alt+F3]": {
+      "DefinitionHash": "c3251694de22968b",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Alt+F3)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3505,
+      "RunAt": "2026-10-25T16:17:28.1117774+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:27.4955754+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-01[key=Alt+Shift+I]": {
+      "DefinitionHash": "b403e5d32230ce1f",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Alt+Shift+I)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1354,
+      "RunAt": "2026-10-25T16:17:29.4701017+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Mark Citation\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Mark Citation",
+          "SeenAt": "2026-10-25T16:17:28.571655+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Alt+Shift+O]": {
+      "DefinitionHash": "5ddd60f26388003e",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Alt+Shift+O)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1330,
+      "RunAt": "2026-10-25T16:17:32.1533691+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Mark Table of Contents Entry\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Mark Table of Contents Entry",
+          "SeenAt": "2026-10-25T16:17:31.2741503+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Alt+Shift+X]": {
+      "DefinitionHash": "402e7114df6cf883",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Alt+Shift+X)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1347,
+      "RunAt": "2026-10-25T16:17:30.8200109+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Mark Index Entry\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Mark Index Entry",
+          "SeenAt": "2026-10-25T16:17:29.9353858+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+Alt+V]": {
+      "DefinitionHash": "1f1f13acc0ca422d",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Alt+V)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3485,
+      "RunAt": "2026-10-25T16:17:23.2372658+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:22.643011+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+D]": {
+      "DefinitionHash": "804b302f93a3d320",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+D)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1355,
+      "RunAt": "2026-10-25T16:17:15.6757834+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Font",
+          "SeenAt": "2026-10-25T16:17:14.7700682+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+F]": {
+      "DefinitionHash": "1c65bf6c40690813",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+F)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 4257,
+      "RunAt": "2026-10-25T16:17:10.1936753+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:09.4228223+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+G]": {
+      "DefinitionHash": "e2c66c0796f899a8",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+G)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1358,
+      "RunAt": "2026-10-25T16:17:12.9534689+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Find and Replace",
+          "SeenAt": "2026-10-25T16:17:12.0399138+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+H]": {
+      "DefinitionHash": "e1fc2ca0ec739786",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+H)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1364,
+      "RunAt": "2026-10-25T16:17:11.5922131+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Find and Replace",
+          "SeenAt": "2026-10-25T16:17:10.6735725+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+K]": {
+      "DefinitionHash": "ccf342afb846a40e",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+K)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1322,
+      "RunAt": "2026-10-25T16:17:19.7489859+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Insert Hyperlink\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Insert Hyperlink",
+          "SeenAt": "2026-10-25T16:17:18.8670824+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+Shift+F5]": {
+      "DefinitionHash": "ea671eecbb9e054a",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Shift+F5)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1346,
+      "RunAt": "2026-10-25T16:17:33.5061043+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Bookmark\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Bookmark",
+          "SeenAt": "2026-10-25T16:17:32.6032082+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+Shift+F]": {
+      "DefinitionHash": "71cf2118c9400460",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Shift+F)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1387,
+      "RunAt": "2026-10-25T16:17:17.0660888+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Font",
+          "SeenAt": "2026-10-25T16:17:16.1400244+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+Shift+G]": {
+      "DefinitionHash": "b1d06b0f2f8694e0",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Shift+G)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1358,
+      "RunAt": "2026-10-25T16:17:24.5994375+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Word Count\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Word Count",
+          "SeenAt": "2026-10-25T16:17:23.6973035+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=Ctrl+Shift+P]": {
+      "DefinitionHash": "70d68a1a482bccc3",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Shift+P)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1353,
+      "RunAt": "2026-10-25T16:17:18.4227135+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Font",
+          "SeenAt": "2026-10-25T16:17:17.5168894+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=F5]": {
+      "DefinitionHash": "ba0f37ee64cae7ce",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(F5)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1361,
+      "RunAt": "2026-10-25T16:17:14.317804+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Find and Replace",
+          "SeenAt": "2026-10-25T16:17:13.4079068+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-01[key=F7]": {
+      "DefinitionHash": "c00b48de61819fc2",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(F7)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3477,
+      "RunAt": "2026-10-25T16:17:36.9870171+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:36.3855353+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-01[key=Shift+F7]": {
+      "DefinitionHash": "ba4c75e228e8a423",
+      "Title": "Keys that open a dialog",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Shift+F7)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3450,
+      "RunAt": "2026-10-25T16:17:40.4404512+11:00",
+      "Lines": [
+        "[The ⟦quick‸⟧ brown fox jumps over the lazy dog.]",
+        "Selection: Normal 4–9 end-active · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 9,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "quick",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:39.864826+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-02[key=Ctrl+F12]": {
+      "DefinitionHash": "9a4527b79cd3f59d",
+      "Title": "Keys that open a file dialog or Backstage",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+F12)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1739,
+      "RunAt": "2026-10-25T16:17:45.6904941+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Open\" (#32770)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "#32770",
+          "Title": "Open",
+          "SeenAt": "2026-10-25T16:17:44.4032026+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-02[key=Ctrl+F2]": {
+      "DefinitionHash": "15eb64a36335d204",
+      "Title": "Keys that open a file dialog or Backstage",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+F2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3625,
+      "RunAt": "2026-10-25T16:17:55.7312428+11:00",
+      "Lines": [
+        "[‸The quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "T",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:55.0591759+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared",
+          "cleanup: Command failed"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared",
+        "cleanup: Command failed"
+      ],
+      "Tests": []
+    },
+    "K-02[key=Ctrl+O]": {
+      "DefinitionHash": "dfb780ea95d23697",
+      "Title": "Keys that open a file dialog or Backstage",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+O)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3502,
+      "RunAt": "2026-10-25T16:17:43.9458145+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:43.3413767+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-02[key=Ctrl+P]": {
+      "DefinitionHash": "222d82af8992ad3c",
+      "Title": "Keys that open a file dialog or Backstage",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+P)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3574,
+      "RunAt": "2026-10-25T16:17:52.0995519+11:00",
+      "Lines": [
+        "[‸The quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "T",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:17:51.4264947+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared",
+          "cleanup: Command failed"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared",
+        "cleanup: Command failed"
+      ],
+      "Tests": []
+    },
+    "K-02[key=Ctrl+S]": {
+      "DefinitionHash": "b17dc35e28503978",
+      "Title": "Keys that open a file dialog or Backstage",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+S)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1365,
+      "RunAt": "2026-10-25T16:17:48.5223547+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"\" (NUIDialog)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "NUIDialog",
+          "Title": "",
+          "SeenAt": "2026-10-25T16:17:47.6084663+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-02[key=F12]": {
+      "DefinitionHash": "24012435d5f9dcc1",
+      "Title": "Keys that open a file dialog or Backstage",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(F12)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1460,
+      "RunAt": "2026-10-25T16:17:47.1535659+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Save As\" (#32770)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "#32770",
+          "Title": "Save As",
+          "SeenAt": "2026-10-25T16:17:46.2466927+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-03[key=Alt+F8]": {
+      "DefinitionHash": "26f886e5badc2c70",
+      "Title": "Keys that open a pane or the ribbon",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Alt+F8)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1289,
+      "RunAt": "2026-10-25T16:17:59.851418+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "MsoCommandBar",
+          "Title": "Apply Styles",
+          "SeenAt": "2026-10-25T16:17:58.9084446+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-03[key=Ctrl+Alt+Shift+S]": {
+      "DefinitionHash": "efab806e082c711f",
+      "Title": "Keys that open a pane or the ribbon",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Alt+Shift+S)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1308,
+      "RunAt": "2026-10-25T16:17:58.5574155+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "MsoCommandBar",
+          "Title": "Apply Styles",
+          "SeenAt": "2026-10-25T16:17:57.5883835+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-03[key=Ctrl+F1]": {
+      "DefinitionHash": "c0248b7d4539cf45",
+      "Title": "Keys that open a pane or the ribbon",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+F1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3633,
+      "RunAt": "2026-10-25T16:18:08.5856849+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:18:07.8574221+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-03[key=Ctrl+Shift+S]": {
+      "DefinitionHash": "db778307024e5cb3",
+      "Title": "Keys that open a pane or the ribbon",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Ctrl+Shift+S)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1506,
+      "RunAt": "2026-10-25T16:17:57.2438842+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "MsoCommandBar",
+          "Title": "Apply Styles",
+          "SeenAt": "2026-10-25T16:17:56.2655885+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": []
+    },
+    "K-03[key=F1]": {
+      "DefinitionHash": "dd2f6a2320a5f7ef",
+      "Title": "Keys that open a pane or the ribbon",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(F1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "dialog-missing",
+      "DurationMs": 3514,
+      "RunAt": "2026-10-25T16:18:04.9431107+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "(none)",
+          "Title": "(no dialog appeared)",
+          "SeenAt": "2026-10-25T16:18:04.3172208+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "no dialog appeared"
+        ]
+      },
+      "Remarks": [
+        "no dialog appeared"
+      ],
+      "Tests": []
+    },
+    "K-03[key=Shift+F10]": {
+      "DefinitionHash": "0f82639ebff00247",
+      "Title": "Keys that open a pane or the ribbon",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:5)",
+        "dialog(Shift+F10)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1570,
+      "RunAt": "2026-10-25T16:18:01.4258067+11:00",
+      "Lines": [
+        "[The q‸uick brown fox jumps over the lazy dog.]",
+        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "u",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Dialog": {
+          "ClassName": "MsoCommandBar",
+          "Title": "Apply Styles",
+          "SeenAt": "2026-10-25T16:18:00.207207+11:00"
+        },
+        "Hotspots": [],
+        "Remarks": [
+          "dialog during step: MsoCommandBar \"Apply Styles\" (dismissed)"
+        ]
+      },
+      "Remarks": [
+        "dialog during step: MsoCommandBar \"Apply Styles\" (dismissed)"
+      ],
+      "Tests": []
+    },
+    "K-04[key=Ctrl+Alt+Y]": {
+      "DefinitionHash": "2eaf9f7de32de69c",
+      "Title": "Keys that move the selection without opening anything",
+      "Fixture": "three-pages",
+      "Steps": [
+        "select(P1:3)",
+        "Ctrl+Alt+Y",
+        "Ctrl+Alt+Y"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2997,
+      "RunAt": "2026-10-25T16:18:11.5919347+11:00",
+      "Lines": [
+        "[Paragraph 1 of thirty on one of three pages.]",
+        "[Paragraph 2 of thirty on one of three pages.]",
+        "[Paragraph 3 of thirty on one of three pages.]",
+        "[Paragraph 4 of thirty on one of three pages.]",
+        "[Paragraph 5 of thirty on one of three pages.]",
+        "[Paragraph 6 of thirty on one of three pages.]",
+        "[Paragraph 7 of thirty on one of three pages.]",
+        "[Paragraph 8 of thirty on one of three pages.]",
+        "[Paragraph 9 of thirty on one of three pages.]",
+        "[Paragraph 10 of thirty on one of three pages.]",
+        "[⤓]",
+        "[‸Paragraph 11 of thirty on one of three pages.]",
+        "[Paragraph 12 of thirty on one of three pages.]",
+        "[Paragraph 13 of thirty on one of three pages.]",
+        "[Paragraph 14 of thirty on one of three pages.]",
+        "[Paragraph 15 of thirty on one of three pages.]",
+        "[Paragraph 16 of thirty on one of three pages.]",
+        "[Paragraph 17 of thirty on one of three pages.]",
+        "[Paragraph 18 of thirty on one of three pages.]",
+        "[Paragraph 19 of thirty on one of three pages.]",
+        "[Paragraph 20 of thirty on one of three pages.]",
+        "[⤓]",
+        "[Paragraph 21 of thirty on one of three pages.]",
+        "[Paragraph 22 of thirty on one of three pages.]",
+        "[Paragraph 23 of thirty on one of three pages.]",
+        "[Paragraph 24 of thirty on one of three pages.]",
+        "[Paragraph 25 of thirty on one of three pages.]",
+        "[Paragraph 26 of thirty on one of three pages.]",
+        "[Paragraph 27 of thirty on one of three pages.]",
+        "[Paragraph 28 of thirty on one of three pages.]",
+        "[Paragraph 29 of thirty on one of three pages.]",
+        "[Paragraph 30 of thirty on one of three pages.]",
+        "Selection: IP 453–453 · Undo —"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 453,
+          "End": 453,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "P",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "Paragraph 1 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 45,
+            "End": 90,
+            "Text": "Paragraph 2 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 90,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 90,
+            "End": 135,
+            "Text": "Paragraph 3 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 90,
+                "End": 135,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 135,
+            "End": 180,
+            "Text": "Paragraph 4 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 135,
+                "End": 180,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 180,
+            "End": 225,
+            "Text": "Paragraph 5 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 180,
+                "End": 225,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 225,
+            "End": 270,
+            "Text": "Paragraph 6 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 225,
+                "End": 270,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 270,
+            "End": 315,
+            "Text": "Paragraph 7 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 270,
+                "End": 315,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 315,
+            "End": 360,
+            "Text": "Paragraph 8 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 315,
+                "End": 360,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 9,
+            "Start": 360,
+            "End": 405,
+            "Text": "Paragraph 9 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 360,
+                "End": 405,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 405,
+            "End": 451,
+            "Text": "Paragraph 10 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 405,
+                "End": 451,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 451,
+            "End": 453,
+            "Text": "\f\r",
+            "Runs": [
+              {
+                "Start": 451,
+                "End": 453,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 453,
+            "End": 499,
+            "Text": "Paragraph 11 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 453,
+                "End": 499,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 13,
+            "Start": 499,
+            "End": 545,
+            "Text": "Paragraph 12 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 499,
+                "End": 545,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 545,
+            "End": 591,
+            "Text": "Paragraph 13 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 545,
+                "End": 591,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 15,
+            "Start": 591,
+            "End": 637,
+            "Text": "Paragraph 14 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 591,
+                "End": 637,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 16,
+            "Start": 637,
+            "End": 683,
+            "Text": "Paragraph 15 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 637,
+                "End": 683,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 17,
+            "Start": 683,
+            "End": 729,
+            "Text": "Paragraph 16 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 683,
+                "End": 729,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 18,
+            "Start": 729,
+            "End": 775,
+            "Text": "Paragraph 17 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 729,
+                "End": 775,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 19,
+            "Start": 775,
+            "End": 821,
+            "Text": "Paragraph 18 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 775,
+                "End": 821,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 20,
+            "Start": 821,
+            "End": 867,
+            "Text": "Paragraph 19 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 821,
+                "End": 867,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 21,
+            "Start": 867,
+            "End": 913,
+            "Text": "Paragraph 20 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 867,
+                "End": 913,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 22,
+            "Start": 913,
+            "End": 915,
+            "Text": "\f\r",
+            "Runs": [
+              {
+                "Start": 913,
+                "End": 915,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 23,
+            "Start": 915,
+            "End": 961,
+            "Text": "Paragraph 21 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 915,
+                "End": 961,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 24,
+            "Start": 961,
+            "End": 1007,
+            "Text": "Paragraph 22 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 961,
+                "End": 1007,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 25,
+            "Start": 1007,
+            "End": 1053,
+            "Text": "Paragraph 23 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1007,
+                "End": 1053,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 26,
+            "Start": 1053,
+            "End": 1099,
+            "Text": "Paragraph 24 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1053,
+                "End": 1099,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 27,
+            "Start": 1099,
+            "End": 1145,
+            "Text": "Paragraph 25 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1099,
+                "End": 1145,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 28,
+            "Start": 1145,
+            "End": 1191,
+            "Text": "Paragraph 26 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1145,
+                "End": 1191,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 29,
+            "Start": 1191,
+            "End": 1237,
+            "Text": "Paragraph 27 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1191,
+                "End": 1237,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 30,
+            "Start": 1237,
+            "End": 1283,
+            "Text": "Paragraph 28 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1237,
+                "End": 1283,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 31,
+            "Start": 1283,
+            "End": 1329,
+            "Text": "Paragraph 29 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1283,
+                "End": 1329,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 32,
+            "Start": 1329,
+            "End": 1375,
+            "Text": "Paragraph 30 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1329,
+                "End": 1375,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Trace": [
+        {
+          "Step": "Ctrl+Alt+Y",
+          "Selection": {
+            "Start": 0,
+            "End": 0,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": false,
+            "ColumnSelectMode": false,
+            "SelectionMode": 0,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "P",
+            "IsCollapsed": true
+          },
+          "Line": "[‸Paragraph 1 of thirty on one of three pages.]"
+        },
+        {
+          "Step": "Ctrl+Alt+Y",
+          "Selection": {
+            "Start": 453,
+            "End": 453,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": false,
+            "ColumnSelectMode": false,
+            "SelectionMode": 0,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "P",
+            "IsCollapsed": true
+          },
+          "Line": "[‸Paragraph 11 of thirty on one of three pages.]"
+        }
+      ]
+    },
+    "K-04[key=Ctrl+PgDn]": {
+      "DefinitionHash": "1cd3bd16e1df260a",
+      "Title": "Keys that move the selection without opening anything",
+      "Fixture": "three-pages",
+      "Steps": [
+        "select(P1:3)",
+        "Ctrl+PgDn",
+        "Ctrl+PgDn"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2524,
+      "RunAt": "2026-10-25T16:18:14.1346983+11:00",
+      "Lines": [
+        "[Paragraph 1 of thirty on one of three pages.]",
+        "[Paragraph 2 of thirty on one of three pages.]",
+        "[Paragraph 3 of thirty on one of three pages.]",
+        "[Paragraph 4 of thirty on one of three pages.]",
+        "[Paragraph 5 of thirty on one of three pages.]",
+        "[Paragraph 6 of thirty on one of three pages.]",
+        "[Paragraph 7 of thirty on one of three pages.]",
+        "[Paragraph 8 of thirty on one of three pages.]",
+        "[Paragraph 9 of thirty on one of three pages.]",
+        "[Paragraph 10 of thirty on one of three pages.]",
+        "[⤓]",
+        "[Paragraph 11 of thirty on one of three pages.]",
+        "[Paragraph 12 of thirty on one of three pages.]",
+        "[Paragraph 13 of thirty on one of three pages.]",
+        "[Paragraph 14 of thirty on one of three pages.]",
+        "[Paragraph 15 of thirty on one of three pages.]",
+        "[Paragraph 16 of thirty on one of three pages.]",
+        "[Paragraph 17 of thirty on one of three pages.]",
+        "[Paragraph 18 of thirty on one of three pages.]",
+        "[Paragraph 19 of thirty on one of three pages.]",
+        "[Paragraph 20 of thirty on one of three pages.]",
+        "[⤓]",
+        "[‸Paragraph 21 of thirty on one of three pages.]",
+        "[Paragraph 22 of thirty on one of three pages.]",
+        "[Paragraph 23 of thirty on one of three pages.]",
+        "[Paragraph 24 of thirty on one of three pages.]",
+        "[Paragraph 25 of thirty on one of three pages.]",
+        "[Paragraph 26 of thirty on one of three pages.]",
+        "[Paragraph 27 of thirty on one of three pages.]",
+        "[Paragraph 28 of thirty on one of three pages.]",
+        "[Paragraph 29 of thirty on one of three pages.]",
+        "[Paragraph 30 of thirty on one of three pages.]",
+        "Selection: IP 915–915 · Undo —"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 915,
+          "End": 915,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "P",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "Paragraph 1 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 45,
+            "End": 90,
+            "Text": "Paragraph 2 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 90,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 90,
+            "End": 135,
+            "Text": "Paragraph 3 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 90,
+                "End": 135,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 135,
+            "End": 180,
+            "Text": "Paragraph 4 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 135,
+                "End": 180,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 180,
+            "End": 225,
+            "Text": "Paragraph 5 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 180,
+                "End": 225,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 225,
+            "End": 270,
+            "Text": "Paragraph 6 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 225,
+                "End": 270,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 270,
+            "End": 315,
+            "Text": "Paragraph 7 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 270,
+                "End": 315,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 315,
+            "End": 360,
+            "Text": "Paragraph 8 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 315,
+                "End": 360,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 9,
+            "Start": 360,
+            "End": 405,
+            "Text": "Paragraph 9 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 360,
+                "End": 405,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 405,
+            "End": 451,
+            "Text": "Paragraph 10 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 405,
+                "End": 451,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 451,
+            "End": 453,
+            "Text": "\f\r",
+            "Runs": [
+              {
+                "Start": 451,
+                "End": 453,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 453,
+            "End": 499,
+            "Text": "Paragraph 11 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 453,
+                "End": 499,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 13,
+            "Start": 499,
+            "End": 545,
+            "Text": "Paragraph 12 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 499,
+                "End": 545,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 545,
+            "End": 591,
+            "Text": "Paragraph 13 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 545,
+                "End": 591,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 15,
+            "Start": 591,
+            "End": 637,
+            "Text": "Paragraph 14 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 591,
+                "End": 637,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 16,
+            "Start": 637,
+            "End": 683,
+            "Text": "Paragraph 15 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 637,
+                "End": 683,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 17,
+            "Start": 683,
+            "End": 729,
+            "Text": "Paragraph 16 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 683,
+                "End": 729,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 18,
+            "Start": 729,
+            "End": 775,
+            "Text": "Paragraph 17 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 729,
+                "End": 775,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 19,
+            "Start": 775,
+            "End": 821,
+            "Text": "Paragraph 18 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 775,
+                "End": 821,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 20,
+            "Start": 821,
+            "End": 867,
+            "Text": "Paragraph 19 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 821,
+                "End": 867,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 21,
+            "Start": 867,
+            "End": 913,
+            "Text": "Paragraph 20 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 867,
+                "End": 913,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 22,
+            "Start": 913,
+            "End": 915,
+            "Text": "\f\r",
+            "Runs": [
+              {
+                "Start": 913,
+                "End": 915,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 23,
+            "Start": 915,
+            "End": 961,
+            "Text": "Paragraph 21 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 915,
+                "End": 961,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 24,
+            "Start": 961,
+            "End": 1007,
+            "Text": "Paragraph 22 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 961,
+                "End": 1007,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 25,
+            "Start": 1007,
+            "End": 1053,
+            "Text": "Paragraph 23 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1007,
+                "End": 1053,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 26,
+            "Start": 1053,
+            "End": 1099,
+            "Text": "Paragraph 24 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1053,
+                "End": 1099,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 27,
+            "Start": 1099,
+            "End": 1145,
+            "Text": "Paragraph 25 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1099,
+                "End": 1145,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 28,
+            "Start": 1145,
+            "End": 1191,
+            "Text": "Paragraph 26 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1145,
+                "End": 1191,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 29,
+            "Start": 1191,
+            "End": 1237,
+            "Text": "Paragraph 27 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1191,
+                "End": 1237,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 30,
+            "Start": 1237,
+            "End": 1283,
+            "Text": "Paragraph 28 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1237,
+                "End": 1283,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 31,
+            "Start": 1283,
+            "End": 1329,
+            "Text": "Paragraph 29 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1283,
+                "End": 1329,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 32,
+            "Start": 1329,
+            "End": 1375,
+            "Text": "Paragraph 30 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1329,
+                "End": 1375,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Trace": [
+        {
+          "Step": "Ctrl+PgDn",
+          "Selection": {
+            "Start": 453,
+            "End": 453,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": false,
+            "ColumnSelectMode": false,
+            "SelectionMode": 0,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "P",
+            "IsCollapsed": true
+          },
+          "Line": "[‸Paragraph 11 of thirty on one of three pages.]"
+        },
+        {
+          "Step": "Ctrl+PgDn",
+          "Selection": {
+            "Start": 915,
+            "End": 915,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": false,
+            "ColumnSelectMode": false,
+            "SelectionMode": 0,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "P",
+            "IsCollapsed": true
+          },
+          "Line": "[‸Paragraph 21 of thirty on one of three pages.]"
+        }
+      ]
+    },
+    "K-04[key=Ctrl+PgUp]": {
+      "DefinitionHash": "a7ba1f8626fd366e",
+      "Title": "Keys that move the selection without opening anything",
+      "Fixture": "three-pages",
+      "Steps": [
+        "select(P1:3)",
+        "Ctrl+PgUp",
+        "Ctrl+PgUp"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2477,
+      "RunAt": "2026-10-25T16:18:16.6162428+11:00",
+      "Lines": [
+        "[‸Paragraph 1 of thirty on one of three pages.]",
+        "[Paragraph 2 of thirty on one of three pages.]",
+        "[Paragraph 3 of thirty on one of three pages.]",
+        "[Paragraph 4 of thirty on one of three pages.]",
+        "[Paragraph 5 of thirty on one of three pages.]",
+        "[Paragraph 6 of thirty on one of three pages.]",
+        "[Paragraph 7 of thirty on one of three pages.]",
+        "[Paragraph 8 of thirty on one of three pages.]",
+        "[Paragraph 9 of thirty on one of three pages.]",
+        "[Paragraph 10 of thirty on one of three pages.]",
+        "[⤓]",
+        "[Paragraph 11 of thirty on one of three pages.]",
+        "[Paragraph 12 of thirty on one of three pages.]",
+        "[Paragraph 13 of thirty on one of three pages.]",
+        "[Paragraph 14 of thirty on one of three pages.]",
+        "[Paragraph 15 of thirty on one of three pages.]",
+        "[Paragraph 16 of thirty on one of three pages.]",
+        "[Paragraph 17 of thirty on one of three pages.]",
+        "[Paragraph 18 of thirty on one of three pages.]",
+        "[Paragraph 19 of thirty on one of three pages.]",
+        "[Paragraph 20 of thirty on one of three pages.]",
+        "[⤓]",
+        "[Paragraph 21 of thirty on one of three pages.]",
+        "[Paragraph 22 of thirty on one of three pages.]",
+        "[Paragraph 23 of thirty on one of three pages.]",
+        "[Paragraph 24 of thirty on one of three pages.]",
+        "[Paragraph 25 of thirty on one of three pages.]",
+        "[Paragraph 26 of thirty on one of three pages.]",
+        "[Paragraph 27 of thirty on one of three pages.]",
+        "[Paragraph 28 of thirty on one of three pages.]",
+        "[Paragraph 29 of thirty on one of three pages.]",
+        "[Paragraph 30 of thirty on one of three pages.]",
+        "Selection: IP 0–0 · Undo —"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "P",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "Paragraph 1 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 45,
+            "End": 90,
+            "Text": "Paragraph 2 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 90,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 90,
+            "End": 135,
+            "Text": "Paragraph 3 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 90,
+                "End": 135,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 135,
+            "End": 180,
+            "Text": "Paragraph 4 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 135,
+                "End": 180,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 180,
+            "End": 225,
+            "Text": "Paragraph 5 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 180,
+                "End": 225,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 225,
+            "End": 270,
+            "Text": "Paragraph 6 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 225,
+                "End": 270,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 270,
+            "End": 315,
+            "Text": "Paragraph 7 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 270,
+                "End": 315,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 315,
+            "End": 360,
+            "Text": "Paragraph 8 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 315,
+                "End": 360,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 9,
+            "Start": 360,
+            "End": 405,
+            "Text": "Paragraph 9 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 360,
+                "End": 405,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 405,
+            "End": 451,
+            "Text": "Paragraph 10 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 405,
+                "End": 451,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 451,
+            "End": 453,
+            "Text": "\f\r",
+            "Runs": [
+              {
+                "Start": 451,
+                "End": 453,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 453,
+            "End": 499,
+            "Text": "Paragraph 11 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 453,
+                "End": 499,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 13,
+            "Start": 499,
+            "End": 545,
+            "Text": "Paragraph 12 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 499,
+                "End": 545,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 545,
+            "End": 591,
+            "Text": "Paragraph 13 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 545,
+                "End": 591,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 15,
+            "Start": 591,
+            "End": 637,
+            "Text": "Paragraph 14 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 591,
+                "End": 637,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 16,
+            "Start": 637,
+            "End": 683,
+            "Text": "Paragraph 15 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 637,
+                "End": 683,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 17,
+            "Start": 683,
+            "End": 729,
+            "Text": "Paragraph 16 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 683,
+                "End": 729,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 18,
+            "Start": 729,
+            "End": 775,
+            "Text": "Paragraph 17 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 729,
+                "End": 775,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 19,
+            "Start": 775,
+            "End": 821,
+            "Text": "Paragraph 18 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 775,
+                "End": 821,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 20,
+            "Start": 821,
+            "End": 867,
+            "Text": "Paragraph 19 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 821,
+                "End": 867,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 21,
+            "Start": 867,
+            "End": 913,
+            "Text": "Paragraph 20 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 867,
+                "End": 913,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 22,
+            "Start": 913,
+            "End": 915,
+            "Text": "\f\r",
+            "Runs": [
+              {
+                "Start": 913,
+                "End": 915,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 23,
+            "Start": 915,
+            "End": 961,
+            "Text": "Paragraph 21 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 915,
+                "End": 961,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 24,
+            "Start": 961,
+            "End": 1007,
+            "Text": "Paragraph 22 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 961,
+                "End": 1007,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 25,
+            "Start": 1007,
+            "End": 1053,
+            "Text": "Paragraph 23 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1007,
+                "End": 1053,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 26,
+            "Start": 1053,
+            "End": 1099,
+            "Text": "Paragraph 24 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1053,
+                "End": 1099,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 27,
+            "Start": 1099,
+            "End": 1145,
+            "Text": "Paragraph 25 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1099,
+                "End": 1145,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 28,
+            "Start": 1145,
+            "End": 1191,
+            "Text": "Paragraph 26 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1145,
+                "End": 1191,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 29,
+            "Start": 1191,
+            "End": 1237,
+            "Text": "Paragraph 27 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1191,
+                "End": 1237,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 30,
+            "Start": 1237,
+            "End": 1283,
+            "Text": "Paragraph 28 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1237,
+                "End": 1283,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 31,
+            "Start": 1283,
+            "End": 1329,
+            "Text": "Paragraph 29 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1283,
+                "End": 1329,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 32,
+            "Start": 1329,
+            "End": 1375,
+            "Text": "Paragraph 30 of thirty on one of three pages.\r",
+            "Runs": [
+              {
+                "Start": 1329,
+                "End": 1375,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Trace": [
+        {
+          "Step": "Ctrl+PgUp",
+          "Selection": {
+            "Start": 0,
+            "End": 0,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": false,
+            "ColumnSelectMode": false,
+            "SelectionMode": 0,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "P",
+            "IsCollapsed": true
+          },
+          "Line": "[‸Paragraph 1 of thirty on one of three pages.]"
+        },
+        {
+          "Step": "Ctrl+PgUp",
+          "Selection": {
+            "Start": 0,
+            "End": 0,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": false,
+            "ColumnSelectMode": false,
+            "SelectionMode": 0,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "P",
+            "IsCollapsed": true
+          },
+          "Line": "[‸Paragraph 1 of thirty on one of three pages.]"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+-       <w:t xml:space="preserve">The quick </w:t>
+-     </w:r>
+-     <w:bookmarkStart w:id="0" w:name="mark" />
+-     <w:r>
+-       <w:t>brown fox</w:t>
+-     </w:r>
+-     <w:bookmarkEnd w:id="0" />
+-     <w:r>
+-       <w:t xml:space="preserve"> jumps over the lazy dog.</w:t>
++       <w:t>The quick jumps over the lazy dog.</w:t>

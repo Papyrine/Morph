@@ -1,0 +1,10 @@
+-       <w:t>Centred kind.</w:t>
++       <w:t>Cen</w:t>
++       <w:jc w:val="center" />
++     </w:pPr>
++     <w:r>
++       <w:t>tred kind.</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:pPr>

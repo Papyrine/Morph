@@ -1,0 +1,7 @@
+-       <w:t xml:space="preserve"> jumps over the lazy dog.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:r>
+-       <w:t>Second paragraph.</w:t>
++       <w:t xml:space="preserve"> jumps over the lazy dog.Second paragraph.</w:t>

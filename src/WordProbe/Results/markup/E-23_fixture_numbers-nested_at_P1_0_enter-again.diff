@@ -1,0 +1,14 @@
++       <w:ind w:left="720" w:hanging="360" />
++     </w:pPr>
++   </w:p>
++   <w:p>
++     <w:pPr>
++   </w:p>
++   <w:p>
++     <w:pPr>
++       <w:pStyle w:val="ListParagraph" />
++       <w:numPr>
++         <w:ilvl w:val="0" />
++         <w:numId w:val="1" />
++       </w:numPr>
++     </w:pPr>

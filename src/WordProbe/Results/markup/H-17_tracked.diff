@@ -1,0 +1,20 @@
+-   <w:p>
++   <w:p w14:paraId="121D11F0" w14:textId="2524A524" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t xml:space="preserve">The </w:t>
++     <w:commentRangeStart w:id="0" />
++     <w:r>
++       <w:t>quick</w:t>
++     </w:r>
++     <w:commentRangeEnd w:id="0" />
++     <w:r>
++       <w:rPr>
++         <w:rStyle w:val="CommentReference" />
++         <w:sz w:val="24" />
++         <w:szCs w:val="24" />
++       </w:rPr>
++       <w:commentReference w:id="0" />
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> brown fox jumps over the lazy dog.</w:t>
++     </w:r>

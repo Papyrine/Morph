@@ -1,0 +1,6 @@
+-       <w:t xml:space="preserve">Line one </w:t>
+-     </w:r>
+-     <w:r>
+-       <w:br />
+-       <w:t>line two</w:t>
++       <w:t>Line one line two</w:t>

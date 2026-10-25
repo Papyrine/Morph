@@ -1,0 +1,32 @@
+-             <w:t>a2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3006" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>c2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-     </w:tr>
+-     <w:tr>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>

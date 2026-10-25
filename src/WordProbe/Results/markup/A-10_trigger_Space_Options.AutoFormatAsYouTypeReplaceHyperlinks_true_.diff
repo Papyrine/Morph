@@ -1,0 +1,14 @@
+-   <w:p />
++   <w:p>
++     <w:hyperlink r:id="rId4" w:history="1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
++       <w:r>
++         <w:rPr>
++           <w:rStyle w:val="Hyperlink" />
++         </w:rPr>
++         <w:t>www.example.com</w:t>
++       </w:r>
++     </w:hyperlink>
++     <w:r>
++       <w:t xml:space="preserve"> </w:t>
++     </w:r>
++   </w:p>

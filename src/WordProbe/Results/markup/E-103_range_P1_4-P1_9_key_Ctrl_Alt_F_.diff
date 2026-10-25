@@ -1,0 +1,11 @@
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t>The quick</w:t>
++     <w:r>
++       <w:rPr>
++         <w:rStyle w:val="FootnoteReference" />
++       </w:rPr>
++       <w:footnoteReference w:id="1" />
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> brown fox jumps over the lazy dog.</w:t>
++     </w:r>

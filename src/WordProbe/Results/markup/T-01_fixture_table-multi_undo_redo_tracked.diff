@@ -1,0 +1,34 @@
++     <w:tr>
++       <w:trPr>
++         <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:trPr>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="4508" w:type="dxa" />
++         </w:tcPr>
++         <w:p>
++           <w:pPr>
++             <w:rPr>
++               <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++         </w:p>
++       </w:tc>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="4508" w:type="dxa" />
++         </w:tcPr>
++         <w:p>
++           <w:pPr>
++             <w:pStyle w:val="ListParagraph" />
++             <w:numPr>
++               <w:ilvl w:val="0" />
++               <w:numId w:val="1" />
++             </w:numPr>
++             <w:rPr>
++               <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++         </w:p>
++       </w:tc>
++     </w:tr>

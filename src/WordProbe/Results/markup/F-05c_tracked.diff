@@ -1,0 +1,22 @@
+-   <w:p w14:paraId="5DFF814D" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="0D2145F3" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++     <w:pPr>
++       <w:rPr>
++         <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:38:00Z" w16du:dateUtc="2026-10-25T05:38:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
+-     <w:commentRangeStart w:id="0" />
++     <w:commentRangeStart w:id="1" />
+-       <w:t>brown fox</w:t>
++       <w:t>br</w:t>
+-     <w:commentRangeEnd w:id="0" />
++   </w:p>
++   <w:p w14:paraId="50853A11" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++       <w:t>own fox</w:t>
++     </w:r>
++     <w:commentRangeEnd w:id="1" />
++     <w:r>
+-       <w:commentReference w:id="0" />
++       <w:commentReference w:id="1" />
+-   <w:p w14:paraId="06B84234" w14:textId="7B73B23A" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="4E998EF6" w14:textId="7C643BFC" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">

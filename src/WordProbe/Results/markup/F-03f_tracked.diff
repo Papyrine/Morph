@@ -1,0 +1,9 @@
++     <w:pPr>
++       <w:rPr>
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:37:00Z" w16du:dateUtc="2026-10-25T05:37:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
+-     <w:bookmarkStart w:id="0" w:name="mark" />
++     <w:bookmarkStart w:id="1" w:name="mark" />
+-     <w:bookmarkEnd w:id="0" />
++     <w:bookmarkEnd w:id="1" />

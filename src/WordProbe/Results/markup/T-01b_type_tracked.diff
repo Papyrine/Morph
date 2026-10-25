@@ -1,0 +1,26 @@
+-           <w:r>
+-             <w:t>c2</w:t>
+-           </w:r>
++           <w:pPr>
++             <w:rPr>
++               <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>c2</w:delText>
++             </w:r>
++           </w:del>
+-           <w:r>
+-             <w:t>c3</w:t>
+-           </w:r>
++           <w:del w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>c3</w:delText>
++             </w:r>
++           </w:del>
++           <w:ins w:id="3" w:author="Simon Cropp" w:date="2026-10-25T14:39:00Z" w16du:dateUtc="2026-10-25T03:39:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>x</w:t>
++             </w:r>
++           </w:ins>

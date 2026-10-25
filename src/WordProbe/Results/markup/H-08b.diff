@@ -1,0 +1,22 @@
+-   <w:p w14:paraId="7538269B" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+-     <w:r>
+-       <w:t xml:space="preserve">The quick </w:t>
+-     </w:r>
+-     <w:commentRangeStart w:id="0" />
+-     <w:r>
+-       <w:t>brown fox</w:t>
+-     </w:r>
+-     <w:commentRangeEnd w:id="0" />
+-     <w:r>
+-       <w:rPr>
+-         <w:rStyle w:val="CommentReference" />
+-         <w:sz w:val="24" />
+-         <w:szCs w:val="24" />
+-       </w:rPr>
+-       <w:commentReference w:id="0" />
+-     </w:r>
++   <w:p>
+-       <w:t xml:space="preserve"> jumps over the lazy dog.</w:t>
++       <w:t>The quick jumps over the lazy dog.</w:t>
+-   <w:p w14:paraId="2E906EF7" w14:textId="7B2D57EF" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p>

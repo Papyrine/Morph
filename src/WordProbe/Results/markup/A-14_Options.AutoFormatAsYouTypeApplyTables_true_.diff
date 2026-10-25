@@ -1,0 +1,32 @@
++   <w:tbl>
++     <w:tblPr>
++       <w:tblStyle w:val="TableGrid" />
++       <w:tblW w:w="0" w:type="auto" />
++       <w:tblInd w:w="61" w:type="dxa" />
++       <w:tblLook w:val="0000" w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" />
++     </w:tblPr>
++     <w:tblGrid>
++       <w:gridCol w:w="300" />
++       <w:gridCol w:w="468" />
++     </w:tblGrid>
++     <w:tr>
++       <w:tblPrEx>
++         <w:tblCellMar>
++           <w:top w:w="0" w:type="dxa" />
++           <w:bottom w:w="0" w:type="dxa" />
++         </w:tblCellMar>
++       </w:tblPrEx>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="300" w:type="dxa" />
++         </w:tcPr>
++         <w:p />
++       </w:tc>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="468" w:type="dxa" />
++         </w:tcPr>
++         <w:p />
++       </w:tc>
++     </w:tr>
++   </w:tbl>

@@ -1,0 +1,10 @@
+-       <w:t>One</w:t>
++       <w:t>On</w:t>
++     </w:pPr>
++     <w:r>
++       <w:t>e</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:pPr>
++       <w:pStyle w:val="ListParagraph" />

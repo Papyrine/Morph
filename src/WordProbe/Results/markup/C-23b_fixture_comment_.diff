@@ -1,0 +1,19 @@
+-   <w:p w14:paraId="2991C2EF" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="470FB9E8" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+-   <w:p w14:paraId="6CBD3B59" w14:textId="42762796" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="742CA1BC" w14:textId="4D294301" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++     <w:commentRangeStart w:id="1" />
+-       <w:t>Second paragraph.</w:t>
++       <w:t>brown fox</w:t>
++     <w:commentRangeEnd w:id="1" />
++     <w:r>
++       <w:rPr>
++         <w:rStyle w:val="CommentReference" />
++         <w:sz w:val="24" />
++         <w:szCs w:val="24" />
++       </w:rPr>
++       <w:commentReference w:id="1" />
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> Second paragraph.</w:t>
++     </w:r>

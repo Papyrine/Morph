@@ -1,0 +1,39 @@
+-   <w:p>
+-     <w:r>
+-       <w:t>Before the table.</w:t>
+-     </w:r>
+-   </w:p>
+-             <w:t>a1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3006" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>c1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-     </w:tr>
+-     <w:tr>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>a2</w:t>
++             <w:t>Befora2</w:t>

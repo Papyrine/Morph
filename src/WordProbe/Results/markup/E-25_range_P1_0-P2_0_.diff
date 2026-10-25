@@ -1,0 +1,6 @@
+-     <w:r>
+-       <w:t>First paragraph here.</w:t>
+-     </w:r>
++     <w:pPr>
++       <w:jc w:val="center" />
++     </w:pPr>

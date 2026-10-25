@@ -1,0 +1,7 @@
+-       <w:t>Indented three.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:r>
+-       <w:t>Plain four.</w:t>
++       <w:t>Indented three.Plain four.</w:t>

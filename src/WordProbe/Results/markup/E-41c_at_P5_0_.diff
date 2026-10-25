@@ -1,0 +1,10 @@
+-       <w:t>Bullet four.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:jc w:val="center" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Centred five.</w:t>
++       <w:t>Bullet fourCentred five.</w:t>

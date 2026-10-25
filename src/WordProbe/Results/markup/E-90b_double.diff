@@ -1,0 +1,2 @@
+-       <w:spacing w:after="480" />
++       <w:spacing w:after="480" w:line="480" w:lineRule="auto" />

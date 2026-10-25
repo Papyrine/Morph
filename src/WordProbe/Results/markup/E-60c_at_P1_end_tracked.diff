@@ -1,0 +1,13 @@
++       <w:ind w:left="1440" />
++       <w:rPr>
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T17:20:00Z" w16du:dateUtc="2026-10-25T06:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++       <w:pPrChange w:id="1" w:author="Simon Cropp" w:date="2026-10-25T17:20:00Z" w16du:dateUtc="2026-10-25T06:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++         <w:pPr>
++           <w:pStyle w:val="ListParagraph" />
++           <w:numPr>
++             <w:numId w:val="1" />
++           </w:numPr>
++           <w:ind w:hanging="360" />
++         </w:pPr>
++       </w:pPrChange>

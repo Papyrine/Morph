@@ -1,0 +1,20 @@
+-     <w:r>
+-       <w:t>brown fox</w:t>
+-     </w:r>
+-     <w:bookmarkEnd w:id="0" />
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T16:37:00Z" w16du:dateUtc="2026-10-25T05:37:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>brown fox</w:delText>
++       </w:r>
++       <w:bookmarkEnd w:id="0" />
++       <w:r>
++         <w:delText xml:space="preserve"> </w:delText>
++       </w:r>
++     </w:del>
+-       <w:t xml:space="preserve"> jumps over the lazy dog.</w:t>
++       <w:t>jumps over the lazy dog.</w:t>
++     <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-10-25T16:37:00Z" w16du:dateUtc="2026-10-25T05:37:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve">brown fox </w:t>
++       </w:r>
++     </w:ins>

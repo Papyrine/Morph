@@ -1,0 +1,14 @@
+-   <w:p />
++       <w:pStyle w:val="Heading1" />
++     </w:pPr>
++     <w:r>
++       <w:t>ing kind</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:r>
++       <w:t>x</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:pPr>

@@ -1,0 +1,10 @@
+-       <w:t xml:space="preserve">a b soft­hyphen </w:t>
++       <w:t>a</w:t>
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:29:00Z" w16du:dateUtc="2026-10-25T03:29:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText> </w:delText>
++       </w:r>
++     </w:del>
++       <w:t xml:space="preserve">b soft­hyphen </w:t>
++     </w:r>
++     <w:r>

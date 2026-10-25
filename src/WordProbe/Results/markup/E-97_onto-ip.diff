@@ -1,0 +1,16 @@
+-       <w:t>Serif face</w:t>
++       <w:t>Ser</w:t>
++       <w:rPr>
++         <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" />
++         <w:sz w:val="28" />
++       </w:rPr>
++       <w:t>word-behavior.md</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" />
++         <w:sz w:val="28" />
++       </w:rPr>
++       <w:t>xif face</w:t>
++     </w:r>
++     <w:r>

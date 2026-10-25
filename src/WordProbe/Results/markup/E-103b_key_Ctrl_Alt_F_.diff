@@ -1,0 +1,11 @@
+-             <w:t>One</w:t>
++             <w:t>O</w:t>
++           <w:r>
++             <w:rPr>
++               <w:rStyle w:val="FootnoteReference" />
++             </w:rPr>
++             <w:footnoteReference w:id="1" />
++           </w:r>
++           <w:r>
++             <w:t>ne</w:t>
++           </w:r>

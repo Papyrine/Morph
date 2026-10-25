@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Drives a visible Word 365 with real keyboard and mouse input plus COM interop, and records what Word
+    did in src/word-behavior.md. Windows-only, so it is out of Release solution builds like RenderHelper
+    (the canonical suite builds `dotnet build src -c Release` inside a linux/amd64 container). Run
+    the smoke command first; see README.md.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <IsPackageProject>false</IsPackageProject>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+    <RollForward>Major</RollForward>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- NU1701: the Word PIA is a .NET Framework package; its types are embedded, so that is fine. -->
+    <NoWarn>$(NoWarn);CS1591;NU1701</NoWarn>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="ProjectFiles" PrivateAssets="all" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="Microsoft.Office.Interop.Word" NoWarn="NU1701" />
+  </ItemGroup>
+
+  <!--
+    The Word PIA references office.dll, which only the GAC has and .NET 10 does not probe. Embedding the
+    interop types (NoPIA) makes the PIA a compile-time reference only; the metadata on the PackageReference
+    is not honoured by the SDK, so the reference item is marked here instead.
+  -->
+  <Target Name="EmbedWordInteropTypes" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(ReferencePath.Filename)' == 'Microsoft.Office.Interop.Word'">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Filename)' == 'Microsoft.Office.Interop.Word'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

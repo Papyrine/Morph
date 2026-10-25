@@ -1,0 +1,65 @@
+-       <w:t>Normal kind.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:pStyle w:val="Heading1" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Heading kind</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:pStyle w:val="ListParagraph" />
+-       <w:numPr>
+-         <w:ilvl w:val="0" />
+-         <w:numId w:val="1" />
+-       </w:numPr>
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Bullet kind.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:jc w:val="center" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Centred kind.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:pBdr>
+-         <w:top w:val="single" w:sz="4" w:space="1" w:color="auto" />
+-         <w:left w:val="single" w:sz="4" w:space="4" w:color="auto" />
+-         <w:bottom w:val="single" w:sz="4" w:space="1" w:color="auto" />
+-         <w:right w:val="single" w:sz="4" w:space="4" w:color="auto" />
+-       </w:pBdr>
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Bordered kind.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:ind w:left="720" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Indented kind.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p />
+-   <w:p>
+-     <w:pPr>
+-       <w:keepNext />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Keep with next kind.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:r>
+-       <w:t>Last plain kind.</w:t>
++       <w:t>x</w:t>

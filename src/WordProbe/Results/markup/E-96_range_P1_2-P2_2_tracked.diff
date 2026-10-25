@@ -1,0 +1,76 @@
+-     <w:r>
+-       <w:t>First paragraph here.</w:t>
+-     </w:r>
++     <w:pPr>
++       <w:rPr>
++         <w:moveFrom w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
++     <w:moveFromRangeStart w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w:name="move243831398" />
++     <w:moveFrom w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>First paragraph here.</w:t>
++       </w:r>
++     </w:moveFrom>
++       <w:rPr>
++         <w:moveFrom w:id="3" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-     <w:r>
+-       <w:t xml:space="preserve">Second </w:t>
+-     </w:r>
+-     <w:r>
++     <w:moveFrom w:id="4" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve">Second </w:t>
++       </w:r>
++       <w:r>
++         <w:rPr>
++           <w:b />
++         </w:rPr>
++         <w:t>bold</w:t>
++       </w:r>
++       <w:r>
++         <w:t xml:space="preserve"> one.</w:t>
++       </w:r>
++     </w:moveFrom>
++   </w:p>
++   <w:moveFromRangeEnd w:id="1" />
++   <w:p>
++     <w:pPr>
+-         <w:b />
++         <w:moveTo w:id="5" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
+-       <w:t>bold</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> one.</w:t>
+-     </w:r>
++     </w:pPr>
++     <w:moveToRangeStart w:id="6" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w:name="move243831398" />
++     <w:moveTo w:id="7" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>First paragraph here.</w:t>
++       </w:r>
++     </w:moveTo>
++     <w:pPr>
++       <w:jc w:val="center" />
++       <w:rPr>
++         <w:moveTo w:id="8" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
++     <w:moveTo w:id="9" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve">Second </w:t>
++       </w:r>
++       <w:r>
++         <w:rPr>
++           <w:b />
++         </w:rPr>
++         <w:t>bold</w:t>
++       </w:r>
++       <w:r>
++         <w:t xml:space="preserve"> one.</w:t>
++       </w:r>
++     </w:moveTo>
++   </w:p>
++   <w:moveToRangeEnd w:id="6" />
++   <w:p>

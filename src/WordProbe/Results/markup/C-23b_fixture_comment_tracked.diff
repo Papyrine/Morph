@@ -1,0 +1,24 @@
+-   <w:p w14:paraId="69BA84DA" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="470CA5E0" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+-   <w:p w14:paraId="0648C383" w14:textId="5019033D" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="3F273936" w14:textId="2B131750" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++     <w:commentRangeStart w:id="1" />
++     <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" w16du:dateUtc="2026-10-25T03:57:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>brown fox</w:t>
++       </w:r>
++     </w:ins>
++     <w:commentRangeEnd w:id="1" />
++       <w:rPr>
++         <w:rStyle w:val="CommentReference" />
++         <w:sz w:val="24" />
++         <w:szCs w:val="24" />
++       </w:rPr>
++       <w:commentReference w:id="1" />
++     </w:r>
++     <w:ins w:id="3" w:author="Simon Cropp" w:date="2026-10-25T14:57:00Z" w16du:dateUtc="2026-10-25T03:57:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve"> </w:t>
++       </w:r>
++     </w:ins>
++     <w:r>

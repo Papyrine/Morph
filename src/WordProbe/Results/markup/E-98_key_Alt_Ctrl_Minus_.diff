@@ -1,0 +1,6 @@
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t xml:space="preserve">The </w:t>
++     <w:r>
++       <w:softHyphen />
++       <w:t>quick brown fox jumps over the lazy dog.</w:t>
++     </w:r>

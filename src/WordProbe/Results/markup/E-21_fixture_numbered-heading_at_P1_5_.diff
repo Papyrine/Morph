@@ -1,0 +1,14 @@
+-       <w:t>Numbered title</w:t>
++       <w:t>Numbe</w:t>
++       <w:pStyle w:val="Heading1" />
++       <w:numPr>
++         <w:ilvl w:val="0" />
++         <w:numId w:val="1" />
++       </w:numPr>
++     </w:pPr>
++     <w:r>
++       <w:t>red title</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:pPr>

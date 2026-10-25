@@ -1,0 +1,8 @@
++     <w:pPr>
++       <w:pStyle w:val="Heading1" />
++     </w:pPr>
+-       <w:jc w:val="center" />
++       <w:pStyle w:val="Heading1" />
++     <w:pPr>
++       <w:pStyle w:val="Heading1" />
++     </w:pPr>

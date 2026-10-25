@@ -1,0 +1,10 @@
+-       <w:t>Keep with next kind.</w:t>
++       <w:t>Kee</w:t>
++     <w:pPr>
++       <w:keepNext />
++     </w:pPr>
++       <w:t>p with next kind.</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:r>

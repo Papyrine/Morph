@@ -1,0 +1,7 @@
+-       <w:t>brown fox</w:t>
++       <w:t>brown</w:t>
++   </w:p>
++   <w:p>
++     <w:r>
++       <w:t xml:space="preserve"> fox</w:t>
++     </w:r>

@@ -1,0 +1,8 @@
+-       <w:t xml:space="preserve">a b soft­hyphen </w:t>
++       <w:rPr>
++         <w:vanish />
++       </w:rPr>
++       <w:t>a b s</w:t>
++       <w:t xml:space="preserve">oft­hyphen </w:t>
++     </w:r>
++     <w:r>
