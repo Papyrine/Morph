@@ -87,7 +87,7 @@ public partial class MorphConverter : IDisposable
     // component goes, so a server-hosted converter stops rendering for a file nobody will see. (On the
     // single-threaded WebAssembly runtime a render holds the thread, so it cannot be cancelled midway;
     // a conversion still queued behind it is.)
-    CancellationTokenSource work = new();
+    CancelSource work = new();
 
     FormatInfo? TargetInfo => ConversionService.Find(target);
 
