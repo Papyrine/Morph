@@ -1,4 +1,4 @@
-# All Markdown export scenarios (26)
+# All Markdown export scenarios (29)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -10,6 +10,9 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-bar-column](#chart-bar-column)
+- [chart-pie](#chart-pie)
+- [chart-stacked-line](#chart-stacked-line)
 - [color-block](#color-block)
 - [dappled](#dappled)
 - [education-infographics-poster](#education-infographics-poster)
@@ -63,6 +66,24 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="business-cards-horizontal-layout/expected_0001.png" width="500"> | <img src="business-cards-horizontal-layout/md_result.verified.png" width="500"> |
+
+## chart-bar-column
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-bar-column/expected_0001.png" width="500"><br><img src="chart-bar-column/expected_0002.png" width="500"> | <img src="chart-bar-column/md_result.verified.png" width="500"> |
+
+## chart-pie
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/md_result.verified.png" width="500"> |
+
+## chart-stacked-line
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-stacked-line/expected_0001.png" width="500"><br><img src="chart-stacked-line/expected_0002.png" width="500"> | <img src="chart-stacked-line/md_result.verified.png" width="500"> |
 
 ## color-block
 
