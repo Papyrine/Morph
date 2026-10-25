@@ -20,6 +20,7 @@
 // That is the count .NET uses too (EditParagraph.Length), which is how the two agree on where a caret is.
 
 import { faceMetrics, naturalWidth } from './morph-text.js';
+import { corrections, smartQuote } from './morph-autocorrect.js';
 
 const bold = 1;
 const italic = 2;
@@ -1101,6 +1102,65 @@ export class ParagraphEditor {
         this.typed = typed;
     }
 
+    // A character typed: a straight quote is typed as Word's smart quote, and a delimiter that finishes
+    // a word runs Word's AutoCorrect over it (morph-autocorrect.js).
+    typeText(range, text) {
+        let typed = text;
+        if (text === '"' || text === "'") {
+            typed = smartQuote(this.blockText(range.from.b).slice(0, range.from.o), text);
+        }
+
+        this.replace(this.overtyped(range, typed), typed, 'type');
+        if (typed.length === 1 && /[\s.,?!;:]/.test(typed)) {
+            const caret = this.range();
+            if (caret && same(caret.from, caret.to)) {
+                this.autoCorrect({ b: caret.from.b, o: caret.from.o - 1 }, typed);
+            }
+        }
+    }
+
+    // Word's corrections of the word that ends at `end`, finished by `trigger`, each an undo entry of its
+    // own — so the first Ctrl+Z after one takes the correction back and keeps what was typed (A-20).
+    // Only the paragraph's first block starts a list; a correction that would cross something that is
+    // not text is left alone.
+    autoCorrect(end, trigger) {
+        const text = this.blockText(end.b);
+        let caret = this.range()?.from ?? end;
+        for (const correction of corrections(text, end.o, trigger)) {
+            if (correction.list && end.b !== 0) {
+                continue;
+            }
+
+            const from = { b: end.b, o: correction.from };
+            const to = { b: end.b, o: correction.to };
+            if (this.blockText(end.b).slice(correction.from, correction.to).includes('\uFFFC')) {
+                continue;
+            }
+
+            this.record('autocorrect');
+            const like = this.faceAt({ b: end.b, o: correction.from + 1 });
+            this.remove(from, to);
+            const written = this.insert(from, correction.text, like);
+            if (correction.face) {
+                for (const item of this.textBetween(from, written)) {
+                    item.f |= faces[correction.face];
+                }
+            }
+
+            const shift = correction.text.length - (correction.to - correction.from);
+            if (caret.b === end.b && caret.o >= correction.to) {
+                caret = { b: caret.b, o: caret.o + shift };
+            }
+
+            this.tidy();
+            this.render();
+            this.select(caret);
+            if (correction.list) {
+                this.callbacks.key(correction.list);
+            }
+        }
+    }
+
     // Word's alignment keys toggle against Left: Ctrl+E, Ctrl+R and Ctrl+J pressed on a paragraph
     // already so aligned put it back to the left, and Ctrl+L on a left-aligned one justifies it
     // (WordProbe E-89, E-89b).
@@ -1538,7 +1598,7 @@ export class ParagraphEditor {
 
         event.preventDefault();
         this.handled = true;
-        const range = this.targetRange(event);
+        let range = this.targetRange(event);
         if (!range) {
             return;
         }
@@ -1551,7 +1611,7 @@ export class ParagraphEditor {
                     this.extendTo((event.data ?? '').slice(0, 1));
                 } else if (type === 'insertText') {
                     const text = event.data ?? '';
-                    this.replace(this.overtyped(range, text), text, 'type');
+                    this.typeText(range, text);
                 } else {
                     this.replace(range, event.data ?? event.dataTransfer?.getData('text/plain') ?? '', 'paste');
                 }
@@ -1566,6 +1626,12 @@ export class ParagraphEditor {
 
                 break;
             case 'insertParagraph':
+                // Enter finishes the word before it, as a space does (WordProbe A-01, A-19).
+                if (same(range.from, range.to)) {
+                    this.autoCorrect(range.from, '\n');
+                    range = this.range() ?? range;
+                }
+
                 this.paragraphBreak(range);
                 break;
             case 'insertLineBreak':
