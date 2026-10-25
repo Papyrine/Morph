@@ -28,6 +28,29 @@
   </ItemGroup>
 
   <!--
+    What an AOT publish leaves interpreted, so that the app can start on an iPhone. AOT compiles every
+    method of an assembly rooted whole above, and compiling all of them made dotnet.native.wasm 113 MB
+    (28 MB gzip); WebKit's page process then peaked at ~1 GB while booting it, and on iOS, where every
+    browser is WebKit, the page never got past "Loading Morph..." in Safari or Firefox. Interpreted, the
+    rooted libraries below give a 41 MB .wasm (12.6 MB gzip) that boots at ~530 MB.
+
+    The two libraries an edit spends its time in stay compiled: DocumentFormat.OpenXml.Framework (the
+    element tree every parse and edit walks) and SixLabors.Fonts (glyph layout, for every page drawn).
+    Interpreting those as well (a 36 MB .wasm) made handing in an edit 2-2.7x slower on the business
+    plan and the app's sample; with them compiled, the business plan matches the all-AOT build and the
+    sample (pictures, through ImageSharp) hands in in 440 ms rather than 265. Typing is unchanged in all
+    three: it never crosses to .NET. Measured with Benchmark_Editor, and the memory with Playwright's
+    WebKit, 2026-10-25.
+  -->
+  <ItemGroup Condition="'$(RunAOTCompilation)' == 'true'">
+    <_AOT_InternalForceInterpretAssemblies Include="DocumentFormat.OpenXml.dll" />
+    <_AOT_InternalForceInterpretAssemblies Include="AngleSharp.dll" />
+    <_AOT_InternalForceInterpretAssemblies Include="SixLabors.ImageSharp.dll" />
+    <_AOT_InternalForceInterpretAssemblies Include="SixLabors.ImageSharp.Drawing.dll" />
+    <_AOT_InternalForceInterpretAssemblies Include="SixLabors.PolygonClipper.dll" />
+  </ItemGroup>
+
+  <!--
     Two workarounds an AOT publish (RunAOTCompilation) needs, and nothing else does. Both lean on SDK
     surface that is internal (underscore-prefixed). If an SDK update stops honouring either, the AOT
     publish fails with a build error, never a runtime one: "Precompiling failed for ... aot-instances.dll"
