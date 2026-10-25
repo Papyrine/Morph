@@ -89,7 +89,7 @@ public class MorphViewerReviewTests : BunitTestContext
     [Test]
     public async Task ShowReview_Off_DropsTheButton()
     {
-        var cut = await Open(Tracked, _ => _.Add(component => component.ShowReview, false));
+        var cut = await Open(Tracked, _ => _.Add(_ => _.ShowReview, false));
 
         await Assert.That(cut.FindAll(".viewer-review-toggle")).IsEmpty();
     }
@@ -126,7 +126,7 @@ public class MorphViewerReviewTests : BunitTestContext
         var bytes = ReviewEditor.AddComment(Tracked, new(0, 0), new(0, 5), "Ann Lee", "A greeting.\nIs it needed?", new(2026, 9, 27, 14, 30, 0, TimeSpan.FromHours(10)));
         bytes = ReviewEditor.Reply(bytes, "0", "Bob", "It is.", new(2026, 9, 27, 15, 0, 0, TimeSpan.FromHours(10)));
 
-        var cut = await Open(bytes, _ => _.Add(component => component.OpenReview, true));
+        var cut = await Open(bytes, _ => _.Add(_ => _.OpenReview, true));
 
         await Verify(cut);
     }
@@ -145,10 +145,10 @@ public class MorphViewerReviewTests : BunitTestContext
     [Test]
     public async Task OpenReview_OpensThePane_WhereThereIsSomethingInIt()
     {
-        var withChanges = await Open(Tracked, _ => _.Add(component => component.OpenReview, true));
+        var withChanges = await Open(Tracked, _ => _.Add(_ => _.OpenReview, true));
         await Assert.That(withChanges.FindAll(".viewer-review").Count).IsEqualTo(1);
 
-        var without = await Open(Sample.DocxBytes, _ => _.Add(component => component.OpenReview, true));
+        var without = await Open(Sample.DocxBytes, _ => _.Add(_ => _.OpenReview, true));
         await Assert.That(without.FindAll(".viewer-review")).IsEmpty();
     }
 
@@ -236,7 +236,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task Accept_EditsTheDocument_AndSwapsThePagesInPlace()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var opened = (int) controller.Invocations["load"].Single().Arguments[0]!;
 
         await cut.FindAll(".review-card")[1].QuerySelectorAll(".review-button")[0].ClickAsync(new());
@@ -262,7 +262,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task Reject_PutsBackWhatWasThere()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.FindAll(".review-card")[1].QuerySelectorAll(".review-button")[1].ClickAsync(new());
 
@@ -276,7 +276,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task AcceptAll_And_RejectAll_SettleEverything(string action, string expected)
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.FindAll(".review-action").Single(_ => _.TextContent.Trim() == action).ClickAsync(new());
 
@@ -304,7 +304,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task Undo_And_Redo_StepThroughTheEdits()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         await Assert.That(cut.Find("button[aria-label=Undo]").HasAttribute("disabled")).IsTrue();
 
         await cut.FindAll(".review-action").Single(_ => _.TextContent.Trim() == "Accept all").ClickAsync(new());
@@ -343,8 +343,8 @@ public class MorphViewerReviewTests : BunitTestContext
         var cut = await OpenPane(
             Tracked,
             _ => _
-                .Add(component => component.Author, "Simon Cropp")
-                .Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+                .Add(_ => _.Author, "Simon Cropp")
+                .Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         // "lo ins": from inside one run to inside the next, which is an insertion.
         await cut.InvokeAsync(() => cut.Instance.OnReviewSelection([0, 3, 0, 9]));
@@ -382,7 +382,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task NewComment_IsPostedWithControlEnter_AndAbandonedWithEscape()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.InvokeAsync(() => cut.Instance.OnReviewSelection([0, 0, 0, 5]));
         await cut.Find(".review-action-primary").ClickAsync(new());
@@ -409,7 +409,7 @@ public class MorphViewerReviewTests : BunitTestContext
     {
         controller.Setup<int>("zoneOffset", _ => true).SetResult(minutesEast);
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.InvokeAsync(() => cut.Instance.OnReviewSelection([0, 0, 0, 5]));
         await cut.Find(".review-action-primary").ClickAsync(new());
@@ -426,7 +426,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task WithoutAnAuthor_TheReaderSignsTheirOwnName()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.InvokeAsync(() => cut.Instance.OnReviewSelection([0, 0, 0, 5]));
         await cut.Find(".review-action-primary").ClickAsync(new());
@@ -442,7 +442,7 @@ public class MorphViewerReviewTests : BunitTestContext
     [Test]
     public async Task WithAnAuthor_NoNameIsAskedFor()
     {
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.Author, "Ann"));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.Author, "Ann"));
 
         await Assert.That(cut.FindAll(".review-signature")).IsEmpty();
     }
@@ -468,8 +468,8 @@ public class MorphViewerReviewTests : BunitTestContext
         var cut = await OpenPane(
             Commented,
             _ => _
-                .Add(component => component.Author, "Ann")
-                .Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+                .Add(_ => _.Author, "Ann")
+                .Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.FindAll(".review-button").Single(_ => _.TextContent.Trim() == "Reply").ClickAsync(new());
         await cut.Find(".review-reply .review-input").InputAsync(new() { Value = "Agreed" });
@@ -487,7 +487,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task Resolve_MarksTheThread_AndStopsPaintingIt()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Commented, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Commented, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.FindAll(".review-button").Single(_ => _.TextContent.Trim() == "Resolve").ClickAsync(new());
 
@@ -509,7 +509,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task Edit_RewordsAComment()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Commented, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Commented, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.Find("button[aria-label='Edit comment']").ClickAsync(new());
         await Assert.That(cut.Find(".review-input").GetAttribute("value")).IsEqualTo("Looks good to me.");
@@ -528,7 +528,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task Delete_RemovesTheComment()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Commented, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Commented, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.Find("button[aria-label='Delete comment']").ClickAsync(new());
 
@@ -544,7 +544,7 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task ReadOnly_ListsEverything_AndOffersNoEdit()
     {
         var bytes = ReviewEditor.AddComment(Tracked, new(0, 0), new(0, 5), "Ann", "Note", new(2026, 9, 27, 0, 0, 0, TimeSpan.Zero));
-        var cut = await OpenPane(bytes, _ => _.Add(component => component.ReadOnly, true));
+        var cut = await OpenPane(bytes, _ => _.Add(_ => _.ReadOnly, true));
 
         await Assert.That(cut.FindAll(".review-card").Count).IsEqualTo(3);
         await Assert.That(cut.FindAll(".review-action")).IsEmpty();
@@ -572,12 +572,12 @@ public class MorphViewerReviewTests : BunitTestContext
     public async Task TheEditedFile_HandedBackAsSource_IsNotReopened()
     {
         byte[]? reported = null;
-        var cut = await OpenPane(Tracked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenPane(Tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         await cut.FindAll(".review-action").Single(_ => _.TextContent.Trim() == "Accept all").ClickAsync(new());
 
         cut.Render(_ => _
-            .Add(component => component.Source, reported)
-            .Add(component => component.FileName, "review.docx"));
+            .Add(_ => _.Source, reported)
+            .Add(_ => _.FileName, "review.docx"));
 
         await Assert.That(controller.Invocations["load"].Count).IsEqualTo(1);
         await Assert.That(controller.Invocations["unload"]).IsEmpty();

@@ -188,7 +188,7 @@ static class FixtureCatalog
         new("table-2x2", "Paragraph, a 2x2 table (One Two / Three Four) with 0.5in cell margins, paragraph.", _ =>
         {
             _.Paragraph("Before the table.");
-            _.Table(2, 2, new string?[,] {{"One", "Two"}, {"Three", "Four"}}, 36);
+            _.Table(2, 2, new[,] {{"One", "Two"}, {"Three", "Four"}}, 36);
             _.Paragraph("After the table.");
         }),
         new("table-2x2-empty", "Paragraph, an empty 2x2 table, paragraph.", _ =>
@@ -200,13 +200,13 @@ static class FixtureCatalog
         new("table-3x3", "Paragraph, a 3x3 table with one word per cell, paragraph.", _ =>
         {
             _.Paragraph("Before the table.");
-            _.Table(3, 3, new string?[,] {{"a1", "b1", "c1"}, {"a2", "b2", "c2"}, {"a3", "b3", "c3"}}, 36);
+            _.Table(3, 3, new[,] {{"a1", "b1", "c1"}, {"a2", "b2", "c2"}, {"a3", "b3", "c3"}}, 36);
             _.Paragraph("After the table.");
         }),
         new("table-merged", "A 3x3 table with (1,1)-(1,2) merged across and (2,3)-(3,3) merged down.", _ =>
         {
             _.Paragraph("Before the table.");
-            var table = _.Table(3, 3, new string?[,] {{"a1", "b1", "c1"}, {"a2", "b2", "c2"}, {"a3", "b3", "c3"}}, 36);
+            var table = _.Table(3, 3, new[,] {{"a1", "b1", "c1"}, {"a2", "b2", "c2"}, {"a3", "b3", "c3"}}, 36);
             table.Cell(1, 1).Merge(table.Cell(1, 2));
             table.Cell(2, 3).Merge(table.Cell(3, 3));
             _.Paragraph("After the table.");
@@ -214,7 +214,7 @@ static class FixtureCatalog
         new("table-nested", "A 2x2 table whose (1,2) holds a 2x2 inner table and a paragraph after it.", _ =>
         {
             _.Paragraph("Before the table.");
-            var table = _.Table(2, 2, new string?[,] {{"a1", null}, {"a2", "b2"}}, 18);
+            var table = _.Table(2, 2, new[,] {{"a1", null}, {"a2", "b2"}}, 18);
             var cell = table.Cell(1, 2).Range;
             cell.Text = "inner after";
             var innerAnchor = _.Document.Range(cell.Start, cell.Start);
@@ -240,33 +240,33 @@ static class FixtureCatalog
         new("table-at-end", "A paragraph, then a 2x2 table followed only by the final paragraph mark.", _ =>
         {
             _.Paragraph("Before the table.");
-            _.Table(2, 2, new string?[,] {{"One", "Two"}, {"Three", "Four"}}, 36);
+            _.Table(2, 2, new[,] {{"One", "Two"}, {"Three", "Four"}}, 36);
         }),
         new("tables-adjacent", "Two 2x2 tables with one empty paragraph between them.", _ =>
         {
             _.Paragraph("Before the tables.");
-            _.Table(2, 2, new string?[,] {{"a1", "b1"}, {"a2", "b2"}}, 18);
+            _.Table(2, 2, new[,] {{"a1", "b1"}, {"a2", "b2"}}, 18);
             _.Empty();
-            _.Table(2, 2, new string?[,] {{"c1", "d1"}, {"c2", "d2"}}, 18);
+            _.Table(2, 2, new[,] {{"c1", "d1"}, {"c2", "d2"}}, 18);
             _.Paragraph("After the tables.");
         }),
         new("table-multi", "A 2x2 table whose (1,1) has two paragraphs and whose (2,2) holds a two-item bullet list.", _ =>
         {
             _.Paragraph("Before the table.");
-            var table = _.Table(2, 2, new string?[,] {{"first\rsecond", "b1"}, {"a2", "item one\ritem two"}}, 36);
+            var table = _.Table(2, 2, new[,] {{"first\rsecond", "b1"}, {"a2", "item one\ritem two"}}, 36);
             table.Cell(2, 2).Range.ListFormat.ApplyBulletDefault();
             _.Paragraph("After the table.");
         }),
         new("table-1x1", "Paragraph, a 1x1 table, paragraph.", _ =>
         {
             _.Paragraph("Before the table.");
-            _.Table(1, 1, new string?[,] {{"Only"}}, 36);
+            _.Table(1, 1, new[,] {{"Only"}}, 36);
             _.Paragraph("After the table.");
         }),
         new("list-in-cell", "A 2x2 table whose (1,1) holds a two-item bullet list.", _ =>
         {
             _.Paragraph("Before the table.");
-            var table = _.Table(2, 2, new string?[,] {{"item one\ritem two", "b1"}, {"a2", "b2"}}, 36);
+            var table = _.Table(2, 2, new[,] {{"item one\ritem two", "b1"}, {"a2", "b2"}}, 36);
             table.Cell(1, 1).Range.ListFormat.ApplyBulletDefault();
             _.Paragraph("After the table.");
         }),
@@ -469,7 +469,7 @@ static class FixtureCatalog
         {
             filter = MessageFilter.Register(null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(5));
             // Visible: shapes' text frames (and some layout-dependent members) fail in a hidden window.
-            application = new Word.Application
+            application = new()
             {
                 Visible = true,
                 DisplayAlerts = Word.WdAlertLevel.wdAlertsNone

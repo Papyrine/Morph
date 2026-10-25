@@ -23,7 +23,11 @@ static class ParallelPages
         Parallel.For(
             0,
             pages.Count,
-            new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism, CancellationToken = cancel },
+            new()
+            {
+                MaxDegreeOfParallelism = degreeOfParallelism,
+                CancellationToken = cancel
+            },
             createContext,
             (index, _, context) =>
             {

@@ -47,7 +47,7 @@ static class MarkdownRenderer
         Replace(ref markdown, "options", RenderOptions(environment));
         Replace(ref markdown, "fixtures", RenderFixtures());
         Replace(ref markdown, "environment", RenderEnvironment(environment));
-        markdown = Regex.Replace(markdown, @"<!-- probe:generated -->.*", $"<!-- probe:generated --> {Provenance(environment)}");
+        markdown = Regex.Replace(markdown, "<!-- probe:generated -->.*", $"<!-- probe:generated --> {Provenance(environment)}");
         File.WriteAllText(Paths.Markdown, markdown, new UTF8Encoding(false));
         Log.Info($"Rendered {Paths.Markdown}");
     }
@@ -160,7 +160,11 @@ static class MarkdownRenderer
         {
             builder.Append(RenderRibbon(scenario, expanded, cases));
         }
-        else if (scenario.IsParameterised && !scenario.IsTree)
+        else if (scenario is
+                 {
+                     IsParameterised: true,
+                     IsTree: false
+                 })
         {
             builder.Append(RenderTable(scenario, expanded, cases));
         }
@@ -256,8 +260,11 @@ static class MarkdownRenderer
             builder.Append(RibbonReader.Summary(ribbonState)).Append("\n\n");
         }
 
-        if (result.Status == "ok" &&
-            result.Remarks.Count > 0)
+        if (result is
+            {
+                Status: "ok",
+                Remarks.Count: > 0
+            })
         {
             builder.Append('_').Append(string.Join("; ", result.Remarks)).Append("_\n\n");
         }
@@ -577,7 +584,7 @@ static class MarkdownRenderer
     }
 
     static string NodeId(string path) =>
-        "n_" + Regex.Replace(path, @"[^A-Za-z0-9]+", "_").Trim('_');
+        "n_" + Regex.Replace(path, "[^A-Za-z0-9]+", "_").Trim('_');
 
     static string Mermaid(string text) =>
         text.Replace("\"", "#quot;").Replace("<", "#lt;").Replace(">", "#gt;");
@@ -677,7 +684,7 @@ static class MarkdownRenderer
 /// <summary>Which tests cite which scenario or case ids, by scanning the test sources for the WordBehavior property.</summary>
 static class Coverage
 {
-    static readonly Regex property = new(@"Property\(\s*""WordBehavior""\s*,\s*""(?<id>[^""]+)""\s*\)", RegexOptions.Compiled);
+    static readonly Regex property = new("""Property\(\s*"WordBehavior"\s*,\s*"(?<id>[^"]+)"\s*\)""", RegexOptions.Compiled);
     static readonly Regex method = new(@"(?:Task|void|ValueTask)\s+(?<name>\w+)\s*\(", RegexOptions.Compiled);
     static readonly Regex type = new(@"class\s+(?<name>\w+)", RegexOptions.Compiled);
 

@@ -140,7 +140,7 @@ static class FixtureNormalizer
                     FixRevision(deletedRun);
                     break;
                 case Comment comment:
-                    comment.Date = new DateTimeValue(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+                    comment.Date = new(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
                     comment.Initials = "OT";
                     break;
             }
@@ -178,7 +178,7 @@ static class FixtureNormalizer
             foreach (var (name, bytes) in entries.OrderBy(_ => _.Key == "[Content_Types].xml" ? 0 : 1).ThenBy(_ => _.Key, StringComparer.Ordinal))
             {
                 var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
-                entry.LastWriteTime = new DateTimeOffset(1980, 1, 1, 0, 0, 0, TimeSpan.Zero);
+                entry.LastWriteTime = new(1980, 1, 1, 0, 0, 0, TimeSpan.Zero);
                 using var stream = entry.Open();
                 stream.Write(bytes);
             }

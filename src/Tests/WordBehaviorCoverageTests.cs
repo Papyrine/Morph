@@ -1,6 +1,3 @@
-using System.Text.Json;
-using System.Text.RegularExpressions;
-
 /// <summary>
 /// The join between <c>src/word-behavior.md</c> (what Word does, measured by <c>src/WordProbe</c>) and the
 /// tests that make the editor do the same. A test cites the case, scenario or rule it enforces with
@@ -15,7 +12,9 @@ public class WordBehaviorCoverageTests
     static readonly string results = Path.Combine(solution, "WordProbe", "Results");
     static readonly string markdown = Path.Combine(solution, "word-behavior.md");
 
-    static readonly Regex property = new(@"Property\(\s*""WordBehavior""\s*,\s*""(?<id>[^""]+)""\s*\)", RegexOptions.Compiled);
+    static readonly Regex property = new(
+        """Property\(\s*"WordBehavior"\s*,\s*"(?<id>[^"]+)"\s*\)""",
+        RegexOptions.Compiled);
 
     // "- **R-E-3 Backspace at a paragraph start …** … — Morph: DONE". The id opens the bold title and the
     // bullet wraps over several lines (continuation lines are indented), so the match runs from the bullet's

@@ -66,7 +66,7 @@ public class MalformedPackageTests
     {
         var parts = Read(Original("complex_tables"));
         var document = Encoding.UTF8.GetString(parts["word/document.xml"]);
-        var hostile = System.Text.RegularExpressions.Regex.Replace(document, "(w:(?:w|h|left|right|top|bottom))=\"-?\\d+\"", "$1=\"999999999\"");
+        var hostile = Regex.Replace(document, "(w:(?:w|h|left|right|top|bottom))=\"-?\\d+\"", "$1=\"999999999\"");
         var bytes = Write(parts.Select(_ => _.Key == "word/document.xml" ? new(_.Key, Encoding.UTF8.GetBytes(hostile)) : _));
 
         var pages = await Task.Run(() => new SkiaDocumentConverter().ConvertToImageData(new MemoryStream(bytes), new() { Dpi = 12, FontDirectory = fonts }))
@@ -111,7 +111,7 @@ public class MalformedPackageTests
         var text = Encoding.UTF8.GetString(document);
         foreach (var hostile in new[] { "999999999", "-999999999", "0" })
         {
-            var mutated = System.Text.RegularExpressions.Regex.Replace(text, "(w:(?:val|w|h|left|right|top|bottom|hanging|firstLine|before|after|line|gridSpan|sz))=\"-?\\d+\"", $"$1=\"{hostile}\"");
+            var mutated = Regex.Replace(text, "(w:(?:val|w|h|left|right|top|bottom|hanging|firstLine|before|after|line|gridSpan|sz))=\"-?\\d+\"", $"$1=\"{hostile}\"");
             yield return ($"numbers all {hostile}", () => Write(parts.Select(_ => _.Key == "word/document.xml" ? new(_.Key, Encoding.UTF8.GetBytes(mutated)) : _)));
         }
 

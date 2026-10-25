@@ -257,8 +257,7 @@ static class StepParser
     static string Unquote(string arguments)
     {
         arguments = arguments.Trim();
-        if (arguments.Length >= 2 &&
-            arguments[0] == '"' &&
+        if (arguments is ['"', _, ..] &&
             arguments[^1] == '"')
         {
             arguments = arguments[1..^1];

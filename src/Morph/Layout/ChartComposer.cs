@@ -1113,13 +1113,20 @@ sealed class ChartComposer(
             return fill;
         }
 
-        if (!series.NoLine &&
-            series.Line?.ColorHex is { } line)
+        if (series is
+            {
+                NoLine: false,
+                Line.ColorHex: { } line
+            })
         {
             return line;
         }
 
-        return series.Marker?.FillHex ?? series.Marker?.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count];
+        var marker = series.Marker;
+
+        return marker?.FillHex ??
+               marker?.Line?.ColorHex ??
+               chart.Palette[index % chart.Palette.Count];
     }
 
     // A point's marker, centred on it, in its own fill and outline or else the series' colour.

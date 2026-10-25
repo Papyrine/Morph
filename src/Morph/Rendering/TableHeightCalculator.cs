@@ -585,7 +585,7 @@ static class TableHeightCalculator
             var properties = element switch
             {
                 ParagraphElement paragraph => paragraph.Properties,
-                ContentControlElement {Runs.Count: > 0} => new ParagraphProperties(),
+                ContentControlElement {Runs.Count: > 0} => new(),
                 _ => null
             };
 

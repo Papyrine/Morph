@@ -85,7 +85,7 @@ public class MorphEditorTests : BunitTestContext
     {
         var locked = Build(P("", R("Read only.")), "<w:documentProtection w:edit=\"comments\" w:enforcement=\"1\"/>");
 
-        var readOnly = await Open(Paragraphs, _ => _.Add(component => component.ReadOnly, true));
+        var readOnly = await Open(Paragraphs, _ => _.Add(_ => _.ReadOnly, true));
         var guarded = await Open(locked);
         var workbook = await Open(Sample.XlsxBytes, null, "sample.xlsx");
 
@@ -160,7 +160,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HandingAParagraphIn_WritesItToTheFile_AndLaysTheFileOutAgain()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(Paragraphs, 0, "First");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
         var id = Session().GetProperty("id").GetInt32();
@@ -187,8 +187,8 @@ public class MorphEditorTests : BunitTestContext
         var cut = await OpenEditing(
             Paragraphs,
             _ => _
-                .Add(component => component.OnDocumentChanged, bytes => reported = bytes)
-                .Add(component => component.OnSave, bytes => saved = bytes));
+                .Add(_ => _.OnDocumentChanged, _ => reported = _)
+                .Add(_ => _.OnSave, bytes => saved = bytes));
         await CommitAsync(cut);
         await Assert.That(cut.FindAll(".editor-dirty")).IsNotEmpty();
 
@@ -206,7 +206,7 @@ public class MorphEditorTests : BunitTestContext
     {
         var cut = await OpenEditing(
             Paragraphs,
-            _ => _.Add(component => component.OnSave, _ => throw new InvalidOperationException("The file is locked by someone else.")));
+            _ => _.Add(_ => _.OnSave, _ => throw new InvalidOperationException("The file is locked by someone else.")));
         await CommitAsync(cut);
 
         await cut.Find("button[aria-label='Save']").ClickAsync(new());
@@ -227,7 +227,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HandingInWhatCannotBeRead_ChangesNothing_AndSaysSo()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(Paragraphs, 0, "First");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
 
@@ -243,7 +243,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HandingIn_ToJoinTheParagraphBefore_GoesOnEditingWhereTheTwoMet()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(Paragraphs, 2, "Third");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
 
@@ -260,7 +260,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheToolbar_FormatsAndAlignsAndDeletes_WhatIsSelectedOnThePages()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (_, first) = Place(Paragraphs, 0, "paragraph");
         var (_, second) = Place(Paragraphs, 1, "Second");
 
@@ -290,7 +290,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheToolbar_WithNothingSelected_SaysWhatToDo()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         await cut.InvokeAsync(() => cut.Instance.OnEditCommand("bold"));
 
@@ -305,8 +305,8 @@ public class MorphEditorTests : BunitTestContext
         var cut = await OpenEditing(
             Paragraphs,
             _ => _
-                .Add(component => component.Author, "Ann Lee")
-                .Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+                .Add(_ => _.Author, "Ann Lee")
+                .Add(_ => _.OnDocumentChanged, _ => reported = _));
         await ChooseTabAsync(cut, "Review");
         await Assert.That(cut.Find("[data-edit-command=track]").GetAttribute("aria-pressed")).IsEqualTo("false");
 
@@ -331,7 +331,7 @@ public class MorphEditorTests : BunitTestContext
     {
         var docx = Build(P("", R("Tracked.")), "<w:documentProtection w:edit=\"trackedChanges\" w:enforcement=\"1\"/>");
         byte[]? reported = null;
-        var cut = await OpenEditing(docx, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(docx, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         await ChooseTabAsync(cut, "Review");
 
         await Assert.That(cut.Find("[data-edit-command=track]").HasAttribute("disabled")).IsTrue();
@@ -389,7 +389,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task ACommandTheScriptNames_RunsOnlyWhereItsRuleAllows()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 0);
 
         await cut.InvokeAsync(() => cut.Instance.OnEditKey("restart-numbering"));
@@ -488,7 +488,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task Undo_TakesAnEditBack()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(Paragraphs, 0, "First");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
         await cut.InvokeAsync(() => cut.Instance.OnEditCommit(Session().GetProperty("id").GetInt32(), """[{"a":null,"i":[[0,"Changed.",0]]}]""", 0));
@@ -508,7 +508,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task AStyle_IsSetOnTheParagraphTheCaretIsIn_AndTheEditorOpensThereAgain()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(2, 3);
 
         await cut.Find(".editor-style-button").ClickAsync(new());
@@ -526,7 +526,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheStyleGallery_SetsAStyle_AndPages()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         var tiles = cut.FindAll(".editor-gallery-item");
         await Assert.That(string.Join(", ", tiles.Select(_ => _.TextContent.Trim())))
@@ -550,7 +550,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheFontGroup_FormatsTheWordTheCaretIsIn()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Caret(2, 2);
         await cut.Find(".editor-font-button").ClickAsync(new());
@@ -594,7 +594,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheColourButtons_ApplyTheColourLastChosen()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Selected(0, 6, 15);
         await cut.Find("[aria-label='More font colours']").ClickAsync(new());
@@ -628,7 +628,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheFontGroup_WithTheCaretInNoWord_SaysWhatToDo()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(2, 15);
 
         await cut.Find("[aria-label='Grow font']").ClickAsync(new());
@@ -664,7 +664,7 @@ public class MorphEditorTests : BunitTestContext
             "<w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>1 May</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r>";
         var dated = Build(P("", R("Dated "), field, R(" by Ann")));
         byte[]? reported = null;
-        var cut = await OpenEditing(dated, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(dated, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(dated, 0, "Dated");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
 
@@ -693,7 +693,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task Bullets_GoOnEveryParagraphSelected_AndComeOffAgain()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (_, first) = Place(Paragraphs, 0, "paragraph");
         var (_, second) = Place(Paragraphs, 1, "Second");
         controller.Setup<int[]>("editTarget").SetResult([]);
@@ -717,7 +717,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task Indent_AndLineSpacing_SetTheParagraphsSpacing()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 0);
 
         await cut.Find("[aria-label='Increase indent']").ClickAsync(new());
@@ -732,7 +732,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task APageBreak_GoesWhereTheCaretIs_AndTypingGoesOnAfterIt()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 6);
         await ChooseTabAsync(cut, "Insert");
 
@@ -747,7 +747,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task ATable_IsInsertedWhereTheCaretIs_AndItsTabComesUp()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(2, 15);
         await ChooseTabAsync(cut, "Insert");
 
@@ -769,7 +769,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task ALink_IsMadeOfWhatIsSelected()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Selected(0, 6, 15);
         await ChooseTabAsync(cut, "Insert");
 
@@ -799,7 +799,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task ReplaceAll_ReplacesEveryMatch_InOneEdit()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         controller.Setup<int[]>("editTarget").SetResult([]);
 
         await cut.InvokeAsync(() => cut.Instance.OnReplaceRequested());
@@ -832,7 +832,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task AComment_IsWrittenOnWhatIsSelectedInTheParagraph()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Selected(2, 0, 5);
         await ChooseTabAsync(cut, "Review");
 
@@ -890,7 +890,7 @@ public class MorphEditorTests : BunitTestContext
         var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
         var pictured = DocumentEditor.InsertPicture(Paragraphs, 0, 6, new(Picture(), "image/png", 100, 50), options).Document;
         byte[]? reported = null;
-        var cut = await OpenEditing(pictured, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(pictured, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Selected(0, 6, 7);
         await cut.InvokeAsync(() => cut.Instance.OnEditResize(200, 100));
@@ -905,7 +905,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task AFileThatIsNotAPicture_IsRefused_AndSaysSo()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 6);
         await ChooseTabAsync(cut, "Insert");
 
@@ -923,7 +923,7 @@ public class MorphEditorTests : BunitTestContext
     {
         var linked = Build(P("", "<w:hyperlink w:anchor=\"top\"><w:r><w:t>Linked</w:t></w:r></w:hyperlink>", R(" plain")));
         byte[]? reported = null;
-        var cut = await OpenEditing(linked, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(linked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(linked, 0, "Linked");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 5, block.Top + 2, offset + 2, offset + 2));
         Caret(0, 2);
@@ -949,7 +949,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheTableTab_DeletesWhereTheCaretIs(string command, string expected)
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Grid, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Grid, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(Grid, 0, "a");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
         Caret(0, 0);
@@ -963,7 +963,7 @@ public class MorphEditorTests : BunitTestContext
     // Opens the table's first cell for typing, and shows the Table tab.
     async Task<IRenderedComponent<MorphEditor>> OpenGridAsync(Action<byte[]> reported)
     {
-        var cut = await OpenEditing(Grid, _ => _.Add(component => component.OnDocumentChanged, reported));
+        var cut = await OpenEditing(Grid, _ => _.Add(_ => _.OnDocumentChanged, reported));
         var (block, offset) = Place(Grid, 0, "a");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
         Caret(0, 0);
@@ -1048,7 +1048,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HeaderFooterAndFootnote_OpenWhatTheyMake()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         await ChooseTabAsync(cut, "Insert");
 
         Caret(0, 0);
@@ -1097,7 +1097,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheParagraphDialog_SetsWhatWasChanged()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Caret(2, 0);
         await cut.Find("[aria-label='Paragraph settings']").ClickAsync(new());
@@ -1118,7 +1118,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheFontDialog_SetsUnderlinesAndEffects()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Caret(2, 2);
         await cut.Find("[aria-label='Font settings']").ClickAsync(new());
@@ -1151,7 +1151,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheRuler_ShowsThePage_AndSetsIndents()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(2, 0);
         await ChooseTabAsync(cut, "View");
 
@@ -1171,7 +1171,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task Endnote_PutsANoteAtTheCaret()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         await ChooseTabAsync(cut, "References");
 
         Caret(0, 5);
@@ -1187,7 +1187,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheBookmarkDialog_AddsGoesToAndDeletes()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         await ChooseTabAsync(cut, "Insert");
 
         Caret(2, 6);
@@ -1217,7 +1217,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheLayoutTab_SetsThePage()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(1, 0);
         await ChooseTabAsync(cut, "Layout");
 
@@ -1241,7 +1241,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheLayoutTab_BreaksTheSection()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(2, 5);
         await ChooseTabAsync(cut, "Layout");
 
@@ -1259,7 +1259,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task CustomMargins_AreTypedInCentimetres()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 0);
         await ChooseTabAsync(cut, "Layout");
 
@@ -1295,7 +1295,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task SpaceBeforeAndAfter_GoOnAndComeOff()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         var (block, offset) = Place(Paragraphs, 0, "First");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
         Caret(0, 0);
@@ -1315,7 +1315,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task Replace_ReplacesTheCurrentMatch_AndGoesOnToTheNext()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         controller.Setup<int[]>("editTarget").SetResult([]);
 
         await cut.InvokeAsync(() => cut.Instance.OnReplaceRequested());
@@ -1378,7 +1378,7 @@ public class MorphEditorTests : BunitTestContext
     {
         var listed = DocumentEditor.SetList(Paragraphs, [0, 1, 2], ListKind.Bullet, new("Ann", DateTimeOffset.UnixEpoch, Track: false));
         byte[]? reported = null;
-        var cut = await OpenEditing(listed, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(listed, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         // In the list's first paragraph, Tab moves the whole list in, not the paragraph a level.
         Caret(0, 2);
@@ -1420,7 +1420,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HtmlPasted_KeepsItsHeadingsListsAndEmphasis()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(2, 5);
 
         await cut.InvokeAsync(() => cut.Instance.OnEditPaste("<p> <b>bold</b> words</p><h2>Head</h2><ul><li>item</li></ul><p>tail</p>", ""));
@@ -1439,7 +1439,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HtmlWithNothingToRead_PastesThePlainText()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 0);
 
         await cut.InvokeAsync(() => cut.Instance.OnEditPaste("<img src=\"x.png\">", "one\ntwo "));
@@ -1454,7 +1454,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task Unindent_OfAParagraphNotIndented_JoinsIt()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Caret(2, 0);
         await cut.InvokeAsync(() => cut.Instance.OnEditKey("unindent"));
@@ -1498,7 +1498,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task HeadingKeys_SetTheStyle_AndCtrlK_AsksForALink()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
 
         Caret(2, 3);
         await cut.InvokeAsync(() => cut.Instance.OnEditKey("heading2"));
@@ -1583,7 +1583,7 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     public Task TheStartPage_Snapshot()
     {
-        var cut = Render<MorphEditor>(_ => _.Add(component => component.ShowSamples, true));
+        var cut = Render<MorphEditor>(_ => _.Add(_ => _.ShowSamples, true));
 
         return Verify(cut);
     }

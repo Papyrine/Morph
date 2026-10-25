@@ -462,7 +462,10 @@ public partial class MorphViewer
         }
 
         var author = Signature;
-        var known = review.Comments.SelectMany(_ => _.Replies.Prepend(_)).Select(_ => _.Id).ToHashSet(StringComparer.Ordinal);
+        var known = review.Comments
+            .SelectMany(_ => _.Replies.Prepend(_))
+            .Select(_ => _.Id)
+            .ToHashSet(StringComparer.Ordinal);
         if (posting.Kind == ReviewDraftKind.Edit)
         {
             await ReviseAsync(_ => ReviewEditor.EditComment(_, posting.CommentId!, text), relayout: false, () => activeKey);

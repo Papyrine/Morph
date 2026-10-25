@@ -204,7 +204,21 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
         var transform2D = frame.Transform;
         var placed = anchorIsRoot || transform2D == null
             ? box
-            : Placement(new A.Transform2D(new A.Offset { X = transform2D.Offset?.X, Y = transform2D.Offset?.Y }, new A.Extents { Cx = transform2D.Extents?.Cx, Cy = transform2D.Extents?.Cy }), box, transform, anchorIsRoot);
+            : Placement(
+                new(
+                    new A.Offset
+                    {
+                        X = transform2D.Offset?.X,
+                        Y = transform2D.Offset?.Y
+                    },
+                    new A.Extents
+                    {
+                        Cx = transform2D.Extents?.Cx,
+                        Cy = transform2D.Extents?.Cy
+                    }),
+                box,
+                transform,
+                anchorIsRoot);
 
         return new FloatingChartElement
         {

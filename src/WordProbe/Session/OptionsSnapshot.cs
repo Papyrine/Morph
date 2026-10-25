@@ -255,7 +255,7 @@ static class ProbeOptions
     ];
 
     /// <summary>Every member the harness may set, so restore knows what to put back.</summary>
-    public static HashSet<string> Touched { get; } = new(baseline.Keys, StringComparer.Ordinal);
+    public static HashSet<string> Touched { get; } = [with(StringComparer.Ordinal), .. baseline.Keys];
 
     public static void ApplyBaseline(Word.Application application)
     {
@@ -272,8 +272,18 @@ static class ProbeOptions
         }
     }
 
-    static string Describe(Exception exception) =>
-        exception is System.Reflection.TargetInvocationException {InnerException: { } wrapped} ? wrapped.Message : exception.Message;
+    static string Describe(Exception exception)
+    {
+        if (exception is TargetInvocationException
+            {
+                InnerException: { } wrapped
+            })
+        {
+            return wrapped.Message;
+        }
+
+        return exception.Message;
+    }
 
     public static Dictionary<string, string> ReadRecorded(Word.Application application)
     {

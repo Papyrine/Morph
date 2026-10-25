@@ -12,7 +12,7 @@ public class SectionTests
         Build(P(R("First")) + P(R("Second")) + section);
 
     static string Sections(byte[] docx) =>
-        string.Join(" | ", System.Text.RegularExpressions.Regex.Matches(Xml(docx), "<w:sectPr>.*?</w:sectPr>").Select(_ => _.Value
+        string.Join(" | ", Regex.Matches(Xml(docx), "<w:sectPr>.*?</w:sectPr>").Select(_ => _.Value
             .Replace("<w:cols w:space=\"708\" /><w:docGrid w:linePitch=\"360\" />", "")
             .Replace(" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"", "")));
 

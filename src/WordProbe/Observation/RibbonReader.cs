@@ -89,7 +89,7 @@ static class RibbonReader
     public static RibbonState Read(Word.Application application)
     {
         Thread.Sleep(400);
-        dynamic bars = ((dynamic) application).CommandBars;
+        var bars = ((dynamic) application).CommandBars;
         var disabled = new List<string>();
         var pressed = new List<string>();
         var unreadable = new List<string>();
