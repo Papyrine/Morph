@@ -58,6 +58,13 @@ static partial class DocumentEditor
     }
 
     /// <summary>
+    /// Puts the time at a place as a TIME field, as Word's Alt+Shift+T does: <c>h:mm am/pm</c>, shown
+    /// as <c>2:37 PM</c> (WordProbe E-100). The place returned is after it.
+    /// </summary>
+    public static EditResult InsertTime(byte[] docx, int paragraph, int offset, DateTime time, EditOptions options) =>
+        Edit(docx, options, edit => edit.Field(paragraph, offset, " TIME \\@ \"h:mm am/pm\" ", time.ToString("h:mm tt", CultureInfo.InvariantCulture)));
+
+    /// <summary>
     /// Puts Word's Automatic Table 1 at a place: the paragraph is divided there and the table stands
     /// between the halves, listing the body's headings of levels 1 to 3. The place returned is the
     /// paragraph after it.

@@ -4810,7 +4810,8 @@ Typing and inheritance
 - **R-E-5 Overtype** (`Options.Overtype`, toggled by Insert only with `INSKeyForOvertype` on) overwrites
   the character after the caret, a tab, an inline picture and a whole field alike, appends at a
   paragraph's end and before a cell mark, and Backspace deletes without restoring; under Track Changes
-  overtype inserts and overwrites nothing (E-11, E-11b, E-11c, E-11d, E-11e, E-105). — Morph: TODO.
+  overtype inserts and overwrites nothing (E-11, E-11b, E-11c, E-11d, E-11e, E-105). — Morph: DONE (Insert
+  toggles it as with `INSKeyForOvertype` on, shown in the status bar; `ParagraphEditor.overtyped`).
 
 Enter and breaks
 
@@ -4986,8 +4987,8 @@ Paragraph formatting keys
   registered and trade marks; Ctrl+- and Ctrl+Shift+- on the main row and Alt+Ctrl+C did nothing here
   (E-98, E-99). Alt+Shift+D, Alt+Shift+P, Alt+Shift+T insert DATE, PAGE and TIME fields at the caret
   with the caret after them; Ctrl+Alt+L inserts a LISTNUM field, which numbers the paragraph (E-100).
-  Ctrl+Shift+E toggles Track Changes, so text typed after it is an insertion (E-101). — Morph: TODO
-  (Ctrl+Shift+Space TODO; DATE/PAGE fields exist as ribbon inserts).
+  Ctrl+Shift+E toggles Track Changes, so text typed after it is an insertion (E-101). — Morph: PARTIAL
+  (the characters, the three fields and Ctrl+Shift+E are bound; the optional hyphen and LISTNUM are not).
 - **R-E-23 Field keys**: Ctrl+F9 inserts `{ }` field braces with the caret inside; typing a code and F9
   evaluates the field, the caret moving before its begin; Shift+F9 toggles the one field's code and
   Alt+F9 every field's; Ctrl+Shift+F9 unlinks a field to its result text and a hyperlink to its display
@@ -15353,20 +15354,28 @@ steps `select({at})` · `Enter` · `type("x")`
 
 | fixture | at | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "
+x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
+x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "
+x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
+x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P3:end | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "
+x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
+x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "
+x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
+x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
@@ -15868,8 +15877,10 @@ steps `select({at})` · `Enter` · `type("x")`
 | --- | --- | --- | --- |
 | P1:end | off | IP 16–16 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title] #Heading1 •1.0 1. ⇥36,-18<br>[x‸] ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
 | P1:end | on | IP 16–16 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title]{+ #Heading1 •1.0 1. ⇥36,-18<br>{~[x]+}‸~} ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "
+x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
+x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
 
 #### L-15 · A typed number after a list: continuation or restart
 

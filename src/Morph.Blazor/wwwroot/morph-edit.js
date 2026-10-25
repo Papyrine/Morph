@@ -59,6 +59,37 @@ function before(first, second) {
     return first.b < second.b || (first.b === second.b && first.o < second.o);
 }
 
+// Word's keys that type a character the keyboard has no key for (WordProbe E-98, E-99): Ctrl+Shift+Space
+// a non-breaking space, Ctrl+NumMinus an en dash, Ctrl+Alt+. an ellipsis, Ctrl+Alt+E, R and T the euro,
+// registered and trade marks. By the key's place, since Alt changes what it types. Null for any other.
+function wordCharacter(event) {
+    if (!(event.ctrlKey || event.metaKey)) {
+        return null;
+    }
+
+    if (event.altKey) {
+        if (event.shiftKey) {
+            return null;
+        }
+
+        return { Period: '…', KeyE: '€', KeyR: '®', KeyT: '™' }[event.code] ?? null;
+    }
+
+    if (event.shiftKey) {
+        if (event.code === 'Space') {
+            return ' ';
+        }
+
+        return null;
+    }
+
+    if (event.code === 'NumpadSubtract') {
+        return '–';
+    }
+
+    return null;
+}
+
 function same(first, second) {
     return first.b === second.b && first.o === second.o;
 }
@@ -68,6 +99,11 @@ function same(first, second) {
 // carries out (MorphViewer.OnEditKey). By the key's place where the character differs by layout or by
 // Shift. Null for any other key.
 export function wordKey(event) {
+    // Alt+Shift+D, P and T: a DATE, PAGE and TIME field at the caret (WordProbe E-100).
+    if (event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
+        return { KeyD: { key: 'date-field' }, KeyP: { key: 'page-field' }, KeyT: { key: 'time-field' } }[event.code] ?? null;
+    }
+
     if (!(event.ctrlKey || event.metaKey) || event.altKey) {
         return null;
     }
@@ -78,6 +114,9 @@ export function wordKey(event) {
                 return { key: 'superscript' };
             case 'KeyL':
                 return { key: 'bullets' };
+            // Track Changes on or off (WordProbe E-101).
+            case 'KeyE':
+                return { command: 'track' };
         }
 
         return null;
@@ -654,6 +693,29 @@ export class ParagraphEditor {
         return { b: place.b + 1, o: 0 };
     }
 
+    // What typing replaces: in Overtype, a caret takes in a place for each character typed — a
+    // character, a tab, a picture or a whole field alike — stopping at the paragraph's end (a cell's
+    // too, since the box holds one paragraph). Under Track Changes Overtype overwrites nothing and the
+    // text is inserted; a selection is replaced either way (WordProbe E-11 to E-11e, E-105).
+    overtyped(range, text) {
+        if (!this.overtype || this.session.tracked || !same(range.from, range.to)) {
+            return range;
+        }
+
+        const length = blockLength(this.blocks[range.from.b]);
+        let to = range.from;
+        for (let index = 0; index < text.length && to.o < length; index++) {
+            const item = this.itemAt(to.b, to.o);
+            if (item?.atom && !this.removable(item)) {
+                break;
+            }
+
+            to = { b: to.b, o: to.o + 1 };
+        }
+
+        return { from: range.from, to };
+    }
+
     // Replaces what is selected with text; a line's end in the text ends the paragraph.
     replace(range, text, kind) {
         this.record(kind);
@@ -1119,7 +1181,13 @@ export class ParagraphEditor {
             case 'insertText':
             case 'insertReplacementText':
             case 'insertFromYank':
-                this.replace(range, event.data ?? event.dataTransfer?.getData('text/plain') ?? '', type === 'insertText' ? 'type' : 'paste');
+                if (type === 'insertText') {
+                    const text = event.data ?? '';
+                    this.replace(this.overtyped(range, text), text, 'type');
+                } else {
+                    this.replace(range, event.data ?? event.dataTransfer?.getData('text/plain') ?? '', 'paste');
+                }
+
                 break;
             case 'insertFromPaste':
             case 'insertFromPasteAsQuotation':
@@ -1216,11 +1284,26 @@ export class ParagraphEditor {
             return;
         }
 
+        const character = wordCharacter(event);
+        if (character) {
+            event.preventDefault();
+            const range = this.range();
+            if (range) {
+                this.replace(range, character, 'type');
+            }
+
+            return;
+        }
+
         const word = wordKey(event);
         if (word) {
             event.preventDefault();
             if (word.command) {
-                this.command(word.command);
+                // One the box cannot carry out itself, such as Track Changes, is the page's: it hands
+                // the paragraph in first.
+                if (!this.command(word.command)) {
+                    this.callbacks.command?.(word.command);
+                }
             } else {
                 this.callbacks.key(word.key);
             }
@@ -1274,10 +1357,18 @@ export class ParagraphEditor {
                 event.stopPropagation();
                 this.cancel();
                 return;
+            // Overtype on or off; Shift+Insert is the browser's paste.
+            case 'Insert':
+                if (!event.shiftKey && !event.altKey) {
+                    event.preventDefault();
+                    this.callbacks.overtype?.();
+                }
+
+                return;
             case 'Tab':
                 event.preventDefault();
                 if (this.range() && !event.shiftKey) {
-                    this.replace(this.range(), '\t', 'type');
+                    this.replace(this.overtyped(this.range(), '\t'), '\t', 'type');
                 }
 
                 return;

@@ -950,6 +950,7 @@ public partial class MorphEditor
             new("track", "Track changes", _ => _.SetTrackingAsync(!_.outline.Tracking))
             {
                 Icon = Lucide.FilePenLine,
+                Key = "Ctrl+Shift+E",
                 Place = "Review › Tracking",
                 Handler = CommandHandler.Script,
                 Enabled = _ => _ is
@@ -1074,6 +1075,29 @@ public partial class MorphEditor
                 Key = "Ctrl+5"
             };
 
+        // Word's keys for a field at the caret, which no button stands for: Alt+Shift+D a DATE field in
+        // d/MM/yyyy, Alt+Shift+P a PAGE field and Alt+Shift+T a TIME field (WordProbe E-100).
+        public static readonly EditorCommand DateField =
+            new("date-field", "Date field", _ => _.InsertDateAsync(DateFormats[0], true))
+            {
+                Key = "Alt+Shift+D",
+                Enabled = ForTextAlone
+            };
+
+        public static readonly EditorCommand PageField =
+            new("page-field", "Page field", _ => _.InsertPageNumberAsync(false))
+            {
+                Key = "Alt+Shift+P",
+                Enabled = OutsideNotes
+            };
+
+        public static readonly EditorCommand TimeField =
+            new("time-field", "Time field", _ => _.InsertTimeAsync())
+            {
+                Key = "Alt+Shift+T",
+                Enabled = ForTextAlone
+            };
+
         public static readonly EditorCommand Delete =
             new("delete", "Delete", _ => _.DeleteAsync())
             {
@@ -1096,7 +1120,7 @@ public partial class MorphEditor
                 DeleteTable, MergeCells, SplitCells, DistributeColumns, AutoFit, TableBorders, CellShading, CellShadings,
                 WordCount, NewComment, ReviewPane, Track, AcceptAll, RejectAll, Pages, Ruler, Present, ListLevelIn,
                 ListLevelOut, EndList, Unindent, FollowOn, ResetPicture, Heading1, Heading2, Heading3, SingleSpacing,
-                DoubleSpacing, OneAndAHalfSpacing, Delete
+                DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, Delete
             }.ToDictionary(_ => _.Name, StringComparer.Ordinal);
 
         public static IReadOnlyCollection<EditorCommand> All =>

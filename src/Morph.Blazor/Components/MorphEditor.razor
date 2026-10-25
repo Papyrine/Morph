@@ -110,6 +110,10 @@
                 <button type="button" class="editor-status-item editor-status-button" title="Word count" @onclick="() => dialog = countDialog">
                     @WordsLabel
                 </button>
+                @if (overtype)
+                {
+                    <span class="editor-status-item">Overtype</span>
+                }
                 @if (Tracking)
                 {
                     <span class="editor-status-item editor-status-tracking">Track changes on</span>

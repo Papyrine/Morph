@@ -120,7 +120,7 @@ sealed class EditSession
     }
 
     /// <summary>What the script shows, with the selection from one place of the paragraph to another.</summary>
-    public string Json(int from, int to)
+    public string Json(int from, int to, bool tracked = false)
     {
         var properties = Block.Element.Properties;
         var mark = properties.ParagraphMarkRunProperties;
@@ -188,6 +188,12 @@ sealed class EditSession
             if (Paragraph.ListLevel is { } level)
             {
                 json.WriteNumber("list", level);
+            }
+
+            // Overtype types over nothing under Track Changes (WordProbe E-11).
+            if (tracked)
+            {
+                json.WriteBoolean("tracked", true);
             }
 
             if (Paragraph.NextStyle != null)

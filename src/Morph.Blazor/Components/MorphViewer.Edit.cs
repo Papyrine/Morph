@@ -209,7 +209,7 @@ public partial class MorphViewer
 
         try
         {
-            await viewer.BeginEditAsync(documentId, session.Json(from, to));
+            await viewer.BeginEditAsync(documentId, session.Json(from, to, Tracking));
         }
         catch (JSDisconnectedException)
         {
@@ -273,7 +273,8 @@ public partial class MorphViewer
     /// (<c>unindent</c>), Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3
     /// (<c>heading1</c> to <c>heading3</c>), Ctrl+K (<c>link</c>), and the Font and Paragraph groups'
     /// keys (<c>grow</c>, <c>shrink</c>, <c>subscript</c>, <c>superscript</c>, <c>clear-formatting</c>,
-    /// <c>bullets</c>, <c>line-single</c>, <c>line-double</c>, <c>line-one-and-half</c>).
+    /// <c>bullets</c>, <c>line-single</c>, <c>line-double</c>, <c>line-one-and-half</c>), and Alt+Shift+D,
+    /// P and T (<c>date-field</c>, <c>page-field</c>, <c>time-field</c>).
     /// </summary>
     [JSInvokable]
     public Task OnEditKey(string name) =>
@@ -360,6 +361,19 @@ public partial class MorphViewer
 
     async Task<EditOptions> EditOptionsAsync() =>
         new(Signature, await ReaderClockAsync(), Tracking);
+
+    // Overtype, which the Insert key turns on and off in the script: shown in the status bar.
+    internal bool overtype;
+
+    /// <summary>Called from JavaScript when the Insert key turns Overtype on or off.</summary>
+    [JSInvokable]
+    public Task OnOvertype(bool on) =>
+        InvokeAsync(
+            () =>
+            {
+                overtype = on;
+                StateHasChanged();
+            });
 
     /// <summary>Called from JavaScript with a note for the status bar, as when the clipboard could not be read.</summary>
     [JSInvokable]
