@@ -13,11 +13,15 @@ public class EditorCommandTests
         ("writable", writable),
         ("revising", writable with {Revising = true}),
         ("in a table", writable with {InTable = true}),
+        ("cells selected", writable with {InTable = true, SpansParagraphs = true}),
         ("in a link", writable with {InLink = true}),
         ("in a numbered list", writable with {List = ListKind.Number}),
-        ("a picture selected", writable with {PictureSelected = true}),
-        ("a table of contents", writable with {HasContents = true}),
-        ("tracked changes", writable with {CanResolve = true, HasChanges = true}),
+        ("an inline picture selected", writable with {PictureSelected = true}),
+        ("a floating picture selected", writable with {PictureSelected = true, FloatingPicture = true}),
+        ("in a header", writable with {Story = ReviewPart.Header}),
+        ("in a footnote", writable with {Story = ReviewPart.Footnotes}),
+        ("in an endnote", writable with {Story = ReviewPart.Endnotes}),
+        ("tracked changes", writable with {CanResolve = true}),
         ("tracking forced", writable with {ForcesTracking = true}),
         ("comments allowed", writable with {CanComment = true})
     ];

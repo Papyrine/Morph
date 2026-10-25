@@ -19,7 +19,8 @@ static class Catalog
         TrackingFamily.Definition,
         StoriesFamily.Definition,
         MiscFamily.Definition,
-        DialogsFamily.Definition
+        DialogsFamily.Definition,
+        RibbonFamily.Definition
     ];
 
     public static List<FamilyDefinition> Select(IReadOnlyList<string> names)

@@ -101,6 +101,16 @@ Caps Lock has to be off.
 - `DialogInfo.Text` reads a dialog's child controls with `WM_GETTEXT`; it answers nothing for Word's own
   `bosa_sdm_msword` dialogs and `NUIDialog` message boxes, which draw their controls themselves.
 
+## What the ribbon run settled (2026-10-25)
+
+- `Observe.Ribbon` reads `CommandBars.GetEnabledMso` / `GetPressedMso` for the idMsos in `RibbonReader.Controls`,
+  each mapped to the `EditorCommand` it stands for. It is read straight after the undo list, because the
+  `ListFormat` read that follows adds an undo entry and would enable Undo.
+- `GetVisibleMso` answers true for a contextual tab wherever the caret is, so whether a tab shows is not
+  readable this way. Galleries and split buttons throw on `GetPressedMso`.
+- The DPI guard asks Windows for the process's awareness. It no longer requires a screen wider than 2000px, which
+  only the 3440px display the catalogue was first recorded on satisfied.
+
 Digests of a family's JSON for distilling rules were made with two scratch scripts (one line per
 paragraph with the caret or a selection, plus the undo part of the summary); `Results/<family>.json` holds
 everything they printed.

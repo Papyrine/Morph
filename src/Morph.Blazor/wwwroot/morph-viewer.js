@@ -2022,6 +2022,7 @@ class Viewer {
         }
 
         const selected = this.selectedText();
+        this.markClipboard();
         const key = selected ? selected.join(',') : '';
         if (key === this.lastSelection) {
             return;
@@ -2368,6 +2369,8 @@ class Viewer {
             this.dotNet.invokeMethodAsync('OnEditPicture', picture).catch(() => {});
         }
 
+        this.editSelected = state ? state.selected === true : null;
+        this.markClipboard();
         if (state) {
             for (const shown of this.root.querySelectorAll('[data-edit-show]')) {
                 const value = state[shown.dataset.editShow];
@@ -2395,6 +2398,17 @@ class Viewer {
             } else {
                 button.setAttribute('aria-pressed', String(state[name] === true));
             }
+        }
+    }
+
+    // Cut and Copy grey out at a caret, as Word's do (WordProbe B-01): with a paragraph open it says
+    // whether it has a selection, otherwise the text selected on the pages decides. Only the script
+    // knows either as the caret moves, so it marks the buttons and lines itself (data-unselected),
+    // leaving `disabled` to .NET's own rule.
+    markClipboard() {
+        const selected = this.editSelected ?? Boolean(this.selectedText());
+        for (const button of this.root.querySelectorAll('[data-edit-command="cut"], [data-edit-command="copy"]')) {
+            button.toggleAttribute('data-unselected', !selected);
         }
     }
 
@@ -2913,6 +2927,8 @@ class Viewer {
             return;
         }
 
+        // The menu is drawn afresh by .NET, so its Cut and Copy are marked now.
+        this.markClipboard();
         const bounds = this.root.getBoundingClientRect();
         let box = menu.getBoundingClientRect();
         if (box.right > bounds.right) {

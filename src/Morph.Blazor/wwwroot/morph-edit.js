@@ -1515,6 +1515,8 @@ export class ParagraphEditor {
             underline: (face & underline) !== 0,
             strike: (face & strike) !== 0,
             align: this.blocks[selected.from.b].align ?? this.session.align,
+            // Something is selected rather than a caret: Cut and Copy have nothing to act on otherwise.
+            selected: !same(selected.from, selected.to),
             // A picture selected alone, framed: what Layout > Wrap Text acts on.
             picture: Boolean(this.frame)
         });

@@ -469,6 +469,8 @@ public partial class MorphViewer
 
     internal bool InTable => CurrentParagraph?.InTable == true;
 
+    internal ReviewPart CurrentStory => CurrentParagraph?.Part ?? ReviewPart.Body;
+
     internal bool InLink => CurrentParagraph?.Units.Any(_ => _.Linked) == true;
 
     static ListKind ListOf(ParagraphProperties? properties)
@@ -1099,6 +1101,13 @@ public partial class MorphViewer
     bool inlinePicture;
 
     internal bool PictureSelected => floatingPicture != null || inlinePicture;
+
+    internal bool FloatingPictureSelected => floatingPicture != null;
+
+    // What Merge Cells needs: a selection on the pages from one paragraph to another. It is not told apart
+    // from two paragraphs of one cell, which only the file could say.
+    internal bool SpansParagraphs => FromSelection() is { } target &&
+                                     target.First != target.Last;
 
     /// <summary>Called from JavaScript when a floating picture is selected on a page, or none is (-1).</summary>
     [JSInvokable]

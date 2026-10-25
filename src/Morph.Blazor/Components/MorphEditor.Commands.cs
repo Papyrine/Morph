@@ -35,12 +35,13 @@ public partial class MorphEditor
             Subscript = IsSubscript,
             Superscript = IsSuperscript,
             PictureSelected = PictureSelected,
-            HasContents = outline.HasContents,
+            FloatingPicture = FloatingPictureSelected,
+            Story = CurrentStory,
+            SpansParagraphs = SpansParagraphs,
             Tracking = Tracking,
             ForcesTracking = outline.ForcesTracking,
             CanComment = CanComment,
             CanResolve = CanResolve,
-            HasChanges = review.Changes.Count > 0,
             OffersReview = ShowReview,
             Painting = Painting,
             MarksShown = marksShown,
@@ -154,6 +155,65 @@ public partial class MorphEditor
                 InTable: true
             };
 
+        // What Word greys out where the caret is, as WordProbe's ribbon family read it (src/word-behavior.md,
+        // "The ribbon's state where the selection is").
+
+        // Formatting text: not with a floating picture selected (B-05).
+        public static bool ForText(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                FloatingPicture: false
+            };
+
+        // Not with a picture selected at all: Borders and Date & Time are greyed out for an inline one too.
+        public static bool ForTextAlone(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                PictureSelected: false
+            };
+
+        // What only the body has: page setup and Update Table, greyed out in a header, a footer and a note (B-06).
+        public static bool InTheBody(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                Story: ReviewPart.Body
+            };
+
+        // A page or column break: the body's, and not with a floating picture selected.
+        public static bool ForPages(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                Story: ReviewPart.Body,
+                FloatingPicture: false
+            };
+
+        // A footnote goes in from the body or another footnote; an endnote from the body or another endnote.
+        public static bool ForFootnote(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                Story: ReviewPart.Body or ReviewPart.Footnotes
+            };
+
+        public static bool ForEndnote(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                Story: ReviewPart.Body or ReviewPart.Endnotes
+            };
+
+        // Page Number and Table of Contents: greyed out in a note, though not in a header or footer (B-06b).
+        public static bool OutsideNotes(EditorState state) =>
+            state is
+            {
+                Editable: true,
+                Story: not (ReviewPart.Footnotes or ReviewPart.Endnotes)
+            };
+
         // Home
 
         public static readonly EditorCommand Undo =
@@ -233,7 +293,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.AArrowUp,
                 Key = "Ctrl+]",
-                Place = "Home › Font"
+                Place = "Home › Font",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Shrink =
@@ -241,7 +302,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.AArrowDown,
                 Key = "Ctrl+[",
-                Place = "Home › Font"
+                Place = "Home › Font",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand ClearFormatting =
@@ -258,7 +320,8 @@ public partial class MorphEditor
                 Icon = Lucide.Bold,
                 Key = "Ctrl+B",
                 Place = "Home › Font",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Italic =
@@ -267,7 +330,8 @@ public partial class MorphEditor
                 Icon = Lucide.Italic,
                 Key = "Ctrl+I",
                 Place = "Home › Font",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Underline =
@@ -276,7 +340,8 @@ public partial class MorphEditor
                 Icon = Lucide.Underline,
                 Key = "Ctrl+U",
                 Place = "Home › Font",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Strike =
@@ -284,7 +349,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.Strikethrough,
                 Place = "Home › Font",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Subscript =
@@ -293,7 +359,8 @@ public partial class MorphEditor
                 Icon = Lucide.Subscript,
                 Key = "Ctrl+=",
                 Place = "Home › Font",
-                Checked = _ => _.Subscript
+                Checked = _ => _.Subscript,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Superscript =
@@ -302,14 +369,16 @@ public partial class MorphEditor
                 Icon = Lucide.Superscript,
                 Key = "Ctrl+Shift+=",
                 Place = "Home › Font",
-                Checked = _ => _.Superscript
+                Checked = _ => _.Superscript,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Highlight =
             new("highlight", "Highlight", _ => _.SetHighlightAsync(_.LastHighlight))
             {
                 Icon = Lucide.Highlighter,
-                Place = "Home › Font"
+                Place = "Home › Font",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Highlights =
@@ -318,7 +387,8 @@ public partial class MorphEditor
                 Icon = Lucide.ChevronDown,
                 Place = "Home › Font",
                 Menu = highlightMenu,
-                Opens = "dialog"
+                Opens = "dialog",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand FontColour =
@@ -342,7 +412,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.SquareArrowDownRight,
                 Place = "Home › Font",
-                Opens = "dialog"
+                Opens = "dialog",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Bullets =
@@ -351,7 +422,8 @@ public partial class MorphEditor
                 Icon = Lucide.List,
                 Key = "Ctrl+Shift+L",
                 Place = "Home › Paragraph",
-                Checked = _ => _.List == ListKind.Bullet
+                Checked = _ => _.List == ListKind.Bullet,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand BulletLibrary =
@@ -360,7 +432,8 @@ public partial class MorphEditor
                 Icon = Lucide.ChevronDown,
                 Place = "Home › Paragraph",
                 Menu = bulletsMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Numbering =
@@ -368,7 +441,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.ListOrdered,
                 Place = "Home › Paragraph",
-                Checked = _ => _.List == ListKind.Number
+                Checked = _ => _.List == ListKind.Number,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand NumberingLibrary =
@@ -377,7 +451,8 @@ public partial class MorphEditor
                 Icon = Lucide.ChevronDown,
                 Place = "Home › Paragraph",
                 Menu = numberingMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand RestartNumbering =
@@ -434,7 +509,8 @@ public partial class MorphEditor
                 Icon = Lucide.TextAlignStart,
                 Key = "Ctrl+L",
                 Place = "Home › Paragraph",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand AlignCenter =
@@ -443,7 +519,8 @@ public partial class MorphEditor
                 Icon = Lucide.TextAlignCenter,
                 Key = "Ctrl+E",
                 Place = "Home › Paragraph",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand AlignRight =
@@ -452,7 +529,8 @@ public partial class MorphEditor
                 Icon = Lucide.TextAlignEnd,
                 Key = "Ctrl+R",
                 Place = "Home › Paragraph",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Justify =
@@ -461,7 +539,8 @@ public partial class MorphEditor
                 Icon = Lucide.TextAlignJustify,
                 Key = "Ctrl+J",
                 Place = "Home › Paragraph",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Spacing =
@@ -470,13 +549,15 @@ public partial class MorphEditor
                 Icon = Lucide.ListChevronsUpDown,
                 Place = "Home › Paragraph",
                 Menu = spacingMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand ParagraphShading = new("paragraph-shading", "Paragraph shading", _ => _.ShadeParagraphsAsync(_.LastShading))
         {
             Icon = Lucide.PaintBucket,
-            Place = "Home › Paragraph"
+            Place = "Home › Paragraph",
+            Enabled = ForText
         };
 
         public static readonly EditorCommand ParagraphShadings = new("paragraph-shadings", "More paragraph shading colours", _ => _.ToggleMenu(paragraphShadingMenu))
@@ -484,14 +565,16 @@ public partial class MorphEditor
             Icon = Lucide.ChevronDown,
             Place = "Home › Paragraph",
             Menu = paragraphShadingMenu,
-            Opens = "dialog"
+            Opens = "dialog",
+            Enabled = ForText
         };
 
         public static readonly EditorCommand ParagraphBorders =
             new("paragraph-borders", "Paragraph borders", _ => _.BorderParagraphsAsync(_.LastParagraphBorder))
             {
                 Icon = Lucide.SquareDashedBottom,
-                Place = "Home › Paragraph"
+                Place = "Home › Paragraph",
+                Enabled = ForTextAlone
             };
 
         public static readonly EditorCommand MoreParagraphBorders =
@@ -501,7 +584,8 @@ public partial class MorphEditor
                 Tip = "More borders",
                 Place = "Home › Paragraph",
                 Menu = paragraphBordersMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = ForTextAlone
             };
 
         public static readonly EditorCommand ParagraphDialog =
@@ -509,7 +593,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.SquareArrowDownRight,
                 Place = "Home › Paragraph",
-                Opens = "dialog"
+                Opens = "dialog",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Styles =
@@ -518,7 +603,8 @@ public partial class MorphEditor
                 Icon = Lucide.PanelBottomOpen,
                 Place = "Home › Styles",
                 Menu = stylesMenu,
-                Opens = "listbox"
+                Opens = "listbox",
+                Enabled = ForText
             };
 
         public static readonly EditorCommand Find =
@@ -548,7 +634,8 @@ public partial class MorphEditor
             new("page-break", "Page break", _ => _.InsertPageBreakAsync())
             {
                 Icon = Lucide.SeparatorHorizontal,
-                Place = "Insert › Pages"
+                Place = "Insert › Pages",
+                Enabled = ForPages
             };
 
         public static readonly EditorCommand Table =
@@ -617,7 +704,8 @@ public partial class MorphEditor
                 Icon = Lucide.Hash,
                 Place = "Insert › Header and footer",
                 Menu = pageNumberMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = OutsideNotes
             };
 
         public static readonly EditorCommand Date =
@@ -625,7 +713,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.CalendarDays,
                 Place = "Insert › Text",
-                Opens = "dialog"
+                Opens = "dialog",
+                Enabled = ForTextAlone
             };
 
         // Layout
@@ -636,7 +725,8 @@ public partial class MorphEditor
                 Icon = Lucide.Scan,
                 Place = "Layout › Page setup",
                 Menu = marginsMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = InTheBody
             };
 
         public static readonly EditorCommand Orientation =
@@ -645,7 +735,8 @@ public partial class MorphEditor
                 Icon = Lucide.RectangleVertical,
                 Place = "Layout › Page setup",
                 Menu = orientationMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = InTheBody
             };
 
         public static readonly EditorCommand PaperSize =
@@ -654,7 +745,8 @@ public partial class MorphEditor
                 Icon = Lucide.File,
                 Place = "Layout › Page setup",
                 Menu = sizeOfPageMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = InTheBody
             };
 
         public static readonly EditorCommand Columns =
@@ -663,7 +755,8 @@ public partial class MorphEditor
                 Icon = Lucide.Columns2,
                 Place = "Layout › Page setup",
                 Menu = columnsMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = ForPages
             };
 
         public static readonly EditorCommand Breaks =
@@ -672,7 +765,8 @@ public partial class MorphEditor
                 Icon = Lucide.SeparatorHorizontal,
                 Place = "Layout › Page setup",
                 Menu = breaksMenu,
-                Opens = "menu"
+                Opens = "menu",
+                Enabled = ForPages
             };
 
         public static readonly EditorCommand Wrap =
@@ -696,7 +790,8 @@ public partial class MorphEditor
             new("contents", "Table of contents", _ => _.InsertContentsAsync())
             {
                 Icon = Lucide.TableOfContents,
-                Place = "References › Table of contents"
+                Place = "References › Table of contents",
+                Enabled = OutsideNotes
             };
 
         public static readonly EditorCommand UpdateContents =
@@ -704,25 +799,23 @@ public partial class MorphEditor
             {
                 Icon = Lucide.RefreshCw,
                 Place = "References › Table of contents",
-                Enabled = _ => _ is
-                {
-                    Editable: true,
-                    HasContents: true
-                }
+                Enabled = InTheBody
             };
 
         public static readonly EditorCommand Footnote =
             new("footnote", "Footnote", _ => _.InsertFootnoteAsync())
             {
                 Icon = Lucide.Superscript,
-                Place = "References › Footnotes"
+                Place = "References › Footnotes",
+                Enabled = ForFootnote
             };
 
         public static readonly EditorCommand Endnote =
             new("endnote", "Endnote", _ => _.InsertEndnoteAsync())
             {
                 Icon = Lucide.FileDown,
-                Place = "References › Footnotes"
+                Place = "References › Footnotes",
+                Enabled = ForEndnote
             };
 
         // Table, the contextual tab
@@ -753,7 +846,13 @@ public partial class MorphEditor
             {
                 Icon = Lucide.TableCellsMerge,
                 Place = "Table › Merge",
-                Enabled = InATable
+                // Word's needs more than one cell: it is greyed out at a caret in a cell (WordProbe B-04).
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    InTable: true,
+                    SpansParagraphs: true
+                }
             };
 
         public static readonly EditorCommand SplitCells =
@@ -827,10 +926,12 @@ public partial class MorphEditor
             {
                 Icon = Lucide.MessageSquarePlus,
                 Place = "Review › Comments",
+                // Word greys it out in a header, a footer and a note (WordProbe B-06, B-06b).
                 Enabled = _ => _ is
                 {
                     CanComment: true,
-                    Revising: false
+                    Revising: false,
+                    Story: ReviewPart.Body
                 },
                 Visible = _ => _.OffersReview
             };
@@ -864,11 +965,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.CheckCheck,
                 Place = "Review › Changes",
-                Enabled = _ => _ is
-                {
-                    HasChanges: true,
-                    Revising: false
-                },
+                // Word leaves it enabled with no revisions in the document (WordProbe B-01).
+                Enabled = _ => !_.Revising,
                 Visible = _ => _ is
                 {
                     OffersReview: true,
@@ -881,11 +979,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.X,
                 Place = "Review › Changes",
-                Enabled = _ => _ is
-                {
-                    HasChanges: true,
-                    Revising: false
-                },
+                // Word leaves it enabled with no revisions in the document (WordProbe B-01).
+                Enabled = _ => !_.Revising,
                 Visible = _ => _ is
                 {
                     OffersReview: true,
@@ -909,7 +1004,8 @@ public partial class MorphEditor
             {
                 Icon = Lucide.Ruler,
                 Place = "View › Show",
-                Enabled = _ => true,
+                // Word greys it out in a footnote and an endnote, and only there (WordProbe B-06b).
+                Enabled = _ => _.Story is not (ReviewPart.Footnotes or ReviewPart.Endnotes),
                 Visible = _ => _.IsWord,
                 Checked = _ => _.RulerShown
             };

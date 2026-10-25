@@ -539,8 +539,16 @@ public partial class MorphViewer
             scroll: true);
     }
 
-    internal Task ResolveAllAsync(bool accept) =>
-        ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
+    // Enabled with nothing to resolve, as Word's is, and then does nothing.
+    internal Task ResolveAllAsync(bool accept)
+    {
+        if (review.Changes.Count == 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        return ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
+    }
 
     internal Task UndoAsync() =>
         StepAsync(undo, redo);
