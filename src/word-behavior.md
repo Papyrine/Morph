@@ -4923,7 +4923,8 @@ Backspace and Delete
   deletes the break first; Ctrl+Delete deletes a whole field in one press, nothing before an inline
   picture, nothing at a cell's or the document's end (E-70, E-70b, E-70c, E-70d, E-71, E-71b, E-71c,
   E-71d). Tracked, the words are struck and the caret moves to the deletion's start (E-70 tracked). —
-  Morph: TODO (native word deletion, confined to the box).
+  Morph: PARTIAL (`ParagraphEditor.wordRange` takes Word's units and a whole field; the space before
+  punctuation and the stop before a picture are not matched).
 
 Character formatting keys
 
@@ -4934,7 +4935,8 @@ Character formatting keys
   character style from a link's text (E-81, E-81b, E-81c, E-81d). Ctrl+Q ("Paragraph Formatting") resets
   paragraph formatting (list, centring, indents, space after off) and Ctrl+Shift+N ("Normal Style")
   applies Normal, removing the heading or list style (E-82, E-82b, E-83, E-83b). — Morph: PARTIAL
-  (Ctrl+Space clears the run's look; Shift+F3 and Ctrl+Q TODO).
+  (Ctrl+Space clears the run's look; Shift+F3 cycles case in the open paragraph; Ctrl+Shift+N applies
+  Normal, though a browser tab keeps that key for itself; Ctrl+Q TODO).
 - **R-E-19 Ctrl+B/I/U on a mixed selection sets the attribute everywhere first, then clears it everywhere**
   (bold+plain → all bold → all plain; a second press on an all-underlined selection removes the
   underline) (E-84, E-84b). Ctrl+Shift+A (all caps) and Ctrl+Shift+K (small caps) exclude each other;
@@ -4950,7 +4952,9 @@ Character formatting keys
   after the keys (E-87 P8, E-88 P11). Ctrl+Shift+H hides the selection ("Hidden") and leaves the caret
   at its start, Ctrl+Shift+Q puts it in the Symbol font ("Symbol Font"), Ctrl+Shift+Z clears direct
   formatting like Ctrl+Space ("Reset Char") (E-110). Tracked, each is a formatting revision on the run
-  (`{~…~}`). — Morph: PARTIAL.
+  (`{~…~}`). — Morph: PARTIAL (Ctrl+] and Ctrl+[ step a point, Ctrl+Shift+> and < the ladder;
+  Ctrl+Shift+A/K/D/W/H and Ctrl+Shift+Z are bound, each toggled by the run at the caret; Ctrl+Shift+W is
+  a browser tab's own; the mixed-selection rule and Ctrl+Shift+Q are not matched).
 
 Paragraph formatting keys
 
@@ -4963,7 +4967,10 @@ Paragraph formatting keys
   at 0 and further presses do nothing; a list item's indent steps by 18pt (`⇥36,-18` → `⇥18,-18`) and
   Ctrl+Shift+M on a heading does nothing) (E-91, E-91b, E-91c, E-91d). Ctrl+T and Ctrl+Shift+T set and
   remove a hanging indent of 36pt and leave a list item alone (E-92, E-92b, E-92c). — Morph: PARTIAL
-  (Ctrl+E/L/R/J set the alignment; the toggle-to-left and the Ctrl+L justify rule are not matched).
+  (in the open paragraph the alignment keys toggle against Left and Ctrl+L justifies; Ctrl+1/2/5, Ctrl+0,
+  Ctrl+M/Ctrl+Shift+M and Ctrl+T/Ctrl+Shift+T are bound — Ctrl+T and Ctrl+Shift+T only where a browser
+  lets a page have them, as in an installed app; a list item's Ctrl+M changes its level rather than
+  stepping its indent 18pt).
 - **R-E-21 Ctrl+Shift+L applies the List Bullet style** (its own list, `⇥18,-18`) to the paragraph,
   replacing a numbered or bulleted List Paragraph, and a second press leaves it (E-93). Ctrl+Alt+1/2/3
   apply Heading 1/2/3 and remove the paragraph's list numbering; in a cell too; a heading changes level

@@ -69,7 +69,8 @@ public partial class SnapshotTests
         await page.Keyboard.PressAsync("Control+y");
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Third and last. More");
         await page.Keyboard.PressAsync("Control+z");
-        await page.Keyboard.PressAsync("Control+Shift+z");
+        // Cmd+Shift+Z, the Mac's redo: Ctrl+Shift+Z is Word's Reset Char.
+        await page.Keyboard.PressAsync("Meta+Shift+z");
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Third and last. More");
         await HandInAsync(page);
 

@@ -292,7 +292,7 @@ public partial class MorphEditor
             new("grow", "Grow font", _ => _.GrowAsync(1))
             {
                 Icon = Lucide.AArrowUp,
-                Key = "Ctrl+]",
+                Key = "Ctrl+Shift+>",
                 Place = "Home › Font",
                 Enabled = ForText
             };
@@ -301,7 +301,7 @@ public partial class MorphEditor
             new("shrink", "Shrink font", _ => _.GrowAsync(-1))
             {
                 Icon = Lucide.AArrowDown,
-                Key = "Ctrl+[",
+                Key = "Ctrl+Shift+<",
                 Place = "Home › Font",
                 Enabled = ForText
             };
@@ -481,6 +481,7 @@ public partial class MorphEditor
             new("decrease-indent", "Decrease indent", _ => _.IndentAsync(-1))
             {
                 Icon = Lucide.IndentDecrease,
+                Key = "Ctrl+Shift+M",
                 Place = "Home › Paragraph"
             };
 
@@ -488,6 +489,7 @@ public partial class MorphEditor
             new("increase-indent", "Increase indent", _ => _.IndentAsync(1))
             {
                 Icon = Lucide.IndentIncrease,
+                Key = "Ctrl+M",
                 Place = "Home › Paragraph"
             };
 
@@ -1098,6 +1100,87 @@ public partial class MorphEditor
                 Enabled = ForTextAlone
             };
 
+        // Word's character keys no button stands for (WordProbe E-85, E-87, E-110): a point up or down,
+        // all and small capitals (each taking the other off), double and word underline, hidden text.
+        public static readonly EditorCommand GrowPoint =
+            new("grow-point", "Grow font one point", _ => _.NudgeSizeAsync(1))
+            {
+                Key = "Ctrl+]",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand ShrinkPoint =
+            new("shrink-point", "Shrink font one point", _ => _.NudgeSizeAsync(-1))
+            {
+                Key = "Ctrl+[",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand AllCaps =
+            new("all-caps", "All caps", _ => _.ToggleLookAsync(properties => properties.AllCaps, on => new(AllCaps: on, SmallCaps: on ? false : null)))
+            {
+                Key = "Ctrl+Shift+A",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand SmallCaps =
+            new("small-caps", "Small caps", _ => _.ToggleLookAsync(properties => properties.SmallCaps, on => new(SmallCaps: on, AllCaps: on ? false : null)))
+            {
+                Key = "Ctrl+Shift+K",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand DoubleUnderline =
+            new("double-underline", "Double underline", _ => _.ToggleLookAsync(properties => properties.DoubleUnderline, on => new(UnderlineStyle: on ? "double" : "none")))
+            {
+                Key = "Ctrl+Shift+D",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand WordUnderline =
+            new("word-underline", "Underline words only", _ => _.ToggleLookAsync(properties => properties.UnderlineStyle == UnderlineStyle.Words && properties.Underline, on => new(UnderlineStyle: on ? "words" : "none")))
+            {
+                Key = "Ctrl+Shift+W",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand Hidden =
+            new("hidden", "Hidden", _ => _.ToggleLookAsync(properties => properties.Hidden, on => new(Hidden: on)))
+            {
+                Key = "Ctrl+Shift+H",
+                Enabled = ForText
+            };
+
+        // Word's paragraph keys (WordProbe E-83, E-90, E-92): Normal, 12pt before on and off, a hanging
+        // indent a stop at a time.
+        public static readonly EditorCommand NormalStyle =
+            new("normal-style", "Normal style", _ => _.ApplyStyleAsync("Normal"))
+            {
+                Key = "Ctrl+Shift+N",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand SpaceBefore =
+            new("space-before", "Space before", _ => _.ToggleSpaceBeforeAsync())
+            {
+                Key = "Ctrl+0",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand Hang =
+            new("hang", "Hanging indent", _ => _.HangAsync(1))
+            {
+                Key = "Ctrl+T",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand Unhang =
+            new("unhang", "Remove hanging indent", _ => _.HangAsync(-1))
+            {
+                Key = "Ctrl+Shift+T",
+                Enabled = ForText
+            };
+
         public static readonly EditorCommand Delete =
             new("delete", "Delete", _ => _.DeleteAsync())
             {
@@ -1120,7 +1203,8 @@ public partial class MorphEditor
                 DeleteTable, MergeCells, SplitCells, DistributeColumns, AutoFit, TableBorders, CellShading, CellShadings,
                 WordCount, NewComment, ReviewPane, Track, AcceptAll, RejectAll, Pages, Ruler, Present, ListLevelIn,
                 ListLevelOut, EndList, Unindent, FollowOn, ResetPicture, Heading1, Heading2, Heading3, SingleSpacing,
-                DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, Delete
+                DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, GrowPoint, ShrinkPoint, AllCaps, SmallCaps,
+                DoubleUnderline, WordUnderline, Hidden, NormalStyle, SpaceBefore, Hang, Unhang, Delete
             }.ToDictionary(_ => _.Name, StringComparer.Ordinal);
 
         public static IReadOnlyCollection<EditorCommand> All =>
