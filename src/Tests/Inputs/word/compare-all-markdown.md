@@ -1,4 +1,4 @@
-# All Markdown export scenarios (346)
+# All Markdown export scenarios (347)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -89,6 +89,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [color_transform_theme_fill](#color_transform_theme_fill)
 - [column_breaks](#column_breaks)
 - [comments/01](#comments01)
+- [comments/02](#comments02)
 - [compatibility_mode_14](#compatibility_mode_14)
 - [complex_document](#complex_document)
 - [complex_spacing](#complex_spacing)
@@ -857,6 +858,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="comments/01/expected_0001.png" width="500"> | <img src="comments/01/md_result.verified.png" width="500"> |
+
+## comments/02
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="comments/02/expected_0001.png" width="500"><br><img src="comments/02/expected_0002.png" width="500"> | <img src="comments/02/md_result.verified.png" width="500"> |
 
 ## compatibility_mode_14
 
