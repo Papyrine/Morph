@@ -513,6 +513,72 @@ public partial class MorphViewer
             (_, options) => DocumentEditor.SetStyle(_, target.Paragraphs, styleId, options));
     }
 
+    // Word's Ctrl+Q: the paragraphs' own formatting off, their style's left (WordProbe E-82).
+    internal async Task ResetParagraphAsync()
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.ResetParagraphs(_, target.Paragraphs, options));
+    }
+
+    // Word's outline keys, Alt+Shift+Left and Alt+Shift+Right (WordProbe E-95d, E-95e, L-05b): a heading
+    // goes a level up or down, Heading 1 the top and Heading 9 the bottom; any other paragraph, a list's
+    // too, becomes a heading at the level of the heading before it, or one level under it, Heading 1
+    // (or 2) where there is none.
+    internal async Task OutlineAsync(int steps)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var level = HeadingLevel(target.Paragraph);
+        if (level == null)
+        {
+            level = 1;
+            for (var paragraph = target.Paragraph - 1; paragraph >= 0; paragraph--)
+            {
+                if (HeadingLevel(paragraph) is { } before)
+                {
+                    level = before;
+                    break;
+                }
+            }
+
+            if (steps > 0)
+            {
+                level++;
+            }
+        }
+        else
+        {
+            level += steps;
+        }
+
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.SetStyle(_, target.Paragraphs, $"Heading{Math.Clamp(level.Value, 1, 9)}", options));
+    }
+
+    // The level of a paragraph in one of Word's built-in headings, or null.
+    int? HeadingLevel(int paragraph)
+    {
+        if (PropertiesOf(paragraph)?.ResolvedStyleId is { } style &&
+            style.StartsWith("Heading", StringComparison.Ordinal) &&
+            int.TryParse(style.AsSpan(7), out var level) &&
+            level is >= 1 and <= 9)
+        {
+            return level;
+        }
+
+        return null;
+    }
+
     // As Word's list buttons do: on, unless every paragraph is in a list of the kind already.
     internal async Task ToggleListAsync(ListKind kind)
     {

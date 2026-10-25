@@ -43,6 +43,29 @@ public class ParagraphFormatTests
         await Assert.That(Styles(edited)).IsEqualTo(Styles(docx));
     }
 
+    // Word-probed (WordProbe E-82): Ctrl+Q takes the paragraph's own list, centring, indents and space
+    // after off, and leaves its style.
+    [Test]
+    public async Task ResettingAParagraph_LeavesWhatItsStyleSays()
+    {
+        var docx = Build(P("<w:pPr><w:pStyle w:val=\"Quote\"/><w:spacing w:after=\"240\"/><w:ind w:left=\"720\"/><w:jc w:val=\"center\"/></w:pPr>", R("Centred")), styles: styles);
+
+        var edited = DocumentEditor.ResetParagraphs(docx, [0], Plain);
+
+        await Assert.That(Xml(edited)).IsEqualTo("<w:p><w:pPr><w:pStyle w:val=\"Quote\" /></w:pPr><w:r><w:t xml:space=\"preserve\">Centred</w:t></w:r></w:p>");
+    }
+
+    [Test]
+    public async Task ResettingAParagraph_Tracked_IsAPropertyChange()
+    {
+        var docx = Build(P("<w:pPr><w:jc w:val=\"center\"/></w:pPr>", R("Centred")), styles: styles);
+
+        var edited = DocumentEditor.ResetParagraphs(docx, [0], Tracked);
+
+        await Assert.That(Xml(edited)).Contains("<w:pPrChange ");
+        await Assert.That(Xml(edited)).Contains("<w:jc w:val=\"center\" /></w:pPr></w:pPrChange>");
+    }
+
     // A document with no styles part of its own still gets the definition, and what it is based on.
     [Test]
     public async Task ADocumentWithNoStyles_IsGivenThem()

@@ -808,6 +808,7 @@ public partial class MorphEditor
             new("footnote", "Footnote", _ => _.InsertFootnoteAsync())
             {
                 Icon = Lucide.Superscript,
+                Key = "Ctrl+Alt+F",
                 Place = "References › Footnotes",
                 Enabled = ForFootnote
             };
@@ -816,6 +817,7 @@ public partial class MorphEditor
             new("endnote", "Endnote", _ => _.InsertEndnoteAsync())
             {
                 Icon = Lucide.FileDown,
+                Key = "Ctrl+Alt+D",
                 Place = "References › Footnotes",
                 Enabled = ForEndnote
             };
@@ -927,6 +929,7 @@ public partial class MorphEditor
             new("new-comment", "New comment", _ => _.CommentAsync())
             {
                 Icon = Lucide.MessageSquarePlus,
+                Key = "Ctrl+Alt+M",
                 Place = "Review › Comments",
                 // Word greys it out in a header, a footer and a note (WordProbe B-06, B-06b).
                 Enabled = _ => _ is
@@ -1153,6 +1156,35 @@ public partial class MorphEditor
 
         // Word's paragraph keys (WordProbe E-83, E-90, E-92): Normal, 12pt before on and off, a hanging
         // indent a stop at a time.
+        public static readonly EditorCommand SymbolFont =
+            new("symbol-font", "Symbol font", _ => _.SetFontAsync("Symbol"))
+            {
+                Key = "Ctrl+Shift+Q",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand ResetParagraph =
+            new("reset-paragraph", "Reset paragraph formatting", _ => _.ResetParagraphAsync())
+            {
+                Key = "Ctrl+Q",
+                Enabled = ForText
+            };
+
+        // Word's outline keys (WordProbe E-95d, E-95e).
+        public static readonly EditorCommand Promote =
+            new("promote", "Promote", _ => _.OutlineAsync(-1))
+            {
+                Key = "Alt+Shift+Left",
+                Enabled = ForText
+            };
+
+        public static readonly EditorCommand Demote =
+            new("demote", "Demote", _ => _.OutlineAsync(1))
+            {
+                Key = "Alt+Shift+Right",
+                Enabled = ForText
+            };
+
         public static readonly EditorCommand NormalStyle =
             new("normal-style", "Normal style", _ => _.ApplyStyleAsync("Normal"))
             {
@@ -1204,7 +1236,7 @@ public partial class MorphEditor
                 WordCount, NewComment, ReviewPane, Track, AcceptAll, RejectAll, Pages, Ruler, Present, ListLevelIn,
                 ListLevelOut, EndList, Unindent, FollowOn, ResetPicture, Heading1, Heading2, Heading3, SingleSpacing,
                 DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, GrowPoint, ShrinkPoint, AllCaps, SmallCaps,
-                DoubleUnderline, WordUnderline, Hidden, NormalStyle, SpaceBefore, Hang, Unhang, Delete
+                DoubleUnderline, WordUnderline, Hidden, SymbolFont, ResetParagraph, Promote, Demote, NormalStyle, SpaceBefore, Hang, Unhang, Delete
             }.ToDictionary(_ => _.Name, StringComparer.Ordinal);
 
         public static IReadOnlyCollection<EditorCommand> All =>
