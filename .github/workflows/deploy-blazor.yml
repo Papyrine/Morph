@@ -13,8 +13,9 @@ name: Deploy GH Pages
 # another OS adds nothing to. The build job publishes on Linux, and the deploy waits for both.
 #
 # What is deployed is compiled ahead of time (RunAOTCompilation, on the publish line below and nowhere
-# else). The editor's edits run 4–5x faster AOT, at the price of a ~23 MB larger first download (gzip,
-# which is what Pages serves), a 1.3 s rather than 0.6 s boot from cache, and a publish of 15–25 minutes
+# else). The editor's edits run 4–5x faster AOT, at the price of a ~8 MB larger first download (gzip,
+# which is what Pages serves; ~23 MB before the rooted libraries were left interpreted, which an iPhone
+# could not boot), a 1.3 s rather than 0.6 s boot from cache, and a publish of 15–25 minutes
 # instead of one — so only pushes to main and manual runs pay it, and a pull request publishes
 # interpreted. The csproj never turns it on: Morph.Web.Tests publishes the app on every build, and every
 # local test build would become an AOT publish. The workarounds AOT needs live in Morph.Blazor's
