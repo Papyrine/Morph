@@ -40,6 +40,14 @@ sealed record RunProperties
     /// draws a vertical change bar in the left margin beside any line containing one.
     /// </summary>
     public bool IsRevisionMark { get; init; }
+
+    /// <summary>
+    /// The id (<c>w:id</c>) of the comment whose range holds the run, the innermost where ranges nest;
+    /// null outside every comment. Read only when the comment markup is drawn
+    /// (<see cref="ImageExportOptions.ShowComments"/>), which highlights the range and ties its balloon
+    /// to it.
+    /// </summary>
+    public string? CommentId { get; init; }
     public bool Strikethrough { get; init; }
 
     /// <summary>

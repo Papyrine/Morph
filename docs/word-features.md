@@ -3313,11 +3313,37 @@ Reviewer comments attached to document ranges.
 
 - **OOXML**: `comments.xml` part, `w:commentRangeStart` / `w:commentRangeEnd` in document
 - **Spec**: [Comments](http://officeopenxml.com/WPcomments.php)
-- **Model**: `Comment` record (id, author, text, date, optional AnchorParagraphIndex); `ParsedDocument.Comments`
-- **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart` and matches each comment to the body paragraph that contains its `w:commentRangeStart`
-- **Render**: not drawn on the page — comment range markers pass through silently, as they do when Word prints without markup. The `AnchorParagraphIndex` on each `Comment` is enough for consumers to surface a margin indicator next to the right paragraph.
+- **Model**: `Comment` record (id, author, initials, text and paragraphs, date, the face its first run resolves to, `Number` — the order its range starts in the body — and optional AnchorParagraphIndex); `ParsedDocument.Comments`. A run inside a range carries the innermost comment's id as `RunProperties.CommentId`
+- **Parse**: `DocumentParser.ExtractComments()` reads `WordprocessingCommentsPart` and matches each comment to the body paragraph that contains its `w:commentRangeStart`; `BodyScan.CommentedRuns` follows the range marks through the body walk, and `ParseRun` stamps each covered run
+- **Render**: off by default, which draws the page as Word prints without markup. `ExportOptions.ShowComments` draws it as Word prints with All Markup (`CommentMarkup`, a step after layout): the page laid out unchanged, shrunk together with a grey pane beside it (`PlacedScaledGroup`), the commented text highlighted and bracketed, and a balloon per comment tied to its text by a dotted line. Skia, PDF and SVG draw the group through a transform; ImageSharp, whose canvas replaces rather than composes transforms, draws it full size on an image of its own and shrinks that. HTML highlights each range (`<mark class="comment">`) and links it to a trailing `<section class="comments">`; Markdown ends each range with a `[^comment-n]` footnote. The scenario suite turns it on, since Word's references are printed with markup.
 - **Review**: the Blazor viewer lists comments as threads and highlights the text each is on; it adds, answers, rewords, resolves and deletes them. `DocumentReview` reads them (`ReviewComment`: thread, resolved state from `commentsExtended.xml`, the quoted text, the runs covered) and `ReviewEditor` writes them, both in `src/Morph/OpenXml/Review/`. A new comment is dated twice, as Word dates its own: the author's clock in `w:date`, and the UTC time in `commentsExtensible.xml` (see the probe notes under Tracked Changes).
-- **Test**: `comments/`, spec tests `CommentsTests`, `DocumentReviewTests`, `ReviewEditorTests`
+- **Test**: `comments/`, `comments/02` (four comments over two pages: a five-line balloon, a two-paragraph one, one pushed down by the one above it), spec tests `CommentsTests`, `CommentMarkupTests`, `DocumentReviewTests`, `ReviewEditorTests`
+
+> **Word's All Markup print, XPS-read on seven `_probe_comment_*` fixtures (Word 365, 2026-10-25).**
+> They varied the right margin (1in, 3in), the left margin (1in, 3in), the page width (8.5in, 6in) and
+> height (11in, 7in), and put four comments over two pages. Everything below is in the page's own
+> points, before the shrink.
+>
+> - **The page paginates exactly as without markup.** The 26-paragraph probe broke after the same
+>   line; the markup is drawn over a finished page.
+> - **The pane starts 7.3pt right of the right margin and is 259.2pt (3.6in) wide** at every width
+>   and margin (259.2-259.4 read); the left margin moves nothing. Page and pane are shrunk together
+>   to the paper's width, left-aligned and centred down it: scale = width ÷ (width − right margin +
+>   7.3 + 259.2), 0.7588 on Letter with 1in margins against Word's 0.7590. Word's scale runs a little
+>   larger than the pane fits — its pane overhangs the paper by 0.1pt (Letter), 1.3pt (3in right
+>   margin) and 1.9pt (6in page) — so the model's pages are up to 0.4% small there (6px down a 6in
+>   page at 150 dpi). Unmodelled.
+> - **A balloon stands 23.4pt in from the pane's left and 3pt from its right**, its text 4.8pt in
+>   from its left. The text's measure is bracketed by the five-line comment's wraps: Word set a line
+>   of 224.02pt of Calibri 9pt and refused one of 225.53pt, so its right inset is 3.2pt (± 0.7).
+> - **A balloon's top is its range's line top**, or 2.4pt under the balloon above it when that
+>   reaches lower. Its first baseline is 12pt down, its lines are the face's single spacing at 9pt
+>   (bold "Commented [R1]: " leading the first paragraph, each later paragraph on a line of its own,
+>   no space between), and its bottom is 3.6pt under its last baseline. Corners are 3pt round.
+> - **The number in the label is the comment's order down the body**, after the author's initials.
+> - **The connector** runs dotted along the range's line bottom from its end to 3pt short of the
+>   pane, then slants to the balloon's left edge 6pt below its top. Strokes are #D13438 at ~0.6pt,
+>   the highlight and balloon fill #F8DCDD, the pane #F2F2F2.
 
 > **Contributors**: `Comment` keeps only the paragraph its range starts in, which is all an exporter needs. A range's exact extent is `ReviewComment.Runs`: the ordinals of the main-part `w:r` elements between its marks. A range always starts and ends between runs in the file — Word splits a run where a comment begins — so run ordinals say exactly what is covered, and `ReviewEditor.AddComment` splits a run the same way (`Split`) when a new comment starts mid-run.
 >

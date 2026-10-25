@@ -107,7 +107,32 @@ static class ImageSharpPainter
             case PlacedClipGroup clip:
                 PaintClipGroup(context, canvas, clip);
                 break;
+            case PlacedScaledGroup scaled:
+                PaintScaledGroup(context, canvas, scaled);
+                break;
         }
+    }
+
+    // See SkiaPainter.PaintScaledGroup. Drawn at full size on an image of its own and that image shrunk
+    // onto the page, rather than through a transform: DrawingCanvas.Save(DrawingOptions) replaces the
+    // transform rather than composing it (PaintRotatedGroup), so every rotated picture, shape and text
+    // box inside the group would lose the scale.
+    static void PaintScaledGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedScaledGroup group)
+    {
+        var width = (int) Math.Ceiling(P(context, group.Width / group.Scale));
+        var height = (int) Math.Ceiling(P(context, group.Height / group.Scale));
+        using var full = new Image<Rgba32>(width, height);
+        using (var inner = full.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
+        {
+            foreach (var item in group.Items)
+            {
+                PaintItem(context, inner, item);
+            }
+        }
+
+        // Shrinking it is the canvas's own work, done as the call is made, so the image can go with it
+        // (CanvasDrawingExtensions.DrawImage).
+        canvas.DrawImage(full, new(0, 0, width, height), new RectangleF(P(context, group.X), P(context, group.Y), width * group.Scale, height * group.Scale));
     }
 
     // See SkiaPainter.PaintClipGroup.

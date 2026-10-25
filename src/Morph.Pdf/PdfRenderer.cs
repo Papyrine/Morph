@@ -27,7 +27,8 @@ static class PdfRenderer
                 document.FirstPageFooter,
                 document.EvenPageHeader,
                 document.EvenPageFooter,
-                DocumentNotes.From(document));
+                DocumentNotes.From(document))
+            .WithComments(document, measurer, options.ShowComments);
         cancel.ThrowIfCancellationRequested();
 
         // The painter's context resolves fonts with the conversion's own width scale, fallback and

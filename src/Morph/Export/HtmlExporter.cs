@@ -74,10 +74,11 @@ static class HtmlExporter
 
         if (!options.EmitDocument)
         {
-            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, pageFieldsPreEvaluated: document.PageFieldsPreEvaluated);
+            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, pageFieldsPreEvaluated: document.PageFieldsPreEvaluated, comments: document.Comments);
             WriteHeaderFooter(fragmentWriter, headerContent, "header", "doc-header");
             fragmentWriter.WriteBody(document.Elements);
             fragmentWriter.WriteNoteDefinitions();
+            fragmentWriter.WriteCommentDefinitions();
             WriteHeaderFooter(fragmentWriter, footerContent, "footer", "doc-footer");
             fragmentWriter.WriteRecolorFilters();
             return fragmentWriter.ToString();
@@ -149,10 +150,11 @@ static class HtmlExporter
         }
 
         doc.Append(">\n");
-        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated);
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated, document.Comments);
         WriteHeaderFooter(writer, headerContent, "header", "doc-header");
         writer.WriteBody(document.Elements);
         writer.WriteNoteDefinitions();
+        writer.WriteCommentDefinitions();
         WriteHeaderFooter(writer, footerContent, "footer", "doc-footer");
         writer.WriteRecolorFilters();
         doc.Append("</body>\n</html>");
@@ -357,7 +359,7 @@ static class HtmlExporter
         return Length(top);
     }
 
-    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null, bool pageFieldsPreEvaluated = false)
+    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null, bool pageFieldsPreEvaluated = false, IReadOnlyList<Comment>? comments = null)
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
         // inline override.
@@ -418,6 +420,13 @@ static class HtmlExporter
 
         List<(int Number, string Text)> notes = [];
         Dictionary<string, int> noteNumbers = [];
+
+        // The comments shown (ExportOptions.ShowComments), by id, and those whose range has been
+        // written, in the order their ranges ended.
+        Dictionary<string, Comment> commentsById = options.ShowComments
+            ? (comments ?? []).Where(_ => _.Number != null).GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First())
+            : [];
+        List<Comment> commentsWritten = [];
 
         // How far down the page the flow being written starts, where that is not the top margin:
         // set while the footer is written (see WriteFooter).
@@ -2612,9 +2621,21 @@ static class HtmlExporter
         {
             var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var index = 0;
+            Comment? open = null;
             while (index < runs.Count)
             {
                 var run = runs[index];
+                var comment = Commented(run);
+                if (comment != open)
+                {
+                    CloseComment(open);
+                    if (comment != null)
+                    {
+                        builder.Append("""<mark class="comment" style="background-color: #F8DCDD">""");
+                    }
+
+                    open = comment;
+                }
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
                     // The link's LOOK comes from the document's own runs — a Hyperlink-styled run
@@ -2636,6 +2657,60 @@ static class HtmlExporter
                 AppendRun(run, context);
                 index++;
             }
+
+            CloseComment(open);
+        }
+
+        Comment? Commented(Run run)
+        {
+            if (run.Properties.CommentId is { } id &&
+                commentsById.TryGetValue(id, out var comment))
+            {
+                return comment;
+            }
+
+            return null;
+        }
+
+        // Ends a comment's highlight with a link to its text in the trailing comments section, as
+        // Word's balloon follows its range. A range broken by other text links each piece.
+        void CloseComment(Comment? comment)
+        {
+            if (comment == null)
+            {
+                return;
+            }
+
+            if (!commentsWritten.Contains(comment))
+            {
+                commentsWritten.Add(comment);
+            }
+
+            builder.Append($"""</mark><sup class="comment-ref"><a href="#comment-{comment.Number}">[{EncodeText(Label(comment))}]</a></sup>""");
+        }
+
+        static string Label(Comment comment) =>
+            $"{comment.Initials}{comment.Number}";
+
+        // Emits the trailing comments section: each comment whose range was written, as Word's balloon
+        // reads ("Commented [R1]: …"), one paragraph of it per line. Nothing when none was.
+        public void WriteCommentDefinitions()
+        {
+            if (commentsWritten.Count == 0)
+            {
+                return;
+            }
+
+            Indent(0).Append("<section class=\"comments\">\n");
+            foreach (var comment in commentsWritten)
+            {
+                var paragraphs = comment.Paragraphs.Count > 0 ? comment.Paragraphs : [comment.Text];
+                Indent(1)
+                    .Append($"""<p id="comment-{comment.Number}"><strong>Commented [{EncodeText(Label(comment))}]:</strong> {string.Join("<br>", paragraphs.Select(EncodeText))}</p>""")
+                    .Append('\n');
+            }
+
+            Indent(0).Append("</section>\n");
         }
 
         void AppendRun(Run run, TextContext context)

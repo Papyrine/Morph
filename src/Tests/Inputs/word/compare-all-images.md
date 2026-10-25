@@ -1,4 +1,4 @@
-# All scenarios (346)
+# All scenarios (347)
 
 <details>
 <summary>Contents</summary>
@@ -87,6 +87,7 @@
 - [color_transform_theme_fill](#color_transform_theme_fill)
 - [column_breaks](#column_breaks)
 - [comments/01](#comments01)
+- [comments/02](#comments02)
 - [compatibility_mode_14](#compatibility_mode_14)
 - [complex_document](#complex_document)
 - [complex_spacing](#complex_spacing)
@@ -1394,6 +1395,15 @@ column avoids the glyphs.
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2495 · SSIM: 0.9844** | **Page 1. ErrorMetric: 0.2495 · SSIM: 0.9845** |
 | <img src="comments/01/expected_0001.png" width="500"> | <img src="comments/01/skia_result%23page_0001.verified.png" width="500"> | <img src="comments/01/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## comments/02
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="comments/02/expected_0001.png" width="500"> |  |  |
+| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
+| <img src="comments/02/expected_0002.png" width="500"> |  |  |
 
 ## compatibility_mode_14
 

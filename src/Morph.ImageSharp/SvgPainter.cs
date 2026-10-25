@@ -118,6 +118,23 @@ static class SvgPainter
 
                     svg.Append("</g>");
                     break;
+                case PlacedScaledGroup scaled:
+                    svg.Append("<g transform=\"matrix(");
+                    Number3(scaled.Scale);
+                    svg.Append(" 0 0 ");
+                    Number3(scaled.Scale);
+                    svg.Append(' ');
+                    Number(scaled.X);
+                    svg.Append(' ');
+                    Number(scaled.Y);
+                    svg.Append(")\">");
+                    foreach (var child in scaled.Items)
+                    {
+                        Item(child);
+                    }
+
+                    svg.Append("</g>");
+                    break;
                 case PlacedClipGroup clip:
                     OpenClip(clip.X, clip.Y, clip.Width, clip.Height);
                     foreach (var child in clip.Items)

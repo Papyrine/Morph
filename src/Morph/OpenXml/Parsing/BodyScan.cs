@@ -20,6 +20,10 @@ sealed class BodyScan
     public List<InsertedRun> Insertions { get; } = [];
     public List<DeletedRun> Deletions { get; } = [];
     public List<CommentRangeStart> CommentStarts { get; } = [];
+
+    // The innermost comment range each run stands in, by the order the walk meets the range's start,
+    // the run and the range's end. A run in no range is absent.
+    public Dictionary<OoxmlRun, string> CommentedRuns { get; } = [];
     public List<BookmarkStart> BookmarkStarts { get; } = [];
     public List<OoxmlEmbeddedObject> EmbeddedObjects { get; } = [];
 
@@ -36,6 +40,7 @@ sealed class BodyScan
 
     public BodyScan(Body body)
     {
+        var openComments = new List<string>();
         foreach (var element in body.Descendants())
         {
             switch (element)
@@ -45,6 +50,18 @@ sealed class BodyScan
                     break;
                 case OoxmlRun run:
                     Runs.Add(run);
+                    if (openComments.Count > 0)
+                    {
+                        CommentedRuns[run] = openComments[^1];
+                    }
+
+                    break;
+                case CommentRangeEnd end:
+                    if (end.Id?.Value is { } endId)
+                    {
+                        openComments.Remove(endId);
+                    }
+
                     break;
                 case LastRenderedPageBreak:
                     LastRenderedPageBreaks++;
@@ -63,6 +80,11 @@ sealed class BodyScan
                     break;
                 case CommentRangeStart start:
                     CommentStarts.Add(start);
+                    if (start.Id?.Value is { } startId)
+                    {
+                        openComments.Add(startId);
+                    }
+
                     break;
                 case BookmarkStart start:
                     BookmarkStarts.Add(start);

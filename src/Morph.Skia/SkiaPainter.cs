@@ -116,7 +116,25 @@ static class SkiaPainter
             case PlacedClipGroup clip:
                 PaintClipGroup(context, canvas, clip);
                 break;
+            case PlacedScaledGroup scaled:
+                PaintScaledGroup(context, canvas, scaled);
+                break;
         }
+    }
+
+    // Items laid out on a page of their own, drawn shrunk onto this one (PlacedScaledGroup): a page
+    // with its comment markup.
+    static void PaintScaledGroup(SkiaRenderContext context, SKCanvas canvas, PlacedScaledGroup group)
+    {
+        canvas.Save();
+        canvas.Translate(P(context, group.X), P(context, group.Y));
+        canvas.Scale(group.Scale);
+        foreach (var item in group.Items)
+        {
+            PaintItem(context, canvas, item);
+        }
+
+        canvas.Restore();
     }
 
     // Items drawn only inside the group's box (PlacedClipGroup): the part of a sheet's drawings that

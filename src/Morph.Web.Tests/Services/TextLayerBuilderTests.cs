@@ -289,6 +289,7 @@ public class TextLayerBuilderTests
                 "PlacedImage",
                 "PlacedLine",
                 "PlacedRotatedGroup",
+                "PlacedScaledGroup",
                 "PlacedShading",
                 "PlacedShape",
                 "PlacedTableRow",

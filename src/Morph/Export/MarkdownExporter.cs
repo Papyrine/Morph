@@ -8,13 +8,14 @@ static class MarkdownExporter
 {
     public static string Export(ParsedDocument document, MarkdownExportOptions? options = null)
     {
-        var writer = new MarkdownWriter(options ?? new(), document.Footnotes, document.Endnotes, document.PageFieldsPreEvaluated);
+        var writer = new MarkdownWriter(options ?? new(), document.Footnotes, document.Endnotes, document.PageFieldsPreEvaluated, document.Comments);
         writer.WriteElements(document.Elements);
         writer.WriteNoteDefinitions();
+        writer.WriteCommentDefinitions();
         return writer.Finish();
     }
 
-    sealed class MarkdownWriter(MarkdownExportOptions options, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, bool pageFieldsPreEvaluated = false)
+    sealed class MarkdownWriter(MarkdownExportOptions options, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, bool pageFieldsPreEvaluated = false, IReadOnlyList<Comment>? comments = null)
     {
         StringBuilder builder = new();
         int imageIndex;
@@ -23,6 +24,13 @@ static class MarkdownExporter
         Dictionary<string, string> endnoteTexts = endnotes.GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First().Text);
         List<(int Number, string Text)> notes = [];
         Dictionary<string, int> noteNumbers = [];
+
+        // The comments shown (ExportOptions.ShowComments), by id, and those whose range has been
+        // written, in the order their ranges ended — HtmlExporter's, as footnotes.
+        Dictionary<string, Comment> commentsById = options.ShowComments
+            ? (comments ?? []).Where(_ => _.Number != null).GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First())
+            : [];
+        List<Comment> commentsWritten = [];
 
         public string Finish()
         {
@@ -449,9 +457,17 @@ static class MarkdownExporter
             var runs = DocumentExportHelpers.CoalesceRuns(sourceRuns);
             var inline = new StringBuilder();
             var index = 0;
+            Comment? open = null;
             while (index < runs.Count)
             {
                 var run = runs[index];
+                var comment = Commented(run);
+                if (comment != open)
+                {
+                    CommentMarker(inline, open);
+                    open = comment;
+                }
+
                 if (run.HyperlinkUrl is {Length: > 0} url)
                 {
                     var linkText = new StringBuilder();
@@ -470,7 +486,48 @@ static class MarkdownExporter
                 index++;
             }
 
+            CommentMarker(inline, open);
             return inline.ToString();
+        }
+
+        Comment? Commented(Run run)
+        {
+            if (run.Properties.CommentId is { } id &&
+                commentsById.TryGetValue(id, out var comment))
+            {
+                return comment;
+            }
+
+            return null;
+        }
+
+        // A comment's range ends in a footnote marker for its text, which WriteCommentDefinitions
+        // emits after the notes.
+        void CommentMarker(StringBuilder target, Comment? comment)
+        {
+            if (comment == null)
+            {
+                return;
+            }
+
+            if (!commentsWritten.Contains(comment))
+            {
+                commentsWritten.Add(comment);
+            }
+
+            target.Append($"[^comment-{comment.Number}]");
+        }
+
+        // "[^comment-n]: **Commented [R1]:** text" for every comment whose range was written, each of
+        // its paragraphs a line of the definition.
+        public void WriteCommentDefinitions()
+        {
+            foreach (var comment in commentsWritten)
+            {
+                var paragraphs = comment.Paragraphs.Count > 0 ? comment.Paragraphs : [comment.Text];
+                var text = string.Join("<br>", paragraphs.Select(_ => EscapeInline(_, inTable: false)));
+                AppendBlock($"[^comment-{comment.Number}]: **Commented [{comment.Initials}{comment.Number}]:** {text}");
+            }
         }
 
         void AppendRun(StringBuilder target, Run run, bool inTable, bool inHeading)

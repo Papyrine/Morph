@@ -54,6 +54,19 @@ public abstract record ExportOptions
     public bool? UseLetterPageSize { get; init; }
 
     /// <summary>
+    /// Whether a Word document's comments are shown. Off by default, which leaves them out of every
+    /// format.
+    /// <para>
+    /// On, an image or a PDF is drawn as Word prints with All Markup: each page shrunk to the left to
+    /// make room for a grey pane down its right side, the commented text highlighted, and each comment
+    /// in a balloon in the pane tied to its text by a dotted line. Every page of a document with an
+    /// anchored comment is drawn so, as Word draws it. HTML and Markdown follow the commented text with
+    /// the comments' text.
+    /// </para>
+    /// </summary>
+    public bool ShowComments { get; init; }
+
+    /// <summary>
     /// Invoked for every feature the source document contained that couldn't be fully represented
     /// in the chosen output format — unsupported elements, missing fonts, inline images that
     /// failed to decode, etc. Null disables warning emission entirely.

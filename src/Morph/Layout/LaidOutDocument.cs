@@ -26,6 +26,20 @@ sealed record LaidOutDocument(IReadOnlyList<LaidOutPage> Pages)
     }
 
     /// <summary>
+    /// The same document with its comments drawn as Word prints them (<see cref="CommentMarkup"/>) when
+    /// <paramref name="show"/> is set and the document anchors any; unchanged otherwise.
+    /// </summary>
+    public LaidOutDocument WithComments(ParsedDocument document, CanonicalParagraphMeasurer measurer, bool show)
+    {
+        if (show)
+        {
+            return CommentMarkup.Apply(this, document, measurer);
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// The same document with every page that asks for it
     /// (<see cref="PageSettings.FitHeightToContent"/>) ending under the last thing placed on it,
     /// and its bottom margin. Unchanged when no page asks, which is every document but a workbook

@@ -110,6 +110,11 @@ static class TextLayerBuilder
                     // as it would outside one.
                     nodes.AddRange(Container(clip.Items, sources));
                     break;
+                case PlacedScaledGroup scaled:
+                    // A page drawn with its comment markup, which only an export asks for: the viewer
+                    // lays out no markup, so this layer never meets one.
+                    nodes.AddRange(Container(scaled.Items, sources));
+                    break;
                 case PlacedWordArt {Visual.Text.Length: > 0} wordArt:
                     // A warp draws as one figure with no line geometry; the whole box stands in for its text.
                     nodes.Add(new BoxNode(wordArt.X, wordArt.Y, wordArt.Width, wordArt.Height, wordArt.Visual.Text));

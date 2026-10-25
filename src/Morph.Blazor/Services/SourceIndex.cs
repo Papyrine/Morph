@@ -90,6 +90,9 @@ sealed class SourceIndex
                 case PlacedClipGroup clip:
                     Walk(clip.Items, cursors);
                     break;
+                case PlacedScaledGroup scaled:
+                    Walk(scaled.Items, cursors);
+                    break;
             }
         }
     }
