@@ -1,0 +1,48 @@
+-   <w:p>
+-     <w:r>
+-       <w:t xml:space="preserve">Rich: </w:t>
+-     </w:r>
+-     <w:sdt>
+-       <w:sdtPr>
+-         <w:id w:val="2116175311" />
+-         <w:placeholder>
+-           <w:docPart w:val="170151DC27584A4386061E975441F4A8" />
+-         </w:placeholder>
+-       </w:sdtPr>
+-       <w:sdtContent>
+-         <w:r>
+-           <w:t>content here</w:t>
+-         </w:r>
+-       </w:sdtContent>
+-     </w:sdt>
+-     <w:r>
+-       <w:t xml:space="preserve"> end.</w:t>
+-     </w:r>
+-   </w:p>
++   <w:p />
+-           <w:docPart w:val="170151DC27584A4386061E975441F4A8" />
++           <w:docPart w:val="01CC6F5EEE06481CB9DAF60998B6A647" />
+-           <w:docPart w:val="3A75EA66CD8D4C46BCF14ABDFE0F6C14" />
++           <w:docPart w:val="C17FD047360745AC89828A6F54F21C5C" />
++     <w:r>
++       <w:t xml:space="preserve"> </w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve">Rich: </w:t>
++     </w:r>
++     <w:sdt>
++       <w:sdtPr>
++         <w:id w:val="2116175311" />
++         <w:placeholder>
++           <w:docPart w:val="5275C29A7DCF4310A1C8BDDE396D966E" />
++         </w:placeholder>
++       </w:sdtPr>
++       <w:sdtContent>
++         <w:r>
++           <w:t>content here</w:t>
++         </w:r>
++       </w:sdtContent>
++     </w:sdt>
++     <w:r>
++       <w:t xml:space="preserve"> end.</w:t>
++     </w:r>

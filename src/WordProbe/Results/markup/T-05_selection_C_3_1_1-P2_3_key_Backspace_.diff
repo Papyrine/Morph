@@ -1,0 +1,114 @@
+-   <w:tbl>
+-     <w:tblPr>
+-       <w:tblStyle w:val="TableGrid" />
+-       <w:tblW w:w="0" w:type="auto" />
+-       <w:tblCellMar>
+-         <w:top w:w="360" w:type="dxa" />
+-         <w:left w:w="720" w:type="dxa" />
+-         <w:bottom w:w="360" w:type="dxa" />
+-         <w:right w:w="720" w:type="dxa" />
+-       </w:tblCellMar>
+-       <w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1" />
+-     </w:tblPr>
+-     <w:tblGrid>
+-       <w:gridCol w:w="3005" />
+-       <w:gridCol w:w="3005" />
+-       <w:gridCol w:w="3006" />
+-     </w:tblGrid>
+-     <w:tr>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>a1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3006" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>c1</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-     </w:tr>
+-     <w:tr>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>a2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3006" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>c2</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-     </w:tr>
+-     <w:tr>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>a3</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3005" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>b3</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="3006" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>c3</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-     </w:tr>
+-   </w:tbl>

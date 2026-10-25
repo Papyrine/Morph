@@ -1,0 +1,7 @@
+-     <w:bookmarkStart w:id="0" w:name="target" />
+-       <w:t>Target</w:t>
+-     </w:r>
+-     <w:bookmarkEnd w:id="0" />
+-     <w:r>
+-       <w:t xml:space="preserve"> paragraph here.</w:t>
++       <w:t>paragraph here.</w:t>

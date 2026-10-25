@@ -1,0 +1,7 @@
+-       <w:pStyle w:val="ListParagraph" />
+-       <w:numPr>
+-         <w:ilvl w:val="0" />
+-         <w:numId w:val="1" />
+-       </w:numPr>
+-       <w:ind w:left="1080" />
++       <w:pStyle w:val="Heading1" />

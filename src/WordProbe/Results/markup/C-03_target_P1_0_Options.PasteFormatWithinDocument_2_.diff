@@ -1,0 +1,8 @@
++     <w:pPr>
++       <w:pStyle w:val="Heading1" />
++     </w:pPr>
++       <w:t>Heading kind</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:r>

@@ -1,0 +1,28 @@
+-           <w:docPart w:val="C92DD7F689784B0A83E3DD6CEA7A268F" />
++           <w:docPart w:val="64A81D9C1BBA4B6A941F5CA102849225" />
+-           <w:docPart w:val="C92DD7F689784B0A83E3DD6CEA7A268F" />
++           <w:docPart w:val="64A81D9C1BBA4B6A941F5CA102849225" />
+-           <w:docPart w:val="4A016A5E6AC54B0693D411659380039A" />
++           <w:docPart w:val="F7A86D125AC54F8081B24151EEECB56B" />
++     <w:r>
++       <w:t xml:space="preserve"> </w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve">Rich: </w:t>
++     </w:r>
++     <w:sdt>
++       <w:sdtPr>
++         <w:id w:val="-125013133" />
++         <w:placeholder>
++           <w:docPart w:val="5AC574B3D9E24DC5AB475B306EA690D1" />
++         </w:placeholder>
++       </w:sdtPr>
++       <w:sdtContent>
++         <w:r>
++           <w:t>content here</w:t>
++         </w:r>
++       </w:sdtContent>
++     </w:sdt>
++     <w:r>
++       <w:t xml:space="preserve"> end.</w:t>
++     </w:r>

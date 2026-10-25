@@ -1,0 +1,13 @@
+-           <w:r>
+-             <w:t>b1</w:t>
+-           </w:r>
++           <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:40:00Z" w16du:dateUtc="2026-10-25T03:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>b1</w:delText>
++             </w:r>
++           </w:del>
++           <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:40:00Z" w16du:dateUtc="2026-10-25T03:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>x</w:t>
++             </w:r>
++           </w:ins>

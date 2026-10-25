@@ -1,0 +1,11 @@
+-       <w:t xml:space="preserve">The quick </w:t>
++       <w:t>The quick jumps over the lazy dog.</w:t>
++   </w:p>
++   <w:p>
+-       <w:t xml:space="preserve"> jumps over the lazy dog.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:r>
+-       <w:t>Second paragraph.</w:t>
++       <w:t xml:space="preserve"> Second paragraph.</w:t>

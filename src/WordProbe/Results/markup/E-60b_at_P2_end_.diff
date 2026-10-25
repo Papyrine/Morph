@@ -1,0 +1,10 @@
+-       <w:t>Plain two.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:ind w:left="720" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Indented three.</w:t>
++       <w:t>Plain two.Indented three.</w:t>

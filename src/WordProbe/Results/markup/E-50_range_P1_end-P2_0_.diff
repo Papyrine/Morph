@@ -1,0 +1,10 @@
+-       <w:t>First paragraph here.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:jc w:val="center" />
+-     </w:pPr>
+-     <w:r>
+-       <w:t xml:space="preserve">Second </w:t>
++       <w:t xml:space="preserve">First paragraph here.Second </w:t>

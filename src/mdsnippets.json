@@ -4,6 +4,6 @@
   "MaxWidth": 120,
   "ValidateContent": true,
   "Convention": "InPlaceOverwrite",
-  "ExcludeMarkdownFiles": [ "fidelity-audit.md", "page_counts.md", "*.verified.md", "*.received.md", "todo.md", "layout-engine.md", "word-command-reference.md" ],
+  "ExcludeMarkdownFiles": [ "fidelity-audit.md", "page_counts.md", "*.verified.md", "*.received.md", "todo.md", "layout-engine.md", "word-command-reference.md", "word-behavior.md" ],
   "ExcludeDirectories": ["Inputs", "superpowers"]
 }

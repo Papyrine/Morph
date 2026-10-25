@@ -1,0 +1,39 @@
+-       <w:t xml:space="preserve">Plain </w:t>
+-     </w:r>
+-     <w:r>
+-       <w:rPr>
+-         <w:b />
+-       </w:rPr>
+-       <w:t>bold</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> </w:t>
+-     </w:r>
+-     <w:r>
+-       <w:rPr>
+-         <w:i />
+-       </w:rPr>
+-       <w:t>italic</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> </w:t>
+-     </w:r>
+-     <w:r>
+-       <w:rPr>
+-         <w:u w:val="single" />
+-       </w:rPr>
+-       <w:t>under</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> </w:t>
+-     </w:r>
+-     <w:r>
+-       <w:rPr>
+-         <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" />
+-         <w:sz w:val="40" />
+-       </w:rPr>
+-       <w:t>big</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> end.</w:t>
++       <w:t>Plain bold italic under big end.</w:t>

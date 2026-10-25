@@ -1,0 +1,14 @@
+-       <w:t xml:space="preserve">See </w:t>
+-     </w:r>
+-     <w:hyperlink r:id="rId4" w:history="1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+-       <w:r>
+-         <w:rPr>
+-           <w:rStyle w:val="Hyperlink" />
+-           <w:b />
+-         </w:rPr>
+-         <w:t>the site</w:t>
+-       </w:r>
+-     </w:hyperlink>
+-     <w:r>
+-       <w:t xml:space="preserve"> today.</w:t>
++       <w:t>See today.</w:t>

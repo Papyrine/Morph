@@ -1,0 +1,7 @@
+-       <w:spacing w:after="480" />
++       <w:spacing w:after="480" w:line="240" w:lineRule="auto" />
++       <w:pPrChange w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:35:00Z" w16du:dateUtc="2026-10-25T03:35:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++         <w:pPr>
++           <w:spacing w:after="480" />
++         </w:pPr>
++       </w:pPrChange>

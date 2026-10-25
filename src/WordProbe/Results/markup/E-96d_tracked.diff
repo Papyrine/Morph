@@ -1,0 +1,112 @@
+-     <w:r>
+-       <w:t>Before the table.</w:t>
+-     </w:r>
++     <w:pPr>
++       <w:rPr>
++         <w:moveFrom w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
++     <w:moveFromRangeStart w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w:name="move243831411" />
++     <w:moveFrom w:id="2" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>Before the table.</w:t>
++       </w:r>
++     </w:moveFrom>
++       <w:trPr>
++         <w:ins w:id="3" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:trPr>
++         <w:moveFromRangeEnd w:id="1" />
++           <w:pPr>
++             <w:rPr>
++               <w:ins w:id="4" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:ins w:id="5" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>Before the table.</w:t>
++             </w:r>
++           </w:ins>
++         </w:p>
++         <w:p>
++           <w:pPr>
++             <w:rPr>
++               <w:ins w:id="6" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:ins w:id="7" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>Three</w:t>
++             </w:r>
++           </w:ins>
++         </w:p>
++       </w:tc>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="4508" w:type="dxa" />
++         </w:tcPr>
++         <w:p>
++           <w:pPr>
++             <w:rPr>
++               <w:ins w:id="8" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:ins w:id="9" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>Four</w:t>
++             </w:r>
++           </w:ins>
++         </w:p>
++       </w:tc>
++     </w:tr>
++     <w:tr>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="4508" w:type="dxa" />
++         </w:tcPr>
++         <w:p>
++       <w:trPr>
++         <w:del w:id="10" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:trPr>
+-           <w:r>
+-             <w:t>Three</w:t>
+-           </w:r>
++           <w:pPr>
++             <w:rPr>
++               <w:del w:id="11" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++               <w:moveTo w:id="12" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:moveToRangeStart w:id="13" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w:name="move243831411" />
++           <w:moveTo w:id="14" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:del w:id="15" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z">
++               <w:r>
++                 <w:delText>Before the table.</w:delText>
++               </w:r>
++             </w:del>
++           </w:moveTo>
++         <w:moveToRangeEnd w:id="13" />
++         <w:p>
++           <w:pPr>
++             <w:rPr>
++               <w:del w:id="16" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:del w:id="17" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>Three</w:delText>
++             </w:r>
++           </w:del>
++         </w:p>
+-           <w:r>
+-             <w:t>Four</w:t>
+-           </w:r>
++           <w:pPr>
++             <w:rPr>
++               <w:del w:id="18" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++             </w:rPr>
++           </w:pPr>
++           <w:del w:id="19" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>Four</w:delText>
++             </w:r>
++           </w:del>

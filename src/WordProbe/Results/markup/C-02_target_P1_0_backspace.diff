@@ -1,0 +1,5 @@
++     <w:pPr>
++       <w:pStyle w:val="Heading1" />
++     </w:pPr>
+-       <w:t>Normal kind.</w:t>
++       <w:t>ing kindNormal kind.</w:t>

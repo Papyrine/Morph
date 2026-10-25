@@ -1,0 +1,11 @@
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t xml:space="preserve">The </w:t>
++     <w:r>
++       <w:rPr>
++         <w:vanish />
++       </w:rPr>
++       <w:t>quick</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> brown fox jumps over the lazy dog.</w:t>
++     </w:r>

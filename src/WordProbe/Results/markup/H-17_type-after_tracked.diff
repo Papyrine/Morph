@@ -1,0 +1,25 @@
+-   <w:p>
++   <w:p w14:paraId="34945E9C" w14:textId="793EF564" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t xml:space="preserve">The </w:t>
++     <w:commentRangeStart w:id="0" />
++     <w:r>
++       <w:t>quick</w:t>
++     </w:r>
++     <w:commentRangeEnd w:id="0" />
++     <w:r>
++       <w:rPr>
++         <w:rStyle w:val="CommentReference" />
++         <w:sz w:val="24" />
++         <w:szCs w:val="24" />
++       </w:rPr>
++       <w:commentReference w:id="0" />
++     </w:r>
++     <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-10-25T17:20:00Z" w16du:dateUtc="2026-10-25T06:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>x</w:t>
++       </w:r>
++     </w:ins>
++     <w:r>
++       <w:t xml:space="preserve"> brown fox jumps over the lazy dog.</w:t>
++     </w:r>

@@ -1,0 +1,18 @@
+-   <w:p>
+-     <w:r>
+-       <w:t>Before the table.</w:t>
+-     </w:r>
+-   </w:p>
+-             <w:t>One</w:t>
++             <w:t>Before the table.</w:t>
++         <w:p>
++           <w:r>
++             <w:t>Three</w:t>
++           </w:r>
++         </w:p>
+-             <w:t>Two</w:t>
++             <w:t>Four</w:t>
+-             <w:t>Three</w:t>
++             <w:t>One</w:t>
+-             <w:t>Four</w:t>
++             <w:t>Two</w:t>

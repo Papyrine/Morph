@@ -1,0 +1,8 @@
++     <w:pPr>
++       <w:pStyle w:val="ListBullet" />
++     </w:pPr>
+-       <w:jc w:val="center" />
++       <w:pStyle w:val="ListBullet" />
++     <w:pPr>
++       <w:pStyle w:val="ListBullet" />
++     </w:pPr>

@@ -1,0 +1,6 @@
+-       <w:t>First paragraph here.</w:t>
++       <w:t>First</w:t>
++     <w:r>
++       <w:tab />
++       <w:t xml:space="preserve"> paragraph here.</w:t>
++     </w:r>

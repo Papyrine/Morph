@@ -1,0 +1,11 @@
+-       <w:t>Text</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:rPr>
+-         <w:rStyle w:val="FootnoteReference" />
+-       </w:rPr>
+-       <w:footnoteReference w:id="1" />
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> more words.</w:t>
++       <w:t>Text more words.</w:t>

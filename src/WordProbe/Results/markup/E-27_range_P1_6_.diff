@@ -1,0 +1,9 @@
+-       <w:t>alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.</w:t>
++       <w:t xml:space="preserve">alpha </w:t>
++     <w:r>
++       <w:rPr>
++         <w:sz w:val="48" />
++       </w:rPr>
++       <w:br />
++       <w:t>beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.</w:t>
++     </w:r>

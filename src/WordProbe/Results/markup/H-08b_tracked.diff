@@ -1,0 +1,24 @@
+-   <w:p w14:paraId="184706C0" w14:textId="77777777" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p>
+-     <w:commentRangeStart w:id="0" />
+-     <w:r>
+-       <w:t>brown fox</w:t>
+-     </w:r>
+-     <w:commentRangeEnd w:id="0" />
+-     <w:r>
+-       <w:rPr>
+-         <w:rStyle w:val="CommentReference" />
+-         <w:sz w:val="24" />
+-         <w:szCs w:val="24" />
+-       </w:rPr>
+-       <w:commentReference w:id="0" />
+-     </w:r>
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T15:19:00Z" w16du:dateUtc="2026-10-25T04:19:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText xml:space="preserve">brown fox </w:delText>
++       </w:r>
++     </w:del>
+-       <w:t xml:space="preserve"> jumps over the lazy dog.</w:t>
++       <w:t>jumps over the lazy dog.</w:t>
+-   <w:p w14:paraId="705846A9" w14:textId="0AA78F93" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p>

@@ -1,0 +1,29 @@
+-   <w:p>
+-     <w:r>
+-       <w:t>Before the table.</w:t>
+-     </w:r>
+-   </w:p>
+-             <w:t>One</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="4508" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>Two</w:t>
+-           </w:r>
+-         </w:p>
+-       </w:tc>
+-     </w:tr>
+-     <w:tr>
+-       <w:tc>
+-         <w:tcPr>
+-           <w:tcW w:w="4508" w:type="dxa" />
+-         </w:tcPr>
+-         <w:p>
+-           <w:r>
+-             <w:t>Three</w:t>
++             <w:t>BeThree</w:t>

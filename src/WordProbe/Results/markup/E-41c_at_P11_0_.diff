@@ -1,0 +1,14 @@
+-       <w:t>Centred ten.</w:t>
+-     </w:r>
+-   </w:p>
+-   <w:p>
+-     <w:pPr>
+-       <w:pStyle w:val="ListParagraph" />
+-       <w:numPr>
+-         <w:ilvl w:val="0" />
+-         <w:numId w:val="3" />
+-       </w:numPr>
+-     </w:pPr>
+-     <w:r>
+-       <w:t>Bullet eleven.</w:t>
++       <w:t>Centred ten.Bullet eleven.</w:t>

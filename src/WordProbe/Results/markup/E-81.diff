@@ -1,0 +1,14 @@
+-       <w:rPr>
+-         <w:b />
+-       </w:rPr>
+-       <w:t>Strong</w:t>
+-     </w:r>
+-     <w:r>
+-       <w:t xml:space="preserve"> </w:t>
+-     </w:r>
+-     <w:r>
+-       <w:rPr>
+-         <w:i />
+-       </w:rPr>
+-       <w:t>soft</w:t>
++       <w:t>Strong soft</w:t>

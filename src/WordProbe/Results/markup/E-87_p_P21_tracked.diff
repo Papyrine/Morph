@@ -1,0 +1,8 @@
+-         <w:sz w:val="144" />
++         <w:sz w:val="146" />
++         <w:szCs w:val="26" />
++         <w:rPrChange w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:23:00Z" w16du:dateUtc="2026-10-25T05:23:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:rPr>
++             <w:sz w:val="144" />
++           </w:rPr>
++         </w:rPrChange>

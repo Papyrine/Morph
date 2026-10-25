@@ -1,0 +1,69 @@
+-   <w:p />
++   <w:p>
++     <w:r>
++       <w:t>1</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>st</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 2</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>nd</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 3</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>rd</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 4</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>th</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 11</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>th</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 21</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>st</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 101</w:t>
++     </w:r>
++     <w:r>
++       <w:rPr>
++         <w:vertAlign w:val="superscript" />
++       </w:rPr>
++       <w:t>st</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> 1th </w:t>
++     </w:r>
++   </w:p>

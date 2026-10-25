@@ -1,0 +1,14 @@
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t xml:space="preserve">The </w:t>
++     <w:r>
++       <w:rPr>
++         <w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" />
++         <w:rPrChange w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:28:00Z" w16du:dateUtc="2026-10-25T05:28:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:rPr />
++         </w:rPrChange>
++       </w:rPr>
++       <w:t>quick</w:t>
++     </w:r>
++     <w:r>
++       <w:t xml:space="preserve"> brown fox jumps over the lazy dog.</w:t>
++     </w:r>

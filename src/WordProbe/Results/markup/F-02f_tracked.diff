@@ -1,0 +1,28 @@
+-     <w:hyperlink r:id="rId4" w:history="1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:37:00Z" w16du:dateUtc="2026-10-25T05:37:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++         <w:fldChar w:fldCharType="begin" />
++       </w:r>
++       <w:r>
++         <w:delInstrText>HYPERLINK "https://example.com/"</w:delInstrText>
++       </w:r>
++       <w:r>
++         <w:fldChar w:fldCharType="separate" />
++       </w:r>
++       <w:r>
+-         <w:t>the site</w:t>
++         <w:delText>the site</w:delText>
+-     </w:hyperlink>
++       <w:r>
++         <w:fldChar w:fldCharType="end" />
++       </w:r>
++       <w:r>
++         <w:delText xml:space="preserve"> today</w:delText>
++       </w:r>
++     </w:del>
++     <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-10-25T16:37:00Z" w16du:dateUtc="2026-10-25T05:37:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>x</w:t>
++       </w:r>
++     </w:ins>
+-       <w:t xml:space="preserve"> today.</w:t>
++       <w:t>.</w:t>

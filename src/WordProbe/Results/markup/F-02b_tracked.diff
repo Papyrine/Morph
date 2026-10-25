@@ -1,0 +1,13 @@
+-     <w:hyperlink r:id="rId4" w:history="1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T15:16:00Z" w16du:dateUtc="2026-10-25T04:16:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
+-           <w:rStyle w:val="Hyperlink" />
++           <w:rPrChange w:id="1" w:author="Simon Cropp" w:date="2026-10-25T15:16:00Z" w16du:dateUtc="2026-10-25T04:16:00Z">
++             <w:rPr>
++               <w:rStyle w:val="Hyperlink" />
++               <w:b />
++             </w:rPr>
++           </w:rPrChange>
+-         <w:t>the site</w:t>
++         <w:delText>the site</w:delText>
+-     </w:hyperlink>
++     </w:del>

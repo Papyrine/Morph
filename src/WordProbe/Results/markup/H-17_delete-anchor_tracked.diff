@@ -1,0 +1,10 @@
+-       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
++       <w:t xml:space="preserve">The </w:t>
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T17:19:00Z" w16du:dateUtc="2026-10-25T06:19:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText xml:space="preserve">quick </w:delText>
++       </w:r>
++     </w:del>
++     <w:r>
++       <w:t>brown fox jumps over the lazy dog.</w:t>
++     </w:r>

@@ -1,0 +1,10 @@
+-       <w:t>Indented kind.</w:t>
++       <w:t>Ind</w:t>
++   <w:p>
++     <w:pPr>
++       <w:ind w:left="720" />
++     </w:pPr>
++     <w:r>
++       <w:t>ented kind.</w:t>
++     </w:r>
++   </w:p>

@@ -1,0 +1,17 @@
++       <w:rPr>
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:20:00Z" w16du:dateUtc="2026-10-25T05:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
+-       <w:t>Bullet eleven.</w:t>
++       <w:t>Bullet eleven</w:t>
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T16:20:00Z" w16du:dateUtc="2026-10-25T05:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText>.</w:delText>
++       </w:r>
++     </w:del>
++     <w:pPr>
++       <w:pStyle w:val="ListParagraph" />
++       <w:numPr>
++         <w:ilvl w:val="0" />
++         <w:numId w:val="1" />
++       </w:numPr>
++     </w:pPr>

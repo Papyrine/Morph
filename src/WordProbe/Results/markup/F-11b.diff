@@ -1,0 +1,12 @@
+-     <w:hyperlink w:anchor="target" w:history="1">
+-       <w:r>
+-         <w:rPr>
+-           <w:rStyle w:val="Hyperlink" />
+-           <w:b />
+-         </w:rPr>
+-         <w:t>the site</w:t>
+-       </w:r>
+-     </w:hyperlink>
++     <w:hyperlink w:anchor="target" w:history="1" />
++   </w:p>
++   <w:p>
