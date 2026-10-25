@@ -1733,7 +1733,8 @@ Shift with every navigation key, Ctrl+A, F8, column mode, anchors and what a sel
   trailing space; the third the sentence; the fourth the paragraph with its mark; the fifth the whole
   document (the section step did not appear in a one-section document). In extend mode an arrow key extends
   and a typed letter extends to that letter's next occurrence. In a cell the steps are word, cell, then the
-  whole document; in a list item word, paragraph, document (S-10). — Morph: TODO.
+  whole document; in a list item word, paragraph, document (S-10). — Morph: DONE within the open paragraph
+  (`ParagraphEditor.onExtendKey`; the document step selects every page's text, as Ctrl+A does).
 - **R-S-6 Column mode (Ctrl+Shift+F8) selects a block; typing into it does nothing, Delete removes every
   segment, Esc leaves an insertion point at the block's start** (S-11). Alt+Num5 (Num Lock off) selects the
   whole table from inside it and nothing outside one (S-12). — Morph: TODO.
@@ -14136,7 +14137,8 @@ selection growth across cells.
 - **R-T-6 Shift+Right from a cell's end grows cell by cell, then takes the end-of-row mark; Shift+Down
   grows by rows in the same column and leaves the table as a Normal selection** (T-06, T-06b). A drag
   from body text into a cell is a Normal selection through whole rows; cell to cell a rectangle (T-07).
-  Ctrl+A in a cell, nested or not, selects the whole document (T-12). — Morph: TODO.
+  Ctrl+A in a cell, nested or not, selects the whole document (T-12). — Morph: PARTIAL (Ctrl+A hands the
+  open paragraph in and selects every page's text; no cell selection by keyboard).
 - **R-T-7 Down from a cell goes to the next row's cell in the same column, at the START of its text,
   then out of the table into the paragraph after at the remembered x**; in a merged table Down walks the
   paragraphs of a merged cell first; from the last row of a table that ends the document Down lands on

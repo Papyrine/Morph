@@ -1592,11 +1592,7 @@ class Viewer {
                 case 'a':
                     if (!typing && this.pages.length) {
                         event.preventDefault();
-                        const range = document.createRange();
-                        range.selectNodeContents(this.scroller);
-                        const selection = getSelection();
-                        selection.removeAllRanges();
-                        selection.addRange(range);
+                        this.selectAll();
                     }
 
                     return;
@@ -2249,6 +2245,22 @@ class Viewer {
     }
 
     // Hands in what is being typed, if anything is, and resolves once .NET has dealt with it.
+    // Every page's text, as Ctrl+A selects it: the paragraph being typed is handed in first.
+    async selectAll() {
+        await this.closeEditor();
+        // The keys after it are the pages': the paragraph handed in has let the focus go.
+        this.scroller.focus({ preventScroll: true });
+
+        const range = document.createRange();
+        range.selectNodeContents(this.scroller);
+        const selection = getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        // At once rather than after the selection settles, so a Delete pressed straight after acts on it.
+        clearTimeout(this.selectionTimer);
+        this.sendSelection();
+    }
+
     async closeEditor() {
         const editor = this.editor;
         if (editor && !editor.closed) {
@@ -2296,6 +2308,7 @@ class Viewer {
             key: name => this.editKey(name),
             command: name => this.editCommand(name),
             overtype: () => this.toggleOvertype(),
+            selectAll: () => this.selectAll(),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
             note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),

@@ -693,6 +693,137 @@ export class ParagraphEditor {
         return { b: place.b + 1, o: 0 };
     }
 
+    // Word's extend mode (WordProbe S-10). The first F8 turns it on where the caret is, without
+    // selecting; each F8 after takes in more — the word with its trailing space, the sentence, the
+    // paragraph, the document; in a cell or a list item the sentence is not a step. Shift+F8 steps
+    // back; an arrow extends from the anchor and a typed character extends to that character's next
+    // occurrence; Esc leaves the mode with the selection kept. Says whether the key was the mode's.
+    onExtendKey(event) {
+        const plain = !event.ctrlKey && !event.metaKey && !event.altKey;
+        if (event.key === 'F8' && plain) {
+            const selected = this.range();
+            if (!selected) {
+                return true;
+            }
+
+            if (!this.extend) {
+                this.extend = 1;
+                this.extendAnchor = selected.from;
+                return true;
+            }
+
+            this.extend = Math.max(1, this.extend + (event.shiftKey ? -1 : 1));
+            const steps = this.session.cell || this.session.list !== undefined && this.session.list !== null
+                ? ['word', 'paragraph', 'document']
+                : ['word', 'sentence', 'paragraph', 'document'];
+            this.extend = Math.min(this.extend, steps.length + 1);
+            if (this.extend === 1) {
+                this.select(this.extendAnchor);
+                return true;
+            }
+
+            const step = steps[this.extend - 2];
+            if (step === 'document') {
+                this.extend = 0;
+                this.callbacks.selectAll?.();
+                return true;
+            }
+
+            const [from, to] = this.unitAround(this.extendAnchor, step);
+            this.select(from, to);
+            return true;
+        }
+
+        if (!this.extend) {
+            return false;
+        }
+
+        if (event.key === 'Escape') {
+            event.stopPropagation();
+            this.extend = 0;
+            return true;
+        }
+
+        const moves = {
+            ArrowLeft: ['backward', 'character'],
+            ArrowRight: ['forward', 'character'],
+            ArrowUp: ['backward', 'line'],
+            ArrowDown: ['forward', 'line'],
+            Home: ['backward', 'lineboundary'],
+            End: ['forward', 'lineboundary']
+        };
+        if (moves[event.key] && plain && !event.shiftKey) {
+            getSelection()?.modify('extend', ...moves[event.key]);
+            return true;
+        }
+
+        if (event.key.length === 1 && plain) {
+            this.extendTo(event.key);
+            return true;
+        }
+
+        return false;
+    }
+
+    // In extend mode, a typed character extends the selection to its next occurrence.
+    extendTo(character) {
+        const selection = getSelection();
+        const focus = this.toPlace(selection.focusNode, selection.focusOffset);
+        if (!focus || !character) {
+            return;
+        }
+
+        const found = this.blockText(focus.b).indexOf(character, focus.o);
+        if (found >= 0) {
+            this.select(this.extendAnchor, { b: focus.b, o: found + 1 });
+        }
+    }
+
+    // A block's text, with each thing that is not text as one object character, so its places are
+    // the block's own.
+    blockText(b) {
+        return this.blocks[b].items.map(_ => _.atom ? '\uFFFC' : _.t).join('');
+    }
+
+    // The word (with its trailing spaces), the sentence (to its stop and the spaces after) or the
+    // paragraph around a place, as two places in its block.
+    unitAround(place, step) {
+        const text = this.blockText(place.b);
+        if (step === 'paragraph') {
+            return [{ b: place.b, o: 0 }, { b: place.b, o: text.length }];
+        }
+
+        let start = place.o;
+        let end = place.o;
+        if (step === 'word') {
+            const wordy = /[\p{L}\p{N}_'\u2019]/u;
+            const alike = character => wordy.test(character) === wordy.test(text[place.o] ?? ' ');
+            while (start > 0 && text[start - 1] !== ' ' && alike(text[start - 1])) {
+                start--;
+            }
+
+            while (end < text.length && text[end] !== ' ' && alike(text[end])) {
+                end++;
+            }
+        } else {
+            while (start > 0 && !/[.!?]\s/.test(text.slice(start - 2, start))) {
+                start--;
+            }
+
+            while (end < text.length && !/[.!?]/.test(text[end])) {
+                end++;
+            }
+
+            end = Math.min(text.length, end + 1);
+        }
+
+        while (end < text.length && text[end] === ' ') {
+            end++;
+        }
+
+        return [{ b: place.b, o: start }, { b: place.b, o: end }];
+    }
+
     // What typing replaces: in Overtype, a caret takes in a place for each character typed — a
     // character, a tab, a picture or a whole field alike — stopping at the paragraph's end (a cell's
     // too, since the box holds one paragraph). Under Track Changes Overtype overwrites nothing and the
@@ -1181,7 +1312,9 @@ export class ParagraphEditor {
             case 'insertText':
             case 'insertReplacementText':
             case 'insertFromYank':
-                if (type === 'insertText') {
+                if (type === 'insertText' && this.extend) {
+                    this.extendTo((event.data ?? '').slice(0, 1));
+                } else if (type === 'insertText') {
                     const text = event.data ?? '';
                     this.replace(this.overtyped(range, text), text, 'type');
                 } else {
@@ -1276,6 +1409,11 @@ export class ParagraphEditor {
             return;
         }
 
+        if (this.onExtendKey(event)) {
+            event.preventDefault();
+            return;
+        }
+
         // Word's Ctrl+Alt+1, 2 and 3: Heading 1, 2 and 3. By the key's place, since Alt changes what
         // it types.
         if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
@@ -1341,6 +1479,15 @@ export class ParagraphEditor {
                 case 'k':
                     event.preventDefault();
                     this.callbacks.key('link');
+                    return;
+                // The whole document, in a cell too, as Word's Ctrl+A (WordProbe T-12).
+                case 'a':
+                    if (!event.shiftKey) {
+                        event.preventDefault();
+                        this.extend = 0;
+                        this.callbacks.selectAll?.();
+                    }
+
                     return;
             }
 

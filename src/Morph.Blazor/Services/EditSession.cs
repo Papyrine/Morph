@@ -196,6 +196,12 @@ sealed class EditSession
                 json.WriteBoolean("tracked", true);
             }
 
+            // F8 steps from a word to the cell rather than the sentence (WordProbe S-10).
+            if (Block.InCell)
+            {
+                json.WriteBoolean("cell", true);
+            }
+
             if (Paragraph.NextStyle != null)
             {
                 json.WriteBoolean("follow", true);

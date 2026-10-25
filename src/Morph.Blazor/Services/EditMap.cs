@@ -328,6 +328,7 @@ sealed class EditMap
                 Top = lines[0].Y,
                 Bottom = lines[^1].Y + lines[^1].Height,
                 Indent = indent,
+                InCell = container != null,
                 Fill = properties.BackgroundColorHex ?? container?.BackgroundColorHex ?? settings.BackgroundColorHex
             };
 
