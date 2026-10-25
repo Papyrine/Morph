@@ -135,6 +135,44 @@ static partial class DocumentEditor
                 return null;
             }).Document;
 
+    /// <summary>
+    /// Moves a paragraph, with its mark, past the paragraph after it (or, <paramref name="up"/>, before
+    /// it), as Word's Alt+Shift+Down and Alt+Shift+Up do (WordProbe E-96, L-24): a list's item takes its
+    /// number from where it lands. Nothing moves past a table, past a section's end, or out of a cell.
+    /// Untracked: Word writes a tracked move, which this does not. The place returned is the caret's,
+    /// in the paragraph where it now is.
+    /// </summary>
+    public static EditResult MoveParagraph(byte[] docx, int paragraph, int offset, bool up, EditOptions options) =>
+        Edit(
+            docx,
+            options with
+            {
+                Track = false
+            },
+            edit =>
+            {
+                var moving = edit.Find(paragraph);
+                var neighbour = up ? moving.PreviousSibling() : moving.NextSibling();
+                if (neighbour is not Paragraph other ||
+                    moving.ParagraphProperties?.SectionProperties != null ||
+                    other.ParagraphProperties?.SectionProperties != null)
+                {
+                    return (moving, offset);
+                }
+
+                moving.Remove();
+                if (up)
+                {
+                    other.InsertBeforeSelf(moving);
+                }
+                else
+                {
+                    other.InsertAfterSelf(moving);
+                }
+
+                return (moving, offset);
+            });
+
     /// <summary>Sets the spacing of paragraphs' lines, and the space before and after them.</summary>
     public static byte[] Space(byte[] docx, IReadOnlyList<int> paragraphs, ParagraphSpacing spacing, EditOptions options) =>
         Edit(

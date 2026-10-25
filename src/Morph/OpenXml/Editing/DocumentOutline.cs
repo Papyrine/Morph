@@ -112,6 +112,7 @@ sealed class DocumentOutline
         var paragraphOfRun = new Dictionary<int, int>();
         var bookmarks = new List<BookmarkPlace>();
         var contents = false;
+        var tables = new Dictionary<DocumentFormat.OpenXml.Wordprocessing.Table, int>();
         var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, _.Paragraph, _.Units)));
         foreach (var (part, paragraph, units) in read)
         {
@@ -132,6 +133,7 @@ sealed class DocumentOutline
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
                     InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any(),
+                    Cell = CellOf(paragraph, tables),
                     ListLevel = ListLevel(paragraph, styles, defaultStyle),
                     Indented = unindents(paragraph),
                     NextStyle = NextStyle(paragraph, styles)
@@ -270,5 +272,23 @@ sealed class DocumentOutline
         }
 
         return (false, false);
+    }
+
+    // The innermost cell a paragraph is in, its table numbered the first time one of its paragraphs is read.
+    static EditCell? CellOf(Paragraph paragraph, Dictionary<DocumentFormat.OpenXml.Wordprocessing.Table, int> tables)
+    {
+        if (paragraph.Parent is not DocumentFormat.OpenXml.Wordprocessing.TableCell cell ||
+            cell.Parent is not DocumentFormat.OpenXml.Wordprocessing.TableRow row ||
+            row.Parent is not DocumentFormat.OpenXml.Wordprocessing.Table table)
+        {
+            return null;
+        }
+
+        if (!tables.TryGetValue(table, out var number))
+        {
+            tables[table] = number = tables.Count;
+        }
+
+        return new(number, table.Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>().ToList().IndexOf(row), row.Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>().ToList().IndexOf(cell));
     }
 }

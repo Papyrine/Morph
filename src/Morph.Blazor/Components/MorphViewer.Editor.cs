@@ -856,6 +856,113 @@ public partial class MorphViewer
             (_, options) => DocumentEditor.EditTable(_, target.Paragraph, change, options));
     }
 
+    // Word's keys between a table's cells (WordProbe T-01, T-09, T-14): Tab and Shift+Tab to the next or
+    // the previous cell with its text selected — Tab in the last cell adding a row first, Shift+Tab in
+    // the first doing nothing — and Alt+Home, Alt+End, Alt+PgUp and Alt+PgDn to the row's first and last
+    // cell and the column's top and bottom one, the caret at its start. Only a cell of the same table
+    // counts, so a nested table's cells are not stepped into.
+    internal async Task MoveInTableAsync(string move)
+    {
+        if (await RequireAsync() is not { } target ||
+            target.Paragraph >= outline.Paragraphs.Count ||
+            outline.Paragraphs[target.Paragraph].Cell is not { } here)
+        {
+            return;
+        }
+
+        var landing = CellTo(target.Paragraph, here, move);
+        if (landing == null &&
+            move == "next")
+        {
+            var options = await EditOptionsAsync();
+            if (!await ReviseAsync(_ => DocumentEditor.EditTable(_, target.Paragraph, TableEdit.InsertRowBelow, options).Document, relayout: true, () => activeKey) ||
+                outline.Paragraphs[target.Paragraph].Cell is not { } after)
+            {
+                return;
+            }
+
+            landing = CellTo(target.Paragraph, after, move);
+        }
+
+        if (landing is not { } paragraph)
+        {
+            return;
+        }
+
+        var length = 0;
+        if (move is "next" or "previous")
+        {
+            length = outline.Paragraphs[paragraph].Length;
+        }
+
+        if (handle is { } viewer &&
+            Block(paragraph, -1) is { } block)
+        {
+            await BeginAsync(viewer, outline.Paragraphs[paragraph], block, 0, length);
+        }
+    }
+
+    // The first paragraph of the cell a move lands in, or null where there is none.
+    int? CellTo(int from, EditCell here, string move)
+    {
+        var cells = outline.Paragraphs
+            .Where(_ => _.Cell is { } cell && cell.Table == here.Table)
+            .Select(_ => (_.Ordinal, Cell: _.Cell!.Value))
+            .ToList();
+        var row = cells.Where(_ => _.Cell.Row == here.Row).ToList();
+        var column = cells.Where(_ => _.Cell.Column == here.Column).ToList();
+        var wanted = move switch
+        {
+            "next" => cells.Where(_ => _.Ordinal > from && _.Cell != here).Select(_ => (EditCell?) _.Cell).FirstOrDefault(),
+            "previous" => cells.Where(_ => _.Ordinal < from && _.Cell != here).Select(_ => (EditCell?) _.Cell).LastOrDefault(),
+            "row-start" => row.MinBy(_ => _.Cell.Column).Cell,
+            "row-end" => row.MaxBy(_ => _.Cell.Column).Cell,
+            "column-top" => column.MinBy(_ => _.Cell.Row).Cell,
+            "column-bottom" => column.MaxBy(_ => _.Cell.Row).Cell,
+            _ => null
+        };
+        if (wanted is not { } cell)
+        {
+            return null;
+        }
+
+        return cells.First(_ => _.Cell == cell).Ordinal;
+    }
+
+    // Word's Alt+Shift+Up and Alt+Shift+Down (WordProbe E-96, L-24): the paragraph past its neighbour.
+    internal async Task MoveParagraphAsync(bool up)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditAtAsync((_, options) => DocumentEditor.MoveParagraph(_, target.Paragraph, target.Offset, up, options));
+    }
+
+    // Word's Ctrl+Home and Ctrl+End (WordProbe N-11): the start or the end of the story the caret is in —
+    // the document's from a cell too, a header's in a header.
+    internal async Task StoryEndAsync(bool end)
+    {
+        if (await RequireAsync() is not { } target ||
+            target.Paragraph >= outline.Paragraphs.Count)
+        {
+            return;
+        }
+
+        var part = outline.Paragraphs[target.Paragraph].Part;
+        var story = outline.Paragraphs.Where(_ => _.Part == part).ToList();
+        var paragraph = story[0];
+        var offset = 0;
+        if (end)
+        {
+            paragraph = story[^1];
+            offset = paragraph.Length;
+        }
+
+        await ResumeAsync(paragraph.Ordinal, offset);
+    }
+
     // Headers, footers and footnotes. A header or footer is opened for typing, made if the section
     // has none; a footnote is put at the caret and its note opened.
     internal async Task EditHeaderAsync(bool footer)

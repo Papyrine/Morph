@@ -359,7 +359,8 @@ code (`morph-edit.js` `onArrow`/`leaveEditor`, native caret movement inside the 
   lands before the break; End in a cell lands before the cell mark (N-10). — Morph: PARTIAL (native Home/End
   inside the box; a cell mark is not a position in the box).
 - **R-N-9 Ctrl+Home and Ctrl+End go to the story's ends**: from a cell to the document's start and end, not
-  the cell's; in a header to the header's ends (N-11). — Morph: TODO (the viewer's Home/End change pages).
+  the cell's; in a header to the header's ends (N-11). — Morph: DONE (`MorphViewer.StoryEndAsync`: the start or end of the story the caret is in, the document's from a
+  cell).
 - **R-N-10 Ctrl+Right stops at word starts, at punctuation and twice at a paragraph's end.** Stops are: the
   start of the next word after its trailing spaces; a punctuation character on its own (`.`, `:`, the `/`
   of a date); a result-only field as one word; before the final punctuation of a paragraph, then before
@@ -1728,7 +1729,9 @@ Shift with every navigation key, Ctrl+A, F8, column mode, anchors and what a sel
   rows while the selection crosses a table, then the words after it. Ctrl+Shift+Left mirrors the stops
   (S-05). Ctrl+Shift+Down selects to the paragraph's end including its mark, then the next paragraph; in a
   cell it takes the cell's paragraph, then the whole cell (S-06). Ctrl+Shift+Home/End from a cell run to the
-  document's ends as a Normal selection; in a header to the header's ends (S-07). — Morph: TODO.
+  document's ends as a Normal selection; in a header to the header's ends (S-07). — Morph: PARTIAL (Ctrl+Left, Ctrl+Right and their Shift forms take Word's stops in the open paragraph,
+  Ctrl+Shift+Up and Down select to the paragraph's start and end; nothing crosses into the next
+  paragraph).
 - **R-S-5 F8 extends in steps: word, sentence, paragraph, document; Shift+F8 steps back; Esc keeps the
   selection.** The first F8 turns extend mode on without selecting; the second selects the word with its
   trailing space; the third the sentence; the fourth the paragraph with its mark; the fifth the whole
@@ -2891,17 +2894,19 @@ picture targets, drag and drop.
   result is selected with its whole field and trailing space, and in a date result the token under the
   pointer ran from the result's start to the hit (`25/10/` of `25/10/2026`) (M-17b). ❓ A double-click
   inside a hyperlink's display text did not select the word under the pointer: on its first word it left
-  an insertion point, on its second it selected the first word (M-17). — Morph: TODO (no double-click
-  handling of its own; the browser's word selection is confined to the open box).
+  an insertion point, on its second it selected the first word (M-17). — Morph: PARTIAL (a double-click in the open paragraph takes the word with its trailing spaces, by the word stops
+  of `unitAround`; the start-active boundary case and fields are not matched).
 - **R-M-5 Triple-click selects the paragraph with its mark**, end-active, for every paragraph kind
   including an empty one (`⟦¶‸⟧`), in the body, a text box, a footnote and a header alike (M-20,
   M-20b, M-22, M-22b, M-22c). In a cell it selects the whole cell (`Column`, with the cell mark) when
   the pointer is on the cell's only or last paragraph, and only that paragraph with its mark when the cell
-  holds more paragraphs after it (M-21, M-21b). — Morph: TODO.
+  holds more paragraphs after it (M-21, M-21b). — Morph: PARTIAL (a triple-click in the open paragraph selects the paragraph's text; the mark is not a place in
+  the box, and a cell is not selected whole).
 - **R-M-6 Ctrl+click selects the sentence**: from after the previous terminator and its spaces to after
   its own terminator and trailing spaces; `?` ends a sentence and so does `e.g.` (`Three uses e.g. ` was
   one sentence and `four here. ` the next); the paragraph's last sentence is taken without the mark
-  (M-24). With a selection already made, Ctrl+click changes nothing (M-25). — Morph: TODO.
+  (M-24). With a selection already made, Ctrl+click changes nothing (M-25). — Morph: PARTIAL (a Ctrl+click in the open paragraph selects the sentence with its spaces; `e.g.` is not taken as
+  a sentence's end).
 - **R-M-7 Shift+click extends from the anchor**: from an insertion point the anchor is that point; after
   a double-click the anchor is the word's start, so with `AutoWordSelection` off a Shift+click before the
   word selects from the click to the word's start and drops the word (M-28 leftward). With
@@ -4798,10 +4803,8 @@ Typing and inheritance
   whole word** (with its trailing space), and the word's new look is what later typing inherits (E-09).
   At an insertion point with no word adjacent (between two spaces) the format is PENDING: the next
   characters typed take it (`x` bold, ` x` bold with its space, 24pt → 26pt for Ctrl+Shift+>), and an
-  arrow key or a click before typing drops it, so `y` and `z` came out plain (E-09b). — Morph: PARTIAL
-  (Ctrl+B/I/U in the open paragraph take the word with its trailing space and leave the caret; between
-  spaces the look is pending, but an arrow key does not drop it; the size keys format the word through
-  .NET).
+  arrow key or a click before typing drops it, so `y` and `z` came out plain (E-09b). — Morph: PARTIAL (Ctrl+B/I/U in the open paragraph take the word with its trailing space and leave the caret;
+  between spaces the look waits for what is typed, and an arrow key or a click drops it).
 - **R-E-4 Typing over a selection replaces it**; over a selection that spans paragraphs the survivor is
   one paragraph with the FIRST paragraph's properties (`Firsx‸d bold one.` lost P2's centring); over the
   whole document one paragraph remains (E-10, E-10b, E-10c). Typing over a selected cell, column, row or
@@ -4927,8 +4930,8 @@ Backspace and Delete
   deletes the break first; Ctrl+Delete deletes a whole field in one press, nothing before an inline
   picture, nothing at a cell's or the document's end (E-70, E-70b, E-70c, E-70d, E-71, E-71b, E-71c,
   E-71d). Tracked, the words are struck and the caret moves to the deletion's start (E-70 tracked). —
-  Morph: PARTIAL (`ParagraphEditor.wordRange` takes Word's units and a whole field; the space before
-  punctuation and the stop before a picture are not matched).
+  Morph: PARTIAL (`ParagraphEditor.wordRange` takes Word's units and a whole field, and Ctrl+Backspace takes a
+  space left before punctuation; the stop before a picture is not matched).
 
 Character formatting keys
 
@@ -4971,10 +4974,10 @@ Paragraph formatting keys
   by 36pt and Ctrl+Shift+M outdents, never below zero (a 36pt-indented paragraph outdented once is
   at 0 and further presses do nothing; a list item's indent steps by 18pt (`⇥36,-18` → `⇥18,-18`) and
   Ctrl+Shift+M on a heading does nothing) (E-91, E-91b, E-91c, E-91d). Ctrl+T and Ctrl+Shift+T set and
-  remove a hanging indent of 36pt and leave a list item alone (E-92, E-92b, E-92c). — Morph: PARTIAL
-  (in the open paragraph the alignment keys toggle against Left and Ctrl+L justifies; Ctrl+1/2/5, Ctrl+0,
-  Ctrl+M/Ctrl+Shift+M and Ctrl+T/Ctrl+Shift+T are bound — Ctrl+T and Ctrl+Shift+T only where a browser
-  lets a page have them, as in an installed app; a list item's Ctrl+M changes its level rather than
+  remove a hanging indent of 36pt and leave a list item alone (E-92, E-92b, E-92c). — Morph: PARTIAL (in the open paragraph the alignment keys toggle against Left and Ctrl+L justifies; on text
+  selected across the pages a pressed alignment the paragraphs all have goes back to the left;
+  Ctrl+1/2/5, Ctrl+0, Ctrl+M/Ctrl+Shift+M and Ctrl+T/Ctrl+Shift+T are bound — Ctrl+T and Ctrl+Shift+T
+  only where a browser lets a page have them; a list item's Ctrl+M changes its level rather than
   stepping its indent 18pt).
 - **R-E-21 Ctrl+Shift+L applies the List Bullet style** (its own list, `⇥18,-18`) to the paragraph,
   replacing a numbered or bulleted List Paragraph, and a second press leaves it (E-93). Ctrl+Alt+1/2/3
@@ -4993,9 +4996,9 @@ Paragraph formatting keys
   Alt+Shift+Up move a paragraph (with its mark) past the next or previous one, a list item within its
   list keeping the numbering order, and a table row past the next row; on the paragraph before a table
   Alt+Shift+Down moved it into the first cell and reordered the rows (E-96, E-96b, E-96c, E-96d) ❓.
-  Tracked, a row moved is a row inserted plus the old one marked. — Morph: PARTIAL (Ctrl+Alt+1-3,
-  Ctrl+Shift+L and Alt+Shift+Left/Right apply styles; a list item keeps its numbering under the outline
-  keys; the moves and the linked character style are TODO).
+  Tracked, a row moved is a row inserted plus the old one marked. — Morph: PARTIAL (Ctrl+Alt+1-3, Ctrl+Shift+L and Alt+Shift+Left/Right apply styles, Alt+Shift+Up and Down move a
+  paragraph past its neighbour — untracked, and not into or out of a table; the linked character style
+  is TODO).
 - **R-E-22 Keys that insert characters**: Ctrl+Shift+Space a non-breaking space, Alt+Ctrl+Minus (numeric
   pad) an optional hyphen, Ctrl+NumMinus an en dash, Alt+Ctrl+. an ellipsis, Alt+Ctrl+E/R/T the euro,
   registered and trade marks; Ctrl+- and Ctrl+Shift+- on the main row and Alt+Ctrl+C did nothing here
@@ -14117,8 +14120,9 @@ selection growth across cells.
   changing the item's level; Ctrl+Tab inserts a tab character (T-02). In a merged table the order runs
   cell by cell along each row, a vertically merged cell taken in the row it starts in, and the row Tab
   adds has the grid's full column count (T-14). Inside a nested table Tab walks the inner cells and adds
-  an inner row; Shift+Tab in its first cell does nothing (T-15). — Morph: TODO (Tab in a cell types a
-  tab).
+  an inner row; Shift+Tab in its first cell does nothing (T-15). — Morph: PARTIAL (Tab and Shift+Tab move between the cells of the same table with the next cell's first paragraph
+  selected, Tab in the last cell adds a row, a list item's Tab in a cell moves on too; a cell of several
+  paragraphs has only its first selected, and Ctrl+Tab is the browser's).
 - **R-T-2 Enter at a cell's start inserts an empty paragraph above its text, at a cell's end one below;
   in the first cell of a table that starts the document Enter inserts a paragraph before the table**
   (T-03, T-30). Enter twice at the end of a list item in a cell leaves an empty plain paragraph (T-23).
@@ -14158,7 +14162,8 @@ selection growth across cells.
   paragraphs of a merged cell first; from the last row of a table that ends the document Down lands on
   the final paragraph (T-08, T-08b). Alt+Home and Alt+End go to the row's first and last cell, Alt+PgUp and
   Alt+PgDn to the column's top and bottom cell; from a cell beside a nested table Alt+PgUp landed in the
-  nested table's first cell (T-09) ❓. — Morph: PARTIAL (Up/Down leave the box by pixel probing).
+  nested table's first cell (T-09) ❓. — Morph: PARTIAL (Alt+Home, Alt+End, Alt+PgUp and Alt+PgDn go to the row's and the column's end cells; Up and
+  Down still leave the box by pixel probing).
 - **R-T-8 Alt+Shift+Up and Alt+Shift+Down move the row** past its neighbour; moving the last row down
   pushes it out of the table, where it becomes a table of its own after the following paragraph (T-10
   `C(3,1)`); a row holding a nested table came back reordered after a move down and up (T-10b) ❓; tracked,
@@ -15283,14 +15288,15 @@ Enter, Tab, Backspace and the formatting keys in bulleted and numbered lists, an
   character (Shift+Tab too); Shift+Tab at the start of a first-level item moves it left to `⇥18,-18`
   and keeps it in the list; inside a table cell Tab leaves the item and moves to the next cell, Shift+Tab
   in the first cell does nothing (L-04, L-04b, L-16, L-21; T-02). Tab with a selection spanning two
-  items deletes the selection, joining the items, and inserts a tab (L-22). — Morph: PARTIAL (level
-  change at the start is `ListKeyTests`; the mid-item tab and the cell case are TODO).
+  items deletes the selection, joining the items, and inserts a tab (L-22). — Morph: PARTIAL (level change at the start is `ListKeyTests`; in a cell Tab moves to the next cell; the mid-item
+  tab is TODO).
 - **R-L-4 Alt+Shift+Left and Alt+Shift+Right take an item out of its list and make it a heading**:
   Heading 1 under Alt+Shift+Left and Heading 2 under Alt+Shift+Right, whatever the item's level and
   whether it is the first item or a later one, bulleted or numbered; the items after it renumber and the
   undo entry is "Outline Demote" for both keys (L-05b; L-05 and E-95c sent both keys and saw only the
   pair's net Heading 1). They are the outline keys of R-E-21, which treat an item as body text. Alt+Shift+Up and Alt+Shift+Down move an item within its list and the
-  numbers follow the positions ("Outline Move Up/Down") (L-24). — Morph: TODO.
+  numbers follow the positions ("Outline Move Up/Down") (L-24). — Morph: PARTIAL (the outline keys make an item a heading, keeping its numbering; Alt+Shift+Up and Down move an
+  item, the numbers following the positions).
 - **R-L-5 Ctrl+Shift+L on a numbered item makes it a List Bullet paragraph in a list of its own and the
   items around it renumber**; Ctrl+Q removes the list and leaves the indent (`⇥36,0`, "Paragraph
   Formatting"); Ctrl+Shift+N applies Normal and removes the list ("Normal Style"); Ctrl+M and
@@ -16441,8 +16447,8 @@ Ctrl+Y as repeat.
   Ctrl+B ends it (and Enter, Shift+Enter, Backspace and Delete are entries of their own), and a pause of
   about a second between two bursts of typing ends it too (two `type` steps with nothing between them
   made two entries) (U-01a to U-01k). The entry is named `Typing "abc"` with the text typed (E-01,
-  L-01). — Morph: PARTIAL (the box groups typing by a one-second gap; the key-boundary rule is not
-  matched).
+  L-01). — Morph: PARTIAL (an arrow key, Home, End or a click ends the burst, as does the one-second gap; Ctrl+B is its
+  own entry).
 - **R-U-2 Undo puts the selection back where the action began**: undone typing leaves the caret at the
   typing's start; an undone Delete, Ctrl+X, drag, Shift+F3, Ctrl+Space or typing-over re-selects the
   text that was there (the drag's text selected at its origin, end-active); an undone Backspace merge
@@ -16456,8 +16462,8 @@ Ctrl+Y as repeat.
   Bold applies to the new selection, a paste pastes again, Delete deletes one character at the new
   caret, Ctrl+Alt+1 restyles the new paragraph (U-05a, U-05b, U-06a to U-06e). ❓ F4 right after an
   AutoCorrect inserted a new paragraph (U-06f). With nothing to undo or redo the keys do nothing (U-14).
-  — Morph: PARTIAL (in the open paragraph Ctrl+Y with nothing to redo repeats the last typing;
-  formatting, paste and Delete are not repeated, and F4 is not bound).
+  — Morph: PARTIAL (in the open paragraph F4, and Ctrl+Y with nothing to redo, repeat the last typing, Bold,
+  Italic, Underline and Delete; a paste and a style are not repeated).
 - **R-U-4 Each AutoCorrect and AutoFormat is its own entry, undone before the typing that triggered
   it**: `teh ` becomes `The ` through two corrections and the first undo gives `the `, the second
   `teh `, with the space kept; an automatic bullet, a border line and a hyperlink come off with one undo
@@ -19637,8 +19643,8 @@ paste; drag and drop.
   `PasteSmartCutPaste` on (the default) a space is added or removed so the pasted word stands apart
   (`so Strong ft`, `plain words. Strong`), with it off the text goes in exactly; the undo entry is
   "Paste" (C-01). Pasting over a selection replaces it (tracked: the selection struck, the paste
-  inserted after it) (C-20). Nothing is copied or cut when nothing is selected (C-19). — Morph: PARTIAL
-  (plain and HTML paste exist; no smart spacing).
+  inserted after it) (C-20). Nothing is copied or cut when nothing is selected (C-19). — Morph: PARTIAL (plain and HTML paste; a one-line plain paste against a word gets a space either side, as Word's
+  smart cut and paste; no space is taken away).
 - **R-C-2 A paragraph mark on the clipboard is kept only where a paragraph can start**: pasted at a
   paragraph's start or into an empty paragraph the text becomes a paragraph of its own carrying the
   copied paragraph's style (a Heading 1 stays Heading 1, a list item joins the list before it and
@@ -19656,7 +19662,8 @@ paste; drag and drop.
 - **R-C-4 Ctrl+Shift+V is Paste Text Only in this Word build** (undo "Paste Text Only"): bold, a heading
   style and a hyperlink come off, a list pastes as paragraphs that take the target's list, a table pastes
   as tab-separated text, a picture pastes nothing (C-14a to C-14f, C-24). Ctrl+V keeps a hyperlink as a
-  link (C-24). — Morph: PARTIAL (plain paste exists; the key is not bound to it).
+  link (C-24). — Morph: PARTIAL (Ctrl+Shift+V in the open paragraph pastes the clipboard's text in the caret's look; a list or a
+  table on the clipboard arrives as its text).
 - **R-C-5 A whole table pasted into a cell nests there, before the caret's text; copied CELLS pasted
   into a cell are laid over the target cells instead**: a copied cell replaces the target cell's text, a
   copied column fills the cells below the target and a copied row the cells to its right, the table
@@ -22150,8 +22157,8 @@ Esc.
   nothing, Delete after it deletes the character after (I-02, I-02c, I-06). — Morph: PARTIAL.
 - **R-I-3 With an inline picture selected, keys insert BEFORE it and keep it**: typing, Enter (the
   picture starts the new paragraph), Shift+Enter, Ctrl+B then typing (the typed text bold, the picture
-  untouched); Tab does nothing (I-03). Delete removes it (U-08a). Undo re-selects it. — Morph: PARTIAL
-  (typing with a picture selected is not handled).
+  untouched); Tab does nothing (I-03). Delete removes it (U-08a). Undo re-selects it. — Morph: PARTIAL (with a picture selected in the open paragraph typing, Enter, Shift+Enter and Ctrl+B act before
+  it and Tab does nothing; undo does not re-select it).
 - **R-I-4 An inline picture travels by Ctrl+X/Ctrl+V and by drag, but Paste Text Only drops it**; a drag
   moves it (Ctrl copies), the picture stays selected at the drop; tracked, a moved picture is a deletion
   plus an insertion (I-04, I-05; M-62). — Morph: TODO.
@@ -23205,7 +23212,8 @@ after.
 - **R-A-5 Tab at a paragraph's start sets a first-line indent when `TabIndentKey` is on and a tab
   character when off; Backspace right after removes the indent** (A-16; the same as E-30). The first
   item's bold did not carry to the next item's beginning (A-17). AutoComplete finished `Mond` and `Octo`
-  to `Monday` and `October` on Enter and left `Dear` alone (A-18). — Morph: TODO.
+  to `Monday` and `October` on Enter and left `Dear` alone (A-18). — Morph: PARTIAL (AutoComplete finishes a day's or a month's name on Enter; Tab at a paragraph's start still
+  types a tab).
 - **R-A-6 Replacement entries fire on Space or Enter**: `(c)` `(r)` `(tm)` become `© ® ™`, `-->` and
   `<--` become arrows (shown as `(` in the Wingdings font), `:)` a smiley (shown as `12` in Wingdings),
   `teh` → `the` and `i` → `I`, with `ReplaceText` off only the capitalisation corrections remain
@@ -27842,7 +27850,8 @@ Entering and leaving the other stories, their edges, and the note reference as a
   (Footnote Text), Down at the end stays, Ctrl+Home leaves for the body's start, Backspace at the note's
   start does nothing, Delete there selects the note's reference mark, and select-all then Delete leaves
   the empty note with its mark (H-07, H-07b). ❓ Up from the footnote landed in the endnote text (H-07
-  `Up`). Ctrl+Alt+F in a header or inside a note does nothing (H-11, H-11b). — Morph: TODO.
+  `Up`). Ctrl+Alt+F in a header or inside a note does nothing (H-11, H-11b). — Morph: PARTIAL (Ctrl+A in a note selects the note's text in the box; Ctrl+Home and Ctrl+End go to the story's
+  ends).
 - **R-H-4 Ctrl+Alt+M opens a DRAFT comment card, and the comment exists only once Ctrl+Enter posts
   it**: the keys typed after the card has focus go into the card and the body is unchanged; Esc on the
   draft discards it, leaving no comment and nothing to undo; Ctrl+Enter posts it ("Insert Comment") with
@@ -28563,8 +28572,8 @@ Click-and-Type, Overtype, Esc per context, Ctrl+A then Delete, section and page 
   an inline picture selected it leaves the caret before the picture; with a floating shape selected the
   caret goes to the anchor paragraph's start; in a text box the first Esc selects the box and the second
   returns to the body; in a header Esc returns to the body at the caret's old place; in a comment Esc
-  returns to the body with the scope selected (X-03 to X-03h). — Morph: PARTIAL (Esc abandons the open
-  paragraph's typing).
+  returns to the body with the scope selected (X-03 to X-03h). — Morph: PARTIAL (Esc after F8 ends extend mode and keeps the selection; with a picture selected in the line Esc
+  leaves the caret before it; otherwise Esc abandons the open paragraph's typing).
 - **R-X-3 Ctrl+A then Delete leaves one empty paragraph and removes every shape; typing after Ctrl+A
   replaces the document with the typed text** (X-07, X-07b). — Morph: PARTIAL.
 - **R-X-4 A non-breaking space is a character and a word boundary**: Shift+Right takes it like a letter,

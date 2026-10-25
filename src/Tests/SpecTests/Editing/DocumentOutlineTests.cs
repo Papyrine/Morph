@@ -111,6 +111,22 @@ public class DocumentOutlineTests
             .IsEqualTo("False/True True/False False/False False/False");
     }
 
+    // Each cell's paragraphs know the cell, of the innermost table when one nests in another.
+    [Test]
+    public async Task AParagraphInACell_KnowsTheCell()
+    {
+        var docx = Build(
+            P(R("before")) +
+            "<w:tbl><w:tr><w:tc>" + P(R("a1")) + "</w:tc><w:tc>" + P(R("b1")) + P(R("b1 again")) + "</w:tc></w:tr>" +
+            "<w:tr><w:tc>" + P(R("a2")) + "</w:tc><w:tc>" +
+            "<w:tbl><w:tr><w:tc>" + P(R("inner")) + "</w:tc></w:tr></w:tbl>" + P(R("b2")) + "</w:tc></w:tr></w:tbl>" +
+            P(R("after")));
+
+        var cells = DocumentOutline.Read(docx).Paragraphs.Select(_ => _.Cell is { } cell ? $"{cell.Table}:{cell.Row}:{cell.Column}" : "-");
+
+        await Assert.That(string.Join(' ', cells)).IsEqualTo("- 0:0:0 0:0:1 0:0:1 0:1:0 1:0:0 0:1:1 -");
+    }
+
     [Test]
     [Arguments(null, true, false)]
     [Arguments("<w:documentProtection w:edit=\"readOnly\" w:enforcement=\"1\"/>", false, false)]
