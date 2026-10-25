@@ -2194,6 +2194,12 @@ export class ParagraphEditor {
             case 'Tab':
                 if (listed) {
                     name = event.shiftKey ? 'outdent' : 'indent';
+                } else if (caret && !event.shiftKey && selected.from.b === 0 && selected.from.o === 0 &&
+                    this.session.skip <= 0 && blockLength(this.blocks[0]) > 0 && this.blocks.length === 1 &&
+                    !this.session.cell) {
+                    // At the start of a paragraph with text, Tab indents its first line rather than
+                    // typing a tab, as with Word's TabIndentKey on (WordProbe E-30, A-16).
+                    name = 'tab-indent';
                 }
 
                 break;

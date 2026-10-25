@@ -1332,6 +1332,41 @@ public partial class MorphViewer
             StateHasChanged();
         });
 
+    /// <summary>Called from JavaScript when Delete or Backspace is pressed with a floating picture selected.</summary>
+    [JSInvokable]
+    public Task OnPictureDelete(int paragraph, int offset) =>
+        InvokeAsync(async () =>
+        {
+            if (!editOpen ||
+                !CanWrite ||
+                revising)
+            {
+                return;
+            }
+
+            floatingPicture = null;
+            var options = await EditOptionsAsync();
+            await ReviseAsync(_ => DocumentEditor.DeletePicture(_, paragraph, offset, options), relayout: true, () => activeKey);
+            StateHasChanged();
+        });
+
+    /// <summary>Called from JavaScript when an arrow key nudges a floating picture: by how far, in points.</summary>
+    [JSInvokable]
+    public Task OnPictureNudge(int paragraph, int offset, double right, double down) =>
+        InvokeAsync(async () =>
+        {
+            if (!editOpen ||
+                !CanWrite ||
+                revising)
+            {
+                return;
+            }
+
+            var options = await EditOptionsAsync();
+            await ReviseAsync(_ => DocumentEditor.NudgePicture(_, paragraph, offset, right, down, options), relayout: true, () => activeKey);
+            StateHasChanged();
+        });
+
     /// <summary>Called from JavaScript when a floating picture's corner has sized it: its size in points.</summary>
     [JSInvokable]
     public Task OnPictureResize(int paragraph, int offset, double width, double height) =>
@@ -2206,6 +2241,35 @@ public partial class MorphViewer
     }
 
     const double halfInch = 36;
+
+    // Word's Tab at the start of a paragraph with text (WordProbe E-30, E-30b, A-16, `TabIndentKey` on):
+    // a hanging first line goes to the left indent, a first line not yet indented a stop is indented
+    // 36pt, and one already indented takes the left indent a stop in.
+    internal async Task TabIndentAsync()
+    {
+        if (CurrentParagraph?.ListLevel != null ||
+            await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var now = PropertiesOf(target.Paragraph);
+        var left = now?.LeftIndentPoints ?? 0;
+        var first = (now?.FirstLineIndentPoints ?? 0) - (now?.HangingIndentPoints ?? 0);
+        var format = new ParagraphFormat(FirstLinePoints: halfInch);
+        if (first < -0.05)
+        {
+            format = new(FirstLinePoints: 0);
+        }
+        else if (first >= halfInch - 0.05)
+        {
+            format = new(LeftPoints: left + halfInch);
+        }
+
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
+    }
 
     // What character formatting acts on: the text selected — in the paragraph open for typing, or
     // across the pages — or the word the caret is in.

@@ -1237,6 +1237,13 @@ public partial class MorphEditor
                 Enabled = ForText
             };
 
+        public static readonly EditorCommand TabIndent =
+            new("tab-indent", "Indent the first line", _ => _.TabIndentAsync())
+            {
+                Key = "Tab",
+                Enabled = ForText
+            };
+
         public static readonly EditorCommand Unhang =
             new("unhang", "Remove hanging indent", _ => _.HangAsync(-1))
             {
@@ -1268,7 +1275,7 @@ public partial class MorphEditor
                 ListLevelOut, EndList, Unindent, FollowOn, ResetPicture, Heading1, Heading2, Heading3, SingleSpacing,
                 DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, GrowPoint, ShrinkPoint, AllCaps, SmallCaps,
                 DoubleUnderline, WordUnderline, Hidden, SymbolFont, ResetParagraph, Promote, Demote, NextCell, PreviousCell,
-                RowStart, RowEnd, ColumnTop, ColumnBottom, StoryStart, StoryEnd, MoveUp, MoveDown, NormalStyle, SpaceBefore, Hang, Unhang, Delete
+                RowStart, RowEnd, ColumnTop, ColumnBottom, StoryStart, StoryEnd, MoveUp, MoveDown, NormalStyle, SpaceBefore, Hang, TabIndent, Unhang, Delete
             }.ToDictionary(_ => _.Name, StringComparer.Ordinal);
 
         public static IReadOnlyCollection<EditorCommand> All =>

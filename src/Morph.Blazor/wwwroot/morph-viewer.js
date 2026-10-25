@@ -2122,7 +2122,9 @@ class Viewer {
             this.pictures.push({ page, x, y, width, height, paragraph, offset });
         }
 
-        this.selectPicture(null);
+        // A picture nudged is still selected where it now stands.
+        const kept = this.selectedPicture;
+        this.selectPicture(this.pictures.find(_ => kept && _.paragraph === kept.paragraph && _.offset === kept.offset) ?? null);
     }
 
     // The floating picture under a click, selected; whether there was one. The last drawn is on top.
@@ -2634,6 +2636,25 @@ class Viewer {
 
     // Keys while editing is on and no paragraph is open. Says whether the key was one of them.
     onEditKey(event) {
+        // A floating picture selected: Delete and Backspace remove it, an arrow nudges it 0.75pt and
+        // Ctrl+arrow 0.15pt (WordProbe I-12, I-13).
+        const picture = this.selectedPicture;
+        if (picture && !event.altKey && !event.shiftKey && !event.metaKey) {
+            if ((event.key === 'Delete' || event.key === 'Backspace') && !event.ctrlKey) {
+                event.preventDefault();
+                this.dotNet.invokeMethodAsync('OnPictureDelete', picture.paragraph, picture.offset).catch(() => {});
+                return true;
+            }
+
+            const steps = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+            if (steps) {
+                event.preventDefault();
+                const step = event.ctrlKey ? 0.15 : 0.75;
+                this.dotNet.invokeMethodAsync('OnPictureNudge', picture.paragraph, picture.offset, steps[0] * step, steps[1] * step).catch(() => {});
+                return true;
+            }
+        }
+
         if (event.key === 'Insert' && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
             event.preventDefault();
             this.toggleOvertype();
