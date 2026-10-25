@@ -119,8 +119,8 @@ static class ImageSharpPainter
     // box inside the group would lose the scale.
     static void PaintScaledGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedScaledGroup group)
     {
-        var width = (int) Math.Ceiling(P(context, group.Width / group.Scale));
-        var height = (int) Math.Ceiling(P(context, group.Height / group.Scale));
+        var width = (int)Math.Ceiling(P(context, group.Width / group.Scale));
+        var height = (int)Math.Ceiling(P(context, group.Height / group.Scale));
         using var full = new Image<Rgba32>(width, height);
         using (var inner = full.Frames.RootFrame.CreateCanvas(Configuration.Default, new()))
         {
@@ -132,7 +132,14 @@ static class ImageSharpPainter
 
         // Shrinking it is the canvas's own work, done as the call is made, so the image can go with it
         // (CanvasDrawingExtensions.DrawImage).
-        canvas.DrawImage(full, new(0, 0, width, height), new RectangleF(P(context, group.X), P(context, group.Y), width * group.Scale, height * group.Scale));
+        canvas.DrawImage(
+            full,
+            new(0, 0, width, height),
+            new(
+                P(context, group.X),
+                P(context, group.Y),
+                width * group.Scale,
+                height * group.Scale));
     }
 
     // See SkiaPainter.PaintClipGroup.

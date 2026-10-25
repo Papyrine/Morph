@@ -287,7 +287,7 @@ static class SkiaPainter
     static float MeasurePrefix(SkiaRenderContext context, RunProperties properties, string prefix)
     {
         var font = context.CreateFont(properties);
-        return (float) ((font.MeasureText(prefix) / context.Scale) + properties.CharacterSpacingPoints * prefix.Length);
+        return (float) (font.MeasureText(prefix) / context.Scale + properties.CharacterSpacingPoints * prefix.Length);
     }
 
     // Draws text, spreading each character by w:spacing tracking and pulling each by its kern. The run's

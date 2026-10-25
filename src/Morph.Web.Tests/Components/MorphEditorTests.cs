@@ -853,7 +853,7 @@ public class MorphEditorTests : BunitTestContext
         image.Metadata.VerticalResolution = 144;
         image.Metadata.ResolutionUnits = SixLabors.ImageSharp.Metadata.PixelResolutionUnit.PixelsPerInch;
         using var stream = new MemoryStream();
-        ImageExtensions.SaveAsPng(image, stream);
+        image.SaveAsPng(stream);
         return stream.ToArray();
     }
 
@@ -861,7 +861,11 @@ public class MorphEditorTests : BunitTestContext
     public async Task APicture_GoesWhereTheCaretWas_AtTheSizeItWasMadeFor()
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Paragraphs, _ => _.Add(component => component.OnDocumentChanged, bytes => reported = bytes));
+        var cut = await OpenEditing(
+            Paragraphs,
+            _ => _.Add(
+                _ => _.OnDocumentChanged,
+                _ => reported = _));
         Caret(0, 6);
         await ChooseTabAsync(cut, "Insert");
 

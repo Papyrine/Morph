@@ -648,14 +648,16 @@ public partial class MorphEditor
     void OnBookmarkInput(ChangeEventArgs args) =>
         bookmarkName = (args.Value as string ?? "").Trim();
 
-    async Task AddBookmarkFromDialogAsync()
+    Task AddBookmarkFromDialogAsync()
     {
         dialog = null;
         if (bookmarkTarget is { } target &&
             DocumentEditor.IsBookmarkName(bookmarkName))
         {
-            await AddBookmarkAsync(target, bookmarkName);
+            return AddBookmarkAsync(target, bookmarkName);
         }
+
+        return Task.CompletedTask;
     }
 
     async Task DeleteBookmarkFromDialogAsync()

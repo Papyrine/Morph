@@ -1120,35 +1120,63 @@ public partial class MorphEditor
             };
 
         public static readonly EditorCommand AllCaps =
-            new("all-caps", "All caps", _ => _.ToggleLookAsync(properties => properties.AllCaps, on => new(AllCaps: on, SmallCaps: on ? false : null)))
+            new(
+                "all-caps",
+                "All caps",
+                _ => _.ToggleLookAsync(
+                    _ => _.AllCaps,
+                    _ => new(AllCaps: _, SmallCaps: _ ? false : null)))
             {
                 Key = "Ctrl+Shift+A",
                 Enabled = ForText
             };
 
         public static readonly EditorCommand SmallCaps =
-            new("small-caps", "Small caps", _ => _.ToggleLookAsync(properties => properties.SmallCaps, on => new(SmallCaps: on, AllCaps: on ? false : null)))
+            new(
+                "small-caps",
+                "Small caps", _ => _.ToggleLookAsync(
+                    _ => _.SmallCaps,
+                    _ => new(SmallCaps: _, AllCaps: _ ? false : null)))
             {
                 Key = "Ctrl+Shift+K",
                 Enabled = ForText
             };
 
         public static readonly EditorCommand DoubleUnderline =
-            new("double-underline", "Double underline", _ => _.ToggleLookAsync(properties => properties.DoubleUnderline, on => new(UnderlineStyle: on ? "double" : "none")))
+            new(
+                "double-underline",
+                "Double underline",
+                _ => _.ToggleLookAsync(
+                    _ => _.DoubleUnderline,
+                    _ => new(UnderlineStyle: _ ? "double" : "none")))
             {
                 Key = "Ctrl+Shift+D",
                 Enabled = ForText
             };
 
         public static readonly EditorCommand WordUnderline =
-            new("word-underline", "Underline words only", _ => _.ToggleLookAsync(properties => properties.UnderlineStyle == UnderlineStyle.Words && properties.Underline, on => new(UnderlineStyle: on ? "words" : "none")))
+            new(
+                "word-underline",
+                "Underline words only",
+                _ => _.ToggleLookAsync(
+                    _ => _ is
+                    {
+                        UnderlineStyle: UnderlineStyle.Words,
+                        Underline: true
+                    },
+                    _ => new(UnderlineStyle: _ ? "words" : "none")))
             {
                 Key = "Ctrl+Shift+W",
                 Enabled = ForText
             };
 
         public static readonly EditorCommand Hidden =
-            new("hidden", "Hidden", _ => _.ToggleLookAsync(properties => properties.Hidden, on => new(Hidden: on)))
+            new(
+                "hidden",
+                "Hidden",
+                _ => _.ToggleLookAsync(
+                    _ => _.Hidden,
+                    _ => new(Hidden: _)))
             {
                 Key = "Ctrl+Shift+H",
                 Enabled = ForText
@@ -1262,20 +1290,135 @@ public partial class MorphEditor
         static readonly Dictionary<string, EditorCommand> all =
             new[]
             {
-                Undo, Redo, Paste, Cut, Copy, FormatPainter, Font, FontSize, Grow, Shrink, ClearFormatting, Bold, Italic,
-                Underline, Strike, Subscript, Superscript, Highlight, Highlights, FontColour, FontColours, FontDialog,
-                Bullets, BulletLibrary, Numbering, NumberingLibrary, RestartNumbering, ContinueNumbering, DecreaseIndent,
-                IncreaseIndent, Marks, AlignLeft, AlignCenter, AlignRight, Justify, Spacing, ParagraphShading,
-                ParagraphShadings, ParagraphBorders, MoreParagraphBorders, ParagraphDialog, Styles, Find, Replace,
-                PageBreak, Table, Picture, Link, RemoveLink, Bookmark, Header, Footer, PageNumber, Date, Margins,
-                Orientation, PaperSize, Columns, Breaks, Wrap, Contents, UpdateContents, Footnote, Endnote,
-                InsertRowAbove, InsertRowBelow, InsertColumnLeft, InsertColumnRight, DeleteRow, DeleteColumn,
-                DeleteTable, MergeCells, SplitCells, DistributeColumns, AutoFit, TableBorders, CellShading, CellShadings,
-                WordCount, NewComment, ReviewPane, Track, AcceptAll, RejectAll, Pages, Ruler, Present, ListLevelIn,
-                ListLevelOut, EndList, Unindent, FollowOn, ResetPicture, Heading1, Heading2, Heading3, SingleSpacing,
-                DoubleSpacing, OneAndAHalfSpacing, DateField, PageField, TimeField, GrowPoint, ShrinkPoint, AllCaps, SmallCaps,
-                DoubleUnderline, WordUnderline, Hidden, SymbolFont, ResetParagraph, Promote, Demote, NextCell, PreviousCell,
-                RowStart, RowEnd, ColumnTop, ColumnBottom, StoryStart, StoryEnd, MoveUp, MoveDown, NormalStyle, SpaceBefore, Hang, TabIndent, Unhang, Delete
+                Undo,
+                Redo,
+                Paste,
+                Cut,
+                Copy,
+                FormatPainter,
+                Font,
+                FontSize,
+                Grow,
+                Shrink,
+                ClearFormatting,
+                Bold,
+                Italic,
+                Underline,
+                Strike,
+                Subscript,
+                Superscript,
+                Highlight,
+                Highlights,
+                FontColour,
+                FontColours,
+                FontDialog,
+                Bullets,
+                BulletLibrary,
+                Numbering,
+                NumberingLibrary,
+                RestartNumbering,
+                ContinueNumbering,
+                DecreaseIndent,
+                IncreaseIndent,
+                Marks,
+                AlignLeft,
+                AlignCenter,
+                AlignRight,
+                Justify,
+                Spacing,
+                ParagraphShading,
+                ParagraphShadings,
+                ParagraphBorders,
+                MoreParagraphBorders,
+                ParagraphDialog,
+                Styles,
+                Find,
+                Replace,
+                PageBreak,
+                Table,
+                Picture,
+                Link,
+                RemoveLink,
+                Bookmark,
+                Header,
+                Footer,
+                PageNumber,
+                Date,
+                Margins,
+                Orientation,
+                PaperSize,
+                Columns,
+                Breaks,
+                Wrap,
+                Contents,
+                UpdateContents,
+                Footnote,
+                Endnote,
+                InsertRowAbove,
+                InsertRowBelow,
+                InsertColumnLeft,
+                InsertColumnRight,
+                DeleteRow,
+                DeleteColumn,
+                DeleteTable,
+                MergeCells,
+                SplitCells,
+                DistributeColumns,
+                AutoFit,
+                TableBorders,
+                CellShading,
+                CellShadings,
+                WordCount,
+                NewComment,
+                ReviewPane,
+                Track,
+                AcceptAll,
+                RejectAll,
+                Pages,
+                Ruler,
+                Present,
+                ListLevelIn,
+                ListLevelOut,
+                EndList,
+                Unindent,
+                FollowOn,
+                ResetPicture,
+                Heading1,
+                Heading2,
+                Heading3,
+                SingleSpacing,
+                DoubleSpacing,
+                OneAndAHalfSpacing,
+                DateField,
+                PageField,
+                TimeField,
+                GrowPoint,
+                ShrinkPoint,
+                AllCaps,
+                SmallCaps,
+                DoubleUnderline,
+                WordUnderline,
+                Hidden,
+                SymbolFont,
+                ResetParagraph,
+                Promote,
+                Demote,
+                NextCell,
+                PreviousCell,
+                RowStart,
+                RowEnd,
+                ColumnTop,
+                ColumnBottom,
+                StoryStart,
+                StoryEnd,
+                MoveUp,
+                MoveDown,
+                NormalStyle,
+                SpaceBefore,
+                Hang,
+                TabIndent,
+                Unhang,
+                Delete
             }.ToDictionary(_ => _.Name, StringComparer.Ordinal);
 
         public static IReadOnlyCollection<EditorCommand> All =>

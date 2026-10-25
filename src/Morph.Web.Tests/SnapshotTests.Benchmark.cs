@@ -168,7 +168,7 @@ public partial class SnapshotTests
             {
                 await devTools.SendAsync(
                     "Emulation.setCPUThrottlingRate",
-                    new Dictionary<string, object>
+                    new()
                     {
                         ["rate"] = throttle
                     });
@@ -223,7 +223,7 @@ public partial class SnapshotTests
                     await devTools.SendAsync("Profiler.enable");
                     await devTools.SendAsync(
                         "Profiler.setSamplingInterval",
-                        new Dictionary<string, object>
+                        new()
                         {
                             ["interval"] = 200
                         });
@@ -309,7 +309,7 @@ public partial class SnapshotTests
         var tasks = await ReadAsync<List<LongTask>>(page, "morphBenchmark.tasks");
         var handInTasks = tasks
             .Where(_ => Overlaps(_, handingFrom, idleAt))
-            .Select(_ => new LongTask(_.Start - handingFrom, _.Duration))
+            .Select(_ => _ with { Start = _.Start - handingFrom })
             .ToList();
         return new(
             openParagraph,
