@@ -61,4 +61,31 @@
 
   <Import Project="..\Morph.Blazor\build\Morph.Blazor.targets" />
 
+  <!--
+    js/version.js: the version the footer shows (v1.22.0+b4bbab2), for index.html's loading screen, which
+    has to show it before .NET is running — a page the browser kept from an earlier deploy is then plain
+    to see. Written to obj and linked into wwwroot, so it is a static web asset like any other, in every
+    build and publish, and nothing generated lands in the source tree. Rewriting index.html after publish
+    instead would leave its .br/.gz beside it stale.
+  -->
+  <Target Name="WriteVersionScript"
+          BeforeTargets="ResolveProjectStaticWebAssets"
+          DependsOnTargets="InitializeSourceControlInformation">
+    <PropertyGroup>
+      <_MorphShortSha>$(SourceRevisionId)</_MorphShortSha>
+      <_MorphShortSha Condition="$(SourceRevisionId.Length) &gt; 7">$(SourceRevisionId.Substring(0, 7))</_MorphShortSha>
+      <_MorphVersionText>v$(Version)</_MorphVersionText>
+      <_MorphVersionText Condition="'$(_MorphShortSha)' != ''">$(_MorphVersionText)+$(_MorphShortSha)</_MorphVersionText>
+      <_MorphVersionScript>$(IntermediateOutputPath)version.js</_MorphVersionScript>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_MorphVersionScript)"
+                      Lines="window.morphVersion = '$(_MorphVersionText)'%3B"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Content Include="$(_MorphVersionScript)" Link="wwwroot\js\version.js" />
+      <FileWrites Include="$(_MorphVersionScript)" />
+    </ItemGroup>
+  </Target>
+
 </Project>
