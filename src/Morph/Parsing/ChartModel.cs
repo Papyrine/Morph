@@ -24,6 +24,15 @@ sealed record ChartModel
     /// <summary><c>c:firstSliceAng</c>: where a pie's first slice starts, clockwise from twelve.</summary>
     public double FirstSliceDegrees { get; init; }
 
+    /// <summary>
+    /// <c>c:crossBetween="midCat"</c> on the value axis of a line or area chart: its points sit on the
+    /// category axis's ticks, the first at the plot's edge, rather than in the middle of each category.
+    /// </summary>
+    public bool PointsOnTicks { get; init; }
+
+    /// <summary><c>c:radarStyle="filled"</c>: each radar series is a filled polygon rather than a line.</summary>
+    public bool RadarFilled { get; init; }
+
     /// <summary><c>c:varyColors</c>: each point of a single series takes the next theme accent.</summary>
     public bool VaryColors { get; init; }
 
@@ -31,6 +40,7 @@ sealed record ChartModel
 
     public required IReadOnlyList<ChartSeries> Series { get; init; }
 
+    /// <summary>The category axis; for a scatter chart, the horizontal value axis that carries the x values.</summary>
     public ChartAxis? CategoryAxis { get; init; }
 
     public ChartAxis? ValueAxis { get; init; }
@@ -61,7 +71,10 @@ enum ChartKind
     Bar,
     Line,
     Pie,
-    Doughnut
+    Doughnut,
+    Area,
+    Scatter,
+    Radar
 }
 
 enum ChartGrouping
@@ -78,6 +91,15 @@ sealed record ChartSeries
     /// <summary>The cached values by point index; null where the cache has no point.</summary>
     public required IReadOnlyList<double?> Values { get; init; }
 
+    /// <summary>A scatter series' x values (<c>c:xVal</c>); empty where they are not numbers, which plots the points at 1, 2, 3…</summary>
+    public IReadOnlyList<double?> XValues { get; init; } = [];
+
+    /// <summary>The series' line is turned off (<c>c:spPr/a:ln/a:noFill</c>): a scatter or line series of markers alone.</summary>
+    public bool NoLine { get; init; }
+
+    /// <summary>The marker drawn at each point of a line, scatter or radar series; null draws none.</summary>
+    public ChartMarker? Marker { get; init; }
+
     /// <summary>The format the values are cached in (<c>c:numCache/c:formatCode</c>), which a source-linked label shows them in.</summary>
     public string? FormatCode { get; init; }
 
@@ -93,6 +115,12 @@ sealed record ChartSeries
 
     public ChartDataLabels? Labels { get; init; }
 }
+
+/// <summary>
+/// A point's marker (<c>c:marker</c>): its <c>c:symbol</c> (circle, square, diamond, triangle, x, plus,
+/// star, dash or dot), its size in points, and its fill and outline.
+/// </summary>
+sealed record ChartMarker(string Symbol, double SizePoints, string? FillHex, ChartStroke? Line);
 
 sealed record ChartDataLabels
 {

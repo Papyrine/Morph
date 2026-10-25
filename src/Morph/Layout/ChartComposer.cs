@@ -3,8 +3,9 @@
 /// items every painter already draws, so a chart needs nothing of its own downstream.
 ///
 /// What it draws, in paint order: the chart area's fill and border, the plot area's fill, the value
-/// axis's gridlines, the bars, lines or slices, the axis lines, the tick labels, the data labels, the
-/// legend and the title.
+/// axis's gridlines, the bars, areas, lines, markers or slices, the axis lines, the tick labels, the data
+/// labels, the legend and the title. A scatter chart scales both of its axes as values; a radar chart
+/// lays its categories round a circle, with the value axis's gridlines drawn as a web.
 ///
 /// The plot box is the manual layout's when the chart has one (<c>layoutTarget="inner"</c> is the box
 /// the axes span; otherwise the box their labels are taken off). Without one it is the chart less a
@@ -85,6 +86,21 @@ sealed class ChartComposer(
             return items;
         }
 
+        if (chart.Kind == ChartKind.Radar)
+        {
+            var box = chart.PlotLayout is { } manual ? Absolute(manual, x, y, width, height) : inner;
+            Radar(chart, box, items);
+            items.AddRange(titleItems);
+            return items;
+        }
+
+        if (chart.Kind == ChartKind.Scatter)
+        {
+            Scatter(chart, inner, x, y, width, height, items);
+            items.AddRange(titleItems);
+            return items;
+        }
+
         Plot(chart, inner, x, y, width, height, items);
         items.AddRange(titleItems);
         return items;
@@ -100,18 +116,12 @@ sealed class ChartComposer(
 
         var percent = chart.Grouping == ChartGrouping.PercentStacked;
         var stacked = chart.Grouping != ChartGrouping.Clustered &&
-                      chart.Kind == ChartKind.Bar;
+                      chart.Kind is ChartKind.Bar or ChartKind.Area;
         var (dataMin, dataMax) = DataRange(chart, categoryCount, stacked, percent);
         var valueAxis = chart.ValueAxis;
         var (minimum, maximum, unit) = Scale(dataMin, dataMax, valueAxis);
-        var valueFormat = valueAxis?.FormatCode is { } code &&
-                          code != "General" ? code : percent ? "0%" : chart.Series[0].FormatCode ?? "General";
-
-        var ticks = new List<double>();
-        for (var tick = minimum; tick <= maximum + unit * 1e-6; tick += unit)
-        {
-            ticks.Add(Math.Abs(tick) < unit * 1e-9 ? 0 : tick);
-        }
+        var valueFormat = AxisFormat(valueAxis, percent ? "0%" : chart.Series[0].FormatCode);
+        var ticks = Ticks(minimum, maximum, unit);
 
         var categoryAxis = chart.CategoryAxis;
         var showValueLabels = valueAxis is { Deleted: false, ShowLabels: true };
@@ -197,13 +207,34 @@ sealed class ChartComposer(
             return horizontal ? plot.Y + slot * band : plot.X + slot * band;
         }
 
-        if (chart.Kind == ChartKind.Bar)
+        // Where a category's point stands along the category axis: mid-band, or on the band's ticks when
+        // the value axis crosses between categories (an area chart's points run edge to edge).
+        var onTicks = chart.PointsOnTicks &&
+                      categoryCount > 1;
+        var pitch = onTicks ? plot.Width / (categoryCount - 1) : band;
+
+        float Along(int category)
         {
-            Bars(chart, categoryCount, band, stacked, percent, BandStart, ValueAt, horizontal, minimum, items);
+            if (!onTicks)
+            {
+                return BandStart(category) + band / 2;
+            }
+
+            var slot = categoryReversed ? categoryCount - 1 - category : category;
+            return plot.X + slot * pitch;
         }
-        else
+
+        switch (chart.Kind)
         {
-            Lines(chart, categoryCount, band, BandStart, ValueAt, horizontal, items);
+            case ChartKind.Bar:
+                Bars(chart, categoryCount, band, stacked, percent, BandStart, ValueAt, horizontal, minimum, items);
+                break;
+            case ChartKind.Area:
+                Areas(chart, categoryCount, stacked, percent, Along, ValueAt, minimum, items);
+                break;
+            default:
+                Lines(chart, categoryCount, Along, ValueAt, horizontal, items);
+                break;
         }
 
         // Axis lines: the category axis along the value origin, the value axis along the plot's edge.
@@ -255,7 +286,8 @@ sealed class ChartComposer(
                 }
                 else
                 {
-                    items.AddRange(Label(text, categoryStyle, start, plot.Y + plot.Height + labelGap, band, labelHeight, TextAlignment.Center));
+                    var left = onTicks ? Along(category) - pitch / 2 : start;
+                    items.AddRange(Label(text, categoryStyle, left, plot.Y + plot.Height + labelGap, pitch, labelHeight, TextAlignment.Center));
                 }
             }
         }
@@ -352,30 +384,389 @@ sealed class ChartComposer(
         }
     }
 
-    static void Lines(ChartModel chart, int categoryCount, float band, Func<int, float> bandStart, Func<double, float> valueAt, bool horizontal, List<PlacedItem> items)
+    static void Lines(ChartModel chart, int categoryCount, Func<int, float> along, Func<double, float> valueAt, bool horizontal, List<PlacedItem> items)
     {
         for (var index = 0; index < chart.Series.Count; index++)
         {
             var series = chart.Series[index];
-            var stroke = series.Line ?? new ChartStroke(series.FillHex ?? chart.Palette[index % chart.Palette.Count], 2.25, 1);
-            (float X, float Y)? previous = null;
+            var points = new List<(float X, float Y)?>();
             for (var category = 0; category < categoryCount; category++)
             {
                 if (category >= series.Values.Count || series.Values[category] is not { } value)
                 {
-                    previous = null;
+                    points.Add(null);
                     continue;
                 }
 
-                var along = bandStart(category) + band / 2;
-                var point = horizontal ? (valueAt(value), along) : (along, valueAt(value));
-                if (previous is { } from)
+                var at = along(category);
+                points.Add(horizontal ? (valueAt(value), at) : (at, valueAt(value)));
+            }
+
+            SeriesLine(chart, series, index, points, false, items);
+        }
+    }
+
+    // A line, scatter or radar series: its line through the points in turn (a gap breaks it; a radar's
+    // closes on its first point), then a marker on each point, over the line.
+    static void SeriesLine(ChartModel chart, ChartSeries series, int index, List<(float X, float Y)?> points, bool closed, List<PlacedItem> items)
+    {
+        var color = SeriesColor(chart, series, index);
+        if (!series.NoLine)
+        {
+            var stroke = series.Line ?? new ChartStroke(color, 2.25, 1);
+            var path = new List<(float X, float Y)?>(points);
+            if (closed &&
+                points.Count > 2)
+            {
+                path.Add(points[0]);
+            }
+
+            for (var point = 1; point < path.Count; point++)
+            {
+                if (path[point - 1] is { } from &&
+                    path[point] is { } to)
                 {
-                    items.Add(Rule(from.X, from.Y, point.Item1, point.Item2, stroke));
+                    items.Add(Rule(from.X, from.Y, to.X, to.Y, stroke));
+                }
+            }
+        }
+
+        if (series.Marker is { } marker)
+        {
+            foreach (var point in points)
+            {
+                if (point is { } at)
+                {
+                    items.Add(Marker(marker, at.X, at.Y, color));
+                }
+            }
+        }
+    }
+
+    // An area chart's series, each a polygon from its line down to the axis, or to the series under it
+    // when stacked. Later series paint over earlier ones, as Office draws them.
+    static void Areas(ChartModel chart, int categoryCount, bool stacked, bool percent, Func<int, float> along, Func<double, float> valueAt, double minimum, List<PlacedItem> items)
+    {
+        var baseline = Math.Max(0, minimum);
+        var below = new double[categoryCount];
+        Array.Fill(below, baseline);
+        var totals = Enumerable.Range(0, categoryCount)
+            .Select(category => percent ? chart.Series.Sum(_ => Math.Abs(At(_, category))) : 1)
+            .ToList();
+        for (var index = 0; index < chart.Series.Count; index++)
+        {
+            var series = chart.Series[index];
+            var top = new double[categoryCount];
+            for (var category = 0; category < categoryCount; category++)
+            {
+                var value = At(series, category);
+                if (percent &&
+                    totals[category] > 0)
+                {
+                    value /= totals[category];
                 }
 
-                previous = point;
+                top[category] = stacked ? below[category] + value : value;
             }
+
+            var outline = new List<(float X, float Y)>();
+            for (var category = 0; category < categoryCount; category++)
+            {
+                outline.Add((along(category), valueAt(top[category])));
+            }
+
+            for (var category = categoryCount - 1; category >= 0; category--)
+            {
+                outline.Add((along(category), valueAt(stacked ? below[category] : baseline)));
+            }
+
+            if (Polygon(outline, PointColor(chart, series, index, 0), series.Line) is { } shape)
+            {
+                items.Add(shape);
+            }
+
+            if (stacked)
+            {
+                below = top;
+            }
+        }
+    }
+
+    // A scatter chart: both axes are value axes, scaled as the value axis of any other chart is, the
+    // horizontal one (the model's category axis) by the series' x values, which default to 1, 2, 3….
+    void Scatter(ChartModel chart, (float X, float Y, float Width, float Height) inner, float chartX, float chartY, float chartWidth, float chartHeight, List<PlacedItem> items)
+    {
+        var points = chart.Series
+            .Select(_ =>
+            {
+                var xs = _.XValues.Count > 0 ? _.XValues : [.. Enumerable.Range(1, _.Values.Count).Select(number => (double?) number)];
+                return xs.Zip(_.Values)
+                    .Select(pair => pair is ({ } x, { } y) ? (X: x, Y: y) : ((double X, double Y)?) null)
+                    .ToList();
+            })
+            .ToList();
+        var present = points.SelectMany(_ => _).OfType<(double X, double Y)>().ToList();
+        if (present.Count == 0)
+        {
+            return;
+        }
+
+        var xAxis = chart.CategoryAxis;
+        var yAxis = chart.ValueAxis;
+        var (xMinimum, xMaximum, xUnit) = Scale(Math.Min(0, present.Min(_ => _.X)), Math.Max(0, present.Max(_ => _.X)), xAxis);
+        var (yMinimum, yMaximum, yUnit) = Scale(Math.Min(0, present.Min(_ => _.Y)), Math.Max(0, present.Max(_ => _.Y)), yAxis);
+        var xTicks = Ticks(xMinimum, xMaximum, xUnit);
+        var yTicks = Ticks(yMinimum, yMaximum, yUnit);
+        var xStyle = xAxis?.Text ?? chart.Text;
+        var yStyle = yAxis?.Text ?? chart.Text;
+        var xLabels = xTicks.Select(_ => NumberFormat.Format(_, AxisFormat(xAxis, null)).Text).ToList();
+        var yLabels = yTicks.Select(_ => NumberFormat.Format(_, AxisFormat(yAxis, chart.Series[0].FormatCode)).Text).ToList();
+        var showX = xAxis is { Deleted: false, ShowLabels: true };
+        var showY = yAxis is { Deleted: false, ShowLabels: true };
+
+        var plot = chart.PlotLayout is { } manual ? Absolute(manual, chartX, chartY, chartWidth, chartHeight) : inner;
+        if (!chart.PlotLayoutIsInner || chart.PlotLayout == null)
+        {
+            var yWidth = showY ? yLabels.Max(_ => TextWidth(_, yStyle)) : 0;
+            var yHeight = showY ? LineHeight("0", yStyle) : 0;
+            var xHeight = showX ? LineHeight("0", xStyle) : 0;
+            var left = yWidth > 0 ? yWidth + labelGap : 0;
+            var bottom = xHeight > 0 ? xHeight + labelGap : 0;
+            var right = showX ? TextWidth(xLabels[^1], xStyle) / 2 : 0;
+            plot = (plot.X + left, plot.Y + yHeight / 2, plot.Width - left - right, plot.Height - bottom - yHeight / 2);
+        }
+
+        if (plot.Width <= 0 || plot.Height <= 0)
+        {
+            return;
+        }
+
+        if (chart.Plot.FillHex != null || chart.Plot.Line != null)
+        {
+            items.Add(Rectangle(plot.X, plot.Y, plot.Width, plot.Height, chart.Plot.FillHex, chart.Plot.Line));
+        }
+
+        float XAt(double value)
+        {
+            var fraction = (float) ((value - xMinimum) / (xMaximum - xMinimum));
+            if (xAxis?.Reversed == true)
+            {
+                fraction = 1 - fraction;
+            }
+
+            return plot.X + fraction * plot.Width;
+        }
+
+        float YAt(double value)
+        {
+            var fraction = (float) ((value - yMinimum) / (yMaximum - yMinimum));
+            if (yAxis?.Reversed == true)
+            {
+                fraction = 1 - fraction;
+            }
+
+            return plot.Y + plot.Height - fraction * plot.Height;
+        }
+
+        if (yAxis?.MajorGridlines is { } rows)
+        {
+            foreach (var tick in yTicks)
+            {
+                items.Add(Rule(plot.X, YAt(tick), plot.X + plot.Width, YAt(tick), rows));
+            }
+        }
+
+        if (xAxis?.MajorGridlines is { } columns)
+        {
+            foreach (var tick in xTicks)
+            {
+                items.Add(Rule(XAt(tick), plot.Y, XAt(tick), plot.Y + plot.Height, columns));
+            }
+        }
+
+        for (var index = 0; index < chart.Series.Count; index++)
+        {
+            var placed = points[index]
+                .Select(_ => _ is { } point ? (XAt(point.X), YAt(point.Y)) : ((float X, float Y)?) null)
+                .ToList();
+            SeriesLine(chart, chart.Series[index], index, placed, false, items);
+        }
+
+        // Each axis line stands where the other axis is 0, as a category axis does.
+        if (xAxis is { Deleted: false, Line: { } xLine })
+        {
+            var at = YAt(Math.Clamp(0, yMinimum, yMaximum));
+            items.Add(Rule(plot.X, at, plot.X + plot.Width, at, xLine));
+        }
+
+        if (yAxis is { Deleted: false, Line: { } yLine })
+        {
+            var at = XAt(Math.Clamp(0, xMinimum, xMaximum));
+            items.Add(Rule(at, plot.Y, at, plot.Y + plot.Height, yLine));
+        }
+
+        if (showY)
+        {
+            var labelHeight = LineHeight("0", yStyle);
+            for (var index = 0; index < yTicks.Count; index++)
+            {
+                var labelWidth = TextWidth(yLabels[index], yStyle) + 2;
+                items.AddRange(Label(yLabels[index], yStyle, plot.X - labelGap - labelWidth, YAt(yTicks[index]) - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
+            }
+        }
+
+        if (showX)
+        {
+            var labelHeight = LineHeight("0", xStyle);
+            for (var index = 0; index < xTicks.Count; index++)
+            {
+                var labelWidth = TextWidth(xLabels[index], xStyle) + 2;
+                items.AddRange(Label(xLabels[index], xStyle, XAt(xTicks[index]) - labelWidth / 2, plot.Y + plot.Height + labelGap, labelWidth, labelHeight, TextAlignment.Center));
+            }
+        }
+    }
+
+    // A radar chart: the categories are spokes clockwise from twelve o'clock, each value a distance out
+    // along its spoke, with the value axis's labels up the first spoke and its gridlines a web of
+    // polygons. The circle takes the box less room for the category labels round it.
+    void Radar(ChartModel chart, (float X, float Y, float Width, float Height) box, List<PlacedItem> items)
+    {
+        var categoryCount = Math.Max(chart.Categories.Count, chart.Series.Max(_ => _.Values.Count));
+        if (categoryCount < 3)
+        {
+            return;
+        }
+
+        var (dataMin, dataMax) = DataRange(chart, categoryCount, false, false);
+        var valueAxis = chart.ValueAxis;
+        var categoryAxis = chart.CategoryAxis;
+        var (minimum, maximum, unit) = Scale(dataMin, dataMax, valueAxis);
+        var ticks = Ticks(minimum, maximum, unit);
+        var valueStyle = valueAxis?.Text ?? chart.Text;
+        var categoryStyle = categoryAxis?.Text ?? chart.Text;
+        var showCategoryLabels = categoryAxis is not { Deleted: true } &&
+                                 categoryAxis?.ShowLabels != false &&
+                                 chart.Categories.Count > 0;
+        var categoryWidth = showCategoryLabels ? chart.Categories.Max(_ => TextWidth(_, categoryStyle)) + 2 : 0;
+        var categoryHeight = showCategoryLabels ? LineHeight("0", categoryStyle) : 0;
+        var radius = Math.Min(box.Width / 2 - categoryWidth - labelGap, box.Height / 2 - categoryHeight - labelGap);
+        if (radius <= 0)
+        {
+            return;
+        }
+
+        var centreX = box.X + box.Width / 2;
+        var centreY = box.Y + box.Height / 2;
+        var direction = categoryAxis?.Reversed == true ? -1 : 1;
+
+        double Angle(int category) =>
+            direction * category * 2 * Math.PI / categoryCount;
+
+        (float X, float Y) At(int category, double distance) =>
+            (centreX + (float) (distance * Math.Sin(Angle(category))), centreY - (float) (distance * Math.Cos(Angle(category))));
+
+        float Distance(double value)
+        {
+            var fraction = (float) Math.Clamp((value - minimum) / (maximum - minimum), 0, 1);
+            if (valueAxis?.Reversed == true)
+            {
+                fraction = 1 - fraction;
+            }
+
+            return radius * fraction;
+        }
+
+        if (valueAxis?.MajorGridlines is { } web)
+        {
+            foreach (var tick in ticks)
+            {
+                for (var category = 0; category < categoryCount; category++)
+                {
+                    var from = At(category, Distance(tick));
+                    var to = At((category + 1) % categoryCount, Distance(tick));
+                    items.Add(Rule(from.X, from.Y, to.X, to.Y, web));
+                }
+            }
+        }
+
+        // Spokes are the category axis's gridlines; its line alone draws none, as PowerPoint renders it.
+        if (categoryAxis is { Deleted: false, MajorGridlines: { } spokes })
+        {
+            for (var category = 0; category < categoryCount; category++)
+            {
+                var end = At(category, radius);
+                items.Add(Rule(centreX, centreY, end.X, end.Y, spokes));
+            }
+        }
+
+        for (var index = 0; index < chart.Series.Count; index++)
+        {
+            var series = chart.Series[index];
+            var placed = Enumerable.Range(0, categoryCount)
+                .Select(category => category < series.Values.Count && series.Values[category] is { } value ? At(category, Distance(value)) : ((float X, float Y)?) null)
+                .ToList();
+            if (!chart.RadarFilled)
+            {
+                SeriesLine(chart, series, index, placed, true, items);
+                continue;
+            }
+
+            if (Polygon([.. placed.Select(_ => _ ?? (centreX, centreY))], PointColor(chart, series, index, 0), series.Line) is { } shape)
+            {
+                items.Add(shape);
+            }
+        }
+
+        if (valueAxis is { Deleted: false, ShowLabels: true })
+        {
+            var format = AxisFormat(valueAxis, chart.Series[0].FormatCode);
+            var labelHeight = LineHeight("0", valueStyle);
+            foreach (var tick in ticks)
+            {
+                var text = NumberFormat.Format(tick, format).Text;
+                var labelWidth = TextWidth(text, valueStyle) + 2;
+                var at = At(0, Distance(tick));
+                items.AddRange(Label(text, valueStyle, at.X - labelGap - labelWidth, at.Y - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
+            }
+        }
+
+        if (!showCategoryLabels)
+        {
+            return;
+        }
+
+        // A category's label stands off its spoke's end, on the side the spoke points to.
+        for (var category = 0; category < Math.Min(categoryCount, chart.Categories.Count); category++)
+        {
+            var text = chart.Categories[category];
+            var labelWidth = TextWidth(text, categoryStyle) + 2;
+            var end = At(category, radius + labelGap);
+            var sine = Math.Sin(Angle(category));
+            var cosine = Math.Cos(Angle(category));
+            var left = end.X - labelWidth / 2;
+            var alignment = TextAlignment.Center;
+            if (sine > 0.1)
+            {
+                left = end.X;
+                alignment = TextAlignment.Left;
+            }
+            else if (sine < -0.1)
+            {
+                left = end.X - labelWidth;
+                alignment = TextAlignment.Right;
+            }
+
+            var top = end.Y - categoryHeight / 2;
+            if (cosine > 0.1)
+            {
+                top = end.Y - categoryHeight;
+            }
+            else if (cosine < -0.1)
+            {
+                top = end.Y;
+            }
+
+            items.AddRange(Label(text, categoryStyle, left, top, labelWidth, categoryHeight, alignment));
         }
     }
 
@@ -474,7 +865,7 @@ sealed class ChartComposer(
                          };
         List<(string Text, string Color)> entries = byCategory
             ? [.. chart.Categories.Select((_, index) => (Text: _, Color: PointColor(chart, chart.Series[0], 0, index)))]
-            : [.. chart.Series.Select((_, index) => (Text: _.Name ?? $"Series{index + 1}", Color: _.FillHex ?? _.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count]))];
+            : [.. chart.Series.Select((_, index) => (Text: _.Name ?? $"Series{index + 1}", Color: SeriesColor(chart, _, index)))];
 
         // Horizontal bars stack their series upwards, the first at the bottom of each category, and the
         // legend lists them the same way round: chart_anchored's North and South bars are keyed
@@ -499,11 +890,19 @@ sealed class ChartComposer(
         var key = (float) (style.SizePoints * 0.6);
 
         // A line series is keyed by a stroke of its line, twice the legend's font size long: chart_column_line's
-        // 10pt legend keys its 3pt lines with 20pt strokes in Word's render. Anything else takes a square
-        // swatch of its fill.
-        var lineKeys = chart.Kind == ChartKind.Line &&
-                       !byCategory;
-        var keyWidth = lineKeys ? (float) (style.SizePoints * 2) : key;
+        // 10pt legend keys its 3pt lines with 20pt strokes in Word's render. A scatter or unfilled radar
+        // series is keyed as a line is, and a marked series carries its marker on the key; a scatter
+        // series of markers alone is keyed by the marker. Anything else takes a square swatch of its fill.
+        var lineKeys = !byCategory &&
+                       (chart.Kind is ChartKind.Line or ChartKind.Scatter ||
+                        chart is
+                        {
+                            Kind: ChartKind.Radar,
+                            RadarFilled: false
+                        });
+        var strokeKeys = lineKeys &&
+                         chart.Series.Any(_ => !_.NoLine);
+        var keyWidth = strokeKeys ? (float) (style.SizePoints * 2) : key;
         var keyGap = 3f;
         var entryGap = (float) style.SizePoints;
         var widths = entries.Select(_ => keyWidth + keyGap + TextWidth(_.Text, style) + 2).ToList();
@@ -548,8 +947,17 @@ sealed class ChartComposer(
         {
             if (lineKeys)
             {
-                var stroke = (float) (chart.Series[index].Line?.WidthPoints ?? 2.25);
-                items.Add(Rectangle(x, y + (lineHeight - stroke) / 2, keyWidth, stroke, entries[index].Color, null));
+                var series = chart.Series[index];
+                if (!series.NoLine)
+                {
+                    var stroke = (float) (series.Line?.WidthPoints ?? 2.25);
+                    items.Add(Rectangle(x, y + (lineHeight - stroke) / 2, keyWidth, stroke, entries[index].Color, null));
+                }
+
+                if (series.Marker is { } marker)
+                {
+                    items.Add(Marker(marker, x + keyWidth / 2, y + lineHeight / 2, entries[index].Color));
+                }
             }
             else
             {
@@ -671,6 +1079,138 @@ sealed class ChartComposer(
 
     static double At(ChartSeries series, int category) =>
         category < series.Values.Count ? series.Values[category] ?? 0 : 0;
+
+    // The ticks from an axis's minimum to its maximum, a major unit apart.
+    static List<double> Ticks(double minimum, double maximum, double unit)
+    {
+        var ticks = new List<double>();
+        for (var tick = minimum; tick <= maximum + unit * 1e-6; tick += unit)
+        {
+            ticks.Add(Math.Abs(tick) < unit * 1e-9 ? 0 : tick);
+        }
+
+        return ticks;
+    }
+
+    // The format an axis's tick labels are in: its own, unless that is General, then what the data is cached in.
+    static string AxisFormat(ChartAxis? axis, string? fallback)
+    {
+        if (axis?.FormatCode is { } code &&
+            code != "General")
+        {
+            return code;
+        }
+
+        return fallback ?? "General";
+    }
+
+    // A series' own colour: its fill, else its line's, else its marker's (a scatter series with its line
+    // off), else its turn in the theme's accents.
+    static string SeriesColor(ChartModel chart, ChartSeries series, int index)
+    {
+        if (series.FillHex is { } fill)
+        {
+            return fill;
+        }
+
+        if (!series.NoLine &&
+            series.Line?.ColorHex is { } line)
+        {
+            return line;
+        }
+
+        return series.Marker?.FillHex ?? series.Marker?.Line?.ColorHex ?? chart.Palette[index % chart.Palette.Count];
+    }
+
+    // A point's marker, centred on it, in its own fill and outline or else the series' colour.
+    static PlacedShape Marker(ChartMarker marker, float x, float y, string color)
+    {
+        var size = (float) marker.SizePoints;
+        var outline = marker.Line ?? new ChartStroke(color, 0.75, 1);
+        IReadOnlyList<IReadOnlyList<(double X, double Y)>> paths;
+        var open = false;
+        switch (marker.Symbol)
+        {
+            case "square":
+                paths = [[(0, 0), (1, 0), (1, 1), (0, 1)]];
+                break;
+            case "diamond":
+                paths = [[(0.5, 0), (1, 0.5), (0.5, 1), (0, 0.5)]];
+                break;
+            case "triangle":
+                paths = [[(0.5, 0), (1, 1), (0, 1)]];
+                break;
+            case "dash":
+                paths = [[(0, 0.4), (1, 0.4), (1, 0.6), (0, 0.6)]];
+                break;
+            case "dot":
+                paths = [Circle(0.25)];
+                break;
+            case "x":
+                paths = [[(0, 0), (1, 1)], [(1, 0), (0, 1)]];
+                open = true;
+                break;
+            case "plus":
+                paths = [[(0.5, 0), (0.5, 1)], [(0, 0.5), (1, 0.5)]];
+                open = true;
+                break;
+            case "star":
+                paths = [[(0, 0), (1, 1)], [(1, 0), (0, 1)], [(0.5, 0), (0.5, 1)]];
+                open = true;
+                break;
+            default:
+                paths = [Circle(0.5)];
+                break;
+        }
+
+        return new(
+            x - size / 2,
+            y - size / 2,
+            size,
+            size,
+            new()
+            {
+                WidthPoints = size,
+                HeightPoints = size,
+                FillColorHex = open ? null : marker.FillHex ?? color,
+                LineColorHex = outline.ColorHex,
+                LineWidthPoints = outline.WidthPoints,
+                LineAlpha = outline.Alpha,
+                Subpaths = paths
+            });
+
+        static IReadOnlyList<(double X, double Y)> Circle(double radius) =>
+            [.. Enumerable.Range(0, 24).Select(_ => (0.5 + radius * Math.Sin(_ * Math.PI / 12), 0.5 - radius * Math.Cos(_ * Math.PI / 12)))];
+    }
+
+    // A filled polygon through page points, in the box that bounds them; null where it has no area.
+    static PlacedShape? Polygon(List<(float X, float Y)> points, string? fill, ChartStroke? line)
+    {
+        var left = points.Min(_ => _.X);
+        var top = points.Min(_ => _.Y);
+        var width = points.Max(_ => _.X) - left;
+        var height = points.Max(_ => _.Y) - top;
+        if (width <= 0 || height <= 0)
+        {
+            return null;
+        }
+
+        return new(
+            left,
+            top,
+            width,
+            height,
+            new()
+            {
+                WidthPoints = width,
+                HeightPoints = height,
+                FillColorHex = fill,
+                LineColorHex = line?.ColorHex,
+                LineWidthPoints = line?.WidthPoints,
+                LineAlpha = line?.Alpha ?? 1,
+                Subpaths = [[.. points.Select(_ => ((double) (_.X - left) / width, (double) (_.Y - top) / height))]]
+            });
+    }
 
     static string PointColor(ChartModel chart, ChartSeries series, int seriesIndex, int point)
     {
@@ -812,6 +1352,7 @@ sealed class ChartComposer(
                 .Select(_ => _ with
                 {
                     Line = Stroke(_.Line),
+                    Marker = _.Marker is { } marker ? marker with { SizePoints = marker.SizePoints * scale, Line = Stroke(marker.Line) } : null,
                     PointLines = _.PointLines.ToDictionary(point => point.Key, point => Stroke(point.Value)!),
                     Labels = _.Labels is { } labels ? labels with { Text = Text(labels.Text) } : null
                 })]

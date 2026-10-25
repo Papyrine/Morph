@@ -24,7 +24,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
     {
         var chart = Child(chartSpace, "chart");
         var plotArea = Child(chart, "plotArea");
-        var plot = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "barChart" or "lineChart" or "pieChart" or "doughnutChart");
+        var plot = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "barChart" or "lineChart" or "pieChart" or "doughnutChart" or "areaChart" or "scatterChart" or "radarChart");
         if (chartSpace == null || plotArea == null || plot == null)
         {
             return null;
@@ -41,6 +41,9 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             "lineChart" => ChartKind.Line,
             "pieChart" => ChartKind.Pie,
             "doughnutChart" => ChartKind.Doughnut,
+            "areaChart" => ChartKind.Area,
+            "scatterChart" => ChartKind.Scatter,
+            "radarChart" => ChartKind.Radar,
             _ => ChartKind.Bar
         };
 
@@ -60,7 +63,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
                 categories = Categories(Child(ser, "cat"));
             }
 
-            series.Add(Series(ser, labelText));
+            series.Add(Series(ser, labelText, AutoMarker(kind, plot)));
         }
 
         if (series.Count == 0)
@@ -69,6 +72,15 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         }
 
         var axes = plotArea.Elements().Where(_ => _.LocalName is "catAx" or "valAx" or "dateAx").ToList();
+
+        // A scatter chart has two value axes: the one along the bottom or top carries the x values, and
+        // stands where a category axis would.
+        var valueAxes = axes.Where(_ => _.LocalName == "valAx").ToList();
+        var horizontalValueAxis = kind == ChartKind.Scatter
+            ? valueAxes.FirstOrDefault(_ => Attribute(Child(_, "axPos"), "val") is "b" or "t") ?? valueAxes.FirstOrDefault()
+            : null;
+        var categoryAxisElement = horizontalValueAxis ?? axes.FirstOrDefault(_ => _.LocalName is "catAx" or "dateAx");
+        var valueAxisElement = valueAxes.FirstOrDefault(_ => _ != horizontalValueAxis);
         var layout = Child(Child(plotArea, "layout"), "manualLayout");
         var autoTitleDeleted = On(Child(chart, "autoTitleDeleted"));
 
@@ -84,8 +96,11 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             VaryColors = On(Child(plot, "varyColors")),
             Categories = categories,
             Series = series,
-            CategoryAxis = axes.FirstOrDefault(_ => _.LocalName is "catAx" or "dateAx") is { } categoryAxis ? Axis(categoryAxis, labelText) : null,
-            ValueAxis = axes.FirstOrDefault(_ => _.LocalName == "valAx") is { } valueAxis ? Axis(valueAxis, labelText) : null,
+            PointsOnTicks = kind is ChartKind.Line or ChartKind.Area &&
+                            Attribute(Child(valueAxisElement, "crossBetween"), "val") == "midCat",
+            RadarFilled = Attribute(Child(plot, "radarStyle"), "val") == "filled",
+            CategoryAxis = categoryAxisElement is { } categoryAxis ? Axis(categoryAxis, labelText) : null,
+            ValueAxis = valueAxisElement is { } valueAxis ? Axis(valueAxis, labelText) : null,
             Legend = Child(chart, "legend") is { } legend ? Legend(legend, labelText) : null,
             Title = Child(chart, "title") is { } title &&
                     !autoTitleDeleted ? Title(title, text, series) : null,
@@ -98,7 +113,45 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         };
     }
 
-    ChartSeries Series(OpenXmlElement ser, ChartTextStyle labelText)
+    // The marker a series with no c:marker of its own takes: Office's automatic circle where the chart
+    // marks its points (a scatter chart's marker styles, a radar chart's marker style, a line chart's
+    // c:marker), none elsewhere.
+    static ChartMarker? AutoMarker(ChartKind kind, OpenXmlElement plot)
+    {
+        var marks = kind switch
+        {
+            ChartKind.Scatter => Attribute(Child(plot, "scatterStyle"), "val") is null or "lineMarker" or "marker" or "smoothMarker",
+            ChartKind.Radar => Attribute(Child(plot, "radarStyle"), "val") == "marker",
+            ChartKind.Line => On(Child(plot, "marker")),
+            _ => false
+        };
+
+        return marks ? new ChartMarker("circle", 5, null, null) : null;
+    }
+
+    ChartMarker? Marker(OpenXmlElement? marker, ChartMarker? automatic)
+    {
+        if (marker == null)
+        {
+            return automatic;
+        }
+
+        var symbol = Attribute(Child(marker, "symbol"), "val");
+        if (symbol == "none" ||
+            symbol is null or "auto" && automatic == null)
+        {
+            return null;
+        }
+
+        var properties = Child(marker, "spPr");
+        return new(
+            symbol is null or "auto" ? automatic!.Symbol : symbol,
+            Value(Child(marker, "size")) ?? 5,
+            SolidColor(properties),
+            Stroke(Child(properties, "ln")));
+    }
+
+    ChartSeries Series(OpenXmlElement ser, ChartTextStyle labelText, ChartMarker? automaticMarker)
     {
         var properties = Child(ser, "spPr");
         var pointFills = new Dictionary<int, string>();
@@ -125,6 +178,9 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         {
             Name = Child(ser, "tx") is { } name ? CachedStrings(name).FirstOrDefault() ?? Child(name, "v")?.InnerText : null,
             Values = Numbers(Child(ser, "val") ?? Child(ser, "yVal")),
+            XValues = Numbers(Child(ser, "xVal")),
+            NoLine = Child(Child(properties, "ln"), "noFill") != null,
+            Marker = Marker(Child(ser, "marker"), automaticMarker),
             FormatCode = (Child(ser, "val") ?? Child(ser, "yVal"))?.Descendants().FirstOrDefault(_ => _.LocalName == "formatCode")?.InnerText,
             FillHex = SolidColor(properties),
             Line = Stroke(Child(properties, "ln")),
