@@ -76,6 +76,37 @@ public class PictureWrapTests
         await Assert.That(Xml(sized)).Contains("<a:ext cx=\"2540000\" cy=\"1270000\" />");
     }
 
+    // An arrow nudges a floating picture 0.75pt, untracked (WordProbe I-12).
+    [Test]
+    [Property("WordBehavior", "R-I-6")]
+    public async Task AFloatingPicture_IsNudged()
+    {
+        var floating = DocumentEditor.SetPictureWrap(Pictured(), 0, 7, PictureWrap.Square, Plain);
+
+        var nudged = DocumentEditor.NudgePicture(floating, 0, 7, 0.75, -1.5, Tracked);
+
+        var xml = Body(nudged);
+        await Assert.That(xml).Contains("<wp:positionH relativeFrom=\"column\"><wp:posOffset>9525</wp:posOffset></wp:positionH>");
+        await Assert.That(xml).Contains("<wp:positionV relativeFrom=\"paragraph\"><wp:posOffset>-19050</wp:posOffset></wp:positionV>");
+        await Assert.That(xml).DoesNotContain("w:ins");
+    }
+
+    // Delete with a floating picture selected removes it; tracked, it is struck (WordProbe I-13).
+    [Test]
+    [Property("WordBehavior", "R-I-7")]
+    public async Task AFloatingPicture_IsDeleted()
+    {
+        var floating = DocumentEditor.SetPictureWrap(Pictured(), 0, 7, PictureWrap.Square, Plain);
+
+        var plain = DocumentEditor.DeletePicture(floating, 0, 7, Plain);
+        var tracked = DocumentEditor.DeletePicture(floating, 0, 7, Tracked);
+
+        await Assert.That(Body(plain)).DoesNotContain("w:drawing");
+        await Assert.That(Body(plain)).Contains("Before ");
+        await Assert.That(Body(tracked)).Contains("<w:del ");
+        await Assert.That(Body(tracked)).Contains("w:drawing");
+    }
+
     // The parser notes where a floating picture's drawing is, in the coordinates the editor's own
     // outline counts places by, so the place it names is the picture's.
     [Test]

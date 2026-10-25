@@ -51,6 +51,38 @@ static partial class DocumentEditor
                 return null;
             }).Document;
 
+    /// <summary>
+    /// Removes the picture at a place, as Delete or Backspace does with a floating picture selected
+    /// (WordProbe I-13): the run that holds it goes, or is marked deleted when tracked.
+    /// </summary>
+    public static byte[] DeletePicture(byte[] docx, int paragraph, int offset, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                edit.DropPicture(paragraph, offset);
+                return null;
+            }).Document;
+
+    /// <summary>
+    /// Moves a floating picture by points, as an arrow key does with it selected (WordProbe I-12): its
+    /// offsets from what it is positioned against grow by the nudge; one aligned rather than offset
+    /// does not move on that axis. Never tracked, as Word's nudge is not.
+    /// </summary>
+    public static byte[] NudgePicture(byte[] docx, int paragraph, int offset, double rightPoints, double downPoints, EditOptions options) =>
+        Edit(
+            docx,
+            options with
+            {
+                Track = false
+            },
+            edit =>
+            {
+                edit.Nudge(paragraph, offset, rightPoints, downPoints);
+                return null;
+            }).Document;
+
     /// <summary>How the picture at a place stands with the text; null when there is no picture there.</summary>
     public static PictureWrap? PictureWrapOf(byte[] docx, int paragraph, int offset)
     {
@@ -236,6 +268,51 @@ static partial class DocumentEditor
                 own.Cx = width;
                 own.Cy = height;
             }
+        }
+
+        public void DropPicture(int ordinal, int offset)
+        {
+            var at = 0;
+            foreach (var unit in Units(Find(ordinal)))
+            {
+                if (at == offset &&
+                    unit.Kind == EditUnitKind.Drawing)
+                {
+                    Drop(unit);
+                    return;
+                }
+
+                at += Span(unit);
+                if (at > offset)
+                {
+                    break;
+                }
+            }
+
+            throw new InvalidOperationException("There is no picture there.");
+        }
+
+        public void Nudge(int ordinal, int offset, double rightPoints, double downPoints)
+        {
+            if (DrawingAt(ordinal, offset).Descendants<Wp.Anchor>().FirstOrDefault() is not { } anchor)
+            {
+                return;
+            }
+
+            Shift(anchor.GetFirstChild<Wp.HorizontalPosition>()?.GetFirstChild<Wp.PositionOffset>(), rightPoints);
+            Shift(anchor.GetFirstChild<Wp.VerticalPosition>()?.GetFirstChild<Wp.PositionOffset>(), downPoints);
+        }
+
+        static void Shift(Wp.PositionOffset? position, double points)
+        {
+            if (position == null ||
+                points == 0 ||
+                !long.TryParse(position.Text, CultureInfo.InvariantCulture, out var emus))
+            {
+                return;
+            }
+
+            position.Text = (emus + (long) Math.Round(points * emusPerPoint)).ToString(CultureInfo.InvariantCulture);
         }
 
         public (byte[] Data, string ContentType)? PictureData(int ordinal, int offset)

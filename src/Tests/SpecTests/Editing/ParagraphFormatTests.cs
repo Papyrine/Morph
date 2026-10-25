@@ -81,6 +81,23 @@ public class ParagraphFormatTests
         await Assert.That(Xml(up.Document)).IsEqualTo(Xml(docx));
     }
 
+    // In a cell Alt+Shift+Down and Up move the row (WordProbe T-10); the first row up stays.
+    [Test]
+    [Property("WordBehavior", "R-T-8")]
+    public async Task MovingInACell_MovesTheRow()
+    {
+        static string Row(string text) =>
+            "<w:tr><w:tc>" + P(R(text)) + "</w:tc></w:tr>";
+        var docx = Build("<w:tbl>" + Row("one") + Row("two") + Row("three") + "</w:tbl>" + P(R("after")));
+
+        var down = DocumentEditor.MoveParagraph(docx, 0, 1, up: false, Plain);
+        await Assert.That(Xml(down.Document)).IsEqualTo(Xml(Build("<w:tbl>" + Row("two") + Row("one") + Row("three") + "</w:tbl>" + P(R("after")))));
+        await Assert.That((down.Paragraph, down.Offset)).IsEqualTo((1, 1));
+
+        var up = DocumentEditor.MoveParagraph(docx, 0, 0, up: true, Plain);
+        await Assert.That(Xml(up.Document)).IsEqualTo(Xml(docx));
+    }
+
     // A document with no styles part of its own still gets the definition, and what it is based on.
     [Test]
     public async Task ADocumentWithNoStyles_IsGivenThem()

@@ -1,3 +1,6 @@
+using OoxmlTableCell = DocumentFormat.OpenXml.Wordprocessing.TableCell;
+using OoxmlTableRow = DocumentFormat.OpenXml.Wordprocessing.TableRow;
+
 // What a paragraph is, rather than what it says: its style, its place in a list, its indent and its
 // spacing. Each is a change to the paragraph's properties, so tracked, each is recorded the way
 // alignment is (w:pPrChange) and settled in the review pane like it.
@@ -139,6 +142,8 @@ static partial class DocumentEditor
     /// Moves a paragraph, with its mark, past the paragraph after it (or, <paramref name="up"/>, before
     /// it), as Word's Alt+Shift+Down and Alt+Shift+Up do (WordProbe E-96, L-24): a list's item takes its
     /// number from where it lands. Nothing moves past a table, past a section's end, or out of a cell.
+    /// In a cell the keys move the row past its neighbour (WordProbe T-10); the first row up and the last
+    /// down stay where they are, where Word pushes the last out into a table of its own.
     /// Untracked: Word writes a tracked move, which this does not. The place returned is the caret's,
     /// in the paragraph where it now is.
     /// </summary>
@@ -152,6 +157,25 @@ static partial class DocumentEditor
             edit =>
             {
                 var moving = edit.Find(paragraph);
+                if (moving.Parent is OoxmlTableCell {Parent: OoxmlTableRow row})
+                {
+                    var next = up ? row.PreviousSibling() : row.NextSibling();
+                    if (next is OoxmlTableRow beside)
+                    {
+                        row.Remove();
+                        if (up)
+                        {
+                            beside.InsertBeforeSelf(row);
+                        }
+                        else
+                        {
+                            beside.InsertAfterSelf(row);
+                        }
+                    }
+
+                    return (moving, offset);
+                }
+
                 var neighbour = up ? moving.PreviousSibling() : moving.NextSibling();
                 if (neighbour is not Paragraph other ||
                     moving.ParagraphProperties?.SectionProperties != null ||

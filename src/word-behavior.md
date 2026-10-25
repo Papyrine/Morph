@@ -4846,7 +4846,8 @@ Enter and breaks
   is deleted first; before a table the break paragraph goes between text and table (E-28, E-28b, E-28c,
   E-28d). Ctrl+Shift+Enter inserts a column break character (`\u000E`) the same way without a
   paragraph of its own; in a table it splits the table at the row and leaves an empty paragraph between
-  the halves (E-29, E-29b). — Morph: TODO.
+  the halves (E-29, E-29b). — Morph: PARTIAL (Insert › Page break puts the break on a paragraph of its own as Word does, `InsertTests`;
+  Ctrl+Enter hands the open paragraph in, so it is not the key, and Ctrl+Shift+Enter is TODO).
 
 Tab
 
@@ -4855,8 +4856,9 @@ Tab
   start of a WRAPPED line it sets the paragraph's left indent instead, and Backspace right after undoes
   the indent; mid-paragraph, in an empty paragraph, or with the option off Tab inserts a tab character
   (E-30, E-30b, E-30c, E-30d). Tab and Shift+Tab mid-item insert tab characters even in a list (E-31).
-  Tracked, the indent is a paragraph property change (`{~…~}`). — Morph: TODO (Tab in a list item
-  changes its level; elsewhere a tab character).
+  Tracked, the indent is a paragraph property change (`{~…~}`). — Morph: PARTIAL (Tab at the start of a paragraph with text indents its first line 36pt, a hanging first line
+  goes to the left indent and one already indented takes the left indent a stop in; the wrapped-line
+  case is TODO).
 
 Backspace and Delete
 
@@ -14167,7 +14169,8 @@ selection growth across cells.
 - **R-T-8 Alt+Shift+Up and Alt+Shift+Down move the row** past its neighbour; moving the last row down
   pushes it out of the table, where it becomes a table of its own after the following paragraph (T-10
   `C(3,1)`); a row holding a nested table came back reordered after a move down and up (T-10b) ❓; tracked,
-  the moved row is an inserted copy with the old row marked (T-10 tracked). — Morph: TODO.
+  the moved row is an inserted copy with the old row marked (T-10 tracked). — Morph: PARTIAL (Alt+Shift+Up and Down in a cell move the row past its neighbour, untracked; the last row moved
+  down stays rather than leaving the table).
 - **R-T-9 Pasting into a selected cell replaces its text; the Insert key does nothing without
   `INSKeyForPaste`** (T-29). Typing over a cell, row or table selection changes the first cell only
   (T-13). — Morph: PARTIAL.
@@ -22170,13 +22173,15 @@ Esc.
   and Ctrl+arrow 0.15pt; with the grid on an arrow moves it one grid step (8pt here) and Ctrl+arrow
   0.6pt; each nudge is its own undo entry and none is tracked (I-12, U-08b). Dragging moves it (Shift
   constrains to one axis, Ctrl copies into the same anchor paragraph), the anchor paragraph unchanged
-  (I-15; M-63). — Morph: TODO.
+  (I-15; M-63). — Morph: PARTIAL (an arrow nudges a selected floating picture 0.75pt and Ctrl+arrow 0.15pt, untracked, each its
+  own edit; no grid snapping, and no move by drag).
 - **R-I-7 Delete and Backspace remove a selected floating picture or shape** (tracked: the anchor
   struck, undo re-selects it); in a text box they edit the text (I-13). Enter with a floating picture
   selected inserts an empty paragraph above its anchor paragraph and the anchor moves down with the text;
   typing goes at the anchor paragraph's start after the anchor. Enter or typing with a drawn SHAPE
   selected puts the caret, or the text, inside the shape (centred); a text box takes Enter and typing as
-  text (I-14, I-25). — Morph: TODO.
+  text (I-14, I-25). — Morph: PARTIAL (Delete and Backspace remove a selected floating picture, struck when tracked; Enter and typing
+  with one selected are TODO).
 - **R-I-8 The anchor lives in its paragraph**: deleting the anchor paragraph's text keeps the picture;
   deleting the paragraph with its mark removes it; merging paragraphs keeps it; Ctrl+A then Delete
   removes everything; copy and paste of the whole document duplicates the picture with a new anchor
@@ -23212,8 +23217,8 @@ after.
 - **R-A-5 Tab at a paragraph's start sets a first-line indent when `TabIndentKey` is on and a tab
   character when off; Backspace right after removes the indent** (A-16; the same as E-30). The first
   item's bold did not carry to the next item's beginning (A-17). AutoComplete finished `Mond` and `Octo`
-  to `Monday` and `October` on Enter and left `Dear` alone (A-18). — Morph: PARTIAL (AutoComplete finishes a day's or a month's name on Enter; Tab at a paragraph's start still
-  types a tab).
+  to `Monday` and `October` on Enter and left `Dear` alone (A-18). — Morph: PARTIAL (AutoComplete finishes a day's or a month's name on Enter; Tab at a paragraph's start indents
+  its first line).
 - **R-A-6 Replacement entries fire on Space or Enter**: `(c)` `(r)` `(tm)` become `© ® ™`, `-->` and
   `<--` become arrows (shown as `(` in the Wingdings font), `:)` a smiley (shown as `12` in Wingdings),
   `teh` → `the` and `i` → `I`, with `ReplaceText` off only the capitalisation corrections remain
