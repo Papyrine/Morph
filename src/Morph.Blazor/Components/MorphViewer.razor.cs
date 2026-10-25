@@ -1188,7 +1188,7 @@ public partial class MorphViewer : IAsyncDisposable
         focusFind = true;
         StateHasChanged();
         if (!wasOpen &&
-            findQuery.Trim().Length > 0)
+            findQuery.AsSpan().Trim().Length > 0)
         {
             return RunSearchAsync();
         }
@@ -1362,5 +1362,14 @@ public partial class MorphViewer : IAsyncDisposable
 
     // Pictures: the floating pictures of every page, seven numbers each — page, x, y, width, height,
     // paragraph and place (PagedDocument.Pictures).
-    sealed record OpenedDocument(PagedDocument Document, double[] Sizes, string[] Json, string[] Texts, DocumentReview Review, ReviewMap Map, DocumentOutline Outline, EditMap Edits, double[] Pictures);
+    sealed record OpenedDocument(
+        PagedDocument Document,
+        double[] Sizes,
+        string[] Json,
+        string[] Texts,
+        DocumentReview Review,
+        ReviewMap Map,
+        DocumentOutline Outline,
+        EditMap Edits,
+        double[] Pictures);
 }
