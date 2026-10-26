@@ -38,6 +38,32 @@ sealed class WordSession : IDisposable
 
     public string Build => Application.Build;
 
+    // Every recorded result is compared against every other, so they all have to come from one Word: a
+    // different build moved paragraph spacing and a floating picture's copy offset across a whole rerun.
+    // Raising this means rerunning the catalogue, not one family.
+    public const string ExpectedBuild = "16.0.20618.20000";
+
+    static void RequireExpectedBuild()
+    {
+        using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Office\ClickToRun\Configuration");
+        var installed = key?.GetValue("VersionToReport")?.ToString();
+        if (installed == ExpectedBuild)
+        {
+            return;
+        }
+
+        const string client = @"""C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe""";
+        throw new InvalidOperationException(
+            $"""
+             WordProbe records against Word {ExpectedBuild}, but {(installed == null ? "no Click-to-Run Office was found" : $"{installed} is installed")}.
+             Results from another build cannot be mixed with the catalogue. To install the expected build, from an elevated PowerShell:
+               & {client} /changesetting Channel=BetaChannel
+               & {client} /update user updatetoversion={ExpectedBuild}
+             (or in Word: File > Account > Microsoft 365 Insider > Beta Channel, then Update Options > Update Now).
+             To move the catalogue to a new build instead, change WordSession.ExpectedBuild and rerun every family.
+             """);
+    }
+
     public static WordSession Start(SessionSettings? settings = null)
     {
         var session = new WordSession(settings ?? new());
@@ -51,6 +77,8 @@ sealed class WordSession : IDisposable
         {
             throw new InvalidOperationException("Caps Lock is on; typed letters would arrive inverted. Turn it off and rerun.");
         }
+
+        RequireExpectedBuild();
 
         Log.Info("Starting Word");
         application = new()

@@ -1,12 +1,12 @@
 {
   "Family": "undo",
-  "Generated": "2026-10-25T16:31:45.5808727+11:00",
+  "Generated": "2026-10-26T14:56:54.1115428+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20527",
+    "Build": "16.0.20618",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20618.20000"
   },
   "Cases": {
     "U-01a": {
@@ -11589,11 +11589,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3233,
-      "RunAt": "2026-10-25T16:30:58.4436299+11:00",
+      "DurationMs": 4200,
+      "RunAt": "2026-10-26T14:56:06.2570491+11:00",
       "Lines": [
         "[alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]",
-        "Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, WordOwn · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -11664,21 +11664,21 @@
           {
             "Step": "dblclick(P1:find(\"beta\"))",
             "X": 670,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 7-7",
             "Cursor": "IBeam"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from",
             "X": 708,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 8-8",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
             "X": 558,
-            "Y": 475,
+            "Y": 351,
             "Under": "Range 42-42",
             "Cursor": "IBeam"
           }
@@ -11699,8 +11699,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3337,
-      "RunAt": "2026-10-25T16:31:01.7880534+11:00",
+      "DurationMs": 3349,
+      "RunAt": "2026-10-26T14:56:09.6346734+11:00",
       "Lines": [
         "[24:alpha]{-[24: beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]",
         "Selection: Normal 42–47 end-active · Tracking · Revisions 2 · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
@@ -11787,21 +11787,21 @@
           {
             "Step": "dblclick(P1:find(\"beta\"))",
             "X": 670,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 7-7",
             "Cursor": "IBeam"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from",
             "X": 708,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 8-8",
             "Cursor": "Arrow"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
             "X": 558,
-            "Y": 475,
+            "Y": 351,
             "Under": "Range 42-42",
             "Cursor": "IBeam"
           }
@@ -11822,11 +11822,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3221,
-      "RunAt": "2026-10-25T16:31:05.0162751+11:00",
+      "DurationMs": 4161,
+      "RunAt": "2026-10-26T14:56:20.7346225+11:00",
       "Lines": [
         "[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]",
-        "Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, WordOwn · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -11897,21 +11897,21 @@
           {
             "Step": "dblclick(P1:find(\"beta\"))",
             "X": 670,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 7-7",
             "Cursor": "IBeam"
           },
           {
             "Step": "ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from",
             "X": 708,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 8-8",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
             "X": 558,
-            "Y": 475,
+            "Y": 351,
             "Under": "Range 42-42",
             "Cursor": "IBeam"
           }
@@ -11932,8 +11932,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3335,
-      "RunAt": "2026-10-25T16:31:08.3601597+11:00",
+      "DurationMs": 3389,
+      "RunAt": "2026-10-26T14:56:24.1528399+11:00",
       "Lines": [
         "[24:alpha beta,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]",
         "Selection: Normal 42–47 end-active · Tracking · Revisions 1 · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
@@ -12014,21 +12014,21 @@
           {
             "Step": "dblclick(P1:find(\"beta\"))",
             "X": 670,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 7-7",
             "Cursor": "IBeam"
           },
           {
             "Step": "ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from",
             "X": 708,
-            "Y": 412,
+            "Y": 288,
             "Under": "Range 8-8",
             "Cursor": "Arrow"
           },
           {
             "Step": "ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
             "X": 558,
-            "Y": 475,
+            "Y": 351,
             "Under": "Range 42-42",
             "Cursor": "IBeam"
           }
@@ -19231,11 +19231,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3174,
-      "RunAt": "2026-10-25T14:49:52.4093023+11:00",
+      "DurationMs": 4411,
+      "RunAt": "2026-10-26T14:56:35.6642658+11:00",
       "Lines": [
         "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
-        "Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, WordOwn · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -19283,7 +19283,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -19313,7 +19313,7 @@
             "X": 708,
             "Y": 288,
             "Under": "Range 8-8",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
@@ -19420,10 +19420,10 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3171,
-      "RunAt": "2026-10-25T14:49:55.5848617+11:00",
+      "DurationMs": 3504,
+      "RunAt": "2026-10-26T14:56:39.1957995+11:00",
       "Lines": [
-        "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
         "Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo — · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
@@ -19459,7 +19459,7 @@
               {
                 "Start": 0,
                 "End": 59,
-                "Marks": ""
+                "Marks": "24"
               }
             ],
             "Style": "Normal",
@@ -19472,7 +19472,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -26153,11 +26153,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3164,
-      "RunAt": "2026-10-25T14:50:27.0608138+11:00",
+      "DurationMs": 4349,
+      "RunAt": "2026-10-26T14:56:50.5405207+11:00",
       "Lines": [
         "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
-        "Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, WordOwn · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -26205,7 +26205,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -26235,7 +26235,7 @@
             "X": 708,
             "Y": 288,
             "Under": "Range 8-8",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
@@ -26342,10 +26342,10 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3168,
-      "RunAt": "2026-10-25T14:50:30.2341757+11:00",
+      "DurationMs": 3525,
+      "RunAt": "2026-10-26T14:56:54.0962886+11:00",
       "Lines": [
-        "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
         "Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo — · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
@@ -26381,7 +26381,7 @@
               {
                 "Start": 0,
                 "End": 59,
-                "Marks": ""
+                "Marks": "24"
               }
             ],
             "Style": "Normal",
@@ -26394,7 +26394,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
