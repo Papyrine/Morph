@@ -1,4 +1,4 @@
-# All Markdown export scenarios (41)
+# All Markdown export scenarios (42)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -40,6 +40,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [memo](#memo)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
 - [offset](#offset)
+- [ole-chart-preview](#ole-chart-preview)
 - [pebble](#pebble)
 - [rose-suite](#rose-suite)
 - [savon](#savon)
@@ -258,6 +259,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="offset/expected_0001.png" width="500"><br><img src="offset/expected_0002.png" width="500"> | <img src="offset/md_result.verified.png" width="500"> |
+
+## ole-chart-preview
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="ole-chart-preview/expected_0001.png" width="500"><br><img src="ole-chart-preview/expected_0002.png" width="500"> | <img src="ole-chart-preview/md_result.verified.png" width="500"> |
 
 ## pebble
 

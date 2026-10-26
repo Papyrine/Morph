@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 793.75,
+          "Height": 595.25
+        },
+        "Text": "Lorem ipsum\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ac faucibus odio. Vestibulum neque massa,\nscelerisque sit amet ligula eu, congue molestie mi. Praesent ut varius sem. Nullam at porttitor arcu, nec\nlacinia nisi. Ut ac dolor vitae odio interdum condimentum. Vivamus dapibus sodales ex, vitae malesuada\nipsum cursus convallis. Maecenas sed egestas nulla, ac condimentum orci. Mauris diam felis, vulputate ac\nsuscipit et, iaculis non est. Curabitur semper arcu ac ligula semper, nec luctus nisl blandit. Integer lacinia\nante ac libero lobortis imperdiet. Nullam mollis convallis ipsum, ac accumsan nunc vehicula vitae. Nulla\neget justo in felis tristique fringilla. Morbi sit amet tortor quis risus auctor condimentum. Morbi in ullamcorper\nelit. Nulla iaculis tellus sit amet mauris tempus fringilla.\nMaecenas mauris lectus, lobortis et purus mattis, blandit dictum tellus. Maecenas non lorem quis tellus\nplacerat varius. Nulla facilisi. Aenean congue fringilla justo ut aliquam. Mauris id ex erat. Nunc vulputate\nneque vitae justo facilisis, non condimentum ante sagittis. Morbi viverra semper lorem nec molestie.\nMaecenas tincidunt est efficitur ligula euismod, sit amet ornare est vulputate."
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 793.75,
+          "Height": 595.25
+        },
+        "Text": "Chart\nRow 1 Row 2 Row 3 Row 4\n0\n2\n4\n6\n8\n10\n12\nColumn 1\nColumn 2\nColumn 3"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2887,
+      "Ssim": 0.6173,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.137,
+      "Ssim": 0.9652,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

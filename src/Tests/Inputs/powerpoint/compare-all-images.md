@@ -1,4 +1,4 @@
-# All scenarios (41)
+# All scenarios (42)
 
 <details>
 <summary>Contents</summary>
@@ -38,6 +38,7 @@
 - [memo](#memo)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
 - [offset](#offset)
+- [ole-chart-preview](#ole-chart-preview)
 - [pebble](#pebble)
 - [rose-suite](#rose-suite)
 - [savon](#savon)
@@ -353,6 +354,15 @@
 | <img src="offset/expected_0001.png" width="500"> | <img src="offset/skia_result%23page_0001.verified.png" width="500"> | <img src="offset/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1047 · SSIM: 0.9000** | **Page 2. ErrorMetric: 0.0904 · SSIM: 0.9121** |
 | <img src="offset/expected_0002.png" width="500"> | <img src="offset/skia_result%23page_0002.verified.png" width="500"> | <img src="offset/imagesharp_result%23page_0002.verified.png" width="500"> |
+
+## ole-chart-preview
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2361 · SSIM: 0.6216** | **Page 1. ErrorMetric: 0.2371 · SSIM: 0.6201** |
+| <img src="ole-chart-preview/expected_0001.png" width="500"> | <img src="ole-chart-preview/skia_result%23page_0001.verified.png" width="500"> | <img src="ole-chart-preview/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0928 · SSIM: 0.9668** | **Page 2. ErrorMetric: 0.0959 · SSIM: 0.9686** |
+| <img src="ole-chart-preview/expected_0002.png" width="500"> | <img src="ole-chart-preview/skia_result%23page_0002.verified.png" width="500"> | <img src="ole-chart-preview/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## pebble
 

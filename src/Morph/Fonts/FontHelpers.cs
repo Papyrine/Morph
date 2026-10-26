@@ -36,6 +36,14 @@
         ["Univers"] = "Tahoma",
         ["Grandview Display"] = "Grandview",
         ["Cambria Math"] = "Cambria",
+        // LibreOffice's metric-compatible stand-ins for the core Windows faces, which a file it wrote
+        // names where Office would have named the originals: the EMF preview of sample.pptx's chart
+        // sets every label in Liberation Sans. Each has the original's advance widths, so the original
+        // lays the text out exactly as the stand-in would.
+        ["Liberation Sans"] = "Arial",
+        ["Liberation Serif"] = "Times New Roman",
+        ["Liberation Mono"] = "Courier New",
+        ["Liberation Sans Narrow"] = "Arial Narrow",
     };
 
     // Common font style suffixes to strip when looking for base family
