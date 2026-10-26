@@ -477,7 +477,7 @@ static class MouseFamily
             .Observing(Observe.Selection | Observe.Text)
             .Notes("Within beta; from beta into gamma; the same leftwards; from alpha to delta.")
             .Hypotheses("With automatic word selection a drag that leaves its first word snaps both ends to word boundaries and takes the trailing space; within one word it stays by character; off, every drag is by character.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-34b", "A drag across a line wrap inside one paragraph")
             .In("wrapped-title")
@@ -487,7 +487,7 @@ static class MouseFamily
             .Observing(Observe.Selection | Observe.Text)
             .Notes("MEETING is the first line and MINUTES the second; P1:11 is inside MINUTES, P1:13 one glyph short of its end.")
             .Hypotheses("The release on the second line sets the active end there, as on one line: with automatic word selection both ends snap to whole words, so MEETING MINUTES is selected whole whether the release is inside MINUTES or past it; the selection never falls back to the first line.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("M-35","A drag across a paragraph boundary and to a paragraph's end")
             .In("three-paragraphs")
