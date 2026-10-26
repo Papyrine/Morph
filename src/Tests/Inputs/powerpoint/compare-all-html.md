@@ -1,4 +1,4 @@
-# All HTML export scenarios (32)
+# All HTML export scenarios (41)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -10,12 +10,21 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-3d-area](#chart-3d-area)
+- [chart-3d-column](#chart-3d-column)
+- [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
+- [chart-bubble](#chart-bubble)
+- [chart-combo](#chart-combo)
+- [chart-labels](#chart-labels)
+- [chart-labels-area-radar](#chart-labels-area-radar)
 - [chart-pie](#chart-pie)
 - [chart-radar](#chart-radar)
 - [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
+- [chart-stock](#chart-stock)
+- [chart-surface](#chart-surface)
 - [color-block](#color-block)
 - [dappled](#dappled)
 - [education-infographics-poster](#education-infographics-poster)
@@ -70,6 +79,24 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | --- | --- |
 | <img src="business-cards-horizontal-layout/expected_0001.png" width="500"> | <img src="business-cards-horizontal-layout/html_result.verified.png" width="500"> |
 
+## chart-3d-area
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-3d-area/expected_0001.png" width="500"><br><img src="chart-3d-area/expected_0002.png" width="500"> | <img src="chart-3d-area/html_result.verified.png" width="500"> |
+
+## chart-3d-column
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-3d-column/expected_0001.png" width="500"><br><img src="chart-3d-column/expected_0002.png" width="500"> | <img src="chart-3d-column/html_result.verified.png" width="500"> |
+
+## chart-3d-pie
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-3d-pie/expected_0001.png" width="500"><br><img src="chart-3d-pie/expected_0002.png" width="500"> | <img src="chart-3d-pie/html_result.verified.png" width="500"> |
+
 ## chart-area
 
 | Expected (Word) | Morph HTML |
@@ -81,6 +108,30 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="chart-bar-column/expected_0001.png" width="500"><br><img src="chart-bar-column/expected_0002.png" width="500"> | <img src="chart-bar-column/html_result.verified.png" width="500"> |
+
+## chart-bubble
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-bubble/expected_0001.png" width="500"><br><img src="chart-bubble/expected_0002.png" width="500"> | <img src="chart-bubble/html_result.verified.png" width="500"> |
+
+## chart-combo
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-combo/expected_0001.png" width="500"><br><img src="chart-combo/expected_0002.png" width="500"> | <img src="chart-combo/html_result.verified.png" width="500"> |
+
+## chart-labels
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-labels/expected_0001.png" width="500"><br><img src="chart-labels/expected_0002.png" width="500"> | <img src="chart-labels/html_result.verified.png" width="500"> |
+
+## chart-labels-area-radar
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-labels-area-radar/expected_0001.png" width="500"><br><img src="chart-labels-area-radar/expected_0002.png" width="500"> | <img src="chart-labels-area-radar/html_result.verified.png" width="500"> |
 
 ## chart-pie
 
@@ -105,6 +156,18 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="chart-stacked-line/expected_0001.png" width="500"><br><img src="chart-stacked-line/expected_0002.png" width="500"> | <img src="chart-stacked-line/html_result.verified.png" width="500"> |
+
+## chart-stock
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-stock/expected_0001.png" width="500"><br><img src="chart-stock/expected_0002.png" width="500"> | <img src="chart-stock/html_result.verified.png" width="500"> |
+
+## chart-surface
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-surface/expected_0001.png" width="500"><br><img src="chart-surface/expected_0002.png" width="500"> | <img src="chart-surface/html_result.verified.png" width="500"> |
 
 ## color-block
 

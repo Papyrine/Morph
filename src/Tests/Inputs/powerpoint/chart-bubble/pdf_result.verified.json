@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Y-Values\n0\n0.5\n1\n1.5\n2\n2.5\n3\n3.5\n4\n0 0.5 1 1.5 2 2.5 3 3.5\nY-Values"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Y-Values\n0\n0.5\n1\n1.5\n2\n2.5\n3\n3.5\n4\n0 0.5 1 1.5 2 2.5 3 3.5\nY-Values"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0772,
+      "Ssim": 0.8566,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0774,
+      "Ssim": 0.8508,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

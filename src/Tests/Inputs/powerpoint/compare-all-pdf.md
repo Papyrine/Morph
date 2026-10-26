@@ -1,4 +1,4 @@
-# All PDF export scenarios (32)
+# All PDF export scenarios (41)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -10,12 +10,21 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [archive](#archive)
 - [bohemian](#bohemian)
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
+- [chart-3d-area](#chart-3d-area)
+- [chart-3d-column](#chart-3d-column)
+- [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
+- [chart-bubble](#chart-bubble)
+- [chart-combo](#chart-combo)
+- [chart-labels](#chart-labels)
+- [chart-labels-area-radar](#chart-labels-area-radar)
 - [chart-pie](#chart-pie)
 - [chart-radar](#chart-radar)
 - [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
+- [chart-stock](#chart-stock)
+- [chart-surface](#chart-surface)
 - [color-block](#color-block)
 - [dappled](#dappled)
 - [education-infographics-poster](#education-infographics-poster)
@@ -98,6 +107,42 @@ PDF: [Morph PDF](bohemian/pdf_result.verified.pdf)
 PDF: [Morph PDF](business-cards-horizontal-layout/pdf_result.verified.pdf)
 
 
+## chart-3d-area
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.3770 · SSIM: 0.8422** |
+| <img src="chart-3d-area/expected_0001.png" width="500"> | <img src="chart-3d-area/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2741 · SSIM: 0.8138** |
+| <img src="chart-3d-area/expected_0002.png" width="500"> | <img src="chart-3d-area/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-3d-area/pdf_result.verified.pdf)
+
+
+## chart-3d-column
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2868 · SSIM: 0.7953** |
+| <img src="chart-3d-column/expected_0001.png" width="500"> | <img src="chart-3d-column/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2653 · SSIM: 0.7723** |
+| <img src="chart-3d-column/expected_0002.png" width="500"> | <img src="chart-3d-column/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-3d-column/pdf_result.verified.pdf)
+
+
+## chart-3d-pie
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.4670 · SSIM: 0.8899** |
+| <img src="chart-3d-pie/expected_0001.png" width="500"> | <img src="chart-3d-pie/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1088 · SSIM: 0.8127** |
+| <img src="chart-3d-pie/expected_0002.png" width="500"> | <img src="chart-3d-pie/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-3d-pie/pdf_result.verified.pdf)
+
+
 ## chart-area
 
 | Expected (Word) | Morph PDF |
@@ -120,6 +165,54 @@ PDF: [Morph PDF](chart-area/pdf_result.verified.pdf)
 | <img src="chart-bar-column/expected_0002.png" width="500"> | <img src="chart-bar-column/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](chart-bar-column/pdf_result.verified.pdf)
+
+
+## chart-bubble
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0772 · SSIM: 0.8566** |
+| <img src="chart-bubble/expected_0001.png" width="500"> | <img src="chart-bubble/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0774 · SSIM: 0.8508** |
+| <img src="chart-bubble/expected_0002.png" width="500"> | <img src="chart-bubble/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-bubble/pdf_result.verified.pdf)
+
+
+## chart-combo
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0725 · SSIM: 0.8349** |
+| <img src="chart-combo/expected_0001.png" width="500"> | <img src="chart-combo/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0587 · SSIM: 0.8759** |
+| <img src="chart-combo/expected_0002.png" width="500"> | <img src="chart-combo/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-combo/pdf_result.verified.pdf)
+
+
+## chart-labels
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0432 · SSIM: 0.8941** |
+| <img src="chart-labels/expected_0001.png" width="500"> | <img src="chart-labels/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0411 · SSIM: 0.8714** |
+| <img src="chart-labels/expected_0002.png" width="500"> | <img src="chart-labels/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-labels/pdf_result.verified.pdf)
+
+
+## chart-labels-area-radar
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0757 · SSIM: 0.9028** |
+| <img src="chart-labels-area-radar/expected_0001.png" width="500"> | <img src="chart-labels-area-radar/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0436 · SSIM: 0.9195** |
+| <img src="chart-labels-area-radar/expected_0002.png" width="500"> | <img src="chart-labels-area-radar/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-labels-area-radar/pdf_result.verified.pdf)
 
 
 ## chart-pie
@@ -166,6 +259,30 @@ PDF: [Morph PDF](chart-scatter/pdf_result.verified.pdf)
 | <img src="chart-stacked-line/expected_0002.png" width="500"> | <img src="chart-stacked-line/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](chart-stacked-line/pdf_result.verified.pdf)
+
+
+## chart-stock
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0379 · SSIM: 0.8882** |
+| <img src="chart-stock/expected_0001.png" width="500"> | <img src="chart-stock/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0483 · SSIM: 0.8779** |
+| <img src="chart-stock/expected_0002.png" width="500"> | <img src="chart-stock/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-stock/pdf_result.verified.pdf)
+
+
+## chart-surface
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2198 · SSIM: 0.8085** |
+| <img src="chart-surface/expected_0001.png" width="500"> | <img src="chart-surface/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.5746 · SSIM: 0.8413** |
+| <img src="chart-surface/expected_0002.png" width="500"> | <img src="chart-surface/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-surface/pdf_result.verified.pdf)
 
 
 ## color-block

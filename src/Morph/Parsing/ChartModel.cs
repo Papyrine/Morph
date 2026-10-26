@@ -36,6 +36,46 @@ sealed record ChartModel
     /// <summary><c>c:varyColors</c>: each point of a single series takes the next theme accent.</summary>
     public bool VaryColors { get; init; }
 
+    /// <summary>
+    /// The plots after the first in a combination chart (a column chart with a line over it), each drawn
+    /// over this one's categories in the order the plot area lists them. An overlay keeps its own kind,
+    /// grouping and series, and its own value axis where it is <see cref="Secondary"/>.
+    /// </summary>
+    public IReadOnlyList<ChartModel> Overlays { get; init; } = [];
+
+    /// <summary>An overlay plotted against the secondary value axis, which stands at the plot's right.</summary>
+    public bool Secondary { get; init; }
+
+    /// <summary>A 3-D chart's view (<c>c:view3D</c> with <c>c:floor</c>, <c>c:sideWall</c>, <c>c:backWall</c>); null for a flat one.</summary>
+    public ChartView3D? View3D { get; init; }
+
+    /// <summary>A 3-D chart's depth axis (<c>c:serAx</c>), which labels the series front to back.</summary>
+    public ChartAxis? SeriesAxis { get; init; }
+
+    /// <summary><c>c:wireframe</c>: a surface chart draws its mesh's lines, not its bands.</summary>
+    public bool Wireframe { get; init; }
+
+    /// <summary>A surface chart's band colours (<c>c:bandFmts</c>), by band from the lowest; a band not listed takes the theme's accents in turn.</summary>
+    public IReadOnlyDictionary<int, string> BandFills { get; init; } = new Dictionary<int, string>();
+
+    /// <summary>
+    /// <c>c:bubbleScale</c>: the largest bubble's size, as a percent of Office's default, which makes its
+    /// diameter a quarter of the plot's shorter side.
+    /// </summary>
+    public double BubbleScalePercent { get; init; } = 100;
+
+    /// <summary><c>c:sizeRepresents="w"</c>: a bubble's size is its diameter rather than its area.</summary>
+    public bool BubbleSizeIsWidth { get; init; }
+
+    /// <summary><c>c:bubble3D</c>: bubbles are shaded as spheres.</summary>
+    public bool Bubble3D { get; init; }
+
+    /// <summary>A stock chart's high-low lines (<c>c:hiLowLines</c>), from each category's highest value to its lowest.</summary>
+    public ChartStroke? HighLowLines { get; init; }
+
+    /// <summary>A stock chart's up-down bars (<c>c:upDownBars</c>), from its first series to its last.</summary>
+    public ChartUpDownBars? UpDownBars { get; init; }
+
     public required IReadOnlyList<string> Categories { get; init; }
 
     public required IReadOnlyList<ChartSeries> Series { get; init; }
@@ -74,8 +114,45 @@ enum ChartKind
     Doughnut,
     Area,
     Scatter,
-    Radar
+    Radar,
+    Bubble,
+    Stock,
+    Surface
 }
+
+/// <summary>
+/// A 3-D chart's view (<c>c:view3D</c>): its tilt back (<c>c:rotX</c>, degrees) and turn (<c>c:rotY</c>),
+/// its perspective's field of view (<c>c:perspective</c>, half-degrees), and whether its axes stay at
+/// right angles (<c>c:rAngAx</c>), which projects it obliquely without perspective. Depth and height are
+/// percents of the plot's width (<c>c:depthPercent</c>, <c>c:hPercent</c>); the gap between series rows
+/// (<c>c:gapDepth</c>) a percent of a bar. Clustered 3-D bars stand in one row; standard ones (and lines,
+/// areas and surfaces) stand one row per series, front to back.
+/// </summary>
+sealed record ChartView3D
+{
+    public double RotateX { get; init; } = 15;
+
+    public double RotateY { get; init; } = 20;
+
+    public double Perspective { get; init; } = 30;
+
+    public bool RightAngleAxes { get; init; } = true;
+
+    public double DepthPercent { get; init; } = 100;
+
+    public double? HeightPercent { get; init; }
+
+    public double GapDepthPercent { get; init; } = 150;
+
+    /// <summary>Series stand in rows, one behind another (a standard 3-D chart, and every 3-D line, area or surface).</summary>
+    public bool SeriesInRows { get; init; }
+
+    public ChartFill Floor { get; init; } = new(null, null);
+
+    public ChartFill Walls { get; init; } = new(null, null);
+}
+
+sealed record ChartUpDownBars(double GapWidthPercent, ChartFill Up, ChartFill Down);
 
 enum ChartGrouping
 {
@@ -103,7 +180,20 @@ sealed record ChartSeries
     /// <summary>The format the values are cached in (<c>c:numCache/c:formatCode</c>), which a source-linked label shows them in.</summary>
     public string? FormatCode { get; init; }
 
+    /// <summary>A bubble series' sizes (<c>c:bubbleSize</c>), by point.</summary>
+    public IReadOnlyList<double?> BubbleSizes { get; init; } = [];
+
+    /// <summary>
+    /// The series' place in the chart (<c>c:idx</c>), which picks its theme accent when it names no colour
+    /// of its own. A combination chart's line plot numbers its series on from the column plot's, so its
+    /// first line takes the second accent, not the first.
+    /// </summary>
+    public int? PaletteIndex { get; init; }
+
     public string? FillHex { get; init; }
+
+    /// <summary>The fill's opacity (<c>a:alpha</c>): a bubble chart's bubbles are 75% opaque.</summary>
+    public double FillAlpha { get; init; } = 1;
 
     public ChartStroke? Line { get; init; }
 
@@ -131,6 +221,13 @@ sealed record ChartDataLabels
     public bool ShowCategory { get; init; }
 
     public string? FormatCode { get; init; }
+
+    /// <summary>
+    /// Where a label stands against its point (<c>c:dLblPos</c>: t, b, l, r, ctr, outEnd, inEnd, inBase,
+    /// bestFit); null takes the kind's own place — right of a line or scatter point, centred in an area's
+    /// band, out along a radar's spoke, past a bar's end.
+    /// </summary>
+    public string? Position { get; init; }
 
     public required ChartTextStyle Text { get; init; }
 

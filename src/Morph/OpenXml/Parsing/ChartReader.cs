@@ -1,9 +1,10 @@
 using A = DocumentFormat.OpenXml.Drawing;
 
 /// <summary>
-/// Reads a chart part (<c>c:chartSpace</c>) into a <see cref="ChartModel"/>: the first bar, line, pie or
-/// doughnut plot of its plot area, the series' cached values and categories, and the look of the axes,
-/// legend, title and data labels. Elements are found by local name, so a chart written with literals
+/// Reads a chart part (<c>c:chartSpace</c>) into a <see cref="ChartModel"/>: the first plot of its plot
+/// area (any flat or 3-D kind in <see cref="plotKinds"/>), with any bar, line or area plots after it as
+/// overlays, the series' cached values and categories, and the look of the axes, legend, title and data
+/// labels. Elements are found by local name, so a chart written with literals
 /// (<c>c:numLit</c>) reads as one written with references, and one Excel wraps in
 /// <c>mc:AlternateContent</c> as one it does not.
 ///
@@ -20,12 +21,32 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
     // The Office theme's accents, for a package with no theme.
     static readonly string[] defaultPalette = ["4472C4", "ED7D31", "A5A5A5", "FFC000", "5B9BD5", "70AD47"];
 
+    // The plots a plot area can hold, by element name, each read as the kind it draws as.
+    static readonly Dictionary<string, ChartKind> plotKinds = new()
+    {
+        ["barChart"] = ChartKind.Bar,
+        ["bar3DChart"] = ChartKind.Bar,
+        ["lineChart"] = ChartKind.Line,
+        ["line3DChart"] = ChartKind.Line,
+        ["pieChart"] = ChartKind.Pie,
+        ["pie3DChart"] = ChartKind.Pie,
+        ["ofPieChart"] = ChartKind.Pie,
+        ["doughnutChart"] = ChartKind.Doughnut,
+        ["areaChart"] = ChartKind.Area,
+        ["area3DChart"] = ChartKind.Area,
+        ["scatterChart"] = ChartKind.Scatter,
+        ["radarChart"] = ChartKind.Radar,
+        ["bubbleChart"] = ChartKind.Bubble,
+        ["stockChart"] = ChartKind.Stock,
+        ["surfaceChart"] = ChartKind.Surface,
+        ["surface3DChart"] = ChartKind.Surface
+    };
+
     public ChartModel? Read(OpenXmlElement? chartSpace)
     {
         var chart = Child(chartSpace, "chart");
         var plotArea = Child(chart, "plotArea");
-        var plot = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "barChart" or "lineChart" or "pieChart" or "doughnutChart" or "areaChart" or "scatterChart" or "radarChart");
-        if (chartSpace == null || plotArea == null || plot == null)
+        if (chartSpace == null || plotArea == null)
         {
             return null;
         }
@@ -36,17 +57,59 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             SizePoints = Child(chartSpace, "txPr") == null ? 9 : text.SizePoints
         };
 
-        var kind = plot.LocalName switch
+        var axes = plotArea.Elements().Where(_ => _.LocalName is "catAx" or "valAx" or "dateAx" or "serAx").ToList();
+        var palette = Enumerable.Range(1, 6).Select(_ => themeColors?.ResolveColor($"accent{_}") ?? defaultPalette[_ - 1]).ToList();
+        var plots = new List<ChartModel>();
+        OpenXmlElement? primaryValueAxis = null;
+        foreach (var plot in plotArea.Elements().Where(_ => plotKinds.ContainsKey(_.LocalName)))
         {
-            "lineChart" => ChartKind.Line,
-            "pieChart" => ChartKind.Pie,
-            "doughnutChart" => ChartKind.Doughnut,
-            "areaChart" => ChartKind.Area,
-            "scatterChart" => ChartKind.Scatter,
-            "radarChart" => ChartKind.Radar,
-            _ => ChartKind.Bar
-        };
+            var model = Plot(chart!, plot, axes, labelText, text, palette, ref primaryValueAxis);
+            if (model != null)
+            {
+                plots.Add(model);
+            }
+        }
 
+        if (plots.Count == 0)
+        {
+            return null;
+        }
+
+        var first = plots[0];
+        var layout = Child(Child(plotArea, "layout"), "manualLayout");
+        var autoTitleDeleted = On(Child(chart, "autoTitleDeleted"));
+
+        // A plot after the first draws over the first's categories, so only one that shares its axes'
+        // kind of geometry can: bars, lines and areas over each other, never a pie under a line.
+        IReadOnlyList<ChartModel> overlays = first is {Kind: ChartKind.Bar or ChartKind.Line or ChartKind.Area, View3D: null}
+            ? [.. plots.Skip(1).Where(_ => _ is {Kind: ChartKind.Bar or ChartKind.Line or ChartKind.Area, View3D: null})]
+            : [];
+
+        return first with
+        {
+            Overlays = overlays,
+            Legend = Child(chart, "legend") is { } legend ? Legend(legend, labelText) : null,
+            Title = Child(chart, "title") is { } title &&
+                    !autoTitleDeleted ? Title(title, text, [.. plots.SelectMany(_ => _.Series)]) : null,
+            PlotLayout = Rect(layout),
+            PlotLayoutIsInner = Attribute(Child(layout, "layoutTarget"), "val") == "inner",
+            Area = Fill(Child(chartSpace, "spPr"), defaultFill: "FFFFFF", defaultLine: new("D9D9D9", 0.75, 1)),
+            Plot = Fill(Child(plotArea, "spPr"), defaultFill: null, defaultLine: null)
+        };
+    }
+
+    // One plot of the plot area: its kind, series and the axes its c:axId elements name. The first
+    // plot's value axis is the primary one; a later plot on another is on the secondary axis.
+    ChartModel? Plot(
+        OpenXmlElement chart,
+        OpenXmlElement plot,
+        List<OpenXmlElement> allAxes,
+        ChartTextStyle labelText,
+        ChartTextStyle text,
+        IReadOnlyList<string> palette,
+        ref OpenXmlElement? primaryValueAxis)
+    {
+        var kind = plotKinds[plot.LocalName];
         var grouping = Attribute(Child(plot, "grouping"), "val") switch
         {
             "stacked" => ChartGrouping.Stacked,
@@ -71,18 +134,32 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             return null;
         }
 
-        var axes = plotArea.Elements().Where(_ => _.LocalName is "catAx" or "valAx" or "dateAx").ToList();
+        var ids = plot.Elements()
+            .Where(_ => _.LocalName == "axId")
+            .Select(_ => Attribute(_, "val"))
+            .ToHashSet();
+        var axes = allAxes.Where(_ => ids.Contains(Attribute(Child(_, "axId"), "val"))).ToList();
+        if (axes.Count == 0)
+        {
+            axes = allAxes;
+        }
 
-        // A scatter chart has two value axes: the one along the bottom or top carries the x values, and
-        // stands where a category axis would.
+        // A scatter or bubble chart has two value axes: the one along the bottom or top carries the x
+        // values, and stands where a category axis would.
         var valueAxes = axes.Where(_ => _.LocalName == "valAx").ToList();
-        var horizontalValueAxis = kind == ChartKind.Scatter
+        var horizontalValueAxis = kind is ChartKind.Scatter or ChartKind.Bubble
             ? valueAxes.FirstOrDefault(_ => Attribute(Child(_, "axPos"), "val") is "b" or "t") ?? valueAxes.FirstOrDefault()
             : null;
         var categoryAxisElement = horizontalValueAxis ?? axes.FirstOrDefault(_ => _.LocalName is "catAx" or "dateAx");
         var valueAxisElement = valueAxes.FirstOrDefault(_ => _ != horizontalValueAxis);
-        var layout = Child(Child(plotArea, "layout"), "manualLayout");
-        var autoTitleDeleted = On(Child(chart, "autoTitleDeleted"));
+        var secondary = primaryValueAxis != null &&
+                        valueAxisElement != null &&
+                        valueAxisElement != primaryValueAxis;
+        primaryValueAxis ??= valueAxisElement;
+
+        var is3D = plot.LocalName.Contains("3D", StringComparison.Ordinal);
+        var bubble3D = series.Count > 0 &&
+                       plot.Descendants().Any(_ => _.LocalName == "bubble3D" && On(_));
 
         return new()
         {
@@ -96,21 +173,81 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             VaryColors = On(Child(plot, "varyColors")),
             Categories = categories,
             Series = series,
-            PointsOnTicks = kind is ChartKind.Line or ChartKind.Area &&
+            Secondary = secondary,
+            PointsOnTicks = kind is ChartKind.Line or ChartKind.Area or ChartKind.Stock &&
                             Attribute(Child(valueAxisElement, "crossBetween"), "val") == "midCat",
             RadarFilled = Attribute(Child(plot, "radarStyle"), "val") == "filled",
             CategoryAxis = categoryAxisElement is { } categoryAxis ? Axis(categoryAxis, labelText) : null,
             ValueAxis = valueAxisElement is { } valueAxis ? Axis(valueAxis, labelText) : null,
-            Legend = Child(chart, "legend") is { } legend ? Legend(legend, labelText) : null,
-            Title = Child(chart, "title") is { } title &&
-                    !autoTitleDeleted ? Title(title, text, series) : null,
-            PlotLayout = Rect(layout),
-            PlotLayoutIsInner = Attribute(Child(layout, "layoutTarget"), "val") == "inner",
-            Area = Fill(Child(chartSpace, "spPr"), defaultFill: "FFFFFF", defaultLine: new("D9D9D9", 0.75, 1)),
-            Plot = Fill(Child(plotArea, "spPr"), defaultFill: null, defaultLine: null),
+            SeriesAxis = is3D && axes.FirstOrDefault(_ => _.LocalName == "serAx") is { } seriesAxis ? Axis(seriesAxis, labelText) : null,
+            View3D = is3D ? View3D(chart, plot, kind, grouping) : null,
+            Wireframe = On(Child(plot, "wireframe")),
+            BubbleScalePercent = Value(Child(plot, "bubbleScale")) ?? 100,
+            BubbleSizeIsWidth = Attribute(Child(plot, "sizeRepresents"), "val") == "w",
+            Bubble3D = bubble3D,
+            HighLowLines = Child(plot, "hiLowLines") is { } highLow
+                ? Stroke(Child(Child(highLow, "spPr"), "ln")) ?? new ChartStroke("404040", 0.75, 1)
+                : null,
+            UpDownBars = Child(plot, "upDownBars") is { } upDown ? UpDownBars(upDown) : null,
+            BandFills = BandFills(plot),
             Text = text,
-            Palette = [.. Enumerable.Range(1, 6).Select(_ => themeColors?.ResolveColor($"accent{_}") ?? defaultPalette[_ - 1])]
+            Palette = palette
         };
+    }
+
+    // A 3-D chart's view, with Office's defaults for what it leaves out: a pie tilts back 30 degrees and
+    // turns not at all, anything else 15 and 20; axes stay at right angles unless rAngAx says otherwise.
+    ChartView3D View3D(OpenXmlElement chart, OpenXmlElement plot, ChartKind kind, ChartGrouping grouping)
+    {
+        var view = Child(chart, "view3D");
+        var pie = kind == ChartKind.Pie;
+        var rows = plot.LocalName switch
+        {
+            "bar3DChart" => Attribute(Child(plot, "grouping"), "val") == "standard",
+            "area3DChart" or "line3DChart" => grouping == ChartGrouping.Clustered,
+            "surface3DChart" => true,
+            _ => false
+        };
+
+        return new()
+        {
+            RotateX = Value(Child(view, "rotX")) ?? (pie ? 30 : 15),
+            RotateY = Value(Child(view, "rotY")) ?? (pie ? 0 : 20),
+            Perspective = Value(Child(view, "perspective")) ?? 30,
+            RightAngleAxes = Child(view, "rAngAx") is { } rightAngles ? On(rightAngles) : !pie,
+            DepthPercent = Value(Child(view, "depthPercent")) ?? 100,
+            HeightPercent = Value(Child(view, "hPercent")),
+            GapDepthPercent = Value(Child(plot, "gapDepth")) ?? 150,
+            SeriesInRows = rows,
+            Floor = Fill(Child(Child(chart, "floor"), "spPr"), defaultFill: null, defaultLine: null),
+            Walls = Fill(Child(Child(chart, "backWall"), "spPr"), defaultFill: null, defaultLine: null)
+        };
+    }
+
+    ChartUpDownBars UpDownBars(OpenXmlElement upDown)
+    {
+        var up = Child(Child(upDown, "upBars"), "spPr");
+        var down = Child(Child(upDown, "downBars"), "spPr");
+        return new(
+            Value(Child(upDown, "gapWidth")) ?? 150,
+            up == null ? new("FFFFFF", new("404040", 0.75, 1)) : Fill(up, null, null),
+            down == null ? new("404040", new("404040", 0.75, 1)) : Fill(down, null, null));
+    }
+
+    // A surface chart's band colours (c:bandFmts), by band from the lowest.
+    Dictionary<int, string> BandFills(OpenXmlElement plot)
+    {
+        var fills = new Dictionary<int, string>();
+        foreach (var band in Child(plot, "bandFmts")?.Elements().Where(_ => _.LocalName == "bandFmt") ?? [])
+        {
+            if (Value(Child(band, "idx")) is { } index &&
+                SolidColor(Child(band, "spPr")) is { } fill)
+            {
+                fills[(int) index] = fill;
+            }
+        }
+
+        return fills;
     }
 
     // The marker a series with no c:marker of its own takes: Office's automatic circle where the chart
@@ -179,6 +316,9 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             Name = Child(ser, "tx") is { } name ? CachedStrings(name).FirstOrDefault() ?? Child(name, "v")?.InnerText : null,
             Values = Numbers(Child(ser, "val") ?? Child(ser, "yVal")),
             XValues = Numbers(Child(ser, "xVal")),
+            BubbleSizes = Numbers(Child(ser, "bubbleSize")),
+            PaletteIndex = Value(Child(ser, "idx")) is { } order ? (int) order : null,
+            FillAlpha = Child(properties, "solidFill") is A.SolidFill solidFill ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1,
             NoLine = Child(Child(properties, "ln"), "noFill") != null,
             Marker = Marker(Child(ser, "marker"), automaticMarker),
             FormatCode = (Child(ser, "val") ?? Child(ser, "yVal"))?.Descendants().FirstOrDefault(_ => _.LocalName == "formatCode")?.InnerText,
@@ -244,6 +384,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             ShowPercent = Flag(labels, "showPercent"),
             ShowCategory = Flag(labels, "showCatName"),
             FormatCode = Attribute(Child(labels, "numFmt"), "formatCode"),
+            Position = Attribute(Child(labels, "dLblPos"), "val"),
             Text = TextStyle(Child(labels, "txPr") ?? Child(styled, "txPr"), labelText),
             Deleted = deleted,
             Offsets = offsets,
