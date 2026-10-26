@@ -26,7 +26,7 @@ public sealed class PdfPowerPointConverter
     public static byte[] ConvertToPdf(Stream pptxStream, PdfExportOptions? options, Cancel cancel)
     {
         cancel.ThrowIfCancellationRequested();
-        return PdfRenderer.Render(PowerPointConverter.Parse(pptxStream, options?.DefaultFont), options, cancel);
+        return PdfRenderer.Render(PowerPointConverter.Parse(pptxStream, options?.DefaultFont, options?.Culture), options, cancel);
     }
 
     /// <summary>Converts a PPTX file to a PDF written to <paramref name="outputPdfPath"/>.</summary>

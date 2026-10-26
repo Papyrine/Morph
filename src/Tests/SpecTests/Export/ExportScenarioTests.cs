@@ -53,7 +53,7 @@ public class ExportScenarioTests
     {
         ContainerOnly.Require();
         // Word prints with All Markup, so the references carry the comments
-        var html = ToHtml(ScenarioInputs.InputFile(directory), new() {ShowComments = true});
+        var html = ToHtml(ScenarioInputs.InputFile(directory), new() {Culture = ScenarioInputs.Culture, ShowComments = true});
         var png = await BrowserScreenshot.RenderHtmlAsync(
             html,
             ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
@@ -75,7 +75,7 @@ public class ExportScenarioTests
     public async Task MarkdownOutput(string directory)
     {
         ContainerOnly.Require();
-        var markdown = ToMarkdown(ScenarioInputs.InputFile(directory), new() {ShowComments = true});
+        var markdown = ToMarkdown(ScenarioInputs.InputFile(directory), new() {Culture = ScenarioInputs.Culture, ShowComments = true});
         var png = await BrowserScreenshot.RenderMarkdownAsync(
             markdown,
             ScenarioInputs.ScreenshotScale(ScenarioInputs.FormatOf(directory)));
@@ -111,6 +111,7 @@ public class ExportScenarioTests
             {
                 FontDirectory = fontsDirectory,
                 Pages = ScenarioInputs.Pages(ScenarioInputs.FormatOf(directory)),
+                Culture = ScenarioInputs.Culture,
                 // Word prints with All Markup, so the references carry the comments
                 ShowComments = true
             });

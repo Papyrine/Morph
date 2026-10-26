@@ -9,7 +9,7 @@
 |  | ESTIMATE NO |  |  | 21 | Plywood | $40.00  | $840.00  |  |  |  |  |  |  |  |  |
 |  | C-1234 |  |  | 5 | Wood joints | $10.50  | $52.50  |  |  |  |  |  |  |  |  |
 |  | DATE |  |  | 164 | 10" screws | $2.75  | $451.00  |  |  |  |  |  |  |  |  |
-|  | 7/16/2026 |  |  | 6 | Shower head | $12.00  | $72.00  |  |  |  |  |  |  |  |  |
+|  | 16/07/2026 |  |  | 6 | Shower head | $12.00  | $72.00  |  |  |  |  |  |  |  |  |
 |  | ADDRESS |  |  | 18 | Shower tile | $5.50  | $99.00  |  |  |  |  |  |  |  |  |
 |  | 123 Avenue A |  |  | 1 | Mirror above sink | $25.00  | $25.00  |  |  |  |  |  |  |  |  |
 |  | CITY/STATE/ZIP |  |  |  |  |  | $0.00  |  |  |  |  |  |  |  |  |
@@ -33,7 +33,7 @@
 |  | PAYMENT TERMS |  |  |  |  |  | $0.00  |  |  |  |  |  |  |  |  |
 |  | Net 30 |  |  |  |  | SUBTOTAL | $3,189.50  |  |  |  |  |  |  |  |  |
 |  | DUE DATE |  |  | THIS PROPOSAL INCLUDES THE CONDITIONS NOTED: |  | TAX RATE  | **7.75%** |  |  |  |  |  |  |  |  |
-|  | 8/15/2026 |  |  | Enter conditions here |  | SALES TAX  | **$247.19**  |  |  |  |  |  |  |  |  |
+|  | 15/08/2026 |  |  | Enter conditions here |  | SALES TAX  | **$247.19**  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  | OTHER  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  | TOTAL  | **$3,436.69**  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |

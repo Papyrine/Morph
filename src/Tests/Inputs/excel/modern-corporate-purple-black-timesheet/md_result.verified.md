@@ -10,8 +10,8 @@
 | Email |  |  |  |  |
 |  |  |  |  |  |
 | **BILL TO** |  | **INVOICE NO.** | 1234567 |  |
-| Client Company Name |  | **DATE** | 7/16/2026 |  |
-| Contact Name |  | **DUE DATE** | 7/16/2026 |  |
+| Client Company Name |  | **DATE** | 16/07/2026 |  |
+| Contact Name |  | **DUE DATE** | 16/07/2026 |  |
 | Address |  |  |  |  |
 | Phone |  |  |  |  |
 | Email |  |  |  |  |

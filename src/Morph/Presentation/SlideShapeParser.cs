@@ -26,11 +26,12 @@ sealed class SlideShapeParser(
     Func<OpenXmlPart, byte[]> partBytes,
     double slideWidthPoints,
     double slideHeightPoints,
-    TableStylesPart? tableStylesPart)
+    TableStylesPart? tableStylesPart,
+    CultureInfo? culture = null)
 {
     readonly DrawingTextParser textParser = new(themeColors, themeFonts, defaultFont);
     readonly SlideTableParser tableParser = new(themeColors, new(themeColors, themeFonts, defaultFont));
-    readonly ChartReader chartReader = new(themeColors, themeFonts);
+    readonly ChartReader chartReader = new(themeColors, themeFonts, culture);
 
     /// <summary>
     /// Emits the slide's shapes in <c>spTree</c> order. Paint order is document order, which is also

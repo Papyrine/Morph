@@ -11,7 +11,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "Series 1\nSeries 2 32 32\n28\n12\n15\n12 12 12\n21\n28\n0\n5\n10\n15\n20\n25\n30\n35\n5/1/2002 6/1/2002 7/1/2002 8/1/2002 9/1/2002\nChart Title"
+        "Text": "Series 1\nSeries 2 32 32\n28\n12\n15\n12 12 12\n21\n28\n0\n5\n10\n15\n20\n25\n30\n35\n1/05/2002 1/06/2002 1/07/2002 1/08/2002 1/09/2002\nChart Title"
       },
       {
         "Number": 2,
@@ -19,23 +19,23 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "Series 1\nSeries 2\n32\n32\n28\n12\n15\n12\n12\n12\n21\n28\n0\n5\n10\n15\n20\n25\n30\n35\n5/1/2002\n6/1/2002\n8/1/2002 7/1/2002\n9/1/2002\nChart Title"
+        "Text": "Series 1\nSeries 2\n32\n32\n28\n12\n15\n12\n12\n12\n21\n28\n0\n5\n10\n15\n20\n25\n30\n35\n1/05/2002\n1/06/2002\n1/08/2002 1/07/2002\n1/09/2002\nChart Title"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0757,
-      "Ssim": 0.9028,
+      "ErrorMetric": 0.0761,
+      "Ssim": 0.9024,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0436,
-      "Ssim": 0.9195,
+      "ErrorMetric": 0.0438,
+      "Ssim": 0.9194,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

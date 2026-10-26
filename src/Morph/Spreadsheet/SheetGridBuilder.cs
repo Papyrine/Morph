@@ -9,7 +9,7 @@
 /// unit of length. And merges are declared once, in a separate list, for a region the grid must then
 /// be told about cell by cell.
 /// </summary>
-sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels)
+sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, CultureInfo culture)
 {
     const double pointsPerPixel = 72.0 / 96.0;
 
@@ -465,7 +465,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             return (raw, null);
         }
 
-        var formatted = NumberFormat.Format(number, style.EffectiveFormatCode);
+        var formatted = NumberFormat.Format(number, NumberFormat.Localize(style.EffectiveFormatCode, culture));
         return (formatted.Text, formatted.ColorHex);
     }
 

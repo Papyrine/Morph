@@ -18,6 +18,26 @@
 /// </summary>
 static class ScenarioInputs
 {
+    /// <summary>
+    /// The culture the references were rendered in. Office shows the system short date (built-in format
+    /// 14) in the machine's own date order, and the machine that renders the references is en-AU, so
+    /// PowerPoint draws chart-area's first category as <c>1/05/2002</c> and Excel check-register's as
+    /// <c>10/08/2026</c>.
+    ///
+    /// That is Windows' en-AU short date, <c>d/MM/yyyy</c>, which Office reads; the ICU data the test
+    /// container's .NET reads gives en-AU <c>d/M/yyyy</c> instead, so the pattern is set here rather than
+    /// taken from whichever data the run happens to have.
+    /// </summary>
+    public static CultureInfo Culture { get; } = WindowsAustralian();
+
+    static CultureInfo WindowsAustralian()
+    {
+        var culture = (CultureInfo) CultureInfo.GetCultureInfo("en-AU").Clone();
+        culture.DateTimeFormat.ShortDatePattern = "d/MM/yyyy";
+        culture.DateTimeFormat.DateSeparator = "/";
+        return CultureInfo.ReadOnly(culture);
+    }
+
     /// <summary>The corpus root holding the per-format roots.</summary>
     public static string InputsDirectory { get; } =
         Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs"));

@@ -14,7 +14,7 @@
 | Email |  |  | Email |  |
 |  |  |  |  |  |
 | **START DATE** | **END DATE** | **LOCATION** | **CLIENT** |  |
-| 7/16/2026 | 7/16/2026 |  |  |  |
+| 16/07/2026 | 16/07/2026 |  |  |  |
 |  |  |  |  |  |
 | **LABOR** |  |  |  |  |
 | **DESCRIPTION** | **HOURS** | **RATE** | **AMOUNT** |  |

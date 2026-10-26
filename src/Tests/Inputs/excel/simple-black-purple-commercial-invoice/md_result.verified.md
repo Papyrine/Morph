@@ -4,8 +4,8 @@
 |  | **Company Name** |  | **INVOICE** |  |  |
 |  |  |  |  |  |  |
 |  | Street Address, City, State, Zip/Postal Code |  | Invoice No.: | 10001 |  |
-|  | Website, Email |  | Invoice Date: | 7/16/2026 |  |
-|  | Phone |  | Due Date: | 7/16/2026 |  |
+|  | Website, Email |  | Invoice Date: | 16/07/2026 |  |
+|  | Phone |  | Due Date: | 16/07/2026 |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
 |  | **BILL TO:** |  | **SHIP TO:** |  |  |

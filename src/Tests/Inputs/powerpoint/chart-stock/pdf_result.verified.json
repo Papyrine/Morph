@@ -11,7 +11,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "High\nLow\nClose\n0\n10\n20\n30\n40\n50\n60\n70\n5/1/2002 6/1/2002 7/1/2002 8/1/2002 9/1/2002\nChart Title"
+        "Text": "High\nLow\nClose\n0\n10\n20\n30\n40\n50\n60\n70\n1/05/2002 1/06/2002 1/07/2002 1/08/2002 1/09/2002\nChart Title"
       },
       {
         "Number": 2,
@@ -19,23 +19,23 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "Open\nHigh\nLow\nClose\n0\n10\n20\n30\n40\n50\n60\n70\n5/1/2002 6/1/2002 7/1/2002 8/1/2002 9/1/2002\nChart Title"
+        "Text": "Open\nHigh\nLow\nClose\n0\n10\n20\n30\n40\n50\n60\n70\n1/05/2002 1/06/2002 1/07/2002 1/08/2002 1/09/2002\nChart Title"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0379,
-      "Ssim": 0.8882,
+      "ErrorMetric": 0.0383,
+      "Ssim": 0.8874,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0483,
-      "Ssim": 0.8779,
+      "ErrorMetric": 0.0488,
+      "Ssim": 0.8771,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

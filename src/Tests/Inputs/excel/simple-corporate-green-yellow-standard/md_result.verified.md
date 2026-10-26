@@ -8,8 +8,8 @@
 |  | **Bill To:** |  |  |  |  |  |
 |  | Name/Company Name |  |  | **Invoice #:** | 123456789 |  |
 |  | City, State, Zip Code |  |  | **PO #:** | 123123123 |  |
-|  | Email |  |  | **Due Date:** | 7/16/2026 |  |
-|  | Phone |  |  | **Invoice Date:** | 7/16/2026 |  |
+|  | Email |  |  | **Due Date:** | 16/07/2026 |  |
+|  | Phone |  |  | **Invoice Date:** | 16/07/2026 |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
 |  | Item Name | Description | Price | Quantity | Total |  |

@@ -46,7 +46,7 @@
 | **Contact List** |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |
 | Name | Address | City | State | Zip Code | Phone | Email | Birth Date | More Info |  |
-| Sydney Mattos | 4567 Main St | Buffalo | NY | 98052 | 425-555-0100 | <u>sydney@adatum.com</u> | 1/9/1990 | Married to Nathan, 2 children Cora and Caleb  |  |
+| Sydney Mattos | 4567 Main St | Buffalo | NY | 98052 | 425-555-0100 | <u>sydney@adatum.com</u> | 9/01/1990 | Married to Nathan, 2 children Cora and Caleb  |  |
 | Nathan Rigby |  |  |  |  |  |  |  |  |  |
 | Mateo Gomez |  |  |  |  |  |  |  |  |  |
 | Wesley Brooks |  |  |  |  |  |  |  |  |  |

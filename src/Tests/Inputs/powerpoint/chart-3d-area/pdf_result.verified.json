@@ -11,7 +11,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "Series 1\nSeries 2\n0\n5\n10\n15\n20\n25\n30\n35\n5/1/2002 6/1/2002 7/1/2002 8/1/2002 9/1/2002\nSeries 1\nSeries 2\nChart Title"
+        "Text": "Series 1\nSeries 2\n0\n5\n10\n15\n20\n25\n30\n35\n1/05/2002 1/06/2002 1/07/2002 1/08/2002 1/09/2002\nSeries 1\nSeries 2\nChart Title"
       },
       {
         "Number": 2,
@@ -26,8 +26,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.377,
-      "Ssim": 0.8422,
+      "ErrorMetric": 0.3775,
+      "Ssim": 0.8415,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
