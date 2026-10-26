@@ -6,7 +6,7 @@ below was produced by driving a visible Word with real keyboard and mouse input 
 back over COM. The Blazor editor (`src/Morph.Blazor`, `MorphEditor`) is meant to match these; the file
 doubles as its gap list through the `Morph` status each scenario carries.
 
-<!-- probe:generated --> Generated 2026-10-25 on Word for Microsoft 365, version 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20088), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
+<!-- probe:generated --> Generated 2026-10-26 on Word for Microsoft 365, version 16.0 build 16.0.20618 (Click-to-Run 16.0.20618.20000), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
 
 Keys and the commands they run are catalogued in `docs/word-command-reference.md` and are not repeated
 here; this file records what a key or click **does** to the document and the selection in a given state.
@@ -233,7 +233,7 @@ in its heading; everything else was measured under these values.
 <!-- probe:begin environment -->
 | what | value |
 | --- | --- |
-| Word | 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20088) |
+| Word | 16.0 build 16.0.20618 (Click-to-Run 16.0.20618.20000) |
 | UI language | unknown |
 | display | 3440x1440 at 125 % |
 | undo entry names | control128 |
@@ -259,6 +259,7 @@ glyph half or a cell edge is many pixels wide.
 | `plain` | One Normal paragraph: the fox sentence. |
 | `three-paragraphs` | Three Normal paragraphs; the second is centred with one bold word (EditFixtures.Paragraphs). |
 | `words` | Word-boundary material at 24pt: double space, hyphen, apostrophe, numbers with punctuation. |
+| `wrapped-title` | Two words at 72pt, too wide for one line: the second wraps to a line of its own. |
 | `sentences` | Two paragraphs of short sentences with an abbreviation and a question. |
 | `wrap` | One paragraph at 24pt that wraps to three lines. |
 | `long-paragraph` | Three paragraphs; the middle one wraps to several lines at the default size. |
@@ -2532,12 +2533,12 @@ steps `{drag}`
 
 | drag | options | selection | observed |
 | --- | --- | --- | --- |
-| drag(P1:0→P1:end) | SmartParaSelection=true | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| drag(P1:0→P1:end) | SmartParaSelection=false | Normal 0–21 end-active | `[⟦First paragraph here.‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| drag(P1:4→P2:end) | SmartParaSelection=true | Normal 0–39 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second bold one.¶‸⟧] (center) ↓0<br>[Third and last.] ↓0` |
-| drag(P1:4→P2:end) | SmartParaSelection=false | Normal 0–38 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second bold one.‸⟧] (center) ↓0<br>[Third and last.] ↓0` |
-| drag(P1:0→P2:3) | SmartParaSelection=true | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second ‸⟧bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| drag(P1:0→P2:3) | SmartParaSelection=false | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second ‸⟧bold one.] (center) ↓0<br>[Third and last.] ↓0` |
+| drag(P1:0→P1:end) | SmartParaSelection=true | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| drag(P1:0→P1:end) | SmartParaSelection=false | Normal 0–21 end-active | `[⟦First paragraph here.‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| drag(P1:4→P2:end) | SmartParaSelection=true | Normal 0–39 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second bold one.¶‸⟧] (center)<br>[Third and last.]` |
+| drag(P1:4→P2:end) | SmartParaSelection=false | Normal 0–38 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second bold one.‸⟧] (center)<br>[Third and last.]` |
+| drag(P1:0→P2:3) | SmartParaSelection=true | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second ‸⟧bold one.] (center)<br>[Third and last.]` |
+| drag(P1:0→P2:3) | SmartParaSelection=false | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second ‸⟧bold one.] (center)<br>[Third and last.]` |
 
 #### S-16 · Typing over a selection with ReplaceSelection off
 
@@ -2925,6 +2926,10 @@ picture targets, drag and drop.
 - **R-M-9 Drag selects from the press to the release**, the pressed end the anchor; with
   `AutoWordSelection` on both ends snap to words once the drag leaves the first word (7→15 became
   `beta,  gamma`; 7→8 inside a word stayed two characters), with it off the selection is exact (M-34).
+  Across a line wrap the release still sets the active end on the later line, and the selection never
+  falls back to the first line, but there only the ANCHOR's word snaps: 2→11 in `MEETING MINUTES`
+  became 0–11 (`MEETING MIN`), 11→2 became 2–15, and a release at or within a glyph of the paragraph's
+  end selects the whole paragraph with its mark (M-34b).
   A drag that crosses a paragraph mark snaps to the paragraph's start and takes its mark; a drag over a
   whole paragraph's text from its start takes the mark with `SmartParaSelection` on and leaves it with
   the option off (M-35). Inside a table a drag within one cell selects text, across cells the rectangle
@@ -4040,31 +4045,31 @@ steps before the branches `alt+drag(P2:2→{to})`
 
 **to=P2:110**
 
-- `alt+drag(P2:2→P2:110)` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–123 end-active · Undo —
-- `type("x")` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–123 end-active · Undo —
-- `Delete` → `[Short first.] ↓0 / [A ‸aph that runs on past the right margin so that it wraps to a second aof text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · IP 15–15 · Undo depth 1
-- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] ↓0 / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [S‸long second paragrhort third.] ↓0 / [nd then a third line ] ↓0` · IP 220–220 · Undo depth 1
+- `alt+drag(P2:2→P2:110)` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · Block 15–123 end-active · Undo —
+- `type("x")` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · Block 15–123 end-active · Undo —
+- `Delete` → `[Short first.] / [A ‸aph that runs on past the right margin so that it wraps to a second aof text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · IP 15–15 · Undo: Clear
+- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [S‸long second paragrhort third.] / [nd then a third line ]` · IP 220–220 · Undo: Paste
 
 **to=P2:110 · Track Changes on**
 
-- `alt+drag(P2:2→P2:110)` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–123 end-active · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–123 end-active · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Short first.] ↓0 / [A ]{-[‸long second paragr]-}[aph that runs on past the right margin so that it wraps to a second a]{-[nd then a third line ]-}[of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · IP 15–15 · Tracking · Revisions 2 · Undo depth 1
-- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] ↓0 / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [S]{+[‸long second paragr]+}[hort third.] ↓0 / {+[nd then a third line ]+} ↓0` · IP 220–220 · Tracking · Revisions 2 · Undo depth 1
+- `alt+drag(P2:2→P2:110)` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · Block 15–123 end-active · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line ‸⟧of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · Block 15–123 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Short first.] / [A ]{-[‸long second paragr]-}[aph that runs on past the right margin so that it wraps to a second a]{-[nd then a third line ]-}[of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · IP 15–15 · Tracking · Revisions 2 · Undo: Clear
+- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [S]{+[‸long second paragr]+}[hort third.] / {+[nd then a third line ]+}` · IP 220–220 · Tracking · Revisions 2 · Undo: Paste
 
 **to=P2:195**
 
-- `alt+drag(P2:2→P2:195)` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] ↓0 / [Short third.] ↓0` · Block 15–208 end-active · Undo —
-- `type("x")` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] ↓0 / [Short third.] ↓0` · Block 15–208 end-active · Undo —
-- `Delete` → `[Short first.] ↓0 / [A ‸aragraph that runs on past the right margin so that it wraps to a second a line of text on the page, giving Up and Down keys lines to move between bends here.] ↓0 / [Short third.] ↓0` · IP 15–15 · Undo depth 1
-- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] ↓0 / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [S‸long second phort third.] ↓0 / [nd then a third] ↓0 / [efore it finally ] ↓0` · IP 220–220 · Undo depth 1
+- `alt+drag(P2:2→P2:195)` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] / [Short third.]` · Block 15–208 end-active · Undo —
+- `type("x")` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] / [Short third.]` · Block 15–208 end-active · Undo —
+- `Delete` → `[Short first.] / [A ‸aragraph that runs on past the right margin so that it wraps to a second a line of text on the page, giving Up and Down keys lines to move between bends here.] / [Short third.]` · IP 15–15 · Undo: Clear
+- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [S‸long second phort third.] / [nd then a third] / [efore it finally ]` · IP 220–220 · Undo: Paste
 
 **to=P2:195 · Track Changes on**
 
-- `alt+drag(P2:2→P2:195)` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] ↓0 / [Short third.] ↓0` · Block 15–208 end-active · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] ↓0 / [Short third.] ↓0` · Block 15–208 end-active · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Short first.] ↓0 / [A ]{-[‸long second p]-}[aragraph that runs on past the right margin so that it wraps to a second a]{-[nd then a third]-}[ line of text on the page, giving Up and Down keys lines to move between b]{-[efore it finally ]-}[ends here.] ↓0 / [Short third.] ↓0` · IP 15–15 · Tracking · Revisions 3 · Undo depth 1
-- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] ↓0 / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [S]{+[‸long second p]+}[hort third.] ↓0 / {+[nd then a third] ↓0 / [efore it finally ]+} ↓0` · IP 220–220 · Tracking · Revisions 2 · Undo depth 1
+- `alt+drag(P2:2→P2:195)` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] / [Short third.]` · Block 15–208 end-active · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ‸⟧ends here.] / [Short third.]` · Block 15–208 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Short first.] / [A ]{-[‸long second p]-}[aragraph that runs on past the right margin so that it wraps to a second a]{-[nd then a third]-}[ line of text on the page, giving Up and Down keys lines to move between b]{-[efore it finally ]-}[ends here.] / [Short third.]` · IP 15–15 · Tracking · Revisions 3 · Undo: Clear
+- `Ctrl+C · click(P3:0) · Ctrl+V` → `[Short first.] / [A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [S]{+[‸long second p]+}[hort third.] / {+[nd then a third] / [efore it finally ]+}` · IP 220–220 · Tracking · Revisions 2 · Undo: Paste
 
 ```mermaid
 flowchart TD
@@ -4089,16 +4094,43 @@ steps `drag({path})`
 
 | path | options | selection | observed |
 | --- | --- | --- | --- |
-| P1:7→P1:8 | AutoWordSelection=true | Normal 7–8 end-active | `[alpha b⟦e‸⟧ta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:7→P1:8 | AutoWordSelection=false | Normal 7–8 end-active | `[alpha b⟦e‸⟧ta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:7→P1:15 | AutoWordSelection=true | Normal 6–18 end-active | `[alpha ⟦beta,  gamma‸⟧-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:7→P1:15 | AutoWordSelection=false | Normal 7–15 end-active | `[alpha b⟦eta,  ga‸⟧mma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15→P1:7 | AutoWordSelection=true | Normal 6–18 start-active | `[alpha ⟦‸beta,  gamma⟧-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15→P1:7 | AutoWordSelection=false | Normal 7–15 start-active | `[alpha b⟦‸eta,  ga⟧mma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:2→P1:21 | AutoWordSelection=true | Normal 0–25 end-active | `[⟦alpha beta,  gamma-delta ‸⟧3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:2→P1:21 | AutoWordSelection=false | Normal 2–21 end-active | `[al⟦pha beta,  gamma-de‸⟧lta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| P1:7→P1:8 | AutoWordSelection=true | Normal 7–8 end-active | `[alpha b⟦e‸⟧ta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:7→P1:8 | AutoWordSelection=false | Normal 7–8 end-active | `[alpha b⟦e‸⟧ta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:7→P1:15 | AutoWordSelection=true | Normal 6–18 end-active | `[alpha ⟦beta,  gamma‸⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:7→P1:15 | AutoWordSelection=false | Normal 7–15 end-active | `[alpha b⟦eta,  ga‸⟧mma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15→P1:7 | AutoWordSelection=true | Normal 6–18 start-active | `[alpha ⟦‸beta,  gamma⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15→P1:7 | AutoWordSelection=false | Normal 7–15 start-active | `[alpha b⟦‸eta,  ga⟧mma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:2→P1:21 | AutoWordSelection=true | Normal 0–25 end-active | `[⟦alpha beta,  gamma-delta ‸⟧3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:2→P1:21 | AutoWordSelection=false | Normal 2–21 end-active | `[al⟦pha beta,  gamma-de‸⟧lta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 Notes: Within beta; from beta into gamma; the same leftwards; from alpha to delta.
+
+#### M-34b · A drag across a line wrap inside one paragraph
+
+`wrapped-title` · Morph: **TODO**
+
+Expected before the run: The release on the second line sets the active end there, as on one line: with automatic
+word selection both ends snap to whole words, so MEETING MINUTES is selected whole whether the release is inside
+MINUTES or past it; the selection never falls back to the first line.
+
+steps `drag({path})`
+
+| path | options | selection | observed |
+| --- | --- | --- | --- |
+| P1:2→P1:11 | AutoWordSelection=true | Normal 0–11 end-active | `[⟦MEETING MIN‸⟧UTES]` |
+| P1:2→P1:11 | AutoWordSelection=false | Normal 2–11 end-active | `[ME⟦ETING MIN‸⟧UTES]` |
+| P1:0→P1:13 | AutoWordSelection=true | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:0→P1:13 | AutoWordSelection=false | Normal 0–13 end-active | `[⟦MEETING MINUT‸⟧ES]` |
+| P1:2→P1:end | AutoWordSelection=true | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:2→P1:end | AutoWordSelection=false | Normal 2–15 end-active | `[ME⟦ETING MINUTES‸⟧]` |
+| P1:0→P1:end | AutoWordSelection=true | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:0→P1:end | AutoWordSelection=false | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:11→P1:2 | AutoWordSelection=true | Normal 2–15 start-active | `[ME⟦‸ETING MINUTES⟧]` |
+| P1:11→P1:2 | AutoWordSelection=false | Normal 2–11 start-active | `[ME⟦‸ETING MIN⟧UTES]` |
+| P1:end→P1:2 | AutoWordSelection=true | Normal 0–16 start-active | `[⟦‸MEETING MINUTES¶⟧]` |
+| P1:end→P1:2 | AutoWordSelection=false | Normal 2–15 start-active | `[ME⟦‸ETING MINUTES⟧]` |
+
+Notes: MEETING is the first line and MINUTES the second; P1:11 is inside MINUTES, P1:13 one glyph short of its end.
 
 #### M-35 · A drag across a paragraph boundary and to a paragraph's end
 
@@ -4111,14 +4143,14 @@ steps `drag({path})`
 
 | path | options | selection | observed |
 | --- | --- | --- | --- |
-| P1:3→P2:4 | SmartParaSelection=true | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second ‸⟧bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:3→P2:4 | SmartParaSelection=false | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second ‸⟧bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:0→P1:end | SmartParaSelection=true | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:0→P1:end | SmartParaSelection=false | Normal 0–21 end-active | `[⟦First paragraph here.‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:4→P1:3 | SmartParaSelection=true | Normal 0–29 start-active | `[⟦‸First paragraph here.¶⟧] ↓0<br>⟦[Second ⟧bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:4→P1:3 | SmartParaSelection=false | Normal 0–29 start-active | `[⟦‸First paragraph here.¶⟧] ↓0<br>⟦[Second ⟧bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:3→P3:end | SmartParaSelection=true | Normal 0–54 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second bold one.¶⟧] (center) ↓0<br>⟦[Third and last.‸⟧] ↓0` |
-| P1:3→P3:end | SmartParaSelection=false | Normal 0–54 end-active | `[⟦First paragraph here.¶⟧] ↓0<br>⟦[Second bold one.¶⟧] (center) ↓0<br>⟦[Third and last.‸⟧] ↓0` |
+| P1:3→P2:4 | SmartParaSelection=true | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second ‸⟧bold one.] (center)<br>[Third and last.]` |
+| P1:3→P2:4 | SmartParaSelection=false | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second ‸⟧bold one.] (center)<br>[Third and last.]` |
+| P1:0→P1:end | SmartParaSelection=true | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| P1:0→P1:end | SmartParaSelection=false | Normal 0–21 end-active | `[⟦First paragraph here.‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| P2:4→P1:3 | SmartParaSelection=true | Normal 0–29 start-active | `[⟦‸First paragraph here.¶⟧]<br>⟦[Second ⟧bold one.] (center)<br>[Third and last.]` |
+| P2:4→P1:3 | SmartParaSelection=false | Normal 0–29 start-active | `[⟦‸First paragraph here.¶⟧]<br>⟦[Second ⟧bold one.] (center)<br>[Third and last.]` |
+| P1:3→P3:end | SmartParaSelection=true | Normal 0–54 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second bold one.¶⟧] (center)<br>⟦[Third and last.‸⟧]` |
+| P1:3→P3:end | SmartParaSelection=false | Normal 0–54 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second bold one.¶⟧] (center)<br>⟦[Third and last.‸⟧]` |
 
 #### M-36 · A drag into, within and out of a table
 
@@ -4131,12 +4163,12 @@ steps `drag({path})`
 
 | path | selection | observed |
 | --- | --- | --- |
-| P1:2→C(2,2):1 | Normal 0–38 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):1→C(2,2):1 | Column 18–34 end-active · Cells 4 (R1C1–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0→C(1,1):end | Normal 19–20 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[a⟦1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,3):1→P2:2 | Column 18–47 start-active · Cells 9 (R1C1–R3C3) | `[Before the table.] ↓0<br>T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤<br>[After the table.] ↓0` |
-| C(1,1):1→C(1,3):1 | Column 18–27 end-active · Cells 3 (R1C1–R1C3) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):1→C(1,1):1 | Column 18–34 start-active · Cells 4 (R1C1–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| P1:2→C(2,2):1 | Normal 0–38 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):1→C(2,2):1 | Column 18–34 end-active · Cells 4 (R1C1–R2C2) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0→C(1,1):end | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,3):1→P2:2 | Column 18–47 start-active · Cells 9 (R1C1–R3C3) | `[Before the table.]<br>T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤<br>[After the table.]` |
+| C(1,1):1→C(1,3):1 | Column 18–27 end-active · Cells 3 (R1C1–R1C3) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(2,2):1→C(1,1):1 | Column 18–34 start-active · Cells 4 (R1C1–R2C2) | `[Before the table.]<br>T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### M-37 · Down the selection bar: click then Shift+click lower
 
@@ -4457,12 +4489,12 @@ steps `{drag}`
 
 | drag | tracked | selection | observed |
 | --- | --- | --- | --- |
-| drag(IMG1→P2:3) | off | InlineShape 27–28 end-active · InlineShapes 1 · Undo depth 1 | `[Text before  after end.] ↓0<br>[Sec⟦▣‸⟧ond paragraph.] ↓0` |
-| drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo depth 1 | `[Text before ]{-[▣]-}[ after end.] ↓0<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.] ↓0` |
-| ctrl+drag(IMG1→P2:3) | off | InlineShape 28–29 end-active · InlineShapes 1 · Undo depth 1 | `[Text before ▣ after end.] ↓0<br>[Sec⟦▣‸⟧ond paragraph.] ↓0` |
-| ctrl+drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 1 · Undo depth 1 | `[Text before ▣ after end.] ↓0<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.] ↓0` |
-| drag(IMG1→P1:0) | off | InlineShape 0–1 end-active · InlineShapes 1 · Undo depth 1 | `[⟦▣‸⟧Text before  after end.] ↓0<br>[Second paragraph.] ↓0` |
-| drag(IMG1→P1:0) | on | InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo depth 1 | `{+[⟦▣‸⟧]+}[Text before ]{-[▣]-}[ after end.] ↓0<br>[Second paragraph.] ↓0` |
+| drag(IMG1→P2:3) | off | InlineShape 27–28 end-active · InlineShapes 1 · Undo: Move | `[Text before  after end.]<br>[Sec⟦▣‸⟧ond paragraph.]` |
+| drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo: Move | `[Text before ]{-[▣]-}[ after end.]<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.]` |
+| ctrl+drag(IMG1→P2:3) | off | InlineShape 28–29 end-active · InlineShapes 1 · Undo: Copy | `[Text before ▣ after end.]<br>[Sec⟦▣‸⟧ond paragraph.]` |
+| ctrl+drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 1 · Undo: Copy | `[Text before ▣ after end.]<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.]` |
+| drag(IMG1→P1:0) | off | InlineShape 0–1 end-active · InlineShapes 1 · Undo: Move | `[⟦▣‸⟧Text before  after end.]<br>[Second paragraph.]` |
+| drag(IMG1→P1:0) | on | InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo: Move | `{+[⟦▣‸⟧]+}[Text before ]{-[▣]-}[ after end.]<br>[Second paragraph.]` |
 
 #### M-63 · Drag a floating picture
 
@@ -4475,34 +4507,34 @@ steps `{drag}`
 
 | drag | tracked | selection | observed |
 | --- | --- | --- | --- |
-| drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo depth 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
-| drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
-| ctrl+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo depth 1 | `see below` |
-| ctrl+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo depth 1 | `see below` |
+| drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
+| drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
+| ctrl+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Duplicate | `see below` |
+| ctrl+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate | `see below` |
 
 `M-63[drag=ctrl+drag(SHP1→P3:2)]`
 
 ```text
-[⟦⚓2‸⟧⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[⟦⚓2‸⟧⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
-SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-72,30.6 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 1 · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
 
 `M-63[drag=ctrl+drag(SHP1→P3:2)]~tracked`
 
 ```text
-{+[⟦⚓2‸⟧]+}[⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+{+[⟦⚓2‸⟧]+}[⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
 SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo depth 1 · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
+Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
 
 #### M-70 · Click a field result and its edges
 
@@ -4639,22 +4671,22 @@ steps `drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 | to | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P1:find("1,000") | SmartCutPaste=true | off | Normal 37–42 end-active · Undo depth 1 | `[alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.] ↓0` |
-| P1:find("1,000") | SmartCutPaste=true | on | Normal 42–47 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha]{-[ beta]-}[,  gamma-delta 3.14 don't (eps) ]{+[⟦beta ‸⟧]+}[1,000 10:30 end.] ↓0` |
-| P1:find("1,000") | SmartCutPaste=false | off | Normal 38–42 end-active · Undo depth 1 | `[alpha ,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.] ↓0` |
-| P1:find("1,000") | SmartCutPaste=false | on | Normal 42–46 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha ]{-[beta]-}[,  gamma-delta 3.14 don't (eps) ]{+[⟦beta‸⟧]+}[1,000 10:30 end.] ↓0` |
-| P1:15 | SmartCutPaste=true | off | Normal 8–13 end-active · Undo depth 1 | `[alpha,  ⟦beta ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15 | SmartCutPaste=true | on | Normal 13–18 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha]{-[ beta]-}[,  ]{+[⟦beta ‸⟧]+}[gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15 | SmartCutPaste=false | off | Normal 9–13 end-active · Undo depth 1 | `[alpha ,  ⟦beta‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15 | SmartCutPaste=false | on | Normal 13–17 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha ]{-[beta]-}[,  ]{+[⟦beta‸⟧]+}[gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:end | SmartCutPaste=true | off | Normal 54–58 end-active · Undo depth 1 | `[alpha,  gamma-delta 3.14 don't (eps) 1,000 10:30 end. ⟦beta‸⟧] ↓0` |
-| P1:end | SmartCutPaste=true | on | Normal 59–63 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha]{-[ beta]-}[,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[ ⟦beta‸⟧]+} ↓0` |
-| P1:end | SmartCutPaste=false | off | Normal 54–58 end-active · Undo depth 1 | `[alpha ,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.⟦beta‸⟧] ↓0` |
-| P1:end | SmartCutPaste=false | on | Normal 58–62 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha ]{-[beta]-}[,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[⟦beta‸⟧]+} ↓0` |
-| P1:0 | SmartCutPaste=true | off | Normal 0–5 end-active · Undo depth 1 | `[⟦beta ‸⟧alpha,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0 | SmartCutPaste=true | on | Normal 0–5 end-active · Tracking · Revisions 2 · Undo depth 1 | `{+[⟦beta ‸⟧]+}[alpha]{-[ beta]-}[,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0 | SmartCutPaste=false | off | Normal 0–4 end-active · Undo depth 1 | `[⟦beta‸⟧alpha ,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0 | SmartCutPaste=false | on | Normal 0–4 end-active · Tracking · Revisions 2 · Undo depth 1 | `{+[⟦beta‸⟧]+}[alpha ]{-[beta]-}[,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| P1:find("1,000") | SmartCutPaste=true | off | Normal 37–42 end-active · Undo: Move | `[alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]` |
+| P1:find("1,000") | SmartCutPaste=true | on | Normal 42–47 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha]{-[24: beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]` |
+| P1:find("1,000") | SmartCutPaste=false | off | Normal 38–42 end-active · Undo: Move | `[alpha ,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.]` |
+| P1:find("1,000") | SmartCutPaste=false | on | Normal 42–46 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha ]{-[24:beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta‸⟧]+}[24:1,000 10:30 end.]` |
+| P1:15 | SmartCutPaste=true | off | Normal 8–13 end-active · Undo: Move | `[alpha,  ⟦beta ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15 | SmartCutPaste=true | on | Normal 13–18 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha]{-[24: beta]-}[24:,  ]{+[24:⟦beta ‸⟧]+}[24:gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15 | SmartCutPaste=false | off | Normal 9–13 end-active · Undo: Move | `[alpha ,  ⟦beta‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15 | SmartCutPaste=false | on | Normal 13–17 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha ]{-[24:beta]-}[24:,  ]{+[24:⟦beta‸⟧]+}[24:gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:end | SmartCutPaste=true | off | Normal 54–58 end-active · Undo: Move | `[alpha,  gamma-delta 3.14 don't (eps) 1,000 10:30 end. ⟦beta‸⟧]` |
+| P1:end | SmartCutPaste=true | on | Normal 59–63 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha]{-[24: beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[24: ⟦beta‸⟧]+}` |
+| P1:end | SmartCutPaste=false | off | Normal 54–58 end-active · Undo: Move | `[alpha ,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.⟦beta‸⟧]` |
+| P1:end | SmartCutPaste=false | on | Normal 58–62 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha ]{-[24:beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[24:⟦beta‸⟧]+}` |
+| P1:0 | SmartCutPaste=true | off | Normal 0–5 end-active · Undo: Move | `[⟦beta ‸⟧alpha,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0 | SmartCutPaste=true | on | Normal 0–5 end-active · Tracking · Revisions 2 · Undo: Move | `{+[24:⟦beta ‸⟧]+}[24:alpha]{-[24: beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0 | SmartCutPaste=false | off | Normal 0–4 end-active · Undo: Move | `[⟦beta‸⟧alpha ,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0 | SmartCutPaste=false | on | Normal 0–4 end-active · Tracking · Revisions 2 · Undo: Move | `{+[24:⟦beta‸⟧]+}[24:alpha ]{-[24:beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 Notes: Drops after a space, mid-word in gamma, before the mark and at the paragraph start; the dragged range is beta
 without its comma.
@@ -4670,14 +4702,14 @@ steps `drag({path})`
 
 | path | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:0-P2:0→P3:4 | off | Normal 23–45 end-active · Undo depth 1 | `[Second bold one.] (center) ↓0<br>[Third ⟦First paragraph here.¶‸⟧] ↓0<br>[and last.] ↓0` |
-| P1:0-P2:0→P3:4 | on | Normal 45–67 end-active · Tracking · Revisions 2 · Undo depth 1 | `{<[First paragraph here.]<} ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third ]{>[⟦First paragraph here.¶‸⟧]>} ↓0<br>[and last.] ↓0` |
-| P1:0-P1:end→P3:4 | off | Normal 24–45 end-active · Undo depth 1 | ` ↓0<br>[Second bold one.] (center) ↓0<br>[Third ⟦First paragraph here.‸⟧and last.] ↓0` |
-| P1:0-P1:end→P3:4 | on | Normal 45–66 end-active · Tracking · Revisions 2 · Undo depth 1 | `{<[First paragraph here.]<} ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third ]{>[⟦First paragraph here.‸⟧]>}[and last.] ↓0` |
-| P1:0-P2:0→P3:end | off | Normal 33–55 end-active · Undo depth 1 | `[Second bold one.] (center) ↓0<br>[Third and last. ⟦First paragraph here.¶‸⟧] ↓0<br> ↓0` |
-| P1:0-P2:0→P3:end | on | Normal 55–77 end-active · Tracking · Revisions 3 · Undo depth 1 | `{<[First paragraph here.]<} ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.]{+[ ]+}{>[⟦First paragraph here.¶‸⟧]>} ↓0<br> ↓0` |
-| P1:6-P1:end→P2:0 | off | Normal 7–22 end-active · Undo depth 1 | `[First ] ↓0<br>[⟦paragraph here.‸⟧Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:6-P1:end→P2:0 | on | Normal 22–37 end-active · Tracking · Revisions 2 · Undo depth 1 | `[First ]{-[paragraph here.]-} ↓0<br>{+[⟦paragraph here.‸⟧]+}[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
+| P1:0-P2:0→P3:4 | off | Normal 23–44 end-active · Undo: Move | `[Second bold one.] (center)<br>[Third ⟦First paragraph here.‸⟧and last.]` |
+| P1:0-P2:0→P3:4 | on | Normal 45–66 end-active · Tracking · Revisions 2 · Undo: Move | `{<[First paragraph here.]<}<br>[Second ][b:bold ][one.] (center)<br>[Third ]{>[⟦First paragraph here.‸⟧]>}[and last.]` |
+| P1:0-P1:end→P3:4 | off | Normal 24–45 end-active · Undo: Move | `<br>[Second bold one.] (center)<br>[Third ⟦First paragraph here.‸⟧and last.]` |
+| P1:0-P1:end→P3:4 | on | Normal 45–66 end-active · Tracking · Revisions 2 · Undo: Move | `{<[First paragraph here.]<}<br>[Second ][b:bold ][one.] (center)<br>[Third ]{>[⟦First paragraph here.‸⟧]>}[and last.]` |
+| P1:0-P2:0→P3:end | off | Normal 33–54 end-active · Undo: Move | `[Second bold one.] (center)<br>[Third and last. ⟦First paragraph here.‸⟧]` |
+| P1:0-P2:0→P3:end | on | Normal 55–76 end-active · Tracking · Revisions 3 · Undo: Move | `{<[First paragraph here.]<}<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]{+[ ]+}{>[⟦First paragraph here.‸⟧]>}` |
+| P1:6-P1:end→P2:0 | off | Normal 7–22 end-active · Undo: Move | `[First ]<br>[⟦paragraph here.‸⟧Second bold one.] (center)<br>[Third and last.]` |
+| P1:6-P1:end→P2:0 | on | Normal 22–37 end-active · Tracking · Revisions 2 · Undo: Move | `[First ]{-[paragraph here.]-}<br>{+[⟦paragraph here.‸⟧]+}[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
 
 #### M-82 · Ctrl+drag copies
 
@@ -4690,10 +4722,10 @@ steps `ctrl+drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 | to | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:find("1,000") | off | Normal 42–47 end-active · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.] ↓0` |
-| P1:find("1,000") | on | Normal 42–47 end-active · Tracking · Revisions 1 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) ]{+[⟦beta ‸⟧]+}[1,000 10:30 end.] ↓0` |
-| P1:end | off | Normal 59–63 end-active · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end. ⟦beta‸⟧] ↓0` |
-| P1:end | on | Normal 59–63 end-active · Tracking · Revisions 1 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[ ⟦beta‸⟧]+} ↓0` |
+| P1:find("1,000") | off | Normal 42–47 end-active · Undo: Copy | `[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]` |
+| P1:find("1,000") | on | Normal 42–47 end-active · Tracking · Revisions 1 · Undo: Copy | `[24:alpha beta,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]` |
+| P1:end | off | Normal 59–63 end-active · Undo: Copy | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end. ⟦beta‸⟧]` |
+| P1:end | on | Normal 59–63 end-active · Tracking · Revisions 1 · Undo: Copy | `[24:alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[24: ⟦beta‸⟧]+}` |
 
 #### M-83 · Drop onto the selection itself and next to it
 
@@ -4706,9 +4738,9 @@ steps `drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 | to | selection | observed |
 | --- | --- | --- |
-| P1:find("beta"):end | IP 10–10 · Undo — | `[alpha beta‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("eta") | IP 6–6 · Undo — | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("beta") | IP 6–6 · Undo — | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| P1:find("beta"):end | IP 10–10 · Undo — | `[alpha beta‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("eta") | IP 6–6 · Undo — | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("beta") | IP 6–6 · Undo — | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 #### M-84 · Drop into and out of a cell
 
@@ -4721,12 +4753,12 @@ steps `drag({path})`
 
 | path | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:0-P1:6→C(1,2):1 | off | Normal 15–22 end-active · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[the table.] ↓0<br>T1 R1 ║[One¤]║[⟦Before ‸⟧Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P1:0-P1:6→C(1,2):1 | on | Normal 22–29 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo depth 1 | `{-[Before ]-}[the table.] ↓0<br>T1 R1 ║[One¤]║{+[⟦Before ‸⟧]+}[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):end→P2:2 | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):end→P2:2 | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):end→C(2,2):1 | off | Normal 30–34 end-active · Cells 1 (R2C2–R2C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦One ‸⟧Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):end→C(2,2):1 | on | Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[One]-}¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║{+[⟦One ‸⟧]+}[Four¤]║¤<br>[After the table.] ↓0` |
+| P1:0-P1:6→C(1,2):1 | off | Normal 15–22 end-active · Cells 1 (R1C2–R1C2) · Undo: Move | `[the table.]<br>T1 R1 ║[One¤]║[⟦Before ‸⟧Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P1:0-P1:6→C(1,2):1 | on | Normal 22–29 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Move | `{-[Before ]-}[the table.]<br>T1 R1 ║[One¤]║{+[⟦Before ‸⟧]+}[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):end→P2:2 | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):end→P2:2 | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):end→C(2,2):1 | off | Normal 30–34 end-active · Cells 1 (R2C2–R2C2) · Undo: Move | `[Before the table.]<br>T1 R1 ║¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦One ‸⟧Four¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):end→C(2,2):1 | on | Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: Move | `[Before the table.]<br>T1 R1 ║{-[One]-}¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║{+[⟦One ‸⟧]+}[Four¤]║¤<br>[After the table.]` |
 
 #### M-85 · Drop at an empty paragraph, at a mark and past the final mark
 
@@ -4739,12 +4771,12 @@ steps `drag(P1:0-P1:5→{to})`
 
 | to | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P2:0 | off | Normal 1–6 end-active · Undo depth 1 | ` ↓0<br>[⟦Above‸⟧] ↓0<br> ↓0<br>[Below] ↓0` |
-| P2:0 | on | Normal 6–11 end-active · Tracking · Revisions 2 · Undo depth 1 | `{<[Above]<} ↓0<br>{>[⟦Above‸⟧]>} ↓0<br> ↓0<br>[Below] ↓0` |
-| P4:mark | off | Normal 9–14 end-active · Undo depth 1 | ` ↓0<br> ↓0<br> ↓0<br>[Below ⟦Above‸⟧] ↓0` |
-| P4:mark | on | Normal 14–19 end-active · Tracking · Revisions 3 · Undo depth 1 | `{<[Above]<} ↓0<br> ↓0<br> ↓0<br>[Below]{+[ ]+}{>[⟦Above‸⟧]>} ↓0` |
-| DOC:end | off | Normal 9–14 end-active · Undo depth 1 | ` ↓0<br> ↓0<br> ↓0<br>[Below ⟦Above‸⟧] ↓0` |
-| DOC:end | on | Normal 14–19 end-active · Tracking · Revisions 3 · Undo depth 1 | `{<[Above]<} ↓0<br> ↓0<br> ↓0<br>[Below]{+[ ]+}{>[⟦Above‸⟧]>} ↓0` |
+| P2:0 | off | Normal 1–6 end-active · Undo: Move | `<br>[⟦Above‸⟧]<br><br>[Below]` |
+| P2:0 | on | Normal 6–11 end-active · Tracking · Revisions 2 · Undo: Move | `{<[Above]<}<br>{>[⟦Above‸⟧]>}<br><br>[Below]` |
+| P4:mark | off | Normal 9–14 end-active · Undo: Move | `<br><br><br>[Below ⟦Above‸⟧]` |
+| P4:mark | on | Normal 14–19 end-active · Tracking · Revisions 3 · Undo: Move | `{<[Above]<}<br><br><br>[Below]{+[ ]+}{>[⟦Above‸⟧]>}` |
+| DOC:end | off | Normal 9–14 end-active · Undo: Move | `<br><br><br>[Below ⟦Above‸⟧]` |
+| DOC:end | on | Normal 14–19 end-active · Tracking · Revisions 3 · Undo: Move | `{<[Above]<}<br><br><br>[Below]{+[ ]+}{>[⟦Above‸⟧]>}` |
 
 #### M-87 · Drag text between the body and a text box
 
@@ -4756,23 +4788,10 @@ steps `drag({path})`
 
 | path | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P2:0-P2:6→TB1:P1:2 | off | Normal 0–7 end-active · Story TextFrame · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>[paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one] ↓0<br>TB: [Box line two] ↓0` |
-| P2:0-P2:6→TB1:P1:2 | on | Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo depth 1 | `see below` |
-| TB1:P1:0-TB1:P1:3→P2:2 | off | Normal 0–33 end-active · Undo — | `[⟦⚓1First paragraph of text here.¶⟧] ↓0<br>⟦[Se‸⟧cond paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P1:0-TB1:P1:3→P2:2 | on | Normal 0–33 end-active · Tracking · Revisions 0 · Undo — | `[⟦⚓1First paragraph of text here.¶⟧] ↓0<br>⟦[Se‸⟧cond paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-
-`M-87[path=P2:0-P2:6→TB1:P1:2]~tracked`
-
-```text
-[⚓1First paragraph of text here.] ↓0
-{-[Second ]-}[paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
-SHP1 ⌖P1 textbox 160x80pt square @228,0
-TB: [⟦Second ‸⟧Box line one] ↓0
-TB: [Box line tw]{-[o] ↓0
-```
-
-Selection: Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo depth 1 · drag(P2:0-P2:6→TB1:P1:2) from → Range 34-34, Arrow · drag(P2:0-P2:6→TB1:P1:2) to → Range 2-2, IBeam
+| P2:0-P2:6→TB1:P1:2 | off | Normal 0–7 end-active · Story TextFrame · Undo: Move | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line two]` |
+| P2:0-P2:6→TB1:P1:2 | on | Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo: Move | `[⚓1First paragraph of text here.]<br>{-[Second ]-}[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line tw]{-[o]` |
+| TB1:P1:0-TB1:P1:3→P2:2 | off | Normal 0–33 end-active · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Se‸⟧cond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P1:0-TB1:P1:3→P2:2 | on | Normal 0–33 end-active · Tracking · Revisions 0 · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Se‸⟧cond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
 <!-- probe:end mouse -->
 
 ## Typing, Enter, Backspace, Delete and direct formatting
@@ -14575,8 +14594,8 @@ steps `{drag}`
 
 | drag | selection | observed |
 | --- | --- | --- |
-| drag(C(1,1):1→C(2,2):1) | Column 18–34 end-active · Cells 4 (R1C1–R2C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| drag(P1:2→C(2,2):1) | Normal 0–38 end-active · Undo — | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| drag(C(1,1):1→C(2,2):1) | Column 18–34 end-active · Cells 4 (R1C1–R2C2) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| drag(P1:2→C(2,2):1) | Normal 0–38 end-active · Undo — | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### T-08 · Down through a table, row by row, into the paragraph after
 
@@ -15379,28 +15398,20 @@ steps `select({at})` · `Enter` · `type("x")`
 
 | fixture | at | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "
-x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "
-x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P3:end | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸] #ListParagraph •1.0 4. ⇥36,-18` |
 | numbers | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "
-x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "
-x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
 | numbers-nested | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
@@ -15902,10 +15913,8 @@ steps `select({at})` · `Enter` · `type("x")`
 | --- | --- | --- | --- |
 | P1:end | off | IP 16–16 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title] #Heading1 •1.0 1. ⇥36,-18<br>[x‸] ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
 | P1:end | on | IP 16–16 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title]{+ #Heading1 •1.0 1. ⇥36,-18<br>{~[x]+}‸~} ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "
-x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "
-x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
 
 #### L-15 · A typed number after a list: continuation or restart
 
@@ -16992,7 +17001,7 @@ Expected before the run: (a) one Move entry; (b) a Cut and a Paste entry.
 [alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]
 ```
 
-Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -17018,7 +17027,7 @@ Expected before the run: (a) one Copy entry; (b) a Paste entry.
 [alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]
 ```
 
-Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find("beta")) → Range 7-7, IBeam · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find("beta")) → Range 7-7, IBeam · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -17674,10 +17683,10 @@ drop point.
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
-Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -17692,7 +17701,7 @@ Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) →
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
@@ -18337,10 +18346,10 @@ Expected before the run: (a) one undo restores the text and the smart-cut spacin
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
-Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -18355,7 +18364,7 @@ Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) →
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
@@ -21680,11 +21689,11 @@ Expected before the run: (a) the table is removed; (b) the cells are emptied and
 2. `Ctrl+X`
 
 ```text
-[Before the table.] ↓0
-[‸After the table.] ↓0
+[Before the table.]
+[‸After the table.]
 ```
 
-Selection: IP 18–18 · Undo depth 1 · drag(C(1,1):0→C(3,3):end) from → Range 19-19, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam
+Selection: IP 18–18 · Undo: Cut · drag(C(1,1):0→C(3,3):end) from → Range 18-18, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam
 
 **Track Changes on**
 
@@ -21692,16 +21701,16 @@ Selection: IP 18–18 · Undo depth 1 · drag(C(1,1):0→C(3,3):end) from → Ra
 2. `Ctrl+X`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤
 T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: Column 18–47 end-active · Cells 9 (R1C1–R3C3) · Tracking · Revisions 0 · Undo — · drag(C(1,1):0→C(3,3):end) from → Range 19-19, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam
+Selection: Column 18–47 end-active · Cells 9 (R1C1–R3C3) · Tracking · Revisions 0 · Undo — · drag(C(1,1):0→C(3,3):end) from → Range 18-18, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam
 
-_settle timeout (Key)_
+_dialog during step: NUIDialog "Microsoft Word" (dismissed); settle timeout (Key)_
 
 #### C-19a · Copy and cut with nothing selected
 
@@ -21828,14 +21837,14 @@ steps `dblclick(P1:find("beta"))` · `{drag}`
 
 | drag | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | off | Normal 37–42 end-active · Undo depth 1 | `[alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.] ↓0` |
-| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | on | Normal 42–47 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha]{-[ beta]-}[,  gamma-delta 3.14 don't (eps) ]{+[⟦beta ‸⟧]+}[1,000 10:30 end.] ↓0` |
-| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | off | Normal 38–42 end-active · Undo depth 1 | `[alpha ,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.] ↓0` |
-| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | on | Normal 42–46 end-active · Tracking · Revisions 2 · Undo depth 1 | `[alpha ]{-[beta]-}[,  gamma-delta 3.14 don't (eps) ]{+[⟦beta‸⟧]+}[1,000 10:30 end.] ↓0` |
-| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | off | Normal 42–47 end-active · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.] ↓0` |
-| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | on | Normal 42–47 end-active · Tracking · Revisions 1 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) ]{+[⟦beta ‸⟧]+}[1,000 10:30 end.] ↓0` |
-| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | off | Normal 42–46 end-active · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.] ↓0` |
-| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | on | Normal 42–46 end-active · Tracking · Revisions 1 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) ]{+[⟦beta‸⟧]+}[1,000 10:30 end.] ↓0` |
+| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | off | Normal 37–42 end-active · Undo: Move | `[alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]` |
+| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | on | Normal 42–47 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha]{-[24: beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]` |
+| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | off | Normal 38–42 end-active · Undo: Move | `[alpha ,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.]` |
+| drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | on | Normal 42–46 end-active · Tracking · Revisions 2 · Undo: Move | `[24:alpha ]{-[24:beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta‸⟧]+}[24:1,000 10:30 end.]` |
+| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | off | Normal 42–47 end-active · Undo: Copy | `[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]` |
+| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=true | on | Normal 42–47 end-active · Tracking · Revisions 1 · Undo: Copy | `[24:alpha beta,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]` |
+| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | off | Normal 42–46 end-active · Undo: Copy | `[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.]` |
+| ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) | SmartCutPaste=false | on | Normal 42–46 end-active · Tracking · Revisions 1 · Undo: Copy | `[24:alpha beta,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta‸⟧]+}[24:1,000 10:30 end.]` |
 
 #### C-23a · Paste text that carries a footnote reference
 
@@ -21964,12 +21973,12 @@ Expected before the run: The block pastes as one paragraph per line of the block
 4. `Ctrl+V`
 
 ```text
-[Short first.] ↓0
-[A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0
-[‸long second paragraph that runs on past the right margin sShort third.] ↓0
+[Short first.]
+[A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.]
+[‸long second paragraph that runs on past the right margin sShort third.]
 ```
 
-Selection: IP 219–219 · Undo depth 1 · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam
+Selection: IP 219–219 · Undo: Paste · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam
 
 **Track Changes on**
 
@@ -21979,12 +21988,12 @@ Selection: IP 219–219 · Undo depth 1 · alt+drag(P2:2→P2:60) from → Range
 4. `Ctrl+V`
 
 ```text
-[Short first.] ↓0
-[A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0
-{+[‸long second paragraph that runs on past the right margin s]+}[Short third.] ↓0
+[Short first.]
+[A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.]
+{+[‸long second paragraph that runs on past the right margin s]+}[Short third.]
 ```
 
-Selection: IP 219–219 · Tracking · Revisions 1 · Undo depth 1 · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam
+Selection: IP 219–219 · Tracking · Revisions 1 · Undo: Paste · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam
 
 #### C-26 · The Spike: Ctrl+F3 cuts to it and Ctrl+Shift+F3 empties it
 
@@ -22407,12 +22416,12 @@ steps `{drag}`
 
 | drag | tracked | selection | observed |
 | --- | --- | --- | --- |
-| drag(IMG1→P2:3) | off | InlineShape 27–28 end-active · InlineShapes 1 · Undo depth 1 | `[Text before  after end.] ↓0<br>[Sec⟦▣‸⟧ond paragraph.] ↓0` |
-| drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo depth 1 | `[Text before ]{-[▣]-}[ after end.] ↓0<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.] ↓0` |
-| ctrl+drag(IMG1→P2:3) | off | InlineShape 28–29 end-active · InlineShapes 1 · Undo depth 1 | `[Text before ▣ after end.] ↓0<br>[Sec⟦▣‸⟧ond paragraph.] ↓0` |
-| ctrl+drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 1 · Undo depth 1 | `[Text before ▣ after end.] ↓0<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.] ↓0` |
-| drag(IMG1→P1:0) | off | InlineShape 0–1 end-active · InlineShapes 1 · Undo depth 1 | `[⟦▣‸⟧Text before  after end.] ↓0<br>[Second paragraph.] ↓0` |
-| drag(IMG1→P1:0) | on | InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo depth 1 | `{+[⟦▣‸⟧]+}[Text before ]{-[▣]-}[ after end.] ↓0<br>[Second paragraph.] ↓0` |
+| drag(IMG1→P2:3) | off | InlineShape 27–28 end-active · InlineShapes 1 · Undo: Move | `[Text before  after end.]<br>[Sec⟦▣‸⟧ond paragraph.]` |
+| drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo: Move | `[Text before ]{-[▣]-}[ after end.]<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.]` |
+| ctrl+drag(IMG1→P2:3) | off | InlineShape 28–29 end-active · InlineShapes 1 · Undo: Copy | `[Text before ▣ after end.]<br>[Sec⟦▣‸⟧ond paragraph.]` |
+| ctrl+drag(IMG1→P2:3) | on | InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 1 · Undo: Copy | `[Text before ▣ after end.]<br>[Sec]{+[⟦▣‸⟧]+}[ond paragraph.]` |
+| drag(IMG1→P1:0) | off | InlineShape 0–1 end-active · InlineShapes 1 · Undo: Move | `[⟦▣‸⟧Text before  after end.]<br>[Second paragraph.]` |
+| drag(IMG1→P1:0) | on | InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo: Move | `{+[⟦▣‸⟧]+}[Text before ]{-[▣]-}[ after end.]<br>[Second paragraph.]` |
 
 #### I-06 · Enter, Backspace and Delete at a picture that starts or ends a paragraph
 
@@ -22809,36 +22818,36 @@ steps `{drag}`
 
 | drag | tracked | selection | observed |
 | --- | --- | --- | --- |
-| drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo depth 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
-| drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
-| ctrl+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo depth 1 | `see below` |
-| ctrl+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo depth 1 | `see below` |
-| shift+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo depth 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧` |
-| shift+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧` |
+| drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
+| drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
+| ctrl+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Duplicate | `see below` |
+| ctrl+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate | `see below` |
+| shift+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧` |
+| shift+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧` |
 
 `I-15[drag=ctrl+drag(SHP1→P3:2)]`
 
 ```text
-[⟦⚓2‸⟧⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[⟦⚓2‸⟧⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
-SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-72,30.6 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 1 · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
 
 `I-15[drag=ctrl+drag(SHP1→P3:2)]~tracked`
 
 ```text
-{+[⟦⚓2‸⟧]+}[⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+{+[⟦⚓2‸⟧]+}[⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
-SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-72,30.6 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo depth 1 · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
+Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
 
 #### I-16 · Tab and Shift+Tab with a shape selected
 
@@ -23095,9 +23104,9 @@ stays.
 1. `drag(TB1:P1:0-TB1:P1:4→P2:3)`
 
 ```text
-[⟦⚓1First paragraph of text here.¶⟧] ↓0
-⟦[Sec‸⟧ond paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⟦⚓1First paragraph of text here.¶⟧]
+⟦[Sec‸⟧ond paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 
@@ -23108,9 +23117,9 @@ Selection: Normal 0–34 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3
 1. `drag(TB1:P1:0-TB1:P1:4→P2:3)`
 
 ```text
-[⟦⚓1First paragraph of text here.¶⟧] ↓0
-⟦[Sec‸⟧ond paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⟦⚓1First paragraph of text here.¶⟧]
+⟦[Sec‸⟧ond paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 

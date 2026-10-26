@@ -1,12 +1,12 @@
 {
   "Family": "tables",
-  "Generated": "2026-10-25T17:27:23.1637374+11:00",
+  "Generated": "2026-10-26T14:55:55.1258353+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20527",
+    "Build": "16.0.20618",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20618.20000"
   },
   "Cases": {
     "T-01[fixture=table-2x2]": {
@@ -65523,15 +65523,15 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1808,
-      "RunAt": "2026-10-25T14:41:44.18025+11:00",
+      "DurationMs": 3481,
+      "RunAt": "2026-10-26T14:55:52.6708394+11:00",
       "Lines": [
         "[Before the table.]",
-        "T1 R1 ║[⟦a1¤⟧]║[b1¤]║[c1¤]║¤",
-        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤",
         "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
         "[After the table.]",
-        "Selection: Column 18–34 end-active · Cells 4 (R1C1–R2C2) · Undo — · drag(C(1,1):1→C(2,2):1) from → Range 20-20, IBeam · drag(C(1,1):1→C(2,2):1) to → Range 32-32, IBeam"
+        "Selection: Column 18–34 end-active · Cells 4 (R1C1–R2C2) · Undo — · drag(C(1,1):1→C(2,2):1) from → Range 19-19, IBeam · drag(C(1,1):1→C(2,2):1) to → Range 32-32, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -65583,7 +65583,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -65843,7 +65843,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -65938,9 +65938,9 @@
         "Hotspots": [
           {
             "Step": "drag(C(1,1):1→C(2,2):1) from",
-            "X": 629,
+            "X": 626,
             "Y": 345,
-            "Under": "Range 20-20",
+            "Under": "Range 19-19",
             "Cursor": "IBeam"
           },
           {
@@ -65966,12 +65966,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1626,
-      "RunAt": "2026-10-25T14:41:45.8146976+11:00",
+      "DurationMs": 2367,
+      "RunAt": "2026-10-26T14:55:55.0890632+11:00",
       "Lines": [
         "[⟦Before the table.¶⟧]",
-        "T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤",
-        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤‸⟧",
+        "T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧",
         "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
         "[After the table.]",
         "Selection: Normal 0–38 end-active · Undo — · drag(P1:2→C(2,2):1) from → Range 2-2, IBeam · drag(P1:2→C(2,2):1) to → Range 32-32, IBeam"
@@ -66022,7 +66022,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -66282,7 +66282,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -66377,7 +66377,7 @@
         "Hotspots": [
           {
             "Step": "drag(P1:2→C(2,2):1) from",
-            "X": 578,
+            "X": 577,
             "Y": 281,
             "Under": "Range 2-2",
             "Cursor": "IBeam"

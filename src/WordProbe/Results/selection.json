@@ -1,12 +1,12 @@
 {
   "Family": "selection",
-  "Generated": "2026-10-25T16:32:06.4216414+11:00",
+  "Generated": "2026-10-26T14:55:42.159189+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20527",
+    "Build": "16.0.20618",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20618.20000"
   },
   "Cases": {
     "S-01[fixture=field-page,from=DOC:end,key=Shift+Left]": {
@@ -58124,13 +58124,13 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1462,
-      "RunAt": "2026-10-25T14:07:42.9599358+11:00",
+      "DurationMs": 2150,
+      "RunAt": "2026-10-26T14:55:33.9989326+11:00",
       "Lines": [
         "[⟦First paragraph here.‸⟧]",
         "[Second bold one.] (center)",
         "[Third and last.]",
-        "Selection: Normal 0–21 end-active · drag(P1:0→P1:end) from → Range 1-1, IBeam · drag(P1:0→P1:end) to → Range 21-21, IBeam"
+        "Selection: Normal 0–21 end-active · drag(P1:0→P1:end) from → Range 0-0, IBeam · drag(P1:0→P1:end) to → Range 21-21, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -58178,7 +58178,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58204,7 +58204,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58230,7 +58230,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -58250,9 +58250,9 @@
         "Hotspots": [
           {
             "Step": "drag(P1:0→P1:end) from",
-            "X": 558,
+            "X": 555,
             "Y": 281,
-            "Under": "Range 1-1",
+            "Under": "Range 0-0",
             "Cursor": "IBeam"
           },
           {
@@ -58280,13 +58280,13 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1500,
-      "RunAt": "2026-10-25T14:07:41.4902245+11:00",
+      "DurationMs": 3025,
+      "RunAt": "2026-10-26T14:55:31.8076479+11:00",
       "Lines": [
         "[⟦First paragraph here.¶‸⟧]",
         "[Second bold one.] (center)",
         "[Third and last.]",
-        "Selection: Normal 0–22 end-active · drag(P1:0→P1:end) from → Range 1-1, IBeam · drag(P1:0→P1:end) to → Range 21-21, IBeam"
+        "Selection: Normal 0–22 end-active · drag(P1:0→P1:end) from → Range 0-0, IBeam · drag(P1:0→P1:end) to → Range 21-21, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -58334,7 +58334,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58360,7 +58360,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58386,7 +58386,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -58406,9 +58406,9 @@
         "Hotspots": [
           {
             "Step": "drag(P1:0→P1:end) from",
-            "X": 558,
+            "X": 555,
             "Y": 281,
-            "Under": "Range 1-1",
+            "Under": "Range 0-0",
             "Cursor": "IBeam"
           },
           {
@@ -58436,13 +58436,13 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1462,
-      "RunAt": "2026-10-25T14:07:48.8977593+11:00",
+      "DurationMs": 2112,
+      "RunAt": "2026-10-26T14:55:42.146279+11:00",
       "Lines": [
         "[⟦First paragraph here.¶⟧]",
-        "[Second bold one.] (center)",
+        "⟦[Second ‸⟧bold one.] (center)",
         "[Third and last.]",
-        "Selection: Normal 0–29 end-active · drag(P1:0→P2:3) from → Range 1-1, IBeam · drag(P1:0→P2:3) to → Range 25-25, IBeam"
+        "Selection: Normal 0–29 end-active · drag(P1:0→P2:3) from → Range 0-0, IBeam · drag(P1:0→P2:3) to → Range 25-25, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -58490,7 +58490,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58516,7 +58516,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58542,7 +58542,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -58562,9 +58562,9 @@
         "Hotspots": [
           {
             "Step": "drag(P1:0→P2:3) from",
-            "X": 558,
+            "X": 555,
             "Y": 281,
-            "Under": "Range 1-1",
+            "Under": "Range 0-0",
             "Cursor": "IBeam"
           },
           {
@@ -58592,13 +58592,13 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1489,
-      "RunAt": "2026-10-25T14:07:47.4276257+11:00",
+      "DurationMs": 2130,
+      "RunAt": "2026-10-26T14:55:40.0192091+11:00",
       "Lines": [
         "[⟦First paragraph here.¶⟧]",
-        "[Second bold one.] (center)",
+        "⟦[Second ‸⟧bold one.] (center)",
         "[Third and last.]",
-        "Selection: Normal 0–29 end-active · drag(P1:0→P2:3) from → Range 1-1, IBeam · drag(P1:0→P2:3) to → Range 25-25, IBeam"
+        "Selection: Normal 0–29 end-active · drag(P1:0→P2:3) from → Range 0-0, IBeam · drag(P1:0→P2:3) to → Range 25-25, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -58646,7 +58646,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58672,7 +58672,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58698,7 +58698,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -58718,9 +58718,9 @@
         "Hotspots": [
           {
             "Step": "drag(P1:0→P2:3) from",
-            "X": 558,
+            "X": 555,
             "Y": 281,
-            "Under": "Range 1-1",
+            "Under": "Range 0-0",
             "Cursor": "IBeam"
           },
           {
@@ -58748,13 +58748,13 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1475,
-      "RunAt": "2026-10-25T14:07:45.9301633+11:00",
+      "DurationMs": 1906,
+      "RunAt": "2026-10-26T14:55:37.8722532+11:00",
       "Lines": [
         "[⟦First paragraph here.¶⟧]",
-        "[Second bold one.] (center)",
+        "⟦[Second bold one.‸⟧] (center)",
         "[Third and last.]",
-        "Selection: Normal 0–38 end-active · drag(P1:4→P2:end) from → Range 5-5, IBeam · drag(P1:4→P2:end) to → Range 38-38, IBeam"
+        "Selection: Normal 0–38 end-active · drag(P1:4→P2:end) from → Range 4-4, IBeam · drag(P1:4→P2:end) to → Range 38-38, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -58802,7 +58802,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58828,7 +58828,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58854,7 +58854,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -58874,9 +58874,9 @@
         "Hotspots": [
           {
             "Step": "drag(P1:4→P2:end) from",
-            "X": 588,
+            "X": 586,
             "Y": 281,
-            "Under": "Range 5-5",
+            "Under": "Range 4-4",
             "Cursor": "IBeam"
           },
           {
@@ -58904,13 +58904,13 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1477,
-      "RunAt": "2026-10-25T14:07:44.4468638+11:00",
+      "DurationMs": 1926,
+      "RunAt": "2026-10-26T14:55:35.9507317+11:00",
       "Lines": [
         "[⟦First paragraph here.¶⟧]",
-        "[Second bold one.¶] (center)",
+        "⟦[Second bold one.¶‸⟧] (center)",
         "[Third and last.]",
-        "Selection: Normal 0–39 end-active · drag(P1:4→P2:end) from → Range 5-5, IBeam · drag(P1:4→P2:end) to → Range 38-38, IBeam"
+        "Selection: Normal 0–39 end-active · drag(P1:4→P2:end) from → Range 4-4, IBeam · drag(P1:4→P2:end) to → Range 38-38, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -58958,7 +58958,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -58984,7 +58984,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -59010,7 +59010,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -59030,9 +59030,9 @@
         "Hotspots": [
           {
             "Step": "drag(P1:4→P2:end) from",
-            "X": 588,
+            "X": 586,
             "Y": 281,
-            "Under": "Range 5-5",
+            "Under": "Range 4-4",
             "Cursor": "IBeam"
           },
           {

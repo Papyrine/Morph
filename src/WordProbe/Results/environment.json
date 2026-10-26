@@ -1,12 +1,12 @@
 {
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20527",
+    "Build": "16.0.20618",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20618.20000"
   },
-  "Recorded": "2026-10-25T17:27:23.1764882+11:00",
+  "Recorded": "2026-10-26T15:15:07.103567+11:00",
   "Display": "3440x1440 at 125 %",
   "OptionsInEffect": {
     "Options.AutoWordSelection": "on",

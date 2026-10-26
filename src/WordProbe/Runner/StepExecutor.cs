@@ -153,7 +153,7 @@ sealed class StepExecutor
             }
             else
             {
-                from = hotspots.Point(fromRange.From, Side.Centre, Hotspot.None);
+                from = hotspots.Point(fromRange.From, Side.Left, Hotspot.None);
             }
 
             var to = hotspots.Point(step.To!, Side.Left, Hotspot.None);

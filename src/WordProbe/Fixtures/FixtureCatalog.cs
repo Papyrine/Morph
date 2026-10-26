@@ -22,6 +22,11 @@ static class FixtureCatalog
             _.Paragraph("alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.");
             _.Size(24);
         }),
+        new("wrapped-title", "Two words at 72pt, too wide for one line: the second wraps to a line of its own.", _ =>
+        {
+            _.Paragraph("MEETING MINUTES");
+            _.Size(72);
+        }),
         new("sentences", "Two paragraphs of short sentences with an abbreviation and a question.", _ =>
         {
             _.Paragraph("One is first. Two is next? Three uses e.g. four here. Five ends it.");

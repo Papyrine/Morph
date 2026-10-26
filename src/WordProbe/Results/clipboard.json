@@ -1,12 +1,12 @@
 {
   "Family": "clipboard",
-  "Generated": "2026-10-25T16:16:52.1891223+11:00",
+  "Generated": "2026-10-26T14:54:26.5838306+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20527",
+    "Build": "16.0.20618",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20618.20000"
   },
   "Cases": {
     "C-01[target=P1:0]{Options.PasteSmartCutPaste=false}": {
@@ -51467,12 +51467,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1652,
-      "RunAt": "2026-10-25T14:56:25.0062067+11:00",
+      "DurationMs": 3530,
+      "RunAt": "2026-10-26T14:53:33.8694757+11:00",
       "Lines": [
         "[Before the table.]",
         "[‸After the table.]",
-        "Selection: IP 18–18 · Undo depth 1 · drag(C(1,1):0→C(3,3):end) from → Range 19-19, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam"
+        "Selection: IP 18–18 · Undo: Cut · drag(C(1,1):0→C(3,3):end) from → Range 18-18, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -51520,7 +51520,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -51546,7 +51546,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -51561,16 +51561,16 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Cut"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
             "Step": "drag(C(1,1):0→C(3,3):end) from",
-            "X": 619,
+            "X": 616,
             "Y": 345,
-            "Under": "Range 19-19",
+            "Under": "Range 18-18",
             "Cursor": "IBeam"
           },
           {
@@ -51597,15 +51597,15 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 4025,
-      "RunAt": "2026-10-25T14:56:29.0384579+11:00",
+      "DurationMs": 4958,
+      "RunAt": "2026-10-26T14:53:38.8622752+11:00",
       "Lines": [
         "[Before the table.]",
-        "T1 R1 ║[⟦a1¤⟧]║[b1¤]║[c1¤]║¤",
-        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
-        "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
+        "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤",
         "[After the table.]",
-        "Selection: Column 18–47 end-active · Cells 9 (R1C1–R3C3) · Tracking · Revisions 0 · Undo — · drag(C(1,1):0→C(3,3):end) from → Range 19-19, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam"
+        "Selection: Column 18–47 end-active · Cells 9 (R1C1–R3C3) · Tracking · Revisions 0 · Undo — · drag(C(1,1):0→C(3,3):end) from → Range 18-18, IBeam · drag(C(1,1):0→C(3,3):end) to → Range 46-46, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -51657,7 +51657,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -51917,7 +51917,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -52012,9 +52012,9 @@
         "Hotspots": [
           {
             "Step": "drag(C(1,1):0→C(3,3):end) from",
-            "X": 619,
+            "X": 616,
             "Y": 345,
-            "Under": "Range 19-19",
+            "Under": "Range 18-18",
             "Cursor": "IBeam"
           },
           {
@@ -52026,10 +52026,12 @@
           }
         ],
         "Remarks": [
+          "dialog during step: NUIDialog \"Microsoft Word\" (dismissed)",
           "settle timeout (Key)"
         ]
       },
       "Remarks": [
+        "dialog during step: NUIDialog \"Microsoft Word\" (dismissed)",
         "settle timeout (Key)"
       ],
       "Tests": []
@@ -53041,11 +53043,11 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3091,
-      "RunAt": "2026-10-25T14:56:55.5543116+11:00",
+      "DurationMs": 3301,
+      "RunAt": "2026-10-26T14:54:10.3867986+11:00",
       "Lines": [
         "[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.]",
-        "Selection: Normal 42–46 end-active · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 42–46 end-active · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53093,7 +53095,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53108,9 +53110,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Copy"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -53153,11 +53155,11 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3146,
-      "RunAt": "2026-10-25T14:56:58.7084129+11:00",
+      "DurationMs": 3441,
+      "RunAt": "2026-10-26T14:54:13.841331+11:00",
       "Lines": [
-        "[alpha beta,  gamma-delta 3.14 don't (eps) ]{+[⟦beta‸⟧]+}[1,000 10:30 end.]",
-        "Selection: Normal 42–46 end-active · Tracking · Revisions 1 · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "[24:alpha beta,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta‸⟧]+}[24:1,000 10:30 end.]",
+        "Selection: Normal 42–46 end-active · Tracking · Revisions 1 · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53192,7 +53194,7 @@
               {
                 "Start": 0,
                 "End": 63,
-                "Marks": ""
+                "Marks": "24"
               }
             ],
             "Style": "Normal",
@@ -53205,7 +53207,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53227,9 +53229,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Copy"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -53272,11 +53274,11 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3037,
-      "RunAt": "2026-10-25T14:56:49.3307642+11:00",
+      "DurationMs": 3413,
+      "RunAt": "2026-10-26T14:54:03.7358027+11:00",
       "Lines": [
         "[alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]",
-        "Selection: Normal 42–47 end-active · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53324,7 +53326,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53339,9 +53341,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Copy"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -53384,11 +53386,11 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3117,
-      "RunAt": "2026-10-25T14:56:52.4562498+11:00",
+      "DurationMs": 3325,
+      "RunAt": "2026-10-26T14:54:07.0723116+11:00",
       "Lines": [
-        "[alpha beta,  gamma-delta 3.14 don't (eps) ]{+[⟦beta ‸⟧]+}[1,000 10:30 end.]",
-        "Selection: Normal 42–47 end-active · Tracking · Revisions 1 · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "[24:alpha beta,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]",
+        "Selection: Normal 42–47 end-active · Tracking · Revisions 1 · Undo: Copy · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53423,7 +53425,7 @@
               {
                 "Start": 0,
                 "End": 64,
-                "Marks": ""
+                "Marks": "24"
               }
             ],
             "Style": "Normal",
@@ -53436,7 +53438,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53458,9 +53460,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Copy"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -53503,11 +53505,11 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3019,
-      "RunAt": "2026-10-25T14:56:43.2108759+11:00",
+      "DurationMs": 3171,
+      "RunAt": "2026-10-26T14:53:56.9730208+11:00",
       "Lines": [
         "[alpha ,  gamma-delta 3.14 don't (eps) ⟦beta‸⟧1,000 10:30 end.]",
-        "Selection: Normal 38–42 end-active · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 38–42 end-active · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53555,7 +53557,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53570,9 +53572,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -53615,11 +53617,11 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3068,
-      "RunAt": "2026-10-25T14:56:46.2867805+11:00",
+      "DurationMs": 3324,
+      "RunAt": "2026-10-26T14:54:00.3086108+11:00",
       "Lines": [
-        "[alpha ]{-[beta]-}[,  gamma-delta 3.14 don't (eps) ]{+[⟦beta‸⟧]+}[1,000 10:30 end.]",
-        "Selection: Normal 42–46 end-active · Tracking · Revisions 2 · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "[24:alpha ]{-[24:beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta‸⟧]+}[24:1,000 10:30 end.]",
+        "Selection: Normal 42–46 end-active · Tracking · Revisions 2 · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53654,7 +53656,7 @@
               {
                 "Start": 0,
                 "End": 63,
-                "Marks": ""
+                "Marks": "24"
               }
             ],
             "Style": "Normal",
@@ -53667,7 +53669,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53695,9 +53697,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -53740,11 +53742,11 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 3038,
-      "RunAt": "2026-10-25T14:56:37.0632565+11:00",
+      "DurationMs": 4168,
+      "RunAt": "2026-10-26T14:53:50.393597+11:00",
       "Lines": [
         "[alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]",
-        "Selection: Normal 37–42 end-active · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, WordOwn · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53792,7 +53794,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53807,9 +53809,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -53824,7 +53826,7 @@
             "X": 708,
             "Y": 288,
             "Under": "Range 8-8",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to",
@@ -53852,11 +53854,11 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 3113,
-      "RunAt": "2026-10-25T14:56:40.1840957+11:00",
+      "DurationMs": 3350,
+      "RunAt": "2026-10-26T14:53:53.7807821+11:00",
       "Lines": [
-        "[alpha]{-[ beta]-}[,  gamma-delta 3.14 don't (eps) ]{+[⟦beta ‸⟧]+}[1,000 10:30 end.]",
-        "Selection: Normal 42–47 end-active · Tracking · Revisions 2 · Undo depth 1 · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
+        "[24:alpha]{-[24: beta]-}[24:,  gamma-delta 3.14 don't (eps) ]{+[24:⟦beta ‸⟧]+}[24:1,000 10:30 end.]",
+        "Selection: Normal 42–47 end-active · Tracking · Revisions 2 · Undo: Move · dblclick(P1:find(\"beta\")) → Range 7-7, IBeam · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) from → Range 8-8, Arrow · drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\")) to → Range 42-42, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -53891,7 +53893,7 @@
               {
                 "Start": 0,
                 "End": 64,
-                "Marks": ""
+                "Marks": "24"
               }
             ],
             "Style": "Normal",
@@ -53904,7 +53906,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -53932,9 +53934,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -55785,13 +55787,13 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1817,
-      "RunAt": "2026-10-25T14:57:12.6731704+11:00",
+      "DurationMs": 3258,
+      "RunAt": "2026-10-26T14:54:24.0581645+11:00",
       "Lines": [
         "[Short first.]",
         "[A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.]",
         "[‸long second paragraph that runs on past the right margin sShort third.]",
-        "Selection: IP 219–219 · Undo depth 1 · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam"
+        "Selection: IP 219–219 · Undo: Paste · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -55839,7 +55841,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -55865,7 +55867,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -55891,7 +55893,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -55906,14 +55908,14 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Paste"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
             "Step": "alt+drag(P2:2→P2:60) from",
-            "X": 571,
+            "X": 570,
             "Y": 316,
             "Under": "Range 15-15",
             "Cursor": "IBeam"
@@ -55944,13 +55946,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1863,
-      "RunAt": "2026-10-25T14:57:14.544557+11:00",
+      "DurationMs": 2471,
+      "RunAt": "2026-10-26T14:54:26.5647773+11:00",
       "Lines": [
         "[Short first.]",
         "[A long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.]",
         "{+[‸long second paragraph that runs on past the right margin s]+}[Short third.]",
-        "Selection: IP 219–219 · Tracking · Revisions 1 · Undo depth 1 · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam"
+        "Selection: IP 219–219 · Tracking · Revisions 1 · Undo: Paste · alt+drag(P2:2→P2:60) from → Range 15-15, IBeam · alt+drag(P2:2→P2:60) to → Range 73-73, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -55998,7 +56000,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -56024,7 +56026,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -56050,7 +56052,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -56072,14 +56074,14 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Paste"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
             "Step": "alt+drag(P2:2→P2:60) from",
-            "X": 571,
+            "X": 570,
             "Y": 316,
             "Under": "Range 15-15",
             "Cursor": "IBeam"

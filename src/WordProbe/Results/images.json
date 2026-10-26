@@ -1,12 +1,12 @@
 {
   "Family": "images",
-  "Generated": "2026-10-25T16:32:01.1852134+11:00",
+  "Generated": "2026-10-26T14:55:21.7608264+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20527",
+    "Build": "16.0.20618",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20618.20000"
   },
   "Cases": {
     "I-01": {
@@ -4768,12 +4768,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1671,
-      "RunAt": "2026-10-25T14:58:11.5450541+11:00",
+      "DurationMs": 2214,
+      "RunAt": "2026-10-26T14:54:41.3066681+11:00",
       "Lines": [
         "[Text before ▣ after end.]",
         "[Sec⟦▣‸⟧ond paragraph.]",
-        "Selection: InlineShape 28–29 end-active · InlineShapes 1 · Undo depth 1 · ctrl+drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · ctrl+drag(IMG1→P2:3) to → Range 28-28, IBeam"
+        "Selection: InlineShape 28–29 end-active · InlineShapes 1 · Undo: Copy · ctrl+drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · ctrl+drag(IMG1→P2:3) to → Range 28-28, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -4821,7 +4821,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -4847,7 +4847,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -4865,9 +4865,9 @@
         ],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Copy"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -4900,12 +4900,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1701,
-      "RunAt": "2026-10-25T14:58:13.2497865+11:00",
+      "DurationMs": 2399,
+      "RunAt": "2026-10-26T14:54:43.716058+11:00",
       "Lines": [
         "[Text before ▣ after end.]",
         "[Sec]{+[⟦▣‸⟧]+}[ond paragraph.]",
-        "Selection: InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 1 · Undo depth 1 · ctrl+drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · ctrl+drag(IMG1→P2:3) to → Range 28-28, IBeam"
+        "Selection: InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 1 · Undo: Copy · ctrl+drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · ctrl+drag(IMG1→P2:3) to → Range 28-28, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -4953,7 +4953,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -4979,7 +4979,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5004,9 +5004,9 @@
         ],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Copy"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -5039,12 +5039,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1654,
-      "RunAt": "2026-10-25T14:58:14.9077074+11:00",
+      "DurationMs": 2144,
+      "RunAt": "2026-10-26T14:54:45.8693723+11:00",
       "Lines": [
         "[⟦▣‸⟧Text before  after end.]",
         "[Second paragraph.]",
-        "Selection: InlineShape 0–1 end-active · InlineShapes 1 · Undo depth 1 · drag(IMG1→P1:0) from → Shape Picture 1, WordOwn · drag(IMG1→P1:0) to → Range 0-0, IBeam"
+        "Selection: InlineShape 0–1 end-active · InlineShapes 1 · Undo: Move · drag(IMG1→P1:0) from → Shape Picture 1, WordOwn · drag(IMG1→P1:0) to → Range 0-0, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -5092,7 +5092,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -5118,7 +5118,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5135,9 +5135,9 @@
         ],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -5170,12 +5170,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1659,
-      "RunAt": "2026-10-25T14:58:16.5707659+11:00",
+      "DurationMs": 2263,
+      "RunAt": "2026-10-26T14:54:48.1398563+11:00",
       "Lines": [
         "{+[⟦▣‸⟧]+}[Text before ]{-[▣]-}[ after end.]",
         "[Second paragraph.]",
-        "Selection: InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo depth 1 · drag(IMG1→P1:0) from → Shape Picture 1, WordOwn · drag(IMG1→P1:0) to → Range 0-0, IBeam"
+        "Selection: InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo: Move · drag(IMG1→P1:0) from → Shape Picture 1, WordOwn · drag(IMG1→P1:0) to → Range 0-0, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -5223,7 +5223,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -5249,7 +5249,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5280,9 +5280,9 @@
         ],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -5315,12 +5315,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1639,
-      "RunAt": "2026-10-25T14:58:08.15226+11:00",
+      "DurationMs": 3046,
+      "RunAt": "2026-10-26T14:54:36.7383961+11:00",
       "Lines": [
         "[Text before  after end.]",
         "[Sec⟦▣‸⟧ond paragraph.]",
-        "Selection: InlineShape 27–28 end-active · InlineShapes 1 · Undo depth 1 · drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · drag(IMG1→P2:3) to → Range 28-28, IBeam"
+        "Selection: InlineShape 27–28 end-active · InlineShapes 1 · Undo: Move · drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · drag(IMG1→P2:3) to → Range 28-28, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -5368,7 +5368,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -5394,7 +5394,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5411,9 +5411,9 @@
         ],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -5446,12 +5446,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1714,
-      "RunAt": "2026-10-25T14:58:09.8698206+11:00",
+      "DurationMs": 2317,
+      "RunAt": "2026-10-26T14:54:39.0786452+11:00",
       "Lines": [
         "[Text before ]{-[▣]-}[ after end.]",
         "[Sec]{+[⟦▣‸⟧]+}[ond paragraph.]",
-        "Selection: InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo depth 1 · drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · drag(IMG1→P2:3) to → Range 28-28, IBeam"
+        "Selection: InlineShape 28–29 end-active · InlineShapes 1 · Tracking · Revisions 2 · Undo: Move · drag(IMG1→P2:3) from → Shape Picture 1, WordOwn · drag(IMG1→P2:3) to → Range 28-28, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -5499,7 +5499,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -5525,7 +5525,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5556,9 +5556,9 @@
         ],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -21878,15 +21878,15 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1684,
-      "RunAt": "2026-10-25T14:59:58.2726452+11:00",
+      "DurationMs": 2218,
+      "RunAt": "2026-10-26T14:55:02.4248173+11:00",
       "Lines": [
         "[⟦⚓2‸⟧⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
-        "SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧",
-        "Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 1 · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
+        "SHP2 ⌖P1 picture 72x72pt square @-72,30.6 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -21934,7 +21934,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -21960,7 +21960,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -21986,7 +21986,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -22016,8 +22016,8 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -55.8,
-            "Top": 25.8
+            "Left": -72,
+            "Top": 30.6
           }
         ],
         "Fields": [],
@@ -22028,9 +22028,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Duplicate"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -22063,15 +22063,15 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1715,
-      "RunAt": "2026-10-25T14:59:59.9928505+11:00",
+      "DurationMs": 2414,
+      "RunAt": "2026-10-26T14:55:04.8495349+11:00",
       "Lines": [
         "{+[⟦⚓2‸⟧]+}[⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
-        "SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧",
-        "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo depth 1 · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
+        "SHP2 ⌖P1 picture 72x72pt square @-72,30.6 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -22119,7 +22119,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22145,7 +22145,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22171,7 +22171,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -22201,8 +22201,8 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -55.8,
-            "Top": 25.8
+            "Left": -72,
+            "Top": 30.6
           }
         ],
         "Fields": [],
@@ -22220,9 +22220,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Duplicate"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -22255,14 +22255,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1574,
-      "RunAt": "2026-10-25T14:59:54.9600893+11:00",
+      "DurationMs": 3099,
+      "RunAt": "2026-10-26T14:54:57.9525125+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧",
-        "Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 1 · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -22310,7 +22310,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22336,7 +22336,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22362,7 +22362,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -22391,9 +22391,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move Object"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -22426,14 +22426,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1618,
-      "RunAt": "2026-10-25T14:59:56.5835681+11:00",
+      "DurationMs": 2214,
+      "RunAt": "2026-10-26T14:55:00.1924774+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧",
-        "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 1 · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
+        "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -22481,7 +22481,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22507,7 +22507,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22533,7 +22533,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -22562,9 +22562,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move Object"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -22597,14 +22597,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1661,
-      "RunAt": "2026-10-25T15:00:01.6588786+11:00",
+      "DurationMs": 2174,
+      "RunAt": "2026-10-26T14:55:07.03312+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧",
-        "Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 1 · shift+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · shift+drag(SHP1→P3:2) to → Range 85-85, IBeam"
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · shift+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · shift+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -22652,7 +22652,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22678,7 +22678,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22704,7 +22704,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -22733,9 +22733,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move Object"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
@@ -22768,14 +22768,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1692,
-      "RunAt": "2026-10-25T15:00:03.3563317+11:00",
+      "DurationMs": 2252,
+      "RunAt": "2026-10-26T14:55:09.2955082+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧",
-        "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 1 · shift+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · shift+drag(SHP1→P3:2) to → Range 85-85, IBeam"
+        "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object · shift+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · shift+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -22823,7 +22823,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22849,7 +22849,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -22875,7 +22875,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -22904,9 +22904,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Move Object"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
@@ -31214,11 +31214,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1635,
-      "RunAt": "2026-10-25T15:00:51.0660386+11:00",
+      "DurationMs": 3199,
+      "RunAt": "2026-10-26T14:55:19.3933534+11:00",
       "Lines": [
         "[⟦⚓1First paragraph of text here.¶⟧]",
-        "[Second paragraph of text here.]",
+        "⟦[Sec‸⟧ond paragraph of text here.]",
         "[Third paragraph of text here.]",
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
         "Selection: Normal 0–34 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam"
@@ -31269,7 +31269,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -31295,7 +31295,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -31321,7 +31321,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -31383,11 +31383,11 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1644,
-      "RunAt": "2026-10-25T15:00:52.7158523+11:00",
+      "DurationMs": 2324,
+      "RunAt": "2026-10-26T14:55:21.7451782+11:00",
       "Lines": [
         "[⟦⚓1First paragraph of text here.¶⟧]",
-        "[Second paragraph of text here.]",
+        "⟦[Sec‸⟧ond paragraph of text here.]",
         "[Third paragraph of text here.]",
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
         "Selection: Normal 0–34 end-active · Tracking · Revisions 0 · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam"
@@ -31438,7 +31438,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -31464,7 +31464,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -31490,7 +31490,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
