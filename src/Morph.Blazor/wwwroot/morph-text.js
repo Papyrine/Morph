@@ -586,6 +586,7 @@ function appendBreak(parent, state) {
 let listening = false;
 let pointerLayer = null;
 let pointerY = null;
+let pressedAt = null;
 let previousRange = null;
 
 // Gecko hit-tests positioned text well enough on its own; moving the end-of-content element is for
@@ -620,12 +621,17 @@ function onPointerDown(event) {
     if (layer && layers.has(layer)) {
         pointerLayer = layer;
         pointerY = event.clientY;
+        pressedAt = [event.clientX, event.clientY];
         layer.classList.add('selecting');
     }
 }
 
 function onPointerUp(event) {
-    if (event.type === 'pointerup' && pointerLayer && !event.shiftKey && !event.altKey &&
+    // Only a drag: a click leaves a selection it did not make (one made by a key, or a script) as it is.
+    const dragged = pressedAt !== null &&
+        Math.hypot(event.clientX - pressedAt[0], event.clientY - pressedAt[1]) > 3;
+    pressedAt = null;
+    if (event.type === 'pointerup' && dragged && pointerLayer && !event.shiftKey && !event.altKey &&
         pointerLayer.closest('[data-edit="on"]')) {
         snapLayerDrag(pointerLayer);
     }
@@ -761,9 +767,11 @@ function snapLayerDrag(layer) {
         return;
     }
 
+    // A drag let go off the lines ends in the end-of-content element, which is in no line: past the
+    // line it was moved after, so on another line than the anchor's.
     const anchorLine = lineOf(selection.anchorNode);
     const focusLine = lineOf(selection.focusNode);
-    if (!anchorLine || !focusLine || !layer.contains(anchorLine) || !layer.contains(focusLine)) {
+    if (!anchorLine || !layer.contains(anchorLine) || !layer.contains(selection.focusNode)) {
         return;
     }
 
