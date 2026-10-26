@@ -379,7 +379,7 @@ public partial class MorphViewer : IAsyncDisposable
             BeginBusy($"Reading {file.Name}…");
             await using var stream = file.OpenReadStream(MaxFileSize);
             using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
+            await stream.CopyToAsync(memory, lifetime.Token);
             var fontDirectory = await FontStore.EnsureAsync(Http);
             await OpenAsync(memory.ToArray(), file.Name, fontDirectory);
         }

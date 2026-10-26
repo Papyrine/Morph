@@ -193,7 +193,7 @@ public partial class MorphConverter : IDisposable
             BeginPhase($"Reading {detected.DisplayName}…");
             await using var stream = file.OpenReadStream(MaxFileSize);
             using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
+            await stream.CopyToAsync(memory, cancel);
             sourceBytes = memory.ToArray();
 
             await RenderPreviewAsync();

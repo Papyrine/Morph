@@ -1670,7 +1670,7 @@ public partial class MorphViewer
         {
             await using var stream = args.File.OpenReadStream(MaxFileSize);
             using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
+            await stream.CopyToAsync(memory, lifetime.Token);
             var bytes = memory.ToArray();
             if (Picture(bytes, args.File.Name) is not { } picture)
             {
