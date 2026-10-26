@@ -144,8 +144,10 @@ static class StateNotation
             }
 
             builder.Append('¤');
-            if (selection != null &&
-                !selection.IsCollapsed &&
+            if (selection is
+                {
+                    IsCollapsed: false
+                } &&
                 rowEnd >= 0 &&
                 selection.End == rowEnd + 1)
             {
