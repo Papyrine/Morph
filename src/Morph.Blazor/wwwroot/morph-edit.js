@@ -19,7 +19,7 @@
 // from it) and o places into it, where each character is a place and so is each thing that is not text.
 // That is the count .NET uses too (EditParagraph.Length), which is how the two agree on where a caret is.
 
-import { faceMetrics, naturalWidth } from './morph-text.js';
+import { faceMetrics, naturalWidth, snapDrag } from './morph-text.js';
 import { completion, corrections, numberLeader, smartQuote } from './morph-autocorrect.js';
 
 const bold = 1;
@@ -1651,9 +1651,17 @@ export class ParagraphEditor {
         }, { signal });
         box.addEventListener('keydown', event => this.onKeyDown(event), { signal });
         box.addEventListener('mousedown', event => this.onPictureDown(event), { signal });
-        box.addEventListener('mousedown', () => {
+        box.addEventListener('mousedown', event => {
             this.lastKind = '';
             this.pendingFace = null;
+            this.dragging = event.button === 0 && event.detail === 1 && !event.shiftKey && !event.altKey &&
+                !(event.target instanceof Element && event.target.closest('.edit-drawing, .edit-atom'));
+        }, { signal });
+        document.addEventListener('mouseup', () => {
+            if (this.dragging) {
+                this.dragging = false;
+                this.snapDrag();
+            }
         }, { signal });
         box.addEventListener('click', event => this.onClickCount(event), { signal });
         box.addEventListener('focusout', () => this.onFocusOut(), { signal });
@@ -1693,6 +1701,41 @@ export class ParagraphEditor {
         const at = event.detail === 2 ? caret.from : caret.to;
         const [from, to] = this.unitAround(at, unit);
         this.select(from, to);
+    }
+
+    // A drag let go snaps to words as Word's does (snapDrag in morph-text.js). A drag out of the
+    // paragraph is left as it is.
+    snapDrag() {
+        const selected = this.selection();
+        if (this.pending || this.closed || !selected || selected.anchor.b !== selected.focus.b ||
+            same(selected.anchor, selected.focus)) {
+            return;
+        }
+
+        const b = selected.anchor.b;
+        const [anchor, focus] = snapDrag(this.blockText(b), selected.anchor.o, selected.focus.o,
+            this.sameLine(selected.anchor, selected.focus));
+        if (anchor !== selected.anchor.o || focus !== selected.focus.o) {
+            this.select({ b, o: anchor }, { b, o: focus });
+        }
+    }
+
+    // Whether two places in a block are drawn on one line: each one's character is level with the other's.
+    sameLine(one, other) {
+        const a = this.characterBox(one);
+        const b = this.characterBox(other);
+        const middle = box => box.top + box.height / 2;
+        return middle(a) >= b.top && middle(a) <= b.bottom && middle(b) >= a.top && middle(b) <= a.bottom;
+    }
+
+    // The box of the character at place (the one before it at the block's end).
+    characterBox(place) {
+        const length = blockLength(this.blocks[place.b]);
+        const from = place.o < length ? place.o : Math.max(0, place.o - 1);
+        const range = document.createRange();
+        range.setStart(...this.toDom({ b: place.b, o: from }));
+        range.setEnd(...this.toDom({ b: place.b, o: Math.min(from + 1, length) }));
+        return range.getClientRects()[0] ?? range.getBoundingClientRect();
     }
 
     // Pictures

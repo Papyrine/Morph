@@ -585,6 +585,7 @@ function appendBreak(parent, state) {
 
 let listening = false;
 let pointerLayer = null;
+let pointerY = null;
 let previousRange = null;
 
 // Gecko hit-tests positioned text well enough on its own; moving the end-of-content element is for
@@ -601,6 +602,11 @@ function installListeners() {
     document.addEventListener('selectionchange', onSelectionChange);
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('pointerup', onPointerUp, true);
+    document.addEventListener('pointermove', event => {
+        if (pointerLayer) {
+            pointerY = event.clientY;
+        }
+    }, true);
     document.addEventListener('keyup', () => {
         if (!pointerLayer) {
             resetEnds();
@@ -613,12 +619,19 @@ function onPointerDown(event) {
     const layer = event.target instanceof Element ? event.target.closest('.text-layer') : null;
     if (layer && layers.has(layer)) {
         pointerLayer = layer;
+        pointerY = event.clientY;
         layer.classList.add('selecting');
     }
 }
 
-function onPointerUp() {
+function onPointerUp(event) {
+    if (event.type === 'pointerup' && pointerLayer && !event.shiftKey && !event.altKey &&
+        pointerLayer.closest('[data-edit="on"]')) {
+        snapLayerDrag(pointerLayer);
+    }
+
     pointerLayer = null;
+    pointerY = null;
     resetEnds();
 }
 
@@ -664,9 +677,11 @@ function moveEnd(range) {
         anchor = anchor.parentNode;
     }
 
-    if (!startMoved && range.endOffset === 0) {
+    if (!startMoved && range.endOffset === 0 && !underPointer(anchor)) {
         // The end sits before the first character of anchor: the text actually selected ends in the
-        // nearest earlier node that has any.
+        // nearest earlier node that has any. Not when the pointer is on anchor's line, as it is on its
+        // way across a wrap into the next line's text: the end then belongs after that line, or every
+        // point on it that misses a glyph resolves back to the line before (WordProbe M-34b).
         do {
             while (anchor && !anchor.previousSibling) {
                 anchor = anchor.parentNode;
@@ -694,6 +709,103 @@ function moveEnd(range) {
 
     state.end.style.cssText = 'user-select:text;width:100%;height:100%';
     item.parentElement.insertBefore(state.end, startMoved ? item : item.nextSibling);
+}
+
+// Word's automatic word selection, on a drag let go (WordProbe M-34, M-34b): a drag that stays in the
+// word it began in is by character; one that leaves it snaps the anchor out to its whole word — and, on
+// the same line, the moving end too, to its word with the spaces after it. Across a line wrap only the
+// anchor snaps. anchor and focus are offsets into text, a line or a paragraph; [anchor, focus] back.
+export function snapDrag(text, anchor, focus, sameLine) {
+    const [first, last] = wordAt(text, anchor);
+    if (focus >= first && focus <= last) {
+        return [anchor, focus];
+    }
+
+    if (focus > anchor) {
+        return [first, sameLine ? spacesAfter(text, wordAt(text, focus)[1]) : focus];
+    }
+
+    return [spacesAfter(text, last), sameLine ? wordAt(text, focus)[0] : focus];
+}
+
+// The word the character at offset belongs to, without the spaces after it: a run of word characters,
+// or of other characters that are not spaces, as a double-click takes it (morph-edit's unitAround).
+function wordAt(text, offset) {
+    const wordy = /[\p{L}\p{N}_'’]/u;
+    const alike = character => wordy.test(character) === wordy.test(text[offset] ?? ' ');
+    let start = offset;
+    let end = offset;
+    while (start > 0 && text[start - 1] !== ' ' && alike(text[start - 1])) {
+        start--;
+    }
+
+    while (end < text.length && text[end] !== ' ' && alike(text[end])) {
+        end++;
+    }
+
+    return [start, end];
+}
+
+function spacesAfter(text, offset) {
+    while (offset < text.length && text[offset] === ' ') {
+        offset++;
+    }
+
+    return offset;
+}
+
+// A drag over a page's text, let go: snapped as Word snaps it, in the text of the line each end is in.
+function snapLayerDrag(layer) {
+    const selection = getSelection();
+    if (!selection || selection.rangeCount !== 1 || selection.isCollapsed) {
+        return;
+    }
+
+    const anchorLine = lineOf(selection.anchorNode);
+    const focusLine = lineOf(selection.focusNode);
+    if (!anchorLine || !focusLine || !layer.contains(anchorLine) || !layer.contains(focusLine)) {
+        return;
+    }
+
+    const anchorStart = textOffset(layer, anchorLine, 0);
+    const anchor = textOffset(layer, selection.anchorNode, selection.anchorOffset);
+    const focus = textOffset(layer, selection.focusNode, selection.focusOffset);
+    if (anchorStart < 0 || anchor < 0 || focus < 0) {
+        return;
+    }
+
+    const sameLine = anchorLine === focusLine;
+    const local = focus - anchorStart;
+    // Across lines the focus is not snapped, so only its side of the anchor matters.
+    const [snappedAnchor, snappedFocus] = snapDrag(anchorLine.textContent, anchor - anchorStart,
+        sameLine ? local : (focus > anchor ? Infinity : -Infinity), sameLine);
+    const newAnchor = anchorStart + snappedAnchor;
+    const newFocus = sameLine ? anchorStart + snappedFocus : focus;
+    if (newAnchor === anchor && newFocus === focus) {
+        return;
+    }
+
+    const state = layers.get(layer);
+    const forward = newFocus >= newAnchor;
+    const [anchorNode, anchorOffset] = locate(state, newAnchor, !forward);
+    const [focusNode, focusOffset] = locate(state, newFocus, forward);
+    selection.setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset);
+}
+
+function lineOf(node) {
+    const element = node instanceof Element ? node : node?.parentElement;
+    return element?.closest('.text-line') ?? null;
+}
+
+// Whether the pointer is level with the line node is in.
+function underPointer(node) {
+    const line = node instanceof Element ? node.closest('.text-line') : null;
+    if (!line || pointerY === null) {
+        return false;
+    }
+
+    const box = line.getBoundingClientRect();
+    return pointerY >= box.top && pointerY <= box.bottom;
 }
 
 function resetEnds() {

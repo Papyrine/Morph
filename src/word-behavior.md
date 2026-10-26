@@ -2936,7 +2936,8 @@ picture targets, drag and drop.
   of cells (`Column`), and from the paragraph before a table into a cell the `Normal` row selection of
   R-M-8 (M-36). Alt+drag selects a block (`Block`): typing into it does nothing, Delete removes each
   line's segment, and a copy of it pastes the segments as separate paragraphs (M-33). — Morph: PARTIAL
-  (the text layer's drag selection; no snapping, no cell rectangles, no block).
+  (word snapping with automatic word selection on, on the pages and in the open paragraph, `snapDrag`
+  in morph-text.js; no smart paragraph selection at a paragraph's end, no cell rectangles, no block).
 - **R-M-10 The selection bar (left of the text) selects lines**: a click selects the line under the
   pointer with its mark (a wrapped paragraph's one line only: `Alpha … eta ` without the mark), an empty
   paragraph as `⟦¶‸⟧`, and beside a table a whole row (`Row`, end-of-row mark included); a double-click
@@ -4085,7 +4086,7 @@ block spans two or three lines.
 
 #### M-34 · A drag selection snaps to words
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: With automatic word selection a drag that leaves its first word snaps both ends to word
 boundaries and takes the trailing space; within one word it stays by character; off, every drag is by character.
@@ -4107,7 +4108,7 @@ Notes: Within beta; from beta into gamma; the same leftwards; from alpha to delt
 
 #### M-34b · A drag across a line wrap inside one paragraph
 
-`wrapped-title` · Morph: **TODO**
+`wrapped-title` · Morph: **PARTIAL**
 
 Expected before the run: The release on the second line sets the active end there, as on one line: with automatic
 word selection both ends snap to whole words, so MEETING MINUTES is selected whole whether the release is inside
