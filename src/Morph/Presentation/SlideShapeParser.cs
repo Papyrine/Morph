@@ -485,6 +485,16 @@ sealed class SlideShapeParser(
             yield break;
         }
 
+        if (uri == "http://schemas.openxmlformats.org/presentationml/2006/ole")
+        {
+            foreach (var element in ParseOle(frame, graphicData!, transform, hostPart, ordinal))
+            {
+                yield return element;
+            }
+
+            yield break;
+        }
+
         if (uri != "http://schemas.openxmlformats.org/drawingml/2006/diagram")
         {
             yield break;
@@ -557,6 +567,112 @@ sealed class SlideShapeParser(
             VerticalAnchor = VerticalAnchor.Paragraph,
             RelativeHeight = ordinal
         };
+    }
+
+    /// <summary>
+    /// An embedded OLE object (<c>p:oleObj</c>) is drawn from the preview picture it stores: the server
+    /// that made it — MS Graph, for an old chart — is not here to draw it again, which is what PowerPoint
+    /// does too. The preview is the <c>p:pic</c> the object carries (inside <c>mc:Fallback</c> where the
+    /// file has an <c>mc:AlternateContent</c>) or, in an older file, the <c>v:imagedata</c> of the VML
+    /// shape its <c>spid</c> names. It is stretched over the frame. A metafile (EMF, WMF) is played into
+    /// shapes and text (<see cref="MetafileReader"/>, <see cref="MetafileElements"/>); any other picture
+    /// is placed as one. An object with no preview, or one that cannot be read, leaves the slot blank.
+    /// </summary>
+    IEnumerable<DocumentElement> ParseOle(P.GraphicFrame frame, A.GraphicData graphicData, SlideTransform transform, OpenXmlPart? hostPart, uint ordinal)
+    {
+        if (hostPart == null ||
+            ResolveGeometry(frame.Transform, transform) is not { } box ||
+            OlePreview(graphicData, hostPart) is not { } preview)
+        {
+            yield break;
+        }
+
+        var (data, contentType) = preview;
+        if (contentType is "image/x-emf" or "image/emf" or "image/x-wmf" or "image/wmf")
+        {
+            if (MetafileReader.Read(data) is not { } drawing)
+            {
+                yield break;
+            }
+
+            foreach (var element in MetafileElements.For(drawing, box.X, box.Y, box.Width, box.Height, ordinal))
+            {
+                yield return element;
+            }
+
+            yield break;
+        }
+
+        yield return new FloatingImageElement
+        {
+            ImageData = data,
+            ContentType = contentType,
+            WidthPoints = box.Width,
+            HeightPoints = box.Height,
+            HorizontalPositionPoints = box.X,
+            VerticalPositionPoints = box.Y,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Paragraph,
+            WrapType = WrapType.None,
+            RelativeHeight = ordinal
+        };
+    }
+
+    // The bytes and type of an OLE object's preview picture: its p:pic's blip, else the image of the VML
+    // shape its spid names.
+    (byte[] Data, string ContentType)? OlePreview(A.GraphicData graphicData, OpenXmlPart hostPart)
+    {
+        const string relationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        var blip = graphicData.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
+        var embed = blip?.GetAttributes().FirstOrDefault(_ => _ is {LocalName: "embed", NamespaceUri: relationships}).Value;
+        if (!string.IsNullOrEmpty(embed) &&
+            Image(hostPart, embed) is { } picture)
+        {
+            return picture;
+        }
+
+        var spid = graphicData.Descendants()
+            .Where(_ => _.LocalName == "oleObj")
+            .Select(_ => _.GetAttributes().FirstOrDefault(attribute => attribute.LocalName == "spid").Value)
+            .FirstOrDefault(_ => !string.IsNullOrEmpty(_));
+        if (spid == null)
+        {
+            return null;
+        }
+
+        foreach (var vml in hostPart.Parts.Select(_ => _.OpenXmlPart).OfType<VmlDrawingPart>())
+        {
+            using var stream = vml.GetStream(FileMode.Open, FileAccess.Read);
+            var document = System.Xml.Linq.XDocument.Load(stream);
+            var shape = document.Descendants().FirstOrDefault(_ => _.Name.LocalName == "shape" && _.Attributes().Any(attribute => attribute.Name.LocalName is "spid" or "id" && attribute.Value == spid));
+            var relationship = shape?.Descendants()
+                .Where(_ => _.Name.LocalName == "imagedata")
+                .SelectMany(_ => _.Attributes())
+                .FirstOrDefault(_ => _.Name.LocalName is "relid" or "id")?.Value;
+            if (relationship != null &&
+                Image(vml, relationship) is { } image)
+            {
+                return image;
+            }
+        }
+
+        return null;
+
+        (byte[] Data, string ContentType)? Image(OpenXmlPart owner, string id)
+        {
+            if (!owner.TryGetPartById(id, out var part))
+            {
+                return null;
+            }
+
+            var bytes = partBytes(part);
+            if (bytes.Length == 0)
+            {
+                return null;
+            }
+
+            return (bytes, part.ContentType);
+        }
     }
 
     DocumentElement? ParseTable(P.GraphicFrame frame, A.GraphicData graphicData, SlideTransform transform, uint ordinal)

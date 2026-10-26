@@ -1,4 +1,4 @@
-# All PDF export scenarios (41)
+# All PDF export scenarios (42)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -40,6 +40,7 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [memo](#memo)
 - [minimalist-light-sales-pitch](#minimalist-light-sales-pitch)
 - [offset](#offset)
+- [ole-chart-preview](#ole-chart-preview)
 - [pebble](#pebble)
 - [rose-suite](#rose-suite)
 - [savon](#savon)
@@ -459,6 +460,18 @@ PDF: [Morph PDF](minimalist-light-sales-pitch/pdf_result.verified.pdf)
 | <img src="offset/expected_0002.png" width="500"> | <img src="offset/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](offset/pdf_result.verified.pdf)
+
+
+## ole-chart-preview
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2887 · SSIM: 0.6173** |
+| <img src="ole-chart-preview/expected_0001.png" width="500"> | <img src="ole-chart-preview/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1370 · SSIM: 0.9652** |
+| <img src="ole-chart-preview/expected_0002.png" width="500"> | <img src="ole-chart-preview/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](ole-chart-preview/pdf_result.verified.pdf)
 
 
 ## pebble
