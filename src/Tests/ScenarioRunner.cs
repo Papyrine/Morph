@@ -27,6 +27,7 @@ static class ScenarioRunner
                 FontDirectory = fontsDirectory,
                 Pages = ScenarioInputs.Pages(format),
                 Dpi = ScenarioInputs.Dpi(format),
+                Culture = ScenarioInputs.Culture,
                 // Word prints with All Markup, so the references carry the comments
                 ShowComments = true
             });

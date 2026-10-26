@@ -63,14 +63,14 @@ sealed class PagedDocument : IDisposable
         // A file the editor has just written is read from the package its edit still holds open, whose
         // tree is that file's: reading the body's XML again was half of the parse.
         if (source != InputFormat.Docx ||
-            !DocumentReading.Borrow(bytes, _ => DocumentConverter.Parse(_, options.DefaultFont, options.UseLetterPageSize, traceSources), out var document))
+            !DocumentReading.Borrow(bytes, _ => DocumentConverter.Parse(_, options.DefaultFont, options.UseLetterPageSize, traceSources, options.Culture), out var document))
         {
             using var stream = new MemoryStream(bytes);
             document = source switch
             {
-                InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources),
+                InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, traceSources, options.Culture),
                 InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
-                InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont),
+                InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont, options.Culture),
                 _ => throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown input format.")
             };
         }

@@ -11,12 +11,16 @@ using A = DocumentFormat.OpenXml.Drawing;
 /// Absent text formatting takes Excel's chart style defaults: the theme's minor font, 9pt labels and
 /// 14pt titles, in 65% black (595959).
 /// </summary>
-sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
+sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, CultureInfo? culture = null)
 {
     const string defaultTextColor = "595959";
 
     // Office 2013's chart extensions, where a resized data label keeps its box (c15:layout).
     const string c15Namespace = "http://schemas.microsoft.com/office/drawing/2012/chart";
+
+    // A format code as the culture shows it: the system short date in its own order (NumberFormat.Localize).
+    string? Localize(string? code) =>
+        NumberFormat.Localize(code, culture ?? CultureInfo.InvariantCulture);
 
     // The Office theme's accents, for a package with no theme.
     static readonly string[] defaultPalette = ["4472C4", "ED7D31", "A5A5A5", "FFC000", "5B9BD5", "70AD47"];
@@ -321,7 +325,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             FillAlpha = Child(properties, "solidFill") is A.SolidFill solidFill ? ShapeParser.ExtractSolidFillAlpha(solidFill) : 1,
             NoLine = Child(Child(properties, "ln"), "noFill") != null,
             Marker = Marker(Child(ser, "marker"), automaticMarker),
-            FormatCode = (Child(ser, "val") ?? Child(ser, "yVal"))?.Descendants().FirstOrDefault(_ => _.LocalName == "formatCode")?.InnerText,
+            FormatCode = Localize((Child(ser, "val") ?? Child(ser, "yVal"))?.Descendants().FirstOrDefault(_ => _.LocalName == "formatCode")?.InnerText),
             FillHex = SolidColor(properties),
             Line = Stroke(Child(properties, "ln")),
             PointFills = pointFills,
@@ -383,7 +387,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
                                       Flag(_, "showVal")),
             ShowPercent = Flag(labels, "showPercent"),
             ShowCategory = Flag(labels, "showCatName"),
-            FormatCode = Attribute(Child(labels, "numFmt"), "formatCode"),
+            FormatCode = Localize(Attribute(Child(labels, "numFmt"), "formatCode")),
             Position = Attribute(Child(labels, "dLblPos"), "val"),
             Text = TextStyle(Child(labels, "txPr") ?? Child(styled, "txPr"), labelText),
             Deleted = deleted,
@@ -415,7 +419,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
             Maximum = Value(Child(scaling, "max")),
             MajorUnit = Value(Child(axis, "majorUnit")),
             ShowLabels = Attribute(Child(axis, "tickLblPos"), "val") != "none",
-            FormatCode = Attribute(Child(axis, "numFmt"), "formatCode"),
+            FormatCode = Localize(Attribute(Child(axis, "numFmt"), "formatCode")),
             Text = TextStyle(Child(axis, "txPr"), labelText),
             Line = Stroke(Child(Child(axis, "spPr"), "ln")),
             MajorGridlines = Child(axis, "majorGridlines") is { } gridlines
@@ -544,7 +548,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
     }
 
     // A category axis's labels: cached strings, or cached numbers in their own format.
-    static IReadOnlyList<string> Categories(OpenXmlElement? categories)
+    IReadOnlyList<string> Categories(OpenXmlElement? categories)
     {
         if (categories == null)
         {
@@ -558,7 +562,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts)
         }
 
         var cache = categories.Descendants().FirstOrDefault(_ => _.LocalName is "numCache" or "numLit");
-        var format = Child(cache, "formatCode")?.InnerText;
+        var format = Localize(Child(cache, "formatCode")?.InnerText);
         return [.. Numbers(categories).Select(_ => _ is { } number ? NumberFormat.Format(number, format).Text : "")];
     }
 

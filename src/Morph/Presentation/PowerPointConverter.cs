@@ -27,7 +27,7 @@ public abstract class PowerPointConverter
         };
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
-        var document = Parse(pptxStream, options.DefaultFont);
+        var document = Parse(pptxStream, options.DefaultFont, options.Culture);
         return PageSink.ToDirectory(
             outputDirectory,
             sink => RenderPages(document, options, sink));
@@ -50,7 +50,7 @@ public abstract class PowerPointConverter
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 
-        var document = Parse(pptxStream, options.DefaultFont);
+        var document = Parse(pptxStream, options.DefaultFont, options.Culture);
         return PageSink.ToMemory(sink => RenderPages(document, options, sink));
     }
 
@@ -63,7 +63,7 @@ public abstract class PowerPointConverter
 
     /// <summary>Converts a PPTX stream to a normalized semantic HTML fragment.</summary>
     public static string ConvertToHtml(Stream pptxStream, HtmlExportOptions? options = null) =>
-        HtmlExporter.Export(Parse(pptxStream, options?.DefaultFont), options);
+        HtmlExporter.Export(Parse(pptxStream, options?.DefaultFont, options?.Culture), options);
 
     /// <summary>Converts a PPTX file to Markdown.</summary>
     public static string ConvertToMarkdown(string pptxPath, MarkdownExportOptions? options = null)
@@ -74,10 +74,10 @@ public abstract class PowerPointConverter
 
     /// <summary>Converts a PPTX stream to Markdown.</summary>
     public static string ConvertToMarkdown(Stream pptxStream, MarkdownExportOptions? options = null) =>
-        MarkdownExporter.Export(Parse(pptxStream, options?.DefaultFont), options);
+        MarkdownExporter.Export(Parse(pptxStream, options?.DefaultFont, options?.Culture), options);
 
-    internal static ParsedDocument Parse(Stream pptxStream, string? defaultFont) =>
-        new PresentationParser(defaultFont ?? DefaultFontSettings.DefaultFont).Parse(pptxStream);
+    internal static ParsedDocument Parse(Stream pptxStream, string? defaultFont, CultureInfo? culture = null) =>
+        new PresentationParser(defaultFont ?? DefaultFontSettings.DefaultFont, culture).Parse(pptxStream);
 
     /// <summary>
     /// Renders a parsed deck, invoking <paramref name="pageCallback"/> for each slide (the callback

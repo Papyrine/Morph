@@ -6,9 +6,9 @@
 /// Every id the corpus actually uses is covered: 14 (dates) leads by a wide margin, then the
 /// currency and percent group (7, 9, 10) and accounting (37, 41-44).
 ///
-/// The locale-dependent ids (14-22) are given their en-US forms. Excel resolves those against the
-/// system locale, but the test harness pins culture (see the Tests ModuleInitializer) and the corpus
-/// is en-US authored, so a fixed table is both correct here and reproducible.
+/// The locale-dependent ids (14-22) are given their en-US forms, which Excel resolves against the
+/// system locale. Id 14, the system short date, then follows <see cref="ExportOptions.Culture"/>
+/// (<see cref="NumberFormat.Localize"/>); the others stay fixed.
 /// </summary>
 static class BuiltinNumberFormats
 {

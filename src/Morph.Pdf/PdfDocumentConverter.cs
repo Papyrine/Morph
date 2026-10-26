@@ -25,7 +25,7 @@ public sealed class PdfDocumentConverter
     public static byte[] ConvertToPdf(Stream docxStream, PdfExportOptions? options, Cancel cancel)
     {
         cancel.ThrowIfCancellationRequested();
-        var document = new DocumentParser(options?.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont).Parse(docxStream);
+        var document = new DocumentParser(options?.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, culture: options?.Culture).Parse(docxStream);
         return PdfRenderer.Render(document, options, cancel);
     }
 

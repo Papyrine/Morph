@@ -27,7 +27,8 @@ sealed class SpreadsheetParser(
     string? fontDirectory = null,
     Func<string, string?>? fontFallback = null,
     bool? useLetterPageSize = null,
-    bool onePagePerSheet = false)
+    bool onePagePerSheet = false,
+    CultureInfo? culture = null)
 {
     const double pointsPerInch = 72.0;
 
@@ -97,12 +98,13 @@ sealed class SpreadsheetParser(
             bodyFamily,
             bodySize);
 
-        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth);
+        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, culture ?? CultureInfo.InvariantCulture);
         var drawings = new SheetDrawingParser(
             themeColors,
             themeFonts,
             new(themeColors, themeFonts, defaultFont),
-            GetPartBytes);
+            GetPartBytes,
+            culture ?? CultureInfo.InvariantCulture);
         var definedNames = DefinedNames.For(workbookPart);
 
         var elements = new List<DocumentElement>();

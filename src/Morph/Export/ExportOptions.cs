@@ -54,6 +54,18 @@ public abstract record ExportOptions
     public bool? UseLetterPageSize { get; init; }
 
     /// <summary>
+    /// The culture a workbook's or chart's system short date (Excel's built-in number format 14,
+    /// stored as <c>m/d/yyyy</c>) is shown in, as Office shows it in the machine's own date order:
+    /// en-AU shows 1 May 2002 as <c>1/05/2002</c>, en-US as <c>5/1/2002</c>. Every other number
+    /// format is fixed by the document.
+    ///
+    /// Defaults to <see cref="CultureInfo.InvariantCulture"/>, which keeps <c>m/d/yyyy</c>, so output
+    /// does not depend on where the conversion runs; pass <see cref="CultureInfo.CurrentCulture"/> to
+    /// follow the machine as Office does.
+    /// </summary>
+    public CultureInfo Culture { get; init; } = CultureInfo.InvariantCulture;
+
+    /// <summary>
     /// Whether a Word document's comments are shown. Off by default, which leaves them out of every
     /// format.
     /// <para>

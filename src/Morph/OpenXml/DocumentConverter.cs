@@ -22,7 +22,7 @@ public abstract class DocumentConverter
         options = (options ?? new()) with { Cancellation = cancel };
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize, culture: options.Culture).Parse(docxStream);
         return PageSink.ToDirectory(
             outputDirectory,
             sink => RenderPages(document, options, sink));
@@ -42,7 +42,7 @@ public abstract class DocumentConverter
         cancel.ThrowIfCancellationRequested();
         DefaultFontSettings.MarkRenderOccurred();
 
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize, culture: options.Culture).Parse(docxStream);
         return PageSink.ToMemory(sink => RenderPages(document, options, sink));
     }
 
@@ -74,7 +74,7 @@ public abstract class DocumentConverter
         options ??= new();
         var pages = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize, culture: options.Culture).Parse(docxStream);
         if (document.Bookmarks.Count == 0)
         {
             return pages;
@@ -235,7 +235,7 @@ public abstract class DocumentConverter
     public static IReadOnlyList<string> GetPageTexts(Stream docxStream, ImageExportOptions? options = null)
     {
         options ??= new();
-        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize).Parse(docxStream);
+        var document = new DocumentParser(options.DefaultFont ?? DefaultFontSettings.CustomizedDefaultFont, options.UseLetterPageSize, culture: options.Culture).Parse(docxStream);
 
         DefaultFontSettings.MarkRenderOccurred();
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
@@ -293,7 +293,7 @@ public abstract class DocumentConverter
 
     /// <summary>Converts a DOCX stream to a semantic HTML fragment.</summary>
     public static string ConvertToHtml(Stream docxStream, HtmlExportOptions? options = null) =>
-        HtmlExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize), options);
+        HtmlExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize, culture: options?.Culture), options);
 
     /// <summary>Converts a DOCX file to Markdown.</summary>
     public static string ConvertToMarkdown(string docxPath, MarkdownExportOptions? options = null)
@@ -304,16 +304,16 @@ public abstract class DocumentConverter
 
     /// <summary>Converts a DOCX stream to Markdown.</summary>
     public static string ConvertToMarkdown(Stream docxStream, MarkdownExportOptions? options = null) =>
-        MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize), options);
+        MarkdownExporter.Export(Parse(docxStream, options?.DefaultFont, options?.UseLetterPageSize, culture: options?.Culture), options);
 
     // captureSources stamps every run with where its text came from in the package (Run.Source). Only
     // the viewer asks for it, to tie a place on a page back to the markup a comment is anchored in.
-    internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
-        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(docxStream);
+    internal static ParsedDocument Parse(Stream docxStream, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false, CultureInfo? culture = null) =>
+        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources, culture).Parse(docxStream);
 
     // A package someone else holds open, read as it stands and left as it was (DocumentParser.Parse).
-    internal static ParsedDocument Parse(WordprocessingDocument document, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false) =>
-        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources).Parse(document);
+    internal static ParsedDocument Parse(WordprocessingDocument document, string? defaultFont, bool? useLetterPageSize = null, bool captureSources = false, CultureInfo? culture = null) =>
+        new DocumentParser(defaultFont ?? DefaultFontSettings.CustomizedDefaultFont, useLetterPageSize, captureSources, culture).Parse(document);
 
     /// <summary>
     /// Renders a parsed document, invoking <paramref name="pageCallback"/> for each page (the

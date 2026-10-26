@@ -20,9 +20,9 @@ using XDR = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 /// sits at the content top when these are emitted. Anchoring X to the page instead drops the left
 /// margin and shifts every drawing off by it.
 /// </summary>
-sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts, DrawingTextParser textParser, Func<OpenXmlPart, byte[]> partBytes)
+sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts, DrawingTextParser textParser, Func<OpenXmlPart, byte[]> partBytes, CultureInfo culture)
 {
-    readonly ChartReader chartReader = new(themeColors, themeFonts);
+    readonly ChartReader chartReader = new(themeColors, themeFonts, culture);
 
     // The scale of the sheet being parsed, which its charts draw their text and rules at.
     double sheetScale = 1;

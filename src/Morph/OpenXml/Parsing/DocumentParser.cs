@@ -18,7 +18,7 @@ using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 /// </summary>
 [SuppressMessage("Style", "IDE0028:Simplify collection initialization")]
 [SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
-sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize = null, bool captureSources = false)
+sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize = null, bool captureSources = false, CultureInfo? culture = null)
 {
     // Conversion constants
 
@@ -8130,7 +8130,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var slices = PieSliceRun(chartSpace, extent.Cx.Value, extent.Cy.Value, runProps);
-        if (new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
+        if (new ChartReader(currentThemeColors, currentThemeFonts, culture).Read(chartSpace) is not { } model)
         {
             return slices;
         }
@@ -8162,7 +8162,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             height.Value <= 0 ||
             chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value is not {Length: > 0} relationshipId ||
             hostPart.PartOrNull(relationshipId)?.RootElement is not { } chartSpace ||
-            new ChartReader(currentThemeColors, currentThemeFonts).Read(chartSpace) is not { } model)
+            new ChartReader(currentThemeColors, currentThemeFonts, culture).Read(chartSpace) is not { } model)
         {
             return null;
         }

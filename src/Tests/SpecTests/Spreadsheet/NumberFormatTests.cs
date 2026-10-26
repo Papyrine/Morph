@@ -129,4 +129,44 @@ public class NumberFormatTests
     [Test]
     public async Task CustomIdsAreNotBuiltin() =>
         await Assert.That(BuiltinNumberFormats.Code(164)).IsNull();
+
+    // 37377 is 1 May 2002, chart-area's first category. Each culture is given its short-date pattern and
+    // separator outright, since ICU and Windows disagree on some (en-AU is d/M/yyyy in one, d/MM/yyyy in
+    // the other); an empty pattern is the invariant culture.
+    public static IEnumerable<(string Pattern, string Separator, string Code, string Expected)> CultureCases() =>
+    [
+        // The system short date follows the culture, as Office follows the machine.
+        ("", "/", "m/d/yyyy", "5/1/2002"),
+        ("M/d/yyyy", "/", "m/d/yyyy", "5/1/2002"),
+        ("d/MM/yyyy", "/", "m/d/yyyy", "1/05/2002"),
+        ("dd/MM/yyyy", "/", "m/d/yyyy", "01/05/2002"),
+        ("dd.MM.yyyy", ".", "m/d/yyyy", "01.05.2002"),
+        ("yyyy/MM/dd", "/", "m/d/yyyy", "2002/05/01"),
+
+        // '/' in a pattern stands for the culture's own separator.
+        ("dd/MM/yyyy", "-", "m/d/yyyy", "01-05-2002"),
+
+        // Month names and quoted text carry over.
+        ("d MMM yyyy", "/", "m/d/yyyy", "1 May 2002"),
+        ("yyyy'年'M'月'd'日'", "/", "m/d/yyyy", "2002年5月1日"),
+
+        // Any other code is the document's own, whatever the culture.
+        ("d/MM/yyyy", "/", "mm/dd/yyyy", "05/01/2002"),
+        ("d/MM/yyyy", "/", "d-mmm-yy", "1-May-02")
+    ];
+
+    [Test]
+    [MethodDataSource(nameof(CultureCases))]
+    public async Task SystemShortDateFollowsTheCulture(string pattern, string separator, string code, string expected)
+    {
+        var culture = CultureInfo.InvariantCulture;
+        if (pattern.Length > 0)
+        {
+            culture = (CultureInfo) CultureInfo.GetCultureInfo("en-US").Clone();
+            culture.DateTimeFormat.ShortDatePattern = pattern;
+            culture.DateTimeFormat.DateSeparator = separator;
+        }
+
+        await Assert.That(NumberFormat.Format(37377, NumberFormat.Localize(code, culture)).Text).IsEqualTo(expected);
+    }
 }

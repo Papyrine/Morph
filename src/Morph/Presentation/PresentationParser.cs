@@ -19,7 +19,7 @@ using P = DocumentFormat.OpenXml.Presentation;
 /// Slide size is a presentation-level property, so no section breaks are needed: every page in a deck
 /// shares one geometry.
 /// </summary>
-sealed class PresentationParser(string defaultFont)
+sealed class PresentationParser(string defaultFont, CultureInfo? culture = null)
 {
     /// <summary>Default 4:3 slide, used when a package declares no <c>p:sldSz</c>.</summary>
     const long defaultSlideWidthEmu = 9144000;
@@ -90,7 +90,8 @@ sealed class PresentationParser(string defaultFont)
             GetPartBytes,
             pageSettings.WidthPoints,
             pageSettings.HeightPoints,
-            presentationPart.TableStylesPart);
+            presentationPart.TableStylesPart,
+            culture);
 
         var elements = new List<DocumentElement>();
         var slideParts = OrderedSlideParts(presentationPart).ToArray();
