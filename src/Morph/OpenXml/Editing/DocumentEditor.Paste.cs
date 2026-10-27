@@ -164,6 +164,19 @@ static partial class DocumentEditor
         // at their level and alignment.
         public void Shape(int first, IReadOnlyList<PastedParagraph> content, List<int> owned)
         {
+            // Shaping adds and removes no paragraph, so one numbering serves every lookup.
+            var all = AllParagraphs().ToList();
+            Paragraph Find(int ordinal)
+            {
+                if (ordinal >= 0 &&
+                    ordinal < all.Count)
+                {
+                    return all[ordinal];
+                }
+
+                throw new InvalidOperationException($"The document has no paragraph {ordinal}.");
+            }
+
             foreach (var index in owned)
             {
                 var pasted = content[index];
