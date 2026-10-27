@@ -51,7 +51,7 @@
     <Build Solution="Release|*" Project="false" />
   </Project>
   <!--
-    The WOPI sample: a WopiServer host and its editor's WebAssembly app. Out of Release solution builds for
+    The WOPI sample: an OfficeHost host and its editor's WebAssembly app. Out of Release solution builds for
     the same reason as Morph.Web; Morph.Web.Tests publishes it for WopiSampleTests.
   -->
   <Project Path="Morph.Wopi.Sample/Morph.Wopi.Sample.csproj">

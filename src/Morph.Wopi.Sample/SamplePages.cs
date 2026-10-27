@@ -64,11 +64,11 @@ static class SamplePages
     /// Opens a file in Morph: the user's access to it, the URL of Morph's action from its discovery, and a
     /// page that posts the access token to it in a frame.
     /// </summary>
-    public static async Task<IResult> Open(string fileId, string action, HttpRequest request, WopiLauncher launcher)
+    public static async Task<IResult> Open(string fileId, string action, HttpRequest request, OfficeLauncher launcher)
     {
         // an application decides the access from its own users and permissions
         var canWrite = action == "edit";
-        var access = new WopiAccess(fileId, "demo")
+        var access = new OfficeAccess(fileId, "demo")
         {
             UserName = "Demo User",
             CanWrite = canWrite
@@ -95,7 +95,7 @@ static class SamplePages
     /// <summary>
     /// The host page: a form posts the token to Morph's action URL, into a frame over the whole page.
     /// </summary>
-    static string Editor(WopiLaunch launch) =>
+    static string Editor(OfficeLaunch launch) =>
         Page(
             "Morph",
             $"""

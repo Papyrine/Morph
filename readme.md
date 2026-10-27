@@ -41,7 +41,7 @@ Which package is needed depends on the *output* format, not the input — DOCX a
 
 There is one package that isn't about an output format: [`Morph.Blazor`](https://nuget.org/packages/Morph.Blazor/) ships a drop-in Blazor WebAssembly *component* — upload, page preview, format picker and download — that runs the whole conversion in the browser. It brings `Morph.ImageSharp` and `Morph.Pdf` with it, along with the fonts a browser render needs.
 
-[`Morph.Wopi`](https://nuget.org/packages/Morph.Wopi/) makes Morph's editor a [WOPI](https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/) client, so a WOPI host opens, edits and saves its files in it: see [its readme](/src/Morph.Wopi/README.md), and [the sample](/src/Morph.Wopi.Sample/README.md), a host built on [WopiServer](https://www.nuget.org/packages/WopiServer/).
+[`Morph.Wopi`](https://nuget.org/packages/Morph.Wopi/) makes Morph's editor a [WOPI](https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/) client, so a WOPI host opens, edits and saves its files in it: see [its readme](/src/Morph.Wopi/README.md), and [the sample](/src/Morph.Wopi.Sample/README.md), a host built on [OfficeHost](https://www.nuget.org/packages/OfficeHost/).
 
 
 ## Features

@@ -1,7 +1,7 @@
 # Morph.Wopi
 
 Morph's editor as a [WOPI](https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/online/)
-client, for ASP.NET Core (.NET 10). A WOPI host — one built on [WopiServer](https://www.nuget.org/packages/WopiServer/),
+client, for ASP.NET Core (.NET 10). A WOPI host — one built on [OfficeHost](https://www.nuget.org/packages/OfficeHost/),
 or any other that opens files in a client named by its discovery — opens, edits and saves its Word documents
 in Morph's editor, and shows its workbooks and decks in Morph's viewer, as it would in Office for the web or
 Collabora Online.

@@ -1,10 +1,10 @@
 # Morph.Wopi.Sample
 
-A WOPI host built on [WopiServer](https://www.nuget.org/packages/WopiServer/) that opens its files in Morph's
+A WOPI host built on [OfficeHost](https://www.nuget.org/packages/OfficeHost/) that opens its files in Morph's
 editor, which the same application serves through [Morph.Wopi](/src/Morph.Wopi/README.md). It plays both roles
 of WOPI, on two ports, so that one run starts both:
 
-* the host, at http://localhost:5000: the files of a folder, behind WopiServer's endpoints, with a page that
+* the host, at http://localhost:5000: the files of a folder, behind OfficeHost's endpoints, with a page that
   lists them and a page that opens one in a frame;
 * the client, at http://localhost:5001: Morph's discovery, the editor's page, and the proxy the editor calls
   the host through. The editor itself is [Morph.Wopi.Sample.Client](/src/Morph.Wopi.Sample.Client), a
@@ -31,15 +31,15 @@ second tab to see it open read only, locked by the first.
 <!-- snippet: WopiHost -->
 <a id='snippet-WopiHost'></a>
 ```cs
-// The host: the files of a folder, behind WopiServer's endpoints
+// The host: the files of a folder, behind OfficeHost's endpoints
 var storage = new FileSystemStorage(folder);
 services.AddSingleton(storage);
-services.AddSingleton<IWopiStorage>(storage);
-services.AddWopi(
+services.AddSingleton<IOfficeStorage>(storage);
+services.AddOfficeHost(
     options =>
     {
         // SigningKey, BaseUrl, DiscoveryUrls (Morph's discovery) and RequireProof come from appsettings.json
-        builder.Configuration.GetSection("Wopi").Bind(options);
+        builder.Configuration.GetSection("OfficeHost").Bind(options);
         options.HostEditUrl = (file, _) => $"{hostUrl}/edit/{Uri.EscapeDataString(file.Id)}";
         options.HostViewUrl = (file, _) => $"{hostUrl}/view/{Uri.EscapeDataString(file.Id)}";
         options.OnCheckFileInfo = context =>
@@ -57,7 +57,7 @@ services.AddWopi(
 <sup><a href='/src/Morph.Wopi.Sample/Program.cs#L14-L37' title='Snippet source file'>snippet source</a> | <a href='#snippet-WopiHost' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-The page that opens a file asks WopiServer's `WopiLauncher` for Morph's action URL and a token, and posts the
+The page that opens a file asks OfficeHost's `OfficeLauncher` for Morph's action URL and a token, and posts the
 token to it in a frame:
 
 <!-- snippet: WopiLaunch -->
@@ -67,11 +67,11 @@ token to it in a frame:
 /// Opens a file in Morph: the user's access to it, the URL of Morph's action from its discovery, and a
 /// page that posts the access token to it in a frame.
 /// </summary>
-public static async Task<IResult> Open(string fileId, string action, HttpRequest request, WopiLauncher launcher)
+public static async Task<IResult> Open(string fileId, string action, HttpRequest request, OfficeLauncher launcher)
 {
     // an application decides the access from its own users and permissions
     var canWrite = action == "edit";
-    var access = new WopiAccess(fileId, "demo")
+    var access = new OfficeAccess(fileId, "demo")
     {
         UserName = "Demo User",
         CanWrite = canWrite
@@ -98,7 +98,7 @@ public static async Task<IResult> Open(string fileId, string action, HttpRequest
 /// <summary>
 /// The host page: a form posts the token to Morph's action URL, into a frame over the whole page.
 /// </summary>
-static string Editor(WopiLaunch launch) =>
+static string Editor(OfficeLaunch launch) =>
     Page(
         "Morph",
         $"""
@@ -126,6 +126,6 @@ services.AddMorphWopi(options => builder.Configuration.GetSection("MorphWopi").B
 <sup><a href='/src/Morph.Wopi.Sample/Program.cs#L39-L42' title='Snippet source file'>snippet source</a> | <a href='#snippet-WopiClient' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-The URLs, the signing key and the trusted hosts are in `appsettings.json`: `Wopi:DiscoveryUrls` is Morph's
-discovery, `Wopi:BaseUrl` the URL Morph reaches the host at, and `MorphWopi:TrustedHosts` the hosts Morph
+The URLs, the signing key and the trusted hosts are in `appsettings.json`: `OfficeHost:DiscoveryUrls` is Morph's
+discovery, `OfficeHost:BaseUrl` the URL Morph reaches the host at, and `MorphWopi:TrustedHosts` the hosts Morph
 opens files for.

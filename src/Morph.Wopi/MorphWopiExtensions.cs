@@ -2,7 +2,7 @@ namespace Morph;
 
 /// <summary>
 /// Makes an ASP.NET Core application a WOPI client that opens files in Morph's editor: a WOPI host (one
-/// built on WopiServer, or any other that takes a client's discovery) reads the discovery, opens a file
+/// built on OfficeHost, or any other that takes a client's discovery) reads the discovery, opens a file
 /// by posting its access token to the action URL in a frame, and the editor gets, locks and saves the file
 /// through the host's WOPI endpoints, every request signed with a proof key.
 ///
