@@ -2511,7 +2511,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var height = (float) wordArt.HeightPoints;
-            EnsureSpaceFor(height);
+
+            // Alone in its paragraph the box takes that paragraph's line, as a picture alone on its line
+            // does (CanonicalParagraphMeasurer.BoxLine), with its effect extent reserved around it.
+            var lineHeight = height;
+            var boxTop = 0f;
+            if (wordArt.HostParagraph is { } host)
+            {
+                var effectTop = (float) (wordArt.EffectExtent?.Top ?? 0);
+                var reserved = height + effectTop + (float) (wordArt.EffectExtent?.Bottom ?? 0);
+                (lineHeight, var markRoom) = measurer.BoxLine(new() {Runs = [], Properties = host}, reserved);
+                boxTop = markRoom + effectTop;
+            }
+
+            EnsureSpaceFor(lineHeight);
 
             // Its own after-spacing is noted once the box has its page: a box carried to a fresh page
             // starts that page's spacing over, and noted ahead of the move its after went with the old
@@ -2522,19 +2535,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var boxX = ColumnLeft + AlignmentOffset(wordArt.Alignment, columnWidth, boxWidth);
             if (wordArt.Transform != WordArtTransform.None)
             {
-                items.Add(new PlacedWordArt(boxX, y, boxWidth, height, wordArt));
+                items.Add(new PlacedWordArt(boxX, y + boxTop, boxWidth, height, wordArt));
             }
             else
             {
-                if (WordArtBoxShape(wordArt, boxX, y) is { } boxItem)
+                if (WordArtBoxShape(wordArt, boxX, y + boxTop) is { } boxItem)
                 {
                     items.Add(boxItem);
                 }
 
-                items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, y, boxWidth, height));
+                items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, y + boxTop, boxWidth, height));
             }
 
-            y += height;
+            y += lineHeight;
             atRegionTop = false;
         }
 
@@ -5536,7 +5549,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     continue;
                 }
 
-                images[imageIndex] = new(x, y, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
+                images[imageIndex] = new(x, y, image.Width, image.Height, image.Data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, Crop: image.Crop, ShapeGroup: image.ShapeGroup, Recolor: image.Recolor, Opacity: image.Opacity, Outline: image.Outline, Vector: image.Vector);
             }
 
             return images;

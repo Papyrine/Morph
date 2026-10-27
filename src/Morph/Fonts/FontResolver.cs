@@ -163,6 +163,12 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
 
     TFont? TryResolveDefaultMode(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
     {
+        // A name Word cannot select goes straight to its substitute, as Word's does.
+        if (FontHelpers.WordCannotSelect(candidates.Original))
+        {
+            return ApplyFallbacks(null, int.MaxValue, allFontsCache, systemFallback, candidates, fontFamily, bold, targetItalic);
+        }
+
         // 1. Search the merged host cache (user → Office → cloud → system, in priority order)
         //    for any of the candidate names, picking the closest face by weight/italic/width.
         var font = TryResolveFromCache(allFontsCache, candidates, targetWeight, targetItalic, out var weightDelta);
@@ -171,7 +177,7 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         //    didn't index" plus localized system fonts on macOS/Linux).
         font ??= systemFallback?.Invoke(candidates, targetWeight, targetItalic);
 
-        // 3. Configured/runtime fallback names (e.g. "Segoe UI Variable" → "Segoe UI"),
+        // 3. Configured/runtime fallback names (e.g. "Segoe UI Variable Text" → "Segoe UI"),
         //    re-resolved through the same path.
         return ApplyFallbacks(font, weightDelta, allFontsCache, systemFallback, candidates, fontFamily, bold, targetItalic);
     }
@@ -179,6 +185,11 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
     TFont? TryResolveDirectoryMode(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
     {
         var directoryCache = GetDirectoryCache(fontDirectory!);
+        if (FontHelpers.WordCannotSelect(candidates.Original))
+        {
+            return ApplyFallbacks(null, int.MaxValue, directoryCache, system: null, candidates, fontFamily, bold, targetItalic);
+        }
+
         var font = TryResolveFromCache(directoryCache, candidates, targetWeight, targetItalic, out var weightDelta);
         return ApplyFallbacks(font, weightDelta, directoryCache, system: null, candidates, fontFamily, bold, targetItalic);
     }

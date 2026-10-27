@@ -87,6 +87,16 @@ sealed class WordArtElement : DocumentElement, IWordArtVisual
     /// <inheritdoc cref="SpacingBeforePoints"/>
     public double SpacingAfterPoints { get; init; }
 
+    /// <summary>
+    /// The paragraph the box stands alone in, when it does: its line is then that paragraph's line
+    /// holding nothing but the box, sized as a picture alone on its line is
+    /// (<c>CanonicalParagraphMeasurer.BoxLine</c>). Null when text shares the paragraph.
+    /// </summary>
+    public ParagraphProperties? HostParagraph { get; init; }
+
+    /// <summary>The inline box's <c>wp:effectExtent</c>, reserved around it as a picture's is; null when none.</summary>
+    public ImageEffectExtent? EffectExtent { get; init; }
+
     /// <summary>Whether the text has a shadow effect.</summary>
     public bool HasShadow { get; init; }
 

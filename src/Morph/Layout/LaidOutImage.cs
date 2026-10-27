@@ -12,7 +12,7 @@
 /// width counts toward the line width and its height can grow the line. Positioned with its bottom on
 /// the text baseline by the fragmenter.
 /// </summary>
-readonly record struct LaidOutImage(float X, float Width, float Height, byte[]? Data, double RotationDegrees = 0, bool FlipHorizontal = false, bool FlipVertical = false, ImageCrop? Crop = null, InlineShapeGroup? ShapeGroup = null, ImageRecolor? Recolor = null, double Opacity = 1, ImageOutline? Outline = null, ImageEffectExtent? EffectExtent = null, SvgDrawing? Vector = null, ChartModel? Chart = null)
+readonly record struct LaidOutImage(float X, float Width, float Height, byte[]? Data, double RotationDegrees = 0, bool FlipHorizontal = false, bool FlipVertical = false, ImageCrop? Crop = null, InlineShapeGroup? ShapeGroup = null, ImageRecolor? Recolor = null, double Opacity = 1, ImageOutline? Outline = null, ImageEffectExtent? EffectExtent = null, SvgDrawing? Vector = null, ChartModel? Chart = null, bool ClipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ClipSubpaths = null)
 {
     public float BoxWidth => Width + (float) ((EffectExtent?.Left ?? 0) + (EffectExtent?.Right ?? 0));
 

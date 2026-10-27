@@ -48,6 +48,28 @@ public class FontFallbackOrderTests
         await Assert.That(asked).IsEmpty();
     }
 
+    // Word cannot select the bare "Segoe UI Variable" (FontHelpers.WordCannotSelect) and draws it
+    // in Calibri, so the face being present changes nothing.
+    [Test]
+    public async Task UnselectableName_SkipsItsOwnFace()
+    {
+        using var fonts = new FontSubset("Segoe_UI_Variable_400.ttf", "Calibri_400.ttf");
+        using var context = new SkiaRenderContext(new(), 96, fontDirectory: fonts.Directory);
+        using var typeface = context.GetTypeface("Segoe UI Variable", false, false);
+        await Assert.That(typeface.FamilyName).IsEqualTo("Calibri");
+    }
+
+    // A named instance is selectable, so it is not sent to Calibri: it keeps its own alias,
+    // Segoe UI, whose metrics are the variable face's.
+    [Test]
+    public async Task NamedInstance_IsNotSentToCalibri()
+    {
+        using var fonts = new FontSubset("Segoe_UI_Variable_400.ttf", "Segoe_UI_400.ttf", "Calibri_400.ttf");
+        using var context = new SkiaRenderContext(new(), 96, fontDirectory: fonts.Directory);
+        using var typeface = context.GetTypeface("Segoe UI Variable Display", false, false);
+        await Assert.That(typeface.FamilyName).IsEqualTo("Segoe UI");
+    }
+
     [Test]
     public async Task AliasTargetMissing_NoCallersFallback_ThrowsNamingTheDirectory()
     {

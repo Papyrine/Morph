@@ -125,7 +125,7 @@ public class FontHelperTests
     // === FindFallback ===
 
     [Test]
-    [Arguments("Segoe UI Variable", "Segoe UI")]
+    [Arguments("Segoe UI Variable", "Calibri")]
     [Arguments("Segoe UI Variable Display", "Segoe UI")]
     [Arguments("Segoe UI Variable Text", "Segoe UI")]
     [Arguments("Segoe UI Variable Small", "Segoe UI")]
@@ -147,7 +147,7 @@ public class FontHelperTests
     [Test]
     public async Task FindFallback_CaseInsensitive()
     {
-        var candidates = FontHelpers.GetCandidateNames("SEGOE UI VARIABLE");
+        var candidates = FontHelpers.GetCandidateNames("SEGOE UI VARIABLE TEXT");
         var fallback = FontHelpers.FindFallback(candidates);
         await Assert.That(fallback).IsEqualTo("Segoe UI");
     }
