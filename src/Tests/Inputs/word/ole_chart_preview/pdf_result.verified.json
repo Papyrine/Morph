@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Header from source doc\nP a g e 1 | 2\nLorem ipsum\nLorem ipsum dolor sit amet, consectetur adipiscing elit.\nNunc ac faucibus odio.\nVestibulum neque massa, scelerisque sit amet ligula eu, congue molestie mi. Praesent ut\nvarius sem. Nullam at porttitor arcu, nec lacinia nisi. Ut ac dolor vitae odio interdum\ncondimentum. Vivamus dapibus sodales ex, vitae malesuada ipsum cursus convallis.\nMaecenas sed egestas nulla, ac condimentum orci. Mauris diam felis, vulputate ac\nsuscipit et, iaculis non est. Curabitur semper arcu ac ligula semper, nec luctus nisl blandit.\nInteger lacinia ante ac libero lobortis imperdiet. Nullam mollis convallis ipsum, ac accumsan\nnunc vehicula vitae. Nulla eget justo in felis tristique fringilla.\nMaecenas mauris lectus, lobortis et purus mattis, blandit dictum tellus.\n• Maecenas non lorem quis tellus placerat varius.\n• Nulla facilisi.\n• Aenean congue fringilla justo ut aliquam.\n• Mauris id ex erat. Nunc vulputate neque vitae justo facilisis, non condimentum ante\nsagittis.\n• Maecenas tincidunt est efficitur ligula euismod, sit amet ornare est vulputate.\nRow 1 Row 2 Row 3 Row 4\n0\n2\n4\n6\n8\n10\n12\nColumn 1\nColumn 2\nColumn 3"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Header from source doc\nP a g e 2 | 2\nIn non mauris justo. Duis vehicula mi vel mi pretium, a viverra erat efficitur. Cras aliquam est\nac eros varius, id iaculis dui auctor. Duis pretium neque ligula, et pulvinar mi placerat et.\nNulla nec nunc sit amet nunc posuere vestibulum. Ut id neque eget tortor mattis tristique.\nDonec ante est, blandit sit amet tristique vel, lacinia pulvinar arcu. Pellentesque scelerisque\nfermentum erat, id posuere justo pulvinar ut. Cras id eros sed enim aliquam lobortis. Sed\nlobortis nisl ut eros efficitur tincidunt. Cras justo mi, porttitor quis mattis vel, ultricies ut\npurus. Ut facilisis et lacus eu cursus.\nIn eleifend velit vitae libero sollicitudin euismod. Fusce vitae vestibulum velit. Pellentesque\nvulputate lectus quis pellentesque commodo. Aliquam erat volutpat. Vestibulum in egestas\nvelit. Pellentesque fermentum nisl vitae fringilla venenatis. Etiam id mauris vitae orci\nmaximus ultricies.\nCras fringilla ipsum magna, in fringilla dui commodo a.\nLorem ipsum Lorem ipsum Lorem ipsum\n1 In eleifend velit vitae libero sollicitudin euismod. Lorem\n2 Cras fringilla ipsum magna, in fringilla dui commodo\na.\nIpsum\n3 Aliquam erat volutpat. Lorem\n4 Fusce vitae vestibulum velit. Lorem\n5 Etiam vehicula luctus fermentum. Ipsum\nEtiam vehicula luctus fermentum. In vel metus congue, pulvinar lectus vel, fermentum dui.\nMaecenas ante orci, egestas ut aliquet sit amet, sagittis a magna. Aliquam ante quam, esque\nfringilla mollis efficitur. Nullam venenatis commodo imperdiet. Morbi velit neque, semper quis\nlorem quis, efficitur dignissim ipsum. Ut ac lorem sed turpis imperdiet eleifend sit amet id\nsapien"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.9147,
+      "Ssim": 0.764,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 1.0,
+      "Ssim": 0.6854,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

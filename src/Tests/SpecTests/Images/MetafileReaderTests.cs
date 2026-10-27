@@ -50,7 +50,7 @@ public class MetafileReaderTests
     }
 
     // A placeable WMF on a 1000 x 500 box: a red square with a blue pen, and "Hi" centred on a baseline.
-    static byte[] Wmf()
+    internal static byte[] Wmf()
     {
         var records = new List<byte[]>
         {

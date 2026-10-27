@@ -44,6 +44,10 @@
         ["Liberation Serif"] = "Times New Roman",
         ["Liberation Mono"] = "Courier New",
         ["Liberation Sans Narrow"] = "Arial Narrow",
+        // LibreOffice's default sans, which it writes into a file's fontTable with Verdana as its
+        // altName — what Word substitutes on a machine without it. DejaVu Sans grew from Bitstream
+        // Vera, drawn by Verdana's foundry to much the same wide, open proportions.
+        ["DejaVu Sans"] = "Verdana",
     };
 
     // Common font style suffixes to strip when looking for base family

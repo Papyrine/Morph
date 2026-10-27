@@ -1917,7 +1917,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     var imageX = FloatX(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent);
                     var imageY = AnchoredY(image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
-                    AddBodyFloat(PlaceImage(image, imageX, imageY), image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    foreach (var item in PlaceImageItems(image, imageX, imageY))
+                    {
+                        AddBodyFloat(item, image.BehindText, IsAbsoluteY(image.VerticalAnchor));
+                    }
+
                     RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
                     break;
                 }
@@ -2573,6 +2577,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         static bool IsDrawable(FloatingImageElement image) =>
             Drawable(image) is {Data.Length: > 0} or {Vector: not null};
+
+        // What a floating picture draws as at a point: the picture itself, or — for a metafile, which no
+        // painter decodes — the shapes and text its drawing composes into in the picture's box.
+        IEnumerable<PlacedItem> PlaceImageItems(FloatingImageElement image, float x, float y)
+        {
+            if (image.Metafile is { } metafile)
+            {
+                return MetafileComposer.Compose(metafile, x, y, (float) image.WidthPoints, (float) image.HeightPoints, LayoutText);
+            }
+
+            return [PlaceImage(image, x, y)];
+        }
+
+        // Text laid out in a box, as a chart's labels and a metafile's text are.
+        IReadOnlyList<PlacedItem> LayoutText(IReadOnlyList<DocumentElement> content, float x, float y, float width, float height, CellVerticalAlignment alignment) =>
+            LayoutCellContent(new() {Content = content}, x, y, width, height, alignment);
 
         // A floating picture placed at a point, with everything the painter turns, crops, cuts and
         // recolours it by.
@@ -4713,6 +4733,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             item switch
             {
                 PlacedLine line => ShiftLine(line, dx, dy),
+                PlacedRotatedGroup group => group with
+                {
+                    X = group.X + dx,
+                    Y = group.Y + dy,
+                    Items = [.. group.Items.Select(_ => ShiftComposed(_, dx, dy))]
+                },
                 _ => item with
                 {
                     X = item.X + dx,
@@ -5007,7 +5033,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
         // they span the whole page. Front-text (foreground) header art is a later slice; header/footer
         // text and band tables lay out in LayoutBand.
-        static IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter)
+        IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter)
         {
             if (band == null)
             {
@@ -5050,7 +5076,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     IsDrawable(image))
                 {
                     var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
-                    items.Add(PlaceImage(image, imageX, imageY));
+                    items.AddRange(PlaceImageItems(image, imageX, imageY));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
@@ -5533,6 +5559,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() {Content = content}, left, top, width, height, alignment));
                     images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: composer.Compose(chart, x, y, image.Width, image.Height));
+                    continue;
+                }
+
+                if (image.Metafile is { } metafile)
+                {
+                    images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: MetafileComposer.Compose(metafile, x, y, image.Width, image.Height, LayoutText));
                     continue;
                 }
 
