@@ -37,9 +37,9 @@
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <PackageReference Include="DiffEngine" />
     <ProjectReference Include="..\Morph.Web\Morph.Web.csproj" />
-    <!-- Morph.Wopi's endpoints, tested against a WopiServer host in the same test server (WopiHostTests). -->
+    <!-- Morph.Wopi's endpoints, tested against an OfficeHost host in the same test server (WopiHostTests). -->
     <ProjectReference Include="..\Morph.Wopi\Morph.Wopi.csproj" />
-    <PackageReference Include="WopiServer" />
+    <PackageReference Include="OfficeHost" />
   </ItemGroup>
 
   <!-- The service/bUnit tests need a real file of each readable format and the Aptos faces the PDF

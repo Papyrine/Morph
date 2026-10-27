@@ -447,8 +447,8 @@ neither call another origin nor hold the proof key, so the proxy builds the WOPI
 ([MS-WOPI] 2.2.1) and hands back the status, the lock headers and the body. Both refuse a WOPISrc off
 `TrustedHosts`, which are also the only `frame-ancestors`. `MorphWopi` reads the launch, checks the file,
 locks it, refreshes the lock, saves through the editor's `OnSave` and unlocks with a beacon on
-`pagehide`. `src/Morph.Wopi.Sample` is a WopiServer host and the editor in one application on two ports;
-`WopiHostTests` run both halves against WopiServer in a test server with proofs required, and
+`pagehide`. `src/Morph.Wopi.Sample` is an OfficeHost host and the editor in one application on two ports;
+`WopiHostTests` run both halves against OfficeHost in a test server with proofs required, and
 `WopiSampleTests` drive the published sample with Playwright.
 
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was

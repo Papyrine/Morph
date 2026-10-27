@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Options;
-using WopiServer;
+using OfficeHost;
 
-// Morph.Wopi against a real WOPI host: WopiServer's endpoints and Morph.Wopi's in one test server, the host
+// Morph.Wopi against a real WOPI host: OfficeHost's endpoints and Morph.Wopi's in one test server, the host
 // requiring every request to carry a proof that Morph's discovery keys validate. The host is http://host,
 // Morph http://morph; the test server answers both.
 public class WopiHostTests
@@ -23,8 +23,8 @@ public class WopiHostTests
 
         public string Id => storage.GetFileId("Report.docx");
 
-        public Task<WopiLaunch> LaunchAsync(string action = "edit", string file = "Report.docx") =>
-            app.Services.GetRequiredService<WopiLauncher>()
+        public Task<OfficeLaunch> LaunchAsync(string action = "edit", string file = "Report.docx") =>
+            app.Services.GetRequiredService<OfficeLauncher>()
                 .Launch(
                     new(storage.GetFileId(file), "ann")
                     {
@@ -62,8 +62,8 @@ public class WopiHostTests
         TestServer? server = null;
         var services = builder.Services;
         var storage = new FileSystemStorage(files);
-        services.AddSingleton<IWopiStorage>(storage);
-        services.AddWopi(
+        services.AddSingleton<IOfficeStorage>(storage);
+        services.AddOfficeHost(
             options =>
             {
                 options.SigningKey = "the signing key of WopiHostTests, at least 32 characters";
@@ -78,11 +78,11 @@ public class WopiHostTests
                 options.TrustedHosts.Add("http://host");
             });
         // Both sides' requests go to the test server: the host's for the discovery, Morph's to the host.
-        services.AddHttpClient(WopiOptions.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => server!.CreateHandler());
+        services.AddHttpClient(OfficeHostOptions.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => server!.CreateHandler());
         services.AddHttpClient(WopiProxy.ClientName).ConfigurePrimaryHttpMessageHandler(() => server!.CreateHandler());
 
         var app = builder.Build();
-        app.MapWopi();
+        app.MapOfficeHost();
         app.MapMorphWopi();
         await app.StartAsync();
         server = app.GetTestServer();
@@ -90,7 +90,7 @@ public class WopiHostTests
     }
 
     // What the action URL answers with: the editor's page, the launch written into it for MorphWopi.
-    static async Task<(HttpResponseMessage Response, WopiLaunchInfo? Launch)> PostAsync(HttpClient client, WopiLaunch launch)
+    static async Task<(HttpResponseMessage Response, WopiLaunchInfo? Launch)> PostAsync(HttpClient client, OfficeLaunch launch)
     {
         var response = await client.PostAsync(
             launch.Url,

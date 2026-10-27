@@ -1,5 +1,5 @@
 // One application in the two roles of WOPI, on two ports:
-// - the WOPI host, at http://localhost:5000: a folder of files, which WopiServer serves to WOPI clients;
+// - the WOPI host, at http://localhost:5000: a folder of files, which OfficeHost serves to WOPI clients;
 // - the WOPI client, at http://localhost:5001: Morph's editor, which Morph.Wopi serves, and which the
 //   host opens its files in.
 // Deployed, they are two applications, usually on two sites; here one run starts both.
@@ -12,15 +12,15 @@ SampleFiles.Seed(folder);
 var services = builder.Services;
 
 // begin-snippet: WopiHost
-// The host: the files of a folder, behind WopiServer's endpoints
+// The host: the files of a folder, behind OfficeHost's endpoints
 var storage = new FileSystemStorage(folder);
 services.AddSingleton(storage);
-services.AddSingleton<IWopiStorage>(storage);
-services.AddWopi(
+services.AddSingleton<IOfficeStorage>(storage);
+services.AddOfficeHost(
     options =>
     {
         // SigningKey, BaseUrl, DiscoveryUrls (Morph's discovery) and RequireProof come from appsettings.json
-        builder.Configuration.GetSection("Wopi").Bind(options);
+        builder.Configuration.GetSection("OfficeHost").Bind(options);
         options.HostEditUrl = (file, _) => $"{hostUrl}/edit/{Uri.EscapeDataString(file.Id)}";
         options.HostViewUrl = (file, _) => $"{hostUrl}/view/{Uri.EscapeDataString(file.Id)}";
         options.OnCheckFileInfo = context =>
@@ -45,18 +45,18 @@ var app = builder.Build();
 // the editor's WebAssembly app, Morph.Wopi.Sample.Client
 app.MapStaticAssets();
 // the host's WOPI endpoints, /wopi/files/{fileId}, which Morph calls
-app.MapWopi();
+app.MapOfficeHost();
 // Morph's: /hosting/discovery, /morph/wopi/view and /morph/wopi/edit, /morph/wopi/proxy/{operation}
 app.MapMorphWopi();
 // the host's pages: its files, and the page that opens one in Morph
 app.MapGet("/", () => Results.Content(SamplePages.Files(storage), "text/html"));
 app.MapGet(
     "/edit/{fileId}",
-    (string fileId, HttpRequest request, WopiLauncher launcher) =>
+    (string fileId, HttpRequest request, OfficeLauncher launcher) =>
         SamplePages.Open(fileId, "edit", request, launcher));
 app.MapGet(
     "/view/{fileId}",
-    (string fileId, HttpRequest request, WopiLauncher launcher) =>
+    (string fileId, HttpRequest request, OfficeLauncher launcher) =>
         SamplePages.Open(fileId, "view", request, launcher));
 app.Lifetime.ApplicationStarted.Register(() => app.Logger.LogInformation("Open {HostUrl} in a browser", hostUrl));
 app.Run();

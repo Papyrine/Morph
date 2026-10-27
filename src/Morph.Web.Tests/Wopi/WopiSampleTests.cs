@@ -35,8 +35,8 @@ public class WopiSampleTests
                      $"--Urls={HostUrl};{morphUrl}",
                      $"--Sample:Files={folder}",
                      $"--Sample:HostUrl={HostUrl}",
-                     $"--Wopi:BaseUrl={HostUrl}",
-                     $"--Wopi:DiscoveryUrls:0={morphUrl}/hosting/discovery",
+                     $"--OfficeHost:BaseUrl={HostUrl}",
+                     $"--OfficeHost:DiscoveryUrls:0={morphUrl}/hosting/discovery",
                      $"--MorphWopi:BaseUrl={morphUrl}",
                      $"--MorphWopi:TrustedHosts:0={HostUrl}"
                  ])
@@ -129,12 +129,19 @@ public class WopiSampleTests
     }
 
     // Close goes back to the host's page; when it does not, the page's log says what happened instead.
+    // Reaching it is the navigation committed, not the page's load event: the host page has been seen
+    // to arrive and then not fire load within the timeout on CI, and what follows navigates anyway.
     static async Task CloseAsync(IPage page, IFrame frame)
     {
         await frame.ClickAsync(".wopi-close");
         try
         {
-            await page.WaitForURLAsync($"{HostUrl}/");
+            await page.WaitForURLAsync(
+                $"{HostUrl}/",
+                new()
+                {
+                    WaitUntil = WaitUntilState.Commit
+                });
         }
         catch (TimeoutException exception)
         {
