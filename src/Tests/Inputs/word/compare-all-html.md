@@ -1,4 +1,4 @@
-# All HTML export scenarios (347)
+# All HTML export scenarios (348)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -253,6 +253,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [numbered_list_restart](#numbered_list_restart)
 - [numbered_list_tracking](#numbered_list_tracking)
 - [office_math](#office_math)
+- [ole_chart_preview](#ole_chart_preview)
 - [page_a4](#page_a4)
 - [page_borders/01](#page_borders01)
 - [page_breaks](#page_breaks)
@@ -1842,6 +1843,12 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="office_math/expected_0001.png" width="500"> | <img src="office_math/html_result.verified.png" width="500"> |
+
+## ole_chart_preview
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="ole_chart_preview/expected_0001.png" width="500"><br><img src="ole_chart_preview/expected_0002.png" width="500"> | <img src="ole_chart_preview/html_result.verified.png" width="500"> |
 
 ## page_a4
 
