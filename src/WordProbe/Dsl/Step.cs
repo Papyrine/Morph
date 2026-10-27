@@ -4,6 +4,7 @@
 //   text    type("abc")                       no \n or \t inside: Enter, Tab and Shift+Enter are their own steps
 //   mouse   click(P1:5) · click(P1:5, side=right) · dblclick(P2:9) · tripleclick(P1:0) · shift+click(P3:4)
 //           ctrl+click(P1:2) · rightclick(P1:5) · drag(P1:2→P2:4) · alt+drag(P1:2→P3:6) · ctrl+drag(P1:0-P1:5→P3:0)
+//           dbldrag(P1:2→P1:9) · tripledrag(P1:2→P2:4)   a drag whose press is a double- or triple-click's last
 //           click(selectionbar P1) · dblclick(selectionbar P1) · ctrl+click(selectionbar P1)
 //           click(cellLeftEdge C(1,1)) · click(columnTop C(1,2)) · click(rowBar R1) · click(tableHandle T1)
 //           click(IMG1) · click(SHP1) · click(below P3) · hover(P1:3)
@@ -25,6 +26,8 @@ enum MouseAction
     TripleClick,
     RightClick,
     Drag,
+    DoubleDrag,
+    TripleDrag,
     Hover
 }
 
@@ -189,11 +192,13 @@ static class StepParser
             "tripleclick" => MouseAction.TripleClick,
             "rightclick" => MouseAction.RightClick,
             "drag" => MouseAction.Drag,
+            "dbldrag" => MouseAction.DoubleDrag,
+            "tripledrag" => MouseAction.TripleDrag,
             "hover" => MouseAction.Hover,
             _ => throw new ArgumentException($"Unknown step '{text}'.")
         };
 
-        if (mouseAction == MouseAction.Drag)
+        if (mouseAction is MouseAction.Drag or MouseAction.DoubleDrag or MouseAction.TripleDrag)
         {
             var arrow = arguments.IndexOf('→');
             if (arrow < 0)

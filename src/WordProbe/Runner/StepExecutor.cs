@@ -137,7 +137,7 @@ sealed class StepExecutor
     void ExecuteMouse(MouseStep step)
     {
         var mouse = session.Mouse;
-        if (step.Action == MouseAction.Drag)
+        if (step.Action is MouseAction.Drag or MouseAction.DoubleDrag or MouseAction.TripleDrag)
         {
             GuardClick(true);
             var fromRange = step.From!;
@@ -162,7 +162,13 @@ sealed class StepExecutor
             session.HoldingInput = true;
             try
             {
-                mouse.Drag(from, to, step.Modifiers);
+                var clicks = step.Action switch
+                {
+                    MouseAction.DoubleDrag => 2,
+                    MouseAction.TripleDrag => 3,
+                    _ => 1
+                };
+                mouse.Drag(from, to, step.Modifiers, clicks: clicks);
             }
             finally
             {

@@ -3,6 +3,7 @@
 static class Observer
 {
     const int undefined = 9999999;
+    const string unreadableStory = "unreadable";
 
     public static Observation Read(ProbeDocument probe, Observe observe, List<HotspotProbe> hotspots, DialogInfo? dialog, string? markupBefore, List<string> remarks)
     {
@@ -37,9 +38,15 @@ static class Observer
         var paragraphs = ReadParagraphs(document.Content, tables, lists, formatting, remarks, revisions.Count > 0 || tracking);
         var shapes = ReadShapes(document, paragraphs, selection);
         var controls = ReadContentControls(document);
-        var story = selection.StoryType == nameof(Word.WdStoryType.wdMainTextStory) && !observe.HasFlag(Observe.Story)
-            ? null
-            : ReadStory(document, selection, tables, lists, formatting, remarks);
+        StoryState? story = null;
+        if (selection.StoryType == unreadableStory)
+        {
+            remarks.Add("The selection's story was unreadable (a comment card holds the selection).");
+        }
+        else if (selection.StoryType != nameof(Word.WdStoryType.wdMainTextStory) || observe.HasFlag(Observe.Story))
+        {
+            story = ReadStory(document, selection, tables, lists, formatting, remarks);
+        }
         string? markupDiff = null;
         if (markupBefore != null)
         {
@@ -90,7 +97,9 @@ static class Observer
             (int) selection.Flags,
             selection.StartIsActive,
             selection.IPAtEndOfLine,
-            selection.StoryType.ToString(),
+            // In a comment card (after Ctrl+Alt+M on 16.0.20527) Word answers the story type with E_FAIL, as it
+            // refuses TrackRevisions there; the rest of the selection still reads.
+            Com.Try(() => selection.StoryType.ToString()) ?? unreadableStory,
             selection.ExtendMode,
             selection.ColumnSelectMode,
             Information<int>(selection, Word.WdInformation.wdSelectionMode),

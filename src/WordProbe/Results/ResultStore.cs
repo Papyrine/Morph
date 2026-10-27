@@ -16,7 +16,9 @@ record CaseResult(
     Observation? Observation,
     List<string> Remarks,
     List<string> Tests,
-    List<StepTrace>? Trace = null);
+    List<StepTrace>? Trace = null,
+    Dictionary<string, int>? Phases = null,
+    string? Build = null);
 
 sealed class FamilyResults
 {
@@ -114,10 +116,23 @@ static class ResultStore
         WriteAtomic(Path.Combine(Paths.Results, "environment.json"), JsonSerializer.Serialize(environment, Json));
     }
 
+    // Windows refuses to replace a file another process has open (an editor, the indexer, a virus scan): the
+    // move is retried for a few seconds rather than ending a run on it, as it once did 107 cases into lists.
     public static void WriteAtomic(string path, string content)
     {
         var temporary = path + ".tmp";
         File.WriteAllText(temporary, content + "\n", new UTF8Encoding(false));
-        File.Move(temporary, path, overwrite: true);
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                File.Move(temporary, path, overwrite: true);
+                return;
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException && attempt < 20)
+            {
+                Thread.Sleep(250);
+            }
+        }
     }
 }

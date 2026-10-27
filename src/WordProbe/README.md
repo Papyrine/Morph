@@ -18,9 +18,26 @@ dotnet run --project src/WordProbe -- render                # src/word-behavior.
 dotnet run --project src/WordProbe -- restore-options       # put Word's options back after a crashed run
 ```
 
-While `smoke`, `describe` or `run` is going, the keyboard and mouse belong to Word: the harness aborts
-(resumably) when it sees a modifier or a mouse button held, or another window take the foreground.
-Caps Lock has to be off.
+While `smoke`, `describe` or `run` is going, the keyboard and mouse belong to Word. When `run` sees a
+modifier or a mouse button held, or another window take the foreground, it pauses, waits until the machine
+has been idle for 10 s, and runs the case again; it gives up only after three losses on one case or 30
+minutes paused in all. `smoke` and `describe` still abort. Caps Lock has to be off.
+
+`run` records the Word build each case ran on, and a case counts as done only on the build running now
+(one recorded before cases carried a build takes its family's). So a plain `run` resumes wherever a run
+stopped, and after a Word update re-runs everything, with no `--force`. If Word itself crashes on a case,
+the case is run once more in a new Word and recorded `word-crashed` if that one falls over too.
+
+Progress is in Word's title bar (`WordProbe · tables 40/330 · 1240/4391 · ETA 14:05 · <case>`) and in
+the log: each case line carries `[n/total]`, a progress line with the ETA comes every 25 cases, and each
+family ends with the median and total of every phase of a case (open, its parts, options, steps,
+observe, reset, close), which each case also records as `Phases`.
+
+The run is not parallel, and cannot be: every case sends real input, and a desktop has one foreground
+window. The time goes in fixed overhead around each case rather than in its steps. Writing back only the
+options a case changed, and only the view settings a new window lacks, took a case from a median of
+1535 ms to 995 ms with identical results (159 selection cases, 2026-10-27). Time a harness change on a
+`--scenario` slice of 20-30 cases, not on whole families.
 
 ## Layout
 

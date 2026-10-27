@@ -254,6 +254,31 @@ static class NativeMethods
     [DllImport("kernel32.dll")]
     public static extern uint SetThreadExecutionState(uint flags);
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LastInputInfo
+    {
+        public uint Size;
+        public uint Time;
+    }
+
+    [DllImport("user32.dll")]
+    public static extern bool GetLastInputInfo(ref LastInputInfo info);
+
+    /// <summary>How long since the last input on this desktop, the harness's own SendInput included.</summary>
+    public static TimeSpan IdleTime()
+    {
+        var info = new LastInputInfo
+        {
+            Size = (uint) Marshal.SizeOf<LastInputInfo>()
+        };
+        if (!GetLastInputInfo(ref info))
+        {
+            return TimeSpan.Zero;
+        }
+
+        return TimeSpan.FromMilliseconds(unchecked((uint) Environment.TickCount - info.Time));
+    }
+
     public static string ClassName(IntPtr window)
     {
         var builder = new StringBuilder(256);

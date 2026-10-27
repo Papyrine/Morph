@@ -573,7 +573,12 @@ static class StateNotation
         try
         {
             var at = selection.StartIsActive ? selection.Start : Math.Max(selection.Start, selection.End - 1);
-            var storyType = Enum.Parse<Word.WdStoryType>(selection.StoryType);
+            // A story Word would not name (the selection in a comment card) has no paragraph to show.
+            if (!Enum.TryParse<Word.WdStoryType>(selection.StoryType, out var storyType))
+            {
+                return "?";
+            }
+
             var story = storyType == Word.WdStoryType.wdMainTextStory ? probe.Document.Content : probe.Document.StoryRanges[storyType];
             var range = story.Duplicate;
             range.SetRange(at, at);

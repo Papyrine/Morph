@@ -45,6 +45,7 @@ static class OptionsSnapshot
     public static List<string> Apply(Word.Application application, WordOptionsSnapshot snapshot, IEnumerable<string> members)
     {
         var failed = new List<string>();
+        var owners = new Dictionary<string, object>(StringComparer.Ordinal);
         foreach (var member in members)
         {
             if (!snapshot.Values.TryGetValue(member, out var element))
@@ -54,7 +55,7 @@ static class OptionsSnapshot
 
             try
             {
-                ProbeOptions.Set(application, member, element);
+                ProbeOptions.SetIfDifferent(application, member, element, owners);
             }
             catch (Exception)
             {
@@ -65,7 +66,8 @@ static class OptionsSnapshot
         return failed;
     }
 
-    public static void Save(WordOptionsSnapshot snapshot)
+    /// <summary>Saves the snapshot and returns the one in effect: an earlier one never restored wins.</summary>
+    public static WordOptionsSnapshot Save(WordOptionsSnapshot snapshot)
     {
         Directory.CreateDirectory(Paths.LocalState);
         if (File.Exists(Paths.OptionsSnapshot) &&
@@ -73,7 +75,7 @@ static class OptionsSnapshot
         {
             // A previous run did not restore: its snapshot holds the user's real values, this one would not.
             Log.Warn($"Keeping the earlier options snapshot at {Paths.OptionsSnapshot}; it was never restored.");
-            return;
+            return Load() ?? snapshot;
         }
 
         File.WriteAllText(Paths.OptionsSnapshot, JsonSerializer.Serialize(snapshot, json));
@@ -81,6 +83,8 @@ static class OptionsSnapshot
         {
             File.Delete(Paths.OptionsRestored);
         }
+
+        return snapshot;
     }
 
     public static WordOptionsSnapshot? Load()
@@ -325,11 +329,32 @@ static class ProbeOptions
         LateBound.Set(target, name, Coerce(value, current));
     }
 
-    static (object Target, string Name) Locate(Word.Application application, string member)
+    // The reset after every case: a member is written only where it differs, since nearly every one is as the
+    // snapshot holds it and writing an option is far dearer than reading it (358 ms a case when every member
+    // was written, lists 2026-10-27). owners keeps Options and AutoCorrect across the members of one reset.
+    public static void SetIfDifferent(Word.Application application, string member, object value, Dictionary<string, object> owners)
+    {
+        Touched.Add(member);
+        var (target, name) = Locate(application, member, owners);
+        var current = LateBound.Get(target, name);
+        var wanted = Coerce(value, current);
+        if (!Equals(wanted, current))
+        {
+            LateBound.Set(target, name, wanted);
+        }
+    }
+
+    static (object Target, string Name) Locate(Word.Application application, string member, Dictionary<string, object>? owners = null)
     {
         var dot = member.IndexOf('.');
         var owner = member[..dot];
         var name = member[(dot + 1)..];
+        if (owners != null &&
+            owners.TryGetValue(owner, out var known))
+        {
+            return (known, name);
+        }
+
         object target = owner switch
         {
             "Options" => application.Options,
@@ -337,6 +362,7 @@ static class ProbeOptions
             "Application" => application,
             _ => throw new ArgumentException($"Unknown option owner '{owner}' in '{member}'.")
         };
+        owners?.Add(owner, target);
         return (target, name);
     }
 
