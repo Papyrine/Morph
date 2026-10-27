@@ -413,14 +413,17 @@ public partial class SnapshotTests
     static async Task SettleAsync(IPage page)
     {
         await page.WaitForSelectorAsync(".file-drop");
-        // The cold first boot downloads the whole (untrimmed) framework, so give NetworkIdle generous
-        // headroom — the heaviest, run-first test pays the full asset download before the network quiets.
+        // The upload UI renders only once the framework has booted, so what is left to wait for is the
+        // page's own assets: its load event and every image decoded. NetworkIdle is not waited for — on CI
+        // a reload sometimes never let the network quiet, and the wait timed out on a settled page.
         await page.WaitForLoadStateAsync(
-            LoadState.NetworkIdle,
+            LoadState.Load,
             new()
             {
                 Timeout = 120000
             });
+        await page.WaitForFunctionAsync(
+            "() => Array.from(document.images).every(_ => _.complete)");
         // The theme toggle's label is driven by MainLayout.OnInitializedAsync (an async preference
         // load), so wait for the label to agree with data-theme — otherwise a dark-theme screenshot can
         // catch the pre-flip "Dark" label.
