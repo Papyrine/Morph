@@ -89,7 +89,7 @@ static partial class DocumentEditor
             options,
             edit =>
             {
-                foreach (var paragraph in paragraphs.Distinct().Select(edit.Find).ToList())
+                foreach (var paragraph in edit.FindAll(paragraphs))
                 {
                     edit.Align(paragraph, alignment);
                 }

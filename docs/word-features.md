@@ -614,7 +614,7 @@ Default text alignment — flush left, ragged right.
 - **OOXML**: `w:jc` with `w:val="left"` (or absent)
 - **Spec**: [Justification](http://officeopenxml.com/WPalignment.php)
 - **Model**: `ParagraphProperties.Alignment = TextAlignment.Left`
-- **Test**: `align_left/`
+- **Test**: `align_mixed/`
 
 
 #### Center Alignment `DONE`
@@ -623,7 +623,7 @@ Text centered within the available width.
 
 - **OOXML**: `w:jc` with `w:val="center"`
 - **Model**: `ParagraphProperties.Alignment = TextAlignment.Center`
-- **Test**: `align_center/`
+- **Test**: `align_mixed/`
 
 
 #### Right Alignment `DONE`
@@ -632,7 +632,7 @@ Text flush right, ragged left.
 
 - **OOXML**: `w:jc` with `w:val="right"`
 - **Model**: `ParagraphProperties.Alignment = TextAlignment.Right`
-- **Test**: `align_right/`
+- **Test**: `align_mixed/`
 
 
 #### Justified Alignment `DONE`
@@ -641,7 +641,7 @@ Text spread to fill the full width, with extra space distributed between words.
 
 - **OOXML**: `w:jc` with `w:val="both"`
 - **Model**: `ParagraphProperties.Alignment = TextAlignment.Justify`
-- **Test**: `align_justified/`
+- **Test**: `align_mixed/`
 
 > **Contributors**: Last line of a justified paragraph is left-aligned (not stretched). Extra space is distributed between word gaps only.
 >
@@ -3609,7 +3609,7 @@ Read-only mode, form protection, and editing restrictions.
 - **Parse**: `DocumentParser.ExtractDocumentProtection()` reads the `Edit` attribute (ReadOnly / Comments / TrackedChanges / Forms)
 - **Render**: no rendering effect — protection is an editing concern, not a visual one
 - **Editing**: the Blazor viewer honours it while enforced (`DocumentOutline`, `DocumentReview`): read-only and forms protection allow no edit, comments protection allows comments alone, and tracked-changes protection allows any edit and has it tracked whatever `w:trackRevisions` says.
-- **Test**: `document_protection/`, spec tests `DocumentProtectionTests`, `DocumentOutlineTests`
+- **Test**: spec tests `DocumentProtectionTests`, `DocumentOutlineTests`
 
 > **Contributors**: Password / hash details and `w:formatting` / `w:enforcement` are intentionally not surfaced; consumers that need them can read settings.xml directly.
 
