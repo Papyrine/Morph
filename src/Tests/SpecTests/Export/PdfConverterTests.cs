@@ -9,7 +9,7 @@ public class PdfConverterTests
     public static IEnumerable<string> SampleInputs()
     {
         var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
-        foreach (var name in new[] {"bold_text", "align_center", "hyperlinks"})
+        foreach (var name in new[] {"bold_text", "align_mixed", "hyperlinks"})
         {
             var path = Path.Combine(inputs, name, "input.docx");
             if (File.Exists(path))

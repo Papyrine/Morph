@@ -224,7 +224,6 @@ public class SvgPictureLayoutTests
             word/cards/12: opacity on a group of shapes that overlap
             word/labels/06: a mask
             word/postcards/02: opacity on a group of shapes that overlap
-            word/postcards/03: opacity on a group of shapes that overlap
             word/wedding/10: a gradient fill
             """.ReplaceLineEndings("\n"));
     }

@@ -113,7 +113,7 @@ public class VectorPageComparison
         await page.EvaluateAsync("() => Promise.all(['normal 400', 'italic 400', 'normal 700', 'italic 700'].map(_ => document.fonts.load(`${_} 16px 'Morph Text'`)))");
 
         // The first document pays for the JIT; it is drawn and forgotten.
-        await CompareDocumentAsync(page, scenarios.First(_ => _.Contains("align_justified")), corpus, fonts, dpi, 1, null);
+        await CompareDocumentAsync(page, scenarios.First(_ => _.Contains("align_mixed")), corpus, fonts, dpi, 1, null);
 
         var results = new List<PageResult>();
         foreach (var scenario in scenarios.Where((_, index) => index % every == 0))
