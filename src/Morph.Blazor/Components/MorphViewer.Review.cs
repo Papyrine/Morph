@@ -77,8 +77,14 @@ public partial class MorphViewer
     // last page, end — or empty.
     int[] selection = [];
 
-    readonly List<byte[]> undo = [];
-    readonly List<byte[]> redo = [];
+    readonly List<HistoryStep> undo = [];
+    readonly List<HistoryStep> redo = [];
+
+    // Where the next edit acts, as the command making it found the reader: what its undo step puts back.
+    CaretPlace? beforeEdit;
+
+    // An edit was just made, and where it leaves the reader (ResumeAsync, SelectAsync) is what redo puts back.
+    bool placingAfter;
     string? fontDirectory;
     byte[]? emitted;
 
@@ -554,12 +560,14 @@ public partial class MorphViewer
     }
 
     internal Task UndoAsync() =>
-        StepAsync(undo, redo);
+        StepAsync(undo, redo, undoing: true);
 
     internal Task RedoAsync() =>
-        StepAsync(redo, undo);
+        StepAsync(redo, undo, undoing: false);
 
-    async Task StepAsync(List<byte[]> from, List<byte[]> to)
+    // Undo puts the caret or the selection back where the undone edit began, and redo where it left them
+    // (WordProbe R-U-2): the file a step restores is the one its places were taken in.
+    async Task StepAsync(List<HistoryStep> from, List<HistoryStep> to, bool undoing)
     {
         if (from.Count == 0 ||
             sourceBytes is not { } bytes ||
@@ -568,22 +576,46 @@ public partial class MorphViewer
             return;
         }
 
-        var restored = from[^1];
+        var step = from[^1];
         from.RemoveAt(from.Count - 1);
-        Keep(to, bytes);
-        await ShowAsync(() => restored, relayout: true, () => activeKey, scroll: false);
+        Keep(to, step with
+        {
+            Bytes = bytes
+        });
+        beforeEdit = null;
+        placingAfter = false;
+        if (await ShowAsync(() => step.Bytes, relayout: true, () => activeKey, scroll: false) &&
+            (undoing ? step.Before : step.After) is { } place)
+        {
+            await PlaceAsync(place);
+        }
     }
 
-    static void Keep(List<byte[]> history, byte[] bytes)
+    static void Keep(List<HistoryStep> history, HistoryStep step)
     {
-        history.Add(bytes);
-        var weight = history.Sum(_ => (long) _.Length);
+        history.Add(step);
+        var weight = history.Sum(_ => (long) _.Bytes.Length);
         while (history.Count > 1 &&
                weight > undoBudget)
         {
-            weight -= history[0].Length;
+            weight -= history[0].Bytes.Length;
             history.RemoveAt(0);
         }
+    }
+
+    // Where the edit just made left the reader, for redo to put them back there.
+    void PlacedAfter(CaretPlace place)
+    {
+        if (placingAfter &&
+            undo.Count > 0)
+        {
+            undo[^1] = undo[^1] with
+            {
+                After = place
+            };
+        }
+
+        placingAfter = false;
     }
 
     // Every edit ends here. select names the card to leave chosen, asked once the edited document has
@@ -596,11 +628,15 @@ public partial class MorphViewer
             return false;
         }
 
+        var before = beforeEdit;
+        beforeEdit = null;
+        placingAfter = false;
         var edited = await ShowAsync(() => edit(bytes), relayout, select, scroll);
         if (edited)
         {
-            Keep(undo, bytes);
+            Keep(undo, new(bytes, before, null));
             redo.Clear();
+            placingAfter = true;
         }
 
         return edited;

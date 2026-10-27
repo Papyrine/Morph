@@ -209,6 +209,28 @@ public partial class SnapshotTests
         await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[one y two]");
     }
 
+    // Tab into a cell of several paragraphs selects every one of them, without the cell's mark (WordProbe
+    // T-01b).
+    [Test]
+    [Property("WordBehavior", "R-T-1")]
+    public async Task Tab_IntoACellOfSeveralParagraphs_SelectsThemAll()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var docx = DocumentEditor.Rewrite(TableDocument(), 4, [new([new(-1, "Cell two")]), new([new(-1, "and more")])], options).Document;
+        var page = await OpenEditAsync(docx);
+
+        await ClickInAsync(page, "Cell one");
+        await page.Keyboard.PressAsync("Tab");
+
+        await page.WaitForFunctionAsync(
+            "() => getSelection().toString().replace(/\\s+/g, ' ').trim() === 'Cell two and more'",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+    }
+
     static Task WaitForEditorAsync(IPage page, string text) =>
         page.WaitForFunctionAsync(
             "text => document.querySelector('.edit-box[contenteditable=true]')?.innerText.startsWith(text)",

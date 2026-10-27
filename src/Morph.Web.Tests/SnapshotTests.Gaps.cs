@@ -116,9 +116,11 @@ public partial class SnapshotTests
         await page.WaitForFunctionAsync("() => getSelection().toString().replace(/\\s+/g, ' ') === 'here. Second'");
     }
 
-    // Delete with text selected across two paragraphs deletes it and joins what is left.
+    // Delete with text selected across two paragraphs deletes it and leaves the two apart, each with its
+    // own properties, as Word's does (WordProbe E-50b).
     [Test]
-    public async Task Gap_Delete_OnThePages_JoinsTheParagraphs()
+    [Property("WordBehavior", "R-E-15")]
+    public async Task Gap_Delete_OnThePages_KeepsTheParagraphsApart()
     {
         var page = await OpenEditAsync(Paragraphs);
 
@@ -127,8 +129,10 @@ public partial class SnapshotTests
         await WaitForBodyAsync(page, _ => !_.Contains("here."));
 
         var read = Read(await SaveAsync(page));
-        await Assert.That(read.Count).IsEqualTo(2);
-        await Assert.That(string.Concat(read[0].Split('[', ']')).Replace("b:", "")).StartsWith("First paragraph bold one.");
+        await Assert.That(read.Count).IsEqualTo(3);
+        await Assert.That(string.Concat(read[0].Split('[', ']'))).IsEqualTo("First paragraph ");
+        await Assert.That(read[1]).StartsWith("[b:bold]");
+        await Assert.That(read[1]).EndsWith("(center)");
     }
 
     // Shift+Tab takes a list's paragraph a level out, as Tab took it in.

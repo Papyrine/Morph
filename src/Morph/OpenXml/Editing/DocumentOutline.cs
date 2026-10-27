@@ -113,8 +113,9 @@ sealed class DocumentOutline
         var bookmarks = new List<BookmarkPlace>();
         var contents = false;
         var tables = new Dictionary<Table, int>();
-        var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, _.Paragraph, _.Units)));
-        foreach (var (part, paragraph, units) in read)
+        var lastInStory = new Dictionary<OpenXmlElement, int>(ReferenceEqualityComparer.Instance);
+        var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, story.Root, _.Paragraph, _.Units)));
+        foreach (var (part, root, paragraph, units) in read)
         {
             // Only a paragraph a field is in is looked into for one.
             contents = contents ||
@@ -127,11 +128,23 @@ sealed class DocumentOutline
                 paragraphOfRun[runs[run]] = ordinal;
             }
 
+            var story = StoryOf(paragraph, root);
+            int? previous = lastInStory.TryGetValue(story, out var before) ? before : null;
+            lastInStory[story] = ordinal;
+            if (previous is { } earlier)
+            {
+                paragraphs[earlier] = paragraphs[earlier] with
+                {
+                    NextInStory = ordinal
+                };
+            }
+
             var edited = new EditParagraph(ordinal, [.. units.Select(_ => Unit(_, runs))])
                 {
                     Part = part,
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
+                    PreviousInStory = previous,
                     InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any(),
                     Cell = CellOf(paragraph, tables),
                     ListLevel = ListLevel(paragraph, styles, defaultStyle),
@@ -165,6 +178,13 @@ sealed class DocumentOutline
             paragraphOfRun = paragraphOfRun
         };
     }
+
+    // The story a paragraph is in, as the caret walks it: its text box's, its note's or comment's, or the part's.
+    static OpenXmlElement StoryOf(Paragraph paragraph, OpenXmlElement root) =>
+        paragraph.Ancestors().FirstOrDefault(_ => _ is TextBoxContent or
+            DocumentFormat.OpenXml.Wordprocessing.Footnote or
+            DocumentFormat.OpenXml.Wordprocessing.Endnote or
+            DocumentFormat.OpenXml.Wordprocessing.Comment) ?? root;
 
     // Where each bookmark of a paragraph starts: at the next run's first place, or at the paragraph's end.
     static IEnumerable<BookmarkPlace> BookmarksIn(Paragraph paragraph, EditParagraph read, Dictionary<DocumentFormat.OpenXml.Wordprocessing.Run, int> runs)

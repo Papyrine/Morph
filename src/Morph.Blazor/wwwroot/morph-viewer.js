@@ -2342,7 +2342,8 @@ class Viewer {
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
             note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),
-            leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line)
+            leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line),
+            step: (paragraph, direction) => this.dotNet.invokeMethodAsync('OnEditStep', paragraph, direction).catch(() => {})
         });
         this.editor.overtype = this.overtype === true;
     }

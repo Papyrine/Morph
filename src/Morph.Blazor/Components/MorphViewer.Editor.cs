@@ -68,12 +68,14 @@ public partial class MorphViewer
             return null;
         }
 
-        if (FromEditor(place) is { } typing)
+        // Where the command acts is where its edit's undo step puts the reader back.
+        var target = FromEditor(place) ?? FromSelection();
+        if (target != null)
         {
-            return typing;
+            beforeEdit = PlaceOf(target);
         }
 
-        return FromSelection();
+        return target;
     }
 
     // The place the script names: in paragraphs of the file as it now stands.
@@ -892,6 +894,16 @@ public partial class MorphViewer
         var length = 0;
         if (move is "next" or "previous")
         {
+            // The whole of the cell's text, every paragraph of it, without the cell's mark (WordProbe T-01b):
+            // a cell of several paragraphs is selected on the pages, as one paragraph's open for typing.
+            var cell = outline.Paragraphs[paragraph].Cell;
+            var last = outline.Paragraphs.Last(_ => _.Cell == cell).Ordinal;
+            if (last != paragraph)
+            {
+                await SelectAsync(new(paragraph, 0, last, outline.Paragraphs[last].Length));
+                return;
+            }
+
             length = outline.Paragraphs[paragraph].Length;
         }
 

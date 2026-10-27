@@ -2106,21 +2106,32 @@ static partial class DocumentEditor
                 Drop(unit);
             }
 
-            var standing = chain[^1];
-            for (var index = chain.Count - 2; index >= 0; index--)
+            // Word's delete never joins the paragraphs a selection runs across: the first and the last stay
+            // apart, each with its own properties, and those wholly inside it go, what is left in them that
+            // is not text (a bookmark's ends, a comment's anchors) moved to the end of the first (WordProbe
+            // E-50b, R-E-15). Tracked, the paragraphs stay and their breaks are struck out, as Word's are.
+            if (options.Track)
             {
-                // Tracked, the paragraphs stay and their breaks are struck out.
-                var joined = Join(chain[index]).Paragraph;
-                if (!options.Track)
+                for (var index = chain.Count - 2; index >= 0; index--)
                 {
-                    standing = joined;
+                    Join(chain[index]);
+                }
+            }
+            else
+            {
+                foreach (var middle in chain.Skip(1).SkipLast(1))
+                {
+                    foreach (var child in middle.ChildElements.Where(_ => _ is not OoxmlParagraphProperties).ToList())
+                    {
+                        child.Remove();
+                        first.AppendChild(child);
+                    }
+
+                    middle.Remove();
                 }
             }
 
-            if (options.Track)
-            {
-                standing = first;
-            }
+            var standing = first;
 
             foreach (var paragraph in chain)
             {

@@ -451,8 +451,28 @@ public class DocumentEditorTests
 
         await Assert.That(Shape(within.Document)).IsEqualTo("[He][b:ve] ¶ [new] ¶ [wide world] ¶");
         await Assert.That((within.Paragraph, within.Offset)).IsEqualTo((0, 2));
-        await Assert.That(Shape(across.Document)).IsEqualTo("[Hello ][b:br][world] ¶");
+        // As Word's: the paragraphs either end stay apart, the one wholly inside goes (WordProbe E-50b).
+        await Assert.That(Shape(across.Document)).IsEqualTo("[Hello ][b:br] ¶ [world] ¶");
         await Assert.That((across.Paragraph, across.Offset)).IsEqualTo((0, 8));
+    }
+
+    // Each paragraph keeps its own properties, an emptied first one too.
+    [Test]
+    public async Task Delete_AcrossParagraphs_KeepsEachEndsProperties()
+    {
+        var docx = Build(
+            "<w:p><w:pPr><w:jc w:val=\"right\"/></w:pPr>" + R("one") + "</w:p>" +
+            "<w:p>" + "<w:bookmarkStart w:id=\"7\" w:name=\"mark\"/>" + R("two") + "<w:bookmarkEnd w:id=\"7\"/></w:p>" +
+            "<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr>" + R("three") + "</w:p>");
+
+        var result = DocumentEditor.Delete(docx, new(0, 0), new(2, 2), Plain);
+        var xml = Xml(result.Document);
+
+        await Assert.That(Shape(result.Document)).IsEqualTo("¶ [ree] ¶");
+        await Assert.That(xml).Contains("<w:jc w:val=\"right\" />");
+        await Assert.That(xml).Contains("<w:jc w:val=\"center\" />");
+        await Assert.That(xml).Contains("w:name=\"mark\"");
+        await Assert.That((result.Paragraph, result.Offset)).IsEqualTo((0, 0));
     }
 
     [Test]
