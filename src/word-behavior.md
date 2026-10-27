@@ -6,7 +6,7 @@ below was produced by driving a visible Word with real keyboard and mouse input 
 back over COM. The Blazor editor (`src/Morph.Blazor`, `MorphEditor`) is meant to match these; the file
 doubles as its gap list through the `Morph` status each scenario carries.
 
-<!-- probe:generated --> Generated 2026-10-26 on Word for Microsoft 365, version 16.0 build 16.0.20618 (Click-to-Run 16.0.20618.20000), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
+<!-- probe:generated --> Generated 2026-10-27 on Word for Microsoft 365, version 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20088), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
 
 Keys and the commands they run are catalogued in `docs/word-command-reference.md` and are not repeated
 here; this file records what a key or click **does** to the document and the selection in a given state.
@@ -175,7 +175,7 @@ in its heading; everything else was measured under these values.
 | `AutoCorrect.FirstLetterAutoAdd` | on |
 | `AutoCorrect.OtherCorrectionsAutoAdd` | on |
 | `AutoCorrect.ReplaceText` | on |
-| `AutoCorrect.ReplaceTextFromSpellingChecker` | off |
+| `AutoCorrect.ReplaceTextFromSpellingChecker` | on |
 | `AutoCorrect.TwoInitialCapsAutoAdd` | on |
 | `Options.AllowAccentedUppercase` | off |
 | `Options.AllowClickAndTypeMouse` | on |
@@ -233,7 +233,7 @@ in its heading; everything else was measured under these values.
 <!-- probe:begin environment -->
 | what | value |
 | --- | --- |
-| Word | 16.0 build 16.0.20618 (Click-to-Run 16.0.20618.20000) |
+| Word | 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20088) |
 | UI language | unknown |
 | display | 3440x1440 at 125 % |
 | undo entry names | control128 |
@@ -325,11 +325,12 @@ code (`morph-edit.js` `onArrow`/`leaveEditor`, native caret movement inside the 
 - **R-N-1 One position per press, across paragraph marks.** Left and Right move one story position. Right
   at a paragraph's end lands at the next paragraph's start; Left at a paragraph's start lands before the
   previous paragraph's mark. At the document's first position Left does nothing; after the final mark Right
-  does nothing (N-01, every fixture). — Morph: PARTIAL (the editor crosses paragraphs by probing the page
-  with `leaveEditor`, which lands by pixel, not at the adjacent position).
+  does nothing (N-01, every fixture). — Morph: DONE (Left at the open paragraph's start opens the paragraph
+  before in its story at its end, Right at its end the next at its start, by `EditParagraph.PreviousInStory`
+  and `NextInStory`; a story's first and last paragraph go no further).
 - **R-N-2 Up on the first line and Down on the last line do nothing.** The caret stays where it was (N-09,
-  N-07 `up` on a first line). — Morph: TODO (the editor's `leaveEditor` probes for another paragraph and may
-  open one above or below).
+  N-07 `up` on a first line). — Morph: DONE (in a story's first and last paragraph; between paragraphs Up
+  and Down still find the next line by probing the page with `leaveEditor`).
 - **R-N-3 A tab, a line break, a page break, a section break, a non-breaking space and a note reference are
   one position each**; Left and Right step over them like a character (N-01b, N-01 `tabs-breaks`,
   `page-break`, `section-break`, `footnote`, `special`). A page or section break is its own paragraph: Right
@@ -1800,84 +1801,84 @@ steps `select({from})` · `{key}` · `{key}` · `{key}`
 
 | fixture | from | key | selection | observed |
 | --- | --- | --- | --- | --- |
-| three-paragraphs | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Fir‸⟧st paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P1:start | Shift+Left | IP 0–0 | `[‸First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P1:end | Shift+Right | Normal 21–24 end-active | `[First paragraph here.⟦¶⟧] ↓0<br>⟦[Se‸⟧cond bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P1:end | Shift+Left | Normal 18–21 start-active | `[First paragraph he⟦‸re.⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P2:start | Shift+Right | Normal 22–25 end-active | `[First paragraph here.] ↓0<br>[⟦Sec‸⟧ond bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P2:start | Shift+Left | Normal 19–22 start-active | `[First paragraph her⟦‸e.¶⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | DOC:end | Shift+Right | Normal 54–55 end-active | `[First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.⟦¶‸⟧] ↓0` |
-| three-paragraphs | DOC:end | Shift+Left | Normal 51–54 start-active | `[First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and la⟦‸st.⟧] ↓0` |
-| tabs-breaks | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Lef‸⟧t\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | P1:start | Shift+Left | IP 0–0 | `[‸Left\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | P1:end | Shift+Right | Normal 15–18 end-active | `[Left\tright side⟦¶⟧] ↓0<br>⟦[Li‸⟧ne one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | P1:end | Shift+Left | Normal 12–15 start-active | `[Left\tright s⟦‸ide⟧] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | P2:start | Shift+Right | Normal 16–19 end-active | `[Left\tright side] ↓0<br>[⟦Lin‸⟧e one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | P2:start | Shift+Left | Normal 13–16 start-active | `[Left\tright si⟦‸de¶⟧] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | DOC:end | Shift+Right | Normal 52–53 end-active | `[Left\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.⟦¶‸⟧] ↓0` |
-| tabs-breaks | DOC:end | Shift+Left | Normal 49–52 start-active | `[Left\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces he⟦‸re.⟧] ↓0` |
-| image-inline | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Tex‸⟧t before ▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| image-inline | P1:start | Shift+Left | IP 0–0 | `[‸Text before ▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| image-inline | P1:end | Shift+Right | Normal 24–27 end-active | `[Text before ▣ after end.⟦¶⟧] ↓0<br>⟦[Se‸⟧cond paragraph.] ↓0` |
-| image-inline | P1:end | Shift+Left | Normal 21–24 start-active | `[Text before ▣ after e⟦‸nd.⟧] ↓0<br>[Second paragraph.] ↓0` |
-| image-inline | P2:start | Shift+Right | Normal 25–28 end-active | `[Text before ▣ after end.] ↓0<br>[⟦Sec‸⟧ond paragraph.] ↓0` |
-| image-inline | P2:start | Shift+Left | Normal 22–25 start-active | `[Text before ▣ after en⟦‸d.¶⟧] ↓0<br>[Second paragraph.] ↓0` |
-| image-inline | DOC:end | Shift+Right | Normal 42–43 end-active | `[Text before ▣ after end.] ↓0<br>[Second paragraph.⟦¶‸⟧] ↓0` |
-| image-inline | DOC:end | Shift+Left | Normal 39–42 start-active | `[Text before ▣ after end.] ↓0<br>[Second paragra⟦‸ph.⟧] ↓0` |
-| field-page | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Pag‸⟧e ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| field-page | P1:start | Shift+Left | IP 0–0 | `[‸Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| field-page | P1:end | Shift+Right | Normal 38–41 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.⟦¶⟧] ↓0<br>⟦[Da‸⟧te: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| field-page | P1:end | Shift+Left | Normal 35–38 start-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ e⟦‸nd.⟧] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| field-page | P2:start | Shift+Right | Normal 39–42 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[⟦Dat‸⟧e: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| field-page | P2:start | Shift+Left | Normal 36–39 start-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ en⟦‸d.¶⟧] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| field-page | DOC:end | Shift+Right | Normal 84–85 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.⟦¶‸⟧] ↓0` |
-| field-page | DOC:end | Shift+Left | Normal 81–84 start-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ e⟦‸nd.⟧] ↓0` |
-| hyperlink | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦See‸⟧ ]<[the site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| hyperlink | P1:start | Shift+Left | IP 0–0 | `[‸See ]<[the site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| hyperlink | P1:end | Shift+Right | Normal 55–58 end-active | `[See ]<[the site]>[ today.⟦¶⟧] ↓0<br>⟦[Se‸⟧cond paragraph.] ↓0` |
-| hyperlink | P1:end | Shift+Left | Normal 52–55 start-active | `[See ]<[the site]>[ tod⟦‸ay.⟧] ↓0<br>[Second paragraph.] ↓0` |
-| hyperlink | P2:start | Shift+Right | Normal 56–59 end-active | `[See ]<[the site]>[ today.] ↓0<br>[⟦Sec‸⟧ond paragraph.] ↓0` |
-| hyperlink | P2:start | Shift+Left | Normal 53–56 start-active | `[See ]<[the site]>[ toda⟦‸y.¶⟧] ↓0<br>[Second paragraph.] ↓0` |
-| hyperlink | DOC:end | Shift+Right | Normal 73–74 end-active | `[See ]<[the site]>[ today.] ↓0<br>[Second paragraph.⟦¶‸⟧] ↓0` |
-| hyperlink | DOC:end | Shift+Left | Normal 70–73 start-active | `[See ]<[the site]>[ today.] ↓0<br>[Second paragra⟦‸ph.⟧] ↓0` |
-| footnote | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Tex‸⟧t†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0` |
-| footnote | P1:start | Shift+Left | IP 0–0 | `[‸Text†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0` |
-| footnote | P1:end | Shift+Right | Normal 17–20 end-active | `[Text†1 more words.⟦¶⟧] ↓0<br>⟦[Se‸⟧cond with an end note.‡1] ↓0` |
-| footnote | P1:end | Shift+Left | Normal 14–17 start-active | `[Text†1 more wor⟦‸ds.⟧] ↓0<br>[Second with an end note.‡1] ↓0` |
-| footnote | P2:start | Shift+Right | Normal 18–21 end-active | `[Text†1 more words.] ↓0<br>[⟦Sec‸⟧ond with an end note.‡1] ↓0` |
-| footnote | P2:start | Shift+Left | Normal 15–18 start-active | `[Text†1 more word⟦‸s.¶⟧] ↓0<br>[Second with an end note.‡1] ↓0` |
-| footnote | DOC:end | Shift+Right | Normal 43–44 end-active | `[Text†1 more words.] ↓0<br>[Second with an end note.‡1⟦¶‸⟧] ↓0` |
-| footnote | DOC:end | Shift+Left | Normal 40–43 start-active | `[Text†1 more words.] ↓0<br>[Second with an end not⟦‸e.‡1⟧] ↓0` |
-| special | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦a⍽b‸⟧ soft⁃hyphen hidden words dash—end.] ↓0` |
-| special | P1:start | Shift+Left | IP 0–0 | `[‸a⍽b soft⁃hyphen hidden words dash—end.] ↓0` |
-| special | P1:end | Shift+Right | Normal 38–39 end-active | `[a⍽b soft⁃hyphen hidden words dash—end.⟦¶‸⟧] ↓0` |
-| special | P1:end | Shift+Left | Normal 35–38 start-active | `[a⍽b soft⁃hyphen hidden words dash—e⟦‸nd.⟧] ↓0` |
-| special | DOC:end | Shift+Right | Normal 38–39 end-active | `[a⍽b soft⁃hyphen hidden words dash—end.⟦¶‸⟧] ↓0` |
-| special | DOC:end | Shift+Left | Normal 35–38 start-active | `[a⍽b soft⁃hyphen hidden words dash—e⟦‸nd.⟧] ↓0` |
-| page-break | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Bef‸⟧ore the break.] ↓0<br>[⤓] ↓0<br>[After the break.] ↓0` |
-| page-break | P1:start | Shift+Left | IP 0–0 | `[‸Before the break.] ↓0<br>[⤓] ↓0<br>[After the break.] ↓0` |
-| page-break | P1:end | Shift+Right | Normal 17–21 end-active | `[Before the break.⟦¶⟧] ↓0<br>⟦[⤓¶⟧] ↓0<br>⟦[A‸⟧fter the break.] ↓0` |
-| page-break | P1:end | Shift+Left | Normal 14–17 start-active | `[Before the bre⟦‸ak.⟧] ↓0<br>[⤓] ↓0<br>[After the break.] ↓0` |
-| page-break | P2:start | Shift+Right | Normal 18–22 end-active | `[Before the break.] ↓0<br>[⟦⤓¶⟧] ↓0<br>⟦[Af‸⟧ter the break.] ↓0` |
-| page-break | P2:start | Shift+Left | Normal 15–18 start-active | `[Before the brea⟦‸k.¶⟧] ↓0<br>[⤓] ↓0<br>[After the break.] ↓0` |
-| page-break | DOC:end | Shift+Right | Normal 36–37 end-active | `[Before the break.] ↓0<br>[⤓] ↓0<br>[After the break.⟦¶‸⟧] ↓0` |
-| page-break | DOC:end | Shift+Left | Normal 33–36 start-active | `[Before the break.] ↓0<br>[⤓] ↓0<br>[After the bre⟦‸ak.⟧] ↓0` |
-| section-break | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Sec‸⟧tion one text.] ↓0<br>[§] ↓0<br>[Section two text.] ↓0` |
-| section-break | P1:start | Shift+Left | IP 0–0 | `[‸Section one text.] ↓0<br>[§] ↓0<br>[Section two text.] ↓0` |
-| section-break | P1:end | Shift+Right | Normal 17–20 end-active | `[Section one text.⟦¶⟧] ↓0<br>⟦[§⟧] ↓0<br>⟦[S‸⟧ection two text.] ↓0` |
-| section-break | P1:end | Shift+Left | Normal 14–17 start-active | `[Section one te⟦‸xt.⟧] ↓0<br>[§] ↓0<br>[Section two text.] ↓0` |
-| section-break | P2:start | Shift+Right | Normal 18–21 end-active | `[Section one text.] ↓0<br>[⟦§⟧] ↓0<br>⟦[Se‸⟧ction two text.] ↓0` |
-| section-break | P2:start | Shift+Left | Normal 15–18 start-active | `[Section one tex⟦‸t.¶⟧] ↓0<br>[§] ↓0<br>[Section two text.] ↓0` |
-| section-break | DOC:end | Shift+Right | Normal 36–37 end-active | `[Section one text.] ↓0<br>[§] ↓0<br>[Section two text.⟦¶‸⟧] ↓0` |
-| section-break | DOC:end | Shift+Left | Normal 33–36 start-active | `[Section one text.] ↓0<br>[§] ↓0<br>[Section two te⟦‸xt.⟧] ↓0` |
-| table-2x2 | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Bef‸⟧ore the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | P1:start | Shift+Left | IP 0–0 | `[‸Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | P1:end | Shift+Right | Normal 17–39 end-active | `[Before the table.⟦¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧<br>[After the table.] ↓0` |
-| table-2x2 | P1:end | Shift+Left | Normal 14–17 start-active | `[Before the tab⟦‸le.⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | P2:start | Shift+Right | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | P2:start | Shift+Left | Normal 15–27 start-active | `[Before the tabl⟦‸e.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | DOC:end | Shift+Right | Normal 55–56 end-active | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.⟦¶‸⟧] ↓0` |
-| table-2x2 | DOC:end | Shift+Left | Normal 52–55 start-active | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the tab⟦‸le.⟧] ↓0` |
+| three-paragraphs | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Fir‸⟧st paragraph here.]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P1:start | Shift+Left | IP 0–0 | `[‸First paragraph here.]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P1:end | Shift+Right | Normal 21–24 end-active | `[First paragraph here.⟦¶⟧]<br>⟦[Se‸⟧cond bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P1:end | Shift+Left | Normal 18–21 start-active | `[First paragraph he⟦‸re.⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P2:start | Shift+Right | Normal 22–25 end-active | `[First paragraph here.]<br>[⟦Sec‸⟧ond bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P2:start | Shift+Left | Normal 19–22 start-active | `[First paragraph her⟦‸e.¶⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | DOC:end | Shift+Right | Normal 54–55 end-active | `[First paragraph here.]<br>[Second bold one.] (center)<br>[Third and last.⟦¶‸⟧]` |
+| three-paragraphs | DOC:end | Shift+Left | Normal 51–54 start-active | `[First paragraph here.]<br>[Second bold one.] (center)<br>[Third and la⟦‸st.⟧]` |
+| tabs-breaks | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Lef‸⟧t\tright side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | P1:start | Shift+Left | IP 0–0 | `[‸Left\tright side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | P1:end | Shift+Right | Normal 15–18 end-active | `[Left\tright side⟦¶⟧]<br>⟦[Li‸⟧ne one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | P1:end | Shift+Left | Normal 12–15 start-active | `[Left\tright s⟦‸ide⟧]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | P2:start | Shift+Right | Normal 16–19 end-active | `[Left\tright side]<br>[⟦Lin‸⟧e one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | P2:start | Shift+Left | Normal 13–16 start-active | `[Left\tright si⟦‸de¶⟧]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | DOC:end | Shift+Right | Normal 52–53 end-active | `[Left\tright side]<br>[Line one \nline two]<br>[Two  spaces here.⟦¶‸⟧]` |
+| tabs-breaks | DOC:end | Shift+Left | Normal 49–52 start-active | `[Left\tright side]<br>[Line one \nline two]<br>[Two  spaces he⟦‸re.⟧]` |
+| image-inline | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Tex‸⟧t before ▣ after end.]<br>[Second paragraph.]` |
+| image-inline | P1:start | Shift+Left | IP 0–0 | `[‸Text before ▣ after end.]<br>[Second paragraph.]` |
+| image-inline | P1:end | Shift+Right | Normal 24–27 end-active | `[Text before ▣ after end.⟦¶⟧]<br>⟦[Se‸⟧cond paragraph.]` |
+| image-inline | P1:end | Shift+Left | Normal 21–24 start-active | `[Text before ▣ after e⟦‸nd.⟧]<br>[Second paragraph.]` |
+| image-inline | P2:start | Shift+Right | Normal 25–28 end-active | `[Text before ▣ after end.]<br>[⟦Sec‸⟧ond paragraph.]` |
+| image-inline | P2:start | Shift+Left | Normal 22–25 start-active | `[Text before ▣ after en⟦‸d.¶⟧]<br>[Second paragraph.]` |
+| image-inline | DOC:end | Shift+Right | Normal 42–43 end-active | `[Text before ▣ after end.]<br>[Second paragraph.⟦¶‸⟧]` |
+| image-inline | DOC:end | Shift+Left | Normal 39–42 start-active | `[Text before ▣ after end.]<br>[Second paragra⟦‸ph.⟧]` |
+| field-page | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Pag‸⟧e ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| field-page | P1:start | Shift+Left | IP 0–0 | `[‸Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| field-page | P1:end | Shift+Right | Normal 38–41 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.⟦¶⟧]<br>⟦[Da‸⟧te: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| field-page | P1:end | Shift+Left | Normal 35–38 start-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ e⟦‸nd.⟧]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| field-page | P2:start | Shift+Right | Normal 39–42 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[⟦Dat‸⟧e: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| field-page | P2:start | Shift+Left | Normal 36–39 start-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ en⟦‸d.¶⟧]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| field-page | DOC:end | Shift+Right | Normal 84–85 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.⟦¶‸⟧]` |
+| field-page | DOC:end | Shift+Left | Normal 81–84 start-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ e⟦‸nd.⟧]` |
+| hyperlink | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦See‸⟧ ]<[the site]>[ today.]<br>[Second paragraph.]` |
+| hyperlink | P1:start | Shift+Left | IP 0–0 | `[‸See ]<[the site]>[ today.]<br>[Second paragraph.]` |
+| hyperlink | P1:end | Shift+Right | Normal 55–58 end-active | `[See ]<[the site]>[ today.⟦¶⟧]<br>⟦[Se‸⟧cond paragraph.]` |
+| hyperlink | P1:end | Shift+Left | Normal 52–55 start-active | `[See ]<[the site]>[ tod⟦‸ay.⟧]<br>[Second paragraph.]` |
+| hyperlink | P2:start | Shift+Right | Normal 56–59 end-active | `[See ]<[the site]>[ today.]<br>[⟦Sec‸⟧ond paragraph.]` |
+| hyperlink | P2:start | Shift+Left | Normal 53–56 start-active | `[See ]<[the site]>[ toda⟦‸y.¶⟧]<br>[Second paragraph.]` |
+| hyperlink | DOC:end | Shift+Right | Normal 73–74 end-active | `[See ]<[the site]>[ today.]<br>[Second paragraph.⟦¶‸⟧]` |
+| hyperlink | DOC:end | Shift+Left | Normal 70–73 start-active | `[See ]<[the site]>[ today.]<br>[Second paragra⟦‸ph.⟧]` |
+| footnote | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Tex‸⟧t†1 more words.]<br>[Second with an end note.‡1]` |
+| footnote | P1:start | Shift+Left | IP 0–0 | `[‸Text†1 more words.]<br>[Second with an end note.‡1]` |
+| footnote | P1:end | Shift+Right | Normal 17–20 end-active | `[Text†1 more words.⟦¶⟧]<br>⟦[Se‸⟧cond with an end note.‡1]` |
+| footnote | P1:end | Shift+Left | Normal 14–17 start-active | `[Text†1 more wor⟦‸ds.⟧]<br>[Second with an end note.‡1]` |
+| footnote | P2:start | Shift+Right | Normal 18–21 end-active | `[Text†1 more words.]<br>[⟦Sec‸⟧ond with an end note.‡1]` |
+| footnote | P2:start | Shift+Left | Normal 15–18 start-active | `[Text†1 more word⟦‸s.¶⟧]<br>[Second with an end note.‡1]` |
+| footnote | DOC:end | Shift+Right | Normal 43–44 end-active | `[Text†1 more words.]<br>[Second with an end note.‡1⟦¶‸⟧]` |
+| footnote | DOC:end | Shift+Left | Normal 40–43 start-active | `[Text†1 more words.]<br>[Second with an end not⟦‸e.‡1⟧]` |
+| special | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦a⍽b‸⟧ soft⁃hyphen hidden words dash—end.]` |
+| special | P1:start | Shift+Left | IP 0–0 | `[‸a⍽b soft⁃hyphen hidden words dash—end.]` |
+| special | P1:end | Shift+Right | Normal 38–39 end-active | `[a⍽b soft⁃hyphen hidden words dash—end.⟦¶‸⟧]` |
+| special | P1:end | Shift+Left | Normal 35–38 start-active | `[a⍽b soft⁃hyphen hidden words dash—e⟦‸nd.⟧]` |
+| special | DOC:end | Shift+Right | Normal 38–39 end-active | `[a⍽b soft⁃hyphen hidden words dash—end.⟦¶‸⟧]` |
+| special | DOC:end | Shift+Left | Normal 35–38 start-active | `[a⍽b soft⁃hyphen hidden words dash—e⟦‸nd.⟧]` |
+| page-break | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Bef‸⟧ore the break.]<br>[⤓]<br>[After the break.]` |
+| page-break | P1:start | Shift+Left | IP 0–0 | `[‸Before the break.]<br>[⤓]<br>[After the break.]` |
+| page-break | P1:end | Shift+Right | Normal 17–21 end-active | `[Before the break.⟦¶⟧]<br>⟦[⤓¶⟧]<br>⟦[A‸⟧fter the break.]` |
+| page-break | P1:end | Shift+Left | Normal 14–17 start-active | `[Before the bre⟦‸ak.⟧]<br>[⤓]<br>[After the break.]` |
+| page-break | P2:start | Shift+Right | Normal 18–22 end-active | `[Before the break.]<br>[⟦⤓¶⟧]<br>⟦[Af‸⟧ter the break.]` |
+| page-break | P2:start | Shift+Left | Normal 15–18 start-active | `[Before the brea⟦‸k.¶⟧]<br>[⤓]<br>[After the break.]` |
+| page-break | DOC:end | Shift+Right | Normal 36–37 end-active | `[Before the break.]<br>[⤓]<br>[After the break.⟦¶‸⟧]` |
+| page-break | DOC:end | Shift+Left | Normal 33–36 start-active | `[Before the break.]<br>[⤓]<br>[After the bre⟦‸ak.⟧]` |
+| section-break | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Sec‸⟧tion one text.]<br>[§]<br>[Section two text.]` |
+| section-break | P1:start | Shift+Left | IP 0–0 | `[‸Section one text.]<br>[§]<br>[Section two text.]` |
+| section-break | P1:end | Shift+Right | Normal 17–20 end-active | `[Section one text.⟦¶⟧]<br>⟦[§⟧]<br>⟦[S‸⟧ection two text.]` |
+| section-break | P1:end | Shift+Left | Normal 14–17 start-active | `[Section one te⟦‸xt.⟧]<br>[§]<br>[Section two text.]` |
+| section-break | P2:start | Shift+Right | Normal 18–21 end-active | `[Section one text.]<br>[⟦§⟧]<br>⟦[Se‸⟧ction two text.]` |
+| section-break | P2:start | Shift+Left | Normal 15–18 start-active | `[Section one tex⟦‸t.¶⟧]<br>[§]<br>[Section two text.]` |
+| section-break | DOC:end | Shift+Right | Normal 36–37 end-active | `[Section one text.]<br>[§]<br>[Section two text.⟦¶‸⟧]` |
+| section-break | DOC:end | Shift+Left | Normal 33–36 start-active | `[Section one text.]<br>[§]<br>[Section two te⟦‸xt.⟧]` |
+| table-2x2 | P1:start | Shift+Right | Normal 0–3 end-active | `[⟦Bef‸⟧ore the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | P1:start | Shift+Left | IP 0–0 | `[‸Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | P1:end | Shift+Right | Normal 17–39 end-active | `[Before the table.⟦¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧<br>[After the table.]` |
+| table-2x2 | P1:end | Shift+Left | Normal 14–17 start-active | `[Before the tab⟦‸le.⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | P2:start | Shift+Right | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | P2:start | Shift+Left | Normal 15–27 start-active | `[Before the tabl⟦‸e.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | DOC:end | Shift+Right | Normal 55–56 end-active | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.⟦¶‸⟧]` |
+| table-2x2 | DOC:end | Shift+Left | Normal 52–55 start-active | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the tab⟦‸le.⟧]` |
 
 _2 combination(s) whose set-up does not apply to the fixture are left out._
 
@@ -1892,10 +1893,10 @@ steps `select({from})` · `{key}` · `{key}`
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| P1:12 | Shift+Right | Normal 12–14 end-active · InlineShapes 1 | `[Text before ⟦▣ ‸⟧after end.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:12 | Shift+Left | Normal 10–12 start-active | `[Text befor⟦‸e ⟧▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:13 | Shift+Right | Normal 13–15 end-active | `[Text before ▣⟦ a‸⟧fter end.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:13 | Shift+Left | IP 12–12 | `[Text before ‸▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
+| P1:12 | Shift+Right | Normal 12–14 end-active · InlineShapes 1 | `[Text before ⟦▣ ‸⟧after end.]<br>[Second paragraph.]` |
+| P1:12 | Shift+Left | Normal 10–12 start-active | `[Text befor⟦‸e ⟧▣ after end.]<br>[Second paragraph.]` |
+| P1:13 | Shift+Right | Normal 13–15 end-active | `[Text before ▣⟦ a‸⟧fter end.]<br>[Second paragraph.]` |
+| P1:13 | Shift+Left | IP 12–12 | `[Text before ‸▣ after end.]<br>[Second paragraph.]` |
 
 Notes: P1:12 is before the picture, P1:13 after it; the first press from P1:12 covers the picture and nothing else.
 
@@ -1911,33 +1912,33 @@ cell.
 
 steps before the branches `select(C(1,1):end)` · `Shift+Right`
 
-- `Shift+Right` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
-- `Shift+Right · Shift+Right · Shift+Right · Shift+Down` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤‸⟧]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–37 end-active · Cells 6 (R1C1–R2C3) · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║‸¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
-- `Ctrl+X` → `[Before the table.] ↓0 / T1 R1 ║‸¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo —
+- `Shift+Right` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
+- `Shift+Right · Shift+Right · Shift+Right · Shift+Down` → `[Before the table.] / T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤‸⟧]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–37 end-active · Cells 6 (R1C1–R2C3) · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x"
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║‸¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
+- `Ctrl+X` → `[Before the table.] / T1 R1 ║‸¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Cut
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo —
+- `Tab` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo —
 
 **Track Changes on**
 
-- `Shift+Right` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
-- `Shift+Right · Shift+Right · Shift+Right · Shift+Down` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤‸⟧]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–37 end-active · Cells 6 (R1C1–R2C3) · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
-- `Ctrl+X` → `[Before the table.] ↓0 / T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
+- `Shift+Right` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Shift+Right · Shift+Right · Shift+Right · Shift+Down` → `[Before the table.] / T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤‸⟧]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–37 end-active · Cells 6 (R1C1–R2C3) · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x"
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Clear
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Ctrl+X` → `[Before the table.] / T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Cut
+  - `undo` → `[Before the table.] / T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Tab` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -1969,12 +1970,12 @@ steps `select({from})` · `{key}` · `{key}` · `{key}` · `{key}`
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| P1:3 | Shift+Down | Normal 3–48 end-active | `[Bef⟦ore the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤‸⟧<br>[After the table.] ↓0` |
-| P1:3 | Shift+Up | Normal 0–3 start-active | `[⟦‸Bef⟧ore the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):1 | Shift+Down | Normal 18–65 end-active | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| C(1,1):1 | Shift+Up | Normal 0–28 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,3):1 | Shift+Down | Normal 38–65 end-active | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[⟦a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| C(3,3):1 | Shift+Up | IP 24–24 · Cells 1 (R1C3–R1C3) | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| P1:3 | Shift+Down | Normal 3–48 end-active | `[Bef⟦ore the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤‸⟧<br>[After the table.]` |
+| P1:3 | Shift+Up | Normal 0–3 start-active | `[⟦‸Bef⟧ore the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):1 | Shift+Down | Normal 18–65 end-active | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| C(1,1):1 | Shift+Up | Normal 0–28 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,3):1 | Shift+Down | Normal 38–65 end-active | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[⟦a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| C(3,3):1 | Shift+Up | IP 24–24 · Cells 1 (R1C3–R1C3) | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 Notes: P1:3 is above the table, C(1,1):1 inside its first cell, C(3,3):1 inside its last; Shift+Up from P1:3 and
 Shift+Down from C(3,3):1 leave the table at once.
@@ -1991,12 +1992,12 @@ steps `select(P1:0)` · `Shift+End` · `Shift+End`
 
 | fixture | options | selection | observed |
 | --- | --- | --- | --- |
-| wrap | SmartParaSelection=true | Normal 0–40 end-active | `[⟦Alpha beta gamma delta epsilon zeta eta ‸⟧theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
-| wrap | SmartParaSelection=false | Normal 0–40 end-active | `[⟦Alpha beta gamma delta epsilon zeta eta ‸⟧theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
-| three-paragraphs | SmartParaSelection=true | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | SmartParaSelection=false | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| table-2x2 | SmartParaSelection=true | Normal 0–27 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | SmartParaSelection=false | Normal 0–27 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| wrap | SmartParaSelection=true | Normal 0–40 end-active | `[⟦Alpha beta gamma delta epsilon zeta eta ‸⟧theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
+| wrap | SmartParaSelection=false | Normal 0–40 end-active | `[⟦Alpha beta gamma delta epsilon zeta eta ‸⟧theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
+| three-paragraphs | SmartParaSelection=true | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | SmartParaSelection=false | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| table-2x2 | SmartParaSelection=true | Normal 0–27 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | SmartParaSelection=false | Normal 0–27 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### S-04b · Shift+Home twice from a paragraph end
 
@@ -2009,12 +2010,12 @@ steps `select(P1:end)` · `Shift+Home` · `Shift+Home`
 
 | fixture | options | selection | observed |
 | --- | --- | --- | --- |
-| wrap | SmartParaSelection=true | Normal 124–160 start-active | `[Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega ⟦‸alpha beta gamma delta epsilon zeta.⟧] ↓0` |
-| wrap | SmartParaSelection=false | Normal 124–160 start-active | `[Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega ⟦‸alpha beta gamma delta epsilon zeta.⟧] ↓0` |
-| three-paragraphs | SmartParaSelection=true | Normal 0–22 start-active | `[⟦‸First paragraph here.¶⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | SmartParaSelection=false | Normal 0–21 start-active | `[⟦‸First paragraph here.⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| table-2x2 | SmartParaSelection=true | Normal 0–18 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | SmartParaSelection=false | Normal 0–17 start-active | `[⟦‸Before the table.⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| wrap | SmartParaSelection=true | Normal 124–160 start-active | `[Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega ⟦‸alpha beta gamma delta epsilon zeta.⟧]` |
+| wrap | SmartParaSelection=false | Normal 124–160 start-active | `[Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega ⟦‸alpha beta gamma delta epsilon zeta.⟧]` |
+| three-paragraphs | SmartParaSelection=true | Normal 0–22 start-active | `[⟦‸First paragraph here.¶⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | SmartParaSelection=false | Normal 0–21 start-active | `[⟦‸First paragraph here.⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| table-2x2 | SmartParaSelection=true | Normal 0–18 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | SmartParaSelection=false | Normal 0–17 start-active | `[⟦‸Before the table.⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### S-04c · Shift+End twice from a cell start
 
@@ -2032,13 +2033,13 @@ second press selects the whole cell.
 | step | selection | where |
 | --- | --- | --- |
 | `Shift+End` | Column 18–22 end-active | `[⟦One¤‸⟧]` |
-| `Shift+End` | Column 18–26 end-active | `[Two¤] …` |
+| `Shift+End` | Column 18–26 end-active | `⟦[Two¤‸⟧] …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦One¤⟧]║⟦[Two¤‸⟧]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 18–26 end-active · Cells 2 (R1C1–R1C2)
@@ -2052,13 +2053,13 @@ Selection: Column 18–26 end-active · Cells 2 (R1C1–R1C2)
 | step | selection | where |
 | --- | --- | --- |
 | `Shift+End` | Column 18–22 end-active | `[⟦One¤‸⟧]` |
-| `Shift+End` | Column 18–26 end-active | `[Two¤] …` |
+| `Shift+End` | Column 18–26 end-active | `⟦[Two¤‸⟧] …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦One¤⟧]║⟦[Two¤‸⟧]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 18–26 end-active · Cells 2 (R1C1–R1C2)
@@ -2076,14 +2077,14 @@ steps `select({from})` · `{key}` · `{key}` · `{key}` · `{key}` · `{key}` ·
 
 | fixture | from | key | selection | observed |
 | --- | --- | --- | --- | --- |
-| words | P1:start | Ctrl+Shift+Right | Normal 0–40 end-active | `[⟦alpha beta,  gamma-delta 3.14 don't (eps‸⟧) 1,000 10:30 end.] ↓0` |
-| words | P1:start | Ctrl+Shift+Left | IP 0–0 | `[‸alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| words | P1:end | Ctrl+Shift+Right | Normal 58–59 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.⟦¶‸⟧] ↓0` |
-| words | P1:end | Ctrl+Shift+Left | Normal 30–58 start-active | `[alpha beta,  gamma-delta 3.14 ⟦‸don't (eps) 1,000 10:30 end.⟧] ↓0` |
-| table-2x2 | P1:start | Ctrl+Shift+Right | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| table-2x2 | P1:start | Ctrl+Shift+Left | IP 0–0 | `[‸Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | P1:end | Ctrl+Shift+Right | Normal 17–56 end-active | `[Before the table.⟦¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| table-2x2 | P1:end | Ctrl+Shift+Left | Normal 0–18 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| words | P1:start | Ctrl+Shift+Right | Normal 0–40 end-active | `[⟦alpha beta,  gamma-delta 3.14 don't (eps‸⟧) 1,000 10:30 end.]` |
+| words | P1:start | Ctrl+Shift+Left | IP 0–0 | `[‸alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| words | P1:end | Ctrl+Shift+Right | Normal 58–59 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.⟦¶‸⟧]` |
+| words | P1:end | Ctrl+Shift+Left | Normal 30–58 start-active | `[alpha beta,  gamma-delta 3.14 ⟦‸don't (eps) 1,000 10:30 end.⟧]` |
+| table-2x2 | P1:start | Ctrl+Shift+Right | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| table-2x2 | P1:start | Ctrl+Shift+Left | IP 0–0 | `[‸Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | P1:end | Ctrl+Shift+Right | Normal 17–56 end-active | `[Before the table.⟦¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| table-2x2 | P1:end | Ctrl+Shift+Left | Normal 0–18 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### S-06 · Ctrl+Shift+Down and Ctrl+Shift+Up between paragraphs
 
@@ -2097,14 +2098,14 @@ steps `select({from})` · `{key}` · `{key}`
 
 | fixture | from | key | selection | observed |
 | --- | --- | --- | --- | --- |
-| three-paragraphs | P2:3 | Ctrl+Shift+Down | Normal 25–55 end-active | `[First paragraph here.] ↓0<br>[Sec⟦ond bold one.¶⟧] (center) ↓0<br>⟦[Third and last.¶‸⟧] ↓0` |
-| three-paragraphs | P2:3 | Ctrl+Shift+Up | Normal 0–25 start-active | `[⟦‸First paragraph here.¶⟧] ↓0<br>⟦[Sec⟧ond bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P1:end | Ctrl+Shift+Down | Normal 21–39 end-active | `[First paragraph here.⟦¶⟧] ↓0<br>⟦[Second bold one.¶‸⟧] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P1:end | Ctrl+Shift+Up | Normal 0–22 start-active | `[⟦‸First paragraph here.¶⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| table-multi | P2:3 | Ctrl+Shift+Down | Column 18–31 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦first¶⟧] ¶ ⟦[second¤‸⟧]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
-| table-multi | P2:3 | Ctrl+Shift+Up | Normal 0–35 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[first¶⟧] ¶ ⟦[second¤⟧]║⟦[b1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
-| table-multi | P1:end | Ctrl+Shift+Down | Normal 17–35 end-active | `[Before the table.⟦¶⟧] ↓0<br>T1 R1 ║⟦[first¶⟧] ¶ ⟦[second¤⟧]║⟦[b1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
-| table-multi | P1:end | Ctrl+Shift+Up | Normal 0–18 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
+| three-paragraphs | P2:3 | Ctrl+Shift+Down | Normal 25–55 end-active | `[First paragraph here.]<br>[Sec⟦ond bold one.¶⟧] (center)<br>⟦[Third and last.¶‸⟧]` |
+| three-paragraphs | P2:3 | Ctrl+Shift+Up | Normal 0–25 start-active | `[⟦‸First paragraph here.¶⟧]<br>⟦[Sec⟧ond bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P1:end | Ctrl+Shift+Down | Normal 21–39 end-active | `[First paragraph here.⟦¶⟧]<br>⟦[Second bold one.¶‸⟧] (center)<br>[Third and last.]` |
+| three-paragraphs | P1:end | Ctrl+Shift+Up | Normal 0–22 start-active | `[⟦‸First paragraph here.¶⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| table-multi | P2:3 | Ctrl+Shift+Down | Column 18–31 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦first¶⟧] ¶ ⟦[second¤‸⟧]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
+| table-multi | P2:3 | Ctrl+Shift+Up | Normal 0–35 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║⟦[first¶⟧] ¶ ⟦[second¤⟧]║⟦[b1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
+| table-multi | P1:end | Ctrl+Shift+Down | Normal 17–35 end-active | `[Before the table.⟦¶⟧]<br>T1 R1 ║⟦[first¶⟧] ¶ ⟦[second¤⟧]║⟦[b1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
+| table-multi | P1:end | Ctrl+Shift+Up | Normal 0–18 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
 
 #### S-06b · Ctrl+Shift+Down and Ctrl+Shift+Up inside a two-paragraph cell
 
@@ -2117,8 +2118,8 @@ steps `select(C(1,1):1)` · `{key}` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Ctrl+Shift+Down | Column 18–31 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦first¶⟧] ¶ ⟦[second¤‸⟧]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
-| Ctrl+Shift+Up | Normal 0–35 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[first¶⟧] ¶ ⟦[second¤⟧]║⟦[b1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
+| Ctrl+Shift+Down | Column 18–31 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦first¶⟧] ¶ ⟦[second¤‸⟧]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
+| Ctrl+Shift+Up | Normal 0–35 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║⟦[first¶⟧] ¶ ⟦[second¤⟧]║⟦[b1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
 
 #### S-07 · Ctrl+Shift+End and Ctrl+Shift+Home from inside a cell
 
@@ -2131,8 +2132,8 @@ steps `select(C(1,1):1)` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Ctrl+Shift+End | Normal 18–56 end-active | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| Ctrl+Shift+Home | Normal 0–27 start-active | `[⟦‸Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| Ctrl+Shift+End | Normal 18–56 end-active | `[Before the table.]<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| Ctrl+Shift+Home | Normal 0–27 start-active | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### S-07b · Ctrl+Shift+End and Ctrl+Shift+Home from the header
 
@@ -2145,8 +2146,8 @@ steps `seek(header)` · `select(HDR:P1:3)` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Ctrl+Shift+End | Normal 3–12 end-active · Story PrimaryHeader | `[Body paragraph.] ↓0<br>[Second body paragraph.] ↓0<br>HDR: [Hea⟦der text¶‸⟧] #Header` |
-| Ctrl+Shift+Home | Normal 0–3 start-active · Story PrimaryHeader | `[Body paragraph.] ↓0<br>[Second body paragraph.] ↓0<br>HDR: [⟦‸Hea⟧der text] #Header` |
+| Ctrl+Shift+End | Normal 3–12 end-active · Story PrimaryHeader | `[Body paragraph.]<br>[Second body paragraph.]<br>HDR: [Hea⟦der text¶‸⟧] #Header` |
+| Ctrl+Shift+Home | Normal 0–3 start-active · Story PrimaryHeader | `[Body paragraph.]<br>[Second body paragraph.]<br>HDR: [⟦‸Hea⟧der text] #Header` |
 
 #### S-08 · The paragraph mark selected alone, then Delete, a typed letter, Backspace or Enter
 
@@ -2159,27 +2160,27 @@ is struck through and the paragraphs stay apart.
 
 steps before the branches `select(P1:end)` · `Shift+Right`
 
-- `Shift+Right` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Undo —
-- `Delete` → `[First paragraph here.‸Second ][b:bold ][one.] ↓0 / [Third and last.] ↓0` · IP 21–21 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Undo —
-- `type("x")` → `[First paragraph here.x‸] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · IP 22–22 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Undo —
-- `Backspace` → `[First paragraph here.‸Second ][b:bold ][one.] ↓0 / [Third and last.] ↓0` · IP 21–21 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Undo —
-- `Enter` → `[First paragraph here.] ↓0 / [‸Second ][b:bold ][one.] ↓0 / [Third and last.] ↓0` · IP 22–22 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Undo —
+- `Shift+Right` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Undo —
+- `Delete` → `[First paragraph here.‸Second ][b:bold ][one.] / [Third and last.]` · IP 21–21 · Undo: Clear
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Undo —
+- `type("x")` → `[First paragraph here.x‸] / [Second ][b:bold ][one.] (center) / [Third and last.]` · IP 22–22 · Undo: Typing "x"
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Undo —
+- `Backspace` → `[First paragraph here.‸Second ][b:bold ][one.] / [Third and last.]` · IP 21–21 · Undo: Typing
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Undo —
+- `Enter` → `[First paragraph here.] / [‸Second ][b:bold ][one.] / [Third and last.]` · IP 22–22 · Undo: Typing
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Undo —
 
 **Track Changes on**
 
-- `Shift+Right` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
-- `Delete` → `[First paragraph here.]{--} ↓0 / {~[‸Second ][b:bold ][one.]~} ↓0 / [Third and last.] ↓0` · IP 22–22 · Tracking · Revisions 2 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[First paragraph here.]{+[x]+}‸ ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · IP 22–22 · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
-- `Backspace` → `[First paragraph here.]{-‸-} ↓0 / {~[Second ][b:bold ][one.]~} ↓0 / [Third and last.] ↓0` · IP 21–21 · Tracking · Revisions 2 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
-- `Enter` → `[First paragraph here.]{--} ↓0 / {++} ↓0 / {~[‸Second ][b:bold ][one.]~} ↓0 / [Third and last.] ↓0` · IP 23–23 · Tracking · Revisions 3 · Undo depth 1
-  - `undo` → `[First paragraph here.⟦¶‸⟧] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Third and last.] ↓0` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
+- `Shift+Right` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `[First paragraph here.]{--} / {~[‸Second ][b:bold ][one.]~} / [Third and last.]` · IP 22–22 · Tracking · Revisions 2 · Undo: Clear
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[First paragraph here.]{+[x]+}‸ / [Second ][b:bold ][one.] (center) / [Third and last.]` · IP 22–22 · Tracking · Revisions 1 · Undo: Typing "x"
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
+- `Backspace` → `[First paragraph here.]{-‸-} / {~[Second ][b:bold ][one.]~} / [Third and last.]` · IP 21–21 · Tracking · Revisions 2 · Undo: Typing
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
+- `Enter` → `[First paragraph here.]{--} / {++} / {~[‸Second ][b:bold ][one.]~} / [Third and last.]` · IP 23–23 · Tracking · Revisions 3 · Undo: Typing
+  - `undo` → `[First paragraph here.⟦¶‸⟧] / [Second ][b:bold ][one.] (center) / [Third and last.]` · Normal 21–22 end-active · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -2207,12 +2208,12 @@ steps `select(P1:1)` · `Ctrl+A`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| table-2x2 | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| header-footer | Normal 0–39 end-active | `[⟦Body paragraph.¶⟧] ↓0<br>⟦[Second body paragraph.¶‸⟧] ↓0` |
-| text-box | Normal 0–92 end-active | `[⟦⚓1First paragraph of text here.¶⟧] ↓0<br>⟦[Second paragraph of text here.¶⟧] ↓0<br>⟦[Third paragraph of text here.¶‸⟧] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| footnote | Normal 0–44 end-active | `[⟦Text†1 more words.¶⟧] ↓0<br>⟦[Second with an end note.‡1¶‸⟧] ↓0` |
-| image-floating | Normal 0–109 end-active | `[⟦⚓1First paragraph of text here.¶⟧] ↓0<br>⟦[Second paragraph carries the anchor of the picture.¶⟧] ↓0<br>⟦[Third paragraph after it.¶‸⟧] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| table-nested | Normal 0–72 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
+| table-2x2 | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| header-footer | Normal 0–39 end-active | `[⟦Body paragraph.¶⟧]<br>⟦[Second body paragraph.¶‸⟧]` |
+| text-box | Normal 0–92 end-active | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Second paragraph of text here.¶⟧]<br>⟦[Third paragraph of text here.¶‸⟧]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| footnote | Normal 0–44 end-active | `[⟦Text†1 more words.¶⟧]<br>⟦[Second with an end note.‡1¶‸⟧]` |
+| image-floating | Normal 0–109 end-active | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Second paragraph carries the anchor of the picture.¶⟧]<br>⟦[Third paragraph after it.¶‸⟧]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| table-nested | Normal 0–72 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
 
 #### S-09b · Ctrl+A from inside a cell, and from inside a nested table
 
@@ -2225,8 +2226,8 @@ steps `select(C(1,1):1)` · `Ctrl+A`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| table-2x2 | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| table-nested | Normal 0–72 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
+| table-2x2 | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| table-nested | Normal 0–72 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
 
 #### S-09c · Ctrl+A in the header
 
@@ -2238,8 +2239,8 @@ Expected before the run: The header story only, the selection's StoryType stayin
 2. `Ctrl+A`
 
 ```text
-[Body paragraph.] ↓0
-[Second body paragraph.] ↓0
+[Body paragraph.]
+[Second body paragraph.]
 HDR: [⟦Header text¶‸⟧] #Header
 ```
 
@@ -2255,12 +2256,12 @@ Expected before the run: (a) the text box's two paragraphs only; (b) the body, w
 2. `Ctrl+A`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
-TB: [⟦Box line one¶⟧] ↓0
-TB: ⟦[Box line two¶‸⟧] ↓0
+TB: [⟦Box line one¶⟧]
+TB: ⟦[Box line two¶‸⟧]
 ```
 
 Selection: Normal 0–26 end-active · Story TextFrame
@@ -2275,8 +2276,8 @@ Expected before the run: The footnote story only, every note's text in one selec
 2. `Ctrl+A`
 
 ```text
-[Text†1 more words.] ↓0
-[Second with an end note.‡1] ↓0
+[Text†1 more words.]
+[Second with an end note.‡1]
 FN: [⟦† Note text.¶‸⟧] #FootnoteText
 ```
 
@@ -2295,33 +2296,33 @@ steps before the branches `select(P1:1)` · `Ctrl+A` · `Delete`
 
 **fixture=kinds**
 
-- `Delete` → `‸ ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦Normal kind.¶⟧] ↓0 / ⟦[Heading kind¶⟧] #Heading1 / ⟦[Bullet kind.¶⟧] #ListParagraph •1.0 ● ⇥36,-18 / ⟦[Centred kind.¶⟧] (center) ↓0 / ⟦[Bordered kind.¶⟧] ↓0 / ⟦[Indented kind.¶⟧] ⇥36,0 ↓0 / ⟦¶⟧ ↓0 / ⟦[Keep with next kind.¶⟧] ↓0 / ⟦[Last plain kind.¶‸⟧] ↓0` · Normal 0–122 end-active · Undo depth 1
+- `Delete` → `‸` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦Normal kind.¶⟧] / ⟦[Heading kind¶⟧] #Heading1 / ⟦[Bullet kind.¶⟧] #ListParagraph •1.0 ● ⇥36,-18 / ⟦[Centred kind.¶⟧] (center) / ⟦[Bordered kind.¶⟧] ▭ / ⟦[Indented kind.¶⟧] ⇥36,0 / ⟦¶⟧ / ⟦[Keep with next kind.¶⟧] ⇊ / ⟦[Last plain kind.¶‸⟧]` · Normal 0–122 end-active · Undo —
 
 **fixture=kinds · Track Changes on**
 
-- `Delete` → `{-[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.]-}‸ ↓0` · IP 121–121 · Tracking · Revisions 1 · Undo depth 2
-- `undo` → `[⟦Normal kind.¶⟧] ↓0 / ⟦[Heading kind¶⟧] #Heading1 / ⟦[Bullet kind.¶⟧] #ListParagraph •1.0 ● ⇥36,-18 / ⟦[Centred kind.¶⟧] (center) ↓0 / ⟦[Bordered kind.¶⟧] ↓0 / ⟦[Indented kind.¶⟧] ⇥36,0 ↓0 / ⟦¶⟧ ↓0 / ⟦[Keep with next kind.¶⟧] ↓0 / ⟦[Last plain kind.¶‸⟧] ↓0` · Normal 0–122 end-active · Tracking · Revisions 0 · Undo depth 1
+- `Delete` → `{-[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]-}‸` · IP 121–121 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦Normal kind.¶⟧] / ⟦[Heading kind¶⟧] #Heading1 / ⟦[Bullet kind.¶⟧] #ListParagraph •1.0 ● ⇥36,-18 / ⟦[Centred kind.¶⟧] (center) / ⟦[Bordered kind.¶⟧] ▭ / ⟦[Indented kind.¶⟧] ⇥36,0 / ⟦¶⟧ / ⟦[Keep with next kind.¶⟧] ⇊ / ⟦[Last plain kind.¶‸⟧]` · Normal 0–122 end-active · Tracking · Revisions 0 · Undo —
 
 **fixture=table-2x2**
 
-- `Delete` → `‸ ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦Before the table.¶⟧] ↓0 / T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤ / T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤ / ⟦[After the table.¶‸⟧] ↓0` · Normal 0–56 end-active · Undo —
+- `Delete` → `‸` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦Before the table.¶⟧] / T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤ / T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤ / ⟦[After the table.¶‸⟧]` · Normal 0–56 end-active · Undo —
 
 **fixture=table-2x2 · Track Changes on**
 
-- `Delete` → `{-[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]-}‸ ↓0` · IP 55–55 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[⟦Before the table.¶⟧] ↓0 / T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤ / T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤ / ⟦[After the table.¶‸⟧] ↓0` · Normal 0–56 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `{-[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]-}‸` · IP 55–55 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦Before the table.¶⟧] / T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤ / T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤ / ⟦[After the table.¶‸⟧]` · Normal 0–56 end-active · Tracking · Revisions 0 · Undo —
 
 **fixture=image-floating**
 
-- `Delete` → `‸ ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦⚓1First paragraph of text here.¶⟧] ↓0 / ⟦[Second paragraph carries the anchor of the picture.¶⟧] ↓0 / ⟦[Third paragraph after it.¶‸⟧] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Undo —
+- `Delete` → `‸` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦⚓1First paragraph of text here.¶⟧] / ⟦[Second paragraph carries the anchor of the picture.¶⟧] / ⟦[Third paragraph after it.¶‸⟧] / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Undo —
 
 **fixture=image-floating · Track Changes on**
 
-- `Delete` → `{-[⚓1First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.]-}‸ ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 108–108 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[⟦⚓1First paragraph of text here.¶⟧] ↓0 / ⟦[Second paragraph carries the anchor of the picture.¶⟧] ↓0 / ⟦[Third paragraph after it.¶‸⟧] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `{-[⚓1First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.]-}‸ / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 108–108 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦⚓1First paragraph of text here.¶⟧] / ⟦[Second paragraph carries the anchor of the picture.¶⟧] / ⟦[Third paragraph after it.¶‸⟧] / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -2341,11 +2342,11 @@ that letter rather than replacing the selection.
 
 steps before the branches `select(P1:find("Two"))` · `F8`
 
-- `F8` → `[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · IP 14–14 · extend-mode
-- `F8 · F8 · F8 · F8 · F8 · Shift+F8 · Shift+F8 · Shift+F8 · Esc` → `[One is first. ⟦Two ‸⟧is next? Three uses e.g. four here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · Normal 14–18 end-active
-- `Right x3 · Esc` → `[One is first. ⟦Two‸⟧ is next? Three uses e.g. four here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · Normal 14–17 end-active
-- `type("f") · Esc` → `[One is first. ⟦Two is next? Three uses e.g. f‸⟧our here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · Normal 14–44 end-active
-- `Esc` → `[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · IP 14–14
+- `F8` → `[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · IP 14–14 · extend-mode
+- `F8 · F8 · F8 · F8 · F8 · Shift+F8 · Shift+F8 · Shift+F8 · Esc` → `[One is first. ⟦Two ‸⟧is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · Normal 14–18 end-active
+- `Right x3 · Esc` → `[One is first. ⟦Two‸⟧ is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · Normal 14–17 end-active
+- `type("f") · Esc` → `[One is first. ⟦Two is next? Three uses e.g. f‸⟧our here. Five ends it.] / [Second line starts. It ends here.]` · Normal 14–44 end-active
+- `Esc` → `[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · IP 14–14
 
 ```mermaid
 flowchart TD
@@ -2378,17 +2379,17 @@ document, with no row or table step; (c) column before row.
 | `F8` | IP 32–32 | `[b‸2¤]` |
 | `F8` | Normal 31–33 end-active | `[⟦b2‸⟧¤]` |
 | `F8` | Column 31–34 end-active | `[⟦b2¤‸⟧]` |
-| `F8` | Normal 0–65 end-active | `[After the table.¶] …` |
-| `F8` | Normal 0–65 end-active | `[After the table.¶] …` |
-| `F8` | Normal 0–65 end-active | `[After the table.¶] …` |
-| `Esc` | Normal 0–65 end-active | `[After the table.¶] …` |
+| `F8` | Normal 0–65 end-active | `⟦[After the table.¶‸⟧] …` |
+| `F8` | Normal 0–65 end-active | `⟦[After the table.¶‸⟧] …` |
+| `F8` | Normal 0–65 end-active | `⟦[After the table.¶‸⟧] …` |
+| `Esc` | Normal 0–65 end-active | `⟦[After the table.¶‸⟧] …` |
 
 ```text
-[⟦Before the table.¶⟧] ↓0
+[⟦Before the table.¶⟧]
 T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤
 T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤
-⟦[After the table.¶‸⟧] ↓0
+⟦[After the table.¶‸⟧]
 ```
 
 Selection: Normal 0–65 end-active
@@ -2413,9 +2414,9 @@ item for three presses before the document (b) climb once per press regardless; 
 | `F8` | IP 5–5 | `[T‸wo]` |
 | `F8` | Normal 4–7 end-active | `[⟦Two‸⟧]` |
 | `F8` | Normal 4–8 end-active | `[⟦Two¶‸⟧]` |
-| `F8` | Normal 0–14 end-active | `[Three¶] …` |
-| `F8` | Normal 0–14 end-active | `[Three¶] …` |
-| `Esc` | Normal 0–14 end-active | `[Three¶] …` |
+| `F8` | Normal 0–14 end-active | `⟦[Three¶‸⟧] …` |
+| `F8` | Normal 0–14 end-active | `⟦[Three¶‸⟧] …` |
+| `Esc` | Normal 0–14 end-active | `⟦[Three¶‸⟧] …` |
 
 ```text
 [⟦One¶⟧] #ListParagraph •1.0 1. ⇥36,-18
@@ -2435,17 +2436,17 @@ replaces only the first; Delete removes every segment.
 
 steps before the branches `select(P2:2)` · `Ctrl+Shift+F8` · `Down` · `Down` · `Right x3`
 
-- `Right x3` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–195 end-active · column-mode · Undo —
-- `Esc · type("x")` → `[Short first.] ↓0 / [A x‸long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · IP 16–16 · Undo depth 1
-- `type("x")` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–195 end-active · column-mode · Undo —
-- `Delete` → `[Short first.] ↓0 / [A ‸g second paragraph that runs on past the right margin so that it wraps to a second ahen a third line of text on the page, giving Up and Down keys lines to move between be it finally ends here.] ↓0 / [Short third.] ↓0` · IP 15–15 · Undo depth 1
+- `Right x3` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] / [Short third.]` · Block 15–195 end-active · column-mode · Undo —
+- `Esc · type("x")` → `[Short first.] / [A x‸long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · IP 16–16 · Undo: Typing "x"
+- `type("x")` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] / [Short third.]` · Block 15–195 end-active · column-mode · Undo —
+- `Delete` → `[Short first.] / [A ‸g second paragraph that runs on past the right margin so that it wraps to a second ahen a third line of text on the page, giving Up and Down keys lines to move between be it finally ends here.] / [Short third.]` · IP 15–15 · Undo: Clear
 
 **Track Changes on**
 
-- `Right x3` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–195 end-active · column-mode · Tracking · Revisions 0 · Undo —
-- `Esc · type("x")` → `[Short first.] ↓0 / [A ]{+[x]+}[‸long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0 / [Short third.] ↓0` · IP 16–16 · Tracking · Revisions 1 · Undo depth 1
-- `type("x")` → `[Short first.] ↓0 / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] ↓0 / [Short third.] ↓0` · Block 15–195 end-active · column-mode · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Short first.] ↓0 / [A ]{-[‸lon]-}[g second paragraph that runs on past the right margin so that it wraps to a second a]{-[nd t]-}[hen a third line of text on the page, giving Up and Down keys lines to move between b]{-[efor]-}[e it finally ends here.] ↓0 / [Short third.] ↓0` · IP 15–15 · Tracking · Revisions 3 · Undo depth 1
+- `Right x3` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] / [Short third.]` · Block 15–195 end-active · column-mode · Tracking · Revisions 0 · Undo —
+- `Esc · type("x")` → `[Short first.] / [A ]{+[x]+}[‸long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] / [Short third.]` · IP 16–16 · Tracking · Revisions 1 · Undo: Typing "x"
+- `type("x")` → `[Short first.] / [A ⟦long second paragraph that runs on past the right margin so that it wraps to a second and then a third line of text on the page, giving Up and Down keys lines to move between befor‸⟧e it finally ends here.] / [Short third.]` · Block 15–195 end-active · column-mode · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Short first.] / [A ]{-[‸lon]-}[g second paragraph that runs on past the right margin so that it wraps to a second a]{-[nd t]-}[hen a third line of text on the page, giving Up and Down keys lines to move between b]{-[efor]-}[e it finally ends here.] / [Short third.]` · IP 15–15 · Tracking · Revisions 3 · Undo: Clear
 
 ```mermaid
 flowchart TD
@@ -2466,8 +2467,8 @@ steps `select({from})` · `Alt+Num5`
 
 | from | selection | observed |
 | --- | --- | --- |
-| C(1,1):1 | Row 18–39 end-active · Cells 4 (R1C1–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧<br>[After the table.] ↓0` |
-| P1:1 | IP 1–1 | `[B‸efore the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):1 | Row 18–39 end-active · Cells 4 (R1C1–R2C2) | `[Before the table.]<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧<br>[After the table.]` |
+| P1:1 | IP 1–1 | `[B‸efore the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 Notes: Num5 is the numeric keypad's 5 with Num Lock off (the Clear key); with Num Lock on the chord is a different
 key and does nothing.
@@ -2494,7 +2495,7 @@ its right drop out.
 | `shift+click(P1:5)` | Normal 5–13 start-active | `[alpha⟦‸ beta,  ⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha⟦‸ beta,  ⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha⟦‸ beta,  ⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 5–13 start-active · click(P1:10) → Range 11-11, IBeam · shift+click(P1:5) → Range 5-5, IBeam
@@ -2509,9 +2510,9 @@ anchor at 10.
 
 steps before the branches `select(P1:10)` · `Shift+Right` · `Shift+Right` · `Shift+Right`
 
-- `Shift+Right` → `[alpha beta⟦,  ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 10–13 end-active
-- `Shift+Left · Shift+Left · Shift+Left · Shift+Left · Shift+Left` → `[alpha be⟦‸ta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 8–10 start-active
-- `Shift+Up` → `[⟦‸alpha beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 0–10 start-active
+- `Shift+Right` → `[alpha beta⟦,  ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 10–13 end-active
+- `Shift+Left · Shift+Left · Shift+Left · Shift+Left · Shift+Left` → `[alpha be⟦‸ta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 8–10 start-active
+- `Shift+Up` → `[⟦‸alpha beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 0–10 start-active
 
 ```mermaid
 flowchart TD
@@ -2549,21 +2550,21 @@ selection collapses there; (b) at its end. Backspace and Delete still remove the
 
 steps before the branches `option(Options.ReplaceSelection=false)` · `select(P1:6-10)`
 
-- `select(P1:6-10)` → `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 6–10 end-active · Undo —
-- `type("x")` → `[alpha x‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 7–7 · Undo depth 1
-- `Enter` → `[alpha ] ↓0 / [‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 7–7 · Undo depth 1
-- `Tab` → `[alpha \t‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 7–7 · Undo depth 1
-- `Backspace` → `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 6–6 · Undo —
-- `Delete` → `[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 5–5 · Undo depth 1
+- `select(P1:6-10)` → `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 6–10 end-active · Undo —
+- `type("x")` → `[alpha x‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 7–7 · Undo: Typing "x"
+- `Enter` → `[alpha ] / [‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 7–7 · Undo: Typing
+- `Tab` → `[alpha \t‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 7–7 · Undo: Typing "."
+- `Backspace` → `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 6–6 · Undo —
+- `Delete` → `[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 5–5 · Undo: Clear
 
 **Track Changes on**
 
-- `select(P1:6-10)` → `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 6–10 end-active · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[alpha ]{+[x]+}[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 1
-- `Enter` → `[alpha ]{++} ↓0 / [‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 1
-- `Tab` → `[alpha ]{+[\t]+}[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 1
-- `Backspace` → `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 6–6 · Tracking · Revisions 0 · Undo —
-- `Delete` → `[alpha]{-[ beta]-}[‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · IP 10–10 · Tracking · Revisions 1 · Undo depth 1
+- `select(P1:6-10)` → `[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 6–10 end-active · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[24:alpha ]{+[24:x]+}[24:‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing "x"
+- `Enter` → `[24:alpha ]{++} / [24:‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing
+- `Tab` → `[24:alpha ]{+[24:\t]+}[24:‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing "."
+- `Backspace` → `[24:alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 6–6 · Tracking · Revisions 0 · Undo —
+- `Delete` → `[24:alpha]{-[24: beta]-}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · IP 10–10 · Tracking · Revisions 1 · Undo: Clear
 
 ```mermaid
 flowchart TD
@@ -2587,10 +2588,10 @@ steps `select(C(1,1):0-C(1,1):end)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Tab | off | Normal 22–25 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[⟦Two‸⟧¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| Tab | on | Normal 22–25 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[⟦Two‸⟧¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| Shift+Tab | off | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| Shift+Tab | on | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| Tab | off | Normal 22–25 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[⟦Two‸⟧¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| Tab | on | Normal 22–25 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[⟦Two‸⟧¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| Shift+Tab | off | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| Shift+Tab | on | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### S-17b · Tab and Shift+Tab with a word selected in plain text
 
@@ -2603,10 +2604,10 @@ steps `select(P1:6-10)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Tab | off | IP 7–7 · Undo depth 1 | `[alpha \t‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| Tab | on | IP 7–7 · Tracking · Revisions 1 · Undo depth 1 | `[alpha ]{+[\t]+}[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| Shift+Tab | off | IP 7–7 · Undo depth 1 | `[alpha \t‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| Shift+Tab | on | IP 7–7 · Tracking · Revisions 1 · Undo depth 1 | `[alpha ]{+[\t]+}[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| Tab | off | IP 7–7 · Undo: Typing "." | `[24:alpha \t‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| Tab | on | IP 11–11 · Tracking · Revisions 2 · Undo: Typing "." | `[24:alpha ]{-[24:beta]-}{+[24:\t]+}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| Shift+Tab | off | IP 7–7 · Undo: Typing "." | `[24:alpha \t‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| Shift+Tab | on | IP 11–11 · Tracking · Revisions 2 · Undo: Typing "." | `[24:alpha ]{-[24:beta]-}{+[24:\t]+}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 #### S-17c · Tab and Shift+Tab with a numbered item's text selected
 
@@ -2619,10 +2620,10 @@ steps `select(P2:0-P2:3)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Tab | off | Normal 4–7 end-active · Undo depth 2 | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Two‸⟧] #ListParagraph •1.0 2. ⇥54,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| Tab | on | Normal 4–7 end-active · Tracking · Revisions 1 · Undo depth 2 | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[⟦Two‸⟧]~} #ListParagraph •1.0 2. ⇥54,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| Shift+Tab | off | Normal 4–7 end-active · Undo depth 2 | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Two‸⟧] #ListParagraph •1.0 2. ⇥18,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| Shift+Tab | on | Normal 4–7 end-active · Tracking · Revisions 1 · Undo depth 2 | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[⟦Two‸⟧]~} #ListParagraph •1.0 2. ⇥18,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| Tab | off | Normal 4–7 end-active · Undo: AutoFormat | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Two‸⟧] #ListParagraph •1.0 2. ⇥54,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| Tab | on | Normal 4–7 end-active · Tracking · Revisions 1 · Undo: AutoFormat | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[⟦Two‸⟧]~} #ListParagraph •1.0 2. ⇥54,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| Shift+Tab | off | Normal 4–7 end-active · Undo: AutoFormat | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Two‸⟧] #ListParagraph •1.0 2. ⇥18,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| Shift+Tab | on | Normal 4–7 end-active · Tracking · Revisions 1 · Undo: AutoFormat | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[⟦Two‸⟧]~} #ListParagraph •1.0 2. ⇥18,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 
 #### S-18 · Shift+Right from the last cell's end: cell, row mark, table, then what follows
 
@@ -2636,8 +2637,8 @@ steps `select(C(2,2):end)` · `Shift+Right` · `Shift+Right` · `Shift+Right`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| table-2x2 | Normal 27–40 end-active | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[⟦Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[A‸⟧fter the table.] ↓0` |
-| table-at-end | Normal 27–40 end-active | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[⟦Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦¶‸⟧ ↓0` |
+| table-2x2 | Normal 27–40 end-active | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[⟦Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[A‸⟧fter the table.]` |
+| table-at-end | Normal 27–40 end-active | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[⟦Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦¶‸⟧` |
 
 #### S-19 · Shift+Right and Shift+Left from a clicked inline picture
 
@@ -2650,8 +2651,8 @@ steps `click(IMG1)` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Shift+Right | Normal 12–14 end-active · InlineShapes 1 | `[Text before ⟦▣ ‸⟧after end.] ↓0<br>[Second paragraph.] ↓0` |
-| Shift+Left | IP 12–12 | `[Text before ‸▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
+| Shift+Right | Normal 12–14 end-active · InlineShapes 1 | `[Text before ⟦▣ ‸⟧after end.]<br>[Second paragraph.]` |
+| Shift+Left | IP 12–12 | `[Text before ‸▣ after end.]<br>[Second paragraph.]` |
 
 #### S-20 · Shift+Right with a floating picture selected
 
@@ -2664,9 +2665,9 @@ Expected before the run: (a) nothing changes and the shape stays selected; (b) t
 2. `Shift+Right`
 
 ```text
-[⟦⚓1‸⟧First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[⟦⚓1‸⟧First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 79.2x72pt square @296.4,0 ⟦selected⟧
 ```
 
@@ -2681,13 +2682,13 @@ ends with P3's mark and its properties; the selection collapses at P3:2.
 
 steps before the branches `select(P3:2)` · `Ctrl+Shift+End` · `Delete`
 
-- `Delete` → `[First paragraph here.] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Th‸] ↓0` · IP 41–41 · Undo depth 1
-- `undo` → `[First paragraph here.] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Th⟦ird and last.¶‸⟧] ↓0` · Normal 41–55 end-active · Undo —
+- `Delete` → `[First paragraph here.] / [Second ][b:bold ][one.] (center) / [Th‸]` · IP 41–41 · Undo: Clear
+- `undo` → `[First paragraph here.] / [Second ][b:bold ][one.] (center) / [Th⟦ird and last.¶‸⟧]` · Normal 41–55 end-active · Undo —
 
 **Track Changes on**
 
-- `Delete` → `[First paragraph here.] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Th]{-[ird and last.]-}‸ ↓0` · IP 54–54 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[First paragraph here.] ↓0 / [Second ][b:bold ][one.] (center) ↓0 / [Th⟦ird and last.¶‸⟧] ↓0` · Normal 41–55 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `[First paragraph here.] / [Second ][b:bold ][one.] (center) / [Th]{-[ird and last.]-}‸` · IP 54–54 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[First paragraph here.] / [Second ][b:bold ][one.] (center) / [Th⟦ird and last.¶‸⟧]` · Normal 41–55 end-active · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -2715,7 +2716,7 @@ selects 20-25, with no memory of the first selection.
 | `shift+click(P1:25)` | Normal 20–25 end-active | `[alpha beta,  gamma-d⟦elta ‸⟧3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha beta,  gamma-d⟦elta ‸⟧3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha beta,  gamma-d⟦elta ‸⟧3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 20–25 end-active · click(P1:20) → Range 20-20, IBeam · shift+click(P1:25) → Range 25-25, IBeam
@@ -2731,8 +2732,8 @@ steps `select(P1:60)` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Shift+Home | Normal 40–60 start-active | `[Alpha beta gamma delta epsilon zeta eta ⟦‸theta iota kappa lam⟧bda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
-| Shift+End | Normal 60–81 end-active | `[Alpha beta gamma delta epsilon zeta eta theta iota kappa lam⟦bda mu nu xi omicron ‸⟧pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
+| Shift+Home | Normal 40–60 start-active | `[Alpha beta gamma delta epsilon zeta eta ⟦‸theta iota kappa lam⟧bda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
+| Shift+End | Normal 60–81 end-active | `[Alpha beta gamma delta epsilon zeta eta theta iota kappa lam⟦bda mu nu xi omicron ‸⟧pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
 
 #### S-25 · Shift+Right into another author's tracked deletion, per markup view
 
@@ -2746,9 +2747,9 @@ steps `view({view})` · `select(P1:5)` · `Shift+Right` · `Shift+Right` · `Shi
 
 | view | selection | observed |
 | --- | --- | --- |
-| all | Normal 5–8 end-active · Revisions 2 | `[Kept ]{+[⟦add‸⟧ed ]+}{-[gone ]-}[text stays.] ↓0<br>[Second paragraph.] ↓0` |
-| simple | Normal 5–8 end-active · Revisions 2 | `[Kept ]{+[⟦add‸⟧ed ]+}{-[]-}[text stays.] ↓0<br>[Second paragraph.] ↓0` |
-| none | Normal 5–8 end-active · Revisions 2 | `[Kept ]{+[⟦add‸⟧ed ]+}{-[]-}[text stays.] ↓0<br>[Second paragraph.] ↓0` |
+| all | Normal 5–8 end-active · Revisions 2 | `[Kept ]{+[⟦add‸⟧ed ]+}{-[gone ]-}[text stays.]<br>[Second paragraph.]` |
+| simple | Normal 5–8 end-active · Revisions 2 | `[Kept ]{+[⟦add‸⟧ed ]+}{-[]-}[text stays.]<br>[Second paragraph.]` |
+| none | Normal 5–8 end-active · Revisions 2 | `[Kept ]{+[⟦add‸⟧ed ]+}{-[]-}[text stays.]<br>[Second paragraph.]` |
 
 Notes: P1:5 is where the deleted 'gone ' begins.
 
@@ -2764,10 +2765,10 @@ steps `select({from})` · `{key}` · `{key}` · `{key}` · `{key}`
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| P1:5 | Shift+Right | Normal 5–9 end-active | `[Rich:⟦ (\|co‸⟧ntent here\|) end.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
-| P1:5 | Shift+Left | Normal 1–5 start-active | `[R⟦‸ich:⟧ (\|content here\|) end.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
-| P1:find(" end") | Shift+Right | Normal 20–24 end-active | `[Rich: (\|content here\|)⟦ end‸⟧.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
-| P1:find(" end") | Shift+Left | Normal 16–20 start-active | `[Rich: (\|content h⟦‸ere\|)⟧ end.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
+| P1:5 | Shift+Right | Normal 5–9 end-active | `[Rich:⟦ (\|co‸⟧ntent here\|) end.]<br>[Plain: (\|plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
+| P1:5 | Shift+Left | Normal 1–5 start-active | `[R⟦‸ich:⟧ (\|content here\|) end.]<br>[Plain: (\|plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
+| P1:find(" end") | Shift+Right | Normal 20–24 end-active | `[Rich: (\|content here\|)⟦ end‸⟧.]<br>[Plain: (\|plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
+| P1:find(" end") | Shift+Left | Normal 16–20 start-active | `[Rich: (\|content h⟦‸ere\|)⟧ end.]<br>[Plain: (\|plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
 
 Notes: P1 reads 'Rich: content here end.' with the control on 'content here'; P1:5 is the space before it, P1:find("
 end") the position right after it.
@@ -2792,9 +2793,9 @@ same x, the x being kept through the empty selection.
 | `Shift+Down` | Normal 53–111 end-active | `[A long second paragraph that runs on pas⟦t the right margin so that it wraps to a second and then a‸⟧ third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.]` |
 
 ```text
-[Short first.] ↓0
-[A long second paragraph that runs on pas⟦t the right margin so that it wraps to a second and then a‸⟧ third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.] ↓0
-[Short third.] ↓0
+[Short first.]
+[A long second paragraph that runs on pas⟦t the right margin so that it wraps to a second and then a‸⟧ third line of text on the page, giving Up and Down keys lines to move between before it finally ends here.]
+[Short third.]
 ```
 
 Selection: Normal 53–111 end-active
@@ -2813,43 +2814,43 @@ Shift+PgUp takes the last screen back and the anchor stays at P1:3 throughout.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Shift+PgDn` | Normal 3–456 end-active | `[Paragraph 11 of thirty on one of three pages.] …` |
-| `Shift+PgDn` | Normal 3–918 end-active | `[Paragraph 21 of thirty on one of three pages.] …` |
-| `Shift+PgUp` | Normal 3–914 end-active | `[⤓] …` |
+| `Shift+PgDn` | Normal 3–456 end-active | `⟦[Par‸⟧agraph 11 of thirty on one of three pages.] …` |
+| `Shift+PgDn` | Normal 3–918 end-active | `⟦[Par‸⟧agraph 21 of thirty on one of three pages.] …` |
+| `Shift+PgUp` | Normal 3–914 end-active | `⟦[⤓‸⟧] …` |
 
 ```text
-[Par⟦agraph 1 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 2 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 3 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 4 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 5 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 6 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 7 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 8 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 9 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 10 of thirty on one of three pages.¶⟧] ↓0
-⟦[⤓¶⟧] ↓0
-⟦[Paragraph 11 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 12 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 13 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 14 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 15 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 16 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 17 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 18 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 19 of thirty on one of three pages.¶⟧] ↓0
-⟦[Paragraph 20 of thirty on one of three pages.¶⟧] ↓0
-⟦[⤓‸⟧] ↓0
-[Paragraph 21 of thirty on one of three pages.] ↓0
-[Paragraph 22 of thirty on one of three pages.] ↓0
-[Paragraph 23 of thirty on one of three pages.] ↓0
-[Paragraph 24 of thirty on one of three pages.] ↓0
-[Paragraph 25 of thirty on one of three pages.] ↓0
-[Paragraph 26 of thirty on one of three pages.] ↓0
-[Paragraph 27 of thirty on one of three pages.] ↓0
-[Paragraph 28 of thirty on one of three pages.] ↓0
-[Paragraph 29 of thirty on one of three pages.] ↓0
-[Paragraph 30 of thirty on one of three pages.] ↓0
+[Par⟦agraph 1 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 2 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 3 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 4 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 5 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 6 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 7 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 8 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 9 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 10 of thirty on one of three pages.¶⟧]
+⟦[⤓¶⟧]
+⟦[Paragraph 11 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 12 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 13 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 14 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 15 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 16 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 17 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 18 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 19 of thirty on one of three pages.¶⟧]
+⟦[Paragraph 20 of thirty on one of three pages.¶⟧]
+⟦[⤓‸⟧]
+[Paragraph 21 of thirty on one of three pages.]
+[Paragraph 22 of thirty on one of three pages.]
+[Paragraph 23 of thirty on one of three pages.]
+[Paragraph 24 of thirty on one of three pages.]
+[Paragraph 25 of thirty on one of three pages.]
+[Paragraph 26 of thirty on one of three pages.]
+[Paragraph 27 of thirty on one of three pages.]
+[Paragraph 28 of thirty on one of three pages.]
+[Paragraph 29 of thirty on one of three pages.]
+[Paragraph 30 of thirty on one of three pages.]
 ```
 
 Selection: Normal 3–914 end-active
@@ -2876,7 +2877,10 @@ picture targets, drag and drop.
   lands between the result's characters like plain text (M-01f, M-70). Either half of a footnote or
   endnote reference lands before the reference (M-01g, M-73). A click in a content control's text lands
   at the character; a click on a check box content control put the caret before the box and did not
-  toggle it (M-74). — Morph: UNKNOWN.
+  toggle it (M-74). A content control still showing its placeholder (`w:showingPlcHdr`) is another
+  matter, not probed: Word selects the whole placeholder on any click in it, so typing replaces it. —
+  Morph: UNKNOWN; by choice a placeholder is ordinary text in Morph, selected and typed into like any
+  other.
 - **R-M-3 A click below the last line is a click on that line** at the pointer's x; with
   `AllowClickAndTypeMouse` on (the default) a double-click there adds empty paragraphs down to the
   pointer and aligns the new paragraph by the zone the pointer is in (left, centre, right), one undo
@@ -2929,15 +2933,25 @@ picture targets, drag and drop.
   Across a line wrap the release still sets the active end on the later line, and the selection never
   falls back to the first line, but there only the ANCHOR's word snaps: 2→11 in `MEETING MINUTES`
   became 0–11 (`MEETING MIN`), 11→2 became 2–15, and a release at or within a glyph of the paragraph's
-  end selects the whole paragraph with its mark (M-34b).
+  end selects the whole paragraph with its mark (M-34b). A double-click held and dragged extends by
+  whole words whatever `AutoWordSelection` says, both ends, across a wrap and across paragraph marks
+  alike: the double-clicked word's far side to the near side of the word under the pointer, its spaces
+  after it going forwards (7→15 `beta,  gamma`, 15→7 the same start-active, 2→21
+  `alpha beta,  gamma-delta `; 2→11 in `MEETING MINUTES` the whole text, its mark too by
+  `SmartParaSelection`; P1:3→P2:4 `First paragraph here.¶Second `) (M-34c, M-34d, M-34e). A
+  triple-click held and dragged does NOT extend by paragraphs: its third press lands in the word the
+  double-click selected, so the drag moves that word to the release, as any drag of a selection does
+  (M-34e).
   A drag that crosses a paragraph mark snaps to the paragraph's start and takes its mark; a drag over a
   whole paragraph's text from its start takes the mark with `SmartParaSelection` on and leaves it with
   the option off (M-35). Inside a table a drag within one cell selects text, across cells the rectangle
   of cells (`Column`), and from the paragraph before a table into a cell the `Normal` row selection of
   R-M-8 (M-36). Alt+drag selects a block (`Block`): typing into it does nothing, Delete removes each
   line's segment, and a copy of it pastes the segments as separate paragraphs (M-33). — Morph: PARTIAL
-  (word snapping with automatic word selection on, on the pages and in the open paragraph, `snapDrag`
-  in morph-text.js; no smart paragraph selection at a paragraph's end, no cell rectangles, no block).
+  (Morph follows `AutoWordSelection` and `SmartParaSelection` OFF: a drag is by character and never
+  takes a paragraph's mark. A double-click drag extends by words in the open paragraph
+  (`startWordDrag` in morph-edit.js), not yet out of it; on the pages it is the browser's. No triple-click
+  drag-and-drop, no cell rectangles, no block).
 - **R-M-10 The selection bar (left of the text) selects lines**: a click selects the line under the
   pointer with its mark (a wrapped paragraph's one line only: `Alpha … eta ` without the mark), an empty
   paragraph as `⟦¶‸⟧`, and beside a table a whole row (`Row`, end-of-row mark included); a double-click
@@ -3017,18 +3031,18 @@ steps `click({at}, side={side})`
 
 | at | side | selection | observed |
 | --- | --- | --- | --- |
-| P1:find("beta") | left | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("beta") | right | IP 7–7 | `[alpha b‸eta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15 | left | IP 15–15 | `[alpha beta,  ga‸mma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:15 | right | IP 16–16 | `[alpha beta,  gam‸ma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find(",") | left | IP 10–10 | `[alpha beta‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find(",") | right | IP 11–11 | `[alpha beta,‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:5 | left | IP 5–5 | `[alpha‸ beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:5 | right | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:12 | left | IP 12–12 | `[alpha beta, ‸ gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:12 | right | IP 13–13 | `[alpha beta,  ‸gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:57 | left | IP 57–57 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end‸.] ↓0` |
-| P1:57 | right | IP 58–58 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.‸] ↓0` |
+| P1:find("beta") | left | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("beta") | right | IP 7–7 | `[alpha b‸eta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15 | left | IP 15–15 | `[alpha beta,  ga‸mma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15 | right | IP 16–16 | `[alpha beta,  gam‸ma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find(",") | left | IP 10–10 | `[alpha beta‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find(",") | right | IP 11–11 | `[alpha beta,‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:5 | left | IP 5–5 | `[alpha‸ beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:5 | right | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:12 | left | IP 12–12 | `[alpha beta, ‸ gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:12 | right | IP 13–13 | `[alpha beta,  ‸gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:57 | left | IP 57–57 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end‸.]` |
+| P1:57 | right | IP 58–58 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.‸]` |
 
 Notes: P1:15 is the middle of gamma, P1:5 the single space after alpha, P1:12 the second of the two spaces, P1:57 the
 final period. The 24pt face makes a glyph half many pixels wide.
@@ -3044,12 +3058,12 @@ steps `click({at}, side={side})`
 
 | at | side | selection | observed |
 | --- | --- | --- | --- |
-| P1:0 | left | IP 0–0 | `[‸First paragraph here.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:0 | right | IP 1–1 | `[F‸irst paragraph here.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:find("bold") | left | IP 29–29 | `[First paragraph here.] ↓0<br>[Second ][b:‸bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:find("bold") | right | IP 30–30 | `[First paragraph here.] ↓0<br>[Second ][b:b‸old ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:end | left | IP 38–38 | `[First paragraph here.] ↓0<br>[Second ][b:bold ][one.‸] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:end | right | IP 38–38 | `[First paragraph here.] ↓0<br>[Second ][b:bold ][one.‸] (center) ↓0<br>[Third and last.] ↓0` |
+| P1:0 | left | IP 0–0 | `[‸First paragraph here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| P1:0 | right | IP 1–1 | `[F‸irst paragraph here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| P2:find("bold") | left | IP 29–29 | `[First paragraph here.]<br>[Second ][b:‸bold ][one.] (center)<br>[Third and last.]` |
+| P2:find("bold") | right | IP 30–30 | `[First paragraph here.]<br>[Second ][b:b‸old ][one.] (center)<br>[Third and last.]` |
+| P2:end | left | IP 38–38 | `[First paragraph here.]<br>[Second ][b:bold ][one.‸] (center)<br>[Third and last.]` |
+| P2:end | right | IP 38–38 | `[First paragraph here.]<br>[Second ][b:bold ][one.‸] (center)<br>[Third and last.]` |
 
 #### M-01c · Click on either half of an inline picture
 
@@ -3062,8 +3076,8 @@ steps `click(P1:12, side={side})`
 
 | side | selection | observed |
 | --- | --- | --- |
-| left | InlineShape 12–13 end-active · InlineShapes 1 | `[Text before ⟦▣‸⟧ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| right | InlineShape 12–13 end-active · InlineShapes 1 | `[Text before ⟦▣‸⟧ after end.] ↓0<br>[Second paragraph.] ↓0` |
+| left | InlineShape 12–13 end-active · InlineShapes 1 | `[Text before ⟦▣‸⟧ after end.]<br>[Second paragraph.]` |
+| right | InlineShape 12–13 end-active · InlineShapes 1 | `[Text before ⟦▣‸⟧ after end.]<br>[Second paragraph.]` |
 
 #### M-01d · Click on either half of a tab's expanse
 
@@ -3075,8 +3089,8 @@ steps `click(P1:4, side={side})`
 
 | side | selection | observed |
 | --- | --- | --- |
-| left | IP 4–4 | `[Left‸\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| right | IP 5–5 | `[Left\t‸right side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
+| left | IP 4–4 | `[Left‸\tright side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| right | IP 5–5 | `[Left\t‸right side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
 
 #### M-01e · Click inside a hyperlink's display text
 
@@ -3089,8 +3103,8 @@ steps `click(P1:find("site"), side={side})`
 
 | side | selection | observed |
 | --- | --- | --- |
-| left | IP 43–43 | `[See ]<[bu:the ‸site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| right | IP 44–44 | `[See ]<[bu:the s‸ite]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
+| left | IP 43–43 | `[See ]<[bu:the ‸site]>[ today.]<br>[Second paragraph.]` |
+| right | IP 44–44 | `[See ]<[bu:the s‸ite]>[ today.]<br>[Second paragraph.]` |
 
 #### M-01f · Click inside a field result
 
@@ -3103,8 +3117,8 @@ steps `click(P1:find("1"), side={side})`
 
 | side | selection | observed |
 | --- | --- | --- |
-| left | IP 5–5 | `[Page ][‸«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| right | IP 15–15 | `[Page ][«][ PAGE ][\|][1][»][‸ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
+| left | IP 5–5 | `[Page ][‸«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| right | IP 15–15 | `[Page ][«][ PAGE ][\|][1][»][‸ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
 
 Notes: find("1") is the PAGE field's result; the field codes hold no digit.
 
@@ -3118,8 +3132,8 @@ steps `click(P1:4, side={side})`
 
 | side | selection | observed |
 | --- | --- | --- |
-| left | IP 4–4 | `[Text‸†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0` |
-| right | IP 4–4 | `[Text‸†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0` |
+| left | IP 4–4 | `[Text‸†1 more words.]<br>[Second with an end note.‡1]` |
+| right | IP 4–4 | `[Text‸†1 more words.]<br>[Second with an end note.‡1]` |
 
 #### M-01h · Click on either half of a non-breaking space
 
@@ -3131,8 +3145,8 @@ steps `click(P1:1, side={side})`
 
 | side | selection | observed |
 | --- | --- | --- |
-| left | IP 1–1 | `[a‸⍽b soft⁃hyphen hidden words dash—end.] ↓0` |
-| right | IP 2–2 | `[a⍽‸b soft⁃hyphen hidden words dash—end.] ↓0` |
+| left | IP 1–1 | `[a‸⍽b soft⁃hyphen hidden words dash—end.]` |
+| right | IP 2–2 | `[a⍽‸b soft⁃hyphen hidden words dash—end.]` |
 
 #### M-02 · Click past the end of a wrapped line
 
@@ -3145,10 +3159,10 @@ steps `click(P1:find("{word}"):end, side={side})`
 
 | word | side | selection | observed |
 | --- | --- | --- | --- |
-| zeta | left | IP 35–35 | `[Alpha beta gamma delta epsilon zeta‸ eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
-| zeta | right | IP 36–36 | `[Alpha beta gamma delta epsilon zeta ‸eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
-| eta | left | IP 10–10 | `[Alpha beta‸ gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
-| eta | right | IP 11–11 | `[Alpha beta ‸gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
+| zeta | left | IP 35–35 | `[Alpha beta gamma delta epsilon zeta‸ eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
+| zeta | right | IP 36–36 | `[Alpha beta gamma delta epsilon zeta ‸eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
+| eta | left | IP 10–10 | `[Alpha beta‸ gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
+| eta | right | IP 11–11 | `[Alpha beta ‸gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
 
 Notes: At 24pt the first line ends near zeta or eta; the word that ends the line is the one whose trailing space
 hangs in the margin, the other is a mid-line control. The DSL has no target in the margin itself, so the right half
@@ -3164,10 +3178,10 @@ steps `click({at}, side=right)`
 
 | fixture | at | selection | observed |
 | --- | --- | --- | --- |
-| three-paragraphs | P1:end | IP 21–21 | `[First paragraph here.‸] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P2:end | IP 38–38 | `[First paragraph here.] ↓0<br>[Second bold one.‸] (center) ↓0<br>[Third and last.] ↓0` |
-| tabs-breaks | P1:end | IP 15–15 | `[Left\tright side‸] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| tabs-breaks | P2:end | IP 34–34 | `[Left\tright side] ↓0<br>[Line one \nline two‸] ↓0<br>[Two  spaces here.] ↓0` |
+| three-paragraphs | P1:end | IP 21–21 | `[First paragraph here.‸]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P2:end | IP 38–38 | `[First paragraph here.]<br>[Second bold one.‸] (center)<br>[Third and last.]` |
+| tabs-breaks | P1:end | IP 15–15 | `[Left\tright side‸]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| tabs-breaks | P2:end | IP 34–34 | `[Left\tright side]<br>[Line one \nline two‸]<br>[Two  spaces here.]` |
 
 #### M-02c · Click past the end of a line that ends in a manual line break
 
@@ -3180,10 +3194,10 @@ steps `click({at}, side={side})`
 
 | at | side | selection | observed |
 | --- | --- | --- | --- |
-| P2:8 | left | IP 24–24 | `[Left\tright side] ↓0<br>[Line one‸ \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P2:8 | right | IP 25–25 | `[Left\tright side] ↓0<br>[Line one ‸\nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P2:9 | left | IP 25–25 | `[Left\tright side] ↓0<br>[Line one ‸\nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P2:9 | right | IP 25–25 | `[Left\tright side] ↓0<br>[Line one ‸\nline two] ↓0<br>[Two  spaces here.] ↓0` |
+| P2:8 | left | IP 24–24 | `[Left\tright side]<br>[Line one‸ \nline two]<br>[Two  spaces here.]` |
+| P2:8 | right | IP 25–25 | `[Left\tright side]<br>[Line one ‸\nline two]<br>[Two  spaces here.]` |
+| P2:9 | left | IP 25–25 | `[Left\tright side]<br>[Line one ‸\nline two]<br>[Two  spaces here.]` |
+| P2:9 | right | IP 25–25 | `[Left\tright side]<br>[Line one ‸\nline two]<br>[Two  spaces here.]` |
 
 Notes: P2 is 'Line one ' then the break: P2:8 is the trailing space, P2:9 the break glyph.
 
@@ -3197,10 +3211,10 @@ steps `click(P1:0, side=left)`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| wrap | IP 0–0 | `[‸Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0` |
+| wrap | IP 0–0 | `[‸Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]` |
 | numbers | IP 0–0 | `[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 | bullets | IP 0–0 | `[‸Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| three-paragraphs | IP 0–0 | `[‸First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
+| three-paragraphs | IP 0–0 | `[‸First paragraph here.]<br>[Second bold one.] (center)<br>[Third and last.]` |
 
 #### M-03b · Click left of the first glyph of a bulleted, centred and indented paragraph
 
@@ -3219,15 +3233,15 @@ steps `click({at}, side=left)`
 `M-03b[at=P3:0]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [‸Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: IP 26–26 · click(P3:0, side=left) → Range 26-26, IBeam
@@ -3235,15 +3249,15 @@ Selection: IP 26–26 · click(P3:0, side=left) → Range 26-26, IBeam
 `M-03b[at=P4:0]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[‸Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[‸Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: IP 39–39 · click(P4:0, side=left) → Range 39-39, IBeam
@@ -3251,15 +3265,15 @@ Selection: IP 39–39 · click(P4:0, side=left) → Range 39-39, IBeam
 `M-03b[at=P6:0]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[‸Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[‸Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: IP 68–68 · click(P6:0, side=left) → Range 68-68, IBeam
@@ -3276,17 +3290,17 @@ steps before the branches `click(below P1)`
 
 **Options.AllowClickAndTypeMouse=true**
 
-- `click(below P1)` → `[The quick brown fox jumps over the lazy dog‸.] ↓0` · IP 43–43 · Undo —
-- `dblclick(below P1, side=left)` → `[The quick brown fox jumps over the lazy dog.] ↓0 /  ↓0 /  ↓0 /  ↓0 / ‸ ↓0` · IP 48–48 · Undo: Click and Type Formatting
-- `dblclick(below P1, side=centre)` → `[The quick brown fox jumps over the lazy dog.] ↓0 /  ↓0 /  ↓0 /  ↓0 / ‸ (center) ↓0` · IP 48–48 · Undo depth 1
-- `dblclick(below P1, side=right)` → `[The quick brown fox jumps over the lazy dog.] ↓0 /  ↓0 /  ↓0 /  ↓0 / ‸ (right) ↓0` · IP 48–48 · Undo depth 1
+- `click(below P1)` → `[The quick brown fox jumps over the lazy dog‸.]` · IP 43–43 · Undo —
+- `dblclick(below P1, side=left)` → `[The quick brown fox jumps over the lazy dog.] /  /  /  / ‸` · IP 48–48 · Undo: Click and Type Formatting
+- `dblclick(below P1, side=centre)` → `[The quick brown fox jumps over the lazy dog.] /  /  /  / ‸ (center)` · IP 48–48 · Undo: Click and Type Formatting
+- `dblclick(below P1, side=right)` → `[The quick brown fox jumps over the lazy dog.] /  /  /  / ‸ (right)` · IP 48–48 · Undo: Click and Type Formatting
 
 **Options.AllowClickAndTypeMouse=false**
 
-- `click(below P1)` → `[The quick brown fox jumps over the lazy dog‸.] ↓0` · IP 43–43 · Undo —
-- `dblclick(below P1, side=left)` → `[⟦The ‸⟧quick brown fox jumps over the lazy dog.] ↓0` · Normal 0–4 end-active · Undo —
-- `dblclick(below P1, side=centre)` → `[The quick brown fox jumps over the lazy dog⟦‸.⟧] ↓0` · Normal 43–44 start-active · Undo —
-- `dblclick(below P1, side=right)` → `[The quick brown fox jumps over the lazy dog.⟦‸¶⟧] ↓0` · Normal 44–45 start-active · Undo —
+- `click(below P1)` → `[The quick brown fox jumps over the lazy dog‸.]` · IP 43–43 · Undo —
+- `dblclick(below P1, side=left)` → `[⟦The ‸⟧quick brown fox jumps over the lazy dog.]` · Normal 0–4 end-active · Undo —
+- `dblclick(below P1, side=centre)` → `[The quick brown fox jumps over the lazy dog⟦‸.⟧]` · Normal 43–44 start-active · Undo —
+- `dblclick(below P1, side=right)` → `[The quick brown fox jumps over the lazy dog.⟦‸¶⟧]` · Normal 44–45 start-active · Undo —
 
 ```mermaid
 flowchart TD
@@ -3308,15 +3322,15 @@ steps before the branches `click(below P3)`
 
 **Options.AllowClickAndTypeMouse=true**
 
-- `click(below P3)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three‸] #ListParagraph •1.0 3. ⇥36,-18` · IP 13–13 · Undo depth 1
-- `dblclick(below P3, side=centre)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three] #ListParagraph •1.0 3. ⇥36,-18 /  ↓0 /  ↓0 / ‸ (center) ↓0` · IP 16–16 · Undo depth 2
-  - `undo` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three‸] #ListParagraph •1.0 3. ⇥36,-18` · IP 13–13 · Undo depth 1
+- `click(below P3)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three‸] #ListParagraph •1.0 3. ⇥36,-18` · IP 13–13 · Undo —
+- `dblclick(below P3, side=centre)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three] #ListParagraph •1.0 3. ⇥36,-18 /  /  / ‸ (center)` · IP 16–16 · Undo: Click and Type Formatting
+  - `undo` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three‸] #ListParagraph •1.0 3. ⇥36,-18` · IP 13–13 · Undo —
 
 **Options.AllowClickAndTypeMouse=false**
 
-- `click(below P3)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three‸] #ListParagraph •1.0 3. ⇥36,-18` · IP 13–13 · Undo depth 1
-- `dblclick(below P3, side=centre)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three⟦‸¶⟧] #ListParagraph •1.0 3. ⇥36,-18` · Normal 13–14 start-active · Undo depth 1
-  - `undo` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three⟦‸¶⟧] #ListParagraph •1.0 3. ⇥36,-18` · Normal 13–14 start-active · Undo depth 1
+- `click(below P3)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three‸] #ListParagraph •1.0 3. ⇥36,-18` · IP 13–13 · Undo —
+- `dblclick(below P3, side=centre)` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three⟦‸¶⟧] #ListParagraph •1.0 3. ⇥36,-18` · Normal 13–14 start-active · Undo —
+  - `undo` → `[One] #ListParagraph •1.0 1. ⇥36,-18 / [Two] #ListParagraph •1.0 2. ⇥36,-18 / [Three⟦‸¶⟧] #ListParagraph •1.0 3. ⇥36,-18` · Normal 13–14 start-active · Undo —
 
 ```mermaid
 flowchart TD
@@ -3337,10 +3351,10 @@ steps `click({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:mark | IP 17–17 | `[Before the table.‸] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:mark | IP 21–21 · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):mark | IP 21–21 · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):mark | IP 37–37 · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>[After the table.] ↓0` |
+| P1:mark | IP 17–17 | `[Before the table.‸]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:mark | IP 21–21 · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):mark | IP 21–21 · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(2,2):mark | IP 37–37 · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>[After the table.]` |
 
 Notes: Formatting marks are hidden in the harness view, so this is a click at the mark's position; P2 is the
 document's last paragraph.
@@ -3356,10 +3370,10 @@ steps `click({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:3, side=right | IP 4–4 | `[Left‸\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P1:4, side=left | IP 4–4 | `[Left‸\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P1:4, side=right | IP 5–5 | `[Left\t‸right side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P1:5, side=left | IP 5–5 | `[Left\t‸right side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
+| P1:3, side=right | IP 4–4 | `[Left‸\tright side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| P1:4, side=left | IP 4–4 | `[Left‸\tright side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| P1:4, side=right | IP 5–5 | `[Left\t‸right side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| P1:5, side=left | IP 5–5 | `[Left\t‸right side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
 
 #### M-07 · Cell padding versus the cell's left edge
 
@@ -3371,10 +3385,10 @@ steps `{target}`
 
 | target | selection | observed |
 | --- | --- | --- |
-| click(C(1,1):0, side=left) | IP 18–18 · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| click(C(2,2):0, side=left) | IP 33–33 · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[‸Four¤]║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(2,2)) | Column 33–38 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤‸⟧]║¤<br>[After the table.] ↓0` |
+| click(C(1,1):0, side=left) | IP 18–18 · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| click(C(2,2):0, side=left) | IP 33–33 · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[‸Four¤]║¤<br>[After the table.]` |
+| click(cellLeftEdge C(2,2)) | Column 33–38 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤‸⟧]║¤<br>[After the table.]` |
 
 Notes: The 0.5in cell margin makes the padding a wide target: a click in it is a click in the cell, a click on the
 edge selects the cell.
@@ -3390,12 +3404,12 @@ steps `dblclick(P1:{at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| 2 | Normal 0–6 end-active | `[⟦alpha ‸⟧beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| 7 | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| 15 | Normal 13–18 end-active | `[alpha beta,  ⟦gamma‸⟧-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| 21 | Normal 19–25 end-active | `[alpha beta,  gamma-⟦delta ‸⟧3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| 38 | Normal 37–40 end-active | `[alpha beta,  gamma-delta 3.14 don't (⟦eps‸⟧) 1,000 10:30 end.] ↓0` |
-| 55 | Normal 54–57 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ⟦end‸⟧.] ↓0` |
+| 2 | Normal 0–6 end-active | `[⟦alpha ‸⟧beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| 7 | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| 15 | Normal 13–18 end-active | `[alpha beta,  ⟦gamma‸⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| 21 | Normal 19–25 end-active | `[alpha beta,  gamma-⟦delta ‸⟧3.14 don't (eps) 1,000 10:30 end.]` |
+| 38 | Normal 37–40 end-active | `[alpha beta,  gamma-delta 3.14 don't (⟦eps‸⟧) 1,000 10:30 end.]` |
+| 55 | Normal 54–57 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ⟦end‸⟧.]` |
 
 Notes: alpha (one space follows), beta (a comma), gamma (a hyphen), delta (a space), eps (a closing parenthesis), end
 (a period then the mark).
@@ -3411,10 +3425,10 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:2 | Normal 0–6 end-active | `[⟦First ‸⟧paragraph here.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:17 | Normal 16–20 end-active | `[First paragraph ⟦here‸⟧.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P2:find("bold") | Normal 29–34 end-active | `[First paragraph here.] ↓0<br>[Second ][b:⟦bold ‸⟧][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P3:11 | Normal 49–53 end-active | `[First paragraph here.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and ⟦last‸⟧.] ↓0` |
+| P1:2 | Normal 0–6 end-active | `[⟦First ‸⟧paragraph here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| P1:17 | Normal 16–20 end-active | `[First paragraph ⟦here‸⟧.]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| P2:find("bold") | Normal 29–34 end-active | `[First paragraph here.]<br>[Second ][b:⟦bold ‸⟧][one.] (center)<br>[Third and last.]` |
+| P3:11 | Normal 49–53 end-active | `[First paragraph here.]<br>[Second ][b:bold ][one.] (center)<br>[Third and ⟦last‸⟧.]` |
 
 Notes: P1:17 is 'here' before the period, P3:11 'last' before the final period of the document.
 
@@ -3429,11 +3443,11 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:2 | Normal 0–4 end-active | `[⟦Left‸⟧\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P1:7 | Normal 5–11 end-active | `[Left\t⟦right ‸⟧side] ↓0<br>[Line one \nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P2:6 | Normal 21–25 end-active | `[Left\tright side] ↓0<br>[Line ⟦one ‸⟧\nline two] ↓0<br>[Two  spaces here.] ↓0` |
-| P3:1 | Normal 35–40 end-active | `[Left\tright side] ↓0<br>[Line one \nline two] ↓0<br>[⟦Two  ‸⟧spaces here.] ↓0` |
-| P3:7 | Normal 40–47 end-active | `[Left\tright side] ↓0<br>[Line one \nline two] ↓0<br>[Two  ⟦spaces ‸⟧here.] ↓0` |
+| P1:2 | Normal 0–4 end-active | `[⟦Left‸⟧\tright side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| P1:7 | Normal 5–11 end-active | `[Left\t⟦right ‸⟧side]<br>[Line one \nline two]<br>[Two  spaces here.]` |
+| P2:6 | Normal 21–25 end-active | `[Left\tright side]<br>[Line ⟦one ‸⟧\nline two]<br>[Two  spaces here.]` |
+| P3:1 | Normal 35–40 end-active | `[Left\tright side]<br>[Line one \nline two]<br>[⟦Two  ‸⟧spaces here.]` |
+| P3:7 | Normal 40–47 end-active | `[Left\tright side]<br>[Line one \nline two]<br>[Two  ⟦spaces ‸⟧here.]` |
 
 Notes: P1:2 is Left before the tab, P1:7 right after it, P2:6 'one' before the space and line break, P3:1 Two before
 two spaces, P3:7 spaces after them.
@@ -3449,8 +3463,8 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:7 | Normal 5–12 end-active | `[Text ⟦before ‸⟧▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:16 | Normal 14–20 end-active | `[Text before ▣ ⟦after ‸⟧end.] ↓0<br>[Second paragraph.] ↓0` |
+| P1:7 | Normal 5–12 end-active | `[Text ⟦before ‸⟧▣ after end.]<br>[Second paragraph.]` |
+| P1:16 | Normal 14–20 end-active | `[Text before ▣ ⟦after ‸⟧end.]<br>[Second paragraph.]` |
 
 #### M-11 · Double-click a punctuation glyph
 
@@ -3463,12 +3477,12 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find(",") | Normal 10–13 end-active | `[alpha beta⟦,  ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("-") | Normal 18–19 start-active | `[alpha beta,  gamma⟦‸-⟧delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("'") | Normal 30–36 end-active | `[alpha beta,  gamma-delta 3.14 ⟦don't ‸⟧(eps) 1,000 10:30 end.] ↓0` |
-| P1:find("(") | Normal 37–40 start-active | `[alpha beta,  gamma-delta 3.14 don't (⟦‸eps⟧) 1,000 10:30 end.] ↓0` |
-| P1:find(")") | Normal 40–42 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps⟦) ‸⟧1,000 10:30 end.] ↓0` |
-| P1:57 | Normal 58–59 start-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.⟦‸¶⟧] ↓0` |
+| P1:find(",") | Normal 10–13 end-active | `[alpha beta⟦,  ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("-") | Normal 18–19 start-active | `[alpha beta,  gamma⟦‸-⟧delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("'") | Normal 30–36 end-active | `[alpha beta,  gamma-delta 3.14 ⟦don't ‸⟧(eps) 1,000 10:30 end.]` |
+| P1:find("(") | Normal 37–40 start-active | `[alpha beta,  gamma-delta 3.14 don't (⟦‸eps⟧) 1,000 10:30 end.]` |
+| P1:find(")") | Normal 40–42 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps⟦) ‸⟧1,000 10:30 end.]` |
+| P1:57 | Normal 58–59 start-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.⟦‸¶⟧]` |
 
 #### M-12 · Double-click on an inter-word space
 
@@ -3480,9 +3494,9 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:5 | Normal 0–6 end-active | `[⟦alpha ‸⟧beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:11 | Normal 10–13 end-active | `[alpha beta⟦,  ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:12 | Normal 13–18 start-active | `[alpha beta,  ⟦‸gamma⟧-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| P1:5 | Normal 0–6 end-active | `[⟦alpha ‸⟧beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:11 | Normal 10–13 end-active | `[alpha beta⟦,  ‸⟧gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:12 | Normal 13–18 start-active | `[alpha beta,  ⟦‸gamma⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 #### M-13 · Double-click a number token with inner punctuation
 
@@ -3494,10 +3508,10 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:27 | Normal 27–30 start-active | `[alpha beta,  gamma-delta 3.⟦‸14 ⟧don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:44 | Normal 44–48 start-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,⟦‸000 ⟧10:30 end.] ↓0` |
-| P1:50 | Normal 50–51 start-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10⟦‸:⟧30 end.] ↓0` |
-| P1:51 | Normal 51–54 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:⟦30 ‸⟧end.] ↓0` |
+| P1:27 | Normal 27–30 start-active | `[alpha beta,  gamma-delta 3.⟦‸14 ⟧don't (eps) 1,000 10:30 end.]` |
+| P1:44 | Normal 44–48 start-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,⟦‸000 ⟧10:30 end.]` |
+| P1:50 | Normal 50–51 start-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10⟦‸:⟧30 end.]` |
+| P1:51 | Normal 51–54 end-active | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:⟦30 ‸⟧end.]` |
 
 Notes: P1:27 is inside 3.14, P1:44 inside 1,000, P1:50 the colon of 10:30 and P1:51 its 3.
 
@@ -3512,10 +3526,10 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:5, side=right | Normal 6–10 start-active | `[alpha ⟦‸beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6, side=left | Normal 6–10 start-active | `[alpha ⟦‸beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:17, side=right | Normal 18–19 start-active | `[alpha beta,  gamma⟦‸-⟧delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:18, side=left | Normal 18–19 start-active | `[alpha beta,  gamma⟦‸-⟧delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| P1:5, side=right | Normal 6–10 start-active | `[alpha ⟦‸beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6, side=left | Normal 6–10 start-active | `[alpha ⟦‸beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:17, side=right | Normal 18–19 start-active | `[alpha beta,  gamma⟦‸-⟧delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:18, side=left | Normal 18–19 start-active | `[alpha beta,  gamma⟦‸-⟧delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 Notes: The boundary between alpha's space and beta, and between gamma and its hyphen, approached from either side.
 
@@ -3530,9 +3544,9 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P3:13 | Normal 49–53 end-active | `[First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and ⟦last‸⟧.] ↓0` |
-| P3:14 | Normal 53–54 start-active | `[First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last⟦‸.⟧] ↓0` |
-| P3:mark | Normal 54–55 start-active | `[First paragraph here.] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.⟦‸¶⟧] ↓0` |
+| P3:13 | Normal 49–53 end-active | `[First paragraph here.]<br>[Second bold one.] (center)<br>[Third and ⟦last‸⟧.]` |
+| P3:14 | Normal 53–54 start-active | `[First paragraph here.]<br>[Second bold one.] (center)<br>[Third and last⟦‸.⟧]` |
+| P3:mark | Normal 54–55 start-active | `[First paragraph here.]<br>[Second bold one.] (center)<br>[Third and last.⟦‸¶⟧]` |
 
 #### M-15b · Double-click in an empty paragraph
 
@@ -3544,9 +3558,9 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P2:0 | Normal 6–7 start-active | `[Above] ↓0<br>⟦‸¶⟧ ↓0<br> ↓0<br>[Below] ↓0` |
-| P2:mark | Normal 6–7 start-active | `[Above] ↓0<br>⟦‸¶⟧ ↓0<br> ↓0<br>[Below] ↓0` |
-| P3:0 | Normal 7–8 start-active | `[Above] ↓0<br> ↓0<br>⟦‸¶⟧ ↓0<br>[Below] ↓0` |
+| P2:0 | Normal 6–7 start-active | `[Above]<br>⟦‸¶⟧<br><br>[Below]` |
+| P2:mark | Normal 6–7 start-active | `[Above]<br>⟦‸¶⟧<br><br>[Below]` |
+| P3:0 | Normal 7–8 start-active | `[Above]<br><br>⟦‸¶⟧<br>[Below]` |
 
 #### M-16 · Double-click an inline picture
 
@@ -3557,8 +3571,8 @@ Expected before the run: The picture is selected and the document and undo list 
 1. `dblclick(IMG1)`
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · Undo — · dblclick(IMG1) → Shape Picture 1, WordOwn
@@ -3575,8 +3589,8 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find("the") | IP 39–39 | `[See ]<[bu:‸the site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:find("site") | Normal 39–43 end-active | `[See ]<[bu:⟦the ‸⟧site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
+| P1:find("the") | IP 39–39 | `[See ]<[bu:‸the site]>[ today.]<br>[Second paragraph.]` |
+| P1:find("site") | Normal 39–43 end-active | `[See ]<[bu:⟦the ‸⟧site]>[ today.]<br>[Second paragraph.]` |
 
 #### M-17b · Double-click inside a field result
 
@@ -3589,8 +3603,8 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find("1") | Normal 5–16 end-active | `[Page ][⟦«][ PAGE ][\|][1][»][ ‸⟧of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| P2:find("/20") | Normal 68–74 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][⟦25/10/‸⟧2026][»][ end.] ↓0` |
+| P1:find("1") | Normal 5–16 end-active | `[Page ][⟦«][ PAGE ][\|][1][»][ ‸⟧of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| P2:find("/20") | Normal 68–74 end-active | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][⟦27/10/‸⟧2026][»][ end.]` |
 
 Notes: find("/20") lands in the DATE result, past the code's own d/MM/yyyy switch.
 
@@ -3604,8 +3618,8 @@ steps `dblclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| C(1,1):1 | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):2 | Normal 33–37 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four‸⟧¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):1 | Normal 18–21 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦One‸⟧¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(2,2):2 | Normal 33–37 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four‸⟧¤]║¤<br>[After the table.]` |
 
 #### M-20 · Triple-click a paragraph
 
@@ -3618,27 +3632,27 @@ steps `tripleclick({at})`
 
 | fixture | at | selection | observed |
 | --- | --- | --- | --- |
-| three-paragraphs | P1:2 | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P2:1 | Normal 22–39 end-active | `[First paragraph here.] ↓0<br>[⟦Second bold one.¶‸⟧] (center) ↓0<br>[Third and last.] ↓0` |
+| three-paragraphs | P1:2 | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P2:1 | Normal 22–39 end-active | `[First paragraph here.]<br>[⟦Second bold one.¶‸⟧] (center)<br>[Third and last.]` |
 | numbers | P1:2 | Normal 0–4 end-active | `[⟦One¶‸⟧] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 | numbers | P2:1 | Normal 4–8 end-active | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Two¶‸⟧] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 | kinds | P1:2 | Normal 0–13 end-active | `see below` |
 | kinds | P2:1 | Normal 13–26 end-active | `see below` |
-| table-2x2 | P1:2 | Normal 0–18 end-active | `[⟦Before the table.¶‸⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | P2:1 | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| table-2x2 | P1:2 | Normal 0–18 end-active | `[⟦Before the table.¶‸⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | P2:1 | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 `M-20[fixture=kinds,at=P1:2]`
 
 ```text
-[⟦Normal kind.¶‸⟧] ↓0
+[⟦Normal kind.¶‸⟧]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: Normal 0–13 end-active · tripleclick(P1:2) → Range 3-3, IBeam
@@ -3646,15 +3660,15 @@ Selection: Normal 0–13 end-active · tripleclick(P1:2) → Range 3-3, IBeam
 `M-20[fixture=kinds,at=P2:1]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [⟦Heading kind¶‸⟧] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: Normal 13–26 end-active · tripleclick(P2:1) → Range 14-14, IBeam
@@ -3679,15 +3693,15 @@ steps `tripleclick({at})`
 `M-20b[at=P3:2]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [⟦Bullet kind.¶‸⟧] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: Normal 26–39 end-active · tripleclick(P3:2) → Range 28-28, IBeam
@@ -3695,15 +3709,15 @@ Selection: Normal 26–39 end-active · tripleclick(P3:2) → Range 28-28, IBeam
 `M-20b[at=P7:0]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
-⟦¶‸⟧ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+⟦¶‸⟧
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
 Selection: Normal 83–84 end-active · tripleclick(P7:0) → Range 84-84, IBeam
@@ -3711,15 +3725,15 @@ Selection: Normal 83–84 end-active · tripleclick(P7:0) → Range 84-84, IBeam
 `M-20b[at=P9:4]`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[⟦Last plain kind.¶‸⟧] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[⟦Last plain kind.¶‸⟧]
 ```
 
 Selection: Normal 105–122 end-active · tripleclick(P9:4) → Range 110-110, IBeam
@@ -3735,10 +3749,10 @@ steps `tripleclick({at})`
 
 | fixture | at | selection | observed |
 | --- | --- | --- | --- |
-| table-2x2 | C(1,1):1 | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | C(2,2):1 | Column 33–38 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤‸⟧]║¤<br>[After the table.] ↓0` |
-| table-multi | C(1,1):1 | Normal 18–24 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦first¶‸⟧] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
-| table-multi | C(2,2):1 | Normal 38–47 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[⟦item one¶‸⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
+| table-2x2 | C(1,1):1 | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | C(2,2):1 | Column 33–38 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤‸⟧]║¤<br>[After the table.]` |
+| table-multi | C(1,1):1 | Normal 18–24 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦first¶‸⟧] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
+| table-multi | C(2,2):1 | Normal 38–47 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[⟦item one¶‸⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
 
 Notes: table-multi's (1,1) holds two paragraphs and its (2,2) a two-item bullet list.
 
@@ -3752,8 +3766,8 @@ steps `tripleclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| C(1,1):7 | Column 18–31 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦first¶⟧] ¶ ⟦[second¤‸⟧]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
-| C(2,2):10 | Column 38–56 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[⟦item one¶⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ ⟦[item two¤‸⟧] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.] ↓0` |
+| C(1,1):7 | Column 18–31 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦first¶⟧] ¶ ⟦[second¤‸⟧]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
+| C(2,2):10 | Column 38–56 end-active · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[⟦item one¶⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ ⟦[item two¤‸⟧] #ListParagraph •1.0 ● ⇥36,-18║¤<br>[After the table.]` |
 
 #### M-22 · Triple-click in a text box
 
@@ -3764,12 +3778,12 @@ Expected before the run: The first paragraph of the text box story, not the box 
 1. `tripleclick(TB1:P1:2)`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
-TB: [⟦Box line one¶‸⟧] ↓0
-TB: [Box line two] ↓0
+TB: [⟦Box line one¶‸⟧]
+TB: [Box line two]
 ```
 
 Selection: Normal 0–13 end-active · Story TextFrame · tripleclick(TB1:P1:2) → Range 2-2, IBeam
@@ -3784,8 +3798,8 @@ Expected before the run: The note's paragraph, with its reference mark (a) inclu
 2. `tripleclick(FN1:P1:2)`
 
 ```text
-[Text†1 more words.] ↓0
-[Second with an end note.‡1] ↓0
+[Text†1 more words.]
+[Second with an end note.‡1]
 FN: [⟦† Note text.¶‸⟧] #FootnoteText
 ```
 
@@ -3801,8 +3815,8 @@ Expected before the run: The header paragraph with its mark; the body is untouch
 2. `tripleclick(HDR:P1:2)`
 
 ```text
-[Body paragraph.] ↓0
-[Second body paragraph.] ↓0
+[Body paragraph.]
+[Second body paragraph.]
 HDR: [⟦Header text¶‸⟧] #Header
 ```
 
@@ -3819,12 +3833,12 @@ steps `ctrl+click({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find("first") | Normal 0–14 end-active | `[⟦One is first. ‸⟧Two is next? Three uses e.g. four here. Five ends it.] ↓0<br>[Second line starts. It ends here.] ↓0` |
-| P1:find("Two") | Normal 14–27 start-active | `[One is first. ⟦‸Two is next? ⟧Three uses e.g. four here. Five ends it.] ↓0<br>[Second line starts. It ends here.] ↓0` |
-| P1:find("Three") | Normal 27–43 start-active | `[One is first. Two is next? ⟦‸Three uses e.g. ⟧four here. Five ends it.] ↓0<br>[Second line starts. It ends here.] ↓0` |
-| P1:find("four") | Normal 43–54 end-active | `[One is first. Two is next? Three uses e.g. ⟦four here. ‸⟧Five ends it.] ↓0<br>[Second line starts. It ends here.] ↓0` |
-| P1:find("Five") | Normal 54–67 start-active | `[One is first. Two is next? Three uses e.g. four here. ⟦‸Five ends it.⟧] ↓0<br>[Second line starts. It ends here.] ↓0` |
-| P2:find("ends") | Normal 88–101 end-active | `[One is first. Two is next? Three uses e.g. four here. Five ends it.] ↓0<br>[Second line starts. ⟦It ends here.‸⟧] ↓0` |
+| P1:find("first") | Normal 0–14 end-active | `[⟦One is first. ‸⟧Two is next? Three uses e.g. four here. Five ends it.]<br>[Second line starts. It ends here.]` |
+| P1:find("Two") | Normal 14–27 start-active | `[One is first. ⟦‸Two is next? ⟧Three uses e.g. four here. Five ends it.]<br>[Second line starts. It ends here.]` |
+| P1:find("Three") | Normal 27–43 start-active | `[One is first. Two is next? ⟦‸Three uses e.g. ⟧four here. Five ends it.]<br>[Second line starts. It ends here.]` |
+| P1:find("four") | Normal 43–54 end-active | `[One is first. Two is next? Three uses e.g. ⟦four here. ‸⟧Five ends it.]<br>[Second line starts. It ends here.]` |
+| P1:find("Five") | Normal 54–67 start-active | `[One is first. Two is next? Three uses e.g. four here. ⟦‸Five ends it.⟧]<br>[Second line starts. It ends here.]` |
+| P2:find("ends") | Normal 88–101 end-active | `[One is first. Two is next? Three uses e.g. four here. Five ends it.]<br>[Second line starts. ⟦It ends here.‸⟧]` |
 
 Notes: Terminators: a period, a question mark, the e.g. abbreviation, a period before the paragraph mark.
 
@@ -3837,8 +3851,8 @@ Expected before the run: (a) the sentence replaces the word; (b) a second range 
 
 steps before the branches `dblclick(P1:find("One"))` · `ctrl+click(P1:find("Two"))`
 
-- `ctrl+click(P1:find("Two"))` → `[⟦One ‸⟧is first. Two is next? Three uses e.g. four here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · Normal 0–4 end-active
-- `ctrl+click(P1:find("Five"))` → `[⟦One ‸⟧is first. Two is next? Three uses e.g. four here. Five ends it.] ↓0 / [Second line starts. It ends here.] ↓0` · Normal 0–4 end-active
+- `ctrl+click(P1:find("Two"))` → `[⟦One ‸⟧is first. Two is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · Normal 0–4 end-active
+- `ctrl+click(P1:find("Five"))` → `[⟦One ‸⟧is first. Two is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · Normal 0–4 end-active
 
 ```mermaid
 flowchart TD
@@ -3858,10 +3872,10 @@ steps `click({at})`
 
 | at | options | selection | observed |
 | --- | --- | --- | --- |
-| P1:find("See") | CtrlClickHyperlinkToOpen=true | IP 1–1 | `[S‸ee ]<[bu:the site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:find("See") | CtrlClickHyperlinkToOpen=false | IP 1–1 | `[S‸ee ]<[bu:the site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:find("site") | CtrlClickHyperlinkToOpen=true | IP 43–43 | `[See ]<[bu:the ‸site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
-| P1:find("site") | CtrlClickHyperlinkToOpen=false | IP 43–43 | `[See ]<[bu:the ‸site]>[ today.] ↓0<br>[Second paragraph.] ↓0` |
+| P1:find("See") | CtrlClickHyperlinkToOpen=true | IP 1–1 | `[S‸ee ]<[bu:the site]>[ today.]<br>[Second paragraph.]` |
+| P1:find("See") | CtrlClickHyperlinkToOpen=false | IP 1–1 | `[S‸ee ]<[bu:the site]>[ today.]<br>[Second paragraph.]` |
+| P1:find("site") | CtrlClickHyperlinkToOpen=true | IP 43–43 | `[See ]<[bu:the ‸site]>[ today.]<br>[Second paragraph.]` |
+| P1:find("site") | CtrlClickHyperlinkToOpen=false | IP 43–43 | `[See ]<[bu:the ‸site]>[ today.]<br>[Second paragraph.]` |
 
 Notes: With the option off a plain click on the link follows it and a browser may open; Ctrl+click is not sent for
 the same reason. The See click is the control off the link.
@@ -3885,12 +3899,12 @@ includes its mark; no word snapping on a Shift+click.
 | `click(P2:5)` | IP 28–28 | `[Second‸ bold one.]` |
 | `shift+click(P2:12)` | Normal 22–35 end-active | `[⟦Second bold o‸⟧ne.]` |
 | `shift+click(P1:3)` | Normal 0–29 start-active | `[⟦‸First paragraph here.¶⟧] …` |
-| `shift+click(P3:4)` | Normal 22–45 end-active | `[Third and last.] …` |
+| `shift+click(P3:4)` | Normal 22–45 end-active | `⟦[Third ‸⟧and last.] …` |
 
 ```text
-[First paragraph here.] ↓0
-[⟦Second bold one.¶⟧] (center) ↓0
-⟦[Third ‸⟧and last.] ↓0
+[First paragraph here.]
+[⟦Second bold one.¶⟧] (center)
+⟦[Third ‸⟧and last.]
 ```
 
 Selection: Normal 22–45 end-active · click(P2:5) → Range 28-28, IBeam · shift+click(P2:12) → Range 35-35, IBeam · shift+click(P1:3) → Range 4-4, IBeam · shift+click(P3:4) → Range 44-44, IBeam
@@ -3907,12 +3921,12 @@ Selection: Normal 22–45 end-active · click(P2:5) → Range 28-28, IBeam · sh
 | `click(P2:5)` | IP 28–28 | `[Second‸ bold one.]` |
 | `shift+click(P2:12)` | Normal 28–35 end-active | `[Second⟦ bold o‸⟧ne.]` |
 | `shift+click(P1:3)` | Normal 4–28 start-active | `[Firs⟦‸t paragraph here.¶⟧] …` |
-| `shift+click(P3:4)` | Normal 28–43 end-active | `[Third and last.] …` |
+| `shift+click(P3:4)` | Normal 28–43 end-active | `⟦[Thir‸⟧d and last.] …` |
 
 ```text
-[First paragraph here.] ↓0
-[Second⟦ bold one.¶⟧] (center) ↓0
-⟦[Thir‸⟧d and last.] ↓0
+[First paragraph here.]
+[Second⟦ bold one.¶⟧] (center)
+⟦[Thir‸⟧d and last.]
 ```
 
 Selection: Normal 28–43 end-active · click(P2:5) → Range 28-28, IBeam · shift+click(P2:12) → Range 35-35, IBeam · shift+click(P1:3) → Range 4-4, IBeam · shift+click(P3:4) → Range 44-44, IBeam
@@ -3928,13 +3942,13 @@ steps before the branches `dblclick(P1:find("beta"))` · `shift+click(P1:27)`
 
 **Options.AutoWordSelection=true**
 
-- `shift+click(P1:27)` → `[alpha ⟦beta,  gamma-delta 3.‸⟧14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 6–27 end-active
-- `shift+click(P1:2)` → `[⟦‸alpha beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 0–10 start-active
+- `shift+click(P1:27)` → `[alpha ⟦beta,  gamma-delta 3.‸⟧14 don't (eps) 1,000 10:30 end.]` · Normal 6–27 end-active
+- `shift+click(P1:2)` → `[⟦‸alpha beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 0–10 start-active
 
 **Options.AutoWordSelection=false**
 
-- `shift+click(P1:27)` → `[alpha ⟦beta,  gamma-delta 3.‸⟧14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 6–27 end-active
-- `shift+click(P1:2)` → `[al⟦‸pha ⟧beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` · Normal 2–6 start-active
+- `shift+click(P1:27)` → `[alpha ⟦beta,  gamma-delta 3.‸⟧14 don't (eps) 1,000 10:30 end.]` · Normal 6–27 end-active
+- `shift+click(P1:2)` → `[al⟦‸pha ⟧beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` · Normal 2–6 start-active
 
 ```mermaid
 flowchart TD
@@ -3956,8 +3970,8 @@ steps `click({from})` · `shift+click(C(2,2):1)`
 
 | from | selection | observed |
 | --- | --- | --- |
-| P1:2 | Normal 0–38 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P2:3 | Column 21–34 end-active · Cells 2 (R1C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| P1:2 | Normal 0–38 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P2:3 | Column 21–34 end-active · Cells 2 (R1C2–R2C2) | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### M-30 · Shift+click from a cell into the body
 
@@ -3970,8 +3984,8 @@ steps `click(C(2,2):1)` · `shift+click({to})`
 
 | to | selection | observed |
 | --- | --- | --- |
-| P2:3 | Column 21–34 end-active · Cells 2 (R1C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:2 | Normal 31–33 start-active · Cells 1 (R2C2–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[⟦‸b2⟧¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| P2:3 | Column 21–34 end-active · Cells 2 (R1C2–R2C2) | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤‸⟧]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:2 | Normal 31–33 start-active · Cells 1 (R2C2–R2C2) | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[⟦‸b2⟧¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### M-31 · Shift+click from cell to cell: same row, same column, diagonal, same cell
 
@@ -3984,10 +3998,10 @@ steps `click(C(1,1):1)` · `shift+click({to})`
 
 | to | selection | observed |
 | --- | --- | --- |
-| C(1,3):1 | Column 18–27 end-active · Cells 3 (R1C1–R1C3) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1 | Column 18–41 end-active · Cells 3 (R1C1–R3C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,3):1 | Column 18–47 end-active · Cells 9 (R1C1–R3C3) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤<br>[After the table.] ↓0` |
-| C(1,1):end | Normal 19–20 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[a⟦1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| C(1,3):1 | Column 18–27 end-active · Cells 3 (R1C1–R1C3) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1 | Column 18–41 end-active · Cells 3 (R1C1–R3C1) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,3):1 | Column 18–47 end-active · Cells 9 (R1C1–R3C3) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤<br>[After the table.]` |
+| C(1,1):end | Normal 19–20 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[a⟦1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### M-31b · Shift+click across merged cells
 
@@ -4000,9 +4014,9 @@ steps `{first}` · `shift+click(C(2,3):1)`
 
 | first | selection | observed |
 | --- | --- | --- |
-| click(C(1,1):1) | Column 18–40 end-active · Cells 5 (R1C1–R2C3) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤‸⟧]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| click(C(3,2):1) | Column 31–48 end-active · Cells 3 (R2C2–R3C3) | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[⟦b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║¤‸⟧<br>[After the table.] ↓0` |
-| click(C(1,2):1) | Column 24–40 end-active · Cells 2 (R1C2–R2C3) | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[⟦c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤‸⟧]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
+| click(C(1,1):1) | Column 18–40 end-active · Cells 5 (R1C1–R2C3) | `[Before the table.]<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤‸⟧]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| click(C(3,2):1) | Column 31–48 end-active · Cells 3 (R2C2–R3C3) | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[⟦b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║¤‸⟧<br>[After the table.]` |
+| click(C(1,2):1) | Column 24–40 end-active · Cells 2 (R1C2–R2C3) | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[⟦c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤‸⟧]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
 
 Notes: (1,1) spans two columns and (2,3) two rows; (3,2) is the cell left of the vertical merge's lower half.
 
@@ -4017,23 +4031,10 @@ steps `{first}` · `{second}`
 
 | first | second | selection | observed |
 | --- | --- | --- | --- |
-| click(TB1:P1:2) | shift+click(P2:2) | IP 2–2 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo‸x line one] ↓0<br>TB: [Box line two] ↓0` |
-| click(TB1:P1:2) | shift+click(TB1:P1:2) | IP 2–2 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo‸x line one] ↓0<br>TB: [Box line two] ↓0` |
-| click(P2:2) | shift+click(P2:2) | IP 34–34 | `[⚓1First paragraph of text here.] ↓0<br>[Sec‸ond paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| click(P2:2) | shift+click(TB1:P1:2) | Shape 0–26 end-active · Story TextFrame · Shapes 1 | `see below` |
-
-`M-32[first=click(P2:2),second=shift+click(TB1:P1:2)]`
-
-```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
-SHP1 ⌖P1 textbox 160x80pt square @228,0 ⟦selected⟧
-TB: [⟦Box line one¶⟧] ↓0
-TB: ⟦[Box line two¶‸⟧] ↓0
-```
-
-Selection: Shape 0–26 end-active · Story TextFrame · Shapes 1 · click(P2:2) → Range 34-34, IBeam · shift+click(TB1:P1:2) → Range 2-2, IBeam
+| click(TB1:P1:2) | shift+click(P2:2) | IP 2–2 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo‸x line one]<br>TB: [Box line two]` |
+| click(TB1:P1:2) | shift+click(TB1:P1:2) | IP 2–2 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo‸x line one]<br>TB: [Box line two]` |
+| click(P2:2) | shift+click(P2:2) | IP 34–34 | `[⚓1First paragraph of text here.]<br>[Sec‸ond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| click(P2:2) | shift+click(TB1:P1:2) | Shape 0–26 end-active · Story TextFrame · Shapes 1 | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0 ⟦selected⟧<br>TB: [⟦Box line one¶⟧]<br>TB: ⟦[Box line two¶‸⟧]` |
 
 #### M-33 · Alt+drag block selection, then typing, Delete and copy
 
@@ -4108,7 +4109,7 @@ Notes: Within beta; from beta into gamma; the same leftwards; from alpha to delt
 
 #### M-34b · A drag across a line wrap inside one paragraph
 
-`wrapped-title` · Morph: **PARTIAL**
+`wrapped-title` · Morph: **DONE**
 
 Expected before the run: The release on the second line sets the active end there, as on one line: with automatic
 word selection both ends snap to whole words, so MEETING MINUTES is selected whole whether the release is inside
@@ -4132,6 +4133,65 @@ steps `drag({path})`
 | P1:end→P1:2 | AutoWordSelection=false | Normal 2–15 start-active | `[ME⟦‸ETING MINUTES⟧]` |
 
 Notes: MEETING is the first line and MINUTES the second; P1:11 is inside MINUTES, P1:13 one glyph short of its end.
+
+#### M-34c · A double-click held and dragged
+
+`words` · Morph: **DONE**
+
+Expected before the run: The double-click's word, then whole words as the drag goes, each with the spaces after it,
+whether or not automatic word selection is on.
+
+steps `dbldrag({path})`
+
+| path | options | selection | observed |
+| --- | --- | --- | --- |
+| P1:7→P1:8 | AutoWordSelection=true | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:7→P1:8 | AutoWordSelection=false | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:7→P1:15 | AutoWordSelection=true | Normal 6–18 end-active | `[alpha ⟦beta,  gamma‸⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:7→P1:15 | AutoWordSelection=false | Normal 6–18 end-active | `[alpha ⟦beta,  gamma‸⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15→P1:7 | AutoWordSelection=true | Normal 6–18 start-active | `[alpha ⟦‸beta,  gamma⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:15→P1:7 | AutoWordSelection=false | Normal 6–18 start-active | `[alpha ⟦‸beta,  gamma⟧-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:2→P1:21 | AutoWordSelection=true | Normal 0–25 end-active | `[⟦alpha beta,  gamma-delta ‸⟧3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:2→P1:21 | AutoWordSelection=false | Normal 0–25 end-active | `[⟦alpha beta,  gamma-delta ‸⟧3.14 don't (eps) 1,000 10:30 end.]` |
+
+Notes: Within beta; from beta into gamma; the same leftwards; from alpha to delta.
+
+#### M-34d · A double-click dragged across a line wrap
+
+`wrapped-title` · Morph: **DONE**
+
+Expected before the run: Both ends by whole words across the wrap, unlike a plain drag, which snaps only the anchor
+there.
+
+steps `dbldrag({path})`
+
+| path | options | selection | observed |
+| --- | --- | --- | --- |
+| P1:2→P1:11 | AutoWordSelection=true | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:2→P1:11 | AutoWordSelection=false | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:11→P1:2 | AutoWordSelection=true | Normal 0–16 start-active | `[⟦‸MEETING MINUTES¶⟧]` |
+| P1:11→P1:2 | AutoWordSelection=false | Normal 0–16 start-active | `[⟦‸MEETING MINUTES¶⟧]` |
+| P1:2→P1:end | AutoWordSelection=true | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+| P1:2→P1:end | AutoWordSelection=false | Normal 0–16 end-active | `[⟦MEETING MINUTES¶‸⟧]` |
+
+Notes: MEETING is the first line and MINUTES the second; P1:11 is inside MINUTES.
+
+#### M-34e · A double-click or triple-click dragged into the next paragraph
+
+`three-paragraphs` · Morph: **TODO**
+
+Expected before the run: A double-click drag extends by words, crossing the mark; a triple-click drag by whole
+paragraphs with their marks, staying the paragraph while it stays inside it.
+
+steps `{drag}`
+
+| drag | selection | observed |
+| --- | --- | --- |
+| dbldrag(P1:3→P2:4) | Normal 0–29 end-active | `[⟦First paragraph here.¶⟧]<br>⟦[Second ‸⟧bold one.] (center)<br>[Third and last.]` |
+| dbldrag(P2:4→P1:3) | Normal 0–29 start-active | `[⟦‸First paragraph here.¶⟧]<br>⟦[Second ⟧bold one.] (center)<br>[Third and last.]` |
+| tripledrag(P1:3→P1:10) | IP 6–6 | `[First ‸paragraph here.]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| tripledrag(P1:3→P2:4) | Normal 23–29 end-active | `[paragraph here.]<br>[Second ⟦First ‸⟧bold one.] (center)<br>[Third and last.]` |
+| tripledrag(P2:4→P1:3) | Normal 0–7 end-active | `[⟦Second ‸⟧First paragraph here.]<br>[bold one.] (center)<br>[Third and last.]` |
 
 #### M-35 · A drag across a paragraph boundary and to a paragraph's end
 
@@ -4184,13 +4244,13 @@ Expected before the run: Each Shift+click extends the line selection down by who
 | step | selection | where |
 | --- | --- | --- |
 | `click(selectionbar P1)` | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]` |
-| `shift+click(selectionbar P2)` | Normal 0–39 end-active | `[Second bold one.¶] …` |
-| `shift+click(selectionbar P3)` | Normal 0–55 end-active | `[Third and last.¶] …` |
+| `shift+click(selectionbar P2)` | Normal 0–39 end-active | `⟦[Second bold one.¶‸⟧] …` |
+| `shift+click(selectionbar P3)` | Normal 0–55 end-active | `⟦[Third and last.¶‸⟧] …` |
 
 ```text
-[⟦First paragraph here.¶⟧] ↓0
-⟦[Second bold one.¶⟧] (center) ↓0
-⟦[Third and last.¶‸⟧] ↓0
+[⟦First paragraph here.¶⟧]
+⟦[Second bold one.¶⟧] (center)
+⟦[Third and last.¶‸⟧]
 ```
 
 Selection: Normal 0–55 end-active · click(selectionbar P1) → Range 0-0, WordOwn · shift+click(selectionbar P2) → Range 22-22, WordOwn · shift+click(selectionbar P3) → Range 39-39, WordOwn
@@ -4209,14 +4269,14 @@ steps `click(selectionbar {line})`
 
 | fixture | line | selection | observed |
 | --- | --- | --- | --- |
-| three-paragraphs | P1 | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| three-paragraphs | P2 | Normal 22–39 end-active | `[First paragraph here.] ↓0<br>[⟦Second bold one.¶‸⟧] (center) ↓0<br>[Third and last.] ↓0` |
+| three-paragraphs | P1 | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| three-paragraphs | P2 | Normal 22–39 end-active | `[First paragraph here.]<br>[⟦Second bold one.¶‸⟧] (center)<br>[Third and last.]` |
 | numbers | P1 | Normal 0–4 end-active | `[⟦One¶‸⟧] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 | numbers | P2 | Normal 4–8 end-active | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Two¶‸⟧] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| image-floating | P1 | Normal 0–31 end-active | `[⟦⚓1First paragraph of text here.¶‸⟧] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| image-floating | P2 | Normal 31–83 end-active | `[⚓1First paragraph of text here.] ↓0<br>[⟦Second paragraph carries the anchor of the picture.¶‸⟧] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| empty-paragraphs | P1 | Normal 0–6 end-active | `[⟦Above¶‸⟧] ↓0<br> ↓0<br> ↓0<br>[Below] ↓0` |
-| empty-paragraphs | P2 | Normal 6–7 end-active | `[Above] ↓0<br>⟦¶‸⟧ ↓0<br> ↓0<br>[Below] ↓0` |
+| image-floating | P1 | Normal 0–31 end-active | `[⟦⚓1First paragraph of text here.¶‸⟧]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| image-floating | P2 | Normal 31–83 end-active | `[⚓1First paragraph of text here.]<br>[⟦Second paragraph carries the anchor of the picture.¶‸⟧]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| empty-paragraphs | P1 | Normal 0–6 end-active | `[⟦Above¶‸⟧]<br><br><br>[Below]` |
+| empty-paragraphs | P2 | Normal 6–7 end-active | `[Above]<br>⟦¶‸⟧<br><br>[Below]` |
 
 Notes: numbers P1 is a list item; image-floating P2 carries the picture's anchor; empty-paragraphs P2 is empty.
 
@@ -4229,7 +4289,7 @@ Expected before the run: (a) the first line only, ending at the wrap space, no m
 1. `click(selectionbar P1)`
 
 ```text
-[⟦Alpha beta gamma delta epsilon zeta eta ‸⟧theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.] ↓0
+[⟦Alpha beta gamma delta epsilon zeta eta ‸⟧theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.]
 ```
 
 Selection: Normal 0–40 end-active · click(selectionbar P1) → Range 0-0, WordOwn
@@ -4245,10 +4305,10 @@ steps `{step}`
 
 | step | selection | observed |
 | --- | --- | --- |
-| click(selectionbar C(1,1):0) | Row 18–27 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| click(selectionbar C(2,2):0) | Row 27–39 end-active · Cells 2 (R2C1–R2C2) | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[⟦Three¤⟧]║⟦[Four¤⟧]║¤‸⟧<br>[After the table.] ↓0` |
-| click(selectionbar P2) | Row 18–27 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| dblclick(selectionbar C(1,1):0) | Row 18–27 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| click(selectionbar C(1,1):0) | Row 18–27 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.]<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| click(selectionbar C(2,2):0) | Row 27–39 end-active · Cells 2 (R2C1–R2C2) | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[⟦Three¤⟧]║⟦[Four¤⟧]║¤‸⟧<br>[After the table.]` |
+| click(selectionbar P2) | Row 18–27 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.]<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| dblclick(selectionbar C(1,1):0) | Row 18–27 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.]<br>T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤‸⟧<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### M-41 · Selection bar double-click
 
@@ -4260,9 +4320,9 @@ steps `dblclick(selectionbar P1)`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| three-paragraphs | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧] ↓0<br>[Second bold one.] (center) ↓0<br>[Third and last.] ↓0` |
-| wrap | Normal 0–161 end-active | `[⟦Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.¶‸⟧] ↓0` |
-| table-2x2 | Normal 0–18 end-active | `[⟦Before the table.¶‸⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| three-paragraphs | Normal 0–22 end-active | `[⟦First paragraph here.¶‸⟧]<br>[Second bold one.] (center)<br>[Third and last.]` |
+| wrap | Normal 0–161 end-active | `[⟦Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega alpha beta gamma delta epsilon zeta.¶‸⟧]` |
+| table-2x2 | Normal 0–18 end-active | `[⟦Before the table.¶‸⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### M-42 · Selection bar triple-click and Ctrl+click
 
@@ -4275,10 +4335,10 @@ steps `{step}`
 
 | step | selection | observed |
 | --- | --- | --- |
-| tripleclick(selectionbar P1) | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| ctrl+click(selectionbar P1) | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| tripleclick(selectionbar C(1,1):0) | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| ctrl+click(selectionbar C(2,1):0) | Normal 0–56 end-active | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
+| tripleclick(selectionbar P1) | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| ctrl+click(selectionbar P1) | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| tripleclick(selectionbar C(1,1):0) | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| ctrl+click(selectionbar C(2,1):0) | Normal 0–56 end-active | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
 
 #### M-43 · Shift+click into text from a selection bar anchor
 
@@ -4294,13 +4354,13 @@ character from the line's start.
 | step | selection | where |
 | --- | --- | --- |
 | `click(selectionbar P2)` | Normal 22–39 end-active | `[⟦Second bold one.¶‸⟧]` |
-| `shift+click(P3:4)` | Normal 22–55 end-active | `[Third and last.¶] …` |
+| `shift+click(P3:4)` | Normal 22–55 end-active | `⟦[Third and last.¶‸⟧] …` |
 | `shift+click(P1:3)` | Normal 0–39 start-active | `[⟦‸First paragraph here.¶⟧] …` |
 
 ```text
-[⟦‸First paragraph here.¶⟧] ↓0
-⟦[Second bold one.¶⟧] (center) ↓0
-[Third and last.] ↓0
+[⟦‸First paragraph here.¶⟧]
+⟦[Second bold one.¶⟧] (center)
+[Third and last.]
 ```
 
 Selection: Normal 0–39 start-active · click(selectionbar P2) → Range 22-22, WordOwn · shift+click(P3:4) → Range 44-44, IBeam · shift+click(P1:3) → Range 4-4, IBeam
@@ -4316,8 +4376,8 @@ steps `click(selectionbar P2)` · `{key}` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Shift+Down | Normal 22–55 end-active | `[First paragraph here.] ↓0<br>[⟦Second bold one.¶⟧] (center) ↓0<br>⟦[Third and last.¶‸⟧] ↓0` |
-| Shift+Up | Normal 0–39 start-active | `[⟦‸First paragraph here.¶⟧] ↓0<br>⟦[Second bold one.¶⟧] (center) ↓0<br>[Third and last.] ↓0` |
+| Shift+Down | Normal 22–55 end-active | `[First paragraph here.]<br>[⟦Second bold one.¶⟧] (center)<br>⟦[Third and last.¶‸⟧]` |
+| Shift+Up | Normal 0–39 start-active | `[⟦‸First paragraph here.¶⟧]<br>⟦[Second bold one.¶⟧] (center)<br>[Third and last.]` |
 
 #### M-50 · Cell edge click, then Delete, Backspace, typing, Tab and Enter
 
@@ -4329,31 +4389,31 @@ Enter (a) adds a paragraph in the cell (b) replaces the contents.
 
 steps before the branches `click(cellLeftEdge C(2,2))`
 
-- `click(cellLeftEdge C(2,2))` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 31–31 · Cells 1 (R2C2–R2C2) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[x‸¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 32–32 · Cells 1 (R2C2–R2C2) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Undo —
-- `Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║ ¶ ‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 32–32 · Cells 1 (R2C2–R2C2) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
+- `click(cellLeftEdge C(2,2))` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 31–31 · Cells 1 (R2C2–R2C2) · Undo: Clear
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[x‸¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 32–32 · Cells 1 (R2C2–R2C2) · Undo: Typing "x"
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
+- `Tab` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Undo —
+- `Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║ ¶ ‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 32–32 · Cells 1 (R2C2–R2C2) · Undo: Typing
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo —
 
 **Track Changes on**
 
-- `click(cellLeftEdge C(2,2))` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[‸b2]-}¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 31–31 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[b2]-}{+[x]+}‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 34–34 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
-- `Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[b2]-}{++} ¶ ‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 34–34 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+- `click(cellLeftEdge C(2,2))` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[‸b2]-}¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 31–31 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Clear
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[b2]-}{+[x]+}‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 34–34 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: Typing "x"
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+- `Tab` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Normal 34–36 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
+- `Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[b2]-}{++} ¶ ‸¤║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 34–34 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: Typing
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[⟦b2¤‸⟧]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -4382,10 +4442,10 @@ steps `click(columnTop {cell})`
 
 | fixture | cell | selection | observed |
 | --- | --- | --- | --- |
-| table-3x3 | C(1,1) | Column 18–41 end-active · Cells 3 (R1C1–R3C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-3x3 | C(1,2) | Column 21–44 end-active · Cells 3 (R1C2–R3C2) | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | C(1,1) | Column 18–47 end-active · Cells 5 (R1C1–R3C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║¤<br>[After the table.] ↓0` |
-| table-merged | C(1,2) | Column 24–48 end-active · Cells 2 (R1C2–R3C2) | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[⟦c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║¤‸⟧<br>[After the table.] ↓0` |
+| table-3x3 | C(1,1) | Column 18–41 end-active · Cells 3 (R1C1–R3C1) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-3x3 | C(1,2) | Column 21–44 end-active · Cells 3 (R1C2–R3C2) | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.]` |
+| table-merged | C(1,1) | Column 18–47 end-active · Cells 5 (R1C1–R3C1) | `[Before the table.]<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║¤<br>[After the table.]` |
+| table-merged | C(1,2) | Column 24–48 end-active · Cells 2 (R1C2–R3C2) | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[⟦c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║¤‸⟧<br>[After the table.]` |
 
 #### M-52 · Row bar click
 
@@ -4398,10 +4458,10 @@ steps `click(rowBar {row})`
 
 | fixture | row | selection | observed |
 | --- | --- | --- | --- |
-| table-3x3 | R1 | Row 18–28 end-active · Cells 3 (R1C1–R1C3) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-3x3 | R2 | Row 28–38 end-active · Cells 3 (R2C1–R2C3) | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | R1 | Row 18–28 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | R2 | Row 28–41 end-active · Cells 3 (R2C1–R2C3) | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
+| table-3x3 | R1 | Row 18–28 end-active · Cells 3 (R1C1–R1C3) | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-3x3 | R2 | Row 28–38 end-active · Cells 3 (R2C1–R2C3) | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-merged | R1 | Row 18–28 end-active · Cells 2 (R1C1–R1C2) | `[Before the table.]<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| table-merged | R2 | Row 28–41 end-active · Cells 3 (R2C1–R2C3) | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¶⟧] ¶ ⟦[c3¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
 
 #### M-53 · Table move handle click
 
@@ -4413,10 +4473,10 @@ stays.
 1. `click(tableHandle T1)`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤
 T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Row 18–39 end-active · Cells 4 (R1C1–R2C2) · click(tableHandle T1) → none, WordOwn
@@ -4432,10 +4492,10 @@ row (a) clears the cells (b) nothing; typing (a) replaces the row's contents (b)
 
 steps before the branches `click(C(1,2):mark, side=right)`
 
-- `click(C(1,2):mark, side=right)` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 25–25 · Cells 1 (R1C2–R1C2) · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 25–25 · Cells 1 (R1C2–R1C2) · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Tw‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 24–24 · Cells 1 (R1C2–R1C2) · Undo depth 1
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Twox‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 26–26 · Cells 1 (R1C2–R1C2) · Undo depth 1
+- `click(C(1,2):mark, side=right)` → `[Before the table.] / T1 R1 ║[One¤]║[Two‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 25–25 · Cells 1 (R1C2–R1C2) · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[One¤]║[Two‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 25–25 · Cells 1 (R1C2–R1C2) · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[Tw‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 24–24 · Cells 1 (R1C2–R1C2) · Undo: Typing
+- `type("x")` → `[Before the table.] / T1 R1 ║[One¤]║[Twox‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 26–26 · Cells 1 (R1C2–R1C2) · Undo: Typing "x"
 
 ```mermaid
 flowchart TD
@@ -4460,9 +4520,9 @@ steps `click(IMG1)` · `shift+click({to})`
 
 | to | selection | observed |
 | --- | --- | --- |
-| P1:end | IP 24–24 | `[Text before ▣ after end.‸] ↓0<br>[Second paragraph.] ↓0` |
-| P1:0 | IP 0–0 | `[‸Text before ▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| P2:3 | IP 28–28 | `[Text before ▣ after end.] ↓0<br>[Sec‸ond paragraph.] ↓0` |
+| P1:end | IP 24–24 | `[Text before ▣ after end.‸]<br>[Second paragraph.]` |
+| P1:0 | IP 0–0 | `[‸Text before ▣ after end.]<br>[Second paragraph.]` |
+| P2:3 | IP 28–28 | `[Text before ▣ after end.]<br>[Sec‸ond paragraph.]` |
 
 #### M-61 · Click a floating picture, a shape and a text box
 
@@ -4475,9 +4535,9 @@ steps `click(SHP1)`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| image-floating | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
-| shape | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0<br>[Second paragraph.] ↓0<br>SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` |
-| text-box | IP 25–25 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one] ↓0<br>TB: [Box line two‸] ↓0` |
+| image-floating | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
+| shape | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧Paragraph beside a shape.]<br>[Second paragraph.]<br>SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` |
+| text-box | IP 25–25 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one]<br>TB: [Box line two‸]` |
 
 #### M-62 · Drag an inline picture, moving and copying
 
@@ -4532,7 +4592,7 @@ Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SH
 [Second paragraph carries the anchor of the picture.]
 [Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
-SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-72,30.6 ⟦selected⟧
 ```
 
 Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
@@ -4548,10 +4608,10 @@ steps `click({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find("Page "):end, side=left | IP 5–5 | `[Page ][‸«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| P1:find("1"), side=left | IP 5–5 | `[Page ][‸«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| P1:find("1"), side=right | IP 15–15 | `[Page ][«][ PAGE ][\|][1][»][‸ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10/2026][»][ end.] ↓0` |
-| P2:find("/20"), side=left | IP 73–73 | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.] ↓0<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][25/10‸/2026][»][ end.] ↓0` |
+| P1:find("Page "):end, side=left | IP 5–5 | `[Page ][‸«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| P1:find("1"), side=left | IP 5–5 | `[Page ][‸«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| P1:find("1"), side=right | IP 15–15 | `[Page ][«][ PAGE ][\|][1][»][‸ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10/2026][»][ end.]` |
+| P2:find("/20"), side=left | IP 73–73 | `[Page ][«][ PAGE ][\|][1][»][ of ][«][ NUMPAGES ][\|][1][»][ end.]<br>[Date: ][«][ DATE \@ "d/MM/yyyy" ][\|][27/10‸/2026][»][ end.]` |
 
 Notes: find("Page "):end is the PAGE field's start; find("/20") is inside the DATE result.
 
@@ -4566,15 +4626,15 @@ steps before the branches `click({at}, side=left)`
 
 **at=P1:start**
 
-- `click(P1:start, side=left)` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo depth 2
-- `Ctrl+B` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo depth 2
-- `type("x")` → `[x‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 1–1 · Undo depth 3
+- `click(P1:start, side=left)` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo —
+- `Ctrl+B` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo —
+- `type("x")` → `[x‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 1–1 · Undo: Typing "x"
 
 **at=P4:start**
 
-- `click(P4:start, side=left)` → `[One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [‸Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 27–27 · Undo depth 2
-- `Ctrl+B` → `[One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [‸Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 27–27 · Undo depth 2
-- `type("x")` → `[One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [x‸Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 28–28 · Undo depth 3
+- `click(P4:start, side=left)` → `[One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [‸Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 27–27 · Undo —
+- `Ctrl+B` → `[One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [‸Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 27–27 · Undo —
+- `type("x")` → `[One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [x‸Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 28–28 · Undo: Typing "x"
 
 ```mermaid
 flowchart TD
@@ -4598,9 +4658,9 @@ steps `{step}`
 
 | step | selection | observed |
 | --- | --- | --- |
-| click(P1:4, side=left) | IP 4–4 | `[Text‸†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0` |
-| click(P1:4, side=right) | IP 4–4 | `[Text‸†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0` |
-| dblclick(P1:4) | IP 0–0 · Story Footnotes | `[Text†1 more words.] ↓0<br>[Second with an end note.‡1] ↓0<br>FN: [‸† Note text.] #FootnoteText` |
+| click(P1:4, side=left) | IP 4–4 | `[Text‸†1 more words.]<br>[Second with an end note.‡1]` |
+| click(P1:4, side=right) | IP 4–4 | `[Text‸†1 more words.]<br>[Second with an end note.‡1]` |
+| dblclick(P1:4) | IP 0–0 · Story Footnotes | `[Text†1 more words.]<br>[Second with an end note.‡1]<br>FN: [‸† Note text.] #FootnoteText` |
 
 #### M-74 · Click a content control's text, checkbox and dropdown
 
@@ -4613,10 +4673,10 @@ steps `click({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find("content") | IP 7–7 · Undo — | `[Rich: (\|‸content here\|) end.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
-| P2:find("plain") | IP 34–34 · Undo — | `[Rich: (\|content here\|) end.] ↓0<br>[Plain: (\|‸plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
-| P3:7 | IP 59–59 · Undo — | `[Rich: (\|content here\|) end.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|‸☐\|) end.] ↓0<br>[Pick: (\|choice\|) end.] ↓0` |
-| P4:find("choice") | IP 75–75 · Undo — | `[Rich: (\|content here\|) end.] ↓0<br>[Plain: (\|plain here\|) end.] ↓0<br>[Check: (\|☐\|) end.] ↓0<br>[Pick: (\|c‸hoice\|) end.] ↓0` |
+| P1:find("content") | IP 7–7 · Undo — | `[Rich: (\|‸content here\|) end.]<br>[Plain: (\|plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
+| P2:find("plain") | IP 34–34 · Undo — | `[Rich: (\|content here\|) end.]<br>[Plain: (\|‸plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
+| P3:7 | IP 58–58 · Undo — | `[Rich: (\|content here\|) end.]<br>[Plain: (\|plain here\|) end.]<br>[Check: ‸(\|☐\|) end.]<br>[Pick: (\|choice\|) end.]` |
+| P4:find("choice") | IP 75–75 · Undo — | `[Rich: (\|content here\|) end.]<br>[Plain: (\|plain here\|) end.]<br>[Check: (\|☐\|) end.]<br>[Pick: (\|c‸hoice\|) end.]` |
 
 #### M-76 · Right-click inside and outside a selection
 
@@ -4628,8 +4688,8 @@ steps `dblclick(P1:find("beta"))` · `rightclick({at})`
 
 | at | selection | observed |
 | --- | --- | --- |
-| P1:find("beta") | Normal 6–10 start-active | `[alpha ⟦‸beta⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("3.14") | IP 25–25 | `[alpha beta,  gamma-delta ‸3.14 don't (eps) 1,000 10:30 end.] ↓0` |
+| P1:find("beta") | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("3.14") | IP 25–25 | `[alpha beta,  gamma-delta ‸3.14 don't (eps) 1,000 10:30 end.]` |
 
 Notes: The context menu is dismissed by the harness after the step.
 
@@ -4642,11 +4702,13 @@ Expected before the run: The picture is selected before the menu opens.
 1. `rightclick(IMG1)`
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · rightclick(IMG1) → Shape Picture 1, WordOwn
+
+_dialog during step: Net UI Tool Window "" (dismissed)_
 
 #### M-76c · Right-click in a cell, as text and with the cell selected
 
@@ -4658,8 +4720,8 @@ steps `{first}` · `rightclick(C(1,1):1)`
 
 | first | selection | observed |
 | --- | --- | --- |
-| click(P1:2) | IP 19–19 · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[O‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| click(P1:2) | IP 19–19 · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[O‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Column 18–22 end-active · Cells 1 (R1C1–R1C1) | `[Before the table.]<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### M-80 · Drag and drop a word within its paragraph
 
@@ -4792,7 +4854,7 @@ steps `drag({path})`
 | P2:0-P2:6→TB1:P1:2 | off | Normal 0–7 end-active · Story TextFrame · Undo: Move | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line two]` |
 | P2:0-P2:6→TB1:P1:2 | on | Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo: Move | `[⚓1First paragraph of text here.]<br>{-[Second ]-}[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line tw]{-[o]` |
 | TB1:P1:0-TB1:P1:3→P2:2 | off | Normal 0–33 end-active · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Se‸⟧cond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P1:0-TB1:P1:3→P2:2 | on | Normal 0–33 end-active · Tracking · Revisions 0 · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Se‸⟧cond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P1:0-TB1:P1:3→P2:2 | on | Normal 0–38 end-active · Tracking · Revisions 0 · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Second ‸⟧paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
 <!-- probe:end mouse -->
 
 ## Typing, Enter, Backspace, Delete and direct formatting
@@ -4939,7 +5001,10 @@ Backspace and Delete
   paragraphs with the first's properties (E-50 `P1:end-P2:0`). Delete over a selection that reaches
   from a cell into the paragraph after a table clears the cells' text and keeps the structure; from body
   text into a table it removed the first row and joined the leading text into the next row's first cell
-  (E-64) ❓. — Morph: PARTIAL (the text layer's Delete over paragraphs joins them, which Word does not).
+  (E-64) ❓. — Morph: PARTIAL (Backspace, Delete and Ctrl+X on text selected across paragraphs leave the
+  first and the last apart with their own properties and remove those between, in `DocumentEditor.Delete`;
+  tracked, the marks are struck but the last paragraph's properties are not changed as Word's are; a
+  selection into or out of a table is refused, and nothing types over a selection across paragraphs).
 - **R-E-16 Section breaks**: Backspace at the start of the paragraph that carries a section break, or
   Delete at the end of the one before it, merges those two paragraphs and keeps the break; Delete before
   the break character removes the break and joins the sections (E-52). Backspace at the start of a TOC
@@ -14142,9 +14207,10 @@ selection growth across cells.
   changing the item's level; Ctrl+Tab inserts a tab character (T-02). In a merged table the order runs
   cell by cell along each row, a vertically merged cell taken in the row it starts in, and the row Tab
   adds has the grid's full column count (T-14). Inside a nested table Tab walks the inner cells and adds
-  an inner row; Shift+Tab in its first cell does nothing (T-15). — Morph: PARTIAL (Tab and Shift+Tab move between the cells of the same table with the next cell's first paragraph
-  selected, Tab in the last cell adds a row, a list item's Tab in a cell moves on too; a cell of several
-  paragraphs has only its first selected, and Ctrl+Tab is the browser's).
+  an inner row; Shift+Tab in its first cell does nothing (T-15). — Morph: PARTIAL (Tab and Shift+Tab move
+  between the cells of the same table with the next cell's text selected, a one-paragraph cell's open for
+  typing and a cell of several paragraphs' selected on the pages; Tab in the last cell adds a row, a list
+  item's Tab in a cell moves on too; Ctrl+Tab is the browser's).
 - **R-T-2 Enter at a cell's start inserts an empty paragraph above its text, at a cell's end one below;
   in the first cell of a table that starts the document Enter inserts a paragraph before the table**
   (T-03, T-30). Enter twice at the end of a list item in a cell leaves an empty plain paragraph (T-23).
@@ -14244,51 +14310,51 @@ steps before the branches `select(C(2,2):end)` · `Tab`
 
 **fixture=table-2x2**
 
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║‸¤║¤║¤ / [After the table.] ↓0` · IP 39–39 · Cells 1 (R3C1–R3C1) · Undo: Next Cell
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║[x‸¤]║¤║¤ / [After the table.] ↓0` · IP 40–40 · Cells 1 (R3C1–R3C1) · Undo: Typing "x", Next Cell
-- `Tab · Tab` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║¤║¤║¤ / T1 R4 ║‸¤║¤║¤ / [After the table.] ↓0` · IP 42–42 · Cells 1 (R4C1–R4C1) · Undo: Next Cell, Next Cell
-- `Shift+Tab` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[⟦Four‸⟧¤]║¤ / T1 R3 ║¤║¤║¤ / [After the table.] ↓0` · Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Undo: Next Cell
-  - `type("y")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[y‸¤]║¤ / T1 R3 ║¤║¤║¤ / [After the table.] ↓0` · IP 34–34 · Cells 1 (R2C2–R2C2) · Undo: Typing "y", Next Cell
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║‸¤║¤║¤ / [After the table.] ↓0` · IP 39–39 · Cells 1 (R3C1–R3C1) · Undo: Next Cell
-- `click(rowBar R3) · Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [‸After the table.] ↓0` · IP 39–39 · Undo: Delete Rows, Next Cell
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / [After the table.] ↓0` · IP 37–37 · Cells 1 (R2C2–R2C2) · Undo —
-  - `redo` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / T1 R3 ║¤║¤║¤ / [After the table.] ↓0` · IP 37–37 · Cells 1 (R2C2–R2C2) · Undo depth 1
+- `Tab` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║‸¤║¤║¤ / [After the table.]` · IP 39–39 · Cells 1 (R3C1–R3C1) · Undo: Next Cell
+- `type("x")` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║[x‸¤]║¤║¤ / [After the table.]` · IP 40–40 · Cells 1 (R3C1–R3C1) · Undo: Typing "x", Next Cell
+- `Tab · Tab` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║¤║¤║¤ / T1 R4 ║‸¤║¤║¤ / [After the table.]` · IP 42–42 · Cells 1 (R4C1–R4C1) · Undo: Next Cell, Next Cell
+- `Shift+Tab` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[⟦Four‸⟧¤]║¤ / T1 R3 ║¤║¤║¤ / [After the table.]` · Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Undo: Next Cell
+  - `type("y")` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[y‸¤]║¤ / T1 R3 ║¤║¤║¤ / [After the table.]` · IP 34–34 · Cells 1 (R2C2–R2C2) · Undo: Typing "y", Next Cell
+- `Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║‸¤║¤║¤ / [After the table.]` · IP 39–39 · Cells 1 (R3C1–R3C1) · Undo: Next Cell
+- `click(rowBar R3) · Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [‸After the table.]` · IP 39–39 · Undo: Delete Rows, Next Cell
+- `undo` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / [After the table.]` · IP 37–37 · Cells 1 (R2C2–R2C2) · Undo —
+  - `redo` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / T1 R3 ║¤║¤║¤ / [After the table.]` · IP 37–37 · Cells 1 (R2C2–R2C2) · Undo: Next Cell
 
 **fixture=table-2x2 · Track Changes on**
 
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+‸¤║¤║¤ / [After the table.] ↓0` · IP 39–39 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+[x‸¤]║¤║¤ / [After the table.] ↓0` · IP 40–40 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Typing "x", Next Cell
-- `Tab · Tab` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+¤║¤║¤ / T1 R4 ║‸¤║¤║¤ / [After the table.] ↓0` · IP 42–42 · Cells 1 (R4C1–R4C1) · Tracking · Revisions 1 · Undo: Next Cell, Next Cell
-- `Shift+Tab` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[⟦Four‸⟧¤]║¤ / T1 R3 ║{+¤║¤║¤ / [After the table.] ↓0` · Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Next Cell
-  - `type("y")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║{-[Four]-}{+[y]+}‸¤║¤ / T1 R3 ║{+¤║¤║¤ / [After the table.] ↓0` · IP 38–38 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 3 · Undo: Typing "y", Next Cell
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+‸¤║¤║¤ / [After the table.] ↓0` · IP 39–39 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell
-- `click(rowBar R3) · Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [‸After the table.] ↓0` · IP 39–39 · Tracking · Revisions 0 · Undo: Delete Rows, Next Cell
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / [After the table.] ↓0` · IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
-  - `redo` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / T1 R3 ║{+¤║¤║¤ / [After the table.] ↓0` · IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1
+- `Tab` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+‸¤║¤║¤ / [After the table.]` · IP 39–39 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell
+- `type("x")` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+[x‸¤]║¤║¤ / [After the table.]` · IP 40–40 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Typing "x", Next Cell
+- `Tab · Tab` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+¤║¤║¤ / T1 R4 ║‸¤║¤║¤ / [After the table.]` · IP 42–42 · Cells 1 (R4C1–R4C1) · Tracking · Revisions 1 · Undo: Next Cell, Next Cell
+- `Shift+Tab` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[⟦Four‸⟧¤]║¤ / T1 R3 ║{+¤║¤║¤ / [After the table.]` · Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Next Cell
+  - `type("y")` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║{-[Four]-}{+[y]+}‸¤║¤ / T1 R3 ║{+¤║¤║¤ / [After the table.]` · IP 38–38 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 3 · Undo: Typing "y", Next Cell
+- `Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / T1 R3 ║{+‸¤║¤║¤ / [After the table.]` · IP 39–39 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell
+- `click(rowBar R3) · Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [‸After the table.]` · IP 39–39 · Tracking · Revisions 0 · Undo: Delete Rows, Next Cell
+- `undo` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / [After the table.]` · IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+  - `redo` → `[Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four‸¤]║¤ / T1 R3 ║{+¤║¤║¤ / [After the table.]` · IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Next Cell
 
 **fixture=table-multi**
 
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 57–57 · Cells 1 (R3C1–R3C1) · Undo depth 2
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║[x‸¤]║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 58–58 · Cells 1 (R3C1–R3C1) · Undo depth 3
-- `Tab · Tab` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R4 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 60–60 · Cells 1 (R4C1–R4C1) · Undo depth 3
-- `Shift+Tab` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[⟦item one¶⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ ⟦[item two‸⟧¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · Normal 38–55 end-active · Cells 1 (R2C2–R2C2) · Undo depth 2
-  - `type("y")` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[y‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 39–39 · Cells 1 (R2C2–R2C2) · Undo depth 3
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 57–57 · Cells 1 (R3C1–R3C1) · Undo depth 2
-- `click(rowBar R3) · Backspace` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [‸After the table.] ↓0` · IP 57–57 · Undo depth 3
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 55–55 · Cells 1 (R2C2–R2C2) · Undo depth 1
-  - `redo` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 55–55 · Cells 1 (R2C2–R2C2) · Undo depth 2
+- `Tab` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 57–57 · Cells 1 (R3C1–R3C1) · Undo: Next Cell
+- `type("x")` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║[x‸¤]║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 58–58 · Cells 1 (R3C1–R3C1) · Undo: Typing "x", Next Cell
+- `Tab · Tab` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R4 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 60–60 · Cells 1 (R4C1–R4C1) · Undo: Next Cell, Next Cell
+- `Shift+Tab` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[⟦item one¶⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ ⟦[item two‸⟧¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · Normal 38–55 end-active · Cells 1 (R2C2–R2C2) · Undo: Next Cell
+  - `type("y")` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[y‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 39–39 · Cells 1 (R2C2–R2C2) · Undo: Typing "y", Next Cell
+- `Backspace` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 57–57 · Cells 1 (R3C1–R3C1) · Undo: Next Cell
+- `click(rowBar R3) · Backspace` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [‸After the table.]` · IP 57–57 · Undo: Delete Rows, Next Cell
+- `undo` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 55–55 · Cells 1 (R2C2–R2C2) · Undo —
+  - `redo` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 55–55 · Cells 1 (R2C2–R2C2) · Undo: Next Cell
 
 **fixture=table-multi · Track Changes on**
 
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 57–57 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo depth 2
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+[x‸¤]║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 58–58 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo depth 3
-- `Tab · Tab` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R4 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 60–60 · Cells 1 (R4C1–R4C1) · Tracking · Revisions 1 · Undo depth 3
-- `Shift+Tab` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[⟦item one¶⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ ⟦[item two‸⟧¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · Normal 38–55 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 2
-  - `type("y")` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║{-[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two]-}{+[y]+}‸¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 56–56 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 3 · Undo depth 3
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 57–57 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo depth 2
-- `click(rowBar R3) · Backspace` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [‸After the table.] ↓0` · IP 57–57 · Tracking · Revisions 0 · Undo depth 3
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 55–55 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo depth 1
-  - `redo` → `[Before the table.] ↓0 / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.] ↓0` · IP 55–55 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 2
+- `Tab` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 57–57 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell
+- `type("x")` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+[x‸¤]║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 58–58 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Typing "x", Next Cell
+- `Tab · Tab` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R4 ║‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 60–60 · Cells 1 (R4C1–R4C1) · Tracking · Revisions 1 · Undo: Next Cell, Next Cell
+- `Shift+Tab` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[⟦item one¶⟧] #ListParagraph •1.0 ● ⇥36,-18 ¶ ⟦[item two‸⟧¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · Normal 38–55 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Next Cell
+  - `type("y")` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║{-[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two]-}{+[y]+}‸¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 56–56 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 3 · Undo: Typing "y", Next Cell
+- `Backspace` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+‸¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 57–57 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell
+- `click(rowBar R3) · Backspace` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [‸After the table.]` · IP 57–57 · Tracking · Revisions 0 · Undo: Delete Rows, Next Cell
+- `undo` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 55–55 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
+  - `redo` → `[Before the table.] / T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤ / T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two‸¤] #ListParagraph •1.0 ● ⇥36,-18║¤ / T1 R3 ║{+¤║¤ #ListParagraph •1.0 ● ⇥36,-18║¤ / [After the table.]` · IP 55–55 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Next Cell
 
 ```mermaid
 flowchart TD
@@ -14316,19 +14382,19 @@ row copies the last row's cell layout, two cells wide.
 
 steps before the branches `select(C(3,2):end)` · `Tab`
 
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[x‸¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · IP 35–35 · Cells 1 (R2C3–R2C3) · Undo depth 1
-- `Tab · Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / T1 R4 ║¤║‸¤║¤║¤ / [After the table.] ↓0` · IP 50–50 · Cells 1 (R4C2–R4C2) · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo —
-  - `redo` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo —
+- `Tab` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[x‸¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · IP 35–35 · Cells 1 (R2C3–R2C3) · Undo: Typing "x"
+- `Tab · Tab` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / T1 R4 ║¤║‸¤║¤║¤ / [After the table.]` · IP 50–50 · Cells 1 (R4C2–R4C2) · Undo: Next Cell
+- `undo` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo —
+  - `redo` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo —
 
 **Track Changes on**
 
-- `Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║{-[c2] ¶ [c3]-}{+[x]+}‸¤║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · IP 40–40 · Cells 1 (R2C3–R2C3) · Tracking · Revisions 2 · Undo depth 1
-- `Tab · Tab` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / T1 R4 ║{+¤║‸¤║¤║¤ / [After the table.] ↓0` · IP 50–50 · Cells 1 (R4C2–R4C2) · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
-  - `redo` → `[Before the table.] ↓0 / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.] ↓0` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
+- `Tab` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║{-[c2] ¶ [c3]-}{+[x]+}‸¤║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · IP 40–40 · Cells 1 (R2C3–R2C3) · Tracking · Revisions 2 · Undo: Typing "x"
+- `Tab · Tab` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / T1 R4 ║{+¤║‸¤║¤║¤ / [After the table.]` · IP 50–50 · Cells 1 (R4C2–R4C2) · Tracking · Revisions 1 · Undo: Next Cell
+- `undo` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
+  - `redo` → `[Before the table.] / T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║¤ / [After the table.]` · Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -14354,18 +14420,18 @@ steps `select({from})` · `{key}`
 
 | from | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| C(1,1):2 | Tab | off | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):2 | Tab | on | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):2 | Shift+Tab | off | IP 20–20 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):2 | Shift+Tab | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):2 | Ctrl+Tab | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo depth 3 | `[Before the table.] ↓0<br>T1 R1 ║[It\t‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):2 | Ctrl+Tab | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 3 | `[Before the table.] ↓0<br>T1 R1 ║[It]{+[\t]+}[‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Tab | off | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Tab | on | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Shift+Tab | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Shift+Tab | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Ctrl+Tab | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║[\t‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Ctrl+Tab | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║{+[\t]+}[‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):2 | Tab | off | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):2 | Tab | on | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):2 | Shift+Tab | off | IP 20–20 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):2 | Shift+Tab | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):2 | Ctrl+Tab | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo: AutoCorrect, Typing "." | `[Before the table.]<br>T1 R1 ║[It\t‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):2 | Ctrl+Tab | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: AutoCorrect, Typing "." | `[Before the table.]<br>T1 R1 ║[It]{+[\t]+}[‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Tab | off | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Tab | on | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Shift+Tab | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Shift+Tab | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Ctrl+Tab | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "." | `[Before the table.]<br>T1 R1 ║[\t‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Ctrl+Tab | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Typing "." | `[Before the table.]<br>T1 R1 ║{+[\t]+}[‸item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
 
 #### T-03 · Enter at a cell's start and end, in a table mid-document and one at the document start
 
@@ -14378,18 +14444,18 @@ steps `select({from})` · `Enter`
 
 | fixture | from | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| table-2x2 | C(1,1):0 | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║ ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | C(1,1):0 | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{++} ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | C(1,2):0 | off | IP 23–23 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║ ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | C(1,2):0 | on | IP 23–23 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║{++} ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-2x2 | C(2,2):end | off | IP 38–38 · Cells 1 (R2C2–R2C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four] ¶ ‸¤║¤<br>[After the table.] ↓0` |
-| table-2x2 | C(2,2):end | on | IP 38–38 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four]{++} ¶ ‸¤║¤<br>[After the table.] ↓0` |
-| table-at-start | C(1,1):0 | off | IP 0–0 · Undo depth 1 | `‸ ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-at-start | C(1,1):0 | on | IP 0–0 · Tracking · Revisions 1 · Undo depth 1 | `{+‸+} ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-at-start | C(1,2):0 | off | IP 5–5 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `T1 R1 ║[One¤]║ ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-at-start | C(1,2):0 | on | IP 5–5 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo depth 1 | `T1 R1 ║[One¤]║{++} ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| table-at-start | C(2,2):end | off | IP 20–20 · Cells 1 (R2C2–R2C2) · Undo depth 1 | `T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four] ¶ ‸¤║¤<br>[After the table.] ↓0` |
-| table-at-start | C(2,2):end | on | IP 20–20 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1 | `T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four]{++} ¶ ‸¤║¤<br>[After the table.] ↓0` |
+| table-2x2 | C(1,1):0 | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║ ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | C(1,1):0 | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║{++} ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | C(1,2):0 | off | IP 23–23 · Cells 1 (R1C2–R1C2) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║ ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | C(1,2):0 | on | IP 23–23 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║{++} ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-2x2 | C(2,2):end | off | IP 38–38 · Cells 1 (R2C2–R2C2) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four] ¶ ‸¤║¤<br>[After the table.]` |
+| table-2x2 | C(2,2):end | on | IP 38–38 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four]{++} ¶ ‸¤║¤<br>[After the table.]` |
+| table-at-start | C(1,1):0 | off | IP 0–0 · Undo: Split Table | `‸<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-at-start | C(1,1):0 | on | IP 0–0 · Tracking · Revisions 1 · Undo: Split Table | `{+‸+}<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-at-start | C(1,2):0 | off | IP 5–5 · Cells 1 (R1C2–R1C2) · Undo: Typing | `T1 R1 ║[One¤]║ ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-at-start | C(1,2):0 | on | IP 5–5 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo: Typing | `T1 R1 ║[One¤]║{++} ¶ [‸Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| table-at-start | C(2,2):end | off | IP 20–20 · Cells 1 (R2C2–R2C2) · Undo: Typing | `T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four] ¶ ‸¤║¤<br>[After the table.]` |
+| table-at-start | C(2,2):end | on | IP 20–20 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Typing | `T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four]{++} ¶ ‸¤║¤<br>[After the table.]` |
 
 Notes: header-footer has no table and is not in this axis; a table inside a header is T-25, which has no fixture.
 
@@ -14404,26 +14470,26 @@ steps `select({from})` · `{key}`
 
 | from | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| C(1,1):0 | Backspace | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Delete | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[O]-}[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):end | Backspace | off | IP 20–20 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[On‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):end | Backspace | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[On]{-[‸e]-}¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):end | Delete | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):end | Delete | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):end | Backspace | off | IP 36–36 · Cells 1 (R2C2–R2C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou‸¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):end | Backspace | on | IP 36–36 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou]{-[‸r]-}¤║¤<br>[After the table.] ↓0` |
-| C(2,2):end | Delete | off | IP 37–37 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):end | Delete | on | IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>[After the table.] ↓0` |
-| P1:end | Backspace | off | IP 16–16 · Undo depth 1 | `[Before the table‸] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P1:end | Backspace | on | IP 16–16 · Tracking · Revisions 1 · Undo depth 1 | `[Before the table]{-[‸.]-} ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P1:end | Delete | off | IP 17–17 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `T1 R1 ║[Before the table.‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P1:end | Delete | on | Normal 17–18 end-active · Tracking · Revisions 0 · Undo — | `[Before the table.⟦¶‸⟧] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:0 | Backspace | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:0 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:0 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:0 | Delete | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[O]-}[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):0 | Backspace | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Delete | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[O]-}[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):end | Backspace | off | IP 20–20 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[On‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):end | Backspace | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[On]{-[‸e]-}¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):end | Delete | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):end | Delete | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(2,2):end | Backspace | off | IP 36–36 · Cells 1 (R2C2–R2C2) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou‸¤]║¤<br>[After the table.]` |
+| C(2,2):end | Backspace | on | IP 36–36 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou]{-[‸r]-}¤║¤<br>[After the table.]` |
+| C(2,2):end | Delete | off | IP 37–37 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>[After the table.]` |
+| C(2,2):end | Delete | on | IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>[After the table.]` |
+| P1:end | Backspace | off | IP 16–16 · Undo: Typing | `[Before the table‸]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P1:end | Backspace | on | IP 16–16 · Tracking · Revisions 1 · Undo: Typing | `[Before the table]{-[‸.]-}<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P1:end | Delete | off | IP 17–17 · Cells 1 (R1C1–R1C1) · Undo: Clear | `T1 R1 ║[Before the table.‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P1:end | Delete | on | Normal 17–18 end-active · Tracking · Revisions 0 · Undo — | `[Before the table.⟦¶‸⟧]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:0 | Backspace | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:0 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:0 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:0 | Delete | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[O]-}[‸ne¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### T-05 · Structure against contents: every structural selection under every destructive key
 
@@ -14438,90 +14504,90 @@ steps `select({selection})` · `{key}`
 
 | selection | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| C(1,1):0-C(1,1):mark | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Backspace | off | Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Backspace | on | Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Ctrl+X | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Enter | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Tab | off | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | Tab | on | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Backspace | off | Column 18–31 end-active · Cells 2 (R1C1–R2C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤‸⟧]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Backspace | on | Column 18–31 end-active · Cells 2 (R1C1–R2C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤‸⟧]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Ctrl+X | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Enter | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Tab | off | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(2,2):0 | Tab | on | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Delete | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║‸¤║¤║¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Delete | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 3 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Backspace | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Backspace | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Ctrl+X | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Ctrl+X | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | type("x") | off | IP 29–29 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[x‸¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | type("x") | on | IP 31–31 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}{+[x]+}‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Enter | off | IP 31–31 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2] ¶ ‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Enter | on | IP 31–31 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}{++} ¶ ‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Tab | off | Normal 28–30 end-active · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2‸⟧¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | Tab | on | Normal 28–30 end-active · Cells 1 (R2C1–R2C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2‸⟧¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Delete | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║¤║[c2¤]║¤<br>T1 R3 ║[a3¤]║¤║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Delete | on | IP 21–21 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 3 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║{-[‸b1]-}¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║{-[b2]-}¤║[c2¤]║¤<br>T1 R3 ║[a3¤]║{-[b3]-}¤║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Backspace | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Backspace | on | Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Ctrl+X | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Ctrl+X | on | Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | type("x") | off | IP 22–22 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[x‸¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | type("x") | on | IP 24–24 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║{-[b1]-}{+[x]+}‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Enter | off | IP 24–24 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1] ¶ ‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Enter | on | IP 24–24 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║{-[b1]-}{++} ¶ ‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Tab | off | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| COL2 | Tab | on | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║¤║¤║¤<br>T1 R2 ║¤║¤║¤║¤<br>T1 R3 ║¤║¤║¤║¤<br>[After the table.] ↓0` |
-| T1 | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 9 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║{-[b1]-}¤║{-[c1]-}¤║¤<br>T1 R2 ║{-[a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║{-[a3]-}¤║{-[b3]-}¤║{-[c3]-}¤║¤<br>[After the table.] ↓0` |
-| T1 | Backspace | off | IP 18–18 · Undo depth 1 | `[Before the table.] ↓0<br>[‸After the table.] ↓0` |
-| T1 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | Ctrl+X | off | IP 18–18 · Undo depth 1 | `[Before the table.] ↓0<br>[‸After the table.] ↓0` |
-| T1 | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | Enter | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | Tab | off | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | Tab | on | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Delete | off | IP 5–5 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `T1 R1 ║[Befor‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Delete | on | Normal 5–28 end-active · Tracking · Revisions 0 · Undo — | `[Befor⟦e the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Backspace | off | IP 5–5 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `T1 R1 ║[Befor‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Backspace | on | Normal 5–28 end-active · Tracking · Revisions 0 · Undo — | `[Befor⟦e the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Ctrl+X | off | IP 5–5 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `T1 R1 ║[Befor‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Ctrl+X | on | Normal 5–28 end-active · Tracking · Revisions 0 · Undo — | `[Befor⟦e the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | type("x") | off | IP 5–5 · Undo — | `[Befor‸e the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | type("x") | on | IP 5–5 · Tracking · Revisions 0 · Undo — | `[Befor‸e the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Enter | off | IP 5–5 · Undo — | `[Befor‸e the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Enter | on | IP 5–5 · Tracking · Revisions 0 · Undo — | `[Befor‸e the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Tab | off | IP 5–5 · Undo — | `[Befor‸e the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| P1:5-C(1,2):1 | Tab | on | IP 5–5 · Tracking · Revisions 0 · Undo — | `[Befor‸e the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║¤║¤║¤<br>T1 R2 ║¤║¤║¤║¤<br>T1 R3 ║¤║¤║¤║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 9 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║{-[b1]-}¤║{-[c1]-}¤║¤<br>T1 R2 ║{-[a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║{-[a3]-}¤║{-[b3]-}¤║{-[c3]-}¤║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Backspace | off | IP 18–18 · Undo depth 1 | `[Before the table.] ↓0<br>[‸After the table.] ↓0` |
-| C(3,1):1-P2:3 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Ctrl+X | off | IP 18–18 · Undo depth 1 | `[Before the table.] ↓0<br>[‸After the table.] ↓0` |
-| C(3,1):1-P2:3 | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Enter | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║ ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Tab | off | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):1-P2:3 | Tab | on | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):0-C(1,1):mark | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Backspace | off | Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Backspace | on | Column 18–21 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤‸⟧]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Ctrl+X | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Cut | `[Before the table.]<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Enter | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1] ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing | `[Before the table.]<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Tab | off | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | Tab | on | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Backspace | off | Column 18–31 end-active · Cells 2 (R1C1–R2C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤‸⟧]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Backspace | on | Column 18–31 end-active · Cells 2 (R1C1–R2C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤‸⟧]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Ctrl+X | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Cut | `[Before the table.]<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Cut | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Enter | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1] ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing | `[Before the table.]<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Tab | off | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,2):0 | Tab | on | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Delete | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║‸¤║¤║¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Delete | on | IP 37–37 · Cells 1 (R2C4–R2C4) at-row-end · Tracking · Revisions 3 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║‸¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Backspace | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo: Delete Rows | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Backspace | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo: Delete Rows | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Ctrl+X | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo: Cut | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Ctrl+X | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | type("x") | off | IP 29–29 · Cells 1 (R2C1–R2C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[x‸¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | type("x") | on | IP 31–31 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}{+[x]+}‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Enter | off | IP 29–29 · Cells 1 (R2C1–R2C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║ ¶ ‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Enter | on | IP 31–31 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 2 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}{++} ¶ ‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Tab | off | Normal 28–30 end-active · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2‸⟧¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | Tab | on | Normal 28–30 end-active · Cells 1 (R2C1–R2C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[⟦a2‸⟧¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Delete | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║¤║[c2¤]║¤<br>T1 R3 ║[a3¤]║¤║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Delete | on | IP 21–21 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 3 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║{-[‸b1]-}¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║{-[b2]-}¤║[c2¤]║¤<br>T1 R3 ║[a3¤]║{-[b3]-}¤║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Backspace | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Delete Columns | `[Before the table.]<br>T1 R1 ║[a1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Backspace | on | Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Ctrl+X | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Cut | `[Before the table.]<br>T1 R1 ║[a1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Ctrl+X | on | Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | type("x") | off | IP 22–22 · Cells 1 (R1C2–R1C2) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[a1¤]║[x‸¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | type("x") | on | IP 24–24 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[a1¤]║{-[b1]-}{+[x]+}‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Enter | off | IP 24–24 · Cells 1 (R1C2–R1C2) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1] ¶ ‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Enter | on | IP 24–24 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1¤]║{-[b1]-}{++} ¶ ‸¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Tab | off | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL2 | Tab | on | Normal 21–23 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║‸¤║¤║¤║¤<br>T1 R2 ║¤║¤║¤║¤<br>T1 R3 ║¤║¤║¤║¤<br>[After the table.]` |
+| T1 | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 9 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║{-[b1]-}¤║{-[c1]-}¤║¤<br>T1 R2 ║{-[a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║{-[a3]-}¤║{-[b3]-}¤║{-[c3]-}¤║¤<br>[After the table.]` |
+| T1 | Backspace | off | IP 18–18 · Undo: Delete Rows | `[Before the table.]<br>[‸After the table.]` |
+| T1 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Delete Rows | `[Before the table.]<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | Ctrl+X | off | IP 18–18 · Undo: Cut | `[Before the table.]<br>[‸After the table.]` |
+| T1 | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | Enter | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1] ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing | `[Before the table.]<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | Tab | off | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | Tab | on | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Delete | off | IP 5–5 · Cells 1 (R1C1–R1C1) · Undo: Clear | `T1 R1 ║[Befor‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Delete | on | Normal 5–28 end-active · Tracking · Revisions 0 · Undo — | `[Befor⟦e the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Backspace | off | IP 5–5 · Cells 1 (R1C1–R1C1) · Undo: Clear | `T1 R1 ║[Befor‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Backspace | on | Normal 5–28 end-active · Tracking · Revisions 0 · Undo — | `[Befor⟦e the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Ctrl+X | off | IP 5–5 · Cells 1 (R1C1–R1C1) · Undo: Cut | `T1 R1 ║[Befor‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Ctrl+X | on | Normal 5–28 end-active · Tracking · Revisions 0 · Undo — | `[Befor⟦e the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | type("x") | off | IP 5–5 · Undo — | `[Befor‸e the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | type("x") | on | IP 5–5 · Tracking · Revisions 0 · Undo — | `[Befor‸e the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Enter | off | IP 29–29 · Cells 1 (R2C1–R2C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║ ¶ [‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Enter | on | IP 5–5 · Tracking · Revisions 0 · Undo — | `[Befor‸e the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Tab | off | IP 5–5 · Undo — | `[Befor‸e the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| P1:5-C(1,2):1 | Tab | on | IP 5–5 · Tracking · Revisions 0 · Undo — | `[Befor‸e the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║‸¤║¤║¤║¤<br>T1 R2 ║¤║¤║¤║¤<br>T1 R3 ║¤║¤║¤║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 9 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║{-[b1]-}¤║{-[c1]-}¤║¤<br>T1 R2 ║{-[a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║{-[a3]-}¤║{-[b3]-}¤║{-[c3]-}¤║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Backspace | off | IP 18–18 · Undo: Delete Rows | `[Before the table.]<br>[‸After the table.]` |
+| C(3,1):1-P2:3 | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Delete Rows | `[Before the table.]<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Ctrl+X | off | IP 18–18 · Undo: Cut | `[Before the table.]<br>[‸After the table.]` |
+| C(3,1):1-P2:3 | Ctrl+X | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | type("x") | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | type("x") | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Enter | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║ ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Enter | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing | `[Before the table.]<br>T1 R1 ║{-[a1]-}{++} ¶ ‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Tab | off | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):1-P2:3 | Tab | on | Normal 18–20 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1‸⟧¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 Notes: C(1,1):0-C(1,1):mark is one whole cell; C(1,1):0-C(2,2):0 is a 2x2 rectangle of cells; P1:5-C(1,2):1 reaches
 into row 1 from the paragraph before; C(3,1):1-P2:3 reaches out of the last row into the paragraph after.
@@ -14542,16 +14608,16 @@ the next cell, cell by cell; (b) it steps character by character into b1.
 | step | selection | where |
 | --- | --- | --- |
 | `Shift+Right` | Column 18–21 end-active | `[⟦a1¤‸⟧]` |
-| `Shift+Right` | Column 18–24 end-active | `[b1¤] …` |
-| `Shift+Right` | Column 18–27 end-active | `[c1¤] …` |
-| `Shift+Right` | Column 18–28 end-active | `¤ …` |
+| `Shift+Right` | Column 18–24 end-active | `⟦[b1¤‸⟧] …` |
+| `Shift+Right` | Column 18–27 end-active | `⟦[c1¤‸⟧] …` |
+| `Shift+Right` | Column 18–28 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧
 T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 18–28 end-active · Cells 3 (R1C1–R1C4) · Undo —
@@ -14570,16 +14636,16 @@ in a2 as text; the third press leaves the table into the paragraph after.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Shift+Down` | Column 18–31 end-active | `[a2¤] …` |
-| `Shift+Down` | Column 18–41 end-active | `[a3¤] …` |
-| `Shift+Down` | Normal 18–56 end-active | `[After the table.] …` |
+| `Shift+Down` | Column 18–31 end-active | `⟦[a2¤‸⟧] …` |
+| `Shift+Down` | Column 18–41 end-active | `⟦[a3¤‸⟧] …` |
+| `Shift+Down` | Normal 18–56 end-active | `⟦[After th‸⟧e table.] …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤
 T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤
-⟦[After th‸⟧e table.] ↓0
+⟦[After th‸⟧e table.]
 ```
 
 Selection: Normal 18–56 end-active · Undo —
@@ -14609,8 +14675,8 @@ steps `select(P1:3)` · `Down` · `Down` · `Down` · `Down` · `Down`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| table-3x3 | IP 56–56 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After th‸e table.] ↓0` |
-| table-merged | IP 57–57 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After th‸e table.] ↓0` |
+| table-3x3 | IP 56–56 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After th‸e table.]` |
+| table-merged | IP 57–57 · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After th‸e table.]` |
 
 #### T-08b · Down from the last row of a table that ends the document
 
@@ -14628,10 +14694,10 @@ Expected before the run: The first press lands in the final paragraph mark after
 | `Down` | IP 39–39 | `‸` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-‸ ↓0
+‸
 ```
 
 Selection: IP 39–39 · Undo —
@@ -14648,18 +14714,18 @@ steps `select(C(2,2):1)` · `{key}`
 
 | fixture | key | selection | observed |
 | --- | --- | --- | --- |
-| table-3x3 | Alt+Home | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-3x3 | Alt+End | IP 34–34 · Cells 1 (R2C3–R2C3) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[‸c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-3x3 | Alt+PgUp | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[‸b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-3x3 | Alt+PgDn | IP 41–41 · Cells 1 (R3C2–R3C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[‸b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | Alt+Home | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | Alt+End | IP 34–34 · Cells 1 (R2C3–R2C3) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[‸c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | Alt+PgUp | IP 24–24 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| table-merged | Alt+PgDn | IP 44–44 · Cells 1 (R3C2–R3C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[‸b3¤]║¤<br>[After the table.] ↓0` |
-| table-nested | Alt+Home | IP 48–48 · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[‸a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| table-nested | Alt+End | IP 51–51 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[‸b2¤]║¤<br>[After the table.] ↓0` |
-| table-nested | Alt+PgUp | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[‸i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| table-nested | Alt+PgDn | IP 51–51 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[‸b2¤]║¤<br>[After the table.] ↓0` |
+| table-3x3 | Alt+Home | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-3x3 | Alt+End | IP 34–34 · Cells 1 (R2C3–R2C3) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[‸c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-3x3 | Alt+PgUp | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[‸b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-3x3 | Alt+PgDn | IP 41–41 · Cells 1 (R3C2–R3C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[‸b3¤]║[c3¤]║¤<br>[After the table.]` |
+| table-merged | Alt+Home | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| table-merged | Alt+End | IP 34–34 · Cells 1 (R2C3–R2C3) · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[‸c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| table-merged | Alt+PgUp | IP 24–24 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| table-merged | Alt+PgDn | IP 44–44 · Cells 1 (R3C2–R3C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[‸b3¤]║¤<br>[After the table.]` |
+| table-nested | Alt+Home | IP 48–48 · Cells 1 (R2C1–R2C1) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[‸a2¤]║[b2¤]║¤<br>[After the table.]` |
+| table-nested | Alt+End | IP 51–51 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[‸b2¤]║¤<br>[After the table.]` |
+| table-nested | Alt+PgUp | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[‸i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| table-nested | Alt+PgDn | IP 51–51 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[‸b2¤]║¤<br>[After the table.]` |
 
 #### T-10 · Alt+Shift+Down and Alt+Shift+Up move rows, from each row and a two-row selection
 
@@ -14673,14 +14739,14 @@ steps `select({from})` · `Alt+Shift+Down` · `Alt+Shift+Down` · `Alt+Shift+Up`
 
 | from | tracked | selection | observed |
 | --- | --- | --- | --- |
-| C(1,1):0 | off | Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo depth 3 | `[Before the table.] ↓0<br>T1 R1 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | on | Normal 58–68 end-active · Tracking · Revisions 2 · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║{<[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R4 ║{>[a1¤]║[b1¤]║[c1¤]║¤<br>[⟦After the ‸⟧table.] ↓0` |
-| C(2,1):0 | off | Row 38–48 end-active · Cells 3 (R3C1–R3C3) · Undo depth 3 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R3 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>[After the table.] ↓0<br> ↓0` |
-| C(2,1):0 | on | Row 38–48 end-active · Cells 3 (R3C1–R3C3) · Tracking · Revisions 2 · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{<[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║{>[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R4 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(3,1):0 | off | Row 55–65 end-active · Cells 3 (R1C1–R1C3) · Undo depth 3 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>[After the table.] ↓0<br>T2 R1 ║[⟦a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤‸⟧<br> ↓0<br> ↓0` |
-| C(3,1):0 | on | Row 48–58 end-active · Cells 3 (R4C1–R4C3) · Tracking · Revisions 2 · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║{<[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R4 ║{>[⟦a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤‸⟧<br>[After the table.] ↓0<br> ↓0` |
-| C(1,1):0-C(2,3):0 | off | Row 28–48 end-active · Cells 6 (R2C1–R3C3) · Undo depth 3 | `[Before the table.] ↓0<br>T1 R1 ║[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R2 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R3 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>[After the table.] ↓0<br> ↓0` |
-| C(1,1):0-C(2,3):0 | on | Row 38–58 end-active · Cells 6 (R3C1–R4C3) · Tracking · Revisions 2 · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║{<[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║{>[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R4 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R5 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):0 | off | Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo: Outline Move Up, Outline Move Down, Outline Move Down | `[Before the table.]<br>T1 R1 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0 | on | Normal 58–68 end-active · Tracking · Revisions 2 · Undo: Outline Move Down, Outline Move Down | `[Before the table.]<br>T1 R1 ║{<[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R4 ║{>[a1¤]║[b1¤]║[c1¤]║¤<br>[⟦After the ‸⟧table.]` |
+| C(2,1):0 | off | Row 38–48 end-active · Cells 3 (R3C1–R3C3) · Undo: Outline Move Up, Outline Move Down, Outline Move Down | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R3 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>[After the table.]<br>` |
+| C(2,1):0 | on | Row 38–48 end-active · Cells 3 (R3C1–R3C3) · Tracking · Revisions 2 · Undo: Outline Move Up, Outline Move Down | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{<[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║{>[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R4 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(3,1):0 | off | Row 55–65 end-active · Cells 3 (R1C1–R1C3) · Undo: Outline Move Up, Outline Move Down, Outline Move Down | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>[After the table.]<br>T2 R1 ║[⟦a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤‸⟧<br><br>` |
+| C(3,1):0 | on | Row 48–58 end-active · Cells 3 (R4C1–R4C3) · Tracking · Revisions 2 · Undo: Outline Move Up, Outline Move Down | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║{<[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R4 ║{>[⟦a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤⟧]║¤‸⟧<br>[After the table.]<br>` |
+| C(1,1):0-C(2,3):0 | off | Row 28–48 end-active · Cells 6 (R2C1–R3C3) · Undo: Outline Move Up, Outline Move Down, Outline Move Down | `[Before the table.]<br>T1 R1 ║[a3¤]║[b3¤]║[c3¤]║¤<br>T1 R2 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R3 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>[After the table.]<br>` |
+| C(1,1):0-C(2,3):0 | on | Row 38–58 end-active · Cells 6 (R3C1–R4C3) · Tracking · Revisions 2 · Undo: Outline Move Up, Outline Move Down | `[Before the table.]<br>T1 R1 ║{<[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║{>[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R4 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧<br>T1 R5 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### T-10b · Alt+Shift+Down from a cell that holds a nested table
 
@@ -14696,18 +14762,18 @@ table; (b) the outer row moves, inner table and all.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Alt+Shift+Down` | Row 18–48 end-active | `¤ …` |
-| `Alt+Shift+Down` | Row 25–55 end-active | `¤ …` |
-| `Alt+Shift+Up` | Row 18–48 end-active | `¤ …` |
+| `Alt+Shift+Down` | Row 18–48 end-active | `⟦¤‸⟧ …` |
+| `Alt+Shift+Down` | Row 25–55 end-active | `⟦¤‸⟧ …` |
+| `Alt+Shift+Up` | Row 18–48 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║⊞[⟦i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⟦[inner after¤⟧]║¤‸⟧
 T1 R2 ║[a2¤]║[b2¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: Row 18–48 end-active · Cells 2 (R1C1–R1C2) · Undo depth 3
+Selection: Row 18–48 end-active · Cells 2 (R1C1–R1C2) · Undo: Outline Move Up, Outline Move Down, Outline Move Down
 
 **Track Changes on**
 
@@ -14718,19 +14784,19 @@ Selection: Row 18–48 end-active · Cells 2 (R1C1–R1C2) · Undo depth 3
 
 | step | selection | where |
 | --- | --- | --- |
-| `Alt+Shift+Down` | Row 18–58 end-active | `¤ …` |
-| `Alt+Shift+Down` | Row 55–95 end-active | `¤ …` |
-| `Alt+Shift+Up` | Row 48–88 end-active | `¤ …` |
+| `Alt+Shift+Down` | Row 18–58 end-active | `⟦¤‸⟧ …` |
+| `Alt+Shift+Down` | Row 55–95 end-active | `⟦¤‸⟧ …` |
+| `Alt+Shift+Up` | Row 48–88 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║{-[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤
 T1 R2 ║{+[⟦a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[a1¤⟧] ¶ ⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⟦[inner after¤⟧]║¤‸⟧
 T1 R3 ║[a2¤]║[b2¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: Row 48–88 end-active · Cells 2 (R2C1–R2C2) · Tracking · Revisions 2 · Undo depth 3
+Selection: Row 48–88 end-active · Cells 2 (R2C1–R2C2) · Tracking · Revisions 2 · Undo: Outline Move Up, Outline Move Down, Outline Move Down
 
 #### T-11 · Ctrl+Shift+Enter splits a table above the caret's row, and undo rejoins it
 
@@ -14743,43 +14809,43 @@ steps before the branches `select({from})` · `Ctrl+Shift+Enter`
 
 **from=C(1,1):0**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / ‸ ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[‸a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / ‸ / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[‸a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo —
 
 **from=C(1,1):0 · Track Changes on**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / {+‸+} ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[‸a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / {+‸+} / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Tracking · Revisions 1 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[‸a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
 
 **from=C(2,1):0**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / ‸ ↓0 / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 28–28 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[‸a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 28–28 · Cells 1 (R2C1–R2C1) · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / ‸ / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 28–28 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[‸a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 28–28 · Cells 1 (R2C1–R2C1) · Undo —
 
 **from=C(2,1):0 · Track Changes on**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / {+‸+} ↓0 / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 28–28 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[‸a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 0 · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / {+‸+} / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 28–28 · Tracking · Revisions 1 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[‸a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 0 · Undo —
 
 **from=C(3,2):1**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / ‸ ↓0 / T2 R1 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 38–38 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b‸3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 42–42 · Cells 1 (R3C2–R3C2) · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / ‸ / T2 R1 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 38–38 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b‸3¤]║[c3¤]║¤ / [After the table.]` · IP 42–42 · Cells 1 (R3C2–R3C2) · Undo —
 
 **from=C(3,2):1 · Track Changes on**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / {+‸+} ↓0 / T2 R1 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 38–38 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b‸3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 42–42 · Cells 1 (R3C2–R3C2) · Tracking · Revisions 0 · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / {+‸+} / T2 R1 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 38–38 · Tracking · Revisions 1 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[b‸3¤]║[c3¤]║¤ / [After the table.]` · IP 42–42 · Cells 1 (R3C2–R3C2) · Tracking · Revisions 0 · Undo —
 
 **from=C(2,1):0-C(3,1):0**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / ‸ ↓0 / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 28–28 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / ‸ / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 28–28 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo —
 
 **from=C(2,1):0-C(3,1):0 · Track Changes on**
 
-- `Ctrl+Shift+Enter` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / {+‸+} ↓0 / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 28–28 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.] ↓0` · Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Tracking · Revisions 0 · Undo —
+- `Ctrl+Shift+Enter` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / {+‸+} / T2 R1 ║[a2¤]║[b2¤]║[c2¤]║¤ / T2 R2 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · IP 28–28 · Tracking · Revisions 1 · Undo: Column Break
+- `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤ / T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧ / T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤ / [After the table.]` · Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -14799,10 +14865,10 @@ steps `select({from})` · `Ctrl+A` · `Ctrl+A`
 
 | fixture | from | selection | observed |
 | --- | --- | --- | --- |
-| table-2x2 | C(1,1):1 | Normal 0–56 end-active · Undo — | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| table-2x2 | C(1,2):0 | Normal 0–56 end-active · Undo — | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| table-nested | C(1,1):1 | Normal 0–72 end-active · Undo — | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
-| table-nested | C(1,2):0 | Normal 0–72 end-active · Undo — | `[⟦Before the table.¶⟧] ↓0<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧] ↓0` |
+| table-2x2 | C(1,1):1 | Normal 0–56 end-active · Undo — | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| table-2x2 | C(1,2):0 | Normal 0–56 end-active · Undo — | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[One¤⟧]║⟦[Two¤⟧]║¤<br>T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| table-nested | C(1,1):1 | Normal 0–72 end-active · Undo — | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
+| table-nested | C(1,2):0 | Normal 0–72 end-active · Undo — | `[⟦Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⊞⟦[i1¤⟧] ¶ ⊞⟦[i2¤⟧] ¶ ⊞⟦[i3¤⟧] ¶ ⊞⟦[i4¤⟧] ¶ ⟦[inner after¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║¤<br>⟦[After the table.¶‸⟧]` |
 
 #### T-13 · Typing over a selected cell, row and table
 
@@ -14815,12 +14881,12 @@ steps `select({selection})` · `type("x")`
 
 | selection | tracked | selection | observed |
 | --- | --- | --- | --- |
-| C(1,1):0-C(1,1):mark | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0-C(1,1):mark | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | off | IP 29–29 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[x‸¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| R2 | on | IP 31–31 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}{+[x]+}‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| T1 | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):0-C(1,1):mark | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):mark | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | off | IP 29–29 · Cells 1 (R2C1–R2C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[x‸¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R2 | on | IP 31–31 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[a2]-}{+[x]+}‸¤║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║[x‸¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| T1 | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Typing "x" | `[Before the table.]<br>T1 R1 ║{-[a1]-}{+[x]+}‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### T-14 · Tab, Shift+Tab and Right through merged cells, one press at a time
 
@@ -14834,12 +14900,12 @@ steps `select({from})` · `{key}` · `{key}` · `{key}` · `{key}` · `{key}` ·
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| C(1,1):0 | Tab | Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Shift+Tab | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[‸a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):0 | Right | IP 25–25 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c‸1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| C(3,2):0 | Tab | IP 55–55 · Cells 1 (R5C3–R5C3) · Undo depth 2 | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>T1 R4 ║¤║¤║¤║¤<br>T1 R5 ║¤║¤║‸¤║¤<br>[After the table.] ↓0` |
-| C(3,2):0 | Shift+Tab | Normal 18–23 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.] ↓0` |
-| C(3,2):0 | Right | IP 52–52 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[Aft‸er the table.] ↓0` |
+| C(1,1):0 | Tab | Normal 34–39 end-active · Cells 1 (R2C3–R2C3) · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[⟦c2¶⟧] ¶ ⟦[c3‸⟧¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Shift+Tab | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[‸a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| C(1,1):0 | Right | IP 25–25 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c‸1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| C(3,2):0 | Tab | IP 55–55 · Cells 1 (R5C3–R5C3) · Undo: Next Cell, Next Cell | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>T1 R4 ║¤║¤║¤║¤<br>T1 R5 ║¤║¤║‸¤║¤<br>[After the table.]` |
+| C(3,2):0 | Shift+Tab | Normal 18–23 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1‸⟧¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[After the table.]` |
+| C(3,2):0 | Right | IP 52–52 · Undo — | `[Before the table.]<br>T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2] ¶ [c3¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║¤<br>[Aft‸er the table.]` |
 
 #### T-14b · Down from the top of column 3 into a vertically merged cell
 
@@ -14862,14 +14928,14 @@ steps `select(C(1,2):0)` · `{key}` · `{key}` · `{key}` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Tab | off | IP 35–35 · Cells 1 (R3C1–R3C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ ⊞‸¤ ¶ ⊞¤ ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Tab | on | IP 35–35 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ ⊞{+‸¤ ¶ ⊞¤ ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Shift+Tab | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[‸i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Shift+Tab | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[‸i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Down | off | IP 71–71 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.‸] ↓0` |
-| Down | on | IP 71–71 · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.‸] ↓0` |
-| Alt+End | off | IP 24–24 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[‸i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Alt+End | on | IP 24–24 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[‸i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
+| Tab | off | IP 35–35 · Cells 1 (R3C1–R3C1) · Undo: Next Cell | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ ⊞‸¤ ¶ ⊞¤ ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Tab | on | IP 35–35 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Next Cell | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ ⊞{+‸¤ ¶ ⊞¤ ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Shift+Tab | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[‸i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Shift+Tab | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[‸i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Down | off | IP 71–71 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.‸]` |
+| Down | on | IP 71–71 · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.‸]` |
+| Alt+End | off | IP 24–24 · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[‸i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Alt+End | on | IP 24–24 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║⊞[i1¤] ¶ ⊞[‸i2¤] ¶ ⊞[i3¤] ¶ ⊞[i4¤] ¶ [inner after¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
 
 #### T-16 · Delete clears a selected row, then Backspace
 
@@ -14882,10 +14948,10 @@ steps `{pick}` · `Delete` · `Backspace`
 
 | pick | tracked | selection | observed |
 | --- | --- | --- | --- |
-| click(rowBar R2) | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║‸¤║¤║¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| click(rowBar R2) | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 3 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(R2) | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║‸¤║¤║¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(R2) | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 3 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| click(rowBar R2) | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║‸¤║¤║¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| click(rowBar R2) | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 3 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(R2) | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║‸¤║¤║¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(R2) | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 3 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2]-}¤║{-[b2]-}¤║{-[c2]-}¤║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### T-17 · The end-of-row mark selected, then Delete, Backspace or typing
 
@@ -14896,17 +14962,17 @@ then (a) Delete clears and Backspace deletes the row, (b) both clear; typing rep
 
 steps before the branches `select(C(1,2):end)` · `Shift+Right`
 
-- `Shift+Right` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║‸¤║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 22–22 · Cells 1 (R1C2–R1C2) · Undo depth 1
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[x‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 23–23 · Cells 1 (R1C2–R1C2) · Undo depth 1
+- `Shift+Right` → `[Before the table.] / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[One¤]║‸¤║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 22–22 · Cells 1 (R1C2–R1C2) · Undo: Clear
+- `Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[One¤]║[x‸¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 23–23 · Cells 1 (R1C2–R1C2) · Undo: Typing "x"
 
 **Track Changes on**
 
-- `Shift+Right` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║{-[‸Two]-}¤║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 22–22 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo depth 1
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[One¤]║{-[Two]-}{+[x]+}‸¤║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 26–26 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo depth 1
+- `Shift+Right` → `[Before the table.] / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[One¤]║{-[‸Two]-}¤║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 22–22 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo: Clear
+- `Backspace` → `[Before the table.] / T1 R1 ║[One¤]║[⟦Two¤‸⟧]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · Column 22–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Before the table.] / T1 R1 ║[One¤]║{-[Two]-}{+[x]+}‸¤║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 26–26 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Typing "x"
 
 ```mermaid
 flowchart TD
@@ -14929,18 +14995,18 @@ steps `select({from})` · `{key}`
 
 | from | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| DOC:end | Backspace | off | IP 39–39 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸ ↓0` |
-| DOC:end | Backspace | on | IP 39–39 · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸ ↓0` |
-| DOC:end | Delete | off | IP 39–39 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸ ↓0` |
-| DOC:end | Delete | on | IP 39–39 · Tracking · Revisions 0 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸ ↓0` |
-| C(2,2):0-DOC:end | Backspace | off | Column 33–39 end-active · Cells 1 (R2C2–R2C3) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤⟧]║¤‸⟧<br> ↓0` |
-| C(2,2):0-DOC:end | Backspace | on | Column 33–39 end-active · Cells 1 (R2C2–R2C3) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤⟧]║¤‸⟧<br> ↓0` |
-| C(2,2):0-DOC:end | Delete | off | IP 33–33 · Cells 1 (R2C2–R2C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║‸¤║¤<br> ↓0` |
-| C(2,2):0-DOC:end | Delete | on | IP 33–33 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║{-[‸Four]-}¤║¤<br> ↓0` |
-| C(2,2):end | Backspace | off | IP 36–36 · Cells 1 (R2C2–R2C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou‸¤]║¤<br> ↓0` |
-| C(2,2):end | Backspace | on | IP 36–36 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou]{-[‸r]-}¤║¤<br> ↓0` |
-| C(2,2):end | Delete | off | IP 37–37 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br> ↓0` |
-| C(2,2):end | Delete | on | IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br> ↓0` |
+| DOC:end | Backspace | off | IP 39–39 · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸` |
+| DOC:end | Backspace | on | IP 39–39 · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸` |
+| DOC:end | Delete | off | IP 39–39 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸` |
+| DOC:end | Delete | on | IP 39–39 · Tracking · Revisions 0 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>‸` |
+| C(2,2):0-DOC:end | Backspace | off | Column 33–39 end-active · Cells 1 (R2C2–R2C3) · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤⟧]║¤‸⟧<br>` |
+| C(2,2):0-DOC:end | Backspace | on | Column 33–39 end-active · Cells 1 (R2C2–R2C3) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦Four¤⟧]║¤‸⟧<br>` |
+| C(2,2):0-DOC:end | Delete | off | IP 33–33 · Cells 1 (R2C2–R2C2) · Undo: Clear | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║‸¤║¤<br>` |
+| C(2,2):0-DOC:end | Delete | on | IP 33–33 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Clear | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║{-[‸Four]-}¤║¤<br>` |
+| C(2,2):end | Backspace | off | IP 36–36 · Cells 1 (R2C2–R2C2) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou‸¤]║¤<br>` |
+| C(2,2):end | Backspace | on | IP 36–36 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Fou]{-[‸r]-}¤║¤<br>` |
+| C(2,2):end | Delete | off | IP 37–37 · Cells 1 (R2C2–R2C2) · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>` |
+| C(2,2):end | Delete | on | IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four‸¤]║¤<br>` |
 
 #### T-19 · Ctrl+Enter inside a cell
 
@@ -14953,10 +15019,10 @@ steps `select({from})` · `Ctrl+Enter`
 
 | from | tracked | selection | observed |
 | --- | --- | --- | --- |
-| C(1,1):2 | off | IP 19–19 · Undo depth 1 | `[Before the table.] ↓0<br>[⤓‸] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(1,1):2 | on | IP 19–19 · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>{+[⤓‸]+} ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):end | off | IP 28–28 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>[⤓‸] ↓0<br>T2 R1 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| C(2,2):end | on | IP 28–28 · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[Two¤]║¤<br>{+[⤓‸]+} ↓0<br>T2 R1 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| C(1,1):2 | off | IP 19–19 · Undo: Page Break | `[Before the table.]<br>[⤓‸]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):2 | on | IP 19–19 · Tracking · Revisions 1 · Undo: Page Break | `[Before the table.]<br>{+[⤓‸]+}<br>T1 R1 ║[One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(2,2):end | off | IP 28–28 · Undo: Page Break | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>[⤓‸]<br>T2 R1 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(2,2):end | on | IP 28–28 · Tracking · Revisions 1 · Undo: Page Break | `[Before the table.]<br>T1 R1 ║[One¤]║[Two¤]║¤<br>{+[⤓‸]+}<br>T2 R1 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### T-20 · Delete and Backspace in the paragraph between two tables
 
@@ -14969,10 +15035,10 @@ steps `select(P2:0)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Delete | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the tables.] ↓0<br>T1 R1 ║[‸1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br> ↓0<br> ↓0<br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.] ↓0` |
-| Delete | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the tables.] ↓0<br>T1 R1 ║{-[a]-}[‸1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br> ↓0<br> ↓0<br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.] ↓0` |
-| Backspace | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the tables.] ↓0<br>T1 R1 ║[‸a1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br> ↓0<br> ↓0<br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.] ↓0` |
-| Backspace | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the tables.] ↓0<br>T1 R1 ║[‸a1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br> ↓0<br> ↓0<br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.] ↓0` |
+| Delete | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the tables.]<br>T1 R1 ║[‸1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br><br><br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.]` |
+| Delete | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Clear | `[Before the tables.]<br>T1 R1 ║{-[a]-}[‸1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br><br><br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.]` |
+| Backspace | off | IP 19–19 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the tables.]<br>T1 R1 ║[‸a1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br><br><br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.]` |
+| Backspace | on | IP 19–19 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the tables.]<br>T1 R1 ║[‸a1¤]║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br><br><br>T2 R1 ║[c1¤]║[d1¤]║¤<br>T2 R2 ║[c2¤]║[d2¤]║¤<br>[After the tables.]` |
 
 #### T-20b · Right from the first table's last cell across the paragraph between
 
@@ -14990,14 +15056,14 @@ Expected before the run: The first press lands in the empty P2, the second in th
 | `Right` | IP 33–33 | `‸` |
 
 ```text
-[Before the tables.] ↓0
+[Before the tables.]
 T1 R1 ║[a1¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[b2¤]║¤
-‸ ↓0
- ↓0
+‸
+
 T2 R1 ║[c1¤]║[d1¤]║¤
 T2 R2 ║[c2¤]║[d2¤]║¤
-[After the tables.] ↓0
+[After the tables.]
 ```
 
 Selection: IP 33–33 · Undo —
@@ -15011,17 +15077,17 @@ typing replaces the first cell's contents and clears the rest.
 
 steps before the branches `click(tableHandle T1)`
 
-- `click(tableHandle T1)` → `[Before the table.] ↓0 / T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤ / T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧ / [After the table.] ↓0` · Row 18–39 end-active · Cells 4 (R1C1–R2C2) · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║‸¤║¤║¤ / T1 R2 ║¤║¤║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1
-- `Backspace` → `[Before the table.] ↓0 / [‸After the table.] ↓0` · IP 18–18 · Undo depth 1
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║[x‸¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 19–19 · Cells 1 (R1C1–R1C1) · Undo depth 1
+- `click(tableHandle T1)` → `[‸Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Undo —
+- `Delete` → `[‸efore the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Undo: Clear
+- `Backspace` → `[‸Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Undo —
+- `type("x")` → `[x‸Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 1–1 · Undo: Typing "x"
 
 **Track Changes on**
 
-- `click(tableHandle T1)` → `[Before the table.] ↓0 / T1 R1 ║[⟦One¤⟧]║⟦[Two¤⟧]║¤ / T1 R2 ║⟦[Three¤⟧]║⟦[Four¤⟧]║¤‸⟧ / [After the table.] ↓0` · Row 18–39 end-active · Cells 4 (R1C1–R2C2) · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║{-[‸One]-}¤║{-[Two]-}¤║¤ / T1 R2 ║{-[Three]-}¤║{-[Four]-}¤║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 4 · Undo depth 1
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║{-[‸One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1
-- `type("x")` → `[Before the table.] ↓0 / T1 R1 ║{-[One]-}{+[x]+}‸¤║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 22–22 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1
+- `click(tableHandle T1)` → `[‸Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `Delete` → `{-[B]-}[‸efore the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 1–1 · Tracking · Revisions 1 · Undo: Clear
+- `Backspace` → `[‸Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `{+[x]+}[‸Before the table.] / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 1–1 · Tracking · Revisions 1 · Undo: Typing "x"
 
 ```mermaid
 flowchart TD
@@ -15041,23 +15107,23 @@ table; undo puts it back with the selection restored.
 
 steps before the branches `click(columnTop C(1,2))`
 
-- `click(columnTop C(1,2))` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║‸¤║[c1¤]║¤ / T1 R2 ║[a2¤]║¤║[c2¤]║¤ / T1 R3 ║[a3¤]║¤║[c3¤]║¤ / [After the table.] ↓0` · IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[‸c1¤]║¤ / T1 R2 ║[a2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
-- `Ctrl+X` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[‸c1¤]║¤ / T1 R2 ║[a2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[c3¤]║¤ / [After the table.] ↓0` · IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
+- `click(columnTop C(1,2))` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[a1¤]║‸¤║[c1¤]║¤ / T1 R2 ║[a2¤]║¤║[c2¤]║¤ / T1 R3 ║[a3¤]║¤║[c3¤]║¤ / [After the table.]` · IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Clear
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[a1¤]║[‸c1¤]║¤ / T1 R2 ║[a2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[c3¤]║¤ / [After the table.]` · IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Delete Columns
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
+- `Ctrl+X` → `[Before the table.] / T1 R1 ║[a1¤]║[‸c1¤]║¤ / T1 R2 ║[a2¤]║[c2¤]║¤ / T1 R3 ║[a3¤]║[c3¤]║¤ / [After the table.]` · IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Cut
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Undo —
 
 **Track Changes on**
 
-- `click(columnTop C(1,2))` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
-- `Delete` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║{-[‸b1]-}¤║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[b2]-}¤║[c2¤]║¤ / T1 R3 ║[a3¤]║{-[b3]-}¤║[c3¤]║¤ / [After the table.] ↓0` · IP 21–21 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 3 · Undo depth 1
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
-- `Backspace` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
-- `Ctrl+X` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Before the table.] ↓0 / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.] ↓0` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
+- `click(columnTop C(1,2))` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Before the table.] / T1 R1 ║[a1¤]║{-[‸b1]-}¤║[c1¤]║¤ / T1 R2 ║[a2¤]║{-[b2]-}¤║[c2¤]║¤ / T1 R3 ║[a3¤]║{-[b3]-}¤║[c3¤]║¤ / [After the table.]` · IP 21–21 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 3 · Undo: Clear
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
+- `Backspace` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
+- `Ctrl+X` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Before the table.] / T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤ / T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤ / T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤ / [After the table.]` · Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -15088,13 +15154,13 @@ Normal paragraph in the cell, as outside a table.
 | `Enter` | IP 56–56 | `‸¤` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two] #ListParagraph •1.0 ● ⇥36,-18 ¶ ‸¤║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: IP 56–56 · Cells 1 (R2C2–R2C2) · Undo depth 3
+Selection: IP 56–56 · Cells 1 (R2C2–R2C2) · Undo: AutoFormat, Typing
 
 **Track Changes on**
 
@@ -15108,13 +15174,13 @@ Selection: IP 56–56 · Cells 1 (R2C2–R2C2) · Undo depth 3
 | `Enter` | IP 56–56 | `‸¤` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[first] ¶ [second¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two]{++} #ListParagraph •1.0 ● ⇥36,-18 ¶ {~‸¤~}║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: IP 56–56 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo depth 3
+Selection: IP 56–56 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: AutoFormat, Typing
 
 #### T-24 · Backspace at the start of a cell's second paragraph
 
@@ -15126,13 +15192,13 @@ Expected before the run: The two paragraphs merge into 'firstsecond'; the cell s
 2. `Backspace`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[first‸second¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: IP 23–23 · Cells 1 (R1C1–R1C1) · Undo depth 2
+Selection: IP 23–23 · Cells 1 (R1C1–R1C1) · Undo: Typing
 
 **Track Changes on**
 
@@ -15140,13 +15206,13 @@ Selection: IP 23–23 · Cells 1 (R1C1–R1C1) · Undo depth 2
 2. `Backspace`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[first]{-‸-} ¶ [second¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: IP 23–23 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 2
+Selection: IP 23–23 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Typing
 
 Notes: C(1,1):6 is the start of 'second', after 'first' and its mark.
 
@@ -15161,18 +15227,18 @@ steps `{setup}` · `{key}`
 
 | setup | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| select(C(1,1):end) | Tab | off | IP 24–24 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║‸¤║¤<br>[After the table.] ↓0` |
-| select(C(1,1):end) | Tab | on | IP 24–24 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║{+‸¤║¤<br>[After the table.] ↓0` |
-| select(C(1,1):end) | Backspace | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[Onl‸¤]║¤<br>[After the table.] ↓0` |
-| select(C(1,1):end) | Backspace | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[Onl]{-[‸y]-}¤║¤<br>[After the table.] ↓0` |
-| select(C(1,1):end) | Delete | off | IP 22–22 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[Only‸¤]║¤<br>[After the table.] ↓0` |
-| select(C(1,1):end) | Delete | on | IP 22–22 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[Only‸¤]║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Tab | off | IP 24–24 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║‸¤║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Tab | on | IP 24–24 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║{+‸¤║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Backspace | off | IP 18–18 · Undo depth 1 | `[Before the table.] ↓0<br>[‸After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸Only¤]║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║¤<br>[After the table.] ↓0` |
-| click(cellLeftEdge C(1,1)) | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸Only]-}¤║¤<br>[After the table.] ↓0` |
+| select(C(1,1):end) | Tab | off | IP 24–24 · Cells 1 (R2C1–R2C1) · Undo: Next Cell | `[Before the table.]<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║‸¤║¤<br>[After the table.]` |
+| select(C(1,1):end) | Tab | on | IP 24–24 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo: Next Cell | `[Before the table.]<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║{+‸¤║¤<br>[After the table.]` |
+| select(C(1,1):end) | Backspace | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo: Typing | `[Before the table.]<br>T1 R1 ║[Onl‸¤]║¤<br>[After the table.]` |
+| select(C(1,1):end) | Backspace | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Typing | `[Before the table.]<br>T1 R1 ║[Onl]{-[‸y]-}¤║¤<br>[After the table.]` |
+| select(C(1,1):end) | Delete | off | IP 22–22 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[Only‸¤]║¤<br>[After the table.]` |
+| select(C(1,1):end) | Delete | on | IP 22–22 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[Only‸¤]║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Tab | off | IP 24–24 · Cells 1 (R2C1–R2C1) · Undo: Next Cell | `[Before the table.]<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║‸¤║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Tab | on | IP 24–24 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo: Next Cell | `[Before the table.]<br>T1 R1 ║[Only¤]║¤<br>T1 R2 ║{+‸¤║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Backspace | off | IP 18–18 · Undo: Delete Rows | `[Before the table.]<br>[‸After the table.]` |
+| click(cellLeftEdge C(1,1)) | Backspace | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Delete Rows | `[Before the table.]<br>T1 R1 ║{-[‸Only¤]║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Delete | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Clear | `[Before the table.]<br>T1 R1 ║‸¤║¤<br>[After the table.]` |
+| click(cellLeftEdge C(1,1)) | Delete | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Clear | `[Before the table.]<br>T1 R1 ║{-[‸Only]-}¤║¤<br>[After the table.]` |
 
 #### T-29 · Paste and the Insert key over a selected cell
 
@@ -15185,10 +15251,10 @@ steps `clipboard("pasted")` · `select(C(1,1):0-C(1,1):mark)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Ctrl+V | off | IP 24–24 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[pasted‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| Ctrl+V | on | IP 27–27 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{+[pasted]+}{-[One]-}‸¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| Insert | off | Column 18–22 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| Insert | on | Column 18–22 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| Ctrl+V | off | IP 24–24 · Cells 1 (R1C1–R1C1) · Undo: Paste | `[Before the table.]<br>T1 R1 ║[pasted‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| Ctrl+V | on | IP 27–27 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 2 · Undo: Paste | `[Before the table.]<br>T1 R1 ║{+[pasted]+}{-[One]-}‸¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| Insert | off | Column 18–22 end-active · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| Insert | on | Column 18–22 end-active · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦One¤‸⟧]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 #### T-30 · Enter at the first cell of a table that opens the document, then undo
 
@@ -15199,13 +15265,13 @@ the caret back in (1,1).
 
 steps before the branches `select(C(1,1):0)` · `Enter`
 
-- `Enter` → `‸ ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `T1 R1 ║[‸One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 0–0 · Cells 1 (R1C1–R1C1) · Undo —
+- `Enter` → `‸ / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Undo: Split Table
+- `undo` → `T1 R1 ║[‸One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Cells 1 (R1C1–R1C1) · Undo —
 
 **Track Changes on**
 
-- `Enter` → `{+‸+} ↓0 / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 0–0 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `T1 R1 ║[‸One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.] ↓0` · IP 0–0 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
+- `Enter` → `{+‸+} / T1 R1 ║[One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Tracking · Revisions 1 · Undo: Split Table
+- `undo` → `T1 R1 ║[‸One¤]║[Two¤]║¤ / T1 R2 ║[Three¤]║[Four¤]║¤ / [After the table.]` · IP 0–0 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -15399,26 +15465,26 @@ steps `select({at})` · `Enter` · `type("x")`
 
 | fixture | at | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| numbers | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P3:end | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸] #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥36,-18` |
-| numbers-nested | P1:0 | off | IP 2–2 · Undo: Bullets and Numbering, Typing "x" | ` ⇥36,-18 ↓0<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `{+ ⇥36,-18 ↓0<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | off | IP 4–4 · Undo: Bullets and Numbering, Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:end | off | IP 5–5 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P2:end | off | IP 9–9 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P3:end | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[x‸] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥54,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.] ↓0` |
+| numbers | P1:0 | off | IP 2–2 · Undo: Typing "x" | ` ⇥36,-18<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Typing "x" | `{+ ⇥36,-18<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P1:2 | off | IP 4–4 · Undo: Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:end | off | IP 5–5 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P2:end | off | IP 9–9 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P3:end | off | IP 15–15 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸] #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥36,-18` |
+| numbers-nested | P1:0 | off | IP 2–2 · Undo: Typing "x" | ` ⇥36,-18<br>[x‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P1:0 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Typing "x" | `{+ ⇥36,-18<br>[x]+}[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P1:2 | off | IP 4–4 · Undo: Typing "x" | `[On] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P1:2 | on | IP 4–4 · Tracking · Revisions 1 · Undo: Typing "x" | `[On]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}[‸e] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P1:end | off | IP 5–5 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[x‸] #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P1:end | on | IP 5–5 · Tracking · Revisions 1 · Undo: Typing "x", Typing | `[One]{+ #ListParagraph •1.0 1. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 2. ⇥36,-18<br>[Two] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P2:end | off | IP 9–9 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[x‸] #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P2:end | on | IP 9–9 · Tracking · Revisions 1 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{+ #ListParagraph •1.0 2. ⇥36,-18<br>[x]+}‸ #ListParagraph •1.0 3. ⇥36,-18<br>[Three] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P3:end | off | IP 15–15 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[x‸] #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P3:end | on | IP 15–15 · Tracking · Revisions 1 · Undo: Typing "x", Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥54,-18<br>[x]+}‸ #ListParagraph •1.0 4. ⇥54,-18<br>[After the list.]` |
 
 #### L-02 · Enter twice at the last item's end
 
@@ -15431,10 +15497,10 @@ steps `select(P3:end)` · `Enter` · `Enter` · `type("x")`
 
 | fixture | tracked | selection | observed |
 | --- | --- | --- | --- |
-| numbers | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸] ↓0` |
-| numbers | on | IP 15–15 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>{~[x]+}‸~} ↓0` |
-| numbers-nested | off | IP 15–15 · Undo: Bullets and Numbering, Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[x‸] ↓0<br>[After the list.] ↓0` |
-| numbers-nested | on | IP 15–15 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥54,-18<br>{~[x]+}‸~} ↓0<br>[After the list.] ↓0` |
+| numbers | off | IP 15–15 · Undo: Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18<br>[x‸]` |
+| numbers | on | IP 15–15 · Tracking · Revisions 2 · Undo: Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥36,-18<br>{~[x]+}‸~}` |
+| numbers-nested | off | IP 15–15 · Undo: Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥54,-18<br>[x‸]<br>[After the list.]` |
+| numbers-nested | on | IP 15–15 · Tracking · Revisions 2 · Undo: Typing "x", AutoFormat, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{+ #ListParagraph •1.0 3. ⇥54,-18<br>{~[x]+}‸~}<br>[After the list.]` |
 
 #### L-03 · The Backspace cascade at an item's start
 
@@ -15447,10 +15513,10 @@ steps `select(P2:0)` · `Backspace` · `Backspace` · `Backspace` · `Backspace`
 
 | fixture | tracked | selection | observed |
 | --- | --- | --- | --- |
-| bullets-nested | off | IP 4–4 · Undo: Bullets and Numbering, Typing, Typing, AutoFormat, AutoFormat | `[Alph‸Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| bullets-nested | on | IP 4–4 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing, Typing, AutoFormat, AutoFormat | `[Alph]{-[‸a]-} #ListParagraph •1.0 ● ⇥36,-18<br>{~[Beta]~} #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| bullets | off | IP 5–5 · Undo: Bullets and Numbering, Typing, AutoFormat, AutoFormat, AutoFormat | `[Alpha‸Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| bullets | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing, AutoFormat, AutoFormat, AutoFormat | `[Alpha]{-‸-} #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| bullets-nested | off | IP 4–4 · Undo: Typing, Typing, AutoFormat, AutoFormat | `[Alph‸Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| bullets-nested | on | IP 4–4 · Tracking · Revisions 2 · Undo: Typing, Typing, AutoFormat, AutoFormat | `[Alph]{-[‸a]-} #ListParagraph •1.0 ● ⇥36,-18<br>{~[Beta]~} #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| bullets | off | IP 5–5 · Undo: Typing, AutoFormat, AutoFormat, AutoFormat | `[Alpha‸Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| bullets | on | IP 5–5 · Tracking · Revisions 1 · Undo: Typing, AutoFormat, AutoFormat, AutoFormat | `[Alpha]{-‸-} #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
 
 #### L-04 · Tab and Shift+Tab on the first item and on a later one
 
@@ -15464,10 +15530,10 @@ steps `select({at})` · `Tab` · `Tab` · `Shift+Tab` · `Shift+Tab` · `Shift+T
 
 | at | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:2 | off | IP 7–7 · Undo: Bullets and Numbering, Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Al\t\t\t\t\t‸pha] #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| P1:2 | on | IP 7–7 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Al]{+[\t\t\t\t\t]+}[‸pha] #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| P2:2 | off | IP 13–13 · Undo: Bullets and Numbering, Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Be\t\t\t\t\t‸ta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| P2:2 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Be]{+[\t\t\t\t\t]+}[‸ta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P1:2 | off | IP 7–7 · Undo: Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Al\t\t\t\t\t‸pha] #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P1:2 | on | IP 7–7 · Tracking · Revisions 1 · Undo: Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Al]{+[\t\t\t\t\t]+}[‸pha] #ListParagraph •1.0 ● ⇥36,-18<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P2:2 | off | IP 13–13 · Undo: Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Be\t\t\t\t\t‸ta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P2:2 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Typing ".", Typing ".", Typing ".", Typing ".", Typing "." | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Be]{+[\t\t\t\t\t]+}[‸ta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
 
 #### L-04b · Shift+Tab twice on a level-2 item
 
@@ -15491,7 +15557,7 @@ off.
 [Gamma] #ListParagraph •1.0 ● ⇥36,-18
 ```
 
-Selection: IP 6–6 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
+Selection: IP 6–6 · Undo: AutoFormat, AutoFormat
 
 Markup diff: `WordProbe/Results/markup/L-04b.diff`
 
@@ -15512,7 +15578,7 @@ Markup diff: `WordProbe/Results/markup/L-04b.diff`
 [Gamma] #ListParagraph •1.0 ● ⇥36,-18
 ```
 
-Selection: IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
+Selection: IP 6–6 · Tracking · Revisions 1 · Undo: AutoFormat, AutoFormat
 
 Markup diff: `WordProbe/Results/markup/L-04b_tracked.diff`
 
@@ -15527,10 +15593,10 @@ steps `select({at})` · `Alt+Shift+Right` · `Alt+Shift+Left` · `Alt+Shift+Left
 
 | at | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:2 | off | IP 2–2 · Undo: Bullets and Numbering, Outline Promote, Outline Promote, Outline Demote | `[Al‸pha] #Heading1<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| P1:2 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Outline Promote, Outline Promote, Outline Demote | `{~[Al‸pha]~} #Heading1<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| P2:2 | off | IP 8–8 · Undo: Bullets and Numbering, Outline Promote, Outline Promote, Outline Demote | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Be‸ta] #Heading1<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
-| P2:2 | on | IP 8–8 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Outline Promote, Outline Promote, Outline Demote | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>{~[Be‸ta]~} #Heading1<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P1:2 | off | IP 2–2 · Undo: Outline Promote, Outline Promote, Outline Demote | `[Al‸pha] #Heading1<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P1:2 | on | IP 2–2 · Tracking · Revisions 1 · Undo: Outline Promote, Outline Promote, Outline Demote | `{~[Al‸pha]~} #Heading1<br>[Beta] #ListParagraph •1.0 ● ⇥36,-18<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P2:2 | off | IP 8–8 · Undo: Outline Promote, Outline Promote, Outline Demote | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>[Be‸ta] #Heading1<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
+| P2:2 | on | IP 8–8 · Tracking · Revisions 1 · Undo: Outline Promote, Outline Promote, Outline Demote | `[Alpha] #ListParagraph •1.0 ● ⇥36,-18<br>{~[Be‸ta]~} #Heading1<br>[Gamma] #ListParagraph •1.0 ● ⇥36,-18` |
 
 #### L-05b · Alt+Shift+Left or Alt+Shift+Right alone on a first and a later item, flat, nested and numbered
 
@@ -15582,10 +15648,10 @@ steps `select(P2:1)` · `Ctrl+Shift+L` · `Ctrl+Shift+L`
 
 | fixture | tracked | selection | observed |
 | --- | --- | --- | --- |
-| numbers | off | IP 5–5 · Undo: Bullets and Numbering, Bullets and Numbering, Style, Style | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[T‸wo] #ListBullet •1.0 ● ⇥18,-18<br>[Three] #ListParagraph •2.0 2. ⇥36,-18` |
-| numbers | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Style, Style | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>{~[T‸wo]~} #ListBullet •1.0 ● ⇥18,-18<br>[Three] #ListParagraph •2.0 2. ⇥36,-18` |
-| three-paragraphs | off | IP 23–23 · Undo: Bullets and Numbering, Style, Style | `[First paragraph here.] ↓0<br>[S‸econd bold one.] #ListBullet •1.0 ● ⇥18,-18<br>[Third and last.] ↓0` |
-| three-paragraphs | on | IP 23–23 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Style, Style | `[First paragraph here.] ↓0<br>{~[S‸econd ][b:bold ][one.]~} #ListBullet •1.0 ● ⇥18,-18<br>[Third and last.] ↓0` |
+| numbers | off | IP 5–5 · Undo: Style, Style | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[T‸wo] #ListBullet •1.0 ● ⇥18,-18<br>[Three] #ListParagraph •2.0 2. ⇥36,-18` |
+| numbers | on | IP 5–5 · Tracking · Revisions 1 · Undo: Style, Style | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>{~[T‸wo]~} #ListBullet •1.0 ● ⇥18,-18<br>[Three] #ListParagraph •2.0 2. ⇥36,-18` |
+| three-paragraphs | off | IP 23–23 · Undo: Style, Style | `[First paragraph here.]<br>[S‸econd bold one.] #ListBullet •1.0 ● ⇥18,-18<br>[Third and last.]` |
+| three-paragraphs | on | IP 23–23 · Tracking · Revisions 1 · Undo: Style, Style | `[First paragraph here.]<br>{~[S‸econd ][b:bold ][one.]~} #ListBullet •1.0 ● ⇥18,-18<br>[Third and last.]` |
 
 #### L-07 · AutoFormat of a typed '1. ' item on Enter, then Backspace, undo or another Enter
 
@@ -15597,19 +15663,19 @@ the second removes the paragraph; another Enter ends the list.
 
 steps before the branches `select(P2:0)` · `type("1. item")` · `Enter`
 
-- `Enter` → `[Above] ↓0 / [Item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ #ListParagraph •1.0 2. ⇥36,-18 /  ↓0 / [Below] ↓0` · IP 11–11 · Undo: Bullets and Numbering, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
-- `Backspace` → `[Above] ↓0 / [Item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ #ListParagraph ⇥36,0 /  ↓0 / [Below] ↓0` · IP 11–11 · Undo: Bullets and Numbering, AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
-- `undo` → `[Above] ↓0 / [item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ #ListParagraph •1.0 2. ⇥36,-18 /  ↓0 / [Below] ↓0` · IP 11–11 · Undo: Bullets and Numbering, Typing, Typing "item", AutoFormat, Typing "1. "
-  - `undo` → `[Above] ↓0 / [item‸] #ListParagraph •1.0 1. ⇥36,-18 /  ↓0 / [Below] ↓0` · IP 10–10 · Undo: Bullets and Numbering, Typing "item", AutoFormat, Typing "1. "
-- `Enter` → `[Above] ↓0 / [Item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ ↓0 /  ↓0 / [Below] ↓0` · IP 11–11 · Undo: Bullets and Numbering, AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
+- `Enter` → `[Above] / [Item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ #ListParagraph •1.0 2. ⇥36,-18 /  / [Below]` · IP 11–11 · Undo: AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
+- `Backspace` → `[Above] / [Item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ #ListParagraph ⇥36,0 /  / [Below]` · IP 11–11 · Undo: AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
+- `undo` → `[Above] / [item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ #ListParagraph •1.0 2. ⇥36,-18 /  / [Below]` · IP 11–11 · Undo: Typing, Typing "item", AutoFormat, Typing "1. "
+  - `undo` → `[Above] / [item‸] #ListParagraph •1.0 1. ⇥36,-18 /  / [Below]` · IP 10–10 · Undo: Typing "item", AutoFormat, Typing "1. "
+- `Enter` → `[Above] / [Item] #ListParagraph •1.0 1. ⇥36,-18 / ‸ /  / [Below]` · IP 11–11 · Undo: AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
 
 **Track Changes on**
 
-- `Enter` → `[Above] ↓0 / {+[Item]+} #ListParagraph •1.0 1. ⇥36,-18 / {~‸~} #ListParagraph •1.0 2. ⇥36,-18 /  ↓0 / [Below] ↓0` · IP 11–11 · Tracking · Revisions 2 · Undo: Bullets and Numbering, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
-- `Backspace` → `[Above] ↓0 / {+[Item]+} #ListParagraph •1.0 1. ⇥36,-18 / {~‸~} #ListParagraph ⇥36,0 /  ↓0 / [Below] ↓0` · IP 11–11 · Tracking · Revisions 2 · Undo: Bullets and Numbering, AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
-- `undo` → `[Above] ↓0 / {+[item]+} #ListParagraph •1.0 1. ⇥36,-18 / {~‸~} #ListParagraph •1.0 2. ⇥36,-18 /  ↓0 / [Below] ↓0` · IP 11–11 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing, Typing "item", AutoFormat, Typing "1. "
-  - `undo` → `[Above] ↓0 / {+{~[item]+}‸~} #ListParagraph •1.0 1. ⇥36,-18 /  ↓0 / [Below] ↓0` · IP 10–10 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "item", AutoFormat, Typing "1. "
-- `Enter` → `[Above] ↓0 / {+[Item]+} #ListParagraph •1.0 1. ⇥36,-18 / ‸ ↓0 /  ↓0 / [Below] ↓0` · IP 11–11 · Tracking · Revisions 1 · Undo: Bullets and Numbering, AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
+- `Enter` → `[Above] / {+[Item]+} #ListParagraph •1.0 1. ⇥36,-18 / {~‸~} #ListParagraph •1.0 2. ⇥36,-18 /  / [Below]` · IP 11–11 · Tracking · Revisions 2 · Undo: AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
+- `Backspace` → `[Above] / {+[Item]+} #ListParagraph •1.0 1. ⇥36,-18 / {~‸~} #ListParagraph ⇥36,0 /  / [Below]` · IP 11–11 · Tracking · Revisions 2 · Undo: AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
+- `undo` → `[Above] / {+[item]+} #ListParagraph •1.0 1. ⇥36,-18 / {~‸~} #ListParagraph •1.0 2. ⇥36,-18 /  / [Below]` · IP 11–11 · Tracking · Revisions 2 · Undo: Typing, Typing "item", AutoFormat, Typing "1. "
+  - `undo` → `[Above] / {+{~[item]+}‸~} #ListParagraph •1.0 1. ⇥36,-18 /  / [Below]` · IP 10–10 · Tracking · Revisions 2 · Undo: Typing "item", AutoFormat, Typing "1. "
+- `Enter` → `[Above] / {+[Item]+} #ListParagraph •1.0 1. ⇥36,-18 / ‸ /  / [Below]` · IP 11–11 · Tracking · Revisions 1 · Undo: AutoFormat, AutoCorrect, Typing, Typing "item", AutoFormat, Typing "1. "
 
 ```mermaid
 flowchart TD
@@ -15631,15 +15697,15 @@ instead.
 
 steps before the branches `click(P1:0, side=left)`
 
-- `click(P1:0, side=left)` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo: Bullets and Numbering, Bullets and Numbering
-- `Ctrl+B` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo: Bullets and Numbering, Bullets and Numbering
-- `type("x")` → `[x‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 1–1 · Undo: Bullets and Numbering, Bullets and Numbering, Typing "x"
+- `click(P1:0, side=left)` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo —
+- `Ctrl+B` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Undo —
+- `type("x")` → `[x‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 1–1 · Undo: Typing "x"
 
 **Track Changes on**
 
-- `click(P1:0, side=left)` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Tracking · Revisions 0 · Undo: Bullets and Numbering, Bullets and Numbering
-- `Ctrl+B` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Tracking · Revisions 0 · Undo: Bullets and Numbering, Bullets and Numbering
-- `type("x")` → `{+[x]+}[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] ↓0 / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 1–1 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Typing "x"
+- `click(P1:0, side=left)` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `Ctrl+B` → `[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `{+[x]+}[‸One] #ListParagraph •2.0 1. ⇥36,-18 / [Two] #ListParagraph •2.0 2. ⇥36,-18 / [Between the lists.] / [Alpha] #ListParagraph •1.0 1. ⇥36,-18 / [Beta] #ListParagraph •1.0 2. ⇥36,-18` · IP 1–1 · Tracking · Revisions 1 · Undo: Typing "x"
 
 ```mermaid
 flowchart TD
@@ -15666,7 +15732,7 @@ Expected before the run: Two goes and Three becomes item 2.
 [‸Three] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 4–4 · Undo: Bullets and Numbering, Clear
+Selection: IP 4–4 · Undo: Clear
 
 **Track Changes on**
 
@@ -15679,7 +15745,7 @@ Selection: IP 4–4 · Undo: Bullets and Numbering, Clear
 [‸Three] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 8–8 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Clear
+Selection: IP 8–8 · Tracking · Revisions 1 · Undo: Clear
 
 #### L-10 · Delete at an item's end merges it with what follows: the survivor's level and list
 
@@ -15693,24 +15759,24 @@ steps `select({at})` · `Delete`
 
 | fixture | at | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| numbers | P1:end | off | IP 3–3 · Undo: Bullets and Numbering, Clear | `[One‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers | P1:end | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Clear | `[One]{--} #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers | P2:end | off | IP 7–7 · Undo: Bullets and Numbering, Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two‸Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers | P2:end | on | IP 8–8 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{--} #ListParagraph •1.0 1. ⇥36,-18<br>[‸Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers | P3:end | off | IP 13–13 · Undo: Bullets and Numbering | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three‸] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers | P3:end | on | IP 13–13 · Tracking · Revisions 0 · Undo: Bullets and Numbering | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three‸] #ListParagraph •1.0 3. ⇥36,-18` |
-| numbers-nested | P1:end | off | IP 3–3 · Undo: Bullets and Numbering, Clear | `[One‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P1:end | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Clear | `[One]{--} #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P2:end | off | IP 7–7 · Undo: Bullets and Numbering, Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two‸Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P2:end | on | IP 8–8 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[Two]{-~}-} #ListParagraph •1.0 1. ⇥54,-18<br>[‸Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.] ↓0` |
-| numbers-nested | P3:end | off | IP 13–13 · Undo: Bullets and Numbering, Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three‸After the list.] #ListParagraph •1.0 3. ⇥54,-18` |
-| numbers-nested | P3:end | on | IP 14–14 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{--} #ListParagraph •1.0 1. ⇥54,-18<br>{~[‸After the list.]~} #ListParagraph •1.0 3. ⇥54,-18` |
-| numbers-two-lists | P1:end | off | IP 3–3 · Undo: Bullets and Numbering, Bullets and Numbering, Clear | `[One‸Two] #ListParagraph •2.0 1. ⇥36,-18<br>[Between the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers-two-lists | P1:end | on | IP 4–4 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Clear | `[One]{--} #ListParagraph •2.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •2.0 1. ⇥36,-18<br>[Between the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers-two-lists | P2:end | off | IP 7–7 · Undo: Bullets and Numbering, Bullets and Numbering, Clear | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two‸Between the lists.] #ListParagraph •2.0 2. ⇥36,-18<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| numbers-two-lists | P2:end | on | IP 8–8 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, Clear | `see below` |
-| numbers-two-lists | P3:end | off | IP 26–26 · Undo: Bullets and Numbering, Bullets and Numbering, Clear | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.‸Alpha] ↓0<br>[Beta] #ListParagraph •1.0 1. ⇥36,-18` |
-| numbers-two-lists | P3:end | on | IP 27–27 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, Clear | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.]{--} ↓0<br>{~[‸Alpha]~} ↓0<br>[Beta] #ListParagraph •1.0 1. ⇥36,-18` |
+| numbers | P1:end | off | IP 3–3 · Undo: Clear | `[One‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers | P1:end | on | IP 4–4 · Tracking · Revisions 1 · Undo: Clear | `[One]{--} #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers | P2:end | off | IP 7–7 · Undo: Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two‸Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers | P2:end | on | IP 8–8 · Tracking · Revisions 1 · Undo: Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two]{--} #ListParagraph •1.0 1. ⇥36,-18<br>[‸Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers | P3:end | off | IP 13–13 · Undo — | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three‸] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers | P3:end | on | IP 13–13 · Tracking · Revisions 0 · Undo — | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three‸] #ListParagraph •1.0 3. ⇥36,-18` |
+| numbers-nested | P1:end | off | IP 3–3 · Undo: Clear | `[One‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P1:end | on | IP 4–4 · Tracking · Revisions 1 · Undo: Clear | `[One]{--} #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 1. ⇥36,-18<br>[Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P2:end | off | IP 7–7 · Undo: Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two‸Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P2:end | on | IP 8–8 · Tracking · Revisions 2 · Undo: Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[Two]{-~}-} #ListParagraph •1.0 1. ⇥54,-18<br>[‸Three] #ListParagraph •1.0 2. ⇥54,-18<br>[After the list.]` |
+| numbers-nested | P3:end | off | IP 13–13 · Undo: Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three‸After the list.] #ListParagraph •1.0 3. ⇥54,-18` |
+| numbers-nested | P3:end | on | IP 14–14 · Tracking · Revisions 2 · Undo: Clear | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three]{--} #ListParagraph •1.0 1. ⇥54,-18<br>{~[‸After the list.]~} #ListParagraph •1.0 3. ⇥54,-18` |
+| numbers-two-lists | P1:end | off | IP 3–3 · Undo: Clear | `[One‸Two] #ListParagraph •2.0 1. ⇥36,-18<br>[Between the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers-two-lists | P1:end | on | IP 4–4 · Tracking · Revisions 1 · Undo: Clear | `[One]{--} #ListParagraph •2.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •2.0 1. ⇥36,-18<br>[Between the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers-two-lists | P2:end | off | IP 7–7 · Undo: Clear | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two‸Between the lists.] #ListParagraph •2.0 2. ⇥36,-18<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| numbers-two-lists | P2:end | on | IP 8–8 · Tracking · Revisions 2 · Undo: Clear | `see below` |
+| numbers-two-lists | P3:end | off | IP 26–26 · Undo: Clear | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.‸Alpha]<br>[Beta] #ListParagraph •1.0 1. ⇥36,-18` |
+| numbers-two-lists | P3:end | on | IP 27–27 · Tracking · Revisions 2 · Undo: Clear | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.]{--}<br>{~[‸Alpha]~}<br>[Beta] #ListParagraph •1.0 1. ⇥36,-18` |
 
 `L-10[fixture=numbers-two-lists,at=P2:end]~tracked`
 
@@ -15722,7 +15788,7 @@ steps `select({at})` · `Delete`
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 8–8 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, Clear
+Selection: IP 8–8 · Tracking · Revisions 2 · Undo: Clear
 
 #### L-10b · Backspace twice at a level-2 item's start
 
@@ -15743,11 +15809,11 @@ a later press.
 ```text
 [One] #ListParagraph •1.0 1. ⇥36,-18
 [Two] #ListParagraph •1.0 2. ⇥36,-18
-[‸Three] ↓0
-[After the list.] ↓0
+[‸Three]
+[After the list.]
 ```
 
-Selection: IP 8–8 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
+Selection: IP 8–8 · Undo: AutoFormat, AutoFormat
 
 Markup diff: `WordProbe/Results/markup/L-10b.diff`
 
@@ -15765,11 +15831,11 @@ Markup diff: `WordProbe/Results/markup/L-10b.diff`
 ```text
 [One] #ListParagraph •1.0 1. ⇥36,-18
 [Two] #ListParagraph •1.0 2. ⇥36,-18
-{~[‸Three]~} ↓0
-[After the list.] ↓0
+{~[‸Three]~}
+[After the list.]
 ```
 
-Selection: IP 8–8 · Tracking · Revisions 1 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
+Selection: IP 8–8 · Tracking · Revisions 1 · Undo: AutoFormat, AutoFormat
 
 Markup diff: `WordProbe/Results/markup/L-10b_tracked.diff`
 
@@ -15787,11 +15853,10 @@ mark carried with it.
 
 ```text
 [One] #ListParagraph •1.0 1. ⇥36,-18
-[Three Two] #ListParagraph •1.0 2. ⇥36,-18
-‸ #ListParagraph •1.0 3. ⇥36,-18
+[Three Two‸] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 14–14 · Undo: Bullets and Numbering, Paste, Cut
+Selection: IP 13–13 · Undo: Paste, Cut
 
 **Track Changes on**
 
@@ -15802,12 +15867,11 @@ Selection: IP 14–14 · Undo: Bullets and Numbering, Paste, Cut
 
 ```text
 [One] #ListParagraph •1.0 1. ⇥36,-18
-{-[Two]-}{+[ Two]+} #ListParagraph •1.0 2. ⇥36,-18
-{-‸-} #ListParagraph •1.0 1. ⇥36,-18
-[Three] #ListParagraph •1.0 3. ⇥36,-18
+{-[Two]-}{+[ Two]+}{-‸-} #ListParagraph •1.0 1. ⇥36,-18
+[Three] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 12–12 · Tracking · Revisions 3 · Undo: Bullets and Numbering, Paste, Cut
+Selection: IP 11–11 · Tracking · Revisions 3 · Undo: Paste, Cut
 
 #### L-11b · Cut two items and paste them into the Normal paragraph between two lists
 
@@ -15822,14 +15886,13 @@ split the paragraph, (b) take the Normal paragraph's formatting.
 4. `Ctrl+V`
 
 ```text
-[Two One] #ListParagraph •2.0 1. ⇥36,-18
-‸ #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Two One‸] #ListParagraph •2.0 1. ⇥36,-18
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 8–8 · Undo: Bullets and Numbering, Bullets and Numbering, Paste, Cut
+Selection: IP 7–7 · Undo: Paste, Cut
 
 **Track Changes on**
 
@@ -15839,15 +15902,14 @@ Selection: IP 8–8 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
 4. `Ctrl+V`
 
 ```text
-{-[One]-}{+[ One]+} #ListParagraph •2.0 1. ⇥36,-18
-{-‸-} #ListParagraph •2.0 1. ⇥36,-18
-[Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+{-[One]-}{+[ One]+}{-‸-} #ListParagraph •2.0 1. ⇥36,-18
+[Two] #ListParagraph •2.0 1. ⇥36,-18
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 8–8 · Tracking · Revisions 3 · Undo: Bullets and Numbering, Bullets and Numbering, Paste, Cut
+Selection: IP 7–7 · Tracking · Revisions 3 · Undo: Paste, Cut
 
 Notes: Positions are read after each step, so the paste target is P1:3, where the Normal paragraph stands once P1 and
 P2 are cut.
@@ -15869,7 +15931,7 @@ item.
 [Three] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 8–8 · Undo: Bullets and Numbering, Typing "x"
+Selection: IP 8–8 · Undo: Typing "x"
 
 **Track Changes on**
 
@@ -15883,7 +15945,7 @@ Selection: IP 8–8 · Undo: Bullets and Numbering, Typing "x"
 [Three] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 8–8 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x"
+Selection: IP 8–8 · Tracking · Revisions 1 · Undo: Typing "x"
 
 #### L-13 · Backspace over a selection that spans list items and the paragraph after
 
@@ -15896,10 +15958,10 @@ steps `select({selection})` · `Backspace`
 
 | selection | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P3:2-P4:3 | off | IP 10–10 · Undo: Bullets and Numbering, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Th‸] #ListParagraph •1.0 3. ⇥54,-18<br>[er the list.] ↓0` |
-| P3:2-P4:3 | on | IP 10–10 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Th]{-[‸ree] #ListParagraph •1.0 1. ⇥54,-18<br>{~[Aft]-}[er the list.]~} #ListParagraph •1.0 3. ⇥54,-18` |
-| P2:1-P4:3 | off | IP 5–5 · Undo: Bullets and Numbering, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸] #ListParagraph •1.0 2. ⇥36,-18<br>[er the list.] ↓0` |
-| P2:1-P4:3 | on | IP 5–5 · Tracking · Revisions 3 · Undo: Bullets and Numbering, Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T]{-[‸wo] #ListParagraph •1.0 1. ⇥36,-18<br>{~[Three]~} #ListParagraph •1.0 1. ⇥36,-18<br>{~[Aft]-}[er the list.]~} #ListParagraph •1.0 2. ⇥36,-18` |
+| P3:2-P4:3 | off | IP 10–10 · Undo: Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Th‸] #ListParagraph •1.0 3. ⇥54,-18<br>[er the list.]` |
+| P3:2-P4:3 | on | IP 10–10 · Tracking · Revisions 2 · Undo: Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Th]{-[‸ree] #ListParagraph •1.0 1. ⇥54,-18<br>{~[Aft]-}[er the list.]~} #ListParagraph •1.0 3. ⇥54,-18` |
+| P2:1-P4:3 | off | IP 5–5 · Undo: Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸] #ListParagraph •1.0 2. ⇥36,-18<br>[er the list.]` |
+| P2:1-P4:3 | on | IP 5–5 · Tracking · Revisions 3 · Undo: Typing | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T]{-[‸wo] #ListParagraph •1.0 1. ⇥36,-18<br>{~[Three]~} #ListParagraph •1.0 1. ⇥36,-18<br>{~[Aft]-}[er the list.]~} #ListParagraph •1.0 2. ⇥36,-18` |
 
 #### L-14 · Enter at a numbered heading's end and middle
 
@@ -15912,10 +15974,10 @@ steps `select({at})` · `Enter` · `type("x")`
 
 | at | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:end | off | IP 16–16 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title] #Heading1 •1.0 1. ⇥36,-18<br>[x‸] ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:end | on | IP 16–16 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "x", Typing | `[Numbered title]{+ #Heading1 •1.0 1. ⇥36,-18<br>{~[x]+}‸~} ↓0<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | off | IP 6–6 · Undo: Bullets and Numbering, Typing "x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
-| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.] ↓0` |
+| P1:end | off | IP 16–16 · Undo: Typing "x", Typing | `[Numbered title] #Heading1 •1.0 1. ⇥36,-18<br>[x‸]<br>[Sub title] #Heading2<br>[Body text.]` |
+| P1:end | on | IP 16–16 · Tracking · Revisions 2 · Undo: Typing "x", Typing | `[Numbered title]{+ #Heading1 •1.0 1. ⇥36,-18<br>{~[x]+}‸~}<br>[Sub title] #Heading2<br>[Body text.]` |
+| P1:4 | off | IP 6–6 · Undo: Typing "x" | `[Numb] #Heading1 •1.0 1. ⇥36,-18<br>[x‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.]` |
+| P1:4 | on | IP 6–6 · Tracking · Revisions 1 · Undo: Typing "x" | `[Numb]{+ #Heading1 •1.0 1. ⇥36,-18<br>[x]+}[‸ered title] #Heading1 •1.0 2. ⇥36,-18<br>[Sub title] #Heading2<br>[Body text.]` |
 
 #### L-15 · A typed number after a list: continuation or restart
 
@@ -15928,66 +15990,66 @@ steps `select(P3:end)` · `Enter` · `type("{text}")` · `Enter`
 
 | text | tracked | selection | observed |
 | --- | --- | --- | --- |
-| 3. next | off | IP 32–32 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing | `see below` |
-| 3. next | on | IP 32–32 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing | `see below` |
-| 1. next | off | IP 32–32 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing | `see below` |
-| 1. next | on | IP 32–32 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing | `see below` |
+| 3. next | off | IP 32–32 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing | `see below` |
+| 3. next | on | IP 32–32 · Tracking · Revisions 2 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing | `see below` |
+| 1. next | off | IP 32–32 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing | `see below` |
+| 1. next | on | IP 32–32 · Tracking · Revisions 2 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing | `see below` |
 
 `L-15[text=3. next]`
 
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Next] #ListParagraph •2.0 3. ⇥36,-18
 ‸ #ListParagraph •2.0 4. ⇥36,-18
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 32–32 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing
+Selection: IP 32–32 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing
 
 `L-15[text=3. next]~tracked`
 
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.]{+ ↓0
+[Between the lists.]{+
 [Next]+} #ListParagraph •2.0 3. ⇥36,-18
 {~‸~} #ListParagraph •2.0 4. ⇥36,-18
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 32–32 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing
+Selection: IP 32–32 · Tracking · Revisions 2 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "3. ", Typing
 
 `L-15[text=1. next]`
 
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Next] #ListParagraph •1.0 1. ⇥36,-18
 ‸ #ListParagraph •1.0 2. ⇥36,-18
 [Alpha] #ListParagraph •1.0 3. ⇥36,-18
 [Beta] #ListParagraph •1.0 4. ⇥36,-18
 ```
 
-Selection: IP 32–32 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing
+Selection: IP 32–32 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing
 
 `L-15[text=1. next]~tracked`
 
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.]{+ ↓0
+[Between the lists.]{+
 [Next]+} #ListParagraph •1.0 1. ⇥36,-18
 {~‸~} #ListParagraph •1.0 2. ⇥36,-18
 [Alpha] #ListParagraph •1.0 3. ⇥36,-18
 [Beta] #ListParagraph •1.0 4. ⇥36,-18
 ```
 
-Selection: IP 32–32 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing
+Selection: IP 32–32 · Tracking · Revisions 2 · Undo: AutoCorrect, Typing, Typing "next", AutoFormat, Typing "1. ", Typing
 
 #### L-16 · Tab and Shift+Tab in a list item inside a cell
 
@@ -15999,10 +16061,10 @@ steps `select(C(1,1):2)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Tab | off | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Undo: Bullets and Numbering | `[Before the table.] ↓0<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Tab | on | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo: Bullets and Numbering | `[Before the table.] ↓0<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Shift+Tab | off | IP 20–20 · Cells 1 (R1C1–R1C1) · Undo: Bullets and Numbering | `[Before the table.] ↓0<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
-| Shift+Tab | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo: Bullets and Numbering | `[Before the table.] ↓0<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.] ↓0` |
+| Tab | off | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Undo — | `[Before the table.]<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Tab | on | Normal 36–38 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[item one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[⟦b1‸⟧¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Shift+Tab | off | IP 20–20 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
+| Shift+Tab | on | IP 20–20 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[it‸em one] #ListParagraph •1.0 ● ⇥36,-18 ¶ [item two¤] #ListParagraph •1.0 ● ⇥36,-18║[b1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║¤<br>[After the table.]` |
 
 #### L-17 · Enter at the first item's start
 
@@ -16014,13 +16076,13 @@ Expected before the run: An empty item 1 above, One renumbered 2, the caret stay
 2. `Enter`
 
 ```text
- ⇥36,-18 ↓0
+ ⇥36,-18
 [‸One] #ListParagraph •1.0 1. ⇥36,-18
 [Two] #ListParagraph •1.0 2. ⇥36,-18
 [Three] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 1–1 · Undo: Bullets and Numbering, Typing
+Selection: IP 1–1 · Undo: Typing
 
 **Track Changes on**
 
@@ -16028,13 +16090,13 @@ Selection: IP 1–1 · Undo: Bullets and Numbering, Typing
 2. `Enter`
 
 ```text
-{++} ⇥36,-18 ↓0
+{++} ⇥36,-18
 [‸One] #ListParagraph •1.0 1. ⇥36,-18
 [Two] #ListParagraph •1.0 2. ⇥36,-18
 [Three] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 1–1 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing
+Selection: IP 1–1 · Tracking · Revisions 1 · Undo: Typing
 
 #### L-18 · Home, Left, Shift+Home and Shift+Right around the number
 
@@ -16047,14 +16109,14 @@ steps `select({from})` · `{key}` · `{key}`
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| P2:0 | Home | IP 4–4 · Undo: Bullets and Numbering | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:0 | Left | IP 3–3 · Undo: Bullets and Numbering | `[One‸] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:0 | Shift+Home | IP 4–4 · Undo: Bullets and Numbering | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:0 | Shift+Right | Normal 4–6 end-active · Undo: Bullets and Numbering | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Tw‸⟧o] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P1:end | Home | IP 0–0 · Undo: Bullets and Numbering | `[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P1:end | Left | IP 1–1 · Undo: Bullets and Numbering | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P1:end | Shift+Home | Normal 0–4 start-active · Undo: Bullets and Numbering | `[⟦‸One¶⟧] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P1:end | Shift+Right | Normal 3–5 end-active · Undo: Bullets and Numbering | `[One⟦¶⟧] #ListParagraph •1.0 1. ⇥36,-18<br>⟦[T‸⟧wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:0 | Home | IP 4–4 · Undo — | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:0 | Left | IP 3–3 · Undo — | `[One‸] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:0 | Shift+Home | IP 4–4 · Undo — | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[‸Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:0 | Shift+Right | Normal 4–6 end-active · Undo — | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[⟦Tw‸⟧o] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:end | Home | IP 0–0 · Undo — | `[‸One] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:end | Left | IP 1–1 · Undo — | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:end | Shift+Home | Normal 0–4 start-active · Undo — | `[⟦‸One¶⟧] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:end | Shift+Right | Normal 3–5 end-active · Undo — | `[One⟦¶⟧] #ListParagraph •1.0 1. ⇥36,-18<br>⟦[T‸⟧wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 
 #### L-19 · Ctrl+M twice then Ctrl+Shift+M twice on items
 
@@ -16067,10 +16129,10 @@ steps `select({at})` · `Ctrl+M` · `Ctrl+M` · `Ctrl+Shift+M` · `Ctrl+Shift+M`
 
 | at | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:1 | off | IP 1–1 · Undo: Bullets and Numbering, Un Indent, Un Indent, Indent, Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P1:1 | on | IP 1–1 · Tracking · Revisions 0 · Undo: Bullets and Numbering, Un Indent, Un Indent, Indent, Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:1 | off | IP 5–5 · Undo: Bullets and Numbering, Un Indent, Un Indent, Indent, Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:1 | on | IP 5–5 · Tracking · Revisions 0 · Undo: Bullets and Numbering, Un Indent, Un Indent, Indent, Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:1 | off | IP 1–1 · Undo: Un Indent, Un Indent, Indent, Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:1 | on | IP 1–1 · Tracking · Revisions 0 · Undo: Un Indent, Un Indent, Indent, Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:1 | off | IP 5–5 · Undo: Un Indent, Un Indent, Indent, Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:1 | on | IP 5–5 · Tracking · Revisions 0 · Undo: Un Indent, Un Indent, Indent, Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 
 #### L-19b · Ctrl+T twice then Ctrl+Shift+T twice on items
 
@@ -16083,10 +16145,10 @@ steps `select({at})` · `Ctrl+T` · `Ctrl+T` · `Ctrl+Shift+T` · `Ctrl+Shift+T`
 
 | at | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:1 | off | IP 1–1 · Undo: Bullets and Numbering, Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P1:1 | on | IP 1–1 · Tracking · Revisions 0 · Undo: Bullets and Numbering, Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:1 | off | IP 5–5 · Undo: Bullets and Numbering, Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
-| P2:1 | on | IP 5–5 · Tracking · Revisions 0 · Undo: Bullets and Numbering, Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:1 | off | IP 1–1 · Undo: Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P1:1 | on | IP 1–1 · Tracking · Revisions 0 · Undo: Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[O‸ne] #ListParagraph •1.0 1. ⇥36,-18<br>[Two] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:1 | off | IP 5–5 · Undo: Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
+| P2:1 | on | IP 5–5 · Tracking · Revisions 0 · Undo: Un Hang, Un Hang, Hanging Indent, Hanging Indent | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph •1.0 2. ⇥36,-18<br>[Three] #ListParagraph •1.0 3. ⇥36,-18` |
 
 #### L-20 · Delete at item 1's end when item 2 is at level 2
 
@@ -16100,10 +16162,10 @@ Expected before the run: (a) the merged item keeps level 1; (b) it takes level 2
 ```text
 [One] #ListParagraph •1.0 1. ⇥36,-18
 [Two‸Three] #ListParagraph •1.0 2. ⇥54,-18
-[After the list.] ↓0
+[After the list.]
 ```
 
-Selection: IP 7–7 · Undo: Bullets and Numbering, Clear
+Selection: IP 7–7 · Undo: Clear
 
 **Track Changes on**
 
@@ -16114,10 +16176,10 @@ Selection: IP 7–7 · Undo: Bullets and Numbering, Clear
 [One] #ListParagraph •1.0 1. ⇥36,-18
 {~[Two]{-~}-} #ListParagraph •1.0 1. ⇥54,-18
 [‸Three] #ListParagraph •1.0 2. ⇥54,-18
-[After the list.] ↓0
+[After the list.]
 ```
 
-Selection: IP 8–8 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Clear
+Selection: IP 8–8 · Tracking · Revisions 2 · Undo: Clear
 
 #### L-21 · Shift+Tab twice on a later level-1 item
 
@@ -16140,7 +16202,7 @@ Expected before the run: (a) nothing on either press; (b) the first takes the bu
 [Gamma] #ListParagraph •1.0 ● ⇥36,-18
 ```
 
-Selection: IP 9–9 · Undo: Bullets and Numbering, Typing ".", Typing "."
+Selection: IP 9–9 · Undo: Typing ".", Typing "."
 
 **Track Changes on**
 
@@ -16159,7 +16221,7 @@ Selection: IP 9–9 · Undo: Bullets and Numbering, Typing ".", Typing "."
 [Gamma] #ListParagraph •1.0 ● ⇥36,-18
 ```
 
-Selection: IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing ".", Typing "."
+Selection: IP 9–9 · Tracking · Revisions 1 · Undo: Typing ".", Typing "."
 
 #### L-22 · Tab with a selection across two items
 
@@ -16176,7 +16238,7 @@ the whole list moves right.
 [Gamma] #ListParagraph •1.0 ● ⇥36,-18
 ```
 
-Selection: IP 3–3 · Undo: Bullets and Numbering, Typing "."
+Selection: IP 3–3 · Undo: Typing "."
 
 **Track Changes on**
 
@@ -16189,7 +16251,7 @@ Selection: IP 3–3 · Undo: Bullets and Numbering, Typing "."
 [Gamma] #ListParagraph •1.0 ● ⇥36,-18
 ```
 
-Selection: IP 9–9 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing "."
+Selection: IP 9–9 · Tracking · Revisions 2 · Undo: Typing "."
 
 #### L-23 · Ctrl+Q and Ctrl+Shift+N on an item
 
@@ -16202,10 +16264,10 @@ steps `select(P2:1)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Ctrl+Q | off | IP 5–5 · Undo: Bullets and Numbering, Paragraph Formatting | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph ⇥36,0<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| Ctrl+Q | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paragraph Formatting | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[T‸wo]~} #ListParagraph ⇥36,0<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| Ctrl+Shift+N | off | IP 5–5 · Undo: Bullets and Numbering, Normal Style | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] ↓0<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
-| Ctrl+Shift+N | on | IP 5–5 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Normal Style | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[T‸wo]~} ↓0<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| Ctrl+Q | off | IP 5–5 · Undo: Paragraph Formatting | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo] #ListParagraph ⇥36,0<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| Ctrl+Q | on | IP 5–5 · Tracking · Revisions 1 · Undo: Paragraph Formatting | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[T‸wo]~} #ListParagraph ⇥36,0<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| Ctrl+Shift+N | off | IP 5–5 · Undo: Normal Style | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>[T‸wo]<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
+| Ctrl+Shift+N | on | IP 5–5 · Tracking · Revisions 1 · Undo: Normal Style | `[One] #ListParagraph •1.0 1. ⇥36,-18<br>{~[T‸wo]~}<br>[Three] #ListParagraph •1.0 2. ⇥36,-18` |
 
 #### L-24 · Alt+Shift+Down and Alt+Shift+Up move an item
 
@@ -16231,7 +16293,7 @@ moves with the text.
 [Three] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: Normal 0–4 end-active · Undo: Bullets and Numbering, Outline Move Up, Outline Move Up, Outline Move Down
+Selection: Normal 0–4 end-active · Undo: Outline Move Up, Outline Move Up, Outline Move Down
 
 **Track Changes on**
 
@@ -16253,7 +16315,7 @@ Selection: Normal 0–4 end-active · Undo: Bullets and Numbering, Outline Move 
 [Three] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: Normal 4–8 end-active · Tracking · Revisions 2 · Undo: Bullets and Numbering, Outline Move Up, Outline Move Up, Outline Move Down
+Selection: Normal 4–8 end-active · Tracking · Revisions 2 · Undo: Outline Move Up, Outline Move Up, Outline Move Down
 
 #### L-25 · Nested AutoFormat: Tab on a new item then a typed 'a. '
 
@@ -16276,7 +16338,7 @@ under the level-2 number, (b) AutoFormat sees the duplicate and strips the typed
 [Three] #ListParagraph •1.0 5. ⇥36,-18
 ```
 
-Selection: IP 9–9 · Undo: Bullets and Numbering, Typing, Typing " x", AutoCorrect, Typing "a.", AutoFormat, Typing
+Selection: IP 9–9 · Undo: Typing, Typing " x", AutoCorrect, Typing "a.", AutoFormat, Typing
 
 **Track Changes on**
 
@@ -16294,7 +16356,7 @@ Selection: IP 9–9 · Undo: Bullets and Numbering, Typing, Typing " x", AutoCor
 [Three] #ListParagraph •1.0 5. ⇥36,-18
 ```
 
-Selection: IP 9–9 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing, Typing " x", AutoCorrect, Typing "a.", AutoFormat, Typing
+Selection: IP 9–9 · Tracking · Revisions 2 · Undo: Typing, Typing " x", AutoCorrect, Typing "a.", AutoFormat, Typing
 
 #### L-26 · Enter with a selection spanning two items
 
@@ -16340,15 +16402,15 @@ the body.
 3. `Tab`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 TB: [Bo\t‸x line one] #ListBullet •1.0 ● ⇥18,-18
-TB: [Box line two] ↓0
+TB: [Box line two]
 ```
 
-Selection: IP 3–3 · Story TextFrame · Undo: Bullets and Numbering, Typing in Text Box, Style
+Selection: IP 3–3 · Story TextFrame · Undo: Typing in Text Box, Style
 
 **Track Changes on**
 
@@ -16357,15 +16419,15 @@ Selection: IP 3–3 · Story TextFrame · Undo: Bullets and Numbering, Typing in
 3. `Tab`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 TB: [Bo\t‸x line one] #ListBullet •1.0 ● ⇥18,-18
-TB: [Box line two] ↓0
+TB: [Box line two]
 ```
 
-Selection: IP 3–3 · Story TextFrame · Tracking · Revisions 0 · Undo: Bullets and Numbering, Typing in Text Box, Style
+Selection: IP 3–3 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing in Text Box, Style
 
 #### L-28 · Backspace three times at the first item's start
 
@@ -16385,12 +16447,12 @@ Expected before the run: The number off, the indent off, then nothing at the doc
 | `Backspace` | IP 0–0 | `[‸One]` |
 
 ```text
-[‸One] ↓0
+[‸One]
 [Two] #ListParagraph •1.0 1. ⇥36,-18
 [Three] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 0–0 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
+Selection: IP 0–0 · Undo: AutoFormat, AutoFormat
 
 **Track Changes on**
 
@@ -16406,12 +16468,12 @@ Selection: IP 0–0 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
 | `Backspace` | IP 0–0 | `[‸One]` |
 
 ```text
-{~[‸One]~} ↓0
+{~[‸One]~}
 [Two] #ListParagraph •1.0 1. ⇥36,-18
 [Three] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 0–0 · Tracking · Revisions 1 · Undo: Bullets and Numbering, AutoFormat, AutoFormat
+Selection: IP 0–0 · Tracking · Revisions 1 · Undo: AutoFormat, AutoFormat
 
 #### L-29 · Delete at the end of the Normal paragraph before a list
 
@@ -16426,11 +16488,11 @@ list's first item.
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.‸Alpha] ↓0
+[Between the lists.‸Alpha]
 [Beta] #ListParagraph •1.0 1. ⇥36,-18
 ```
 
-Selection: IP 26–26 · Undo: Bullets and Numbering, Bullets and Numbering, Clear
+Selection: IP 26–26 · Undo: Clear
 
 **Track Changes on**
 
@@ -16440,12 +16502,12 @@ Selection: IP 26–26 · Undo: Bullets and Numbering, Bullets and Numbering, Cle
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.]{--} ↓0
-{~[‸Alpha]~} ↓0
+[Between the lists.]{--}
+{~[‸Alpha]~}
 [Beta] #ListParagraph •1.0 1. ⇥36,-18
 ```
 
-Selection: IP 27–27 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Bullets and Numbering, Clear
+Selection: IP 27–27 · Tracking · Revisions 2 · Undo: Clear
 <!-- probe:end lists -->
 
 ## Undo, redo and repeat
@@ -16469,7 +16531,11 @@ Ctrl+Y as repeat.
   undone paste at the paste point; an undone Tab that added a row puts the caret back in the last cell
   and redo adds the row again without moving the caret; an undone row Backspace re-selects the row; an
   undone picture Delete re-selects the picture (U-04a to U-04h, U-07a to U-07g, U-08a, U-15, U-16a,
-  U-16b). — Morph: TODO (the file-level undo does not restore the caret).
+  U-16b). — Morph: PARTIAL (each undo step keeps where its edit began and where it left the reader, a
+  `CaretPlace`: undone typing puts the caret at its start and selects again what it deleted or typed over,
+  an undone join puts it where the key was pressed, an undone delete, formatting or command selects again
+  what it acted on, and redo puts the reader where the edit left them; an edit from the review pane keeps
+  no place, and the drag, row and picture cases are not matched).
 - **R-U-3 Redo re-applies the undone entry; a new action after an undo clears the redo stack and Ctrl+Y
   then REPEATS the last action**, as F4 does: repeated typing inserts the same text at the new caret,
   Bold applies to the new selection, a paste pastes again, Delete deletes one character at the new
@@ -16535,13 +16601,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("abc")`
 
-- `type("abc")` → `[The qabc‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo: Typing "abc"
-- `undo` → `[The q‸uick brown fox jumps over the lazy dog.] ↓0` · IP 5–5 · Undo —
+- `type("abc")` → `[The qabc‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "abc"
+- `undo` → `[The q‸uick brown fox jumps over the lazy dog.]` · IP 5–5 · Undo —
 
 **Track Changes on**
 
-- `type("abc")` → `[The q]{+[abc]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing "abc"
-- `undo` → `[The q‸uick brown fox jumps over the lazy dog.] ↓0` · IP 5–5 · Tracking · Revisions 0 · Undo —
+- `type("abc")` → `[The q]{+[abc]+}[‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing "abc"
+- `undo` → `[The q‸uick brown fox jumps over the lazy dog.]` · IP 5–5 · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -16560,13 +16626,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Left` · `type("c")`
 
-- `type("c")` → `[The qac‸buick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Undo depth 2
-- `undo` → `[The qa‸buick brown fox jumps over the lazy dog.] ↓0` · IP 6–6 · Undo depth 1
+- `type("c")` → `[The qac‸buick brown fox jumps over the lazy dog.]` · IP 7–7 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The qa‸buick brown fox jumps over the lazy dog.]` · IP 6–6 · Undo: Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[ac‸b]+}[uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 2
-- `undo` → `[The q]{+[a‸b]+}[uick brown fox jumps over the lazy dog.] ↓0` · IP 6–6 · Tracking · Revisions 1 · Undo depth 1
+- `type("c")` → `[The q]{+[ac‸b]+}[uick brown fox jumps over the lazy dog.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The q]{+[a‸b]+}[uick brown fox jumps over the lazy dog.]` · IP 6–6 · Tracking · Revisions 1 · Undo: Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16585,13 +16651,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `click(P1:7)` · `type("c")`
 
-- `type("c")` → `[The qabc‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 2
-- `undo` → `[The qab‸uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Undo depth 1
+- `type("c")` → `[The qabc‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The qab‸uick brown fox jumps over the lazy dog.]` · IP 7–7 · Undo: Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[abc]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo depth 2
-- `undo` → `[The q]{+[ab]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 1
+- `type("c")` → `[The q]{+[abc]+}[‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The q]{+[ab]+}[‸uick brown fox jumps over the lazy dog.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16611,13 +16677,13 @@ Expected before the run: (a) one entry for the whole string; (b) the space close
 
 steps before the branches `select(P1:5)` · `type("a b")`
 
-- `type("a b")` → `[The qa b‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 1
-- `undo` → `[The q‸uick brown fox jumps over the lazy dog.] ↓0` · IP 5–5 · Undo —
+- `type("a b")` → `[The qa b‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "a b"
+- `undo` → `[The q‸uick brown fox jumps over the lazy dog.]` · IP 5–5 · Undo —
 
 **Track Changes on**
 
-- `type("a b")` → `[The q]{+[a b]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[The q‸uick brown fox jumps over the lazy dog.] ↓0` · IP 5–5 · Tracking · Revisions 0 · Undo —
+- `type("a b")` → `[The q]{+[a b]+}[‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing "a b"
+- `undo` → `[The q‸uick brown fox jumps over the lazy dog.]` · IP 5–5 · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -16636,13 +16702,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Enter` · `type("c")`
 
-- `type("c")` → `[The qab] ↓0 / [c‸uick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Undo depth 3
-- `undo` → `[The qab] ↓0 / [‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 2
+- `type("c")` → `[The qab] / [c‸uick brown fox jumps over the lazy dog.]` · IP 9–9 · Undo: Typing "c", Typing, Typing "ab"
+- `undo` → `[The qab] / [‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing, Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[ab] ↓0 / [c]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Tracking · Revisions 1 · Undo depth 3
-- `undo` → `[The q]{+[ab]+} ↓0 / [‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo depth 2
+- `type("c")` → `[The q]{+[ab] / [c]+}[‸uick brown fox jumps over the lazy dog.]` · IP 9–9 · Tracking · Revisions 1 · Undo: Typing "c", Typing, Typing "ab"
+- `undo` → `[The q]{+[ab]+} / [‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing, Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16661,13 +16727,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Backspace` · `type("c")`
 
-- `type("c")` → `[The qac‸uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Undo depth 3
-- `undo` → `[The qa‸uick brown fox jumps over the lazy dog.] ↓0` · IP 6–6 · Undo depth 2
+- `type("c")` → `[The qac‸uick brown fox jumps over the lazy dog.]` · IP 7–7 · Undo: Typing "c", Typing, Typing "ab"
+- `undo` → `[The qa‸uick brown fox jumps over the lazy dog.]` · IP 6–6 · Undo: Typing, Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[ac]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 3
-- `undo` → `[The q]{+[a]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 6–6 · Tracking · Revisions 1 · Undo depth 2
+- `type("c")` → `[The q]{+[ac]+}[‸uick brown fox jumps over the lazy dog.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing "c", Typing, Typing "ab"
+- `undo` → `[The q]{+[a]+}[‸uick brown fox jumps over the lazy dog.]` · IP 6–6 · Tracking · Revisions 1 · Undo: Typing, Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16685,13 +16751,13 @@ splits the typing in two.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Ctrl+B` · `type("c")`
 
-- `type("c")` → `[The ][b:qabc‸uick ][brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 3
-- `undo` → `[The ][b:qab‸uick ][brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Undo depth 2
+- `type("c")` → `[The ][b:qabc‸uick ][brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "c", Bold, Typing "ab"
+- `undo` → `[The ][b:qab‸uick ][brown fox jumps over the lazy dog.]` · IP 7–7 · Undo: Bold, Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The ]{~[b:q]{+[b:ab]~}[b:c]+}{~[b:‸uick]~}[b: ][brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 3 · Undo depth 3
-- `undo` → `[The ]{~[b:q]{+[b:ab]+}[b:‸uick]~}[b: ][brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Tracking · Revisions 2 · Undo depth 2
+- `type("c")` → `[The ]{~[b:q]{+[b:ab]~}[b:c]+}{~[b:‸uick]~}[b: ][brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 3 · Undo: Typing "c", Bold, Typing "ab"
+- `undo` → `[The ]{~[b:q]{+[b:ab]+}[b:‸uick]~}[b: ][brown fox jumps over the lazy dog.]` · IP 7–7 · Tracking · Revisions 2 · Undo: Bold, Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16710,13 +16776,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `wait(5000)` · `type("c")`
 
-- `type("c")` → `[The qabc‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 2
-- `undo` → `[The qab‸uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Undo depth 1
+- `type("c")` → `[The qabc‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The qab‸uick brown fox jumps over the lazy dog.]` · IP 7–7 · Undo: Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[abc]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo depth 2
-- `undo` → `[The q]{+[ab]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Tracking · Revisions 1 · Undo depth 1
+- `type("c")` → `[The q]{+[abc]+}[‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The q]{+[ab]+}[‸uick brown fox jumps over the lazy dog.]` · IP 7–7 · Tracking · Revisions 1 · Undo: Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16735,13 +16801,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Shift+Enter` · `type("b")`
 
-- `type("b")` → `[The qab\nb‸uick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Undo depth 3
-- `undo` → `[The qab\n‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 2
+- `type("b")` → `[The qab\nb‸uick brown fox jumps over the lazy dog.]` · IP 9–9 · Undo: Typing "b", Typing ".", Typing "ab"
+- `undo` → `[The qab\n‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing ".", Typing "ab"
 
 **Track Changes on**
 
-- `type("b")` → `[The q]{+[ab\nb]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Tracking · Revisions 1 · Undo depth 3
-- `undo` → `[The q]{+[ab\n]+}[‸uick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo depth 2
+- `type("b")` → `[The q]{+[ab\nb]+}[‸uick brown fox jumps over the lazy dog.]` · IP 9–9 · Tracking · Revisions 1 · Undo: Typing "b", Typing ".", Typing "ab"
+- `undo` → `[The q]{+[ab\n]+}[‸uick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing ".", Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16760,13 +16826,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Delete` · `type("c")`
 
-- `type("c")` → `[The qabc‸ick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 3
-- `undo` → `[The qab‸ick brown fox jumps over the lazy dog.] ↓0` · IP 7–7 · Undo depth 2
+- `type("c")` → `[The qabc‸ick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "c", Clear, Typing "ab"
+- `undo` → `[The qab‸ick brown fox jumps over the lazy dog.]` · IP 7–7 · Undo: Clear, Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[ab]+}{-[u]-}{+[c]+}[‸ick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Tracking · Revisions 3 · Undo depth 3
-- `undo` → `[The q]{+[ab]+}{-[u]-}[‸ick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 2 · Undo depth 2
+- `type("c")` → `[The q]{+[ab]+}{-[u]-}{+[c]+}[‸ick brown fox jumps over the lazy dog.]` · IP 9–9 · Tracking · Revisions 3 · Undo: Typing "c", Clear, Typing "ab"
+- `undo` → `[The q]{+[ab]+}{-[u]-}[‸ick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 2 · Undo: Clear, Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -16785,13 +16851,13 @@ a 5 s pause (a) does nothing (b) closes the group.
 
 steps before the branches `select(P1:5)` · `type("ab")` · `Right` · `type("c")`
 
-- `type("c")` → `[The qabuc‸ick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Undo depth 2
-- `undo` → `[The qabu‸ick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Undo depth 1
+- `type("c")` → `[The qabuc‸ick brown fox jumps over the lazy dog.]` · IP 9–9 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The qabu‸ick brown fox jumps over the lazy dog.]` · IP 8–8 · Undo: Typing "ab"
 
 **Track Changes on**
 
-- `type("c")` → `[The q]{+[ab]+}[u]{+[c]+}[‸ick brown fox jumps over the lazy dog.] ↓0` · IP 9–9 · Tracking · Revisions 2 · Undo depth 2
-- `undo` → `[The q]{+[ab]+}[u‸ick brown fox jumps over the lazy dog.] ↓0` · IP 8–8 · Tracking · Revisions 1 · Undo depth 1
+- `type("c")` → `[The q]{+[ab]+}[u]{+[c]+}[‸ick brown fox jumps over the lazy dog.]` · IP 9–9 · Tracking · Revisions 2 · Undo: Typing "c", Typing "ab"
+- `undo` → `[The q]{+[ab]+}[u‸ick brown fox jumps over the lazy dog.]` · IP 8–8 · Tracking · Revisions 1 · Undo: Typing "ab"
 
 ```mermaid
 flowchart TD
@@ -17002,7 +17068,7 @@ Expected before the run: (a) one Move entry; (b) a Cut and a Paste entry.
 [alpha,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]
 ```
 
-Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 37–42 end-active · Undo: Move · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -17028,7 +17094,7 @@ Expected before the run: (a) one Copy entry; (b) a Paste entry.
 [alpha beta,  gamma-delta 3.14 don't (eps) ⟦beta ‸⟧1,000 10:30 end.]
 ```
 
-Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find("beta")) → Range 7-7, IBeam · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 42–47 end-active · Undo: Copy · dblclick(P1:find("beta")) → Range 7-7, IBeam · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · ctrl+drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -17131,12 +17197,12 @@ Selection: IP 2–2 · Story Footnotes · Tracking · Revisions 1 · Undo: Footn
 2. `Ctrl+Alt+M`
 
 ```text
-[The quick‸ brown fox jumps over the lazy dog.]
+[The ⟪quick⟫1 brown fox jumps over the lazy dog.]
 ```
 
-Selection: IP 9–9 · Undo —
+Selection: Normal 22–22 · Story unreadable · Undo —
 
-_TrackRevisions unreadable: The TrackRevisions method or property is not available because comment card is selected in pane._
+_The selection's story was unreadable (a comment card holds the selection)._
 
 **Track Changes on**
 
@@ -17144,12 +17210,12 @@ _TrackRevisions unreadable: The TrackRevisions method or property is not availab
 2. `Ctrl+Alt+M`
 
 ```text
-[The quick‸ brown fox jumps over the lazy dog.]
+[The ⟪quick⟫1 brown fox jumps over the lazy dog.]
 ```
 
-Selection: IP 9–9 · Undo —
+Selection: Normal 22–22 · Story unreadable · Tracking · Revisions 0 · Undo —
 
-_TrackRevisions unreadable: The TrackRevisions method or property is not available because comment card is selected in pane._
+_The selection's story was unreadable (a comment card holds the selection)._
 
 #### U-02m · Undo entry names: Enter, Shift+Enter and Ctrl+Enter in a paragraph
 
@@ -17338,7 +17404,7 @@ Notes: P4 is the centred paragraph.
 2. `Alt+Shift+D`
 
 ```text
-[The q][«][ DATE \@ "d/MM/yyyy" ][|][25/10/2026][»][‸uick brown fox jumps over the lazy dog.]
+[The q][«][ DATE \@ "d/MM/yyyy" ][|][27/10/2026][»][‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 39–39 · Undo: Date Field
@@ -17351,7 +17417,7 @@ Markup diff: `WordProbe/Results/markup/U-02s.diff`
 2. `Alt+Shift+D`
 
 ```text
-[The q]{+[«][ DATE \@ "d/MM/yyyy" ][|][25/10/2026][»]+}[‸uick brown fox jumps over the lazy dog.]
+[The q]{+[«][ DATE \@ "d/MM/yyyy" ][|][27/10/2026][»]+}[‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 39–39 · Tracking · Revisions 1 · Undo: Date Field
@@ -17369,7 +17435,7 @@ Expected before the run: (a) an Update Field entry even when the result is uncha
 
 ```text
 [Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]
-[Date: ][«][ DATE \@ "d/MM/yyyy" ][|][25/10/2026][»][ end.]
+[Date: ][«][ DATE \@ "d/MM/yyyy" ][|][27/10/2026][»][ end.]
 ```
 
 Selection: IP 5–5 · Undo: Update Fields
@@ -17381,7 +17447,7 @@ Selection: IP 5–5 · Undo: Update Fields
 
 ```text
 [Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]
-[b:Date: ][«][ DATE \@ "d/MM/yyyy" ][|][25/10/2026][»][ end.]
+[b:Date: ][«][ DATE \@ "d/MM/yyyy" ][|][27/10/2026][»][ end.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo: Update Fields
@@ -17432,13 +17498,13 @@ Expected before the run: The first undo puts 'teh ' back; the second removes the
 | `undo` | IP 10–10 | `[teh ‸]` |
 
 ```text
-[Above] ↓0
-[teh ‸] ↓0
- ↓0
-[Below] ↓0
+[Above]
+[teh ‸]
+
+[Below]
 ```
 
-Selection: IP 10–10 · overtype · Undo depth 1
+Selection: IP 10–10 · Undo: Typing "teh "
 
 **Track Changes on**
 
@@ -17454,13 +17520,13 @@ Selection: IP 10–10 · overtype · Undo depth 1
 | `undo` | IP 10–10 | `[teh ‸]` |
 
 ```text
-[Above] ↓0
-{+[teh ]+}‸ ↓0
- ↓0
-[Below] ↓0
+[Above]
+{+[teh ]+}‸
+
+[Below]
 ```
 
-Selection: IP 10–10 · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 10–10 · Tracking · Revisions 1 · Undo: Typing "teh "
 
 #### U-04a · Selection after undoing typing
 
@@ -17479,7 +17545,7 @@ selection as it was before the edit.
 | `undo` | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: IP 6–6 · Undo —
@@ -17496,7 +17562,7 @@ Selection: IP 6–6 · Undo —
 | `undo` | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: IP 6–6 · Tracking · Revisions 0 · Undo —
@@ -17518,7 +17584,7 @@ selection as it was before the edit.
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Undo —
@@ -17535,7 +17601,7 @@ Selection: Normal 6–10 end-active · Undo —
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo —
@@ -17555,11 +17621,11 @@ selection as it was before the edit.
 | step | selection | where |
 | --- | --- | --- |
 | `clipboard("pasted")` | IP 0–0 | `[‸alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
-| `Ctrl+V` | IP 13–13 | `[alpha pasted ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| `Ctrl+V` | IP 12–12 | `[alpha pasted‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 | `undo` | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: IP 6–6 · Undo —
@@ -17574,11 +17640,11 @@ Selection: IP 6–6 · Undo —
 | step | selection | where |
 | --- | --- | --- |
 | `clipboard("pasted")` | IP 0–0 | `[‸alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
-| `Ctrl+V` | IP 13–13 | `[alpha pasted ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| `Ctrl+V` | IP 12–12 | `[alpha pasted‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 | `undo` | IP 6–6 | `[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: IP 6–6 · Tracking · Revisions 0 · Undo —
@@ -17600,7 +17666,7 @@ selection as it was before the edit.
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Undo —
@@ -17617,7 +17683,7 @@ Selection: Normal 6–10 end-active · Undo —
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo —
@@ -17638,10 +17704,10 @@ Expected before the run: (a) back in cell (2,2) at its end; (b) the cell's conte
 | `undo` | IP 37–37 | `[Four‸¤]` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four‸¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Undo —
@@ -17658,10 +17724,10 @@ Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Undo —
 | `undo` | IP 37–37 | `[Four‸¤]` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four‸¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Undo —
@@ -17687,7 +17753,7 @@ drop point.
 [alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
-Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -17724,9 +17790,9 @@ selection as it was before the edit.
 | `undo` | IP 22–22 | `[‸Second bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[‸Second bold one.] (center) ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[‸Second bold one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 22–22 · Undo —
@@ -17743,9 +17809,9 @@ Selection: IP 22–22 · Undo —
 | `undo` | IP 22–22 | `[‸Second bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[‸Second ][b:bold ][one.] (center) ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[‸Second ][b:bold ][one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 22–22 · Tracking · Revisions 0 · Undo —
@@ -17767,9 +17833,9 @@ selection as it was before the edit.
 | `undo` | IP 26–26 | `[Seco‸nd bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[Seco‸nd bold one.] (center) ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[Seco‸nd bold one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 26–26 · Undo —
@@ -17786,9 +17852,9 @@ Selection: IP 26–26 · Undo —
 | `undo` | IP 26–26 | `[Seco‸nd bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[Seco‸nd ][b:bold ][one.] (center) ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[Seco‸nd ][b:bold ][one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 26–26 · Tracking · Revisions 0 · Undo —
@@ -17811,10 +17877,10 @@ Expected before the run: Redo restores 'a' with the caret after it; the redo lis
 | `redo` | IP 6–6 | `[The qa‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The qa‸uick brown fox jumps over the lazy dog.] ↓0
+[The qa‸uick brown fox jumps over the lazy dog.]
 ```
 
-Selection: IP 6–6 · Undo depth 1
+Selection: IP 6–6 · Undo: Typing "a"
 
 **Track Changes on**
 
@@ -17830,10 +17896,10 @@ Selection: IP 6–6 · Undo depth 1
 | `redo` | IP 6–6 | `[The qa‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q]{+[a]+}[‸uick brown fox jumps over the lazy dog.] ↓0
+[The q]{+[a]+}[‸uick brown fox jumps over the lazy dog.]
 ```
 
-Selection: IP 6–6 · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 6–6 · Tracking · Revisions 1 · Undo: Typing "a"
 
 #### U-05b · A new edit clears the redo stack, and Ctrl+Y becomes Repeat
 
@@ -17855,10 +17921,10 @@ Expected before the run: Ctrl+Y repeats the 'b' rather than redoing the 'a', giv
 | `Ctrl+Y` | IP 7–7 | `[The qbb‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The qbb‸uick brown fox jumps over the lazy dog.] ↓0
+[The qbb‸uick brown fox jumps over the lazy dog.]
 ```
 
-Selection: IP 7–7 · Undo depth 2
+Selection: IP 7–7 · Undo: Typing, Typing "b"
 
 **Track Changes on**
 
@@ -17876,10 +17942,10 @@ Selection: IP 7–7 · Undo depth 2
 | `Ctrl+Y` | IP 7–7 | `[The qbb‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q]{+[bb]+}[‸uick brown fox jumps over the lazy dog.] ↓0
+[The q]{+[bb]+}[‸uick brown fox jumps over the lazy dog.]
 ```
 
-Selection: IP 7–7 · Tracking · Revisions 1 · Undo depth 2
+Selection: IP 7–7 · Tracking · Revisions 1 · Undo: Typing, Typing "b"
 
 #### U-06a · Repeat typing elsewhere with F4
 
@@ -17898,12 +17964,12 @@ Expected before the run: 'abc' is typed again at P3:2.
 | `F4` | IP 47–47 | `[Thabc‸ird and last.]` |
 
 ```text
-[Firstabc paragraph here.] ↓0
-[Second bold one.] (center) ↓0
-[Thabc‸ird and last.] ↓0
+[Firstabc paragraph here.]
+[Second bold one.] (center)
+[Thabc‸ird and last.]
 ```
 
-Selection: IP 47–47 · Undo depth 2
+Selection: IP 47–47 · Undo: Typing, Typing "abc"
 
 **Track Changes on**
 
@@ -17918,12 +17984,12 @@ Selection: IP 47–47 · Undo depth 2
 | `F4` | IP 47–47 | `[Thabc‸ird and last.]` |
 
 ```text
-[First]{+[abc]+}[ paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Th]{+[abc]+}[‸ird and last.] ↓0
+[First]{+[abc]+}[ paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Th]{+[abc]+}[‸ird and last.]
 ```
 
-Selection: IP 47–47 · Tracking · Revisions 2 · Undo depth 2
+Selection: IP 47–47 · Tracking · Revisions 2 · Undo: Typing, Typing "abc"
 
 #### U-06b · Repeat Bold elsewhere with F4
 
@@ -17942,12 +18008,12 @@ Expected before the run: The second range is made bold.
 | `F4` | Normal 39–44 end-active | `[⟦Third‸⟧ and last.]` |
 
 ```text
-[b:First ][paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[b:⟦Third‸⟧ ][and last.] ↓0
+[b:First ][paragraph here.]
+[Second ][b:bold ][one.] (center)
+[b:⟦Third‸⟧ ][and last.]
 ```
 
-Selection: Normal 39–44 end-active · Undo depth 2
+Selection: Normal 39–44 end-active · Undo: Bold, Bold
 
 **Track Changes on**
 
@@ -17962,12 +18028,12 @@ Selection: Normal 39–44 end-active · Undo depth 2
 | `F4` | Normal 39–44 end-active | `[⟦Third‸⟧ and last.]` |
 
 ```text
-{~[b:First]~}[b: ][paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-{~[b:⟦Third‸⟧]~}[b: ][and last.] ↓0
+{~[b:First]~}[b: ][paragraph here.]
+[Second ][b:bold ][one.] (center)
+{~[b:⟦Third‸⟧]~}[b: ][and last.]
 ```
 
-Selection: Normal 39–44 end-active · Tracking · Revisions 2 · Undo depth 2
+Selection: Normal 39–44 end-active · Tracking · Revisions 2 · Undo: Bold, Bold
 
 #### U-06c · Repeat a paste elsewhere with F4
 
@@ -17984,16 +18050,16 @@ Expected before the run: (a) the paste is repeated at P3:2; (b) F4 does nothing 
 | step | selection | where |
 | --- | --- | --- |
 | `clipboard("pasted")` | IP 0–0 | `[‸First paragraph here.]` |
-| `Ctrl+V` | IP 12–12 | `[First pasted‸ paragraph here.]` |
-| `F4` | IP 56–56 | `[Th pasted ‸ird and last.]` |
+| `Ctrl+V` | IP 11–11 | `[Firstpasted‸ paragraph here.]` |
+| `F4` | IP 53–53 | `[Thpasted‸ird and last.]` |
 
 ```text
-[First pasted paragraph here.] ↓0
-[Second bold one.] (center) ↓0
-[Th pasted ‸ird and last.] ↓0
+[Firstpasted paragraph here.]
+[Second bold one.] (center)
+[Thpasted‸ird and last.]
 ```
 
-Selection: IP 56–56 · Undo depth 2
+Selection: IP 53–53 · Undo: Paste, Paste
 
 **Track Changes on**
 
@@ -18006,16 +18072,16 @@ Selection: IP 56–56 · Undo depth 2
 | step | selection | where |
 | --- | --- | --- |
 | `clipboard("pasted")` | IP 0–0 | `[‸First paragraph here.]` |
-| `Ctrl+V` | IP 12–12 | `[First pasted‸ paragraph here.]` |
-| `F4` | IP 56–56 | `[Th pasted ‸ird and last.]` |
+| `Ctrl+V` | IP 11–11 | `[Firstpasted‸ paragraph here.]` |
+| `F4` | IP 53–53 | `[Thpasted‸ird and last.]` |
 
 ```text
-[First]{+[ pasted]+}[ paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Th]{+[ pasted ]+}[‸ird and last.] ↓0
+[First]{+[pasted]+}[ paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Th]{+[pasted]+}[‸ird and last.]
 ```
 
-Selection: IP 56–56 · Tracking · Revisions 2 · Undo depth 2
+Selection: IP 53–53 · Tracking · Revisions 2 · Undo: Paste, Paste
 
 #### U-06d · Repeat a deletion elsewhere with F4
 
@@ -18035,12 +18101,12 @@ characters are deleted.
 | `F4` | IP 35–35 | `[Th‸rd and last.]` |
 
 ```text
-[paragraph here.] ↓0
-[Second bold one.] (center) ↓0
-[Th‸rd and last.] ↓0
+[paragraph here.]
+[Second bold one.] (center)
+[Th‸rd and last.]
 ```
 
-Selection: IP 35–35 · Undo depth 2
+Selection: IP 35–35 · Undo: Clear, Clear
 
 **Track Changes on**
 
@@ -18055,12 +18121,12 @@ Selection: IP 35–35 · Undo depth 2
 | `F4` | IP 42–42 | `[Thi‸rd and last.]` |
 
 ```text
-{-[First ]-}[paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Th]{-[i]-}[‸rd and last.] ↓0
+{-[First ]-}[paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Th]{-[i]-}[‸rd and last.]
 ```
 
-Selection: IP 42–42 · Tracking · Revisions 2 · Undo depth 2
+Selection: IP 42–42 · Tracking · Revisions 2 · Undo: Clear, Clear
 
 #### U-06e · Repeat Heading 1 elsewhere with F4
 
@@ -18080,11 +18146,11 @@ Expected before the run: P3 becomes Heading 1.
 
 ```text
 [First paragraph here.] #Heading1
-[Second ][b:bold ][one.] (center) ↓0
+[Second ][b:bold ][one.] (center)
 [Th‸ird and last.] #Heading1
 ```
 
-Selection: IP 41–41 · Undo depth 2
+Selection: IP 41–41 · Undo: Style, Style
 
 **Track Changes on**
 
@@ -18100,11 +18166,11 @@ Selection: IP 41–41 · Undo depth 2
 
 ```text
 {~[First paragraph here.]~} #Heading1
-[Second ][b:bold ][one.] (center) ↓0
+[Second ][b:bold ][one.] (center)
 {~[Th‸ird and last.]~} #Heading1
 ```
 
-Selection: IP 41–41 · Tracking · Revisions 2 · Undo depth 2
+Selection: IP 41–41 · Tracking · Revisions 2 · Undo: Style, Style
 
 #### U-06f · Repeat an AutoCorrected typing elsewhere with F4
 
@@ -18124,13 +18190,13 @@ Expected before the run: (a) the corrected 'the ' is repeated; (b) the raw 'teh 
 | `F4` | IP 11–11 | `‸` |
 
 ```text
-[Above] ↓0
-[The ] ↓0
-‸ ↓0
-[Below] ↓0
+[Above]
+[The ]
+‸
+[Below]
 ```
 
-Selection: IP 11–11 · Undo depth 3
+Selection: IP 11–11 · Undo: AutoCorrect, AutoCorrect, Typing "teh "
 
 **Track Changes on**
 
@@ -18145,13 +18211,13 @@ Selection: IP 11–11 · Undo depth 3
 | `F4` | IP 11–11 | `‸` |
 
 ```text
-[Above] ↓0
-{+[The ]+} ↓0
-‸ ↓0
-[Below] ↓0
+[Above]
+{+[The ]+}
+‸
+[Below]
 ```
 
-Selection: IP 11–11 · Tracking · Revisions 1 · Undo depth 3
+Selection: IP 11–11 · Tracking · Revisions 1 · Undo: AutoCorrect, AutoCorrect, Typing "teh "
 
 #### U-07a · Undo and redo the row Tab adds
 
@@ -18169,14 +18235,14 @@ Selection: IP 11–11 · Tracking · Revisions 1 · Undo depth 3
 | `redo` | IP 37–37 | `[Four‸¤]` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four‸¤]║¤
 T1 R3 ║¤║¤║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Undo depth 1
+Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Undo: Next Cell
 
 **Track Changes on**
 
@@ -18192,14 +18258,14 @@ Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Undo depth 1
 | `redo` | IP 37–37 | `[Four‸¤]` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four‸¤]║¤
 T1 R3 ║{+¤║¤║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
-Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Next Cell
 
 #### U-07b · Undo Enter in the first cell of a table at the document start
 
@@ -18220,7 +18286,7 @@ removes it and the caret returns to the cell.
 ```text
 T1 R1 ║[‸One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 0–0 · Cells 1 (R1C1–R1C1) · Undo —
@@ -18239,7 +18305,7 @@ Selection: IP 0–0 · Cells 1 (R1C1–R1C1) · Undo —
 ```text
 T1 R1 ║[‸One¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 0–0 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo —
@@ -18262,12 +18328,12 @@ Expected before the run: Undo restores P2 with its centring; redo merges again.
 | `redo` | IP 22–22 | `[‸Second bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[‸Second ][b:bold ][one.] ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[‸Second ][b:bold ][one.]
+[Third and last.]
 ```
 
-Selection: IP 22–22 · Undo depth 1
+Selection: IP 22–22 · Undo: AutoFormat
 
 **Track Changes on**
 
@@ -18283,12 +18349,12 @@ Selection: IP 22–22 · Undo depth 1
 | `redo` | IP 22–22 | `[‸Second bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-{~[‸Second ][b:bold ][one.]~} ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+{~[‸Second ][b:bold ][one.]~}
+[Third and last.]
 ```
 
-Selection: IP 22–22 · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 22–22 · Tracking · Revisions 1 · Undo: AutoFormat
 
 #### U-07d · Undo an Enter split
 
@@ -18304,9 +18370,9 @@ Selection: IP 22–22 · Tracking · Revisions 1 · Undo depth 1
 | `undo` | IP 26–26 | `[Seco‸nd bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[Seco‸nd ][b:bold ][one.] (center) ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[Seco‸nd ][b:bold ][one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 26–26 · Undo —
@@ -18323,9 +18389,9 @@ Selection: IP 26–26 · Undo —
 | `undo` | IP 26–26 | `[Seco‸nd bold one.]` |
 
 ```text
-[First paragraph here.] ↓0
-[Seco‸nd ][b:bold ][one.] (center) ↓0
-[Third and last.] ↓0
+[First paragraph here.]
+[Seco‸nd ][b:bold ][one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 26–26 · Tracking · Revisions 0 · Undo —
@@ -18350,7 +18416,7 @@ Expected before the run: (a) one undo restores the text and the smart-cut spacin
 [alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
-Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, WordOwn · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
+Selection: Normal 6–10 end-active · Undo — · dblclick(P1:find("beta")) → Range 7-7, IBeam · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) from → Range 8-8, Arrow · drag(P1:find("beta")-P1:find("beta"):end→P1:find("1,000")) to → Range 42-42, IBeam
 
 **Track Changes on**
 
@@ -18380,16 +18446,16 @@ Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo — · db
 
 | step | selection | where |
 | --- | --- | --- |
-| `click(rowBar R2)` | Row 28–38 end-active | `¤ …` |
+| `click(rowBar R2)` | Row 28–38 end-active | `⟦¤‸⟧ …` |
 | `Backspace` | IP 28–28 | `[‸a3¤]` |
-| `undo` | Row 28–38 end-active | `¤ …` |
+| `undo` | Row 28–38 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo — · click(rowBar R2) → Range 28-28, WordOwn
@@ -18402,16 +18468,16 @@ Selection: Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo — · click(
 
 | step | selection | where |
 | --- | --- | --- |
-| `click(rowBar R2)` | Row 28–38 end-active | `¤ …` |
+| `click(rowBar R2)` | Row 28–38 end-active | `⟦¤‸⟧ …` |
 | `Backspace` | IP 28–28 | `[‸a2¤]` |
-| `undo` | Row 28–38 end-active | `¤ …` |
+| `undo` | Row 28–38 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Tracking · Revisions 0 · Undo — · click(rowBar R2) → Range 28-28, WordOwn
@@ -18430,14 +18496,14 @@ only the first cell; one undo restores the cells.
 | step | selection | where |
 | --- | --- | --- |
 | `type("x")` | IP 29–29 | `[x‸¤]` |
-| `undo` | Row 28–38 end-active | `¤ …` |
+| `undo` | Row 28–38 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo —
@@ -18451,14 +18517,14 @@ Selection: Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Undo —
 | step | selection | where |
 | --- | --- | --- |
 | `type("x")` | IP 31–31 | `[a2x‸¤]` |
-| `undo` | Row 28–38 end-active | `¤ …` |
+| `undo` | Row 28–38 end-active | `⟦¤‸⟧ …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[⟦a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤‸⟧
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Row 28–38 end-active · Cells 3 (R2C1–R2C3) · Tracking · Revisions 0 · Undo —
@@ -18476,20 +18542,20 @@ them in one step.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Backspace` | Column 18–31 end-active | `[a2¤] …` |
-| `undo` | Column 18–31 end-active | `[a2¤] …` |
+| `Backspace` | Column 18–31 end-active | `⟦[a2¤‸⟧] …` |
+| `undo` | Column 18–31 end-active | `⟦[a2¤‸⟧] …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤‸⟧]║[b2¤]║[c2¤]║¤
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 18–31 end-active · Cells 2 (R1C1–R2C1) · Undo —
 
-_settle timeout (Type)_
+_dialog during step: bosa_sdm_msword "Delete Cells" (dismissed); settle timeout (Type)_
 
 **Track Changes on**
 
@@ -18499,20 +18565,20 @@ _settle timeout (Type)_
 
 | step | selection | where |
 | --- | --- | --- |
-| `Backspace` | Column 18–31 end-active | `[a2¤] …` |
-| `undo` | Column 18–31 end-active | `[a2¤] …` |
+| `Backspace` | Column 18–31 end-active | `⟦[a2¤‸⟧] …` |
+| `undo` | Column 18–31 end-active | `⟦[a2¤‸⟧] …` |
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤‸⟧]║[b2¤]║[c2¤]║¤
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 18–31 end-active · Cells 2 (R1C1–R2C1) · Tracking · Revisions 0 · Undo —
 
-_settle timeout (Type)_
+_dialog during step: bosa_sdm_msword "Delete Cells" (dismissed); settle timeout (Type)_
 
 #### U-08a · Undo an inline picture deletion
 
@@ -18526,13 +18592,13 @@ Expected before the run: The picture returns (a) selected (b) with an IP before 
 
 | step | selection | where |
 | --- | --- | --- |
-| `click(IMG1)` | InlineShape 12–13 end-active | `[Text before ⟦/‸⟧ after end.]` |
+| `click(IMG1)` | InlineShape 12–13 end-active | `[Text before ⟦▣‸⟧ after end.]` |
 | `Delete` | IP 12–12 | `[Text before ‸ after end.]` |
-| `undo` | InlineShape 12–13 end-active | `[Text before ⟦/‸⟧ after end.]` |
+| `undo` | InlineShape 12–13 end-active | `[Text before ⟦▣‸⟧ after end.]` |
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · Undo — · click(IMG1) → Shape Picture 1, WordOwn
@@ -18545,13 +18611,13 @@ Selection: InlineShape 12–13 end-active · InlineShapes 1 · Undo — · click
 
 | step | selection | where |
 | --- | --- | --- |
-| `click(IMG1)` | InlineShape 12–13 end-active | `[Text before ⟦/‸⟧ after end.]` |
-| `Delete` | IP 13–13 | `[Text before /‸ after end.]` |
-| `undo` | InlineShape 12–13 end-active | `[Text before ⟦/‸⟧ after end.]` |
+| `click(IMG1)` | InlineShape 12–13 end-active | `[Text before ⟦▣‸⟧ after end.]` |
+| `Delete` | IP 13–13 | `[Text before ▣‸ after end.]` |
+| `undo` | InlineShape 12–13 end-active | `[Text before ⟦▣‸⟧ after end.]` |
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — · click(IMG1) → Shape Picture 1, WordOwn
@@ -18565,13 +18631,13 @@ are grouped and one undo returns it to the start.
 
 steps before the branches `click(SHP1)` · `Right` · `Right` · `Right`
 
-- `Right` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @301.8,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo depth 3
-- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @301.2,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo depth 2
+- `Right` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @301.8,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo: Draw Nudge Right, Draw Nudge Right, Draw Nudge Right
+- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @301.2,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo: Draw Nudge Right, Draw Nudge Right
 
 **Track Changes on**
 
-- `Right` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @301.8,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 3
-- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @301.2,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 2
+- `Right` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @301.8,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Draw Nudge Right, Draw Nudge Right, Draw Nudge Right
+- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @301.2,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Draw Nudge Right, Draw Nudge Right
 
 ```mermaid
 flowchart TD
@@ -18831,7 +18897,7 @@ unlimited, the text back to the fox sentence.
 242. `Ctrl+Z x120`
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Undo —
@@ -19082,7 +19148,7 @@ Selection: IP 5–5 · Undo —
 242. `Ctrl+Z x120`
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
@@ -19108,7 +19174,7 @@ Expected before the run: The insertion revision is removed, not marked as delete
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
@@ -19131,7 +19197,7 @@ Expected before the run: The deletion revision is removed and the character is p
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
@@ -19154,7 +19220,7 @@ Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
@@ -19180,13 +19246,13 @@ second removes the Enter.
 | `undo` | IP 10–10 | `[item‸]` |
 
 ```text
-[Above] ↓0
+[Above]
 [item‸] #ListParagraph •1.0 ● ⇥36,-18
- ↓0
-[Below] ↓0
+
+[Below]
 ```
 
-Selection: IP 10–10 · Undo depth 4
+Selection: IP 10–10 · Undo: Typing "item", AutoFormat, Typing "* "
 
 Markup diff: `WordProbe/Results/markup/U-12a.diff`
 
@@ -19206,13 +19272,13 @@ Markup diff: `WordProbe/Results/markup/U-12a.diff`
 | `undo` | IP 10–10 | `[item‸]` |
 
 ```text
-[Above] ↓0
+[Above]
 {+{~[item]+}‸~} #ListParagraph •1.0 ● ⇥36,-18
- ↓0
-[Below] ↓0
+
+[Below]
 ```
 
-Selection: IP 10–10 · Tracking · Revisions 2 · Undo depth 4
+Selection: IP 10–10 · Tracking · Revisions 2 · Undo: Typing "item", AutoFormat, Typing "* "
 
 Markup diff: `WordProbe/Results/markup/U-12a_tracked.diff`
 
@@ -19235,14 +19301,14 @@ paragraph split.
 | `undo` | IP 10–10 | `‸` |
 
 ```text
-[Above] ↓0
-[---] ↓0
-‸ ↓0
- ↓0
-[Below] ↓0
+[Above]
+[---]
+‸
+
+[Below]
 ```
 
-Selection: IP 10–10 · Undo depth 2
+Selection: IP 10–10 · Undo: Typing, Typing "---"
 
 Markup diff: `WordProbe/Results/markup/U-12b.diff`
 
@@ -19260,14 +19326,14 @@ Markup diff: `WordProbe/Results/markup/U-12b.diff`
 | `undo` | IP 10–10 | `‸` |
 
 ```text
-[Above] ↓0
-{+[---]+} ↓0
-‸ ↓0
- ↓0
-[Below] ↓0
+[Above]
+{+[---]+}
+‸
+
+[Below]
 ```
 
-Selection: IP 10–10 · Tracking · Revisions 1 · Undo depth 2
+Selection: IP 10–10 · Tracking · Revisions 1 · Undo: Typing, Typing "---"
 
 Markup diff: `WordProbe/Results/markup/U-12b_tracked.diff`
 
@@ -19283,17 +19349,17 @@ Expected before the run: One undo removes the hyperlink and keeps the text and t
 
 | step | selection | where |
 | --- | --- | --- |
-| `type("www.example.com ")` | IP 59–59 | `[«HYPERLINK "http://www.example.com"www.example.com» ‸]` |
+| `type("www.example.com ")` | IP 59–59 | `<[www.example.com]>[ ‸]` |
 | `undo` | IP 22–22 | `[www.example.com ‸]` |
 
 ```text
-[Above] ↓0
-[www.example.com ‸] ↓0
- ↓0
-[Below] ↓0
+[Above]
+[www.example.com ‸]
+
+[Below]
 ```
 
-Selection: IP 22–22 · Undo depth 1
+Selection: IP 22–22 · Undo: Typing "www.example.com "
 
 Markup diff: `WordProbe/Results/markup/U-12c.diff`
 
@@ -19305,17 +19371,17 @@ Markup diff: `WordProbe/Results/markup/U-12c.diff`
 
 | step | selection | where |
 | --- | --- | --- |
-| `type("www.example.com ")` | IP 59–59 | `[«HYPERLINK "http://www.example.com"www.example.com» ‸]` |
+| `type("www.example.com ")` | IP 59–59 | `<[www.example.com]>[ ‸]` |
 | `undo` | IP 22–22 | `[www.example.com ‸]` |
 
 ```text
-[Above] ↓0
-{+[www.example.com ]+}‸ ↓0
- ↓0
-[Below] ↓0
+[Above]
+{+[www.example.com ]+}‸
+
+[Below]
 ```
 
-Selection: IP 22–22 · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 22–22 · Tracking · Revisions 1 · Undo: Typing "www.example.com "
 
 Markup diff: `WordProbe/Results/markup/U-12c_tracked.diff`
 
@@ -19340,7 +19406,7 @@ footnote and returns the caret to P1:5.
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Undo —
@@ -19361,7 +19427,7 @@ Selection: IP 5–5 · Undo —
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
@@ -19380,13 +19446,13 @@ Expected before the run: As for the footnote: the typing first, then the comment
 
 | step | selection | where |
 | --- | --- | --- |
-| `Ctrl+Alt+M` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
-| `type("c")` | IP 10–10 | `[The qcuick‸ brown fox jumps over the lazy dog.]` |
-| `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
+| `Ctrl+Alt+M` | Normal 22–22 | `?` |
+| `type("c")` | Normal 23–23 | `?` |
+| `undo` | Normal 22–22 | `?` |
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Undo —
@@ -19401,13 +19467,13 @@ Selection: IP 5–5 · Undo —
 
 | step | selection | where |
 | --- | --- | --- |
-| `Ctrl+Alt+M` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
-| `type("c")` | IP 10–10 | `[The qcuick‸ brown fox jumps over the lazy dog.]` |
-| `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
+| `Ctrl+Alt+M` | Normal 22–22 | `?` |
+| `type("c")` | Normal 23–23 | `?` |
+| `undo` | Normal 22–22 | `?` |
 | `undo` | IP 5–5 | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 ```text
-[The q‸uick brown fox jumps over the lazy dog.] ↓0
+[The q‸uick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 0 · Undo —
@@ -19422,8 +19488,8 @@ steps `select(P1:5)` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| undo | IP 5–5 · Undo — | `[The q‸uick brown fox jumps over the lazy dog.] ↓0` |
-| Ctrl+Y | IP 5–5 · Undo — | `[The q‸uick brown fox jumps over the lazy dog.] ↓0` |
+| undo | IP 5–5 · Undo — | `[The q‸uick brown fox jumps over the lazy dog.]` |
+| Ctrl+Y | IP 5–5 · Undo — | `[The q‸uick brown fox jumps over the lazy dog.]` |
 
 #### U-15 · Undo typing over a selection
 
@@ -19442,7 +19508,7 @@ so one undo leaves the selection deleted.
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Undo —
@@ -19459,7 +19525,7 @@ Selection: Normal 6–10 end-active · Undo —
 | `undo` | Normal 6–10 end-active | `[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
 
 ```text
-[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
 Selection: Normal 6–10 end-active · Tracking · Revisions 0 · Undo —
@@ -19480,8 +19546,8 @@ Expected before the run: One entry (Change Case) restores the text.
 | `undo` | Normal 0–12 end-active | `[⟦One is first‸⟧. Two is next? Three uses e.g. four here. Five ends it.]` |
 
 ```text
-[⟦One is first‸⟧. Two is next? Three uses e.g. four here. Five ends it.] ↓0
-[Second line starts. It ends here.] ↓0
+[⟦One is first‸⟧. Two is next? Three uses e.g. four here. Five ends it.]
+[Second line starts. It ends here.]
 ```
 
 Selection: Normal 0–12 end-active · Undo —
@@ -19498,8 +19564,8 @@ Selection: Normal 0–12 end-active · Undo —
 | `undo` | Normal 0–12 end-active | `[⟦One is first‸⟧. Two is next? Three uses e.g. four here. Five ends it.]` |
 
 ```text
-[⟦One is first‸⟧. Two is next? Three uses e.g. four here. Five ends it.] ↓0
-[Second line starts. It ends here.] ↓0
+[⟦One is first‸⟧. Two is next? Three uses e.g. four here. Five ends it.]
+[Second line starts. It ends here.]
 ```
 
 Selection: Normal 0–12 end-active · Tracking · Revisions 0 · Undo —
@@ -19520,8 +19586,8 @@ Expected before the run: One entry restores the bold and italic runs.
 | `undo` | Normal 0–11 end-active | `[⟦Strong soft‸⟧ plain words.]` |
 
 ```text
-[b:⟦Strong ][i:soft‸⟧ ][plain words.] ↓0
-[Serif face sans face.] ↓0
+[b:⟦Strong ][i:soft‸⟧ ][plain words.]
+[14 Times New Roman:Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: Normal 0–11 end-active · Undo —
@@ -19538,8 +19604,8 @@ Selection: Normal 0–11 end-active · Undo —
 | `undo` | Normal 0–11 end-active | `[⟦Strong soft‸⟧ plain words.]` |
 
 ```text
-[b:⟦Strong ][i:soft‸⟧ ][plain words.] ↓0
-[Serif face sans face.] ↓0
+[b:⟦Strong ][i:soft‸⟧ ][plain words.]
+[14 Times New Roman:Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: Normal 0–11 end-active · Tracking · Revisions 0 · Undo —
@@ -19560,18 +19626,18 @@ Expected before the run: One entry restores the centring.
 | `undo` | IP 41–41 | `[Ce‸ntred kind.]` |
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Ce‸ntred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Ce‸ntred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 41–41 · Undo depth 1
+Selection: IP 41–41 · Undo —
 
 **Track Changes on**
 
@@ -19585,18 +19651,18 @@ Selection: IP 41–41 · Undo depth 1
 | `undo` | IP 41–41 | `[Ce‸ntred kind.]` |
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Ce‸ntred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Ce‸ntred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 41–41 · Tracking · Revisions 0 · Undo depth 1
+Selection: IP 41–41 · Tracking · Revisions 0 · Undo —
 
 #### U-16d · Undo Format Painter
 
@@ -19617,8 +19683,8 @@ Expected before the run: One entry; the copy (Ctrl+Shift+C) wrote none.
 | `undo` | Normal 12–17 end-active | `[Strong soft ⟦plain‸⟧ words.]` |
 
 ```text
-[b:Strong ][i:soft ][⟦plain‸⟧ words.] ↓0
-[Serif face sans face.] ↓0
+[b:Strong ][i:soft ][⟦plain‸⟧ words.]
+[14 Times New Roman:Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: Normal 12–17 end-active · Undo —
@@ -19638,8 +19704,8 @@ Selection: Normal 12–17 end-active · Undo —
 | `undo` | Normal 12–17 end-active | `[Strong soft ⟦plain‸⟧ words.]` |
 
 ```text
-[b:Strong ][i:soft ][⟦plain‸⟧ words.] ↓0
-[Serif face sans face.] ↓0
+[b:Strong ][i:soft ][⟦plain‸⟧ words.]
+[14 Times New Roman:Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: Normal 12–17 end-active · Tracking · Revisions 0 · Undo —
@@ -19718,30 +19784,30 @@ steps `select(P1:0-P1:6)` · `Ctrl+C` · `select({target})` · `Ctrl+V`
 
 | target | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P1:find("plain") | PasteSmartCutPaste=true | off | IP 19–19 · Undo: Paste | `[b:Strong ][i:soft ][b:Strong ][‸plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("plain") | PasteSmartCutPaste=true | on | IP 19–19 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ]{+[b:Strong ]+}[‸plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("plain") | PasteSmartCutPaste=false | off | IP 18–18 · Undo: Paste | `[b:Strong ][i:soft ][b:Strong][‸plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("plain") | PasteSmartCutPaste=false | on | IP 18–18 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ]{+[b:Strong]+}[‸plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("soft"):end | PasteSmartCutPaste=true | off | IP 18–18 · Undo: Paste | `[b:Strong ][i:soft ][b:Strong‸ ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("soft"):end | PasteSmartCutPaste=true | on | IP 18–18 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft]{+[i: ][b:Strong]+}[b:‸ ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("soft"):end | PasteSmartCutPaste=false | off | IP 17–17 · Undo: Paste | `[b:Strong ][i:soft][b:Strong‸ ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:find("soft"):end | PasteSmartCutPaste=false | on | IP 17–17 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft]{+[b:Strong]+}[b:‸ ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:9 | PasteSmartCutPaste=true | off | IP 17–17 · Undo: Paste | `[b:Strong ][i:so ][b:Strong ][i:‸ft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:9 | PasteSmartCutPaste=true | on | IP 17–17 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:so]{+[i: ][b:Strong ]+}[i:‸ft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:9 | PasteSmartCutPaste=false | off | IP 15–15 · Undo: Paste | `[b:Strong ][i:so][b:Strong][i:‸ft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:9 | PasteSmartCutPaste=false | on | IP 15–15 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:so]{+[b:Strong]+}[i:‸ft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:0 | PasteSmartCutPaste=true | off | IP 7–7 · Undo: Paste | `[b:Strong ‸Strong ][i:soft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:0 | PasteSmartCutPaste=true | on | IP 7–7 · Tracking · Revisions 1 · Undo: Paste | `{+[b:Strong ]+}[b:‸Strong ][i:soft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:0 | PasteSmartCutPaste=false | off | IP 6–6 · Undo: Paste | `[b:Strong‸Strong ][i:soft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:0 | PasteSmartCutPaste=false | on | IP 6–6 · Tracking · Revisions 1 · Undo: Paste | `{+[b:Strong]+}[b:‸Strong ][i:soft ][plain words.] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:end | PasteSmartCutPaste=true | off | IP 31–31 · Undo: Paste | `[b:Strong ][i:soft ][plain words. ][b:Strong‸] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:end | PasteSmartCutPaste=true | on | IP 31–31 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]{+[ ][b:Strong]+}‸ ↓0<br>[Serif face sans face.] ↓0` |
-| P1:end | PasteSmartCutPaste=false | off | IP 30–30 · Undo: Paste | `[b:Strong ][i:soft ][plain words.][b:Strong‸] ↓0<br>[Serif face sans face.] ↓0` |
-| P1:end | PasteSmartCutPaste=false | on | IP 30–30 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]{+[b:Strong]+}‸ ↓0<br>[Serif face sans face.] ↓0` |
-| P2:0 | PasteSmartCutPaste=true | off | IP 32–32 · Undo: Paste | `[b:Strong ][i:soft ][plain words.] ↓0<br>[b:Strong ][‸Serif face sans face.] ↓0` |
-| P2:0 | PasteSmartCutPaste=true | on | IP 32–32 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.] ↓0<br>{+[b:Strong ]+}[‸Serif face sans face.] ↓0` |
-| P2:0 | PasteSmartCutPaste=false | off | IP 31–31 · Undo: Paste | `[b:Strong ][i:soft ][plain words.] ↓0<br>[b:Strong][‸Serif face sans face.] ↓0` |
-| P2:0 | PasteSmartCutPaste=false | on | IP 31–31 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.] ↓0<br>{+[b:Strong]+}[‸Serif face sans face.] ↓0` |
+| P1:find("plain") | PasteSmartCutPaste=true | off | IP 19–19 · Undo: Paste | `[b:Strong ][i:soft ][b:Strong ][‸plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("plain") | PasteSmartCutPaste=true | on | IP 19–19 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ]{+[b:Strong ]+}[‸plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("plain") | PasteSmartCutPaste=false | off | IP 18–18 · Undo: Paste | `[b:Strong ][i:soft ][b:Strong][‸plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("plain") | PasteSmartCutPaste=false | on | IP 18–18 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ]{+[b:Strong]+}[‸plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("soft"):end | PasteSmartCutPaste=true | off | IP 18–18 · Undo: Paste | `[b:Strong ][i:soft ][b:Strong‸ ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("soft"):end | PasteSmartCutPaste=true | on | IP 18–18 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft]{+[i: ][b:Strong]+}[b:‸ ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("soft"):end | PasteSmartCutPaste=false | off | IP 17–17 · Undo: Paste | `[b:Strong ][i:soft][b:Strong‸ ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:find("soft"):end | PasteSmartCutPaste=false | on | IP 17–17 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft]{+[b:Strong]+}[b:‸ ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:9 | PasteSmartCutPaste=true | off | IP 17–17 · Undo: Paste | `[b:Strong ][i:so ][b:Strong ][i:‸ft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:9 | PasteSmartCutPaste=true | on | IP 17–17 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:so]{+[i: ][b:Strong ]+}[i:‸ft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:9 | PasteSmartCutPaste=false | off | IP 15–15 · Undo: Paste | `[b:Strong ][i:so][b:Strong][i:‸ft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:9 | PasteSmartCutPaste=false | on | IP 15–15 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:so]{+[b:Strong]+}[i:‸ft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:0 | PasteSmartCutPaste=true | off | IP 7–7 · Undo: Paste | `[b:Strong ‸Strong ][i:soft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:0 | PasteSmartCutPaste=true | on | IP 7–7 · Tracking · Revisions 1 · Undo: Paste | `{+[b:Strong ]+}[b:‸Strong ][i:soft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:0 | PasteSmartCutPaste=false | off | IP 6–6 · Undo: Paste | `[b:Strong‸Strong ][i:soft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:0 | PasteSmartCutPaste=false | on | IP 6–6 · Tracking · Revisions 1 · Undo: Paste | `{+[b:Strong]+}[b:‸Strong ][i:soft ][plain words.]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:end | PasteSmartCutPaste=true | off | IP 31–31 · Undo: Paste | `[b:Strong ][i:soft ][plain words. ][b:Strong‸]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:end | PasteSmartCutPaste=true | on | IP 31–31 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]{+[ ][b:Strong]+}‸<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:end | PasteSmartCutPaste=false | off | IP 30–30 · Undo: Paste | `[b:Strong ][i:soft ][plain words.][b:Strong‸]<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P1:end | PasteSmartCutPaste=false | on | IP 30–30 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]{+[b:Strong]+}‸<br>[14 Times New Roman:Serif face ][10 Arial:sans face][.]` |
+| P2:0 | PasteSmartCutPaste=true | off | IP 32–32 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]<br>[b:Strong ][14 Times New Roman:‸Serif face ][10 Arial:sans face][.]` |
+| P2:0 | PasteSmartCutPaste=true | on | IP 32–32 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]<br>{+[b:Strong ]+}[14 Times New Roman:‸Serif face ][10 Arial:sans face][.]` |
+| P2:0 | PasteSmartCutPaste=false | off | IP 31–31 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]<br>[b:Strong][14 Times New Roman:‸Serif face ][10 Arial:sans face][.]` |
+| P2:0 | PasteSmartCutPaste=false | on | IP 31–31 · Tracking · Revisions 1 · Undo: Paste | `[b:Strong ][i:soft ][plain words.]<br>{+[b:Strong]+}[14 Times New Roman:‸Serif face ][10 Arial:sans face][.]` |
 
 Notes: P1:0-6 is the bold word 'Strong' with no space. P1:9 is inside 'soft'; P2:0 starts the Times New Roman
 paragraph.
@@ -19758,59 +19824,59 @@ steps before the branches `select(P2:4-P3:0)` · `Ctrl+C` · `select({target})` 
 
 **target=P1:3**
 
-- `Ctrl+V` → `[Nor ing kind‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 12–12 · Undo: Bullets and Numbering, Paste
-- `undo` → `[Nor‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 3–3 · Undo: Bullets and Numbering
-- `type("x")` → `[Nor ing kindx‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 13–13 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[Nor ing kin‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 11–11 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[Nor ing kind‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 12–12 · Undo: Paste
+- `undo` → `[Nor‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 3–3 · Undo —
+- `type("x")` → `[Nor ing kindx‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 13–13 · Undo: Typing "x", Paste
+- `Backspace` → `[Nor ing kin‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 11–11 · Undo: Typing, Paste
 
 **target=P1:3 · Track Changes on**
 
-- `Ctrl+V` → `[Nor]{+[ ing kind]+}[‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 12–12 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
-- `undo` → `[Nor‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 3–3 · Tracking · Revisions 0 · Undo: Bullets and Numbering
-- `type("x")` → `[Nor]{+[ ing kindx]+}[‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[Nor]{+[ ing kin]+}[‸mal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 11–11 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[Nor]{+[ ing kind]+}[‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 12–12 · Tracking · Revisions 1 · Undo: Paste
+- `undo` → `[Nor‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 3–3 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Nor]{+[ ing kindx]+}[‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 13–13 · Tracking · Revisions 1 · Undo: Typing "x", Paste
+- `Backspace` → `[Nor]{+[ ing kin]+}[‸mal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 11–11 · Tracking · Revisions 1 · Undo: Typing, Paste
 
 **target=P1:0**
 
-- `Ctrl+V` → `[ing kind] #Heading1 / [‸Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 9–9 · Undo: Bullets and Numbering, Paste
-- `undo` → `[‸Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 0–0 · Undo: Bullets and Numbering
-- `type("x")` → `[ing kind] #Heading1 / [x‸Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 10–10 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[ing kind‸Normal kind.] #Heading1 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 8–8 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[ing kind] #Heading1 / [‸Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 9–9 · Undo: Paste
+- `undo` → `[‸Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 0–0 · Undo —
+- `type("x")` → `[ing kind] #Heading1 / [x‸Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 10–10 · Undo: Typing "x", Paste
+- `Backspace` → `[ing kind‸Normal kind.] #Heading1 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 8–8 · Undo: Typing, Paste
 
 **target=P1:0 · Track Changes on**
 
-- `Ctrl+V` → `{+[ing kind]+} #Heading1 / [‸Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 9–9 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
-- `undo` → `[‸Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 0–0 · Tracking · Revisions 0 · Undo: Bullets and Numbering
-- `type("x")` → `{+[ing kind] #Heading1 / [x]+}[‸Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 10–10 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `{+{+[ing kind]+}[‸Normal kind.]+} #Heading1 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 8–8 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `{+[ing kind]+} #Heading1 / [‸Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 9–9 · Tracking · Revisions 1 · Undo: Paste
+- `undo` → `[‸Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `{+[ing kind] #Heading1 / [x]+}[‸Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 10–10 · Tracking · Revisions 1 · Undo: Typing "x", Paste
+- `Backspace` → `{+{+[ing kind]+}[‸Normal kind.]+} #Heading1 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 8–8 · Tracking · Revisions 2 · Undo: Typing, Paste
 
 **target=P1:end**
 
-- `Ctrl+V` → `[Normal kind. ing kind‸] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 21–21 · Undo: Bullets and Numbering, Paste
-- `undo` → `[Normal kind.‸] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 12–12 · Undo: Bullets and Numbering
-- `type("x")` → `[Normal kind. ing kindx‸] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 22–22 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[Normal kind. ing kin‸] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 20–20 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[Normal kind. ing kind‸] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 21–21 · Undo: Paste
+- `undo` → `[Normal kind.‸] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 12–12 · Undo —
+- `type("x")` → `[Normal kind. ing kindx‸] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 22–22 · Undo: Typing "x", Paste
+- `Backspace` → `[Normal kind. ing kin‸] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 20–20 · Undo: Typing, Paste
 
 **target=P1:end · Track Changes on**
 
-- `Ctrl+V` → `[Normal kind.]{+[ ing kind]+}‸ ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 21–21 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
-- `undo` → `[Normal kind.‸] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 12–12 · Tracking · Revisions 0 · Undo: Bullets and Numbering
-- `type("x")` → `[Normal kind.]{+[ ing kindx]+}‸ ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 22–22 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[Normal kind.]{+[ ing kin]+}‸ ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 /  ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 20–20 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[Normal kind.]{+[ ing kind]+}‸ / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 21–21 · Tracking · Revisions 1 · Undo: Paste
+- `undo` → `[Normal kind.‸] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 12–12 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Normal kind.]{+[ ing kindx]+}‸ / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 22–22 · Tracking · Revisions 1 · Undo: Typing "x", Paste
+- `Backspace` → `[Normal kind.]{+[ ing kin]+}‸ / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 /  / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 20–20 · Tracking · Revisions 1 · Undo: Typing, Paste
 
 **target=P7:0**
 
-- `Ctrl+V` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / [ing kind] #Heading1 / ‸ ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 92–92 · Undo: Bullets and Numbering, Paste
-- `undo` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / ‸ ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 83–83 · Undo: Bullets and Numbering
-- `type("x")` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / [ing kind] #Heading1 / [x‸] ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 93–93 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / [ing kind‸] #Heading1 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 91–91 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / [ing kind] #Heading1 / ‸ / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 92–92 · Undo: Paste
+- `undo` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / ‸ / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 83–83 · Undo —
+- `type("x")` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / [ing kind] #Heading1 / [x‸] / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 93–93 · Undo: Typing "x", Paste
+- `Backspace` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / [ing kind‸] #Heading1 / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 91–91 · Undo: Typing, Paste
 
 **target=P7:0 · Track Changes on**
 
-- `Ctrl+V` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / {+[ing kind]+} #Heading1 / ‸ ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 92–92 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
-- `undo` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / ‸ ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 83–83 · Tracking · Revisions 0 · Undo: Bullets and Numbering
-- `type("x")` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / {+[ing kind] #Heading1 / [x]+}‸ ↓0 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 93–93 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Typing "x", Paste
-- `Backspace` → `[Normal kind.] ↓0 / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) ↓0 / [Bordered kind.] ↓0 / [Indented kind.] ⇥36,0 ↓0 / {+{~[ing kind]+}‸~} #Heading1 / [Keep with next kind.] ↓0 / [Last plain kind.] ↓0` · IP 91–91 · Tracking · Revisions 2 · Undo: Bullets and Numbering, Typing, Paste
+- `Ctrl+V` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / {+[ing kind]+} #Heading1 / ‸ / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 92–92 · Tracking · Revisions 1 · Undo: Paste
+- `undo` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / ‸ / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 83–83 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / {+[ing kind] #Heading1 / [x]+}‸ / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 93–93 · Tracking · Revisions 1 · Undo: Typing "x", Paste
+- `Backspace` → `[Normal kind.] / [Heading kind] #Heading1 / [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18 / [Centred kind.] (center) / [Bordered kind.] ▭ / [Indented kind.] ⇥36,0 / {+{~[ing kind]+}‸~} #Heading1 / [Keep with next kind.] ⇊ / [Last plain kind.]` · IP 91–91 · Tracking · Revisions 2 · Undo: Typing, Paste
 
 ```mermaid
 flowchart TD
@@ -19835,426 +19901,426 @@ steps `select(P2:0-P3:0)` · `Ctrl+C` · `select({target})` · `Ctrl+V`
 
 | target | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P1:3 | PasteFormatWithinDocument=0 | off | IP 16–16 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:3 | PasteFormatWithinDocument=0 | on | IP 16–16 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:3 | PasteFormatWithinDocument=1 | off | IP 16–16 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:3 | PasteFormatWithinDocument=1 | on | IP 16–16 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:3 | PasteFormatWithinDocument=2 | off | IP 16–16 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:3 | PasteFormatWithinDocument=2 | on | IP 16–16 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:0 | PasteFormatWithinDocument=0 | off | IP 13–13 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:0 | PasteFormatWithinDocument=0 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:0 | PasteFormatWithinDocument=1 | off | IP 13–13 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:0 | PasteFormatWithinDocument=1 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:0 | PasteFormatWithinDocument=2 | off | IP 13–13 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:0 | PasteFormatWithinDocument=2 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:end | PasteFormatWithinDocument=0 | off | IP 25–25 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:end | PasteFormatWithinDocument=0 | on | IP 25–25 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:end | PasteFormatWithinDocument=1 | off | IP 25–25 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:end | PasteFormatWithinDocument=1 | on | IP 25–25 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:end | PasteFormatWithinDocument=2 | off | IP 25–25 · Undo: Bullets and Numbering, Paste | `see below` |
-| P1:end | PasteFormatWithinDocument=2 | on | IP 25–25 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P7:0 | PasteFormatWithinDocument=0 | off | IP 96–96 · Undo: Bullets and Numbering, Paste | `see below` |
-| P7:0 | PasteFormatWithinDocument=0 | on | IP 96–96 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P7:0 | PasteFormatWithinDocument=1 | off | IP 96–96 · Undo: Bullets and Numbering, Paste | `see below` |
-| P7:0 | PasteFormatWithinDocument=1 | on | IP 96–96 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
-| P7:0 | PasteFormatWithinDocument=2 | off | IP 96–96 · Undo: Bullets and Numbering, Paste | `see below` |
-| P7:0 | PasteFormatWithinDocument=2 | on | IP 96–96 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste | `see below` |
+| P1:3 | PasteFormatWithinDocument=0 | off | IP 16–16 · Undo: Paste | `see below` |
+| P1:3 | PasteFormatWithinDocument=0 | on | IP 16–16 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:3 | PasteFormatWithinDocument=1 | off | IP 16–16 · Undo: Paste | `see below` |
+| P1:3 | PasteFormatWithinDocument=1 | on | IP 16–16 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:3 | PasteFormatWithinDocument=2 | off | IP 16–16 · Undo: Paste | `see below` |
+| P1:3 | PasteFormatWithinDocument=2 | on | IP 16–16 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:0 | PasteFormatWithinDocument=0 | off | IP 13–13 · Undo: Paste | `see below` |
+| P1:0 | PasteFormatWithinDocument=0 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:0 | PasteFormatWithinDocument=1 | off | IP 13–13 · Undo: Paste | `see below` |
+| P1:0 | PasteFormatWithinDocument=1 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:0 | PasteFormatWithinDocument=2 | off | IP 13–13 · Undo: Paste | `see below` |
+| P1:0 | PasteFormatWithinDocument=2 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:end | PasteFormatWithinDocument=0 | off | IP 25–25 · Undo: Paste | `see below` |
+| P1:end | PasteFormatWithinDocument=0 | on | IP 25–25 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:end | PasteFormatWithinDocument=1 | off | IP 25–25 · Undo: Paste | `see below` |
+| P1:end | PasteFormatWithinDocument=1 | on | IP 25–25 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P1:end | PasteFormatWithinDocument=2 | off | IP 25–25 · Undo: Paste | `see below` |
+| P1:end | PasteFormatWithinDocument=2 | on | IP 25–25 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P7:0 | PasteFormatWithinDocument=0 | off | IP 96–96 · Undo: Paste | `see below` |
+| P7:0 | PasteFormatWithinDocument=0 | on | IP 96–96 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P7:0 | PasteFormatWithinDocument=1 | off | IP 96–96 · Undo: Paste | `see below` |
+| P7:0 | PasteFormatWithinDocument=1 | on | IP 96–96 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P7:0 | PasteFormatWithinDocument=2 | off | IP 96–96 · Undo: Paste | `see below` |
+| P7:0 | PasteFormatWithinDocument=2 | on | IP 96–96 · Tracking · Revisions 1 · Undo: Paste | `see below` |
 
 `C-03[target=P1:3]{Options.PasteFormatWithinDocument=0}`
 
 ```text
-[Nor Heading kind‸mal kind.] ↓0
+[Nor Heading kind‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 16–16 · Undo: Bullets and Numbering, Paste
+Selection: IP 16–16 · Undo: Paste
 
 `C-03[target=P1:3]{Options.PasteFormatWithinDocument=0}~tracked`
 
 ```text
-[Nor]{+[ Heading kind]+}[‸mal kind.] ↓0
+[Nor]{+[ Heading kind]+}[‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:3]{Options.PasteFormatWithinDocument=1}`
 
 ```text
-[Nor Heading kind‸mal kind.] ↓0
+[Nor Heading kind‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 16–16 · Undo: Bullets and Numbering, Paste
+Selection: IP 16–16 · Undo: Paste
 
 `C-03[target=P1:3]{Options.PasteFormatWithinDocument=1}~tracked`
 
 ```text
-[Nor]{+[ Heading kind]+}[‸mal kind.] ↓0
+[Nor]{+[ Heading kind]+}[‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:3]{Options.PasteFormatWithinDocument=2}`
 
 ```text
-[Nor Heading kind‸mal kind.] ↓0
+[Nor Heading kind‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 16–16 · Undo: Bullets and Numbering, Paste
+Selection: IP 16–16 · Undo: Paste
 
 `C-03[target=P1:3]{Options.PasteFormatWithinDocument=2}~tracked`
 
 ```text
-[Nor]{+[ Heading kind]+}[‸mal kind.] ↓0
+[Nor]{+[ Heading kind]+}[‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:0]{Options.PasteFormatWithinDocument=0}`
 
 ```text
 [Heading kind] #Heading1
-[‸Normal kind.] ↓0
+[‸Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 13–13 · Undo: Bullets and Numbering, Paste
+Selection: IP 13–13 · Undo: Paste
 
 `C-03[target=P1:0]{Options.PasteFormatWithinDocument=0}~tracked`
 
 ```text
 {+[Heading kind]+} #Heading1
-[‸Normal kind.] ↓0
+[‸Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:0]{Options.PasteFormatWithinDocument=1}`
 
 ```text
 [Heading kind] #Heading1
-[‸Normal kind.] ↓0
+[‸Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 13–13 · Undo: Bullets and Numbering, Paste
+Selection: IP 13–13 · Undo: Paste
 
 `C-03[target=P1:0]{Options.PasteFormatWithinDocument=1}~tracked`
 
 ```text
 {+[Heading kind]+} #Heading1
-[‸Normal kind.] ↓0
+[‸Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:0]{Options.PasteFormatWithinDocument=2}`
 
 ```text
 [Heading kind] #Heading1
-[‸Normal kind.] ↓0
+[‸Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 13–13 · Undo: Bullets and Numbering, Paste
+Selection: IP 13–13 · Undo: Paste
 
 `C-03[target=P1:0]{Options.PasteFormatWithinDocument=2}~tracked`
 
 ```text
 {+[Heading kind]+} #Heading1
-[‸Normal kind.] ↓0
+[‸Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:end]{Options.PasteFormatWithinDocument=0}`
 
 ```text
-[Normal kind. Heading kind‸] ↓0
+[Normal kind. Heading kind‸]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 25–25 · Undo: Bullets and Numbering, Paste
+Selection: IP 25–25 · Undo: Paste
 
 `C-03[target=P1:end]{Options.PasteFormatWithinDocument=0}~tracked`
 
 ```text
-[Normal kind.]{+[ Heading kind]+}‸ ↓0
+[Normal kind.]{+[ Heading kind]+}‸
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 25–25 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 25–25 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:end]{Options.PasteFormatWithinDocument=1}`
 
 ```text
-[Normal kind. Heading kind‸] ↓0
+[Normal kind. Heading kind‸]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 25–25 · Undo: Bullets and Numbering, Paste
+Selection: IP 25–25 · Undo: Paste
 
 `C-03[target=P1:end]{Options.PasteFormatWithinDocument=1}~tracked`
 
 ```text
-[Normal kind.]{+[ Heading kind]+}‸ ↓0
+[Normal kind.]{+[ Heading kind]+}‸
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 25–25 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 25–25 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P1:end]{Options.PasteFormatWithinDocument=2}`
 
 ```text
-[Normal kind. Heading kind‸] ↓0
+[Normal kind. Heading kind‸]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 25–25 · Undo: Bullets and Numbering, Paste
+Selection: IP 25–25 · Undo: Paste
 
 `C-03[target=P1:end]{Options.PasteFormatWithinDocument=2}~tracked`
 
 ```text
-[Normal kind.]{+[ Heading kind]+}‸ ↓0
+[Normal kind.]{+[ Heading kind]+}‸
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 25–25 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 25–25 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P7:0]{Options.PasteFormatWithinDocument=0}`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
 [Heading kind] #Heading1
-‸ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+‸
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 96–96 · Undo: Bullets and Numbering, Paste
+Selection: IP 96–96 · Undo: Paste
 
 `C-03[target=P7:0]{Options.PasteFormatWithinDocument=0}~tracked`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
 {+[Heading kind]+} #Heading1
-‸ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+‸
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 96–96 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 96–96 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P7:0]{Options.PasteFormatWithinDocument=1}`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
 [Heading kind] #Heading1
-‸ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+‸
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 96–96 · Undo: Bullets and Numbering, Paste
+Selection: IP 96–96 · Undo: Paste
 
 `C-03[target=P7:0]{Options.PasteFormatWithinDocument=1}~tracked`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
 {+[Heading kind]+} #Heading1
-‸ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+‸
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 96–96 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 96–96 · Tracking · Revisions 1 · Undo: Paste
 
 `C-03[target=P7:0]{Options.PasteFormatWithinDocument=2}`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
 [Heading kind] #Heading1
-‸ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+‸
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 96–96 · Undo: Bullets and Numbering, Paste
+Selection: IP 96–96 · Undo: Paste
 
 `C-03[target=P7:0]{Options.PasteFormatWithinDocument=2}~tracked`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
 {+[Heading kind]+} #Heading1
-‸ ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+‸
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 96–96 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 96–96 · Tracking · Revisions 1 · Undo: Paste
 
 Notes: WdPasteOptions: 0 keeps the source formatting, 1 merges with the destination, 2 keeps text only.
 
@@ -20271,10 +20337,10 @@ destination paragraph, taking its properties; (b) the partial last carries the c
 4. `Ctrl+V`
 
 ```text
-[First paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[ThirdFirst paragraph here.] ↓0
-[Seco‸ and last.] ↓0
+[First paragraph here.]
+[Second ][b:bold ][one.] (center)
+[ThirdFirst paragraph here.]
+[Seco‸ and last.]
 ```
 
 Selection: IP 70–70 · Undo: Paste
@@ -20287,10 +20353,10 @@ Selection: IP 70–70 · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[First paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Third]{+[First paragraph here.] ↓0
-[Seco]+}[‸ and last.] ↓0
+[First paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Third]{+[First paragraph here.]
+[Seco]+}[‸ and last.]
 ```
 
 Selection: IP 70–70 · Tracking · Revisions 1 · Undo: Paste
@@ -20306,18 +20372,18 @@ steps `select(P2:0-P3:0)` · `Ctrl+C` · `select({target})` · `Ctrl+V`
 
 | target | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P5:end | PasteMergeLists=true | off | IP 41–41 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta Two‸] #ListParagraph •1.0 2. ⇥36,-18` |
-| P5:end | PasteMergeLists=true | on | IP 41–41 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta]{+[ Two]+}‸ #ListParagraph •1.0 2. ⇥36,-18` |
-| P5:end | PasteMergeLists=false | off | IP 41–41 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta Two‸] #ListParagraph •1.0 2. ⇥36,-18` |
-| P5:end | PasteMergeLists=false | on | IP 41–41 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta]{+[ Two]+}‸ #ListParagraph •1.0 2. ⇥36,-18` |
-| P3:5 | PasteMergeLists=true | off | IP 17–17 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe Two‸en the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| P3:5 | PasteMergeLists=true | on | IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe]{+[ Two]+}[‸en the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| P3:5 | PasteMergeLists=false | off | IP 17–17 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe Two‸en the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| P3:5 | PasteMergeLists=false | on | IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe]{+[ Two]+}[‸en the lists.] ↓0<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
-| P3:0 | PasteMergeLists=true | off | IP 12–12 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `see below` |
-| P3:0 | PasteMergeLists=true | on | IP 12–12 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `see below` |
-| P3:0 | PasteMergeLists=false | off | IP 12–12 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `see below` |
-| P3:0 | PasteMergeLists=false | on | IP 12–12 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste | `see below` |
+| P5:end | PasteMergeLists=true | off | IP 41–41 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta Two‸] #ListParagraph •1.0 2. ⇥36,-18` |
+| P5:end | PasteMergeLists=true | on | IP 41–41 · Tracking · Revisions 1 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta]{+[ Two]+}‸ #ListParagraph •1.0 2. ⇥36,-18` |
+| P5:end | PasteMergeLists=false | off | IP 41–41 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta Two‸] #ListParagraph •1.0 2. ⇥36,-18` |
+| P5:end | PasteMergeLists=false | on | IP 41–41 · Tracking · Revisions 1 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Between the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta]{+[ Two]+}‸ #ListParagraph •1.0 2. ⇥36,-18` |
+| P3:5 | PasteMergeLists=true | off | IP 17–17 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe Two‸en the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| P3:5 | PasteMergeLists=true | on | IP 17–17 · Tracking · Revisions 1 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe]{+[ Two]+}[‸en the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| P3:5 | PasteMergeLists=false | off | IP 17–17 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe Two‸en the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| P3:5 | PasteMergeLists=false | on | IP 17–17 · Tracking · Revisions 1 · Undo: Paste | `[One] #ListParagraph •2.0 1. ⇥36,-18<br>[Two] #ListParagraph •2.0 2. ⇥36,-18<br>[Betwe]{+[ Two]+}[‸en the lists.]<br>[Alpha] #ListParagraph •1.0 1. ⇥36,-18<br>[Beta] #ListParagraph •1.0 2. ⇥36,-18` |
+| P3:0 | PasteMergeLists=true | off | IP 12–12 · Undo: Paste | `see below` |
+| P3:0 | PasteMergeLists=true | on | IP 12–12 · Tracking · Revisions 1 · Undo: Paste | `see below` |
+| P3:0 | PasteMergeLists=false | off | IP 12–12 · Undo: Paste | `see below` |
+| P3:0 | PasteMergeLists=false | on | IP 12–12 · Tracking · Revisions 1 · Undo: Paste | `see below` |
 
 `C-05a[target=P3:0]{Options.PasteMergeLists=true}`
 
@@ -20325,12 +20391,12 @@ steps `select(P2:0-P3:0)` · `Ctrl+C` · `select({target})` · `Ctrl+V`
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
 [Two] #ListParagraph •2.0 3. ⇥36,-18
-[‸Between the lists.] ↓0
+[‸Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 12–12 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 12–12 · Undo: Paste
 
 `C-05a[target=P3:0]{Options.PasteMergeLists=true}~tracked`
 
@@ -20338,12 +20404,12 @@ Selection: IP 12–12 · Undo: Bullets and Numbering, Bullets and Numbering, Pas
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
 {+[Two]+} #ListParagraph •2.0 3. ⇥36,-18
-[‸Between the lists.] ↓0
+[‸Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 12–12 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 12–12 · Tracking · Revisions 1 · Undo: Paste
 
 `C-05a[target=P3:0]{Options.PasteMergeLists=false}`
 
@@ -20351,12 +20417,12 @@ Selection: IP 12–12 · Tracking · Revisions 1 · Undo: Bullets and Numbering,
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
 [Two] #ListParagraph •2.0 3. ⇥36,-18
-[‸Between the lists.] ↓0
+[‸Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 12–12 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 12–12 · Undo: Paste
 
 `C-05a[target=P3:0]{Options.PasteMergeLists=false}~tracked`
 
@@ -20364,12 +20430,12 @@ Selection: IP 12–12 · Undo: Bullets and Numbering, Bullets and Numbering, Pas
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
 {+[Two]+} #ListParagraph •2.0 3. ⇥36,-18
-[‸Between the lists.] ↓0
+[‸Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 12–12 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 12–12 · Tracking · Revisions 1 · Undo: Paste
 
 Notes: P2 is item 2 of the first list; P5 is the last item of the second list; P3 is the Normal paragraph between
 them.
@@ -20392,12 +20458,12 @@ pasted paragraph becomes an item.
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Between the lists.] #ListParagraph •2.0 2. ⇥36,-18
 [‸Two] #ListParagraph •2.0 3. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 23–23 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 23–23 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_true_.diff`
 
@@ -20412,12 +20478,12 @@ Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_true_.diff`
 [One] #ListParagraph •2.0 1. ⇥36,-18
 {+[Between the lists.]+} #ListParagraph •2.0 2. ⇥36,-18
 [‸Two] #ListParagraph •2.0 3. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 23–23 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 23–23 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_true_tracked.diff`
 
@@ -20430,14 +20496,14 @@ Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_true_tracke
 
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [‸Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 23–23 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 23–23 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_false_.diff`
 
@@ -20450,14 +20516,14 @@ Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_false_.diff
 
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
-{+[Between the lists.]+} ↓0
+{+[Between the lists.]+}
 [‸Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Beta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 23–23 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 23–23 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05b_Options.PasteMergeLists_false_tracked.diff`
 
@@ -20477,12 +20543,12 @@ Expected before the run: Text without a mark changes no list: 'One' lands inside
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Be One ‸ta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 40–40 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 40–40 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_true_.diff`
 
@@ -20496,12 +20562,12 @@ Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_true_.diff`
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Be]{+[ One ]+}[‸ta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 40–40 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 40–40 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_true_tracked.diff`
 
@@ -20515,12 +20581,12 @@ Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_true_tracke
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Be One ‸ta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 40–40 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 40–40 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_false_.diff`
 
@@ -20534,12 +20600,12 @@ Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_false_.diff
 ```text
 [One] #ListParagraph •2.0 1. ⇥36,-18
 [Two] #ListParagraph •2.0 2. ⇥36,-18
-[Between the lists.] ↓0
+[Between the lists.]
 [Alpha] #ListParagraph •1.0 1. ⇥36,-18
 [Be]{+[ One ]+}[‸ta] #ListParagraph •1.0 2. ⇥36,-18
 ```
 
-Selection: IP 40–40 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Bullets and Numbering, Paste
+Selection: IP 40–40 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-05c_Options.PasteMergeLists_false_tracked.diff`
 
@@ -20554,12 +20620,12 @@ steps `select({source})` · `Ctrl+C` · `select(P3:0)` · `Ctrl+V`
 
 | source | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P1:0-P1:5 | off | IP 12–12 · Undo: Paste | `[Above] ↓0<br> ↓0<br>[Above‸] ↓0<br>[Below] ↓0` |
-| P1:0-P1:5 | on | IP 12–12 · Tracking · Revisions 1 · Undo: Paste | `[Above] ↓0<br> ↓0<br>{+[Above]+}‸ ↓0<br>[Below] ↓0` |
-| P1:0-P2:0 | off | IP 13–13 · Undo: Paste | `[Above] ↓0<br> ↓0<br>[Above] ↓0<br>‸ ↓0<br>[Below] ↓0` |
-| P1:0-P2:0 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Paste | `[Above] ↓0<br> ↓0<br>{+[Above]+} ↓0<br>‸ ↓0<br>[Below] ↓0` |
-| P1:0-P3:0 | off | IP 14–14 · Undo: Paste | `[Above] ↓0<br> ↓0<br>[Above] ↓0<br> ↓0<br>‸ ↓0<br>[Below] ↓0` |
-| P1:0-P3:0 | on | IP 14–14 · Tracking · Revisions 1 · Undo: Paste | `[Above] ↓0<br> ↓0<br>{+[Above] ↓0<br>+} ↓0<br>‸ ↓0<br>[Below] ↓0` |
+| P1:0-P1:5 | off | IP 12–12 · Undo: Paste | `[Above]<br><br>[Above‸]<br>[Below]` |
+| P1:0-P1:5 | on | IP 12–12 · Tracking · Revisions 1 · Undo: Paste | `[Above]<br><br>{+[Above]+}‸<br>[Below]` |
+| P1:0-P2:0 | off | IP 13–13 · Undo: Paste | `[Above]<br><br>[Above]<br>‸<br>[Below]` |
+| P1:0-P2:0 | on | IP 13–13 · Tracking · Revisions 1 · Undo: Paste | `[Above]<br><br>{+[Above]+}<br>‸<br>[Below]` |
+| P1:0-P3:0 | off | IP 14–14 · Undo: Paste | `[Above]<br><br>[Above]<br><br>‸<br>[Below]` |
+| P1:0-P3:0 | on | IP 14–14 · Tracking · Revisions 1 · Undo: Paste | `[Above]<br><br>{+[Above]<br>+}<br>‸<br>[Below]` |
 
 Notes: P1:0-5 is 'Above'; P1:0-P2:0 adds its mark; P1:0-P3:0 adds the empty P2 too. P3 is the second empty paragraph.
 
@@ -20574,12 +20640,12 @@ steps `click(tableHandle T1)` · `Ctrl+C` · `select({target})` · `Ctrl+V`
 
 | target | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P2:5 | off | IP 45–45 · Cells 1 (R1C2–R1C2) · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[T] ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸wo¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:5 | on | IP 45–45 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[One¤]║[T]{+ ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸wo¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:0 | off | IP 39–39 · Cells 1 (R1C1–R1C1) · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:0 | on | IP 39–39 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║⊞{+[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:end | off | IP 43–43 · Cells 1 (R1C1–R1C1) · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[One] ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ ‸¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
-| P2:end | on | IP 43–43 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[One]{+ ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ ‸¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.] ↓0` |
+| P2:5 | off | IP 45–45 · Cells 1 (R1C2–R1C2) · Undo: Paste | `[Before the table.]<br>T1 R1 ║[One¤]║[T] ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸wo¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:5 | on | IP 45–45 · Cells 1 (R1C2–R1C2) · Tracking · Revisions 1 · Undo: Paste | `[Before the table.]<br>T1 R1 ║[One¤]║[T]{+ ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸wo¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:0 | off | IP 39–39 · Cells 1 (R1C1–R1C1) · Undo: Paste | `[Before the table.]<br>T1 R1 ║⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:0 | on | IP 39–39 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Paste | `[Before the table.]<br>T1 R1 ║⊞{+[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ [‸One¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:end | off | IP 43–43 · Cells 1 (R1C1–R1C1) · Undo: Paste | `[Before the table.]<br>T1 R1 ║[One] ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ ‸¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| P2:end | on | IP 43–43 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Paste | `[Before the table.]<br>T1 R1 ║[One]{+ ¶ ⊞[One¤] ¶ ⊞[Two¤] ¶ ⊞[Three¤] ¶ ⊞[Four¤] ¶ ‸¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 
 Notes: P2 is 'After the table.'
 
@@ -20596,14 +20662,14 @@ and the pasted table stands alone; (c) the pasted table merges with the table ab
 4. `Ctrl+V`
 
 ```text
-[Before the tables.] ↓0
+[Before the tables.]
 T1 R1 ║⊞[a1¤] ¶ ⊞[b1¤] ¶ ⊞[a2¤] ¶ ⊞[b2¤] ¶ [‸a1¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[b2¤]║¤
- ↓0
- ↓0
+
+
 T2 R1 ║[c1¤]║[d1¤]║¤
 T2 R2 ║[c2¤]║[d2¤]║¤
-[After the tables.] ↓0
+[After the tables.]
 ```
 
 Selection: IP 33–33 · Cells 1 (R1C1–R1C1) · Undo: Paste
@@ -20616,14 +20682,14 @@ Selection: IP 33–33 · Cells 1 (R1C1–R1C1) · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[Before the tables.] ↓0
+[Before the tables.]
 T1 R1 ║⊞{+[a1¤] ¶ ⊞[b1¤] ¶ ⊞[a2¤] ¶ ⊞[b2¤] ¶ [‸a1¤]║[b1¤]║¤
 T1 R2 ║[a2¤]║[b2¤]║¤
- ↓0
- ↓0
+
+
 T2 R1 ║[c1¤]║[d1¤]║¤
 T2 R2 ║[c2¤]║[d2¤]║¤
-[After the tables.] ↓0
+[After the tables.]
 ```
 
 Selection: IP 33–33 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Paste
@@ -20641,11 +20707,11 @@ growing the table.
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[a2¤]║⊞[a1¤] ¶ ⊞[b1¤] ¶ ⊞[c1¤] ¶ ⊞[a2¤] ¶ ⊞[b2¤] ¶ ⊞[c2¤] ¶ ⊞[a3¤] ¶ ⊞[b3¤] ¶ ⊞[c3¤] ¶ [‸b2¤]║[c2¤]║¤
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 61–61 · Cells 1 (R2C2–R2C2) · Undo: Paste
@@ -20658,11 +20724,11 @@ Selection: IP 61–61 · Cells 1 (R2C2–R2C2) · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[a2¤]║⊞{+[a1¤] ¶ ⊞[b1¤] ¶ ⊞[c1¤] ¶ ⊞[a2¤] ¶ ⊞[b2¤] ¶ ⊞[c2¤] ¶ ⊞[a3¤] ¶ ⊞[b3¤] ¶ ⊞[c3¤] ¶ [‸b2¤]║[c2¤]║¤
 T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 61–61 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 1 · Undo: Paste
@@ -20679,11 +20745,11 @@ Expected before the run: (a) the 2x2 block overwrites (2,2)-(3,3); (b) a nested 
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[a2¤]║[⟦a1¤‸⟧]║[c2¤]║¤
 T1 R3 ║[a3¤]║[a2¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo: Paste
@@ -20696,11 +20762,11 @@ Selection: Column 31–34 end-active · Cells 1 (R2C2–R2C2) · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[a2¤]║{+[⟦a1]+}{-[b2]-}¤‸⟧║[c2¤]║¤
 T1 R3 ║[a3¤]║{+[a2]+}{-[b3]-}¤║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 31–36 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 4 · Undo: Paste
@@ -20717,12 +20783,12 @@ Expected before the run: (a) a row is inserted above row 2; (b) row 2's cells ar
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R3 ║[‸a2¤]║[b2¤]║[c2¤]║¤
 T1 R4 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 38–38 · Cells 1 (R3C1–R3C1) · Undo: Paste
@@ -20735,12 +20801,12 @@ Selection: IP 38–38 · Cells 1 (R3C1–R3C1) · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤
 T1 R2 ║{+[a1¤]║[b1¤]║[c1¤]║¤
 T1 R3 ║[‸a2¤]║[b2¤]║[c2¤]║¤
 T1 R4 ║[a3¤]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 38–38 · Cells 1 (R3C1–R3C1) · Tracking · Revisions 1 · Undo: Paste
@@ -20757,11 +20823,11 @@ Expected before the run: (a) a column is inserted to the left of column 2; (b) c
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤⟧]║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤
 T1 R3 ║⟦[a3¤⟧]║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 21–50 end-active · Cells 3 (R1C2–R3C2) · Undo: Paste
@@ -20774,11 +20840,11 @@ Selection: Column 21–50 end-active · Cells 3 (R1C2–R3C2) · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[a1¤]║{+[⟦a1]+}¤⟧║⟦[b1¤⟧]║⟦[c1¤⟧]║¤
 T1 R2 ║⟦[a2¤⟧]║⟦{+[a2]+}¤⟧║⟦[b2¤⟧]║⟦[c2¤⟧]║¤
 T1 R3 ║⟦[a3¤⟧]║⟦{+[a3]+}¤‸⟧║[b3¤]║[c3¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: Column 21–50 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 3 · Undo: Paste
@@ -20794,10 +20860,10 @@ steps `{source}` · `Ctrl+C` · `select(P2:5)` · `Ctrl+V`
 
 | source | tracked | selection | observed |
 | --- | --- | --- | --- |
-| click(rowBar R2) | off | Column 21–24 end-active · Cells 1 (R1C2–R1C2) · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦a2¤‸⟧]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| click(rowBar R2) | on | Column 21–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 5 · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║{+[⟦a2]+}{-[b1]-}¤‸⟧║{+[b2]+}{-[c1]-}¤║{+[c2]+}¤║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(C(1,1):0-C(1,1):mark) | off | Column 21–24 end-active · Cells 1 (R1C2–R1C2) · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦a1¤‸⟧]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(C(1,1):0-C(1,1):mark) | on | Column 21–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Paste | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║{+[⟦a1]+}{-[b1]-}¤‸⟧║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
+| click(rowBar R2) | off | Column 21–24 end-active · Cells 1 (R1C2–R1C2) · Undo: Paste | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦a2¤‸⟧]║[b2¤]║[c2¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| click(rowBar R2) | on | Column 21–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 5 · Undo: Paste | `[Before the table.]<br>T1 R1 ║[a1¤]║{+[⟦a2]+}{-[b1]-}¤‸⟧║{+[b2]+}{-[c1]-}¤║{+[c2]+}¤║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(C(1,1):0-C(1,1):mark) | off | Column 21–24 end-active · Cells 1 (R1C2–R1C2) · Undo: Paste | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦a1¤‸⟧]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(C(1,1):0-C(1,1):mark) | on | Column 21–26 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Paste | `[Before the table.]<br>T1 R1 ║[a1¤]║{+[⟦a1]+}{-[b1]-}¤‸⟧║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
 
 #### C-10a · Paste an inline picture into another paragraph
 
@@ -20812,8 +20878,8 @@ it.
 4. `Ctrl+V`
 
 ```text
-[Text before ▣ after end.] ↓0
-[Sec▣‸ond paragraph.] ↓0
+[Text before ▣ after end.]
+[Sec▣‸ond paragraph.]
 ```
 
 Selection: IP 29–29 · Undo: Paste · click(IMG1) → Shape Picture 1, WordOwn
@@ -20826,8 +20892,8 @@ Selection: IP 29–29 · Undo: Paste · click(IMG1) → Shape Picture 1, WordOwn
 4. `Ctrl+V`
 
 ```text
-[Text before ▣ after end.] ↓0
-[Sec]{+[▣]+}[‸ond paragraph.] ↓0
+[Text before ▣ after end.]
+[Sec]{+[▣]+}[‸ond paragraph.]
 ```
 
 Selection: IP 29–29 · Tracking · Revisions 1 · Undo: Paste · click(IMG1) → Shape Picture 1, WordOwn
@@ -20844,9 +20910,9 @@ Expected before the run: (a) a second floating picture anchored to P3 at the sam
 4. `Ctrl+V`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[⟦⚓2‸⟧Third paragraph after it.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[⟦⚓2‸⟧Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
 SHP2 ⌖P3 picture 72x72pt square @0,25.1 ⟦selected⟧
 ```
@@ -20861,9 +20927,9 @@ Selection: Shape 83–84 end-active · Shapes 1 · Undo: Paste · click(SHP1) �
 4. `Ctrl+V`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-{+[⟦⚓2‸⟧]+}[Third paragraph after it.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+{+[⟦⚓2‸⟧]+}[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
 SHP2 ⌖P3 picture 72x72pt square @0,25.1 ⟦selected⟧
 ```
@@ -20884,8 +20950,8 @@ Expected before the run: 'Header' lands at P1:4 in the body's own style, since n
 6. `Ctrl+V`
 
 ```text
-[Body Header‸ paragraph.] ↓0
-[Second body paragraph.] ↓0
+[Body Header‸ paragraph.]
+[Second body paragraph.]
 ```
 
 Selection: IP 11–11 · Undo: Paste
@@ -20900,8 +20966,8 @@ Selection: IP 11–11 · Undo: Paste
 6. `Ctrl+V`
 
 ```text
-[Body]{+[ Header]+}[‸ paragraph.] ↓0
-[Second body paragraph.] ↓0
+[Body]{+[ Header]+}[‸ paragraph.]
+[Second body paragraph.]
 ```
 
 Selection: IP 11–11 · Tracking · Revisions 1 · Undo: Paste
@@ -20919,8 +20985,8 @@ Expected before the run: 'Body' lands at the header's end in the Header style.
 5. `Ctrl+V`
 
 ```text
-[Body paragraph.] ↓0
-[Second body paragraph.] ↓0
+[Body paragraph.]
+[Second body paragraph.]
 HDR: [Header text Body‸] #Header
 ```
 
@@ -20935,8 +21001,8 @@ Selection: IP 16–16 · Story PrimaryHeader · Undo: Paste
 5. `Ctrl+V`
 
 ```text
-[Body paragraph.] ↓0
-[Second body paragraph.] ↓0
+[Body paragraph.]
+[Second body paragraph.]
 HDR: [Header text Body‸] #Header
 ```
 
@@ -20956,8 +21022,8 @@ Expected before the run: 'Note' lands at P2:0 (a) in Normal (b) keeping the Foot
 6. `Ctrl+V`
 
 ```text
-[Text†1 more words.] ↓0
-[† No ‸Second with an end note.‡1] ↓0
+[Text][^:†1 ][more words.]
+[^:† ][No ‸Second with an end note.][^:‡1]
 ```
 
 Selection: IP 23–23 · Undo: Paste
@@ -20972,8 +21038,8 @@ Selection: IP 23–23 · Undo: Paste
 6. `Ctrl+V`
 
 ```text
-[Text†1 more words.] ↓0
-{+[† No ]+}[‸Second with an end note.‡1] ↓0
+[Text][^:†1 ][more words.]
+{+[^:† ][No ]+}[‸Second with an end note.][^:‡1]
 ```
 
 Selection: IP 23–23 · Tracking · Revisions 1 · Undo: Paste
@@ -20991,9 +21057,9 @@ Expected before the run: The replaced text is a deletion and the pasted text an 
 5. `Ctrl+V`
 
 ```text
-{+[Third]+}{-[‸First]-}[ paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Third and last.] ↓0
+{+[Third]+}{-[‸First]-}[ paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 5–5 · Tracking · Revisions 2 · Undo: Paste
@@ -21011,9 +21077,9 @@ Expected before the run: The text stays as a tracked deletion; the clipboard hol
 3. `Ctrl+X`
 
 ```text
-{-[First ]-}[‸paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Third and last.] ↓0
+{-[First ]-}[‸paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Third and last.]
 ```
 
 Selection: IP 6–6 · Tracking · Revisions 1 · Undo: Cut
@@ -21034,9 +21100,9 @@ a move, a word is a deletion plus an insertion.
 5. `Ctrl+V`
 
 ```text
-{-[First ]-}[paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Third and last.]{+[ First]+}‸ ↓0
+{-[First ]-}[paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Third and last.]{+[ First]+}‸
 ```
 
 Selection: IP 60–60 · Tracking · Revisions 2 · Undo: Paste, Cut
@@ -21056,9 +21122,9 @@ Expected before the run: A whole paragraph is marked as a move, with the mark's 
 5. `Ctrl+V`
 
 ```text
-{<[First paragraph here.]<} ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Third and last.]{+[ ]+}{>[First paragraph here.]>}‸ ↓0
+{<[First paragraph here.]<}
+[Second ][b:bold ][one.] (center)
+[Third and last.]{+[ ]+}{>[First paragraph here.]>}‸
 ```
 
 Selection: IP 76–76 · Tracking · Revisions 3 · Undo: Paste, Cut
@@ -21080,8 +21146,8 @@ drops both; 3 is the same as 1 for direct formatting.
 4. `Ctrl+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-[b:Strong ][‸Serif face sans face.] ↓0
+[b:Strong ][i:soft ][plain words.]
+[b:Strong ][14 Times New Roman:‸Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: IP 32–32 · Undo: Paste
@@ -21094,8 +21160,8 @@ Selection: IP 32–32 · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-{+[b:Strong ]+}[‸Serif face sans face.] ↓0
+[b:Strong ][i:soft ][plain words.]
+{+[b:Strong ]+}[14 Times New Roman:‸Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: IP 32–32 · Tracking · Revisions 1 · Undo: Paste
@@ -21108,8 +21174,8 @@ Selection: IP 32–32 · Tracking · Revisions 1 · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-[b:Strong ][‸Serif face sans face.] ↓0
+[b:Strong ][i:soft ][plain words.]
+[b:Strong ][14 Times New Roman:‸Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: IP 32–32 · Undo: Paste
@@ -21122,8 +21188,8 @@ Selection: IP 32–32 · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-{+[b:Strong ]+}[‸Serif face sans face.] ↓0
+[b:Strong ][i:soft ][plain words.]
+{+[b:Strong ]+}[14 Times New Roman:‸Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: IP 32–32 · Tracking · Revisions 1 · Undo: Paste
@@ -21136,8 +21202,8 @@ Selection: IP 32–32 · Tracking · Revisions 1 · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-[b:Strong ][‸Serif face sans face.] ↓0
+[b:Strong ][i:soft ][plain words.]
+[b:Strong ][14 Times New Roman:‸Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: IP 32–32 · Undo: Paste
@@ -21150,8 +21216,8 @@ Selection: IP 32–32 · Undo: Paste
 4. `Ctrl+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-{+[b:Strong ]+}[‸Serif face sans face.] ↓0
+[b:Strong ][i:soft ][plain words.]
+{+[b:Strong ]+}[14 Times New Roman:‸Serif face ][10 Arial:sans face][.]
 ```
 
 Selection: IP 32–32 · Tracking · Revisions 1 · Undo: Paste
@@ -21173,18 +21239,18 @@ mark.
 4. `Ctrl+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind. Heading kind‸] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind. Heading kind‸]
 ```
 
-Selection: IP 134–134 · Undo: Bullets and Numbering, Paste
+Selection: IP 134–134 · Undo: Paste
 
 **PasteFormatWithinDocument 0 · Track Changes on**
 
@@ -21194,18 +21260,18 @@ Selection: IP 134–134 · Undo: Bullets and Numbering, Paste
 4. `Ctrl+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.]{+[ Heading kind]+}‸ ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]{+[ Heading kind]+}‸
 ```
 
-Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Paste
 
 **PasteFormatWithinDocument 1**
 
@@ -21215,18 +21281,18 @@ Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Bullets and Numberin
 4. `Ctrl+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind. Heading kind‸] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind. Heading kind‸]
 ```
 
-Selection: IP 134–134 · Undo: Bullets and Numbering, Paste
+Selection: IP 134–134 · Undo: Paste
 
 **PasteFormatWithinDocument 1 · Track Changes on**
 
@@ -21236,18 +21302,18 @@ Selection: IP 134–134 · Undo: Bullets and Numbering, Paste
 4. `Ctrl+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.]{+[ Heading kind]+}‸ ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]{+[ Heading kind]+}‸
 ```
 
-Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Paste
 
 **PasteFormatWithinDocument 2**
 
@@ -21257,18 +21323,18 @@ Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Bullets and Numberin
 4. `Ctrl+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind. Heading kind‸] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind. Heading kind‸]
 ```
 
-Selection: IP 134–134 · Undo: Bullets and Numbering, Paste
+Selection: IP 134–134 · Undo: Paste
 
 **PasteFormatWithinDocument 2 · Track Changes on**
 
@@ -21278,18 +21344,18 @@ Selection: IP 134–134 · Undo: Bullets and Numbering, Paste
 4. `Ctrl+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.]{+[ Heading kind]+}‸ ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]{+[ Heading kind]+}‸
 ```
 
-Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Paste
 
 #### C-13c · PasteFormatWithinDocument on a list item pasted after the list's last item
 
@@ -21311,7 +21377,7 @@ number.
 [Three One‸] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 17–17 · Undo: Bullets and Numbering, Paste
+Selection: IP 17–17 · Undo: Paste
 
 **PasteFormatWithinDocument 0 · Track Changes on**
 
@@ -21326,7 +21392,7 @@ Selection: IP 17–17 · Undo: Bullets and Numbering, Paste
 [Three]{+[ One]+}‸ #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Paste
 
 **PasteFormatWithinDocument 1**
 
@@ -21341,7 +21407,7 @@ Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering,
 [Three One‸] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 17–17 · Undo: Bullets and Numbering, Paste
+Selection: IP 17–17 · Undo: Paste
 
 **PasteFormatWithinDocument 1 · Track Changes on**
 
@@ -21356,7 +21422,7 @@ Selection: IP 17–17 · Undo: Bullets and Numbering, Paste
 [Three]{+[ One]+}‸ #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Paste
 
 **PasteFormatWithinDocument 2**
 
@@ -21371,7 +21437,7 @@ Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering,
 [Three One‸] #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 17–17 · Undo: Bullets and Numbering, Paste
+Selection: IP 17–17 · Undo: Paste
 
 **PasteFormatWithinDocument 2 · Track Changes on**
 
@@ -21386,7 +21452,7 @@ Selection: IP 17–17 · Undo: Bullets and Numbering, Paste
 [Three]{+[ One]+}‸ #ListParagraph •1.0 3. ⇥36,-18
 ```
 
-Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste
+Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Paste
 
 #### C-14a · Ctrl+Shift+V of a bold run
 
@@ -21400,8 +21466,8 @@ Expected before the run: 'Strong' arrives in the destination's font, not bold.
 4. `Ctrl+Shift+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-[Serif face sans face. Strong‸] ↓0
+[b:Strong ][i:soft ][plain words.]
+[14 Times New Roman:Serif face ][10 Arial:sans face][. Strong‸]
 ```
 
 Selection: IP 53–53 · Undo: Paste Text Only
@@ -21414,8 +21480,8 @@ Selection: IP 53–53 · Undo: Paste Text Only
 4. `Ctrl+Shift+V`
 
 ```text
-[b:Strong ][i:soft ][plain words.] ↓0
-[Serif face sans face.]{+[ Strong]+}‸ ↓0
+[b:Strong ][i:soft ][plain words.]
+[14 Times New Roman:Serif face ][10 Arial:sans face][.]{+[ Strong]+}‸
 ```
 
 Selection: IP 53–53 · Tracking · Revisions 1 · Undo: Paste Text Only
@@ -21432,18 +21498,18 @@ Expected before the run: (a) the text and a Normal paragraph mark; (b) the mark 
 4. `Ctrl+Shift+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind. Heading kind‸] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind. Heading kind‸]
 ```
 
-Selection: IP 134–134 · Undo: Bullets and Numbering, Paste Text Only
+Selection: IP 134–134 · Undo: Paste Text Only
 
 **Track Changes on**
 
@@ -21453,18 +21519,18 @@ Selection: IP 134–134 · Undo: Bullets and Numbering, Paste Text Only
 4. `Ctrl+Shift+V`
 
 ```text
-[Normal kind.] ↓0
+[Normal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.]{+[ Heading kind]+}‸ ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]{+[ Heading kind]+}‸
 ```
 
-Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste Text Only
+Selection: IP 134–134 · Tracking · Revisions 1 · Undo: Paste Text Only
 
 #### C-14c · Ctrl+Shift+V of two list items
 
@@ -21481,10 +21547,12 @@ text; (c) they continue the list as items 4 and 5.
 ```text
 [One] #ListParagraph •1.0 1. ⇥36,-18
 [Two] #ListParagraph •1.0 2. ⇥36,-18
-[Three‸] #ListParagraph •1.0 3. ⇥36,-18
+[Three One] #ListParagraph •1.0 3. ⇥36,-18
+[Two] #ListParagraph •1.0 4. ⇥36,-18
+‸ #ListParagraph •1.0 5. ⇥36,-18
 ```
 
-Selection: IP 13–13 · Undo: Bullets and Numbering
+Selection: IP 22–22 · Undo: Paste Text Only
 
 **Track Changes on**
 
@@ -21501,7 +21569,7 @@ Selection: IP 13–13 · Undo: Bullets and Numbering
 ‸ #ListParagraph •1.0 5. ⇥36,-18
 ```
 
-Selection: IP 22–22 · Tracking · Revisions 1 · Undo: Bullets and Numbering, Paste Text Only
+Selection: IP 22–22 · Tracking · Revisions 1 · Undo: Paste Text Only
 
 #### C-14d · Ctrl+Shift+V of a table
 
@@ -21515,10 +21583,10 @@ Expected before the run: The table arrives as tab-separated lines, one paragraph
 4. `Ctrl+Shift+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[OneOne\tTwo] ¶ [Three\tFour‸¤]║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 39–39 · Cells 1 (R1C1–R1C1) · Undo: Paste Text Only
@@ -21531,10 +21599,10 @@ Selection: IP 39–39 · Cells 1 (R1C1–R1C1) · Undo: Paste Text Only
 4. `Ctrl+Shift+V`
 
 ```text
-[Before the table.] ↓0
+[Before the table.]
 T1 R1 ║[One]{+[One\tTwo] ¶ [Three\tFour]+}‸¤║[Two¤]║¤
 T1 R2 ║[Three¤]║[Four¤]║¤
-[After the table.] ↓0
+[After the table.]
 ```
 
 Selection: IP 39–39 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Paste Text Only
@@ -21551,8 +21619,8 @@ Expected before the run: Nothing is pasted, or the key is refused with the pictu
 4. `Ctrl+Shift+V`
 
 ```text
-[Text before ▣ after end.] ↓0
-[Second paragraph.‸] ↓0
+[Text before ▣ after end.]
+[Second paragraph.‸]
 ```
 
 Selection: IP 42–42 · Undo — · click(IMG1) → Shape Picture 1, WordOwn
@@ -21565,8 +21633,8 @@ Selection: IP 42–42 · Undo — · click(IMG1) → Shape Picture 1, WordOwn
 4. `Ctrl+Shift+V`
 
 ```text
-[Text before ▣ after end.] ↓0
-[Second paragraph.‸] ↓0
+[Text before ▣ after end.]
+[Second paragraph.‸]
 ```
 
 Selection: IP 42–42 · Tracking · Revisions 0 · Undo — · click(IMG1) → Shape Picture 1, WordOwn
@@ -21583,8 +21651,8 @@ Expected before the run: 'the site' arrives as plain text with no HYPERLINK fiel
 4. `Ctrl+Shift+V`
 
 ```text
-[See ]<[bu:the site]>[ today.] ↓0
-[Second paragraph.‸] ↓0
+[See ]<[bu:the site]>[ today.]
+[Second paragraph.‸]
 ```
 
 Selection: IP 73–73 · Undo —
@@ -21597,8 +21665,8 @@ Selection: IP 73–73 · Undo —
 4. `Ctrl+Shift+V`
 
 ```text
-[See ]<[bu:the site]>[ today.] ↓0
-[Second paragraph.‸] ↓0
+[See ]<[bu:the site]>[ today.]
+[Second paragraph.‸]
 ```
 
 Selection: IP 73–73 · Tracking · Revisions 0 · Undo —
@@ -21616,22 +21684,22 @@ steps `select({range})` · `Ctrl+X`
 
 | range | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P1:6-P1:11 | SmartCutPaste=true | off | IP 5–5 · Undo depth 1 | `[alpha‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:11 | SmartCutPaste=true | on | IP 11–11 · Tracking · Revisions 1 · Undo depth 1 | `[alpha]{-[ beta,]-}[‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:11 | SmartCutPaste=false | off | IP 6–6 · Undo depth 1 | `[alpha ‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:11 | SmartCutPaste=false | on | IP 11–11 · Tracking · Revisions 1 · Undo depth 1 | `[alpha ]{-[beta,]-}[‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:10 | SmartCutPaste=true | off | IP 5–5 · Undo depth 1 | `[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:10 | SmartCutPaste=true | on | IP 10–10 · Tracking · Revisions 1 · Undo depth 1 | `[alpha]{-[ beta]-}[‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:10 | SmartCutPaste=false | off | IP 6–6 · Undo depth 1 | `[alpha ‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:6-P1:10 | SmartCutPaste=false | on | IP 10–10 · Tracking · Revisions 1 · Undo depth 1 | `[alpha ]{-[beta]-}[‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0-P1:6 | SmartCutPaste=true | off | IP 0–0 · Undo depth 1 | `[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0-P1:6 | SmartCutPaste=true | on | IP 6–6 · Tracking · Revisions 1 · Undo depth 1 | `{-[alpha ]-}[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0-P1:6 | SmartCutPaste=false | off | IP 0–0 · Undo depth 1 | `[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:0-P1:6 | SmartCutPaste=false | on | IP 6–6 · Tracking · Revisions 1 · Undo depth 1 | `{-[alpha ]-}[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0` |
-| P1:find("end")-P1:end | SmartCutPaste=true | off | IP 54–54 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ‸] ↓0` |
-| P1:find("end")-P1:end | SmartCutPaste=true | on | IP 58–58 · Tracking · Revisions 1 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ]{-[end.]-}‸ ↓0` |
-| P1:find("end")-P1:end | SmartCutPaste=false | off | IP 54–54 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ‸] ↓0` |
-| P1:find("end")-P1:end | SmartCutPaste=false | on | IP 58–58 · Tracking · Revisions 1 · Undo depth 1 | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ]{-[end.]-}‸ ↓0` |
+| P1:6-P1:11 | SmartCutPaste=true | off | IP 5–5 · Undo: Cut | `[alpha‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | SmartCutPaste=true | on | IP 11–11 · Tracking · Revisions 1 · Undo: Cut | `[24:alpha]{-[24: beta,]-}[24:‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | SmartCutPaste=false | off | IP 6–6 · Undo: Cut | `[alpha ‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | SmartCutPaste=false | on | IP 11–11 · Tracking · Revisions 1 · Undo: Cut | `[24:alpha ]{-[24:beta,]-}[24:‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | SmartCutPaste=true | off | IP 5–5 · Undo: Cut | `[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | SmartCutPaste=true | on | IP 10–10 · Tracking · Revisions 1 · Undo: Cut | `[24:alpha]{-[24: beta]-}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | SmartCutPaste=false | off | IP 6–6 · Undo: Cut | `[alpha ‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | SmartCutPaste=false | on | IP 10–10 · Tracking · Revisions 1 · Undo: Cut | `[24:alpha ]{-[24:beta]-}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0-P1:6 | SmartCutPaste=true | off | IP 0–0 · Undo: Cut | `[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0-P1:6 | SmartCutPaste=true | on | IP 6–6 · Tracking · Revisions 1 · Undo: Cut | `{-[24:alpha ]-}[24:‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0-P1:6 | SmartCutPaste=false | off | IP 0–0 · Undo: Cut | `[‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:0-P1:6 | SmartCutPaste=false | on | IP 6–6 · Tracking · Revisions 1 · Undo: Cut | `{-[24:alpha ]-}[24:‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:find("end")-P1:end | SmartCutPaste=true | off | IP 54–54 · Undo: Cut | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ‸]` |
+| P1:find("end")-P1:end | SmartCutPaste=true | on | IP 58–58 · Tracking · Revisions 1 · Undo: Cut | `[24:alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ]{-[24:end.]-}‸` |
+| P1:find("end")-P1:end | SmartCutPaste=false | off | IP 54–54 · Undo: Cut | `[alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ‸]` |
+| P1:find("end")-P1:end | SmartCutPaste=false | on | IP 58–58 · Tracking · Revisions 1 · Undo: Cut | `[24:alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 ]{-[24:end.]-}‸` |
 
 Notes: P1:6-11 is 'beta,' with the two spaces after it; P1:6-10 is 'beta' alone; P1:0-6 is 'alpha ' with its space;
 the last range is 'end.' with the space before it.
@@ -21648,14 +21716,14 @@ steps `select({range})` · `Ctrl+X`
 
 | range | tracked | selection | observed |
 | --- | --- | --- | --- |
-| P2:0-P3:0 | off | IP 22–22 · Undo depth 1 | `[First paragraph here.] ↓0<br>[‸Third and last.] ↓0` |
-| P2:0-P3:0 | on | IP 39–39 · Tracking · Revisions 1 · Undo depth 1 | `[First paragraph here.] ↓0<br>{-[Second ][b:bold ][one.]-} (center) ↓0<br>[‸Third and last.] ↓0` |
-| P2:0-P2:end | off | IP 22–22 · Undo depth 1 | `[First paragraph here.] ↓0<br>‸ (center) ↓0<br>[Third and last.] ↓0` |
-| P2:0-P2:end | on | IP 38–38 · Tracking · Revisions 1 · Undo depth 1 | `[First paragraph here.] ↓0<br>{-[Second ][b:bold ][one.]-}‸ (center) ↓0<br>[Third and last.] ↓0` |
-| P1:4-P2:0 | off | IP 4–4 · Undo depth 1 | `[Firs‸] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P1:4-P2:0 | on | IP 21–21 · Tracking · Revisions 1 · Undo depth 1 | `[Firs]{-[t paragraph here.]-}‸ ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Third and last.] ↓0` |
-| P3:2-DOC:end | off | IP 41–41 · Undo depth 1 | `[First paragraph here.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Th‸] ↓0` |
-| P3:2-DOC:end | on | IP 54–54 · Tracking · Revisions 1 · Undo depth 1 | `[First paragraph here.] ↓0<br>[Second ][b:bold ][one.] (center) ↓0<br>[Th]{-[ird and last.]-}‸ ↓0` |
+| P2:0-P3:0 | off | IP 22–22 · Undo: Cut | `[First paragraph here.]<br>[‸Third and last.]` |
+| P2:0-P3:0 | on | IP 39–39 · Tracking · Revisions 1 · Undo: Cut | `[First paragraph here.]<br>{-[Second ][b:bold ][one.]-} (center)<br>[‸Third and last.]` |
+| P2:0-P2:end | off | IP 22–22 · Undo: Cut | `[First paragraph here.]<br>‸ (center)<br>[Third and last.]` |
+| P2:0-P2:end | on | IP 38–38 · Tracking · Revisions 1 · Undo: Cut | `[First paragraph here.]<br>{-[Second ][b:bold ][one.]-}‸ (center)<br>[Third and last.]` |
+| P1:4-P2:0 | off | IP 4–4 · Undo: Cut | `[Firs‸]<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| P1:4-P2:0 | on | IP 21–21 · Tracking · Revisions 1 · Undo: Cut | `[Firs]{-[t paragraph here.]-}‸<br>[Second ][b:bold ][one.] (center)<br>[Third and last.]` |
+| P3:2-DOC:end | off | IP 41–41 · Undo: Cut | `[First paragraph here.]<br>[Second ][b:bold ][one.] (center)<br>[Th‸]` |
+| P3:2-DOC:end | on | IP 54–54 · Tracking · Revisions 1 · Undo: Cut | `[First paragraph here.]<br>[Second ][b:bold ][one.] (center)<br>[Th]{-[ird and last.]-}‸` |
 
 Notes: P2:0-P3:0 is the centred paragraph with its mark; P2:0-P2:end is its text alone; P1:4-P2:0 ends with P1's
 mark; P3:2-DOC:end reaches the final mark, which cannot be removed.
@@ -21671,14 +21739,14 @@ steps `{setup}` · `Ctrl+X`
 
 | setup | tracked | selection | observed |
 | --- | --- | --- | --- |
-| select(R2) | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(R2) | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(C(1,1):0-C(1,1):mark) | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(C(1,1):0-C(1,1):mark) | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(T1) | off | IP 18–18 · Undo depth 1 | `[Before the table.] ↓0<br>[‸After the table.] ↓0` |
-| select(T1) | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(COL2) | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo depth 1 | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[c3¤]║¤<br>[After the table.] ↓0` |
-| select(COL2) | on | Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo — | `[Before the table.] ↓0<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.] ↓0` |
+| select(R2) | off | IP 28–28 · Cells 1 (R2C1–R2C1) · Undo: Cut | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[‸a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(R2) | on | IP 28–28 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║{-[‸a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(C(1,1):0-C(1,1):mark) | off | IP 18–18 · Cells 1 (R1C1–R1C1) · Undo: Cut | `[Before the table.]<br>T1 R1 ║‸¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(C(1,1):0-C(1,1):mark) | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║{-[‸a1]-}¤║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(T1) | off | IP 18–18 · Undo: Cut | `[Before the table.]<br>[‸After the table.]` |
+| select(T1) | on | IP 18–18 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 1 · Undo: Cut | `[Before the table.]<br>T1 R1 ║{-[‸a1¤]║[b1¤]║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(COL2) | off | IP 21–21 · Cells 1 (R1C2–R1C2) · Undo: Cut | `[Before the table.]<br>T1 R1 ║[a1¤]║[‸c1¤]║¤<br>T1 R2 ║[a2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[c3¤]║¤<br>[After the table.]` |
+| select(COL2) | on | Column 21–44 end-active · Cells 3 (R1C2–R3C2) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[⟦b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤‸⟧]║[c3¤]║¤<br>[After the table.]` |
 
 #### C-18b · Cut every cell selected by a drag
 
@@ -21724,7 +21792,7 @@ Expected before the run: Nothing changes and no undo entry is written.
 3. `Ctrl+X`
 
 ```text
-[The‸ quick brown fox jumps over the lazy dog.] ↓0
+[The‸ quick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 3–3 · Undo —
@@ -21740,7 +21808,7 @@ Expected before the run: Nothing changes and no undo entry is written.
 3. `Ctrl+V`
 
 ```text
-[The‸ quick brown fox jumps over the lazy dog.] ↓0
+[The‸ quick brown fox jumps over the lazy dog.]
 ```
 
 Selection: IP 3–3 · Undo —
@@ -21756,10 +21824,10 @@ Expected before the run: 'beta' is replaced by 'pasted' in one undo entry, with 
 3. `Ctrl+V`
 
 ```text
-[alpha pasted‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[alpha pasted‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
-Selection: IP 12–12 · Undo depth 1
+Selection: IP 12–12 · Undo: Paste
 
 **Track Changes on**
 
@@ -21768,10 +21836,10 @@ Selection: IP 12–12 · Undo depth 1
 3. `Ctrl+V`
 
 ```text
-[alpha ]{+[pasted]+}{-[‸beta]-}[,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.] ↓0
+[24:alpha ]{+[24:pasted]+}{-[24:‸beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]
 ```
 
-Selection: IP 12–12 · Tracking · Revisions 2 · Undo depth 1
+Selection: IP 12–12 · Tracking · Revisions 2 · Undo: Paste
 
 #### C-21 · Paste a paragraph carrying borders into a Normal paragraph
 
@@ -21786,18 +21854,18 @@ and 'mal kind.' follows unbordered.
 4. `Ctrl+V`
 
 ```text
-[Nor Bordered kind.‸mal kind.] ↓0
+[Nor Bordered kind.‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 18–18 · Undo depth 2
+Selection: IP 18–18 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-21.diff`
 
@@ -21809,18 +21877,18 @@ Markup diff: `WordProbe/Results/markup/C-21.diff`
 4. `Ctrl+V`
 
 ```text
-[Nor]{+[ Bordered kind.]+}[‸mal kind.] ↓0
+[Nor]{+[ Bordered kind.]+}[‸mal kind.]
 [Heading kind] #Heading1
 [Bullet kind.] #ListParagraph •1.0 ● ⇥36,-18
-[Centred kind.] (center) ↓0
-[Bordered kind.] ↓0
-[Indented kind.] ⇥36,0 ↓0
- ↓0
-[Keep with next kind.] ↓0
-[Last plain kind.] ↓0
+[Centred kind.] (center)
+[Bordered kind.] ▭
+[Indented kind.] ⇥36,0
+
+[Keep with next kind.] ⇊
+[Last plain kind.]
 ```
 
-Selection: IP 18–18 · Tracking · Revisions 1 · Undo depth 2
+Selection: IP 18–18 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-21_tracked.diff`
 
@@ -21859,11 +21927,11 @@ Expected before the run: A second footnote with the same text is made and the re
 4. `Ctrl+V`
 
 ```text
-[Text†1 more words.] ↓0
-[Text†2‸Second with an end note.‡1] ↓0
+[Text†1 more words.]
+[Text†2‸Second with an end note.‡1]
 ```
 
-Selection: IP 23–23 · Undo depth 1
+Selection: IP 23–23 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-23a.diff`
 
@@ -21875,11 +21943,11 @@ Markup diff: `WordProbe/Results/markup/C-23a.diff`
 4. `Ctrl+V`
 
 ```text
-[Text†1 more words.] ↓0
-{+[Text†2]+}[‸Second with an end note.‡1] ↓0
+[Text][^:†1 ][more words.]
+{+[Text][^:†2]+}[‸Second with an end note.][^:‡1]
 ```
 
-Selection: IP 23–23 · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 23–23 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-23a_tracked.diff`
 
@@ -21896,10 +21964,10 @@ steps `select(P1:10-P1:19)` · `Ctrl+C` · `select(P2:0)` · `Ctrl+V`
 
 | fixture | tracked | selection | observed |
 | --- | --- | --- | --- |
-| bookmark | off | IP 55–55 · Undo depth 1 | `[The quick brown fox jumps over the lazy dog.] ↓0<br>[brown fox ‸Second paragraph.] ↓0` |
-| bookmark | on | IP 55–55 · Tracking · Revisions 1 · Undo depth 1 | `[The quick brown fox jumps over the lazy dog.] ↓0<br>{+[brown fox ]+}[‸Second paragraph.] ↓0` |
-| comment | off | IP 55–55 · Undo depth 1 | `[The quick ⟪brown fox⟫1 jumps over the lazy dog.] ↓0<br>⟪[brown fox⟫2 ‸Second paragraph.] ↓0` |
-| comment | on | IP 55–55 · Tracking · Revisions 1 · Undo depth 1 | `[The quick ⟪brown fox⟫1 jumps over the lazy dog.] ↓0<br>{+⟪[brown fox⟫2 ]+}[‸Second paragraph.] ↓0` |
+| bookmark | off | IP 55–55 · Undo: Paste | `[The quick brown fox jumps over the lazy dog.]<br>[brown fox ‸Second paragraph.]` |
+| bookmark | on | IP 55–55 · Tracking · Revisions 1 · Undo: Paste | `[The quick brown fox jumps over the lazy dog.]<br>{+[brown fox ]+}[‸Second paragraph.]` |
+| comment | off | IP 55–55 · Undo: Paste | `[The quick ⟪brown fox⟫1 jumps over the lazy dog.]<br>⟪[brown fox⟫2 ‸Second paragraph.]` |
+| comment | on | IP 55–55 · Tracking · Revisions 1 · Undo: Paste | `[The quick ⟪brown fox⟫1 jumps over the lazy dog.]<br>{+⟪[brown fox⟫2 ]+}[‸Second paragraph.]` |
 
 Notes: P1:10-19 is 'brown fox', the bookmarked (or commented) range.
 
@@ -21916,13 +21984,13 @@ stands at P4's end.
 4. `Ctrl+V`
 
 ```text
-[Rich: (|content here|) end.] ↓0
-[Plain: (|plain here|) end.] ↓0
-[Check: (|☐|) end.] ↓0
-[Pick: (|choice|) end. Rich: (|content here|) end.‸] ↓0
+[Rich: (|content here|) end.]
+[Plain: (|plain here|) end.]
+[Check: (|☐|) end.]
+[Pick: (|choice|) end. Rich: (|content here|) end.‸]
 ```
 
-Selection: IP 112–112 · Undo depth 1
+Selection: IP 112–112 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-23c.diff`
 
@@ -21934,13 +22002,13 @@ Markup diff: `WordProbe/Results/markup/C-23c.diff`
 4. `Ctrl+V`
 
 ```text
-[Rich: (|content here|) end.] ↓0
-[Plain: (|plain here|) end.] ↓0
-[Check: (|☐|) end.] ↓0
-[Pick: (|choice|) end.]{+[ Rich: (|content here|) end.]+}‸ ↓0
+[Rich: (|content here|) end.]
+[Plain: (|plain here|) end.]
+[Check: ][MS Gothic:(|☐|) ][end.]
+[Pick: (|choice|) end.]{+[ Rich: (|content here|) end.]+}‸
 ```
 
-Selection: IP 112–112 · Tracking · Revisions 1 · Undo depth 1
+Selection: IP 112–112 · Tracking · Revisions 1 · Undo: Paste
 
 Markup diff: `WordProbe/Results/markup/C-23c_tracked.diff`
 
@@ -21955,10 +22023,10 @@ steps `select(P1:4-P1:12)` · `Ctrl+C` · `select(P2:0)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Ctrl+V | off | IP 100–100 · Undo depth 1 | `[See ]<[bu:the site]>[ today.] ↓0<br><[bu:the site]>[‸Second paragraph.] ↓0` |
-| Ctrl+V | on | IP 100–100 · Tracking · Revisions 1 · Undo depth 1 | `[See ]<[bu:the site]>[ today.] ↓0<br>{+<[bu:the site]>+}[‸Second paragraph.] ↓0` |
-| Ctrl+Shift+V | off | IP 64–64 · Undo depth 1 | `[See ]<[bu:the site]>[ today.] ↓0<br>[the site‸Second paragraph.] ↓0` |
-| Ctrl+Shift+V | on | IP 64–64 · Tracking · Revisions 1 · Undo depth 1 | `[See ]<[bu:the site]>[ today.] ↓0<br>{+[the site]+}[‸Second paragraph.] ↓0` |
+| Ctrl+V | off | IP 100–100 · Undo: Paste | `[See ]<[bu:the site]>[ today.]<br><[bu:the site]>[‸Second paragraph.]` |
+| Ctrl+V | on | IP 100–100 · Tracking · Revisions 1 · Undo: Paste | `[See ]<[bu:the site]>[ today.]<br>{+<[bu:the site]>+}[‸Second paragraph.]` |
+| Ctrl+Shift+V | off | IP 64–64 · Undo: Paste Text Only | `[See ]<[bu:the site]>[ today.]<br>[the site‸Second paragraph.]` |
+| Ctrl+Shift+V | on | IP 64–64 · Tracking · Revisions 1 · Undo: Paste Text Only | `[See ]<[bu:the site]>[ today.]<br>{+[the site]+}[‸Second paragraph.]` |
 
 Notes: P1:4-12 is the link's display text 'the site', bold.
 
@@ -22009,13 +22077,13 @@ untouched.
 4. `Ctrl+Shift+F3`
 
 ```text
-[ paragraph here.] ↓0
-[Second bold one.] (center) ↓0
-[Third and last.First] ↓0
-‸ ↓0
+[ paragraph here.]
+[Second bold one.] (center)
+[Third and last.First]
+‸
 ```
 
-Selection: IP 55–55 · Undo depth 2
+Selection: IP 55–55 · Undo: Insert Spike, Spike
 
 **Track Changes on**
 
@@ -22025,13 +22093,13 @@ Selection: IP 55–55 · Undo depth 2
 4. `Ctrl+Shift+F3`
 
 ```text
-{-[First]-}[ paragraph here.] ↓0
-[Second ][b:bold ][one.] (center) ↓0
-[Third and last.]{+[First]+} ↓0
-‸ ↓0
+{-[First]-}[ paragraph here.]
+[Second ][b:bold ][one.] (center)
+[Third and last.]{+[First]+}
+‸
 ```
 
-Selection: IP 60–60 · Tracking · Revisions 2 · Undo depth 2
+Selection: IP 60–60 · Tracking · Revisions 2 · Undo: Insert Spike, Spike
 
 #### C-27 · Ctrl+Alt+V opens Paste Special
 
@@ -22214,8 +22282,8 @@ Expected before the run: The click selects the picture alone, selection Type Inl
 1. `click(IMG1)`
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · click(IMG1) → Shape Picture 1, WordOwn
@@ -22235,12 +22303,12 @@ from the first press.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Shift+Right` | InlineShape 12–13 end-active | `[Text before ⟦/‸⟧ after end.]` |
-| `Shift+Right` | Normal 12–14 end-active | `[Text before ⟦/ ‸⟧after end.]` |
+| `Shift+Right` | InlineShape 12–13 end-active | `[Text before ⟦▣‸⟧ after end.]` |
+| `Shift+Right` | Normal 12–14 end-active | `[Text before ⟦▣ ‸⟧after end.]` |
 
 ```text
-[Text before ⟦▣ ‸⟧after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣ ‸⟧after end.]
+[Second paragraph.]
 ```
 
 Selection: Normal 12–14 end-active · InlineShapes 1
@@ -22258,12 +22326,12 @@ press selects the picture and the second deletes it.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Backspace` | InlineShape 12–13 start-active | `[Text before ⟦‸/⟧ after end.]` |
+| `Backspace` | InlineShape 12–13 start-active | `[Text before ⟦‸▣⟧ after end.]` |
 | `Backspace` | IP 12–12 | `[Text before ‸ after end.]` |
 
 ```text
-[Text before ‸ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ‸ after end.]
+[Second paragraph.]
 ```
 
 Selection: IP 12–12 · Undo: Clear
@@ -22276,12 +22344,12 @@ Selection: IP 12–12 · Undo: Clear
 
 | step | selection | where |
 | --- | --- | --- |
-| `Backspace` | InlineShape 12–13 start-active | `[Text before ⟦‸/⟧ after end.]` |
-| `Backspace` | IP 13–13 | `[Text before /‸ after end.]` |
+| `Backspace` | InlineShape 12–13 start-active | `[Text before ⟦‸▣⟧ after end.]` |
+| `Backspace` | IP 13–13 | `[Text before ▣‸ after end.]` |
 
 ```text
-[Text before ]{-[▣]-}[‸ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ]{-[▣]-}[‸ after end.]
+[Second paragraph.]
 ```
 
 Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Clear
@@ -22296,8 +22364,8 @@ Expected before the run: (a) one press deletes the picture; (b) one press select
 2. `Delete`
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · Undo —
@@ -22308,8 +22376,8 @@ Selection: InlineShape 12–13 end-active · InlineShapes 1 · Undo —
 2. `Delete`
 
 ```text
-[Text before ⟦▣‸⟧ after end.] ↓0
-[Second paragraph.] ↓0
+[Text before ⟦▣‸⟧ after end.]
+[Second paragraph.]
 ```
 
 Selection: InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
@@ -22322,13 +22390,13 @@ Expected before the run: The picture goes and the caret stays at 12; undo brings
 
 steps before the branches `click(IMG1)` · `Delete`
 
-- `Delete` → `[Text before ‸ after end.] ↓0 / [Second paragraph.] ↓0` · IP 12–12 · Undo depth 1
-- `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `Delete` → `[Text before ‸ after end.] / [Second paragraph.]` · IP 12–12 · Undo: Clear
+- `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
 
 **Track Changes on**
 
-- `Delete` → `[Text before ]{-[▣]-}[‸ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `Delete` → `[Text before ]{-[▣]-}[‸ after end.] / [Second paragraph.]` · IP 13–13 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -22347,31 +22415,31 @@ picture's run formatting.
 
 steps before the branches `click(IMG1)`
 
-- `click(IMG1)` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
-- `type("x")` → `[Text before x‸▣ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Undo depth 1
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
-- `Enter` → `[Text before ] ↓0 / [‸▣ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Undo depth 1
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
-- `Tab` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
-- `Shift+Enter` → `[Text before \n‸▣ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Undo depth 1
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
-- `Ctrl+B · type("y")` → `[Text before ][b:y‸▣ ][after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Undo depth 2
-  - `undo · undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `click(IMG1)` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `type("x")` → `[Text before x‸▣ after end.] / [Second paragraph.]` · IP 13–13 · Undo: Typing "x"
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `Enter` → `[Text before ] / [‸▣ after end.] / [Second paragraph.]` · IP 13–13 · Undo: Typing
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `Tab` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `Shift+Enter` → `[Text before \n‸▣ after end.] / [Second paragraph.]` · IP 13–13 · Undo: Typing "."
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
+- `Ctrl+B · type("y")` → `[Text before ][b:y‸▣ ][after end.] / [Second paragraph.]` · IP 13–13 · Undo: Typing "y", Bold
+  - `undo · undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Undo —
 
 **Track Changes on**
 
-- `click(IMG1)` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[Text before ]{+[x]+}[‸▣ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
-- `Enter` → `[Text before ]{++} ↓0 / [‸▣ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
-- `Tab` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
-- `Shift+Enter` → `[Text before ]{+[\n]+}[‸▣ after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
-- `Ctrl+B · type("y")` → `[Text before ]{+[b:y]+}{~[b:‸▣]~}[b: ][after end.] ↓0 / [Second paragraph.] ↓0` · IP 13–13 · Tracking · Revisions 2 · Undo depth 2
-  - `undo · undo` → `[Text before ⟦▣‸⟧ after end.] ↓0 / [Second paragraph.] ↓0` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `click(IMG1)` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[Text before ]{+[x]+}[‸▣ after end.] / [Second paragraph.]` · IP 13–13 · Tracking · Revisions 1 · Undo: Typing "x"
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `Enter` → `[Text before ]{++} / [‸▣ after end.] / [Second paragraph.]` · IP 13–13 · Tracking · Revisions 1 · Undo: Typing
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `Tab` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `Shift+Enter` → `[Text before ]{+[\n]+}[‸▣ after end.] / [Second paragraph.]` · IP 13–13 · Tracking · Revisions 1 · Undo: Typing "."
+  - `undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
+- `Ctrl+B · type("y")` → `[Text before ]{+[b:y]+}{~[b:‸▣]~}[b: ][after end.] / [Second paragraph.]` · IP 13–13 · Tracking · Revisions 2 · Undo: Typing "y", Bold
+  - `undo · undo` → `[Text before ⟦▣‸⟧ after end.] / [Second paragraph.]` · InlineShape 12–13 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -22399,10 +22467,10 @@ steps `click(IMG1)` · `Ctrl+X` · `select(P2:3)` · `{paste}`
 
 | paste | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Ctrl+V | off | IP 28–28 · Undo depth 2 | `[Text before  after end.] ↓0<br>[Sec▣‸ond paragraph.] ↓0` |
-| Ctrl+V | on | IP 29–29 · Tracking · Revisions 2 · Undo depth 2 | `[Text before ]{-[▣]-}[ after end.] ↓0<br>[Sec]{+[▣]+}[‸ond paragraph.] ↓0` |
-| Ctrl+Shift+V | off | IP 27–27 · Undo depth 1 | `[Text before  after end.] ↓0<br>[Sec‸ond paragraph.] ↓0` |
-| Ctrl+Shift+V | on | IP 28–28 · Tracking · Revisions 1 · Undo depth 1 | `[Text before ]{-[▣]-}[ after end.] ↓0<br>[Sec‸ond paragraph.] ↓0` |
+| Ctrl+V | off | IP 28–28 · Undo: Paste, Cut | `[Text before  after end.]<br>[Sec▣‸ond paragraph.]` |
+| Ctrl+V | on | IP 29–29 · Tracking · Revisions 2 · Undo: Paste, Cut | `[Text before ]{-[▣]-}[ after end.]<br>[Sec]{+[▣]+}[‸ond paragraph.]` |
+| Ctrl+Shift+V | off | IP 27–27 · Undo: Cut | `[Text before  after end.]<br>[Sec‸ond paragraph.]` |
+| Ctrl+Shift+V | on | IP 28–28 · Tracking · Revisions 1 · Undo: Cut | `[Text before ]{-[▣]-}[ after end.]<br>[Sec‸ond paragraph.]` |
 
 Notes: Ctrl+Shift+V is Word's paste text only; a picture has no text form.
 
@@ -22435,30 +22503,30 @@ steps `select({from})` · `{key}`
 
 | from | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P1:0 | Enter | off | IP 1–1 · Undo depth 1 | ` ↓0<br>[‸▣ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:0 | Enter | on | IP 1–1 · Tracking · Revisions 1 · Undo depth 1 | `{++} ↓0<br>[‸▣ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:0 | Backspace | off | IP 0–0 · Undo — | `[‸▣ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:0 | Backspace | on | IP 0–0 · Tracking · Revisions 0 · Undo — | `[‸▣ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:0 | Delete | off | InlineShape 0–1 end-active · InlineShapes 1 · Undo — | `[⟦▣‸⟧ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:0 | Delete | on | InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[⟦▣‸⟧ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:1 | Enter | off | IP 2–2 · Undo depth 1 | `[▣] ↓0<br>[‸ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:1 | Enter | on | IP 2–2 · Tracking · Revisions 1 · Undo depth 1 | `[▣]{++} ↓0<br>[‸ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:1 | Backspace | off | InlineShape 0–1 start-active · InlineShapes 1 · Undo — | `[⟦‸▣⟧ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:1 | Backspace | on | InlineShape 0–1 start-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[⟦‸▣⟧ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:1 | Delete | off | IP 1–1 · Undo depth 1 | `[▣‸starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:1 | Delete | on | IP 2–2 · Tracking · Revisions 1 · Undo depth 1 | `[▣]{-[ ]-}[‸starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P2:20 | Enter | off | IP 46–46 · Undo depth 1 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ] ↓0<br>[‸▣] ↓0` |
-| P2:20 | Enter | on | IP 46–46 · Tracking · Revisions 1 · Undo depth 1 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ]{++} ↓0<br>[‸▣] ↓0` |
-| P2:20 | Backspace | off | IP 44–44 · Undo depth 1 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture‸▣] ↓0` |
-| P2:20 | Backspace | on | IP 44–44 · Tracking · Revisions 1 · Undo depth 1 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture]{-[‸ ]-}[▣] ↓0` |
-| P2:20 | Delete | off | InlineShape 45–46 end-active · InlineShapes 1 · Undo — | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ⟦▣‸⟧] ↓0` |
-| P2:20 | Delete | on | InlineShape 45–46 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ⟦▣‸⟧] ↓0` |
-| P2:end | Enter | off | IP 47–47 · Undo depth 1 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0<br>‸ ↓0` |
-| P2:end | Enter | on | IP 47–47 · Tracking · Revisions 1 · Undo depth 1 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ▣]{++} ↓0<br>‸ ↓0` |
-| P2:end | Backspace | off | InlineShape 45–46 start-active · InlineShapes 1 · Undo — | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ⟦‸▣⟧] ↓0` |
-| P2:end | Backspace | on | InlineShape 45–46 start-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ⟦‸▣⟧] ↓0` |
-| P2:end | Delete | off | IP 46–46 · Undo — | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ▣‸] ↓0` |
-| P2:end | Delete | on | IP 46–46 · Tracking · Revisions 0 · Undo — | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ▣‸] ↓0` |
+| P1:0 | Enter | off | IP 1–1 · Undo: Typing | `<br>[‸▣ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:0 | Enter | on | IP 1–1 · Tracking · Revisions 1 · Undo: Typing | `{++}<br>[‸▣ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:0 | Backspace | off | IP 0–0 · Undo — | `[‸▣ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:0 | Backspace | on | IP 0–0 · Tracking · Revisions 0 · Undo — | `[‸▣ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:0 | Delete | off | InlineShape 0–1 end-active · InlineShapes 1 · Undo — | `[⟦▣‸⟧ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:0 | Delete | on | InlineShape 0–1 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[⟦▣‸⟧ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:1 | Enter | off | IP 2–2 · Undo: Typing | `[▣]<br>[‸ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:1 | Enter | on | IP 2–2 · Tracking · Revisions 1 · Undo: Typing | `[▣]{++}<br>[‸ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:1 | Backspace | off | InlineShape 0–1 start-active · InlineShapes 1 · Undo — | `[⟦‸▣⟧ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:1 | Backspace | on | InlineShape 0–1 start-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[⟦‸▣⟧ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:1 | Delete | off | IP 1–1 · Undo: Clear | `[▣‸starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:1 | Delete | on | IP 2–2 · Tracking · Revisions 1 · Undo: Clear | `[▣]{-[ ]-}[‸starts with a picture.]<br>[Ends with a picture ▣]` |
+| P2:20 | Enter | off | IP 46–46 · Undo: Typing | `[▣ starts with a picture.]<br>[Ends with a picture ]<br>[‸▣]` |
+| P2:20 | Enter | on | IP 46–46 · Tracking · Revisions 1 · Undo: Typing | `[▣ starts with a picture.]<br>[Ends with a picture ]{++}<br>[‸▣]` |
+| P2:20 | Backspace | off | IP 44–44 · Undo: Typing | `[▣ starts with a picture.]<br>[Ends with a picture‸▣]` |
+| P2:20 | Backspace | on | IP 44–44 · Tracking · Revisions 1 · Undo: Typing | `[▣ starts with a picture.]<br>[Ends with a picture]{-[‸ ]-}[▣]` |
+| P2:20 | Delete | off | InlineShape 45–46 end-active · InlineShapes 1 · Undo — | `[▣ starts with a picture.]<br>[Ends with a picture ⟦▣‸⟧]` |
+| P2:20 | Delete | on | InlineShape 45–46 end-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[▣ starts with a picture.]<br>[Ends with a picture ⟦▣‸⟧]` |
+| P2:end | Enter | off | IP 47–47 · Undo: Typing | `[▣ starts with a picture.]<br>[Ends with a picture ▣]<br>‸` |
+| P2:end | Enter | on | IP 47–47 · Tracking · Revisions 1 · Undo: Typing | `[▣ starts with a picture.]<br>[Ends with a picture ▣]{++}<br>‸` |
+| P2:end | Backspace | off | InlineShape 45–46 start-active · InlineShapes 1 · Undo — | `[▣ starts with a picture.]<br>[Ends with a picture ⟦‸▣⟧]` |
+| P2:end | Backspace | on | InlineShape 45–46 start-active · InlineShapes 1 · Tracking · Revisions 0 · Undo — | `[▣ starts with a picture.]<br>[Ends with a picture ⟦‸▣⟧]` |
+| P2:end | Delete | off | IP 46–46 · Undo — | `[▣ starts with a picture.]<br>[Ends with a picture ▣‸]` |
+| P2:end | Delete | on | IP 46–46 · Tracking · Revisions 0 · Undo — | `[▣ starts with a picture.]<br>[Ends with a picture ▣‸]` |
 
 Notes: P1 starts with the picture (P1:0 before it, P1:1 after); P2 ends with one (P2:20 before it, P2:end after).
 
@@ -22473,10 +22541,10 @@ steps `select({from})` · `{key}` · `Left` · `Right`
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| P1:5 | Home | IP 1–1 | `[▣‸ starts with a picture.] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P1:5 | End | IP 24–24 | `[▣ starts with a picture.‸] ↓0<br>[Ends with a picture ▣] ↓0` |
-| P2:5 | Home | IP 25–25 | `[▣ starts with a picture.] ↓0<br>[‸Ends with a picture ▣] ↓0` |
-| P2:5 | End | IP 46–46 | `[▣ starts with a picture.] ↓0<br>[Ends with a picture ▣‸] ↓0` |
+| P1:5 | Home | IP 1–1 | `[▣‸ starts with a picture.]<br>[Ends with a picture ▣]` |
+| P1:5 | End | IP 24–24 | `[▣ starts with a picture.‸]<br>[Ends with a picture ▣]` |
+| P2:5 | Home | IP 25–25 | `[▣ starts with a picture.]<br>[‸Ends with a picture ▣]` |
+| P2:5 | End | IP 46–46 | `[▣ starts with a picture.]<br>[Ends with a picture ▣‸]` |
 
 #### I-10 · A floating picture, a rectangle and a text box selected
 
@@ -22489,25 +22557,12 @@ steps `{how}`
 
 | fixture | how | selection | observed |
 | --- | --- | --- | --- |
-| image-floating | click(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
-| image-floating | select(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
-| shape | click(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0<br>[Second paragraph.] ↓0<br>SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` |
-| shape | select(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0<br>[Second paragraph.] ↓0<br>SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` |
-| text-box | click(SHP1) | IP 25–25 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one] ↓0<br>TB: [Box line two‸] ↓0` |
-| text-box | select(SHP1) | Shape 0–26 end-active · Story TextFrame · Shapes 1 | `see below` |
-
-`I-10[fixture=text-box,how=select(SHP1)]`
-
-```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
-SHP1 ⌖P1 textbox 160x80pt square @228,0 ⟦selected⟧
-TB: [⟦Box line one¶⟧] ↓0
-TB: ⟦[Box line two¶‸⟧] ↓0
-```
-
-Selection: Shape 0–26 end-active · Story TextFrame · Shapes 1
+| image-floating | click(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
+| image-floating | select(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
+| shape | click(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧Paragraph beside a shape.]<br>[Second paragraph.]<br>SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` |
+| shape | select(SHP1) | Shape 0–1 end-active · Shapes 1 | `[⟦⚓1‸⟧Paragraph beside a shape.]<br>[Second paragraph.]<br>SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` |
+| text-box | click(SHP1) | IP 25–25 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one]<br>TB: [Box line two‸]` |
+| text-box | select(SHP1) | Shape 0–26 end-active · Story TextFrame · Shapes 1 | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0 ⟦selected⟧<br>TB: [⟦Box line one¶⟧]<br>TB: ⟦[Box line two¶‸⟧]` |
 
 Notes: select(SHP1) is the COM selection of the same shape, for comparison with the click.
 
@@ -22530,9 +22585,9 @@ the click; (c) the shape stays selected.
 | `Esc` | IP 0–0 | `[‸First paragraph of text here.]` |
 
 ```text
-[‸⚓1First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[‸⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0
 ```
 
@@ -22566,13 +22621,13 @@ off; (b) 1pt per press either way. The anchor (a) follows the shape across parag
 | `Up` | Shape 0–1 end-active | `[⟦‸⟧First paragraph of text here.]` |
 
 ```text
-[⟦⚓1‸⟧First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[⟦⚓1‸⟧First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @324.6,0 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 6 · click(SHP1) → Shape Picture 1, WordOwn
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Draw Nudge Up, Draw Nudge Right Pixel, Draw Nudge Down, Draw Nudge Right, Draw Nudge Right, Draw Nudge Right · click(SHP1) → Shape Picture 1, WordOwn
 
 **SnapToGrid true · Track Changes on**
 
@@ -22595,13 +22650,13 @@ Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 6 · click(SHP1) →
 | `Up` | Shape 0–1 end-active | `[⟦‸⟧First paragraph of text here.]` |
 
 ```text
-[⟦⚓1‸⟧First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[⟦⚓1‸⟧First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @324.6,0 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 6 · click(SHP1) → Shape Picture 1, WordOwn
+Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Draw Nudge Up, Draw Nudge Right Pixel, Draw Nudge Down, Draw Nudge Right, Draw Nudge Right, Draw Nudge Right · click(SHP1) → Shape Picture 1, WordOwn
 
 **SnapToGrid false**
 
@@ -22624,13 +22679,13 @@ Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo
 | `Up` | Shape 0–1 end-active | `[⟦‸⟧First paragraph of text here.]` |
 
 ```text
-[⟦⚓1‸⟧First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
-SHP1 ⌖P1 picture 72x72pt square @302.4,0.6 ⟦selected⟧
+[⟦⚓1‸⟧First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
+SHP1 ⌖P1 picture 72x72pt square @302.4,0 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 6 · click(SHP1) → Shape Picture 1, WordOwn
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Draw Nudge Up, Draw Nudge Right Pixel, Draw Nudge Down, Draw Nudge Right, Draw Nudge Right, Draw Nudge Right · click(SHP1) → Shape Picture 1, WordOwn
 
 **SnapToGrid false · Track Changes on**
 
@@ -22653,13 +22708,13 @@ Selection: Shape 0–1 end-active · Shapes 1 · Undo depth 6 · click(SHP1) →
 | `Up` | Shape 0–1 end-active | `[⟦‸⟧First paragraph of text here.]` |
 
 ```text
-[⟦⚓1‸⟧First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
-SHP1 ⌖P1 picture 72x72pt square @302.4,0.6 ⟦selected⟧
+[⟦⚓1‸⟧First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
+SHP1 ⌖P1 picture 72x72pt square @302.4,0 ⟦selected⟧
 ```
 
-Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo depth 6 · click(SHP1) → Shape Picture 1, WordOwn
+Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Draw Nudge Up, Draw Nudge Right Pixel, Draw Nudge Down, Draw Nudge Right, Draw Nudge Right, Draw Nudge Right · click(SHP1) → Shape Picture 1, WordOwn
 
 Notes: N-18 takes each key once from a fresh selection; this row follows one shape through a sequence, with the grid
 on and off.
@@ -22675,63 +22730,63 @@ steps before the branches `click(SHP1)` · `{key}`
 
 **fixture=image-floating,key=Delete**
 
-- `Delete` → `[‸First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `Delete` → `[‸First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.]` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
 
 **fixture=image-floating,key=Delete · Track Changes on**
 
-- `Delete` → `{-[⚓1]-}[‸First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 1–1 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `Delete` → `{-[⚓1]-}[‸First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 1–1 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
 
 **fixture=image-floating,key=Backspace**
 
-- `Backspace` → `[‸First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `Backspace` → `[‸First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.]` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
 
 **fixture=image-floating,key=Backspace · Track Changes on**
 
-- `Backspace` → `{-[⚓1]-}[‸First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 1–1 · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `Backspace` → `{-[⚓1]-}[‸First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 1–1 · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
 
 **fixture=text-box,key=Delete**
 
-- `Delete` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Undo —
-- `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Undo —
+- `Delete` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Undo —
+- `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Undo —
 
 **fixture=text-box,key=Delete · Track Changes on**
 
-- `Delete` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
-- `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
+- `Delete` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
+- `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
 
 **fixture=text-box,key=Backspace**
 
-- `Backspace` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line tw‸] ↓0` · IP 24–24 · Story TextFrame · Undo depth 1
-- `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Undo —
+- `Backspace` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line tw‸]` · IP 24–24 · Story TextFrame · Undo: Typing
+- `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Undo —
 
 **fixture=text-box,key=Backspace · Track Changes on**
 
-- `Backspace` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line tw‸o] ↓0` · IP 24–24 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1
-- `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
+- `Backspace` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line tw‸o]` · IP 24–24 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing
+- `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
 
 **fixture=shape,key=Delete**
 
-- `Delete` → `[‸Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `Delete` → `[‸Paragraph beside a shape.] / [Second paragraph.]` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
 
 **fixture=shape,key=Delete · Track Changes on**
 
-- `Delete` → `{-[⟦⚓1‸⟧]-}[Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `Delete` → `{-[⟦⚓1‸⟧]-}[Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
 
 **fixture=shape,key=Backspace**
 
-- `Backspace` → `[‸Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0` · IP 0–0 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `Backspace` → `[‸Paragraph beside a shape.] / [Second paragraph.]` · IP 0–0 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
 
 **fixture=shape,key=Backspace · Track Changes on**
 
-- `Backspace` → `{-[⟦⚓1‸⟧]-}[Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Tracking · Revisions 1 · Undo depth 1
-- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `Backspace` → `{-[⟦⚓1‸⟧]-}[Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Tracking · Revisions 1 · Undo: Clear
+- `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -22752,51 +22807,51 @@ steps before the branches `click(SHP1)`
 
 **fixture=image-floating**
 
-- `click(SHP1)` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
-- `type("x")` → `[⚓1x‸First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 2–2 · Undo depth 1
-  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
-- `Enter` → ` ↓0 / [‸⚓1First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P2 picture 72x72pt square @300,0` · IP 1–1 · Undo depth 1
-  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `click(SHP1)` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `type("x")` → `[⚓1x‸First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 2–2 · Undo: Typing "x"
+  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `Enter` → ` / [‸⚓1First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P2 picture 72x72pt square @300,0` · IP 1–1 · Undo: Typing
+  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
 
 **fixture=image-floating · Track Changes on**
 
-- `click(SHP1)` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[⚓1]{+[x]+}[‸First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 2–2 · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
-- `Enter` → `{++} ↓0 / [‸⚓1First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P2 picture 72x72pt square @300,0` · IP 1–1 · Tracking · Revisions 1 · Undo depth 1
-  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `click(SHP1)` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[⚓1]{+[x]+}[‸First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 2–2 · Tracking · Revisions 1 · Undo: Typing "x"
+  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `Enter` → `{++} / [‸⚓1First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P2 picture 72x72pt square @300,0` · IP 1–1 · Tracking · Revisions 1 · Undo: Typing
+  - `undo` → `[⟦⚓1‸⟧First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
 
 **fixture=shape**
 
-- `click(SHP1)` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
-- `type("x")` → `[⚓1Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: [x‸] (center) ↓0` · IP 1–1 · Story TextFrame · Undo depth 2
-  - `undo` → `[⚓1Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center) ↓0` · IP 0–0 · Story TextFrame · Undo depth 1
-- `Enter` → `[⚓1Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center) ↓0` · IP 0–0 · Story TextFrame · Undo depth 1
-  - `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `click(SHP1)` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
+- `type("x")` → `[⚓1Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: [x‸] (center)` · IP 1–1 · Story TextFrame · Undo: Typing in Text Box, Add Text to Object
+  - `undo` → `[⚓1Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center)` · IP 0–0 · Story TextFrame · Undo: Add Text to Object
+- `Enter` → `[⚓1Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center)` · IP 0–0 · Story TextFrame · Undo: Add Text to Object
+  - `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Undo —
 
 **fixture=shape · Track Changes on**
 
-- `click(SHP1)` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[⚓1Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: [x‸] (center) ↓0` · IP 1–1 · Story TextFrame · Tracking · Revisions 0 · Undo depth 2
-  - `undo` → `[⚓1Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center) ↓0` · IP 0–0 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1
-- `Enter` → `[⚓1Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center) ↓0` · IP 0–0 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1
-  - `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] ↓0 / [Second paragraph.] ↓0 / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `click(SHP1)` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[⚓1Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: [x‸] (center)` · IP 1–1 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing in Text Box, Add Text to Object
+  - `undo` → `[⚓1Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center)` · IP 0–0 · Story TextFrame · Tracking · Revisions 0 · Undo: Add Text to Object
+- `Enter` → `[⚓1Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 / TB: ‸ (center)` · IP 0–0 · Story TextFrame · Tracking · Revisions 0 · Undo: Add Text to Object
+  - `undo` → `[⟦⚓1‸⟧Paragraph beside a shape.] / [Second paragraph.] / SHP1 ⌖P1 autoshape 90x60pt square @228,0 ⟦selected⟧` · Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo —
 
 **fixture=text-box**
 
-- `click(SHP1)` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Undo —
-- `type("x")` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line twox‸] ↓0` · IP 26–26 · Story TextFrame · Undo depth 1
-  - `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Undo —
-- `Enter` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two] ↓0 / TB: ‸ ↓0` · IP 26–26 · Story TextFrame · Undo depth 1
-  - `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Undo —
+- `click(SHP1)` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Undo —
+- `type("x")` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line twox‸]` · IP 26–26 · Story TextFrame · Undo: Typing in Text Box
+  - `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Undo —
+- `Enter` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two] / TB: ‸` · IP 26–26 · Story TextFrame · Undo: Typing
+  - `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Undo —
 
 **fixture=text-box · Track Changes on**
 
-- `click(SHP1)` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
-- `type("x")` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line twox‸] ↓0` · IP 26–26 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1
-  - `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
-- `Enter` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two] ↓0 / TB: ‸ ↓0` · IP 26–26 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1
-  - `undo` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph of text here.] ↓0 / [Third paragraph of text here.] ↓0 / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] ↓0 / TB: [Box line two‸] ↓0` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
+- `click(SHP1)` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
+- `type("x")` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line twox‸]` · IP 26–26 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing in Text Box
+  - `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
+- `Enter` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two] / TB: ‸` · IP 26–26 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing
+  - `undo` → `[⚓1First paragraph of text here.] / [Second paragraph of text here.] / [Third paragraph of text here.] / SHP1 ⌖P1 textbox 160x80pt square @228,0 / TB: [Box line one] / TB: [Box line two‸]` · IP 25–25 · Story TextFrame · Tracking · Revisions 0 · Undo —
 
 ```mermaid
 flowchart TD
@@ -22861,8 +22916,8 @@ steps `click(SHP1)` · `Tab` · `Shift+Tab`
 
 | fixture | selection | observed |
 | --- | --- | --- |
-| image-floating | Shape 0–1 end-active · Shapes 1 · Undo — | `[⟦⚓1‸⟧First paragraph of text here.] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
-| text-box | IP 27–27 · Story TextFrame · Undo depth 2 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one] ↓0<br>TB: [Box line two\t\t‸] ↓0` |
+| image-floating | Shape 0–1 end-active · Shapes 1 · Undo — | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧` |
+| text-box | IP 27–27 · Story TextFrame · Undo: Typing in Text Box, Typing in Text Box | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one]<br>TB: [Box line two\t\t‸]` |
 
 Notes: Each fixture carries one shape, so a cycle has one stop.
 
@@ -22877,22 +22932,22 @@ steps `select({from})` · `{key}`
 
 | from | key | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| P1:0-P2:0 | Delete | off | IP 0–0 · Undo depth 1 | `[‸Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0` |
-| P1:0-P2:0 | Delete | on | IP 31–31 · Tracking · Revisions 1 · Undo depth 1 | `{-[⚓1First paragraph of text here.]-} ↓0<br>[‸Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:0-P2:0 | Backspace | off | IP 0–0 · Undo depth 1 | `[‸Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0` |
-| P1:0-P2:0 | Backspace | on | IP 0–0 · Tracking · Revisions 1 · Undo depth 1 | `{-[‸⚓1First paragraph of text here.]-} ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:0-P1:end | Delete | off | IP 1–1 · Undo depth 1 | `[⚓1‸] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:0-P1:end | Delete | on | IP 30–30 · Tracking · Revisions 1 · Undo depth 1 | `[⚓1]{-[First paragraph of text here.]-}‸ ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:0-P1:end | Backspace | off | IP 1–1 · Undo depth 1 | `[⚓1‸] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:0-P1:end | Backspace | on | IP 1–1 · Tracking · Revisions 1 · Undo depth 1 | `[⚓1]{-[‸First paragraph of text here.]-} ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:end | Delete | off | IP 30–30 · Undo depth 1 | `[⚓1First paragraph of text here.‸Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:end | Delete | on | IP 31–31 · Tracking · Revisions 1 · Undo depth 1 | `[⚓1First paragraph of text here.]{--} ↓0<br>[‸Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:end | Backspace | off | IP 29–29 · Undo depth 1 | `[⚓1First paragraph of text here‸] ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P1:end | Backspace | on | IP 29–29 · Tracking · Revisions 1 · Undo depth 1 | `[⚓1First paragraph of text here]{-[‸.]-} ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P2:0 | Delete | off | IP 31–31 · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>[‸econd paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P2:0 | Delete | on | IP 32–32 · Tracking · Revisions 1 · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>{-[S]-}[‸econd paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P2:0 | Backspace | off | IP 30–30 · Undo depth 1 | `[⚓1First paragraph of text here.‸Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
-| P2:0 | Backspace | on | IP 30–30 · Tracking · Revisions 1 · Undo depth 1 | `[⚓1First paragraph of text here.]{-‸-} ↓0<br>[Second paragraph carries the anchor of the picture.] ↓0<br>[Third paragraph after it.] ↓0<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:0-P2:0 | Delete | off | IP 0–0 · Undo: Clear | `[‸Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]` |
+| P1:0-P2:0 | Delete | on | IP 31–31 · Tracking · Revisions 1 · Undo: Clear | `{-[⚓1First paragraph of text here.]-}<br>[‸Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:0-P2:0 | Backspace | off | IP 0–0 · Undo: Typing | `[‸Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]` |
+| P1:0-P2:0 | Backspace | on | IP 0–0 · Tracking · Revisions 1 · Undo: Typing | `{-[‸⚓1First paragraph of text here.]-}<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:0-P1:end | Delete | off | IP 1–1 · Undo: Clear | `[⚓1‸]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:0-P1:end | Delete | on | IP 30–30 · Tracking · Revisions 1 · Undo: Clear | `[⚓1]{-[First paragraph of text here.]-}‸<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:0-P1:end | Backspace | off | IP 1–1 · Undo: Typing | `[⚓1‸]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:0-P1:end | Backspace | on | IP 1–1 · Tracking · Revisions 1 · Undo: Typing | `[⚓1]{-[‸First paragraph of text here.]-}<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:end | Delete | off | IP 30–30 · Undo: Clear | `[⚓1First paragraph of text here.‸Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:end | Delete | on | IP 31–31 · Tracking · Revisions 1 · Undo: Clear | `[⚓1First paragraph of text here.]{--}<br>[‸Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:end | Backspace | off | IP 29–29 · Undo: Typing | `[⚓1First paragraph of text here‸]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P1:end | Backspace | on | IP 29–29 · Tracking · Revisions 1 · Undo: Typing | `[⚓1First paragraph of text here]{-[‸.]-}<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P2:0 | Delete | off | IP 31–31 · Undo: Clear | `[⚓1First paragraph of text here.]<br>[‸econd paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P2:0 | Delete | on | IP 32–32 · Tracking · Revisions 1 · Undo: Clear | `[⚓1First paragraph of text here.]<br>{-[S]-}[‸econd paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P2:0 | Backspace | off | IP 30–30 · Undo: Typing | `[⚓1First paragraph of text here.‸Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
+| P2:0 | Backspace | on | IP 30–30 · Tracking · Revisions 1 · Undo: Typing | `[⚓1First paragraph of text here.]{-‸-}<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @300,0` |
 
 Notes: The anchor is at the end of P1. P1:0-P2:0 takes the whole paragraph and its mark; P1:0-P1:end its text only;
 P1:end Delete and P2:0 Backspace merge P1 and P2.
@@ -22906,15 +22961,15 @@ brings a second copy anchored in the pasted text.
 
 steps before the branches `select(P1:0)` · `Ctrl+A`
 
-- `Ctrl+A` → `[⟦⚓1First paragraph of text here.¶⟧] ↓0 / ⟦[Second paragraph carries the anchor of the picture.¶⟧] ↓0 / ⟦[Third paragraph after it.¶‸⟧] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Undo —
-- `Delete` → `‸ ↓0` · IP 0–0 · Undo depth 1
-- `Ctrl+C · select(P3:end) · Enter · Ctrl+V` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / [⚓2First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.] ↓0 / ‸ ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 / SHP2 ⌖P4 picture 72x72pt square @300,0` · IP 218–218 · Undo depth 2
+- `Ctrl+A` → `[⟦⚓1First paragraph of text here.¶⟧] / ⟦[Second paragraph carries the anchor of the picture.¶⟧] / ⟦[Third paragraph after it.¶‸⟧] / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Undo —
+- `Delete` → `‸` · IP 0–0 · Undo: Clear
+- `Ctrl+C · select(P3:end) · Enter · Ctrl+V` → `[⚓1First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / [⚓2First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.] / ‸ / SHP1 ⌖P1 picture 72x72pt square @300,0 / SHP2 ⌖P4 picture 72x72pt square @300,0` · IP 218–218 · Undo: Paste, Typing
 
 **Track Changes on**
 
-- `Ctrl+A` → `[⟦⚓1First paragraph of text here.¶⟧] ↓0 / ⟦[Second paragraph carries the anchor of the picture.¶⟧] ↓0 / ⟦[Third paragraph after it.¶‸⟧] ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Tracking · Revisions 0 · Undo —
-- `Delete` → `{-[⚓1First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.]-}‸ ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 108–108 · Tracking · Revisions 1 · Undo depth 1
-- `Ctrl+C · select(P3:end) · Enter · Ctrl+V` → `[⚓1First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.]{+ ↓0 / [⚓2First paragraph of text here.] ↓0 / [Second paragraph carries the anchor of the picture.] ↓0 / [Third paragraph after it.]+} ↓0 / ‸ ↓0 / SHP1 ⌖P1 picture 72x72pt square @300,0 / SHP2 ⌖P4 picture 72x72pt square @300,0` · IP 218–218 · Tracking · Revisions 1 · Undo depth 2
+- `Ctrl+A` → `[⟦⚓1First paragraph of text here.¶⟧] / ⟦[Second paragraph carries the anchor of the picture.¶⟧] / ⟦[Third paragraph after it.¶‸⟧] / SHP1 ⌖P1 picture 72x72pt square @300,0` · Normal 0–109 end-active · Tracking · Revisions 0 · Undo —
+- `Delete` → `{-[⚓1First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.]-}‸ / SHP1 ⌖P1 picture 72x72pt square @300,0` · IP 108–108 · Tracking · Revisions 1 · Undo: Clear
+- `Ctrl+C · select(P3:end) · Enter · Ctrl+V` → `[⚓1First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.]{+ / [⚓2First paragraph of text here.] / [Second paragraph carries the anchor of the picture.] / [Third paragraph after it.]+} / ‸ / SHP1 ⌖P1 picture 72x72pt square @300,0 / SHP2 ⌖P4 picture 72x72pt square @300,0` · IP 218–218 · Tracking · Revisions 1 · Undo: Paste, Typing
 
 ```mermaid
 flowchart TD
@@ -22936,13 +22991,13 @@ Expected before the run: The pasted shape is anchored to P3, keeps its size and 
 4. `Ctrl+V`
 
 ```text
-[First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[⟦⚓1‸⟧Third paragraph after it.] ↓0
+[First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[⟦⚓1‸⟧Third paragraph after it.]
 SHP1 ⌖P3 picture 72x72pt square @0,25.1 ⟦selected⟧
 ```
 
-Selection: Shape 82–83 end-active · Shapes 1 · Undo depth 2 · click(SHP1) → Shape Picture 1, WordOwn
+Selection: Shape 82–83 end-active · Shapes 1 · Undo: Paste, Cut · click(SHP1) → Shape Picture 1, WordOwn
 
 **Track Changes on**
 
@@ -22952,14 +23007,14 @@ Selection: Shape 82–83 end-active · Shapes 1 · Undo depth 2 · click(SHP1) �
 4. `Ctrl+V`
 
 ```text
-{-[⚓1]-}[First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-{+[⟦⚓2‸⟧]+}[Third paragraph after it.] ↓0
+{-[⚓1]-}[First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+{+[⟦⚓2‸⟧]+}[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
 SHP2 ⌖P3 picture 72x72pt square @0,25.1 ⟦selected⟧
 ```
 
-Selection: Shape 83–84 end-active · Shapes 1 · Tracking · Revisions 2 · Undo depth 2 · click(SHP1) → Shape Picture 1, WordOwn
+Selection: Shape 83–84 end-active · Shapes 1 · Tracking · Revisions 2 · Undo: Paste, Cut · click(SHP1) → Shape Picture 1, WordOwn
 
 #### I-23 · Esc out of a text box's text, twice
 
@@ -22975,13 +23030,13 @@ Expected before the run: (a) three levels: the text, then the box selected as a 
 | step | selection | where |
 | --- | --- | --- |
 | `click(TB1:P1:2)` | IP 2–2 | `[Bo‸x line one]` |
-| `Esc` | Shape 0–26 end-active | `[Box line two¶] …` |
+| `Esc` | Shape 0–26 end-active | `⟦[Box line two¶‸⟧] …` |
 | `Esc` | IP 0–0 | `[‸First paragraph of text here.]` |
 
 ```text
-[‸⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[‸⚓1First paragraph of text here.]
+[Second paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 
@@ -22998,16 +23053,16 @@ steps `select({from})` · `{key}`
 
 | from | key | selection | observed |
 | --- | --- | --- | --- |
-| TB1:P1:2 | Up | IP 2–2 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo‸x line one] ↓0<br>TB: [Box line two] ↓0` |
-| TB1:P1:2 | Down | IP 15–15 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one] ↓0<br>TB: [Bo‸x line two] ↓0` |
-| TB1:P1:2 | Ctrl+Home | IP 0–0 | `[‸⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P1:2 | Ctrl+End | IP 91–91 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.‸] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P1:2 | Ctrl+A | Normal 0–26 end-active · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Box line one¶⟧] ↓0<br>TB: ⟦[Box line two¶‸⟧] ↓0` |
-| TB1:P2:3 | Up | IP 3–3 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box‸ line one] ↓0<br>TB: [Box line two] ↓0` |
-| TB1:P2:3 | Down | IP 16–16 · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one] ↓0<br>TB: [Box‸ line two] ↓0` |
-| TB1:P2:3 | Ctrl+Home | IP 0–0 | `[‸⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P2:3 | Ctrl+End | IP 91–91 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.‸] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P2:3 | Ctrl+A | Normal 0–26 end-active · Story TextFrame | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Box line one¶⟧] ↓0<br>TB: ⟦[Box line two¶‸⟧] ↓0` |
+| TB1:P1:2 | Up | IP 2–2 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo‸x line one]<br>TB: [Box line two]` |
+| TB1:P1:2 | Down | IP 15–15 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one]<br>TB: [Bo‸x line two]` |
+| TB1:P1:2 | Ctrl+Home | IP 0–0 | `[‸⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P1:2 | Ctrl+End | IP 91–91 | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.‸]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P1:2 | Ctrl+A | Normal 0–26 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Box line one¶⟧]<br>TB: ⟦[Box line two¶‸⟧]` |
+| TB1:P2:3 | Up | IP 3–3 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box‸ line one]<br>TB: [Box line two]` |
+| TB1:P2:3 | Down | IP 16–16 · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line one]<br>TB: [Box‸ line two]` |
+| TB1:P2:3 | Ctrl+Home | IP 0–0 | `[‸⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P2:3 | Ctrl+End | IP 91–91 | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.‸]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P2:3 | Ctrl+A | Normal 0–26 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Box line one¶⟧]<br>TB: ⟦[Box line two¶‸⟧]` |
 
 #### I-24b · Tab and Enter inside a text box
 
@@ -23020,10 +23075,10 @@ steps `select(TB1:P1:2)` · `{key}`
 
 | key | tracked | selection | observed |
 | --- | --- | --- | --- |
-| Tab | off | IP 3–3 · Story TextFrame · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo\t‸x line one] ↓0<br>TB: [Box line two] ↓0` |
-| Tab | on | IP 3–3 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo\t‸x line one] ↓0<br>TB: [Box line two] ↓0` |
-| Enter | off | IP 3–3 · Story TextFrame · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo] ↓0<br>TB: [‸x line one] ↓0<br>TB: [Box line two] ↓0` |
-| Enter | on | IP 3–3 · Story TextFrame · Tracking · Revisions 0 · Undo depth 1 | `[⚓1First paragraph of text here.] ↓0<br>[Second paragraph of text here.] ↓0<br>[Third paragraph of text here.] ↓0<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo] ↓0<br>TB: [‸x line one] ↓0<br>TB: [Box line two] ↓0` |
+| Tab | off | IP 3–3 · Story TextFrame · Undo: Typing in Text Box | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo\t‸x line one]<br>TB: [Box line two]` |
+| Tab | on | IP 3–3 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing in Text Box | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo\t‸x line one]<br>TB: [Box line two]` |
+| Enter | off | IP 3–3 · Story TextFrame · Undo: Typing | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo]<br>TB: [‸x line one]<br>TB: [Box line two]` |
+| Enter | on | IP 3–3 · Story TextFrame · Tracking · Revisions 0 · Undo: Typing | `[⚓1First paragraph of text here.]<br>[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Bo]<br>TB: [‸x line one]<br>TB: [Box line two]` |
 
 #### I-25 · Typing into a selected empty rectangle, then Esc twice
 
@@ -23045,12 +23100,12 @@ shape, the second returns to the body.
 | `Esc` | IP 0–0 | `[‸Paragraph beside a shape.]` |
 
 ```text
-[‸⚓1Paragraph beside a shape.] ↓0
-[Second paragraph.] ↓0
+[‸⚓1Paragraph beside a shape.]
+[Second paragraph.]
 SHP1 ⌖P1 autoshape 90x60pt square @228,0
 ```
 
-Selection: IP 0–0 · Undo depth 2 · click(SHP1) → Shape Rectangle 1, WordOwn
+Selection: IP 0–0 · Undo: Typing in Text Box, Add Text to Object · click(SHP1) → Shape Rectangle 1, WordOwn
 
 **Track Changes on**
 
@@ -23067,12 +23122,12 @@ Selection: IP 0–0 · Undo depth 2 · click(SHP1) → Shape Rectangle 1, WordOw
 | `Esc` | IP 0–0 | `[‸Paragraph beside a shape.]` |
 
 ```text
-[‸⚓1Paragraph beside a shape.] ↓0
-[Second paragraph.] ↓0
+[‸⚓1Paragraph beside a shape.]
+[Second paragraph.]
 SHP1 ⌖P1 autoshape 90x60pt square @228,0
 ```
 
-Selection: IP 0–0 · Tracking · Revisions 0 · Undo depth 2 · click(SHP1) → Shape Rectangle 1, WordOwn
+Selection: IP 0–0 · Tracking · Revisions 0 · Undo: Typing in Text Box, Add Text to Object · click(SHP1) → Shape Rectangle 1, WordOwn
 
 #### I-26 · Shift+click from a text box into the body
 
@@ -23085,12 +23140,12 @@ P2:2; (b) it is ignored.
 2. `shift+click(P2:2)`
 
 ```text
-[⚓1First paragraph of text here.] ↓0
-[Second paragraph of text here.] ↓0
-[Third paragraph of text here.] ↓0
+[⚓1First paragraph of text here.]
+[Second paragraph of text here.]
+[Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
-TB: [Bo‸x line one] ↓0
-TB: [Box line two] ↓0
+TB: [Bo‸x line one]
+TB: [Box line two]
 ```
 
 Selection: IP 2–2 · Story TextFrame · Undo — · click(TB1:P1:2) → Range 2-2, IBeam · shift+click(P2:2) → Range 34-34, IBeam
@@ -23106,12 +23161,12 @@ stays.
 
 ```text
 [⟦⚓1First paragraph of text here.¶⟧]
-⟦[Sec‸⟧ond paragraph of text here.]
+⟦[Second ‸⟧paragraph of text here.]
 [Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 
-Selection: Normal 0–34 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
+Selection: Normal 0–38 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
 
 **Track Changes on**
 
@@ -23119,12 +23174,12 @@ Selection: Normal 0–34 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3
 
 ```text
 [⟦⚓1First paragraph of text here.¶⟧]
-⟦[Sec‸⟧ond paragraph of text here.]
+⟦[Second ‸⟧paragraph of text here.]
 [Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 
-Selection: Normal 0–34 end-active · Tracking · Revisions 0 · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
+Selection: Normal 0–38 end-active · Tracking · Revisions 0 · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
 
 #### I-27 · Double-click a floating picture
 
@@ -23136,9 +23191,9 @@ not change.
 1. `dblclick(SHP1)`
 
 ```text
-[⟦⚓1‸⟧First paragraph of text here.] ↓0
-[Second paragraph carries the anchor of the picture.] ↓0
-[Third paragraph after it.] ↓0
+[⟦⚓1‸⟧First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
 ```
 
@@ -23155,9 +23210,9 @@ steps `click(IMG1)` · `{key}` · `{key}`
 
 | key | selection | observed |
 | --- | --- | --- |
-| Right | IP 14–14 | `[Text before ▣ ‸after end.] ↓0<br>[Second paragraph.] ↓0` |
-| Left | IP 11–11 | `[Text before‸ ▣ after end.] ↓0<br>[Second paragraph.] ↓0` |
-| Down | IP 42–42 | `[Text before ▣ after end.] ↓0<br>[Second paragraph.‸] ↓0` |
+| Right | IP 14–14 | `[Text before ▣ ‸after end.]<br>[Second paragraph.]` |
+| Left | IP 11–11 | `[Text before‸ ▣ after end.]<br>[Second paragraph.]` |
+| Down | IP 42–42 | `[Text before ▣ after end.]<br>[Second paragraph.‸]` |
 
 Notes: N-19 takes each key once; the second press shows whether the first collapsed the selection without moving.
 
@@ -23175,13 +23230,13 @@ it; (b) Type turns InlineShape when the picture joins.
 
 | step | selection | where |
 | --- | --- | --- |
-| `Shift+Right` | Normal 11–12 end-active | `[Text before⟦ ‸⟧/ after end.]` |
-| `Shift+Right` | Normal 11–13 end-active | `[Text before⟦ /‸⟧ after end.]` |
-| `Shift+Right` | Normal 11–14 end-active | `[Text before⟦ / ‸⟧after end.]` |
+| `Shift+Right` | Normal 11–12 end-active | `[Text before⟦ ‸⟧▣ after end.]` |
+| `Shift+Right` | Normal 11–13 end-active | `[Text before⟦ ▣‸⟧ after end.]` |
+| `Shift+Right` | Normal 11–14 end-active | `[Text before⟦ ▣ ‸⟧after end.]` |
 
 ```text
-[Text before⟦ ▣ ‸⟧after end.] ↓0
-[Second paragraph.] ↓0
+[Text before⟦ ▣ ‸⟧after end.]
+[Second paragraph.]
 ```
 
 Selection: Normal 11–14 end-active · InlineShapes 1

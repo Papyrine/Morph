@@ -100,7 +100,9 @@ sealed class Mouse
         }
     }
 
-    public void Drag(ScreenPoint from, ScreenPoint to, Modifiers modifiers = Modifiers.None, MouseButton button = MouseButton.Left, int steps = 10)
+    // clicks above 1 makes the press the last of a double- or triple-click, so the drag extends by words or
+    // by paragraphs.
+    public void Drag(ScreenPoint from, ScreenPoint to, Modifiers modifiers = Modifiers.None, MouseButton button = MouseButton.Left, int steps = 10, int clicks = 1)
     {
         beforeInput?.Invoke();
         MoveTo(from);
@@ -109,6 +111,14 @@ sealed class Mouse
         {
             Keyboard.ModifierDown(modifiers);
             Thread.Sleep(30);
+        }
+
+        for (var i = 1; i < clicks; i++)
+        {
+            Send([Button(button, down: true)]);
+            Thread.Sleep(30);
+            Send([Button(button, down: false)]);
+            Thread.Sleep(MultiClickInterval);
         }
 
         Send([Button(button, down: true)]);

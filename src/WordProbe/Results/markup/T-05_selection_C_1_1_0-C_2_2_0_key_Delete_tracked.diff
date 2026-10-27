@@ -1,7 +1,7 @@
 -           <w:r>
 -             <w:t>a1</w:t>
 -           </w:r>
-+           <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:40:00Z" w16du:dateUtc="2026-10-25T03:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-27T13:40:00Z" w16du:dateUtc="2026-10-27T02:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +             <w:r>
 +               <w:delText>a1</w:delText>
 +             </w:r>
@@ -9,7 +9,7 @@
 -           <w:r>
 -             <w:t>a2</w:t>
 -           </w:r>
-+           <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:40:00Z" w16du:dateUtc="2026-10-25T03:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++           <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-27T13:40:00Z" w16du:dateUtc="2026-10-27T02:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +             <w:r>
 +               <w:delText>a2</w:delText>
 +             </w:r>

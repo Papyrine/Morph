@@ -487,7 +487,35 @@ static class MouseFamily
             .Observing(Observe.Selection | Observe.Text)
             .Notes("MEETING is the first line and MINUTES the second; P1:11 is inside MINUTES, P1:13 one glyph short of its end.")
             .Hypotheses("The release on the second line sets the active end there, as on one line: with automatic word selection both ends snap to whole words, so MEETING MINUTES is selected whole whether the release is inside MINUTES or past it; the selection never falls back to the first line.")
-            .Morph("PARTIAL");
+            .Morph("DONE");
+
+        yield return Probe("M-34c", "A double-click held and dragged")
+            .In("words")
+            .Steps("dbldrag({path})")
+            .Axis("path", "P1:7→P1:8", "P1:7→P1:15", "P1:15→P1:7", "P1:2→P1:21")
+            .Toggle("Options.AutoWordSelection", "true", "false")
+            .Observing(Observe.Selection | Observe.Text)
+            .Notes("Within beta; from beta into gamma; the same leftwards; from alpha to delta.")
+            .Hypotheses("The double-click's word, then whole words as the drag goes, each with the spaces after it, whether or not automatic word selection is on.")
+            .Morph("DONE");
+
+        yield return Probe("M-34d", "A double-click dragged across a line wrap")
+            .In("wrapped-title")
+            .Steps("dbldrag({path})")
+            .Axis("path", "P1:2→P1:11", "P1:11→P1:2", "P1:2→P1:end")
+            .Toggle("Options.AutoWordSelection", "true", "false")
+            .Observing(Observe.Selection | Observe.Text)
+            .Notes("MEETING is the first line and MINUTES the second; P1:11 is inside MINUTES.")
+            .Hypotheses("Both ends by whole words across the wrap, unlike a plain drag, which snaps only the anchor there.")
+            .Morph("DONE");
+
+        yield return Probe("M-34e", "A double-click or triple-click dragged into the next paragraph")
+            .In("three-paragraphs")
+            .Steps("{drag}")
+            .Axis("drag", "dbldrag(P1:3→P2:4)", "dbldrag(P2:4→P1:3)", "tripledrag(P1:3→P1:10)", "tripledrag(P1:3→P2:4)", "tripledrag(P2:4→P1:3)")
+            .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs)
+            .Hypotheses("A double-click drag extends by words, crossing the mark; a triple-click drag by whole paragraphs with their marks, staying the paragraph while it stays inside it.")
+            .Morph("TODO");
 
         yield return Probe("M-35","A drag across a paragraph boundary and to a paragraph's end")
             .In("three-paragraphs")

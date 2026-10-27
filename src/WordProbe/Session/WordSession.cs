@@ -34,6 +34,9 @@ sealed class WordSession : IDisposable
 
     public Mouse Mouse { get; private set; } = null!;
 
+    /// <summary>The last OpenFixture's time by part (add, view, front, park), for the case's phases.</summary>
+    public Dictionary<string, int> OpenPhases { get; } = new(StringComparer.Ordinal);
+
     public string Version => Application.Version;
 
     public string Build => Application.Build;
@@ -95,8 +98,9 @@ sealed class WordSession : IDisposable
         watchdog = new(ProcessId, () => Window);
         filter = MessageFilter.Register(watchdog, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(1.5), () => !DialogAllowed);
 
-        OriginalOptions = OptionsSnapshot.Capture(application);
-        OptionsSnapshot.Save(OriginalOptions);
+        // After a crash the snapshot on disk was never restored and holds the user's values, where this
+        // Word's would hold whatever the crashed one last persisted: that snapshot is the one to restore to.
+        OriginalOptions = OptionsSnapshot.Save(OptionsSnapshot.Capture(application));
         File.WriteAllText(Paths.SessionFile, JsonSerializer.Serialize(new
         {
             pid = ProcessId,
@@ -132,8 +136,18 @@ sealed class WordSession : IDisposable
     /// <summary>Opens a fixture as an unsaved new document, places and configures its window.</summary>
     public ProbeDocument OpenFixture(string fixturePath)
     {
+        var watch = Stopwatch.StartNew();
+        var lapped = 0L;
+        OpenPhases.Clear();
+        void Lap(string phase)
+        {
+            OpenPhases[phase] = (int) (watch.ElapsedMilliseconds - lapped);
+            lapped = watch.ElapsedMilliseconds;
+        }
+
         CloseDocuments();
         var document = FixtureOpener.Open(Application, fixturePath);
+        Lap("open.add");
         var window = document.ActiveWindow;
         Window = window.Hwnd;
         var windowProcess = NativeMethods.ProcessOf(Window);
@@ -143,21 +157,30 @@ sealed class WordSession : IDisposable
             ProcessId = windowProcess;
         }
 
-        window.WindowState = Word.WdWindowState.wdWindowStateNormal;
+        // Each is written only where the new window differs, which it seldom does: every write makes Word redo
+        // its window, and the fifteen together were 142 ms of every case (lists, 2026-10-27).
+        Ensure(() => window.WindowState, _ => window.WindowState = _, Word.WdWindowState.wdWindowStateNormal);
         NativeMethods.SetWindowPos(Window, IntPtr.Zero, settings.WindowLeft, settings.WindowTop, settings.WindowWidth, settings.WindowHeight, NativeMethods.NoZOrder | NativeMethods.NoActivate);
         var view = window.View;
-        view.Type = Word.WdViewType.wdPrintView;
-        view.Zoom.Percentage = settings.ZoomPercent;
-        view.ShowAll = false;
-        view.ShowFieldCodes = false;
-        view.ShowBookmarks = false;
-        view.ShowRevisionsAndComments = true;
-        view.RevisionsFilter.Markup = Word.WdRevisionsMarkup.wdRevisionsMarkupAll;
-        view.RevisionsFilter.View = Word.WdRevisionsView.wdRevisionsViewFinal;
-        view.MarkupMode = Word.WdRevisionsMode.wdInLineRevisions;
-        window.DisplayRulers = false;
-        Com.Try(() => window.DocumentMap = false);
+        Ensure(() => view.Type, _ => view.Type = _, Word.WdViewType.wdPrintView);
+        var zoom = view.Zoom;
+        Ensure(() => zoom.Percentage, _ => zoom.Percentage = _, settings.ZoomPercent);
+        Ensure(() => view.ShowAll, _ => view.ShowAll = _, false);
+        Ensure(() => view.ShowFieldCodes, _ => view.ShowFieldCodes = _, false);
+        Ensure(() => view.ShowBookmarks, _ => view.ShowBookmarks = _, false);
+        Ensure(() => view.ShowRevisionsAndComments, _ => view.ShowRevisionsAndComments = _, true);
+        var filter = view.RevisionsFilter;
+        Ensure(() => filter.Markup, _ => filter.Markup = _, Word.WdRevisionsMarkup.wdRevisionsMarkupAll);
+        Ensure(() => filter.View, _ => filter.View = _, Word.WdRevisionsView.wdRevisionsViewFinal);
+        Ensure(() => view.MarkupMode, _ => view.MarkupMode = _, Word.WdRevisionsMode.wdInLineRevisions);
+        Ensure(() => window.DisplayRulers, _ => window.DisplayRulers = _, false);
+        Com.Try(() =>
+        {
+            Ensure(() => window.DocumentMap, _ => window.DocumentMap = _, false);
+            return true;
+        });
         window.VerticalPercentScrolled = 0;
+        Lap("open.view");
 
         Keyboard = new(Window, AssertForeground);
         Mouse = new(AssertForeground);
@@ -168,11 +191,21 @@ sealed class WordSession : IDisposable
         }
 
         BringToFront();
+        Lap("open.front");
 
         var probe = new ProbeDocument(this, document, window);
         Mouse.ParkingSpot = probe.ParkingSpot();
         Mouse.Park();
+        Lap("open.park");
         return probe;
+    }
+
+    static void Ensure<T>(Func<T> read, Action<T> write, T value)
+    {
+        if (!EqualityComparer<T>.Default.Equals(read(), value))
+        {
+            write(value);
+        }
     }
 
     public void CloseDocuments()
@@ -186,6 +219,12 @@ sealed class WordSession : IDisposable
 
     public void BringToFront()
     {
+        if (NativeMethods.GetForegroundWindow() == Window &&
+            !NativeMethods.IsIconic(Window))
+        {
+            return;
+        }
+
         for (var round = 0; round < 3; round++)
         {
             if (NativeMethods.IsIconic(Window))
@@ -339,6 +378,29 @@ sealed class WordSession : IDisposable
             {
                 File.Delete(Paths.SessionFile);
             }
+        }
+    }
+
+    /// <summary>Whether Word has gone: its process ended, or crashed on a case.</summary>
+    public bool HasExited()
+    {
+        if (!IsAlive())
+        {
+            return true;
+        }
+
+        try
+        {
+            _ = Application.Build;
+            return false;
+        }
+        catch (COMException exception) when (Com.IsGone(exception))
+        {
+            return true;
+        }
+        catch (COMException)
+        {
+            return false;
         }
     }
 

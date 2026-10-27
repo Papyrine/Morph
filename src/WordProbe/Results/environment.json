@@ -1,12 +1,12 @@
 {
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.20618",
+    "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20618.20000"
+    "ClickToRun": "16.0.20527.20088"
   },
-  "Recorded": "2026-10-26T15:15:07.103567+11:00",
+  "Recorded": "2026-10-27T14:31:57.1700427+11:00",
   "Display": "3440x1440 at 125 %",
   "OptionsInEffect": {
     "Options.AutoWordSelection": "on",
@@ -66,7 +66,7 @@
     "AutoCorrect.CorrectKeyboardSetting": "off",
     "AutoCorrect.CorrectTableCells": "on",
     "AutoCorrect.ReplaceText": "on",
-    "AutoCorrect.ReplaceTextFromSpellingChecker": "off",
+    "AutoCorrect.ReplaceTextFromSpellingChecker": "on",
     "AutoCorrect.TwoInitialCapsAutoAdd": "on",
     "AutoCorrect.FirstLetterAutoAdd": "on",
     "AutoCorrect.OtherCorrectionsAutoAdd": "on"
