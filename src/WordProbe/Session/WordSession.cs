@@ -41,7 +41,7 @@ sealed class WordSession : IDisposable
     // Every recorded result is compared against every other, so they all have to come from one Word: a
     // different build moved paragraph spacing and a floating picture's copy offset across a whole rerun.
     // Raising this means rerunning the catalogue, not one family.
-    public const string ExpectedBuild = "16.0.20618.20000";
+    public const string ExpectedBuild = "16.0.20527.20088";
 
     static void RequireExpectedBuild()
     {
@@ -57,9 +57,10 @@ sealed class WordSession : IDisposable
             $"""
              WordProbe records against Word {ExpectedBuild}, but {(installed == null ? "no Click-to-Run Office was found" : $"{installed} is installed")}.
              Results from another build cannot be mixed with the catalogue. To install the expected build, from an elevated PowerShell:
-               & {client} /changesetting Channel=BetaChannel
+               & {client} /changesetting Channel=Current
                & {client} /update user updatetoversion={ExpectedBuild}
-             (or in Word: File > Account > Microsoft 365 Insider > Beta Channel, then Update Options > Update Now).
+             (in Word, leave Microsoft 365 Insider under File > Account, then Update Options > Update Now; a move back
+             to an older build needs updatetoversion).
              To move the catalogue to a new build instead, change WordSession.ExpectedBuild and rerun every family.
              """);
     }
