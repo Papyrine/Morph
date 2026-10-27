@@ -80,6 +80,8 @@ public partial class MorphViewer
                 }
 
                 editNote = null;
+                // The reader has gone on elsewhere: that is not where the last edit left them.
+                placingAfter = false;
                 if (Locate(page, x, y, start, end) is var (paragraph, block, from, to))
                 {
                     await BeginAsync(viewer, paragraph, block, from, to);
@@ -220,7 +222,8 @@ public partial class MorphViewer
     /// <summary>
     /// Called from JavaScript when the reader is done with a paragraph: what it now reads as, and
     /// whether it is then to be joined to the paragraph before it (1) or after it (2) — which is
-    /// what Backspace at its start and Delete at its end ask for.
+    /// what Backspace at its start and Delete at its end ask for — or the caret is to go on to the end of
+    /// the paragraph before it (3) or the start of the one after (4), as Left and Right at its edges do.
     /// </summary>
     [JSInvokable]
     public Task OnEditCommit(int id, string payload, int then) =>
@@ -249,20 +252,42 @@ public partial class MorphViewer
                     _ => JoinDirection.None
                 };
                 var options = await EditOptionsAsync();
+                // Undone, a join leaves the caret where the key was pressed: the joined paragraph's start for
+                // Backspace, its end for Delete (WordProbe R-U-2, U-04).
+                var (before, after) = CaretPlace.Typing(open.Paragraph, content);
+                var ordinal = open.Paragraph.Ordinal;
+                beforeEdit = join switch
+                {
+                    JoinDirection.Previous => CaretPlace.At(ordinal, 0),
+                    JoinDirection.Next => CaretPlace.At(ordinal, open.Paragraph.Length),
+                    _ => before
+                };
                 EditResult? result = null;
                 var edited = await ReviseAsync(
                     _ =>
                     {
-                        result = DocumentEditor.Rewrite(_, open.Paragraph.Ordinal, content, options, join);
+                        result = DocumentEditor.Rewrite(_, ordinal, content, options, join);
                         return result.Document;
                     },
                     relayout: true,
                     () => activeKey);
-                if (edited &&
-                    join != JoinDirection.None &&
+                if (!edited)
+                {
+                    return;
+                }
+
+                if (join != JoinDirection.None &&
                     result is {Paragraph: >= 0} joined)
                 {
                     await ResumeAsync(joined.Paragraph, joined.Offset);
+                    return;
+                }
+
+                PlacedAfter(after);
+                if (then is 3 or 4)
+                {
+                    // The paragraph handed in is now as many paragraphs as Enter split it into.
+                    await CrossAsync(then == 3 ? ordinal : ordinal + content.Count - 1, then == 3 ? -1 : 1);
                 }
             });
 
@@ -333,6 +358,41 @@ public partial class MorphViewer
                 StateHasChanged();
             });
 
+    /// <summary>
+    /// Called from JavaScript for Left at the start (-1) or Right at the end (1) of a paragraph left as it
+    /// was: the caret goes on to the end of the paragraph before or the start of the one after.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditStep(int paragraph, int direction) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    revising)
+                {
+                    return;
+                }
+
+                placingAfter = false;
+                await CrossAsync(paragraph, direction);
+                StateHasChanged();
+            });
+
+    // Left and Right cross a paragraph mark one place at a time, as Word's do (WordProbe R-N-1): to the end
+    // of the paragraph before in the same story, or the start of the one after, across a table's cells too.
+    Task CrossAsync(int paragraph, int direction)
+    {
+        if (paragraph < 0 ||
+            paragraph >= outline.Paragraphs.Count ||
+            (direction < 0 ? outline.Paragraphs[paragraph].PreviousInStory : outline.Paragraphs[paragraph].NextInStory) is not { } to)
+        {
+            return Task.CompletedTask;
+        }
+
+        return ResumeAsync(to, direction < 0 ? outline.Paragraphs[to].Length : 0);
+    }
+
     /// <summary>Called from JavaScript when the reader abandons what they were typing.</summary>
     [JSInvokable]
     public Task OnEditCancel(int id) =>
@@ -345,9 +405,11 @@ public partial class MorphViewer
                 }
             });
 
-    // Goes on editing where an edit left off.
-    internal Task ResumeAsync(int paragraph, int offset)
+    // Goes on editing where an edit left off: the caret at offset, or the text up to `to` selected.
+    internal Task ResumeAsync(int paragraph, int offset, int? to = null)
     {
+        var end = Math.Max(offset, to ?? offset);
+        PlacedAfter(CaretPlace.Between(paragraph, offset, end));
         if (!editOpen ||
             handle is not { } viewer ||
             paragraph >= outline.Paragraphs.Count ||
@@ -356,7 +418,38 @@ public partial class MorphViewer
             return Task.CompletedTask;
         }
 
-        return BeginAsync(viewer, outline.Paragraphs[paragraph], block, offset, offset);
+        var length = outline.Paragraphs[paragraph].Length;
+        return BeginAsync(viewer, outline.Paragraphs[paragraph], block, Math.Min(offset, length), Math.Min(end, length));
+    }
+
+    // The caret or the selection undo or redo puts back: one paragraph's is opened for typing there, and one
+    // across paragraphs is selected on the pages.
+    Task PlaceAsync(CaretPlace place)
+    {
+        if (!editOpen)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (place.StartParagraph == place.EndParagraph)
+        {
+            return ResumeAsync(place.StartParagraph, place.StartOffset, place.EndOffset);
+        }
+
+        return SelectAsync(place);
+    }
+
+    // Where a command found the reader: the text selected, or the caret.
+    CaretPlace PlaceOf(EditTarget target)
+    {
+        if (target.HasSelection &&
+            Place(target.Start) is var (first, from) &&
+            Place(target.End) is var (last, to))
+        {
+            return new(first.Ordinal, from, last.Ordinal, to);
+        }
+
+        return CaretPlace.At(target.Paragraph, target.Offset);
     }
 
     async Task<EditOptions> EditOptionsAsync() =>
@@ -486,6 +579,10 @@ public partial class MorphViewer
         }
 
         var target = FromSelection();
+        if (target != null)
+        {
+            beforeEdit = PlaceOf(target);
+        }
 
         var runs = reviewMap.Runs(selection[0], selection[1], selection[2], selection[3]);
         var all = runs.Count > 0 &&
@@ -525,6 +622,11 @@ public partial class MorphViewer
         }
 
         var target = FromSelection();
+        if (target != null)
+        {
+            beforeEdit = PlaceOf(target);
+        }
+
         var options = await EditOptionsAsync();
         if (await ReviseAsync(_ => DocumentEditor.Align(_, paragraphs, alignment, options), relayout: true, () => activeKey) &&
             target != null)
@@ -536,15 +638,26 @@ public partial class MorphViewer
     // Formatting text selected on the pages leaves it selected, as Word's does whichever way the change
     // is made (WordProbe P-01, P-03): formatting changes no text, so the same paragraphs and offsets are
     // the same text in the file just made, found again on its pages.
-    internal async Task ReselectAsync(EditTarget target)
+    internal Task ReselectAsync(EditTarget target)
     {
         if (target.Typing ||
             !target.HasSelection ||
-            target.StartParagraph < 0 ||
-            target.Paragraph >= outline.Paragraphs.Count ||
-            target.StartParagraph >= outline.Paragraphs.Count ||
-            outline.Paragraphs[target.StartParagraph].PositionAt(target.StartOffset, ending: false) is not { } start ||
-            outline.Paragraphs[target.Paragraph].PositionAt(target.Offset, ending: true) is not { } end ||
+            target.StartParagraph < 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        return SelectAsync(new(target.StartParagraph, target.StartOffset, target.Paragraph, target.Offset));
+    }
+
+    // Selects text on the pages, between two places in the paragraphs.
+    async Task SelectAsync(CaretPlace place)
+    {
+        PlacedAfter(place);
+        if (place.EndParagraph >= outline.Paragraphs.Count ||
+            place.StartParagraph >= outline.Paragraphs.Count ||
+            outline.Paragraphs[place.StartParagraph].PositionAt(place.StartOffset, ending: false) is not { } start ||
+            outline.Paragraphs[place.EndParagraph].PositionAt(place.EndOffset, ending: true) is not { } end ||
             reviewMap.Locate(start, after: false) is not var (firstPage, from) ||
             reviewMap.Locate(end, after: true) is not var (lastPage, to) ||
             handle is not { } viewer)
@@ -567,6 +680,12 @@ public partial class MorphViewer
         if (Selected() is not var (start, end))
         {
             return;
+        }
+
+        // Undone, the text deleted is selected again (WordProbe R-U-2).
+        if (FromSelection() is { } target)
+        {
+            beforeEdit = PlaceOf(target);
         }
 
         var options = await EditOptionsAsync();

@@ -185,6 +185,16 @@ sealed class EditSession
             json.WriteNumber("to", Math.Clamp(to, 0, Paragraph.Length));
             json.WriteBoolean("previous", Paragraph.HasPrevious);
             json.WriteBoolean("next", Paragraph.HasNext);
+            // A story's first and last paragraph: the arrow keys go no further (WordProbe R-N-1, R-N-2).
+            if (Paragraph.PreviousInStory == null)
+            {
+                json.WriteBoolean("first", true);
+            }
+
+            if (Paragraph.NextInStory == null)
+            {
+                json.WriteBoolean("last", true);
+            }
             if (Paragraph.ListLevel is { } level)
             {
                 json.WriteNumber("list", level);

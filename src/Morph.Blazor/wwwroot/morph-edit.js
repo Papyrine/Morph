@@ -19,7 +19,7 @@
 // from it) and o places into it, where each character is a place and so is each thing that is not text.
 // That is the count .NET uses too (EditParagraph.Length), which is how the two agree on where a caret is.
 
-import { faceMetrics, naturalWidth, snapDrag } from './morph-text.js';
+import { faceMetrics, naturalWidth } from './morph-text.js';
 import { completion, corrections, numberLeader, smartQuote } from './morph-autocorrect.js';
 
 const bold = 1;
@@ -216,7 +216,7 @@ export function wordKey(event) {
 export class ParagraphEditor {
     /**
      * sheet is the page's own element (.viewer-sheet), session what EditSession wrote, and callbacks
-     * { commit(id, payload, then), cancel(id), state(state), leave(direction, x, y) }.
+     * { commit(id, payload, then), cancel(id), state(state), leave(direction, x, y), step(paragraph, direction) }.
      */
     constructor(sheet, page, session, callbacks) {
         this.sheet = sheet;
@@ -1654,13 +1654,15 @@ export class ParagraphEditor {
         box.addEventListener('mousedown', event => {
             this.lastKind = '';
             this.pendingFace = null;
-            this.dragging = event.button === 0 && event.detail === 1 && !event.shiftKey && !event.altKey &&
-                !(event.target instanceof Element && event.target.closest('.edit-drawing, .edit-atom'));
+            this.wordDrag = null;
+            if (event.button === 0 && event.detail === 2 && !event.shiftKey && !event.altKey && !event.ctrlKey &&
+                !event.metaKey && !(event.target instanceof Element && event.target.closest('.edit-drawing, .edit-atom'))) {
+                this.startWordDrag(event);
+            }
         }, { signal });
-        document.addEventListener('mouseup', () => {
-            if (this.dragging) {
-                this.dragging = false;
-                this.snapDrag();
+        document.addEventListener('mousemove', event => {
+            if (this.wordDrag && (event.buttons & 1)) {
+                this.extendWordDrag(event);
             }
         }, { signal });
         box.addEventListener('click', event => this.onClickCount(event), { signal });
@@ -1687,6 +1689,12 @@ export class ParagraphEditor {
 
         let unit = null;
         if (event.detail === 2) {
+            // The press took the word already, and a drag since may have taken more (startWordDrag).
+            if (this.wordDrag) {
+                this.wordDrag = null;
+                return;
+            }
+
             unit = 'word';
         } else if (event.detail === 3) {
             unit = 'paragraph';
@@ -1703,29 +1711,66 @@ export class ParagraphEditor {
         this.select(from, to);
     }
 
-    // A drag let go snaps to words as Word's does (snapDrag in morph-text.js). A drag out of the
-    // paragraph is left as it is.
-    snapDrag() {
-        const selected = this.selection();
-        if (this.pending || this.closed || !selected || selected.anchor.b !== selected.focus.b ||
-            same(selected.anchor, selected.focus)) {
+    // A plain drag is by character: Morph follows Word with automatic word selection off (WordProbe M-34,
+    // M-34b). A double-click held and dragged is by whole words, whatever that option (M-34c, M-34d): the
+    // press takes the word the double-click is on, and as the drag goes the selection runs from that
+    // word's far side to the near side of the word under the pointer — its end with the spaces after it
+    // going forwards, its start going backwards. Out of the paragraph the selection stays as it last was.
+    startWordDrag(event) {
+        const at = this.characterAt(event.clientX, event.clientY);
+        if (this.pending || this.closed || !at) {
             return;
         }
 
-        const b = selected.anchor.b;
-        const [anchor, focus] = snapDrag(this.blockText(b), selected.anchor.o, selected.focus.o,
-            this.sameLine(selected.anchor, selected.focus));
-        if (anchor !== selected.anchor.o || focus !== selected.focus.o) {
-            this.select({ b, o: anchor }, { b, o: focus });
+        event.preventDefault();
+        const [from, to] = this.unitAround(at, 'word');
+        this.wordDrag = { from, to };
+        this.select(from, to);
+    }
+
+    extendWordDrag(event) {
+        const at = this.characterAt(event.clientX, event.clientY);
+        const { from, to } = this.wordDrag;
+        if (this.pending || this.closed || !at || at.b !== from.b) {
+            return;
+        }
+
+        const [wordFrom, wordTo] = this.unitAround(at, 'word');
+        if (before(at, from)) {
+            this.select(to, wordFrom);
+        } else if (before(at, to)) {
+            this.select(from, to);
+        } else {
+            this.select(from, wordTo);
         }
     }
 
-    // Whether two places in a block are drawn on one line: each one's character is level with the other's.
-    sameLine(one, other) {
-        const a = this.characterBox(one);
-        const b = this.characterBox(other);
-        const middle = box => box.top + box.height / 2;
-        return middle(a) >= b.top && middle(a) <= b.bottom && middle(b) >= a.top && middle(b) <= a.bottom;
+    // The place of the character under a point in the box (a caret after a character the point is still
+    // over is moved before it, as Word takes the character a double-click is on), or null off the box.
+    characterAt(x, y) {
+        let node = null;
+        let offset = 0;
+        if (document.caretPositionFromPoint) {
+            const position = document.caretPositionFromPoint(x, y);
+            node = position?.offsetNode ?? null;
+            offset = position?.offset ?? 0;
+        } else {
+            const range = document.caretRangeFromPoint?.(x, y);
+            node = range?.startContainer ?? null;
+            offset = range?.startOffset ?? 0;
+        }
+
+        const place = this.toPlace(node, offset);
+        if (!place || place.o === 0) {
+            return place;
+        }
+
+        const box = this.characterBox({ b: place.b, o: place.o - 1 });
+        if (x >= box.left && x <= box.right && y >= box.top && y <= box.bottom) {
+            return { b: place.b, o: place.o - 1 };
+        }
+
+        return place;
     }
 
     // The box of the character at place (the one before it at the block's end).
@@ -2317,10 +2362,21 @@ export class ParagraphEditor {
         }
 
         event.preventDefault();
+        // At a story's first or last paragraph the arrows go no further: Left at its start and Up on its
+        // first line, Right at its end and Down on its last line, do nothing (WordProbe R-N-1, R-N-2).
+        if (direction < 0 ? this.session.first : this.session.last) {
+            return;
+        }
+
         const sideways = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
-        const x = sideways
-            ? (direction < 0 ? bounds.right - 1 : bounds.left + 1)
-            : caret?.left ?? bounds.left + 1;
+        if (sideways) {
+            // One position on, as Word's Left and Right cross a mark: the end of the paragraph before, or
+            // the start of the one after (R-N-1), handed in first if it was changed.
+            this.commit(direction < 0 ? 3 : 4);
+            return;
+        }
+
+        const x = caret?.left ?? bounds.left + 1;
         this.callbacks.leave(direction, x, direction < 0 ? bounds.top : bounds.bottom, line);
     }
 
@@ -2507,9 +2563,14 @@ export class ParagraphEditor {
 
         this.tidy();
         const payload = this.payload();
-        if (payload === this.original && then === 0) {
+        if (payload === this.original && (then === 0 || then >= 3)) {
             this.callbacks.cancel(this.session.id);
             this.dispose();
+            // Left or Right out of a paragraph left as it was: no edit, only the step.
+            if (then >= 3) {
+                this.callbacks.step(this.session.p, then === 3 ? -1 : 1);
+            }
+
             return Promise.resolve(false);
         }
 

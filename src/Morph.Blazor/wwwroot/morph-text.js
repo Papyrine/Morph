@@ -586,7 +586,6 @@ function appendBreak(parent, state) {
 let listening = false;
 let pointerLayer = null;
 let pointerY = null;
-let pressedAt = null;
 let previousRange = null;
 
 // Gecko hit-tests positioned text well enough on its own; moving the end-of-content element is for
@@ -621,21 +620,11 @@ function onPointerDown(event) {
     if (layer && layers.has(layer)) {
         pointerLayer = layer;
         pointerY = event.clientY;
-        pressedAt = [event.clientX, event.clientY];
         layer.classList.add('selecting');
     }
 }
 
-function onPointerUp(event) {
-    // Only a drag: a click leaves a selection it did not make (one made by a key, or a script) as it is.
-    const dragged = pressedAt !== null &&
-        Math.hypot(event.clientX - pressedAt[0], event.clientY - pressedAt[1]) > 3;
-    pressedAt = null;
-    if (event.type === 'pointerup' && dragged && pointerLayer && !event.shiftKey && !event.altKey &&
-        pointerLayer.closest('[data-edit="on"]')) {
-        snapLayerDrag(pointerLayer);
-    }
-
+function onPointerUp() {
     pointerLayer = null;
     pointerY = null;
     resetEnds();
@@ -715,94 +704,6 @@ function moveEnd(range) {
 
     state.end.style.cssText = 'user-select:text;width:100%;height:100%';
     item.parentElement.insertBefore(state.end, startMoved ? item : item.nextSibling);
-}
-
-// Word's automatic word selection, on a drag let go (WordProbe M-34, M-34b): a drag that stays in the
-// word it began in is by character; one that leaves it snaps the anchor out to its whole word — and, on
-// the same line, the moving end too, to its word with the spaces after it. Across a line wrap only the
-// anchor snaps. anchor and focus are offsets into text, a line or a paragraph; [anchor, focus] back.
-export function snapDrag(text, anchor, focus, sameLine) {
-    const [first, last] = wordAt(text, anchor);
-    if (focus >= first && focus <= last) {
-        return [anchor, focus];
-    }
-
-    if (focus > anchor) {
-        return [first, sameLine ? spacesAfter(text, wordAt(text, focus)[1]) : focus];
-    }
-
-    return [spacesAfter(text, last), sameLine ? wordAt(text, focus)[0] : focus];
-}
-
-// The word the character at offset belongs to, without the spaces after it: a run of word characters,
-// or of other characters that are not spaces, as a double-click takes it (morph-edit's unitAround).
-function wordAt(text, offset) {
-    const wordy = /[\p{L}\p{N}_'’]/u;
-    const alike = character => wordy.test(character) === wordy.test(text[offset] ?? ' ');
-    let start = offset;
-    let end = offset;
-    while (start > 0 && text[start - 1] !== ' ' && alike(text[start - 1])) {
-        start--;
-    }
-
-    while (end < text.length && text[end] !== ' ' && alike(text[end])) {
-        end++;
-    }
-
-    return [start, end];
-}
-
-function spacesAfter(text, offset) {
-    while (offset < text.length && text[offset] === ' ') {
-        offset++;
-    }
-
-    return offset;
-}
-
-// A drag over a page's text, let go: snapped as Word snaps it, in the text of the line each end is in.
-function snapLayerDrag(layer) {
-    const selection = getSelection();
-    if (!selection || selection.rangeCount !== 1 || selection.isCollapsed) {
-        return;
-    }
-
-    // A drag let go off the lines ends in the end-of-content element, which is in no line: past the
-    // line it was moved after, so on another line than the anchor's.
-    const anchorLine = lineOf(selection.anchorNode);
-    const focusLine = lineOf(selection.focusNode);
-    if (!anchorLine || !layer.contains(anchorLine) || !layer.contains(selection.focusNode)) {
-        return;
-    }
-
-    const anchorStart = textOffset(layer, anchorLine, 0);
-    const anchor = textOffset(layer, selection.anchorNode, selection.anchorOffset);
-    const focus = textOffset(layer, selection.focusNode, selection.focusOffset);
-    if (anchorStart < 0 || anchor < 0 || focus < 0) {
-        return;
-    }
-
-    const sameLine = anchorLine === focusLine;
-    const local = focus - anchorStart;
-    // Across lines the focus is not snapped, so only its side of the anchor matters.
-    const [snappedAnchor, snappedFocus] = snapDrag(anchorLine.textContent, anchor - anchorStart,
-        sameLine ? local : (focus > anchor ? Infinity : -Infinity), sameLine);
-    const newAnchor = anchorStart + snappedAnchor;
-    const newFocus = sameLine ? anchorStart + snappedFocus : focus;
-    if (newAnchor === anchor && newFocus === focus) {
-        return;
-    }
-
-    const state = layers.get(layer);
-    const forward = newFocus >= newAnchor;
-    const [anchorNode, anchorOffset] = locate(state, newAnchor, !forward);
-    const [focusNode, focusOffset] = locate(state, newFocus, forward);
-    selection.setBaseAndExtent(anchorNode, anchorOffset, focusNode, focusOffset);
-}
-
-function lineOf(node) {
-    const element = node instanceof Element ? node : node?.parentElement;
-    return element?.closest('.text-line') ?? null;
 }
 
 // Whether the pointer is level with the line node is in.

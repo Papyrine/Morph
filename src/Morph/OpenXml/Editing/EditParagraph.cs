@@ -10,6 +10,15 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     /// <summary>Whether the block before this paragraph is a paragraph that can be joined to it.</summary>
     public bool HasPrevious { get; init; }
 
+    /// <summary>
+    /// The paragraph before this one in its story — the part's, a note's or a text box's own — by ordinal,
+    /// across tables; null for a story's first. Where Left at this paragraph's start goes (WordProbe R-N-1).
+    /// </summary>
+    public int? PreviousInStory { get; init; }
+
+    /// <summary>The paragraph after this one in its story, as <see cref="PreviousInStory"/> is the one before.</summary>
+    public int? NextInStory { get; init; }
+
     /// <summary>The part the paragraph is in: the body, a header or footer, the footnotes or endnotes.</summary>
     public ReviewPart Part { get; init; }
 
