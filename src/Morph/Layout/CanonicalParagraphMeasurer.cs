@@ -1524,7 +1524,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                     // The line reserves the picture's layout box — the extent plus its wp:effectExtent on
                     // every side (ImageEffectExtent) — and the picture draws inside it.
-                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent, Vector: vector, ClipToEllipse: run.InlineImageClipToEllipse, ClipSubpaths: run.InlineImageClipSubpaths);
+                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent, Vector: vector, Metafile: run.InlineMetafile, ClipToEllipse: run.InlineImageClipToEllipse, ClipSubpaths: run.InlineImageClipSubpaths);
                     pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(image.BoxWidth), 0, "", run.Properties, image, false, false));
                 }
 

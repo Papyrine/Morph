@@ -1,4 +1,4 @@
-﻿/// <summary>
+/// <summary>
 /// A run of text with consistent formatting. Can also represent an inline image.
 /// </summary>
 sealed class Run
@@ -109,6 +109,13 @@ sealed class Run
     public ChartModel? InlineChart { get; init; }
 
     /// <summary>
+    /// The drawing an inline metafile picture (an OLE object's EMF or WMF preview) plays into
+    /// (<see cref="MetafileReader"/>). <see cref="InlineImageData"/> still holds the metafile's bytes,
+    /// which the text exporters embed; layout composes this into the picture's box instead.
+    /// </summary>
+    public MetafileDrawing? InlineMetafile { get; init; }
+
+    /// <summary>
     /// When not <see cref="PageFieldKind.None"/>, this run is the result of a page-numbering
     /// field (PAGE / NUMPAGES / SECTIONPAGES). <see cref="Text"/> holds Word's cached value; the
     /// engine replaces it with the live value per page, and
@@ -168,6 +175,7 @@ sealed class Run
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
             InlineChart = InlineChart,
+            InlineMetafile = InlineMetafile,
             PageField = PageField,
             PageFieldNumberFormat = PageFieldNumberFormat,
             Source = Source
@@ -204,6 +212,7 @@ sealed class Run
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
             InlineChart = InlineChart,
+            InlineMetafile = InlineMetafile,
             Source = Source
         };
 }

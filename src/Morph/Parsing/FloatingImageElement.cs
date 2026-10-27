@@ -23,6 +23,13 @@ sealed class FloatingImageElement : DocumentElement
     public required double HeightPoints { get; init; }
     public string? ContentType { get; init; }
 
+    /// <summary>
+    /// The drawing a metafile picture (an OLE object's EMF or WMF preview) plays into
+    /// (<see cref="MetafileReader"/>), which layout composes into the picture's box in place of
+    /// <see cref="ImageData"/>. Null for every other picture.
+    /// </summary>
+    public MetafileDrawing? Metafile { get; init; }
+
     /// <summary>Alt text from <c>wp:docPr</c> / <c>pic:cNvPr</c> (@descr, else @title). Null when
     /// the source supplies none. The text exporters surface it as the image's alt / caption.</summary>
     public string? Description { get; init; }
@@ -175,6 +182,7 @@ sealed class FloatingImageElement : DocumentElement
             WidthPoints = WidthPoints,
             HeightPoints = HeightPoints,
             ContentType = ContentType,
+            Metafile = Metafile,
             Description = Description,
             RasterFallbackData = RasterFallbackData,
             RasterFallbackContentType = RasterFallbackContentType,
