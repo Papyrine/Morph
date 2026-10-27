@@ -7176,6 +7176,56 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         }
                     }
 
+                    // An embedded OLE object (w:object) is drawn from the preview picture it stores, in
+                    // the line or floating as its VML shape says (OlePreviewParser).
+                    foreach (var oleObject in OlePreviewParser.Objects(run))
+                    {
+                        if (OlePreviewParser.Read(oleObject, ResolveHostPart(oleObject, mainPart), GetPartBytes, anchorAlignmentPage) is not { } preview)
+                        {
+                            continue;
+                        }
+
+                        if (preview.Float is { } placement)
+                        {
+                            result.Add(
+                                new FloatingImageElement
+                                {
+                                    ImageData = preview.Data,
+                                    ContentType = preview.ContentType,
+                                    Metafile = preview.Metafile,
+                                    Description = preview.Description,
+                                    WidthPoints = preview.WidthPoints,
+                                    HeightPoints = preview.HeightPoints,
+                                    HorizontalPositionPoints = placement.HorizontalPositionPoints,
+                                    VerticalPositionPoints = placement.VerticalPositionPoints,
+                                    HorizontalAnchor = placement.HorizontalAnchor,
+                                    VerticalAnchor = placement.VerticalAnchor,
+                                    BehindText = placement.BehindText,
+                                    RelativeHeight = placement.RelativeHeight,
+                                    WrapType = placement.WrapType,
+                                    WrapTextSide = placement.WrapTextSide,
+                                    WrapDistanceLeftPoints = placement.WrapDistanceLeftPoints,
+                                    WrapDistanceTopPoints = placement.WrapDistanceTopPoints,
+                                    WrapDistanceRightPoints = placement.WrapDistanceRightPoints,
+                                    WrapDistanceBottomPoints = placement.WrapDistanceBottomPoints
+                                });
+                            continue;
+                        }
+
+                        runs.Add(
+                            new()
+                            {
+                                Text = "",
+                                Properties = ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
+                                InlineImageData = preview.Data,
+                                InlineImageContentType = preview.ContentType,
+                                InlineMetafile = preview.Metafile,
+                                InlineImageDescription = preview.Description,
+                                InlineImageWidthPoints = preview.WidthPoints,
+                                InlineImageHeightPoints = preview.HeightPoints
+                            });
+                    }
+
                     // Check for breaks within run
                     foreach (var runChild in run.ChildElements)
                     {
