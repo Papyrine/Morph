@@ -72,19 +72,22 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 var ascent = (float) CanonicalTextMeasurer.LineAscentPoints(
                     NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch)
                              + (grid?.AscentShift ?? 0);
-                height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]), wrapped[i].Pitch);
-
-                // A picture alone on its line has no pitch of its own in the wrap, so the leading a
-                // multiple adds under it (ImageLineHeight) is taken off the MARK's pitch here, as
-                // LayoutLineContents takes it. The mark's own line is deliberately not made a floor
-                // for the measured height the way it is for the placed one: in a cell the mark's
-                // font is not resolved (ParseParagraphProperties omits it there), and floored on the
-                // stand-in an icon's row came out taller than Word's (cover-letters/06, resumes/19).
-                if (wrapped[i].Segments.Count == 0 &&
-                    props.LineSpacingRule == LineSpacingRule.Auto)
+                // A picture alone on its line has no pitch of its own in the wrap: its line is the
+                // mark line (MarkProperties: in a cell, the picture's own run) floored on the picture,
+                // with the leading a multiple adds under it, exactly as LayoutLineContents places it.
+                // The measure once left out the floor, and a row then stopped short of the line drawn
+                // in it: brochures/02's 11pt picture in a 12pt run made a row 2.6pt short, and the
+                // next row started that much high of Word's (2026-10-27, XPS).
+                if (wrapped[i].Segments.Count == 0)
                 {
                     var markPitch = MarkPitch(paragraph);
-                    height += (float) CanonicalTextMeasurer.LineHeightPoints(markPitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints) - markPitch;
+                    var markLine = OnGrid(props, markPitch)?.Height ?? (float) CanonicalTextMeasurer.LineHeightPoints(
+                        markPitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
+                    height = ImageLineHeight(markLine + 2 * RunBorderPad(wrapped[i]), ascent, tallestImage, props.LineSpacingRule, false, markPitch);
+                }
+                else
+                {
+                    height = ImageLineHeight(height, ascent, tallestImage, props.LineSpacingRule, HasText(wrapped[i]), wrapped[i].Pitch);
                 }
             }
 
@@ -291,6 +294,29 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         var descent = hasText ? Math.Max(0f, textHeight - textAscent) : 0f;
         return Math.Max(textHeight, tallestImage + descent);
+    }
+
+    /// <summary>
+    /// The line a box takes standing alone in its paragraph — an inline text box, sized as a picture
+    /// alone on its line (<see cref="ImageLineHeight"/>): the mark's line floored on the box, with the
+    /// leading a multiple adds under it, and the box at the top of the mark's pitch where the mark is
+    /// the taller. business/06's 32.3pt LOGO box (2.2pt of effect extent under it) on a 1.2-spaced
+    /// 12pt Calibri Light mark took exactly its own height, and everything under it sat 5.3pt high of
+    /// Word's XPS (2026-10-27), which reads the 37.5 this gives.
+    /// </summary>
+    internal (float Height, float BoxTop) BoxLine(ParagraphElement host, float boxHeight)
+    {
+        var props = host.Properties;
+        var markPitch = MarkPitch(host);
+        var markLine = OnGrid(props, markPitch)?.Height ?? (float) CanonicalTextMeasurer.LineHeightPoints(
+            markPitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
+        var height = ImageLineHeight(markLine, 0, boxHeight, props.LineSpacingRule, false, markPitch);
+        if (props.LineSpacingRule == LineSpacingRule.Exactly)
+        {
+            return (height, 0);
+        }
+
+        return (height, Math.Max(0f, markPitch - boxHeight));
     }
 
     // Whether a wrapped line carries any text glyphs beside its images.
@@ -1498,7 +1524,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
                     // The line reserves the picture's layout box — the extent plus its wp:effectExtent on
                     // every side (ImageEffectExtent) — and the picture draws inside it.
-                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent, Vector: vector);
+                    var image = new LaidOutImage(0, imageWidth, imageHeight, data, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical, run.InlineImageCrop, Recolor: ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), Opacity: run.InlineImageOpacity, Outline: run.InlineImageOutline, EffectExtent: run.InlineImageEffectExtent, Vector: vector, ClipToEllipse: run.InlineImageClipToEllipse, ClipSubpaths: run.InlineImageClipSubpaths);
                     pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(image.BoxWidth), 0, "", run.Properties, image, false, false));
                 }
 

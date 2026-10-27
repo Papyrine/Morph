@@ -1235,7 +1235,8 @@ static class HtmlExporter
                 defaultHeadingSpacingBeforePoints,
                 defaultHeadingSpacingAfterPoints,
                 liftedSize,
-                tabPlan != null ? "display: flex" : null);
+                tabPlan != null ? "display: flex" : null,
+                HeadingLineEms(paragraph));
             builder.Append('>');
             if (tabPlan is { } plan)
             {
@@ -1251,6 +1252,70 @@ static class HtmlExporter
 
         // The single font size shared by every visible text run, or null when the runs disagree or
         // carry no explicit size.
+        // The faces' own line heights, for the line-height a heading's Auto multiple asks for
+        // (HeadingLineEms). Built on first use, since most exports never ask.
+        FontResolver<FontMetrics>? lineFonts;
+
+        // Word's Auto line multiple scales the face's own single line (ascent and descent from
+        // its metrics, FontMetrics.LinePitchPoints) where a CSS line-height number scales the em:
+        // business-plans/07's 70pt title at 0.75 is a 64pt line in Word (0.75 x 70 x 1.2207 for
+        // Calibri Light) and was a 52.5pt one here, its second line's caps on the first's
+        // baseline; brochures/02's 36pt Franklin Gothic Demi title crowded the date under it the
+        // same way. A heading lifts its uniform run size onto the <hN> (AppendHeading), so its
+        // strut is its text and the em it scales is the right one; a paragraph's is not, which is
+        // why only headings take the face's line. Null when the runs do not agree on one face or
+        // the face cannot be found, and the multiple is then written as it was.
+        double? HeadingLineEms(ParagraphElement paragraph)
+        {
+            if (paragraph.Properties.LineSpacingRule != LineSpacingRule.Auto ||
+                UniformRunFontFamily(paragraph.Runs) is not { } family)
+            {
+                return null;
+            }
+
+            lineFonts ??= LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+            try
+            {
+                var metrics = lineFonts.Resolve(family, paragraph.Runs[0].Properties.Bold, false);
+                return (double) metrics.LineBoxUnits / metrics.UnitsPerEm;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+        }
+
+        static string? UniformRunFontFamily(IReadOnlyList<Run> runs)
+        {
+            string? family = null;
+            foreach (var run in runs)
+            {
+                if (run.Properties.Hidden ||
+                    run.IsTab ||
+                    run.InlineImageData != null ||
+                    string.IsNullOrEmpty(run.Text))
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(run.Properties.FontFamily))
+                {
+                    return null;
+                }
+
+                if (family == null)
+                {
+                    family = run.Properties.FontFamily;
+                }
+                else if (!family.Equals(run.Properties.FontFamily, StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+            }
+
+            return family;
+        }
+
         static double? UniformRunFontSize(IReadOnlyList<Run> runs)
         {
             double? size = null;
@@ -1453,7 +1518,7 @@ static class HtmlExporter
                 style += $"; margin: {BoxShorthand(image.WrapDistanceTopPoints, image.WrapDistanceRightPoints, image.WrapDistanceBottomPoints, image.WrapDistanceLeftPoints)}";
             }
 
-            style += EllipseClip(image);
+            style += PictureClip(image.ClipToEllipse, image.ClipSubpaths);
 
             Indent(depth);
             AppendImageTag(
@@ -1480,7 +1545,7 @@ static class HtmlExporter
                 PageLeft(image.HorizontalAnchor, image.HorizontalPositionPoints),
                 PageTop(image.VerticalAnchor, image.VerticalPositionPoints),
                 image.VerticalAnchor);
-            var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}{EllipseClip(image)}";
+            var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}{PictureClip(image.ClipToEllipse, image.ClipSubpaths)}";
 
             Indent(depth).Append("""<div style="position: relative">""");
             AppendImageTag(
@@ -1566,15 +1631,16 @@ static class HtmlExporter
         // axis draws. A custom geometry arrives as contours in the unit square
         // (FloatingImageElement.ClipSubpaths), which is a polygon in percentages of the box — one
         // contour only, since a CSS polygon is one; a picture cut by several keeps its rectangle.
-        // brochures/03's round portrait photo is cut by a custGeom circle, and came out square.
-        static string EllipseClip(FloatingImageElement image)
+        // brochures/03's round portrait photo is cut by a custGeom circle, and came out square;
+        // its inline photo on page 2 is cut by an ellipse.
+        static string PictureClip(bool clipToEllipse, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths)
         {
-            if (image.ClipToEllipse)
+            if (clipToEllipse)
             {
                 return "; border-radius: 50%";
             }
 
-            if (image.ClipSubpaths is [{Count: > 2} contour])
+            if (clipSubpaths is [{Count: > 2} contour])
             {
                 var points = string.Join(", ", contour.Select(_ => $"{Number(_.X * 100)}% {Number(_.Y * 100)}%"));
                 return $"; clip-path: polygon({points})";
@@ -1633,7 +1699,8 @@ static class HtmlExporter
             double defaultBeforePoints = 0,
             double defaultAfterPoints = defaultSpacingAfterPoints,
             double? fontSizePoints = null,
-            string? extraStyle = null)
+            string? extraStyle = null,
+            double? lineEms = null)
         {
             // w:bidi — the paragraph reads right-to-left. dir="rtl" flips the default alignment
             // to the right and lets the browser run its own bidi reordering, matching the raster
@@ -1679,41 +1746,19 @@ static class HtmlExporter
                 parts.Add($"margin-bottom: {Length(properties.SpacingAfterPoints)}");
             }
 
-            // Indentation. The left indent applies to the whole block; a hanging indent then pulls
-            // the first line back out of it (negative text-indent), while a first-line indent pushes
-            // only the first line in (OOXML makes the two mutually exclusive). Negative values
-            // (outdents) are valid CSS and emitted verbatim.
-            var marginLeft = properties.LeftIndentPoints;
-            var textIndent = 0.0;
-            if (properties.HangingIndentPoints > 0.01)
-            {
-                textIndent = -properties.HangingIndentPoints;
-            }
-            else if (properties.FirstLineIndentPoints > 0.01)
-            {
-                textIndent = properties.FirstLineIndentPoints;
-            }
-
-            if (Math.Abs(marginLeft) > 0.01)
-            {
-                parts.Add($"margin-left: {Length(marginLeft)}");
-            }
-
-            if (properties.RightIndentPoints > 0.01)
-            {
-                parts.Add($"margin-right: {Length(properties.RightIndentPoints)}");
-            }
-
-            if (Math.Abs(textIndent) > 0.01)
-            {
-                parts.Add($"text-indent: {Length(textIndent)}");
-            }
+            AppendIndentStyle(parts, properties);
 
             // Line spacing. Auto → a unitless multiplier (the body default is 1.08); Exactly / AtLeast
             // → a fixed point height (CSS has no "at least", so AtLeast is approximated by the value).
             if (properties.LineSpacingRule == LineSpacingRule.Auto)
             {
-                if (Math.Abs(properties.LineSpacingMultiplier - defaultLineHeightMultiplier) > 0.001)
+                // A heading's multiple scales its face's own line (HeadingLineEms); written even at
+                // the default multiple, since the stylesheet's 1.08 is of the em.
+                if (lineEms is { } ems)
+                {
+                    parts.Add($"line-height: {Number(properties.LineSpacingMultiplier * ems)}");
+                }
+                else if (Math.Abs(properties.LineSpacingMultiplier - defaultLineHeightMultiplier) > 0.001)
                 {
                     parts.Add($"line-height: {Number(properties.LineSpacingMultiplier)}");
                 }
@@ -1739,6 +1784,45 @@ static class HtmlExporter
                 builder.Append(" style=\"").Append(string.Join("; ", parts)).Append('"');
             }
         }
+
+        // Indentation. The left indent applies to the whole block; a hanging indent then pulls
+        // the first line back out of it (negative text-indent), while a first-line indent pushes
+        // only the first line in (OOXML makes the two mutually exclusive). Negative values
+        // (outdents) are valid CSS and emitted verbatim.
+        static void AppendIndentStyle(List<string> parts, ParagraphProperties properties)
+        {
+            var marginLeft = properties.LeftIndentPoints;
+            var textIndent = 0.0;
+            if (properties.HangingIndentPoints > 0.01)
+            {
+                textIndent = -properties.HangingIndentPoints;
+            }
+            else if (properties.FirstLineIndentPoints > 0.01)
+            {
+                textIndent = properties.FirstLineIndentPoints;
+            }
+
+            if (Math.Abs(marginLeft) > 0.01)
+            {
+                parts.Add($"margin-left: {Length(marginLeft)}");
+            }
+
+            if (properties.RightIndentPoints > 0.01)
+            {
+                parts.Add($"margin-right: {Length(properties.RightIndentPoints)}");
+            }
+
+            if (Math.Abs(textIndent) > 0.01)
+            {
+                parts.Add($"text-indent: {Length(textIndent)}");
+            }
+        }
+
+        static bool HasIndent(ParagraphProperties properties) =>
+            Math.Abs(properties.LeftIndentPoints) > 0.01 ||
+            properties.RightIndentPoints > 0.01 ||
+            properties.HangingIndentPoints > 0.01 ||
+            properties.FirstLineIndentPoints > 0.01;
 
         // Paragraph borders (w:pBdr). Word draws ONE box around a run of consecutive paragraphs
         // sharing the same w:pBdr (SharesBorderGroupWith), so where the neighbours are known
@@ -2455,7 +2539,8 @@ static class HtmlExporter
                         else if (paragraph.Properties.SpacingBeforePoints > 0.01 ||
                                  paragraph.Properties.SpacingAfterPoints > 0.01 ||
                                  paragraph.Properties.Borders is {HasAnyBorder: true} ||
-                                 DocumentExportHelpers.NormalizeColor(paragraph.Properties.BackgroundColorHex) != null)
+                                 DocumentExportHelpers.NormalizeColor(paragraph.Properties.BackgroundColorHex) != null ||
+                                 HasIndent(paragraph.Properties))
                         {
                             // A cell paragraph that declares before/after spacing renders as a real
                             // block so the spacing survives — the <br /> join below drops it, which
@@ -2471,6 +2556,11 @@ static class HtmlExporter
                             [
                                 $"margin: {Length(paragraph.Properties.SpacingBeforePoints)} 0 {Length(paragraph.Properties.SpacingAfterPoints)}"
                             ];
+
+                            // An indented cell paragraph keeps its indents the same way: joined inline
+                            // they were lost, and business/05's address, set in a Footer style indented
+                            // 216pt and centred in what is left, centred on the whole cell instead.
+                            AppendIndentStyle(cellBlockParts, paragraph.Properties);
                             borderGroupPrevious = index > 0 ? (content[index - 1] as ParagraphElement)?.Properties : null;
                             borderGroupNext = index + 1 < content.Count ? (content[index + 1] as ParagraphElement)?.Properties : null;
                             AppendParagraphBorderStyle(cellBlockParts, paragraph.Properties);
@@ -2726,7 +2816,8 @@ static class HtmlExporter
                 AppendImage(
                     imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription,
                     run.InlineImageCrop, run.InlineImageRotationDegrees, run.InlineImageFlipHorizontal, run.InlineImageFlipVertical,
-                    ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), run.InlineImageOpacity);
+                    ImageRecolor.For(run.InlineImageColorEffect, run.InlineImageDuotoneColorHex, run.InlineImageDuotoneLightColorHex), run.InlineImageOpacity,
+                    PictureClip(run.InlineImageClipToEllipse, run.InlineImageClipSubpaths));
                 return;
             }
 
@@ -3732,7 +3823,8 @@ static class HtmlExporter
             bool flipHorizontal = false,
             bool flipVertical = false,
             ImageRecolor? recolor = null,
-            double opacity = 1)
+            double opacity = 1,
+            string clip = "")
         {
             var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
             if (source == null)
@@ -3742,7 +3834,9 @@ static class HtmlExporter
                 return;
             }
 
-            AppendImageTag(source, widthPoints, heightPoints, alt, null, crop, rotationDegrees, flipHorizontal, flipVertical, recolor, opacity);
+            // The clip arrives as a declaration to append ("; border-radius: 50%"); the tag takes it bare.
+            var style = clip.Length > 0 ? clip[2..] : null;
+            AppendImageTag(source, widthPoints, heightPoints, alt, style, crop, rotationDegrees, flipHorizontal, flipVertical, recolor, opacity);
         }
 
         // Word's Recolor transforms have no CSS equivalent — filter: grayscale() covers one of

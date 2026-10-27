@@ -7126,7 +7126,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 mainPart,
                                 props.Alignment,
                                 spacingBefore: runs.Count > 0 ? 0 : props.SpacingBeforePoints,
-                                spacingAfter: props.SpacingAfterPoints);
+                                spacingAfter: props.SpacingAfterPoints,
+                                hostParagraph: runs.Count > 0 ? null : props);
                             if (wordArtElement != null)
                             {
                                 EndParagraphAhead([wordArtElement]);
@@ -7328,19 +7329,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // Paragraph contained only behind-text decorative shapes (a "background
             // placeholder" pattern) but carries explicit spacing-after — Word honours
             // that spacing so the following block sits the correct distance below.
-            // Emit a marker paragraph with zero line height (IsAnchorOnlyMark) and
-            // spacing-before collapsed: Word does not allocate a line for the paragraph
-            // mark in this case, only the trailing spacing. Without this, the table or
-            // heading immediately after a background placeholder paragraph snaps too
-            // high (see agendas-minutes/11).
+            // Emit a marker paragraph (IsAnchorOnlyMark, inert in the engine: todo #26)
+            // that keeps its spacing-before too. It was collapsed here on the theory that
+            // Word allocates no line for the mark, but Word's XPS of agendas-minutes/14
+            // (2026-10-27) puts the first baseline 3.25pt below the engine's, the 3pt
+            // w:before the collapse dropped, and every line under it 2.9pt low with it.
             result.Add(
                 new ParagraphElement
                 {
                     Runs = [],
-                    Properties = props with
-                    {
-                        SpacingBeforePoints = 0
-                    },
+                    Properties = props,
                     IsAnchorOnlyMark = true
                 });
         }
@@ -7741,6 +7739,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var crop = ReadCrop(blipFill);
+        var (clipToEllipse, clipSubpaths) = ReadPictureClip(spPr);
 
         // a:grayscl / a:duotone on the pic's blip — brochures/03's grey circle photo is an
         // inline pic whose greyscale was silently dropped on this path.
@@ -7777,8 +7776,25 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             InlineImageOpacity = inlineOpacity,
             InlineImageOutline = ReadPictureOutline(spPr),
             InlineImageEffectExtent = ReadEffectExtent(drawing),
+            InlineImageClipToEllipse = clipToEllipse,
+            InlineImageClipSubpaths = clipSubpaths,
             Source = AnchorSource(drawing)
         };
+    }
+
+    // pic:spPr geometry = Word's picture-style crop shape, floating or inline alike: an ellipse makes
+    // the round photo (brochures/03 has one of each), a custGeom an arbitrary crop. Rect (the
+    // default) is no crop.
+    static (bool ClipToEllipse, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ClipSubpaths) ReadPictureClip(OpenXmlElement? spPr)
+    {
+        if (spPr == null)
+        {
+            return (false, null);
+        }
+
+        var clipToEllipse = spPr.Elements().FirstOrDefault(_ => _.LocalName == "prstGeom")
+            ?.GetAttributes().AttributeValue("prst") == "ellipse";
+        return (clipToEllipse, ShapeParser.ExtractSubpaths(spPr));
     }
 
     // wp:effectExtent — the room Word reserves around an inline picture's extent for its outline and
@@ -9344,11 +9360,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
             flipVertical ^= groupFlipVertical;
 
-            // pic:spPr geometry = Word's picture-style crop shape: an ellipse makes the round
-            // photo (brochures/03), a custGeom an arbitrary crop. Rect (the default) is no crop.
-            var clipToEllipse = spPr.Elements().FirstOrDefault(_ => _.LocalName == "prstGeom")
-                ?.GetAttributes().AttributeValue("prst") == "ellipse";
-            var clipSubpaths = ShapeParser.ExtractSubpaths(spPr);
+            var (clipToEllipse, clipSubpaths) = ReadPictureClip(spPr);
 
             // Find the blip (image reference)
             var blipFill = pic.Elements().FirstOrDefault(_ => _.LocalName == "blipFill");
@@ -10966,7 +10978,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return ChainDeclares(runProperties?.RunStyle?.Val?.Value) || ChainDeclares(paragraphStyleId);
     }
 
-    DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left, double spacingBefore = 0, double spacingAfter = 0)
+    DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left, double spacingBefore = 0, double spacingAfter = 0, ParagraphProperties? hostParagraph = null)
     {
         // Get dimensions from Inline or Anchor
         long widthEmu = 0;
@@ -11332,6 +11344,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Alignment = alignment,
             SpacingBeforePoints = spacingBefore,
             SpacingAfterPoints = spacingAfter,
+            HostParagraph = hostParagraph,
+            EffectExtent = ReadEffectExtent(drawing),
             HasShadow = hasShadow,
             HasReflection = hasReflection,
             HasGlow = hasGlow,

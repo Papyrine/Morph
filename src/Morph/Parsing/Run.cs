@@ -57,6 +57,12 @@ sealed class Run
     /// <summary>The inline picture's <c>a:ln</c> outline, null when it has none (<see cref="ImageOutline"/>).</summary>
     public ImageOutline? InlineImageOutline { get; init; }
 
+    /// <summary>The inline picture's ellipse crop; see <see cref="FloatingImageElement.ClipToEllipse"/>.</summary>
+    public bool InlineImageClipToEllipse { get; init; }
+
+    /// <summary>The inline picture's custom-geometry crop; see <see cref="FloatingImageElement.ClipSubpaths"/>.</summary>
+    public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? InlineImageClipSubpaths { get; init; }
+
     /// <summary>The inline picture's <c>wp:effectExtent</c> — the room reserved around the extent (<see cref="ImageEffectExtent"/>); null when none.</summary>
     public ImageEffectExtent? InlineImageEffectExtent { get; init; }
 
@@ -153,6 +159,8 @@ sealed class Run
             InlineImageOpacity = InlineImageOpacity,
             InlineImageOutline = InlineImageOutline,
             InlineImageEffectExtent = InlineImageEffectExtent,
+            InlineImageClipToEllipse = InlineImageClipToEllipse,
+            InlineImageClipSubpaths = InlineImageClipSubpaths,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,
@@ -187,6 +195,8 @@ sealed class Run
             InlineImageOpacity = InlineImageOpacity,
             InlineImageOutline = InlineImageOutline,
             InlineImageEffectExtent = InlineImageEffectExtent,
+            InlineImageClipToEllipse = InlineImageClipToEllipse,
+            InlineImageClipSubpaths = InlineImageClipSubpaths,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
             FootnoteReferenceId = FootnoteReferenceId,

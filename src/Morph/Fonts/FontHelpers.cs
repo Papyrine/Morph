@@ -3,8 +3,9 @@
     // Font fallback mappings for fonts that may not be installed
     internal static Dictionary<string, string> FontFallbacks { get; } = new(StringComparer.OrdinalIgnoreCase)
     {
-        // Variable fonts to their non-variable equivalents
-        ["Segoe UI Variable"] = "Segoe UI",
+        // Variable fonts to their non-variable equivalents. The bare family is the exception:
+        // Word cannot select it at all (WordCannotSelect), and draws it in Calibri.
+        ["Segoe UI Variable"] = "Calibri",
         ["Segoe UI Variable Display"] = "Segoe UI",
         ["Segoe UI Variable Text"] = "Segoe UI",
         ["Segoe UI Variable Small"] = "Segoe UI",
@@ -267,6 +268,21 @@
     /// Finds a fallback font name for any of the candidate names.
     /// Returns null if no fallback is configured.
     /// </summary>
+    /// <summary>
+    /// A family name Word cannot select although a face of that family is installed, so a run that
+    /// names it draws in its <see cref="FontFallbacks"/> substitute whatever the host holds.
+    /// Segoe UI Variable is a variable font that GDI lists only by its named instances (Display,
+    /// Text, Small): agendas-minutes/02's theme minor font names the bare family, and Word's XPS
+    /// embeds Calibri for all of that text, set at Calibri's line height (13.2pt lines at 10pt and
+    /// 1.1, against 14.63 for the face's own metrics). <c>_probe_segvar</c> (2026-10-27) set the
+    /// bare name at 40pt and 10pt beside Segoe UI and read Calibri's 1.2207-em pitch off both
+    /// sizes, where Segoe UI kept its 1.330. A named instance ("Segoe UI Variable Display") is
+    /// selectable, and Word draws it in the variable face, which Morph sets as Segoe UI: the face
+    /// is indexed under its bare family name only, and its metrics are Segoe UI's.
+    /// </summary>
+    internal static bool WordCannotSelect(string name) =>
+        name.Equals("Segoe UI Variable", StringComparison.OrdinalIgnoreCase);
+
     internal static string? FindFallback(FontNameCandidates candidates)
     {
         if (FontFallbacks.TryGetValue(candidates.Original, out var fallback))

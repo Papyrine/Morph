@@ -1,4 +1,4 @@
-# Fonts
+﻿# Fonts
 
 Morph resolves fonts by reading each font file's own metadata, not by querying the OS font manager or matching against a hardcoded table of names. This page describes how that works, what the public knobs do, and how to control resolution for tests and deterministic builds.
 
@@ -53,12 +53,15 @@ When a name doesn't match any indexed face, Morph falls back in this order:
 
    | Requested | Substituted |
    |---|---|
-   | `Segoe UI Variable` (Display/Text/Small) | `Segoe UI` |
+   | `Segoe UI Variable Display/Text/Small` | `Segoe UI` |
+   | `Segoe UI Variable` (the bare family) | `Calibri`, always — see below |
    | `Avenir Next LT Pro` and variants | `Century Gothic` |
    | `Eras Light/Medium ITC` | `Century Gothic` |
    | `Sagona`, `Sagona ExtraLight/Light` | `Georgia` |
    | `Grandview Display` | `Grandview` |
    | `Cambria Math` | `Cambria` |
+
+   **The bare `Segoe UI Variable` is a name Word cannot select** (`FontHelpers.WordCannotSelect`). It is a variable font, and GDI lists it only by its named instances (Display, Text, Small), so a run naming the bare family draws in Word's fallback, Calibri, even where the face is installed or bundled. agendas-minutes/02's theme minor font is the case: Word's XPS embeds Calibri for all of that text, at Calibri's line height. `_probe_segvar` (2026-10-27) set the bare name beside Segoe UI at 40pt and 10pt and read Calibri's 1.2207-em pitch off both sizes, where Segoe UI kept its 1.330. The resolver therefore sends that one name straight to its alias without looking for its own face.
 
 3. **User `FontFallback` delegate**, if `ExportOptions.FontFallback` is supplied. Called with the original family name, also when the alias above names a family that is not available; return an alternative or `null`. The alternative is looked up in the indexed fonts, then the platform font manager, then the Aptos faces embedded in `Morph.dll`, so `FontFallback = _ => "Aptos"` renders every unresolved family on any host, including one with no fonts installed.
 4. **Platform font manager.** Skia's `SKTypeface.FromFamilyName` / ImageSharp's `SystemFonts` get a final chance, useful for fonts the user installed after Morph's caches loaded.
