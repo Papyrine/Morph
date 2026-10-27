@@ -6,7 +6,7 @@ public class TextLayerCorpusTests
 {
     public static IEnumerable<string> CorpusFiles() =>
     [
-        "align_justified.docx",
+        "align_mixed.docx",
         "table_of_contents.docx",
         "table_text_direction.docx",
         "header_footer.docx",

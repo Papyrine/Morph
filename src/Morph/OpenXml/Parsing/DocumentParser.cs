@@ -6978,7 +6978,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         // pic-based image path — newsletters/08's cover photo is a front-anchored
                         // standalone blip-filled freeform, resumes/10's accent circle a
                         // front-anchored solid custGeom. The same hole swallowed standalone LINE
-                        // connectors, which carry a stroke but no fill at all (cards/15's header
+                        // connectors, which carry a stroke but no fill at all (cards/01's header
                         // fold/cut guides are front-anchored full-page dashed lines). Route them
                         // through the walk; for behindDoc standalones ShapeParser already emitted
                         // a copy and the position/size dedup below eats the walk's twin.

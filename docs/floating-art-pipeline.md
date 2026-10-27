@@ -36,7 +36,7 @@ anchored drawing contains a blip-filled, solid text-free, or LINE-CONNECTOR text
 (`hasAnchoredFillShape`) — the last route exists because a FRONT-of-text anchored standalone
 shape reaches neither SP (behindDoc-only) nor the pic-based image path (newsletters/08's cover
 photo is a front-anchored blip-filled freeform; resumes/10's accent circle a front-anchored
-solid custGeom; cards/15's fold/cut guides are front-anchored zero-extent line connectors in
+solid custGeom; cards/01's fold/cut guides are front-anchored zero-extent line connectors in
 the HEADERS, invisible until `IsLineShape` wsps qualified for the route). Text-carrying
 solid shapes stay on the ParseTextBox path. At render, front-of-text `FloatingShapeElement`s
 draw over the content painted so far, at flow order, whatever their fill — the front-SOLID

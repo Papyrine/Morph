@@ -54,7 +54,7 @@
        layer has to get right: justified lines, tab leaders, rotated cells, header and footer bands,
        warped WordArt, a worksheet grid. -->
   <ItemGroup>
-    <Content Include="..\Tests\Inputs\word\align_justified\input.docx" Link="corpus\align_justified.docx" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\Tests\Inputs\word\align_mixed\input.docx" Link="corpus\align_mixed.docx" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\Tests\Inputs\word\table_of_contents\01\input.docx" Link="corpus\table_of_contents.docx" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\Tests\Inputs\word\table_text_direction\input.docx" Link="corpus\table_text_direction.docx" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\Tests\Inputs\word\header_footer\input.docx" Link="corpus\header_footer.docx" CopyToOutputDirectory="PreserveNewest" />

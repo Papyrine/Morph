@@ -265,7 +265,7 @@ public class SourceIndexTests
     [Test]
     [Arguments("tracked_changes.docx")]
     [Arguments("comments.docx")]
-    [Arguments("align_justified.docx")]
+    [Arguments("align_mixed.docx")]
     [Arguments("table_of_contents.docx")]
     [Arguments("table_text_direction.docx")]
     [Arguments("header_footer.docx")]

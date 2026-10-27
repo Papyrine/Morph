@@ -75,10 +75,6 @@ public class BundledBoldCoverageTests
         ["Source Sans Pro Light"] = 400,
         // 1 scenario, newsletters/04
         ["Sylfaen"] = 400,
-        // 1 scenario, business-plans/03
-        ["Trade Gothic Next"] = 400,
-        // 1 scenario, business-plans/02
-        ["Trade Gothic Next Cond"] = 400,
         // 1 scenario, agendas-minutes/02
         ["Tw Cen MT"] = 400
     };
