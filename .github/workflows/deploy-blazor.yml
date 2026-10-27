@@ -36,6 +36,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # test-aot reads the run's artifacts and jobs to wait for the build job's AOT app.
+  actions: read
 
 # Deploys queue behind one another and are never cancelled. A pull request gets a group of its own,
 # so it neither waits on a deploy nor holds one up, and a new push supersedes its previous run.
@@ -53,8 +55,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # The SDK goes into a directory of the job's own so it can be cached with the wasm-tools workload
+      # installed into it: on Windows the workload install alone cost 80-120s a job. setup-dotnet finds
+      # a restored SDK already there and skips its download.
+      - name: Cache .NET SDK and wasm-tools
+        id: dotnet-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/dotnet
+          key: dotnet-wasm-tools-${{ runner.os }}-${{ hashFiles('global.json') }}
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v6
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
           global-json-file: global.json
 
@@ -68,6 +82,7 @@ jobs:
       # The app builds native (WasmBuildNative) to link Krilla's PDF archive into its .wasm, which needs
       # the wasm-tools workload.
       - name: Install wasm-tools workload
+        if: steps.dotnet-cache.outputs.cache-hit != 'true'
         run: dotnet workload install wasm-tools
 
       - name: Build tests (also publishes the Blazor app for snapshot tests)
@@ -147,18 +162,32 @@ jobs:
   # The browser tests against the AOT app the build job made, which is the one deployed: the test job
   # runs them against an interpreted publish of its own. The tests are built without publishing the app
   # (SkipBlazorPublish), and serve whatever is in bin/Release/blazor-publish.
+  #
+  # It does not wait on the build job with `needs`: its own setup and build (~5 minutes) run while the
+  # AOT publish does, and it waits for the web-aot artifact only when it has nothing else left to do.
+  # The deploy still needs build, so nothing ships without it.
   test-aot:
     if: github.event_name != 'pull_request'
     runs-on: windows-latest
-    needs: build
+    timeout-minutes: 60
     env:
       MORPH_TEST_CONTAINER: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # As the test job's.
+      - name: Cache .NET SDK and wasm-tools
+        id: dotnet-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/dotnet
+          key: dotnet-wasm-tools-${{ runner.os }}-${{ hashFiles('global.json') }}
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v6
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
           global-json-file: global.json
 
@@ -171,16 +200,37 @@ jobs:
 
       # Building the tests still builds Morph.Web, which on .NET 11 needs the workload even unpublished.
       - name: Install wasm-tools workload
+        if: steps.dotnet-cache.outputs.cache-hit != 'true'
         run: dotnet workload install wasm-tools
+
+      - name: Build tests, without publishing the app
+        run: dotnet build src/Morph.Web.Tests --configuration Release -p:SkipBlazorPublish=true
+
+      # An artifact is listed as soon as its upload finishes, while the run is still going. The build
+      # job ending without one is a failed publish, and this job fails with it rather than waiting out
+      # its timeout. The artifacts are looked at again after the job is seen to end, since the upload
+      # can land between the two reads.
+      - name: Wait for the build job's AOT app
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $run = "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          function Uploaded { (gh api "$run/artifacts" --jq '.artifacts[].name') -contains 'web-aot' }
+          while (-not (Uploaded)) {
+            $build = gh api "$run/attempts/${{ github.run_attempt }}/jobs" --jq '.jobs[] | select(.name == "build") | .conclusion // empty'
+            if ($build) {
+              if (Uploaded) { break }
+              throw "The build job ended ($build) without uploading web-aot."
+            }
+            Start-Sleep -Seconds 20
+          }
 
       - name: Download the AOT app
         uses: actions/download-artifact@v8
         with:
           name: web-aot
           path: src/Morph.Web.Tests/bin/Release/blazor-publish/wwwroot
-
-      - name: Build tests, without publishing the app
-        run: dotnet build src/Morph.Web.Tests --configuration Release -p:SkipBlazorPublish=true
 
       - name: Run the browser tests against the AOT app
         run: dotnet src/Morph.Web.Tests/bin/Release/net11.0/Morph.Web.Tests.dll --treenode-filter "/*/*/SnapshotTests/*"
