@@ -456,6 +456,30 @@ public class DocumentEditorTests
         await Assert.That((across.Paragraph, across.Offset)).IsEqualTo((0, 8));
     }
 
+    // Typed over, the paragraphs join into one with the first's properties, the text where the selection
+    // began in the look of the first character it replaced (WordProbe E-10c).
+    [Test]
+    public async Task TypeOver_AcrossParagraphs_JoinsThemIntoTheFirst()
+    {
+        var docx = Build(
+            "<w:p><w:pPr><w:jc w:val=\"right\"/></w:pPr>" + R("Hello ") + R("brave", bold: true) + "</w:p>" +
+            P(R("new")) +
+            "<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr>" + R("wide world") + "</w:p>");
+
+        var result = DocumentEditor.TypeOver(docx, new(1, 2), new(3, 5), "x", Plain);
+        var xml = Xml(result.Document);
+
+        await Assert.That(Shape(result.Document)).IsEqualTo("[Hello ][b:br][b:x][world] ¶");
+        await Assert.That(xml).Contains("<w:jc w:val=\"right\" />");
+        await Assert.That(xml).DoesNotContain("center");
+        await Assert.That((result.Paragraph, result.Offset)).IsEqualTo((0, 9));
+
+        // From the first paragraph's very start: still the first's properties.
+        var whole = DocumentEditor.TypeOver(docx, new(0, 0), new(3, 2), "y", Plain);
+        await Assert.That(Xml(whole.Document)).Contains("<w:jc w:val=\"right\" />");
+        await Assert.That(Describe(whole.Document)).IsEqualTo("yde world¶");
+    }
+
     // Each paragraph keeps its own properties, an emptied first one too.
     [Test]
     public async Task Delete_AcrossParagraphs_KeepsEachEndsProperties()

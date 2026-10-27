@@ -368,8 +368,10 @@ code (`morph-edit.js` `onArrow`/`leaveEditor`, native caret movement inside the 
   of a date); a result-only field as one word; before the final punctuation of a paragraph, then before
   the mark, then the next paragraph's start. Ctrl+Left mirrors the stops; Ctrl+Left into a hyperlink stops
   at the word starts of its display text and, at the first word, before the field's begin mark (N-12
-  `field-page`, `hyperlink`; the other fixtures are in the observations). — Morph: TODO (Ctrl+arrows are
-  native inside the box only).
+  `field-page`, `hyperlink`; the other fixtures are in the observations). — Morph: PARTIAL (Word's stops
+  in the open paragraph by `wordRange`; with none left, Ctrl+Right goes on to the next paragraph's start and
+  Ctrl+Left back to the previous one's end, as Left and Right do; Ctrl+Shift does not extend across
+  paragraphs, and a field and a hyperlink's code are not stops of their own).
 
 Open: the root cases of the branch trees (N-02, N-07, N-08) were added after the first run and are listed
 under Open questions until rerun.
@@ -4895,7 +4897,10 @@ Typing and inheritance
   selected inserts before the picture and keeps it; with a floating shape selected the character goes at
   the anchor paragraph's start (E-10e, E-10f). Tracked, the replaced text is struck and the typed text
   inserted after it, the caret after the insertion (E-10 tracked variants). — Morph: PARTIAL (the box
-  replaces a selection inside one paragraph; nothing types over a cross-paragraph or table selection).
+  replaces a selection inside one paragraph, and a character typed over text selected on the pages
+  replaces it with the paragraphs joined into the first, `DocumentEditor.TypeOver`, typing going on in the
+  paragraph; tracked, the insertion goes before the struck text rather than after it; nothing types over
+  a table selection).
 - **R-E-5 Overtype** (`Options.Overtype`, toggled by Insert only with `INSKeyForOvertype` on) overwrites
   the character after the caret, a tab, an inline picture and a whole field alike, appends at a
   paragraph's end and before a cell mark, and Backspace deletes without restoring; under Track Changes

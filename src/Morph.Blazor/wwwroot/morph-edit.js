@@ -818,7 +818,18 @@ export class ParagraphEditor {
             const backward = event.key === 'ArrowLeft';
             const step = this.wordRange(focus, backward);
             if (!step) {
-                return false;
+                // No stop left in this paragraph: on into the next one's start, or back to the end of the
+                // one before, as Word's Ctrl+Right stops before the mark and then at the next paragraph
+                // (WordProbe N-12, R-N-10) — across what Enter split here too, and no further than the story.
+                const b = focus.b + (backward ? -1 : 1);
+                if (this.blocks[b]) {
+                    const to = { b, o: backward ? blockLength(this.blocks[b]) : 0 };
+                    this.select(event.shiftKey ? anchor : to, to);
+                } else if (!event.shiftKey && !(backward ? this.session.first : this.session.last)) {
+                    this.commit(backward ? 3 : 4);
+                }
+
+                return true;
             }
 
             const to = backward ? step.from : step.to;

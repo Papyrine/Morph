@@ -675,6 +675,47 @@ public partial class MorphViewer
         }
     }
 
+    /// <summary>Called from JavaScript for a character typed with text selected on the pages: it replaces the text.</summary>
+    [JSInvokable]
+    public Task OnEditTypeOver(string text) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    revising ||
+                    Selected() is not var (start, end))
+                {
+                    StateHasChanged();
+                    return;
+                }
+
+                // Undone, what was typed over is selected again (WordProbe R-U-2).
+                if (FromSelection() is { } target)
+                {
+                    beforeEdit = PlaceOf(target);
+                }
+
+                editNote = null;
+                var options = await EditOptionsAsync();
+                EditResult? result = null;
+                var edited = await ReviseAsync(
+                    _ =>
+                    {
+                        result = DocumentEditor.TypeOver(_, start, end, text, options);
+                        return result.Document;
+                    },
+                    relayout: true,
+                    () => activeKey);
+                if (edited &&
+                    result is {Paragraph: >= 0} typed)
+                {
+                    await ResumeAsync(typed.Paragraph, typed.Offset);
+                }
+
+                StateHasChanged();
+            });
+
     internal async Task DeleteAsync()
     {
         if (Selected() is not var (start, end))

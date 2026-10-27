@@ -48,4 +48,27 @@ public partial class SnapshotTests
         await WaitForEditorAsync(page, "Third and last.");
         await Assert.That(await CaretAsync(page)).IsEqualTo("Third and last.".Length);
     }
+
+    // Ctrl+Right stops before a paragraph's mark, then at the next paragraph's start; Ctrl+Left at a start
+    // goes back to the end of the paragraph before (WordProbe N-12).
+    [Test]
+    [Property("WordBehavior", "R-N-10")]
+    public async Task CtrlArrows_CrossParagraphs()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "paragraph here");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Control+ArrowRight");
+        await WaitForEditorAsync(page, "Second bold one.");
+        await Assert.That(await CaretAsync(page)).IsEqualTo(0);
+
+        await page.Keyboard.PressAsync("Control+ArrowRight");
+        await Assert.That(await CaretAsync(page)).IsEqualTo("Second ".Length);
+
+        await page.Keyboard.PressAsync("Home");
+        await page.Keyboard.PressAsync("Control+ArrowLeft");
+        await WaitForEditorAsync(page, "First paragraph here.");
+        await Assert.That(await CaretAsync(page)).IsEqualTo("First paragraph here.".Length);
+    }
 }

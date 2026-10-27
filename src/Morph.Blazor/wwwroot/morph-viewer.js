@@ -2688,6 +2688,14 @@ class Viewer {
             return true;
         }
 
+        // A character typed over text selected on the pages replaces it, joining the paragraphs it runs
+        // across into the first (WordProbe R-E-4); typing then goes on in the paragraph.
+        if (!command && !event.altKey && event.key.length === 1 && this.selectedText()) {
+            event.preventDefault();
+            this.dotNet.invokeMethodAsync('OnEditTypeOver', event.key).catch(() => {});
+            return true;
+        }
+
         let name = null;
         if (command) {
             name = { b: 'bold', i: 'italic', u: 'underline', y: 'redo', z: event.shiftKey ? 'redo' : 'undo' }[key] ?? null;
