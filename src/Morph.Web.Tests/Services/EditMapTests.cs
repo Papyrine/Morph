@@ -124,7 +124,7 @@ public class EditMapTests
     [Arguments("sample.docx")]
     [Arguments("corpus/tracked_changes.docx")]
     [Arguments("corpus/comments.docx")]
-    [Arguments("corpus/align_justified.docx")]
+    [Arguments("corpus/align_mixed.docx")]
     [Arguments("corpus/table_of_contents.docx")]
     [Arguments("corpus/table_text_direction.docx")]
     [Arguments("corpus/header_footer.docx")]

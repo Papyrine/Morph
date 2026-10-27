@@ -1,4 +1,4 @@
-# All Markdown export scenarios (348)
+# All Markdown export scenarios (335)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -24,11 +24,7 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [agendas-minutes/17](#agendas-minutes17)
 - [agendas-minutes/18](#agendas-minutes18)
 - [agendas-minutes/19](#agendas-minutes19)
-- [align_center](#align_center)
-- [align_justified](#align_justified)
-- [align_left](#align_left)
 - [align_mixed](#align_mixed)
-- [align_right](#align_right)
 - [all_caps](#all_caps)
 - [bar_tabs](#bar_tabs)
 - [block_quote](#block_quote)
@@ -40,18 +36,14 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [brochures/04](#brochures04)
 - [brochures/05](#brochures05)
 - [brochures/06](#brochures06)
-- [brochures/07](#brochures07)
 - [brochures/08](#brochures08)
 - [bullet_list](#bullet_list)
 - [business-plans/01](#business-plans01)
-- [business-plans/02](#business-plans02)
-- [business-plans/03](#business-plans03)
 - [business-plans/04](#business-plans04)
 - [business-plans/05](#business-plans05)
 - [business-plans/06](#business-plans06)
 - [business-plans/07](#business-plans07)
 - [business-plans/08](#business-plans08)
-- [business-plans/09](#business-plans09)
 - [business-plans/10](#business-plans10)
 - [business-plans/12](#business-plans12)
 - [business-plans/13](#business-plans13)
@@ -72,10 +64,8 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [cards/08](#cards08)
 - [cards/09](#cards09)
 - [cards/10](#cards10)
-- [cards/11](#cards11)
 - [cards/12](#cards12)
 - [cards/13](#cards13)
-- [cards/15](#cards15)
 - [cards/16](#cards16)
 - [cards/18](#cards18)
 - [cards/19](#cards19)
@@ -116,7 +106,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [document_capture/01](#document_capture01)
 - [document_grid_lines](#document_grid_lines)
 - [document_grid_table](#document_grid_table)
-- [document_protection/01](#document_protection01)
 - [dot_points](#dot_points)
 - [embedded_font](#embedded_font)
 - [empty_paragraphs](#empty_paragraphs)
@@ -253,7 +242,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [numbered_list_restart](#numbered_list_restart)
 - [numbered_list_tracking](#numbered_list_tracking)
 - [office_math](#office_math)
-- [ole_chart_preview](#ole_chart_preview)
 - [page_a4](#page_a4)
 - [page_borders/01](#page_borders01)
 - [page_breaks](#page_breaks)
@@ -266,7 +254,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [paragraph_spacing](#paragraph_spacing)
 - [pct_pos_offset](#pct_pos_offset)
 - [postcards/02](#postcards02)
-- [postcards/03](#postcards03)
 - [postcards/04](#postcards04)
 - [resumes/01](#resumes01)
 - [resumes/02](#resumes02)
@@ -470,35 +457,11 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="agendas-minutes/19/expected_0001.png" width="500"> | <img src="agendas-minutes/19/md_result.verified.png" width="500"> |
 
-## align_center
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="align_center/expected_0001.png" width="500"> | <img src="align_center/md_result.verified.png" width="500"> |
-
-## align_justified
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="align_justified/expected_0001.png" width="500"> | <img src="align_justified/md_result.verified.png" width="500"> |
-
-## align_left
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="align_left/expected_0001.png" width="500"> | <img src="align_left/md_result.verified.png" width="500"> |
-
 ## align_mixed
 
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="align_mixed/expected_0001.png" width="500"> | <img src="align_mixed/md_result.verified.png" width="500"> |
-
-## align_right
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="align_right/expected_0001.png" width="500"> | <img src="align_right/md_result.verified.png" width="500"> |
 
 ## all_caps
 
@@ -566,12 +529,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="brochures/06/expected_0001.png" width="500"><br><img src="brochures/06/expected_0002.png" width="500"> | <img src="brochures/06/md_result.verified.png" width="500"> |
 
-## brochures/07
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="brochures/07/expected_0001.png" width="500"><br><img src="brochures/07/expected_0002.png" width="500"> | <img src="brochures/07/md_result.verified.png" width="500"> |
-
 ## brochures/08
 
 | Expected (Word) | Morph Markdown |
@@ -589,18 +546,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="business-plans/01/expected_0001.png" width="500"> | <img src="business-plans/01/md_result.verified.png" width="500"> |
-
-## business-plans/02
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/02/expected_0001.png" width="500"><br><img src="business-plans/02/expected_0002.png" width="500"><br><img src="business-plans/02/expected_0003.png" width="500"><br><img src="business-plans/02/expected_0004.png" width="500"><br><img src="business-plans/02/expected_0005.png" width="500"><br><img src="business-plans/02/expected_0006.png" width="500"> | <img src="business-plans/02/md_result.verified.png" width="500"> |
-
-## business-plans/03
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/03/expected_0001.png" width="500"> | <img src="business-plans/03/md_result.verified.png" width="500"> |
 
 ## business-plans/04
 
@@ -631,12 +576,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="business-plans/08/expected_0001.png" width="500"><br><img src="business-plans/08/expected_0002.png" width="500"> | <img src="business-plans/08/md_result.verified.png" width="500"> |
-
-## business-plans/09
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/09/expected_0001.png" width="500"><br><img src="business-plans/09/expected_0002.png" width="500"><br><img src="business-plans/09/expected_0003.png" width="500"><br><img src="business-plans/09/expected_0004.png" width="500"> | <img src="business-plans/09/md_result.verified.png" width="500"> |
 
 ## business-plans/10
 
@@ -758,12 +697,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="cards/10/expected_0001.png" width="500"> | <img src="cards/10/md_result.verified.png" width="500"> |
 
-## cards/11
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="cards/11/expected_0001.png" width="500"><br><img src="cards/11/expected_0002.png" width="500"> | <img src="cards/11/md_result.verified.png" width="500"> |
-
 ## cards/12
 
 | Expected (Word) | Morph Markdown |
@@ -775,12 +708,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="cards/13/expected_0001.png" width="500"> | <img src="cards/13/md_result.verified.png" width="500"> |
-
-## cards/15
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="cards/15/expected_0001.png" width="500"><br><img src="cards/15/expected_0002.png" width="500"> | <img src="cards/15/md_result.verified.png" width="500"> |
 
 ## cards/16
 
@@ -1021,12 +948,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="document_grid_table/expected_0001.png" width="500"> | <img src="document_grid_table/md_result.verified.png" width="500"> |
-
-## document_protection/01
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="document_protection/01/expected_0001.png" width="500"> | <img src="document_protection/01/md_result.verified.png" width="500"> |
 
 ## dot_points
 
@@ -1844,12 +1765,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="office_math/expected_0001.png" width="500"> | <img src="office_math/md_result.verified.png" width="500"> |
 
-## ole_chart_preview
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="ole_chart_preview/expected_0001.png" width="500"><br><img src="ole_chart_preview/expected_0002.png" width="500"> | <img src="ole_chart_preview/md_result.verified.png" width="500"> |
-
 ## page_a4
 
 | Expected (Word) | Morph Markdown |
@@ -1921,12 +1836,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="postcards/02/expected_0001.png" width="500"><br><img src="postcards/02/expected_0002.png" width="500"> | <img src="postcards/02/md_result.verified.png" width="500"> |
-
-## postcards/03
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="postcards/03/expected_0001.png" width="500"><br><img src="postcards/03/expected_0002.png" width="500"> | <img src="postcards/03/md_result.verified.png" width="500"> |
 
 ## postcards/04
 

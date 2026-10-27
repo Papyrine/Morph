@@ -510,7 +510,7 @@ static class TableLayout
                 // Only grow columns when the table explicitly asked to (w:tblW w:type="pct"),
                 // to the PCT TARGET — fraction × container — and then regardless of
                 // tblLayout: Word scales a FIXED-layout pct table's columns to the target too
-                // (cards/15's card table declares tcW 10800 under tblW 5000pct on an 11520
+                // (cards/01's card table declares tcW 10800 under tblW 5000pct on an 11520
                 // grid — Word lays the column out at 11520, and the 36pt shortfall squeezed
                 // the card-back placeholder into 6 lines vs Word's 5). The fraction matters:
                 // labels/15 is 4880 pct (97.6%) and its widths already sum to exactly that —

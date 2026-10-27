@@ -3248,7 +3248,7 @@ static class HtmlExporter
         // degenerate box. An <svg> with a zero width or height renders nothing at all, so the
         // line gets a viewport as thick as its own stroke, centred on where the line runs. They
         // were dropped whole, which is every fold, cut and tear guide of the card and label
-        // sheets (cards/12, cards/15, cards/18, labels/03), cards/06's divider between the two
+        // sheets (cards/01, cards/12, cards/18, labels/03), cards/06's divider between the two
         // halves of an invitation and agendas-minutes/14's 10pt stripes.
         void WriteLineShape(FloatingShapeElement shape, int depth, double left, double top, double width, double height)
         {
