@@ -51,7 +51,8 @@
                   "BorderBetween": {
                     "IsVisible": false,
                     "WidthPoints": 0.5,
-                    "ColorHex": "000000"
+                    "ColorHex": "000000",
+                    "HoldsSpace": false
                   },
                   "DefaultTabStopPoints": 36.0,
                   "IsRightToLeft": false,
@@ -67,22 +68,26 @@
                 "Top": {
                   "IsVisible": true,
                   "WidthPoints": 0.75,
-                  "ColorHex": "B2B2B2"
+                  "ColorHex": "B2B2B2",
+                  "HoldsSpace": false
                 },
                 "Right": {
                   "IsVisible": true,
                   "WidthPoints": 0.75,
-                  "ColorHex": "B2B2B2"
+                  "ColorHex": "B2B2B2",
+                  "HoldsSpace": false
                 },
                 "Bottom": {
                   "IsVisible": true,
                   "WidthPoints": 0.75,
-                  "ColorHex": "B2B2B2"
+                  "ColorHex": "B2B2B2",
+                  "HoldsSpace": false
                 },
                 "Left": {
                   "IsVisible": true,
                   "WidthPoints": 0.75,
-                  "ColorHex": "B2B2B2"
+                  "ColorHex": "B2B2B2",
+                  "HoldsSpace": false
                 },
                 "Declared": "All",
                 "HasAnyBorder": true
@@ -107,22 +112,26 @@
         "Top": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "B2B2B2"
+          "ColorHex": "B2B2B2",
+          "HoldsSpace": false
         },
         "Right": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "B2B2B2"
+          "ColorHex": "B2B2B2",
+          "HoldsSpace": false
         },
         "Bottom": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "B2B2B2"
+          "ColorHex": "B2B2B2",
+          "HoldsSpace": false
         },
         "Left": {
           "IsVisible": true,
           "WidthPoints": 1.5,
-          "ColorHex": "B2B2B2"
+          "ColorHex": "B2B2B2",
+          "HoldsSpace": false
         },
         "Declared": "All",
         "HasAnyBorder": true

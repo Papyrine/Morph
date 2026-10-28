@@ -40,6 +40,16 @@ sealed record BorderEdge
     /// </summary>
     internal bool Frame { get; init; }
 
+    /// <summary>
+    /// An edge declared <c>w:val="none"</c>: it draws nothing but still holds its <c>w:space</c> open
+    /// beside the text, where <c>nil</c> holds nothing. Word-probed 2026-10-28
+    /// (<c>_probe_nilspace</c>, 12pt Arial paragraphs between plain references, baselines off the
+    /// XPS): a <c>none</c> top or bottom edge moved the next line 6.0pt at <c>w:space="6"</c> and 19.8
+    /// to 20.4pt at 20, whether its <c>w:sz</c> was 4 or 24, and a <c>nil</c> edge moved nothing at 4
+    /// or 20, on one side or on all four.
+    /// </summary>
+    public bool HoldsSpace { get; init; }
+
     public static BorderEdge None => new()
     {
         IsVisible = false

@@ -51,7 +51,8 @@
                   "BorderBetween": {
                     "IsVisible": false,
                     "WidthPoints": 0.5,
-                    "ColorHex": "000000"
+                    "ColorHex": "000000",
+                    "HoldsSpace": false
                   },
                   "DefaultTabStopPoints": 36.0,
                   "IsRightToLeft": false,
@@ -84,22 +85,26 @@
         "Top": {
           "IsVisible": false,
           "WidthPoints": 0.5,
-          "ColorHex": "000000"
+          "ColorHex": "000000",
+          "HoldsSpace": false
         },
         "Right": {
           "IsVisible": false,
           "WidthPoints": 0.5,
-          "ColorHex": "000000"
+          "ColorHex": "000000",
+          "HoldsSpace": false
         },
         "Bottom": {
           "IsVisible": false,
           "WidthPoints": 0.5,
-          "ColorHex": "000000"
+          "ColorHex": "000000",
+          "HoldsSpace": false
         },
         "Left": {
           "IsVisible": false,
           "WidthPoints": 0.5,
-          "ColorHex": "000000"
+          "ColorHex": "000000",
+          "HoldsSpace": false
         },
         "Declared": "All",
         "HasAnyBorder": false

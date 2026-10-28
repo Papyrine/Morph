@@ -6158,8 +6158,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return BorderEdge.None;
         }
 
-        // Check if border is explicitly set to none/nil
-        if (border.Val?.Value == BorderValues.None || border.Val?.Value == BorderValues.Nil)
+        // none and nil both draw nothing; none still holds its w:space open (BorderEdge.HoldsSpace)
+        if (border.Val?.Value == BorderValues.None)
+        {
+            return BorderEdge.None with
+            {
+                HoldsSpace = true
+            };
+        }
+
+        if (border.Val?.Value == BorderValues.Nil)
         {
             return BorderEdge.None;
         }

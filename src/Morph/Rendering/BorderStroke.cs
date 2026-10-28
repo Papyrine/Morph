@@ -242,7 +242,18 @@ static class BorderStroke
     static (double Points, double? Shade, double? Drawn)[] ParagraphLayout(BorderLineStyle style, double w)
     {
         var half = w / 2;
-        // A bevel flank reserves a full 1.5pt but draws floor(W/2) pixels, capped at two.
+        // A bevel flank draws floor(W/2) pixels, capped at two, and reserves Word's thin unit below a
+        // 3pt core and its two-pixel unit from 3pt up. _probe_3dbox (2026-10-28, boxed 12pt Arial
+        // paragraphs at w:sz 4 to 96, pitch off the XPS against single boxes of the same w:sz): both
+        // bevels stood 1.1 to 1.9pt taller than single from sz 4 to 22 and 3.0 to 3.1pt from sz 24 to
+        // 48, the step falling between 22 and 24. A flat 1.5pt set border_style_variants' 0.75pt
+        // groove and ridge boxes 3.8 and 5.1pt taller than Word's.
+        var flank = twoPoints;
+        if (w < 3)
+        {
+            flank = hairPoints;
+        }
+
         var flankDrawn = Math.Min(2 * gridPoints, GridFloor(half));
         return style switch
         {
@@ -257,8 +268,8 @@ static class BorderStroke
             BorderLineStyle.ThinThickLargeGap => [(twoPoints, 1, null), (w, null, null), (hairPoints, 1, null)],
             BorderLineStyle.ThickThinLargeGap => [(hairPoints, 1, null), (w, null, null), (twoPoints, 1, null)],
             BorderLineStyle.ThinThickThinLargeGap => [(hairPoints, 1, null), (w, null, null), (twoPoints, 1, null), (w, null, null), (hairPoints, 1, null)],
-            BorderLineStyle.ThreeDEngrave => [(twoPoints, bevelFlankShade, flankDrawn), (w, bevelCoreShade, null), (twoPoints, 1, flankDrawn)],
-            BorderLineStyle.ThreeDEmboss => [(twoPoints, 1, flankDrawn), (w, bevelCoreShade, null), (twoPoints, bevelFlankShade, flankDrawn)],
+            BorderLineStyle.ThreeDEngrave => [(flank, bevelFlankShade, flankDrawn), (w, bevelCoreShade, null), (flank, 1, flankDrawn)],
+            BorderLineStyle.ThreeDEmboss => [(flank, 1, flankDrawn), (w, bevelCoreShade, null), (flank, bevelFlankShade, flankDrawn)],
             _ => [(w, 1, null)]
         };
     }
