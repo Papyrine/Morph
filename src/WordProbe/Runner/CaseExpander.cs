@@ -2,20 +2,6 @@
 // branch tree (each replays fixture + StartAt + the path's steps), once per toggle value, and again under
 // Track Changes when asked. Case ids are the scenario id plus suffixes, in this order:
 //   id[axis=value,axis=value] /branch/path {Options.Member=value} ~tracked
-record ProbeCase(
-    string Id,
-    Scenario Scenario,
-    string Fixture,
-    IReadOnlyList<string> StepTexts,
-    IReadOnlyDictionary<string, string> Options,
-    bool Tracked,
-    IReadOnlyList<KeyValuePair<string, string>> AxisValues,
-    string? BranchPath,
-    string DefinitionHash)
-{
-    public IReadOnlyList<Step> Steps() =>
-        StepTexts.Select(StepParser.Parse).ToList();
-}
 
 static class CaseExpander
 {
@@ -135,7 +121,7 @@ static class CaseExpander
             builder.Append(step).Append('\n');
         }
 
-        var bytes = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString()));
         return Convert.ToHexString(bytes)[..16].ToLowerInvariant();
     }
 }
