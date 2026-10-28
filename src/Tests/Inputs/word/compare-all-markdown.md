@@ -1,4 +1,4 @@
-# All Markdown export scenarios (335)
+# All Markdown export scenarios (333)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -188,8 +188,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [letters/04](#letters04)
 - [letters/05](#letters05)
 - [letters/06](#letters06)
-- [letters/07](#letters07)
-- [letters/08](#letters08)
 - [letters/09](#letters09)
 - [letters/10](#letters10)
 - [letters/11](#letters11)
@@ -1440,18 +1438,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="letters/06/expected_0001.png" width="500"> | <img src="letters/06/md_result.verified.png" width="500"> |
-
-## letters/07
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="letters/07/expected_0001.png" width="500"> | <img src="letters/07/md_result.verified.png" width="500"> |
-
-## letters/08
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="letters/08/expected_0001.png" width="500"> | <img src="letters/08/md_result.verified.png" width="500"> |
 
 ## letters/09
 

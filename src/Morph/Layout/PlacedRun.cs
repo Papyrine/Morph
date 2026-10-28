@@ -12,5 +12,7 @@
 /// <see cref="BorderInside"/> is set on a piece of a bordered run whose border takes no room of its own:
 /// the line was not grown for it, and its rules are drawn inside the line box
 /// (<see cref="BorderStroke.RunBorderReserves"/>).
+/// <see cref="InkOnly"/> marks a copy drawn for an effect (<see cref="TextRelief"/>): it paints, but its
+/// text is not the line's text, so a text layer or an index of the line's runs skips it.
 /// </summary>
-readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false);
+readonly record struct PlacedRun(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false, bool InkOnly = false);

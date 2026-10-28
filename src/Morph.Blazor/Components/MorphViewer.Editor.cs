@@ -1755,16 +1755,10 @@ public partial class MorphViewer
 
     internal async Task<bool> BeginLinkAsync()
     {
-        if (await RequireAsync("Select the text to make a link.") is not { } target)
+        // With nothing selected the link is put in at the caret, its text asked for with its address,
+        // as Word's Insert Link does.
+        if (await RequireAsync("Put the caret where the link goes, or select the text to make one.") is not { } target)
         {
-            return false;
-        }
-
-        if (!target.HasSelection &&
-            !InLink)
-        {
-            editNote = "Select the text to make a link.";
-            StateHasChanged();
             return false;
         }
 
@@ -1784,16 +1778,38 @@ public partial class MorphViewer
         }
 
         linkTarget = null;
+        var link = LinkAddress(address);
+        return EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.Link(_, start, end, link, options));
+    }
+
+    /// <summary>Puts <paramref name="text"/> in at the caret the link dialog was opened at, linked.</summary>
+    internal Task LinkTextAsync(string text, string address)
+    {
+        if (linkTarget is not { } target)
+        {
+            return Task.CompletedTask;
+        }
+
+        linkTarget = null;
+        var link = LinkAddress(address);
+        return EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.InsertLink(_, target.Paragraph, target.Offset, text, link, options));
+    }
+
+    // An address as typed, made one: a bare host is a web address, a #name a bookmark.
+    static string LinkAddress(string address)
+    {
         if (!address.StartsWith('#') &&
             !address.Contains("://", StringComparison.Ordinal) &&
             !address.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
         {
-            address = $"https://{address}";
+            return $"https://{address}";
         }
 
-        return EditParagraphsAsync(
-            target,
-            (_, options) => DocumentEditor.Link(_, start, end, address, options));
+        return address;
     }
 
     internal async Task UnlinkAsync()

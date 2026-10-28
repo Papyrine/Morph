@@ -13975,6 +13975,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         });
     }
 
+    // A fraction is built up unless its m:fPr/m:type says it is set on the line (lin) or skewed (skw).
+    static bool BuiltUp(DocumentFormat.OpenXml.Math.Fraction fraction) =>
+        fraction.FractionProperties?.FractionType?.Val?.Value is not ({} type) ||
+        type == DocumentFormat.OpenXml.Math.FractionTypeValues.Bar ||
+        type == DocumentFormat.OpenXml.Math.FractionTypeValues.NoBar;
+
+    // A fraction's level in Cambria Math's script size, 73% of the math it stands in.
+    static List<Run> ScriptLevel(List<Run> runs) =>
+        [.. runs.Select(_ => _.WithProperties(_.Properties with
+        {
+            FontSizePoints = _.Properties.FontSizePoints * 0.73
+        }))];
+
     static void WalkMath(OpenXmlElement element, List<Run> runs, RunProperties props)
     {
         foreach (var child in element.ChildElements)
@@ -14030,10 +14043,38 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     break;
                 }
 
+                case DocumentFormat.OpenXml.Math.Fraction frac when BuiltUp(frac):
+                {
+                    // A bar (or bar-less) fraction is built up: its levels stacked about the math axis,
+                    // at Cambria Math's script scale of 73% (_probe_math: 8.4pt digits for 12pt math,
+                    // 17.4 for 24, on Word's 120-dpi grid; its widths are the unrounded 8.76 and 17.52).
+                    var numerator = new List<Run>();
+                    var denominator = new List<Run>();
+                    if (frac.GetFirstChild<DocumentFormat.OpenXml.Math.Numerator>() is { } numeratorElement)
+                    {
+                        WalkMath(numeratorElement, numerator, props);
+                    }
+
+                    if (frac.GetFirstChild<DocumentFormat.OpenXml.Math.Denominator>() is { } denominatorElement)
+                    {
+                        WalkMath(denominatorElement, denominator, props);
+                    }
+
+                    var size = numerator.Concat(denominator).FirstOrDefault()?.Properties.FontSizePoints ?? props.FontSizePoints;
+                    var hasBar = frac.FractionProperties?.FractionType?.Val?.Value != DocumentFormat.OpenXml.Math.FractionTypeValues.NoBar;
+                    runs.Add(
+                        new()
+                        {
+                            Text = "",
+                            Properties = props,
+                            InlineFraction = new(ScriptLevel(numerator), ScriptLevel(denominator), size, hasBar)
+                        });
+                    break;
+                }
+
                 case DocumentFormat.OpenXml.Math.Fraction frac:
                 {
-                    // Inline fallback: numerator "/" denominator. Stacked fractions need cutout
-                    // layout the line engine doesn't model, so this is the closest we can get.
+                    // A linear or skewed fraction stays inline: numerator "/" denominator.
                     var num = frac.GetFirstChild<DocumentFormat.OpenXml.Math.Numerator>();
                     if (num != null)
                     {

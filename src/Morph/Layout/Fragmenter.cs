@@ -5597,14 +5597,77 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // each segment's canonical offset). Shared by page-flow and cell-flow line placement.
         static PlacedRun[] MapRuns(LaidOutLine line, float lineLeft)
         {
-            var runs = new PlacedRun[line.Runs.Count];
-            for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
+            var runs = new List<PlacedRun>(line.Runs.Count);
+            foreach (var run in line.Runs)
             {
-                var run = line.Runs[runIndex];
-                runs[runIndex] = new(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside);
+                var placed = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside);
+
+                // An embossed or imprinted run is drawn as three copies of itself (TextRelief).
+                if (TextRelief.Applies(run.Properties))
+                {
+                    runs.AddRange(TextRelief.Draw(placed));
+                }
+                else
+                {
+                    runs.Add(placed);
+                }
             }
 
-            return runs;
+            return [.. runs];
+        }
+
+        // A built-up fraction drawn into its box: each level a line of its own, centred over the other on
+        // its baseline (MathFractionLayout), and the bar between them as a rule the box's width.
+        IReadOnlyList<PlacedItem> ComposeFraction(LaidOutFraction fraction, float left, float baseline, float width)
+        {
+            var items = new List<PlacedItem>();
+            PlaceLevel(fraction.Source.Numerator, fraction.NumeratorWidth, baseline - MathFractionLayout.NumeratorBaseline);
+            PlaceLevel(fraction.Source.Denominator, fraction.DenominatorWidth, baseline + MathFractionLayout.DenominatorBaseline(fraction.Source.SizePoints));
+            if (fraction.Source.HasBar)
+            {
+                var color = fraction.Source.Numerator.Concat(fraction.Source.Denominator).FirstOrDefault()?.Properties.ColorHex ?? "000000";
+                items.Add(
+                    new PlacedBorder(
+                        left,
+                        baseline - MathFractionLayout.BarTop + MathFractionLayout.BarThickness / 2,
+                        width,
+                        0,
+                        new()
+                        {
+                            Top = new()
+                            {
+                                IsVisible = true,
+                                WidthPoints = MathFractionLayout.BarThickness,
+                                ColorHex = color
+                            }
+                        }));
+            }
+
+            return items;
+
+            void PlaceLevel(IReadOnlyList<Run> level, float levelWidth, float levelBaseline)
+            {
+                if (level.Count == 0)
+                {
+                    return;
+                }
+
+                var x = left + (width - levelWidth) / 2;
+                var runs = new List<PlacedRun>();
+                foreach (var run in level)
+                {
+                    var runWidth = measurer.TextWidthPoints(run.Properties, run.Text);
+                    runs.Add(new(x, runWidth, run.Text, run.Properties));
+                    x += runWidth;
+                }
+
+                var paragraph = new ParagraphElement
+                {
+                    Runs = level,
+                    Properties = new()
+                };
+                items.Add(new PlacedLine(left + (width - levelWidth) / 2, levelBaseline, levelWidth, 0, levelBaseline, paragraph, 0, runs, []));
+            }
         }
 
         // Projects a laid-out line's inline boxes (images and shape groups) to placed images: the line's
@@ -5629,6 +5692,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0) - (float) (image.ShapeGroup?.DrawOffsetYPoints ?? 0);
                 var x = lineLeft + image.X + effectLeft;
                 var y = baseline - effectBottom - image.Height;
+                if (image.Fraction is { } fraction)
+                {
+                    images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: ComposeFraction(fraction, x, baseline, image.Width));
+                    continue;
+                }
+
                 if (image.Chart is { } chart)
                 {
                     var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() {Content = content}, left, top, width, height, alignment));

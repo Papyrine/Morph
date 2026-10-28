@@ -181,6 +181,38 @@ public class InsertTests
         await Assert.That(Read(edited, _ => _.MainDocumentPart!.StyleDefinitionsPart!.Styles!.Elements<DocumentFormat.OpenXml.Wordprocessing.Style>().Select(style => style.StyleId!.Value!).ToList())).Contains("Hyperlink");
     }
 
+    // Word's Insert Link with nothing selected: the text to display goes in at the caret, linked.
+    [Test]
+    public async Task ALinkInsertedAtTheCaret_IsItsOwnText_Linked()
+    {
+        var docx = Build(P(R("See here")) + section);
+
+        var edited = DocumentEditor.InsertLink(docx, 0, 4, "the site", "https://example.com/", Plain);
+
+        await Assert.That(Shape(edited)).IsEqualTo("[See ]<[the site]>[here] ¶");
+        await Assert.That(Read(edited, _ => _.MainDocumentPart!.HyperlinkRelationships.Single().Uri.ToString())).IsEqualTo("https://example.com/");
+    }
+
+    [Test]
+    public async Task ALinkInsertedAtTheEnd_FollowsTheText()
+    {
+        var docx = Build(P(R("Visit")) + section);
+
+        var edited = DocumentEditor.InsertLink(docx, 0, 5, " us", "#Top", Plain);
+
+        await Assert.That(Shape(edited)).IsEqualTo("[Visit]<[ us]> ¶");
+    }
+
+    [Test]
+    public async Task ALinkInsertedInAnEmptyParagraph_IsItsWholeText()
+    {
+        var docx = Build(P("") + section);
+
+        var edited = DocumentEditor.InsertLink(docx, 0, 0, "Home", "https://example.com/", Plain);
+
+        await Assert.That(Shape(edited)).IsEqualTo("<[Home]> ¶");
+    }
+
     [Test]
     public async Task ALink_ToABookmark_IsAnAnchor()
     {

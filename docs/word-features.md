@@ -457,6 +457,9 @@ Engraved text effect (inverse of emboss — recessed appearance). Approximated b
 - **Model**: `RunProperties.Imprint`
 
 
+
+> **Emboss and imprint are three copies of each glyph (2026-10-28, `TextRelief`).** Word draws a grey (#999999) copy where the text would stand, the text in its own colour one step of 1.2pt off on both axes, and a black copy two steps off — up and left for emboss, down and right for imprint. `_probe_emboss` (Arial at 12, 36 and 72pt) read the steps at 1.2pt at every size off the XPS. The fragmenter expands such a run into the three placed runs (`Fragmenter.MapRuns`), so every painter draws them; the copies are `PlacedRun.InkOnly`, which the text layer, the source index and the edit map skip. The HTML export still writes the text flat.
+
 #### Outline Text `DONE`
 
 Stroke-only text (hollow glyphs, no fill). Distinct from `w14:textOutline`, which adds a stroke *around* filled text — `w:outline` replaces the fill with a stroke.
@@ -2779,6 +2782,8 @@ A preset with no entry (the rings, the button, the multi-line deflate-inflates) 
 > business/06's 32.3pt LOGO box (2.2pt of effect extent under it) on a 1.2-spaced 12pt mark takes 37.5pt
 > in Word's XPS, where the engine gave it exactly its own height and everything under it sat 5.3pt high.
 > At a single-spaced mark the leading is nothing, so the arch boxes above still sit their box height apart.
+>
+> **HTML export of a warped WordArt (2026-10-28, `HtmlWriter.AppendWordArtSvg`).** An SVG the size of its box: an arch or a circle places each glyph by `WordArtArch.Place`, its advances read off the face, as the painters do; an envelope warp bends glyph outlines, which only the raster backends have, so its text is set straight across the text rect (`textLength`), sized so the face's whole height fills it. Until then every warp exported as a flat line of text at its nominal size.
 
 
 ### 6.4 Ink / Handwriting
@@ -3608,9 +3613,9 @@ Mathematical equations using Office Math Markup Language.
 - **OOXML**: `m:oMath` elements containing fractions, radicals, matrices, integrals, etc.
 - **Model**: presence detected via `ParsedDocument.Features.HasMath`; the actual content flows through paragraph runs.
 - **Parse**: `ParseParagraph` recognises `m:oMath` and `m:oMathPara` children inline and emits the concatenated text of all `m:t` descendants as a regular text run via `AppendMathText`.
-- **Render**: `WalkMath` recursively turns the math tree into runs with the right typography — italic variables, upright digits/operators, raised superscripts (`m:sSup`), lowered subscripts (`m:sSub`/`m:sSubSup`), and inline `numerator/denominator` for fractions (`m:f`). Radicals, big operators, n-aries, and matrices walk through the default branch and surface as plain text inline. Math sets in **Cambria** — Word's math face is Cambria Math whatever the body font, and plain Cambria gives the same serif letterforms at a normal line box (Cambria Math's own vertical metrics are sized for stretchy operators and inflated every math line ~55px when tried) — and single-character binary operators/relations gain Word's surrounding spaces ("a² + b² = c²").
+- **Render**: `WalkMath` recursively turns the math tree into runs with the right typography — italic variables, upright digits/operators, raised superscripts (`m:sSup`), lowered subscripts (`m:sSub`/`m:sSubSup`), and built-up fractions (`m:f`, since 2026-10-28): the numerator stacked over a 0.6pt bar over the denominator, each level at Cambria Math's 73% script size, placed by `MathFractionLayout` as `_probe_math` read them off Word's XPS at 12pt and 24pt (bar top 3.6pt above the baseline, numerator baseline 7.2 above, denominator baseline 6.0 / 9.6 below), as an inline box the line makes room for above and below (`MathFraction`, `LaidOutFraction`, composed by `Fragmenter.ComposeFraction`). A linear or skewed fraction (`m:type` lin / skw) stays inline `a/b`. The HTML export stacks the levels in an inline-flex span; Markdown writes `a/b`. Radicals, big operators, n-aries, and matrices walk through the default branch and surface as plain text inline. Math sets in **Cambria** — Word's math face is Cambria Math whatever the body font, and plain Cambria gives the same serif letterforms at a normal line box (Cambria Math's own vertical metrics are sized for stretchy operators and inflated every math line ~55px when tried) — and single-character binary operators/relations gain Word's surrounding spaces ("a² + b² = c²").
 
-> **AI**: True stacked-fraction layout requires line-level cutouts the renderer can't produce yet, so `m:f` falls back to inline `a/b`. Square-root glyphs and integral signs render as plain text without their associated symbols (`√`, `∫`). The visible difference vs Word is fraction stacking and big-operator glyphs; sub/superscripts now match Word's typography.
+> **AI**: Math operator spacing is not modelled: Word sets a binary operator like `+` with medium math spaces either side, and "a+b" over "2" measures 3pt (12pt) to 4.8pt (24pt) wider in Word than here. Square-root glyphs and integral signs render as plain text without their associated symbols (`√`, `∫`). The visible difference vs Word is big-operator glyphs and operator spacing; sub/superscripts now match Word's typography.
 
 
 ### 12.2 Document Protection

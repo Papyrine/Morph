@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Parses HTML content embedded in DOCX via AltChunk.
 /// </summary>
 sealed class HtmlParser
@@ -1536,6 +1536,10 @@ sealed class HtmlParser
         // Track active rowspans: column index -> remaining rows
         var activeRowspans = new Dictionary<int, int>();
 
+        // The first row's first cell's own left padding, which the table hangs into the margin by.
+        double? firstCellPaddingLeft = null;
+        var firstRow = true;
+
         foreach (var tr in DirectRows(tableElement))
         {
             var cells = new List<TableCell>();
@@ -1598,8 +1602,15 @@ sealed class HtmlParser
                 if (!string.IsNullOrEmpty(cellStyle))
                 {
                     var cellStyles = ParseStyleAttribute(cellStyle);
-                    cellPadding = ParseCssSpacing(cellStyles, "padding");
+                    // CSS cell padding becomes the cell's margins at 0.75pt a pixel (_probe_pad: 40px of
+                    // top padding dropped the text 30pt, 80px 60pt), unlike the table's cellpadding.
+                    cellPadding = ParseCssSpacingPoints(cellStyles, "padding");
                     cellMargin = ParseCssSpacing(cellStyles, "margin");
+                    if (firstRow &&
+                        cells.Count == 0)
+                    {
+                        firstCellPaddingLeft = cellPadding?.Left;
+                    }
 
                     // A cell's own CSS border becomes its w:tcBorders, overriding the table
                     // chrome for that cell — Word's import maps it with the same width law as
@@ -1804,6 +1815,7 @@ sealed class HtmlParser
                     {
                         Cells = cells
                     });
+                firstRow = false;
             }
         }
 
@@ -1845,9 +1857,11 @@ sealed class HtmlParser
         // text-at-the-margin rule above covers everything left of the cell text — so the
         // spacing inset joins the outdent.
         var cellSpacingPoints = cellSpacingPixels * pixelsToPoints / 2;
+        // A first cell with its own left padding hangs the table by that instead: _probe_pad's 40px
+        // left padding put the table's edge 33pt left of the margin and its text on the margin.
         var leftInset = fillContainer
             ? 0
-            : (defaultCellPadding?.Left ?? 0) + borderWidthPoints + 2 * cellSpacingPoints;
+            : (firstCellPaddingLeft ?? defaultCellPadding?.Left ?? 0) + borderWidthPoints + 2 * cellSpacingPoints;
 
         return new()
         {
@@ -1888,6 +1902,54 @@ sealed class HtmlParser
                 }
             }
         }
+    }
+
+    // A box of CSS lengths in points, px at 0.75pt (TryParseCssLengthToPoints).
+    static CellSpacing? ParseCssSpacingPoints(Dictionary<string, string> styles, string property)
+    {
+        double? Side(string name) =>
+            styles.TryGetValue(name, out var value) &&
+            TryParseCssLengthToPoints(value, out var points)
+                ? points
+                : null;
+
+        if (styles.TryGetValue(property, out var all))
+        {
+            var parts = all.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var values = new List<double>();
+            foreach (var part in parts)
+            {
+                if (!TryParseCssLengthToPoints(part, out var points))
+                {
+                    return null;
+                }
+
+                values.Add(points);
+            }
+
+            switch (values.Count)
+            {
+                case 1:
+                    return new(values[0]);
+                case 2:
+                    return new(values[0], values[1], values[0], values[1]);
+                case 3:
+                    return new(values[0], values[1], values[2], values[1]);
+                case 4:
+                    return new(values[0], values[1], values[2], values[3]);
+            }
+        }
+
+        var top = Side($"{property}-top");
+        var right = Side($"{property}-right");
+        var bottom = Side($"{property}-bottom");
+        var left = Side($"{property}-left");
+        if (top.HasValue || right.HasValue || bottom.HasValue || left.HasValue)
+        {
+            return new(top ?? 0, right ?? 0, bottom ?? 0, left ?? 0);
+        }
+
+        return null;
     }
 
     static CellSpacing? ParseCssSpacing(string style, string property) =>

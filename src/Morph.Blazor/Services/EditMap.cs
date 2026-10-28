@@ -228,6 +228,7 @@ sealed class EditMap
             {
                 var run = line.Runs[index];
                 if (run.Text.Length == 0 ||
+                    run.InkOnly ||
                     sources.Pieces(line, index) is not { } pieces)
                 {
                     continue;

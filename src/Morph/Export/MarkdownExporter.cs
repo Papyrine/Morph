@@ -532,6 +532,15 @@ static class MarkdownExporter
 
         void AppendRun(StringBuilder target, Run run, bool inTable, bool inHeading)
         {
+            // Markdown has no stacked form, so a built-up fraction is written on the line.
+            if (run.InlineFraction is {} fraction)
+            {
+                var numerator = string.Concat(fraction.Numerator.Select(_ => _.Text));
+                var denominator = string.Concat(fraction.Denominator.Select(_ => _.Text));
+                target.Append(EscapeInline($"{numerator}/{denominator}", inTable));
+                return;
+            }
+
             if (run.InlineShapeGroup is {} shapeGroup)
             {
                 AppendShapeGroup(target, shapeGroup, run.InlineImageWidthPoints, run.InlineImageHeightPoints);
