@@ -144,6 +144,12 @@ static class TextLayerBuilder
         {
             var run = line.Runs[runIndex];
 
+            // A relief's copies are ink, not text (TextRelief).
+            if (run.InkOnly)
+            {
+                continue;
+            }
+
             // A tab leader is dots (or a rule) filling a tab's gap: the gap reads as the tab it is.
             if (run.Leader != TabLeader.None)
             {

@@ -1,4 +1,4 @@
-# All scenarios (335)
+# All scenarios (333)
 
 <details>
 <summary>Contents</summary>
@@ -186,8 +186,6 @@
 - [letters/04](#letters04)
 - [letters/05](#letters05)
 - [letters/06](#letters06)
-- [letters/07](#letters07)
-- [letters/08](#letters08)
 - [letters/09](#letters09)
 - [letters/10](#letters10)
 - [letters/11](#letters11)
@@ -1906,7 +1904,7 @@ its header, footer and `docProps/custom.xml` was replaced with the same equal-le
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0383 · SSIM: 0.9154** | **Page 1. ErrorMetric: 0.0382 · SSIM: 0.9162** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0376 · SSIM: 0.9194** | **Page 1. ErrorMetric: 0.0374 · SSIM: 0.9204** |
 | <img src="html_css_borders/expected_0001.png" width="500"> | <img src="html_css_borders/skia_result%23page_0001.verified.png" width="500"> | <img src="html_css_borders/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## html_css_colors
@@ -1920,7 +1918,7 @@ its header, footer and `docProps/custom.xml` was replaced with the same equal-le
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0225 · SSIM: 0.9553** | **Page 1. ErrorMetric: 0.0242 · SSIM: 0.9550** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0213 · SSIM: 0.9619** | **Page 1. ErrorMetric: 0.0230 · SSIM: 0.9615** |
 | <img src="html_css_margin_padding/expected_0001.png" width="500"> | <img src="html_css_margin_padding/skia_result%23page_0001.verified.png" width="500"> | <img src="html_css_margin_padding/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## html_font_tag
@@ -1997,21 +1995,21 @@ its header, footer and `docProps/custom.xml` was replaced with the same equal-le
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0125 · SSIM: 0.9684** | **Page 1. ErrorMetric: 0.0125 · SSIM: 0.9680** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0122 · SSIM: 0.9674** | **Page 1. ErrorMetric: 0.0122 · SSIM: 0.9673** |
 | <img src="html_table_cell_margin_css/expected_0001.png" width="500"> | <img src="html_table_cell_margin_css/skia_result%23page_0001.verified.png" width="500"> | <img src="html_table_cell_margin_css/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## html_table_cell_padding_css
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0115 · SSIM: 0.9726** | **Page 1. ErrorMetric: 0.0114 · SSIM: 0.9726** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0101 · SSIM: 0.9797** | **Page 1. ErrorMetric: 0.0102 · SSIM: 0.9796** |
 | <img src="html_table_cell_padding_css/expected_0001.png" width="500"> | <img src="html_table_cell_padding_css/skia_result%23page_0001.verified.png" width="500"> | <img src="html_table_cell_padding_css/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## html_table_styled
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0655 · SSIM: 0.9087** | **Page 1. ErrorMetric: 0.0661 · SSIM: 0.9102** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0285 · SSIM: 0.9365** | **Page 1. ErrorMetric: 0.0289 · SSIM: 0.9379** |
 | <img src="html_table_styled/expected_0001.png" width="500"> | <img src="html_table_styled/skia_result%23page_0001.verified.png" width="500"> | <img src="html_table_styled/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## hyperlinks
@@ -2339,20 +2337,6 @@ ignores a pushed rotation, so a rotated photo is drawn from a pre-clipped standa
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0302 · SSIM: 0.9592** | **Page 1. ErrorMetric: 0.0317 · SSIM: 0.9562** |
 | <img src="letters/06/expected_0001.png" width="500"> | <img src="letters/06/skia_result%23page_0001.verified.png" width="500"> | <img src="letters/06/imagesharp_result%23page_0001.verified.png" width="500"> |
-
-## letters/07
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0500 · SSIM: 0.9225** | **Page 1. ErrorMetric: 0.0498 · SSIM: 0.9237** |
-| <img src="letters/07/expected_0001.png" width="500"> | <img src="letters/07/skia_result%23page_0001.verified.png" width="500"> | <img src="letters/07/imagesharp_result%23page_0001.verified.png" width="500"> |
-
-## letters/08
-
-| Expected (Word) | Skia | ImageSharp |
-| --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0257 · SSIM: 0.9427** | **Page 1. ErrorMetric: 0.0259 · SSIM: 0.9414** |
-| <img src="letters/08/expected_0001.png" width="500"> | <img src="letters/08/skia_result%23page_0001.verified.png" width="500"> | <img src="letters/08/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## letters/09
 
@@ -2846,7 +2830,7 @@ from `customXml/item2.xml` and `item3.xml`. None of it is read by the renderer.
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0036 · SSIM: 0.9914** | **Page 1. ErrorMetric: 0.0035 · SSIM: 0.9916** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0033 · SSIM: 0.9927** | **Page 1. ErrorMetric: 0.0033 · SSIM: 0.9930** |
 | <img src="office_math/expected_0001.png" width="500"> | <img src="office_math/skia_result%23page_0001.verified.png" width="500"> | <img src="office_math/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## ole_chart_preview
@@ -3902,7 +3886,7 @@ page keeps its paragraph's space-after as well, which the wave at the head of pa
 | <img src="wordart/expected_0012.png" width="500"> | <img src="wordart/skia_result%23page_0012.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0012.verified.png" width="500"> |
 | **Page 13**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 13. ErrorMetric: 0.0042 · SSIM: 0.9954** | **Page 13. ErrorMetric: 0.0044 · SSIM: 0.9955** |
 | <img src="wordart/expected_0013.png" width="500"> | <img src="wordart/skia_result%23page_0013.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0013.verified.png" width="500"> |
-| **Page 14**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 14. ErrorMetric: 0.0156 · SSIM: 0.9725** | **Page 14. ErrorMetric: 0.0161 · SSIM: 0.9715** |
+| **Page 14**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 14. ErrorMetric: 0.0142 · SSIM: 0.9793** | **Page 14. ErrorMetric: 0.0149 · SSIM: 0.9789** |
 | <img src="wordart/expected_0014.png" width="500"> | <img src="wordart/skia_result%23page_0014.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0014.verified.png" width="500"> |
 | **Page 15**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 15. ErrorMetric: 0.0129 · SSIM: 0.9855** | **Page 15. ErrorMetric: 0.0130 · SSIM: 0.9859** |
 | <img src="wordart/expected_0015.png" width="500"> | <img src="wordart/skia_result%23page_0015.verified.png" width="500"> | <img src="wordart/imagesharp_result%23page_0015.verified.png" width="500"> |

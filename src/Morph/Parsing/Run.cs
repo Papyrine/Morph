@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// A run of text with consistent formatting. Can also represent an inline image.
 /// </summary>
 sealed class Run
@@ -108,6 +108,10 @@ sealed class Run
     /// </summary>
     public ChartModel? InlineChart { get; init; }
 
+    /// <summary>A built-up fraction set inline (<see cref="MathFraction"/>): the run reserves the stacked
+    /// fraction's box and its <see cref="Text"/> is empty.</summary>
+    public MathFraction? InlineFraction { get; init; }
+
     /// <summary>
     /// The drawing an inline metafile picture (an OLE object's EMF or WMF preview) plays into
     /// (<see cref="MetafileReader"/>). <see cref="InlineImageData"/> still holds the metafile's bytes,
@@ -175,6 +179,7 @@ sealed class Run
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
             InlineChart = InlineChart,
+            InlineFraction = InlineFraction,
             InlineMetafile = InlineMetafile,
             PageField = PageField,
             PageFieldNumberFormat = PageFieldNumberFormat,
@@ -212,6 +217,7 @@ sealed class Run
             HyperlinkUrl = HyperlinkUrl,
             InlineShapeGroup = InlineShapeGroup,
             InlineChart = InlineChart,
+            InlineFraction = InlineFraction,
             InlineMetafile = InlineMetafile,
             Source = Source
         };

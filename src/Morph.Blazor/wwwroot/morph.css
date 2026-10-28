@@ -2122,8 +2122,11 @@
     cursor: pointer;
 }
 
+/* The name clips for its ellipsis, so its own line has to hold the descenders: at the tile's line
+   height of 1 the box was one em tall and cut the tail off the g of "No Spacing". */
 .editor-gallery-name {
     overflow: hidden;
+    line-height: 1.3;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

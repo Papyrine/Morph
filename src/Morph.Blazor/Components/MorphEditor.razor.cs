@@ -271,6 +271,17 @@ public partial class MorphEditor
         }
     }
 
+    // Choosing a tab closes whatever menu is open, the File menu among them, as Word's ribbon does. The
+    // tab's mousedown is cancelled to keep the caret, so the outside-click that closes a menu never saw it.
+    void SelectTab(string name)
+    {
+        tab = name;
+        if (menu is not null)
+        {
+            CloseMenu();
+        }
+    }
+
     void ToggleMenu(string name)
     {
         menu = menu == name ? null : name;
@@ -605,10 +616,23 @@ public partial class MorphEditor
         }
 
         linkAddress = "https://";
+        linkText = "";
         dialog = linkDialog;
-        // The address is asked for only of a selection: in a link with none, the dialog only removes it.
-        focusLink = linkTarget is {HasSelection: true};
+        // In a link with nothing selected, the dialog only removes it; elsewhere it asks for the address,
+        // and with nothing selected for the text to display too.
+        focusLink = LinkAsksAddress;
     }
+
+    // What the link dialog asks for: an address, unless the caret is in a link with nothing selected,
+    // and the text to display when nothing is selected.
+    bool LinkAsksAddress => linkTarget is {HasSelection: true} || !InLink;
+
+    bool LinkAsksText => linkTarget is not {HasSelection: true} && !InLink;
+
+    string linkText = "";
+
+    void OnLinkTextInput(ChangeEventArgs args) =>
+        linkText = args.Value as string ?? "";
 
     void OnLinkInput(ChangeEventArgs args) =>
         linkAddress = args.Value as string ?? "";
@@ -616,6 +640,11 @@ public partial class MorphEditor
     Task InsertLinkAsync()
     {
         dialog = null;
+        if (LinkAsksText)
+        {
+            return LinkTextAsync(linkText, linkAddress.Trim());
+        }
+
         return LinkAsync(linkAddress.Trim());
     }
 
@@ -702,8 +731,9 @@ public partial class MorphEditor
         }
 
         if (args.Key == "Enter" &&
-            linkTarget is {HasSelection: true} &&
-            linkAddress.Trim().Length > 0)
+            LinkAsksAddress &&
+            linkAddress.Trim().Length > 0 &&
+            !(LinkAsksText && linkText.Length == 0))
         {
             return InsertLinkAsync();
         }

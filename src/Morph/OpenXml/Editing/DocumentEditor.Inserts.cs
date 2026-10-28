@@ -1,4 +1,4 @@
-using DocumentFormat.OpenXml.Drawing.Wordprocessing;
+﻿using DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using DrawingMl = DocumentFormat.OpenXml.Drawing;
 using Pictures = DocumentFormat.OpenXml.Drawing.Pictures;
 using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
@@ -59,6 +59,21 @@ static partial class DocumentEditor
             edit =>
             {
                 edit.Link(start, end, target);
+                return null;
+            }).Document;
+
+    /// <summary>
+    /// Puts <paramref name="text"/> in a paragraph at a place, as a link — Word's Insert Link with nothing
+    /// selected, which asks for the text to display as well as the address. The text takes the
+    /// formatting of the text it is typed into, and the link's style over that.
+    /// </summary>
+    public static byte[] InsertLink(byte[] docx, int paragraph, int offset, string text, string target, EditOptions options) =>
+        Edit(
+            docx,
+            options,
+            edit =>
+            {
+                edit.InsertLink(paragraph, offset, text, target);
                 return null;
             }).Document;
 
@@ -497,16 +512,130 @@ static partial class DocumentEditor
 
         public void Link(SourcePosition start, SourcePosition end, string target)
         {
-            target = target.Trim();
-            if (target.Length == 0)
-            {
-                throw new InvalidOperationException("Give the link an address.");
-            }
-
             var runs = Runs(start, end);
             if (runs.Count == 0)
             {
                 throw new InvalidOperationException("Select the text to make a link.");
+            }
+
+            LinkRuns(runs, target);
+        }
+
+        public void InsertLink(int ordinal, int offset, string text, string target)
+        {
+            if (text.Length == 0)
+            {
+                throw new InvalidOperationException("Give the link text to display.");
+            }
+
+            // The paragraph rewritten with the text typed in at the place: into the text unit the place
+            // is in, or at the end of the one before it, or as text of the mark's own formatting where
+            // the place has no text either side.
+            var units = Units(Find(ordinal));
+            var items = new List<NewItem>();
+            var place = 0;
+            var inserted = false;
+            for (var index = 0; index < units.Count; index++)
+            {
+                var unit = units[index];
+                if (!unit.Editable)
+                {
+                    if (place == offset &&
+                        !inserted)
+                    {
+                        items.Add(new(-1, text));
+                        inserted = true;
+                    }
+
+                    items.Add(new(index, null));
+                    place++;
+                    continue;
+                }
+
+                var builder = new StringBuilder();
+                for (var character = 0; character < unit.Cells.Count; character++)
+                {
+                    if (place == offset &&
+                        !inserted)
+                    {
+                        builder.Append(text);
+                        inserted = true;
+                    }
+
+                    builder.Append(unit.Text[character]);
+                    place++;
+                }
+
+                if (place == offset &&
+                    !inserted)
+                {
+                    builder.Append(text);
+                    inserted = true;
+                }
+
+                items.Add(new(index, builder.ToString()));
+            }
+
+            if (!inserted)
+            {
+                if (offset != place)
+                {
+                    throw new InvalidOperationException($"Paragraph {ordinal} is not that long.");
+                }
+
+                items.Add(new(-1, text));
+            }
+
+            Rewrite(ordinal, [new(items)]);
+
+            // The text just written, found again by its places, and linked. Its cells are followed, as
+            // Between follows the cells it hands out, so splitting one run keeps the others' places.
+            var groups = new List<List<ParagraphContent.Cell>>();
+            var written = Units(Find(ordinal));
+            Follow(written);
+            place = 0;
+            foreach (var unit in written)
+            {
+                if (!unit.Editable)
+                {
+                    place++;
+                    continue;
+                }
+
+                List<ParagraphContent.Cell>? group = null;
+                foreach (var cell in unit.Cells)
+                {
+                    if (place >= offset &&
+                        place < offset + text.Length)
+                    {
+                        if (group == null)
+                        {
+                            group = [];
+                            groups.Add(group);
+                        }
+
+                        group.Add(cell);
+                    }
+
+                    place++;
+                }
+            }
+
+            var runs = new List<OoxmlRun>();
+            foreach (var group in groups.AsEnumerable().Reverse())
+            {
+                runs.Insert(0, Isolate(group));
+            }
+
+            LinkRuns(runs, target);
+        }
+
+        void LinkRuns(List<OoxmlRun> runs, string target)
+        {
+            target = target.Trim();
+            if (target.Length == 0)
+            {
+                throw new InvalidOperationException("Give the link an address.");
             }
 
             var paragraph = runs[0].Ancestors<Paragraph>().First();

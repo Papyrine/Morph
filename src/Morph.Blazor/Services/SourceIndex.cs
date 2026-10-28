@@ -146,6 +146,7 @@ sealed class SourceIndex
         {
             var run = line.Runs[index];
             if (run.Leader != TabLeader.None ||
+                run.InkOnly ||
                 string.IsNullOrEmpty(run.Text))
             {
                 continue;

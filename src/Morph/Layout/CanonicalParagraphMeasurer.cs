@@ -91,6 +91,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 }
             }
 
+            // A fraction's denominator hangs below the baseline, and the line keeps room for it.
+            if (FractionBelow(wrapped[i].Images) is > 0 and var fractionBelow)
+            {
+                var textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
+                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch);
+                var above = Math.Max(textAscent, tallestImage);
+                height = Math.Max(height, above + fractionBelow);
+            }
+
             result[i] = new(wrapped[i].Width, height);
         }
 
@@ -199,6 +208,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 overhang = Math.Clamp(leading, 0f, Math.Max(0f, lineHeight - ascent));
             }
 
+            lineHeight = Math.Max(lineHeight, ascent + FractionBelow(images));
             result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images, wrapped[i].FootnoteReferenceIds, wrapped[i].EndnoteReferenceIds, overhang);
         }
 
@@ -406,6 +416,39 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // the descent below it (FontMetrics.BaselineAscentUnits, Word-probed across 23 faces). Neither the hhea
     // ascender (0.2 em high on Calibri) nor usWinAscent (0.07 em low on Aptos, the corpus default) is
     // that quantity; both were tried. The line PITCH is the same box, so the two agree by construction.
+    LaidOutFraction FractionBox(MathFraction fraction)
+    {
+        float Width(IReadOnlyList<Run> level) =>
+            (float) CanonicalTextMeasurer.PixelsToPoints(level.Sum(_ => TextPixels(_.Properties, _.Text)));
+
+        var numeratorAscent = fraction.Numerator.Count > 0 ? MathFractionLayout.NumeratorAscent * (float) fraction.Numerator[0].Properties.FontSizePoints : 0;
+        var denominatorDescent = 0f;
+        if (fraction.Denominator.Count > 0 &&
+            resolveFont(fraction.Denominator[0].Properties.FontFamily, fraction.Denominator[0].Properties.Bold, fraction.Denominator[0].Properties.Italic) is { } metrics)
+        {
+            denominatorDescent = (float) ((double) metrics.DescentUnits / metrics.UnitsPerEm * fraction.Denominator[0].Properties.FontSizePoints);
+        }
+
+        return new(
+            fraction,
+            Width(fraction.Numerator),
+            Width(fraction.Denominator),
+            MathFractionLayout.NumeratorBaseline + numeratorAscent,
+            MathFractionLayout.DenominatorBaseline(fraction.SizePoints) + denominatorDescent);
+    }
+
+    // How far a line's fractions reach under its baseline: a line holding one keeps that much below it.
+    static float FractionBelow(IReadOnlyList<LaidOutImage> images)
+    {
+        var below = 0f;
+        foreach (var image in images)
+        {
+            below = Math.Max(below, image.Fraction?.Below ?? 0);
+        }
+
+        return below;
+    }
+
     float AscentPoints(RunProperties fontProperties)
     {
         var metrics = resolveFont(fontProperties.FontFamily, fontProperties.Bold, fontProperties.Italic);
@@ -643,6 +686,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // resolved by the parser, including the built-in-Normal default for a document with no
     // docDefaults - see DocumentParser (_probe_kern_* and _probe_kerncascade fixtures). The painters
     // ask the same question to kern what they draw (CanonicalTextMeasurer.KernShiftsPoints).
+    /// <summary>A run's text measured as the line measures it, in points: what places a fraction's runs.</summary>
+    internal float TextWidthPoints(RunProperties properties, string text) =>
+        (float) CanonicalTextMeasurer.PixelsToPoints(TextPixels(properties, text));
+
     // A piece of text measured as Flatten measures a token of its run: the run's face at its render
     // size, width scale, kerning and tracking. What a hyphenated word's head and tail measure.
     double TextPixels(RunProperties properties, string text)
@@ -1628,6 +1675,17 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // run's inline-image extent, since the two are mutually exclusive.
             // An inline chart takes the same box, composed into it at layout; a pie or doughnut also
             // carries its slices, which the chart outranks.
+            // A built-up fraction is a box as wide as its wider level, reaching from its numerator's top
+            // above the baseline to its denominator's foot below it (MathFractionLayout). The box sits
+            // on the line as a picture does, its bottom lowered under the baseline by the part below.
+            if (run.InlineFraction is { } fraction)
+            {
+                var fractionBox = FractionBox(fraction);
+                var fractionImage = new LaidOutImage(0, Math.Max(fractionBox.NumeratorWidth, fractionBox.DenominatorWidth), fractionBox.Above + fractionBox.Below, null, EffectExtent: new(0, 0, 0, -fractionBox.Below), Fraction: fractionBox);
+                pieces.Add(new(false, CanonicalTextMeasurer.PixelsFromPoints(fractionImage.Width), 0, "", run.Properties, fractionImage, false, false));
+                continue;
+            }
+
             if (run.InlineShapeGroup is { } || run.InlineChart is { })
             {
                 // A straight connector is a box with no height (or no width) at all, and that is its

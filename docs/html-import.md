@@ -128,6 +128,11 @@ style token; both probe packages re-rendered through RenderHelper for the drawn 
   `max(spacing-after, next spacing-before)` reproduces every case except a declared bottom
   smaller than an undeclared neighbour's auto — `HtmlParser.CollapseDeclaredMargins` lifts
   exactly those.
+- **CSS cell padding is the cell's margins at 0.75pt a pixel, and a first cell's left padding hangs
+  the table** (2026-10-28, `_probe_pad`: one-row bordered tables with 40px or 80px on one side of the
+  first cell). 40px of top padding dropped the text 30pt and 80px 60pt; 40px of left padding put the
+  table's edge 33pt left of the margin and its text on the margin, as the table's own cellpadding
+  already did. The padding had been read 1pt a pixel and the table left at the margin.
 - **A block under a table takes the auto gap as its own Before.** A table leaves no spacing-after
   for the auto to collapse into, so `CollapseDeclaredMargins` gives an undeclared top 14pt there:
   html_complex's "3. Lists" heading had opened flush against the data table above it, where Word's

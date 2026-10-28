@@ -65,12 +65,12 @@
             ],
             "Properties": {
               "Padding": {
-                "Top": 8.0,
-                "Right": 8.0,
-                "Bottom": 8.0,
-                "Left": 8.0,
-                "Horizontal": 16.0,
-                "Vertical": 16.0
+                "Top": 6.0,
+                "Right": 6.0,
+                "Bottom": 6.0,
+                "Left": 6.0,
+                "Horizontal": 12.0,
+                "Vertical": 12.0
               },
               "GridSpan": 1,
               "HideMark": false,
@@ -118,7 +118,7 @@
       },
       "DefaultCellPadding": {},
       "DefaultCellMargin": {},
-      "IndentPoints": -1.5,
+      "IndentPoints": -7.5,
       "FillContainer": false,
       "IsAutoFit": true,
       "CellSpacingPoints": 0.75

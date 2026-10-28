@@ -23,7 +23,7 @@
                 {
                     var name = each;
                     <button type="button" role="tab" class="editor-tab" aria-selected="@Pressed(ShownTab == name)"
-                            disabled="@(!HasDocument)" @onmousedown:preventDefault @onclick="() => tab = name">@name</button>
+                            disabled="@(!HasDocument)" @onmousedown:preventDefault @onclick="() => SelectTab(name)">@name</button>
                 }
             </div>
             <span class="editor-name" title="@fileName">
@@ -208,7 +208,14 @@
         <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-link-title" @onkeydown="OnLinkKeyDownAsync">
             <h2 id="editor-link-title" class="editor-dialog-title">@(InLink && linkTarget is not { HasSelection: true } ? "Link" : "Insert link")</h2>
-            @if (linkTarget is { HasSelection: true })
+            @if (LinkAsksText)
+            {
+                <label class="editor-field">
+                    Text to display
+                    <input type="text" class="editor-input" value="@linkText" @oninput="OnLinkTextInput" />
+                </label>
+            }
+            @if (LinkAsksAddress)
             {
                 <label class="editor-field">
                     Address
@@ -228,9 +235,9 @@
                 {
                     <button type="button" class="editor-button" @onclick="RemoveLinkAsync">Remove link</button>
                 }
-                @if (linkTarget is { HasSelection: true })
+                @if (LinkAsksAddress)
                 {
-                    <button type="button" class="editor-button editor-button-primary" disabled="@(linkAddress.Trim().Length == 0)" @onclick="InsertLinkAsync">Insert</button>
+                    <button type="button" class="editor-button editor-button-primary" disabled="@(linkAddress.Trim().Length == 0 || (LinkAsksText && linkText.Length == 0))" @onclick="InsertLinkAsync">Insert</button>
                 }
                 <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
             </div>

@@ -782,17 +782,29 @@ public class MorphEditorTests : BunitTestContext
             .IsEqualTo("https://example.com/docs");
     }
 
+    // With nothing selected the dialog asks for the text to display as well, as Word's does, and the
+    // link goes in at the caret.
     [Test]
-    public async Task ALink_WithNothingSelected_SaysWhatToDo()
+    public async Task ALink_WithNothingSelected_IsPutInAtTheCaret()
     {
-        var cut = await OpenEditing(Paragraphs);
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
         Caret(0, 6);
         await ChooseTabAsync(cut, "Insert");
 
         await cut.FindAll(".editor-tool").First(_ => _.TextContent.Contains("Link")).ClickAsync(new());
+        var inputs = cut.FindAll(".editor-dialog input");
+        await Assert.That(inputs.Count).IsEqualTo(2);
+        var insert = cut.FindAll(".editor-dialog .editor-button").First(_ => _.TextContent == "Insert");
+        await Assert.That(insert.HasAttribute("disabled")).IsTrue();
 
-        await Assert.That(cut.FindAll(".editor-dialog")).IsEmpty();
-        await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("Select the text to make a link");
+        await inputs[0].InputAsync(new() {Value = "the docs"});
+        await cut.FindAll(".editor-dialog input")[1].InputAsync(new() {Value = "example.com/docs"});
+        await cut.FindAll(".editor-dialog .editor-button").First(_ => _.TextContent == "Insert").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).Contains("<w:t xml:space=\"preserve\">the docs</w:t></w:r></w:hyperlink>");
+        await Assert.That(DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(new MemoryStream(reported!), false).MainDocumentPart!.HyperlinkRelationships.Single().Uri.ToString())
+            .IsEqualTo("https://example.com/docs");
     }
 
     [Test]

@@ -2820,8 +2820,44 @@ static class HtmlExporter
             Indent(0).Append("</section>\n");
         }
 
+        // A built-up fraction as a stack: the numerator over a bar over the denominator, centred on the
+        // math axis, each level at the size it is set in.
+        void AppendFraction(MathFraction fraction)
+        {
+            builder.Append("""<span class="fraction" style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.1">""");
+            AppendLevel(fraction.Numerator, fraction.HasBar ? "; border-bottom: 0.6pt solid currentColor" : "");
+            AppendLevel(fraction.Denominator, "");
+            builder.Append("</span>");
+
+            void AppendLevel(IReadOnlyList<Run> level, string extra)
+            {
+                var size = level.Count > 0 ? level[0].Properties.FontSizePoints : 0;
+                builder.Append($"<span style=\"font-size: {Length(size)}{extra}\">");
+                foreach (var run in level)
+                {
+                    var text = EncodeText(run.Text);
+                    if (run.Properties.Italic)
+                    {
+                        builder.Append("<em>").Append(text).Append("</em>");
+                    }
+                    else
+                    {
+                        builder.Append(text);
+                    }
+                }
+
+                builder.Append("</span>");
+            }
+        }
+
         void AppendRun(Run run, TextContext context)
         {
+            if (run.InlineFraction is {} fraction)
+            {
+                AppendFraction(fraction);
+                return;
+            }
+
             if (run.InlineShapeGroup is {} shapeGroup)
             {
                 AppendShapeGroup(shapeGroup, run.InlineImageWidthPoints, run.InlineImageHeightPoints);
@@ -3205,6 +3241,12 @@ static class HtmlExporter
         /// reflowable-HTML form and is deliberately not attempted.</summary>
         void AppendWordArtParagraph(IWordArtVisual wordArt, string? extraStyle)
         {
+            if (wordArt.Transform != WordArtTransform.None &&
+                AppendWordArtSvg(wordArt, extraStyle))
+            {
+                return;
+            }
+
             var style = new StringBuilder();
             style.Append($"font-family: '{wordArt.FontFamily}', sans-serif; font-size: {Number(wordArt.FontSizePoints)}pt; margin: 0; ");
             if (wordArt.Bold)
@@ -3229,6 +3271,91 @@ static class HtmlExporter
 
             style.Length -= 2;
             builder.Append($"""<p style="{style}">{EncodeText(wordArt.Text)}</p>""").Append('\n');
+        }
+
+        // A warped WordArt as an SVG the size of its box. An arch or a circle places each glyph on its
+        // ellipse as the painters do (WordArtArch.Place, the glyph advances read off the face); an
+        // envelope warp bends glyph outlines, which only the raster backends can, so its text is set
+        // straight across the box's text rect, stretched to the rect's width and sized to its height.
+        // The ink height the arch's scale is taken from is a capital's, 0.72 of the em, where the
+        // painters measure the text's own ink. False when the face cannot be found or the box is
+        // empty, and the text is then written flat as before.
+        bool AppendWordArtSvg(IWordArtVisual wordArt, string? extraStyle)
+        {
+            var insets = wordArt.Insets;
+            var textLeft = (float) insets.Left;
+            var textTop = (float) insets.Top;
+            var textWidth = (float) (wordArt.WidthPoints - insets.Left - insets.Right);
+            var textHeight = (float) (wordArt.HeightPoints - insets.Top - insets.Bottom);
+            lineFonts ??= LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+            FontMetrics? metrics;
+            try
+            {
+                metrics = lineFonts.Resolve(wordArt.FontFamily, wordArt.Bold, wordArt.Italic);
+            }
+            catch (InvalidOperationException)
+            {
+                metrics = null;
+            }
+
+            if (textWidth <= 0 ||
+                textHeight <= 0 ||
+                metrics is not {UnitsPerEm: > 0} ||
+                string.IsNullOrWhiteSpace(wordArt.Text))
+            {
+                return false;
+            }
+
+            const float capitalHeight = 0.72f;
+            var fill = DocumentExportHelpers.NormalizeColor(wordArt.FillColorHex) ?? "#000000";
+            var font = new StringBuilder();
+            font.Append($"font-family=\"{EncodeAttribute(wordArt.FontFamily)}\" fill=\"{fill}\"");
+            if (wordArt.Bold)
+            {
+                font.Append(" font-weight=\"bold\"");
+            }
+
+            if (wordArt.Italic)
+            {
+                font.Append(" font-style=\"italic\"");
+            }
+
+            if (DocumentExportHelpers.NormalizeColor(wordArt.OutlineColorHex) is { } outline &&
+                wordArt.OutlineWidthPoints > 0)
+            {
+                font.Append($" stroke=\"{outline}\" stroke-width=\"{Number(wordArt.OutlineWidthPoints)}\"");
+            }
+
+            var style = extraStyle == null ? "display: block" : $"display: block; {extraStyle}";
+            builder.Append($"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {Number(wordArt.WidthPoints)} {Number(wordArt.HeightPoints)}\" width=\"{Length(wordArt.WidthPoints)}\" height=\"{Length(wordArt.HeightPoints)}\" style=\"{style}\" overflow=\"visible\" role=\"img\" aria-label=\"{EncodeAttribute(wordArt.Text)}\">");
+            if (WordArtArch.Covers(wordArt.Transform))
+            {
+                var inkHeight = (float) wordArt.FontSizePoints * capitalHeight;
+                var scale = WordArtArch.Scale(WordArtArch.ScaleSide(wordArt.Transform, textWidth, textHeight), inkHeight);
+                var size = (float) wordArt.FontSizePoints * scale;
+                var glyphs = WordArtArch.Glyphs(wordArt.Text);
+                var advances = glyphs.Select(_ => (float) _.EnumerateRunes().Sum(rune => metrics.AdvanceUnits(rune.Value)) / metrics.UnitsPerEm * size).ToList();
+                var placements = WordArtArch.Place(
+                    advances, textLeft, textTop, textWidth, textHeight, scale, WordArtArch.BaselineDepthEm(metrics) * size,
+                    wordArt.TextAlignment, wordArt.Transform);
+                for (var index = 0; index < glyphs.Count; index++)
+                {
+                    var (x, y, angle) = placements[index];
+                    builder.Append($"<text x=\"{Number(x)}\" y=\"{Number(y)}\" font-size=\"{Number(size)}\" {font} transform=\"rotate({Number(angle)} {Number(x)} {Number(y)})\">{EncodeText(glyphs[index])}</text>");
+                }
+            }
+            else
+            {
+                // The face's whole height fits the rect, ascenders and descenders both: sized on a
+                // capital the envelope words stood half again too tall and ran up into the box above.
+                var ascent = metrics.WinAscent > 0 ? (float) metrics.WinAscent / metrics.UnitsPerEm : 0.8f;
+                var descent = metrics.WinDescent > 0 ? (float) metrics.WinDescent / metrics.UnitsPerEm : 0.2f;
+                var size = textHeight / (ascent + descent);
+                builder.Append($"<text x=\"{Number(textLeft)}\" y=\"{Number(textTop + ascent * size)}\" font-size=\"{Number(size)}\" textLength=\"{Number(textWidth)}\" lengthAdjust=\"spacingAndGlyphs\" {font}>{EncodeText(wordArt.Text.Trim())}</text>");
+            }
+
+            builder.Append("</svg>\n");
+            return true;
         }
 
         void WriteInlineWordArt(WordArtElement wordArt, int depth)
