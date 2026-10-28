@@ -3201,6 +3201,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
             }
 
+            if (ReferenceEquals(paragraphItems, items))
+            {
+                ClipRotatedPictures(paragraphItemsStart, paragraphPreSpacingTops[paragraph], y + (float) properties.SpacingAfterPoints);
+            }
+
             // An empty paragraph is a full-height spacer line AND carries its after-spacing into the
             // collapse with the next paragraph (measured against Word: two_columns' title/blank/body gap is
             // line + after + line + after, not line + after + line). It behaves like any other paragraph.
@@ -3209,6 +3214,47 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             lastStyleId = ParagraphGap.StyleKey(properties);
             lastIsParagraph = true;
             paragraphOpen = false;
+        }
+
+        // A rotated inline picture is cut to its paragraph's band — from where the paragraph's spacing
+        // before starts to where its spacing after ends — and runs past the margins sideways as far as it
+        // reaches. _probe_rotclip (2026-10-28, image_rotation/01's 45-degree 150 x 112.5pt picture in
+        // paragraphs spaced 0/0, 0/30 and 30/0, ink read off the PNG against the XPS baselines): the
+        // band was 112.8, 142.6 and 143.0pt tall, the frame plus whichever spacing the paragraph had,
+        // and the corners poking past it on the left and right were drawn. The engine drew the whole
+        // diamond, over the line above it.
+        void ClipRotatedPictures(int start, float top, float bottom)
+        {
+            for (var index = start; index < items.Count; index++)
+            {
+                if (items[index] is not PlacedLine line ||
+                    !line.Images.Any(_ => _.Composed == null && Math.Abs(_.RotationDegrees % 360) > 0.01))
+                {
+                    continue;
+                }
+
+                var kept = new List<PlacedImage>();
+                var rotated = new List<PlacedItem>();
+                foreach (var image in line.Images)
+                {
+                    if (image.Composed == null &&
+                        Math.Abs(image.RotationDegrees % 360) > 0.01)
+                    {
+                        rotated.Add(image);
+                    }
+                    else
+                    {
+                        kept.Add(image);
+                    }
+                }
+
+                items[index] = line with
+                {
+                    Images = kept
+                };
+                items.Insert(index + 1, new PlacedClipGroup(0, top, (float) current.WidthPoints, bottom - top, rotated));
+                index++;
+            }
         }
 
         // keepAfter is how far past the table the page has to reach for its last row to keep with what

@@ -1449,7 +1449,7 @@ static class HtmlExporter
             ImageRecolor? recolor = null,
             double opacity = 1)
         {
-            var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
+            var source = ResolveImageSource(data, contentType, widthPoints, heightPoints, crop);
             if (source == null)
             {
                 return;
@@ -1491,7 +1491,7 @@ static class HtmlExporter
                 return;
             }
 
-            var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints);
+            var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Crop);
             if (source == null)
             {
                 return;
@@ -1535,7 +1535,7 @@ static class HtmlExporter
         // padding and no margin of its own.
         void WriteAbsoluteImage(FloatingImageElement image, int depth)
         {
-            var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints);
+            var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Crop);
             if (source == null)
             {
                 return;
@@ -2098,6 +2098,23 @@ static class HtmlExporter
                 }
 
                 totalColumns = Math.Max(totalColumns, width);
+            }
+
+            // Where a cell spans grid columns the browser has to infer the grid from cells of
+            // different spans, and gets it wrong: newsletters/12's quote row spans six of nine
+            // columns, came out at 45% of the table where Word's is 60%, and the dash column
+            // anchored at the quote's edge landed on the text beside it. Its own grid settles it.
+            if (tableProperties.GridColumnWidths is { } grid &&
+                grid.Count == totalColumns &&
+                rows.Any(_ => _.Cells.Any(cell => cell.Properties.GridSpan > 1)))
+            {
+                Indent(depth + 1).Append("<colgroup>");
+                foreach (var column in grid)
+                {
+                    builder.Append($"<col style=\"width: {Length(column)}\">");
+                }
+
+                builder.Append("</colgroup>\n");
             }
 
             var headerRowCount = 0;
@@ -2669,7 +2686,7 @@ static class HtmlExporter
             {
                 if (element is FloatingImageElement {WrapType: WrapType.None} image)
                 {
-                    var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints);
+                    var source = ResolveImageSource(image.ImageData, image.ContentType, image.WidthPoints, image.HeightPoints, image.Crop);
                     if (source == null)
                     {
                         continue;
@@ -3114,7 +3131,10 @@ static class HtmlExporter
 
         // Maps embedded image bytes to an <img>/<image> source: a caller-supplied handler result, a
         // base64 data URI, or null when neither is available (the image is then dropped).
-        string? ResolveImageSource(byte[] data, string? contentType, double widthPoints, double heightPoints)
+        // `crop` matters only to a metafile, drawn as SVG at the size of the WHOLE picture: a cropped
+        // <img> is the whole picture inside a box the frame's size (AppendImageTag), and an SVG the
+        // frame's size squeezed into it showed letters/10's signature as one stray glyph.
+        string? ResolveImageSource(byte[] data, string? contentType, double widthPoints, double heightPoints, ImageCrop? crop = null)
         {
             var index = imageIndex++;
             if (options.ImageHandler != null)
@@ -3124,6 +3144,14 @@ static class HtmlExporter
 
             if (options.EmbedImagesAsBase64)
             {
+                // No browser draws a metafile, so one is embedded as the SVG of what it draws.
+                var (_, _, fullWidth, fullHeight) = crop is {IsCropped: true} ? crop.Expand(0, 0, widthPoints, heightPoints) : (0, 0, widthPoints, heightPoints);
+                if (MetafileSvg.IsMetafile(contentType) &&
+                    MetafileSvg.Write(data, fullWidth, fullHeight) is { } svg)
+                {
+                    return $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(svg))}";
+                }
+
                 var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
                 return $"data:{mime};base64,{Convert.ToBase64String(data)}";
             }
@@ -3826,7 +3854,7 @@ static class HtmlExporter
             double opacity = 1,
             string clip = "")
         {
-            var source = ResolveImageSource(data, contentType, widthPoints, heightPoints);
+            var source = ResolveImageSource(data, contentType, widthPoints, heightPoints, crop);
             if (source == null)
             {
                 // No handler and embedding disabled — drop the <img> entirely; surrounding markup

@@ -108,6 +108,28 @@ sealed class HtmlParser
     {
         for (var i = 0; i < elements.Count - 1; i++)
         {
+            // A table leaves no spacing-after for the auto top of the block under it to collapse
+            // into, so that auto is the block's own Before. html_complex's "3. Lists" heading
+            // opened flush against the data table above it, where Word's XPS sets its line 14.0pt
+            // below the table (2026-10-28), an 18pt heading taking the full 14 here.
+            if (elements[i] is TableElement &&
+                elements[i + 1] is ParagraphElement afterTable &&
+                !declaredTopMargins.Contains(afterTable))
+            {
+                elements[i + 1] = new ParagraphElement
+                {
+                    Runs = afterTable.Runs,
+                    Properties = afterTable.Properties with
+                    {
+                        SpacingBeforePoints = 14
+                    },
+                    IsAnchorOnlyMark = afterTable.IsAnchorOnlyMark,
+                    IsSectionBreakMark = afterTable.IsSectionBreakMark,
+                    IsCollapsedCellMark = afterTable.IsCollapsedCellMark
+                };
+                continue;
+            }
+
             if (elements[i] is not ParagraphElement para ||
                 !declaredBottomMargins.TryGetValue(para, out var bottom) ||
                 elements[i + 1] is not ParagraphElement next ||
