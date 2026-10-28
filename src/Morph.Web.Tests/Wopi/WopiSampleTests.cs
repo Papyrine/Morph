@@ -46,26 +46,42 @@ public class WopiSampleTests
 
         start.Environment["ASPNETCORE_ENVIRONMENT"] = "Production";
         sample = Process.Start(start)!;
-        sample.OutputDataReceived += (_, _) => { };
-        sample.ErrorDataReceived += (_, _) => { };
+        // What the sample wrote, told when it does not come up: without it, a sample that failed to start
+        // left the tests navigating to a closed port, and the reason was lost.
+        var output = new ConcurrentQueue<string>();
+        sample.OutputDataReceived += (_, line) => output.Enqueue($"out {line.Data}");
+        sample.ErrorDataReceived += (_, line) => output.Enqueue($"err {line.Data}");
         sample.BeginOutputReadLine();
         sample.BeginErrorReadLine();
 
-        using var http = new HttpClient();
-        for (var attempt = 0; attempt < 120; attempt++)
+        using var http = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(5)
+        };
+        var ready = false;
+        for (var attempt = 0; attempt < 120 && !ready && !sample.HasExited; attempt++)
         {
             try
             {
-                if ((await http.GetAsync(HostUrl)).IsSuccessStatusCode)
-                {
-                    break;
-                }
+                ready = (await http.GetAsync(HostUrl)).IsSuccessStatusCode;
             }
             catch (HttpRequestException)
             {
             }
+            catch (TaskCanceledException)
+            {
+            }
 
-            await Task.Delay(500);
+            if (!ready)
+            {
+                await Task.Delay(500);
+            }
+        }
+
+        if (!ready)
+        {
+            var state = sample.HasExited ? $"exited with {sample.ExitCode}" : "is running but did not answer";
+            throw new($"The WOPI sample at {HostUrl} {state}.{Environment.NewLine}{string.Join(Environment.NewLine, output)}");
         }
 
         playwright = await Playwright.CreateAsync();
