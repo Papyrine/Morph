@@ -1,12 +1,12 @@
 /// <summary>
 /// Painting pages on several threads (<see cref="ImageExportOptions.MaxDegreeOfParallelism"/>) changes
 /// how fast the pages come, never what they are or the order they come in: each worker paints with its
-/// own render context, so every page is byte-identical to the serial path's. business-plans/13 is the
-/// corpus's longest document, 21 pages of text, tables, pictures and shapes.
+/// own render context, so every page is byte-identical to the serial path's. business-plans/12 is one of the
+/// corpus's longest documents, 19 pages of text, tables, pictures and shapes.
 /// </summary>
 public class ParallelPaintingTests
 {
-    static readonly string input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business-plans", "13", "input.docx");
+    static readonly string input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business-plans", "12", "input.docx");
 
     static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 

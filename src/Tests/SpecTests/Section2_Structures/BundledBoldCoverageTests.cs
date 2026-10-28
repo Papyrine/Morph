@@ -37,7 +37,7 @@ public class BundledBoldCoverageTests
         // 1 scenario, resumes/03 — sole face, and its OS/2
         ["Arial Rounded MT Bold"] = 400,
                                                  // usWeightClass is 400 despite the name saying Bold
-        // 2 scenarios, e.g. business-plans/13
+        // 1 scenario, letters/07
         ["Avenir Next LT Pro Light"] = 400,
         // 4 scenarios, e.g. cover-letters/07
         ["Bahnschrift"] = 400,

@@ -1,4 +1,4 @@
-# All Markdown export scenarios (336)
+# All Markdown export scenarios (335)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -46,7 +46,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [business-plans/08](#business-plans08)
 - [business-plans/10](#business-plans10)
 - [business-plans/12](#business-plans12)
-- [business-plans/13](#business-plans13)
 - [business-plans/15](#business-plans15)
 - [business/01](#business01)
 - [business/02](#business02)
@@ -589,12 +588,6 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="business-plans/12/expected_0001.png" width="500"><br><img src="business-plans/12/expected_0002.png" width="500"><br><img src="business-plans/12/expected_0003.png" width="500"><br><img src="business-plans/12/expected_0004.png" width="500"><br><img src="business-plans/12/expected_0005.png" width="500"><br><img src="business-plans/12/expected_0006.png" width="500"><br><img src="business-plans/12/expected_0007.png" width="500"><br><img src="business-plans/12/expected_0008.png" width="500"><br><img src="business-plans/12/expected_0009.png" width="500"><br><img src="business-plans/12/expected_0010.png" width="500"><br><img src="business-plans/12/expected_0011.png" width="500"><br><img src="business-plans/12/expected_0012.png" width="500"><br><img src="business-plans/12/expected_0013.png" width="500"><br><img src="business-plans/12/expected_0014.png" width="500"><br><img src="business-plans/12/expected_0015.png" width="500"><br><img src="business-plans/12/expected_0016.png" width="500"><br><img src="business-plans/12/expected_0017.png" width="500"><br><img src="business-plans/12/expected_0018.png" width="500"> | <img src="business-plans/12/md_result.verified.png" width="500"> |
-
-## business-plans/13
-
-| Expected (Word) | Morph Markdown |
-| --- | --- |
-| <img src="business-plans/13/expected_0001.png" width="500"><br><img src="business-plans/13/expected_0002.png" width="500"><br><img src="business-plans/13/expected_0003.png" width="500"><br><img src="business-plans/13/expected_0004.png" width="500"><br><img src="business-plans/13/expected_0005.png" width="500"><br><img src="business-plans/13/expected_0006.png" width="500"><br><img src="business-plans/13/expected_0007.png" width="500"><br><img src="business-plans/13/expected_0008.png" width="500"><br><img src="business-plans/13/expected_0009.png" width="500"><br><img src="business-plans/13/expected_0010.png" width="500"><br><img src="business-plans/13/expected_0011.png" width="500"><br><img src="business-plans/13/expected_0012.png" width="500"><br><img src="business-plans/13/expected_0013.png" width="500"><br><img src="business-plans/13/expected_0014.png" width="500"><br><img src="business-plans/13/expected_0015.png" width="500"><br><img src="business-plans/13/expected_0016.png" width="500"><br><img src="business-plans/13/expected_0017.png" width="500"><br><img src="business-plans/13/expected_0018.png" width="500"><br><img src="business-plans/13/expected_0019.png" width="500"><br><img src="business-plans/13/expected_0020.png" width="500"><br><img src="business-plans/13/expected_0021.png" width="500"> | <img src="business-plans/13/md_result.verified.png" width="500"> |
 
 ## business-plans/15
 
