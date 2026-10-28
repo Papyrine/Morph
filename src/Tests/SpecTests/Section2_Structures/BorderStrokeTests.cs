@@ -176,16 +176,17 @@ public class BorderStrokeTests
         await Assert.That(ridge[0].Shade).IsEqualTo(0.33).Within(0.0001);
         await Assert.That(ridge[2].Shade).IsEqualTo(1).Within(0.0001);
 
-        // The flank draws floor(W/2) pixels, one at least, two at most, but always reserves 1.5pt:
-        // at sz=12 Word drew 0.6 / 1.2 / 0.6, and border_style_variants' sz=6 groove draws three
-        // single pixels (1.8pt) inside a box that reserves 3.75pt an edge.
+        // The flank draws floor(W/2) pixels, one at least, two at most, and reserves 0.75pt under a
+        // 3pt core, 1.5pt from 3pt up (_probe_3dbox): at sz=12 Word drew 0.6 / 1.2 / 0.6, and
+        // border_style_variants' sz=6 groove draws three single pixels (1.8pt) inside a box that
+        // reserves 2.25pt an edge.
         var narrow = BorderStroke.Bands(BorderLineStyle.ThreeDEngrave, 1.5);
         await Assert.That(narrow[0].Thickness).IsEqualTo(0.6).Within(0.0001);
         await Assert.That(narrow[1].Thickness).IsEqualTo(1.2).Within(0.0001);
-        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 1.5)).IsEqualTo(4.5).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 1.5)).IsEqualTo(3).Within(0.0001);
         var hairline = BorderStroke.Bands(BorderLineStyle.ThreeDEngrave, 0.75);
         await Assert.That(hairline[0].Thickness + hairline[1].Thickness + hairline[2].Thickness).IsEqualTo(1.8).Within(0.0001);
-        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 0.75)).IsEqualTo(3.75).Within(0.0001);
+        await Assert.That(BorderStroke.Extent(BorderLineStyle.ThreeDEngrave, 0.75)).IsEqualTo(2.25).Within(0.0001);
 
         // inset / outset carry no shading at any width.
         var inset = BorderStroke.Bands(BorderLineStyle.Inset, 6);

@@ -2638,6 +2638,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return (float) (BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints);
             }
 
+            // A none edge draws nothing but keeps its space (BorderEdge.HoldsSpace).
+            if (edge.HoldsSpace)
+            {
+                return (float) spacePoints;
+            }
+
             return 0f;
         }
 
@@ -2851,6 +2857,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 properties.Borders is {HasAnyBorder: true} opening)
             {
                 y += EdgeReserve(opening.Top, properties.BorderTopSpacePoints);
+            }
+            else if (properties.Borders is {HasAnyBorder: false, Top.HoldsSpace: true})
+            {
+                // No edge draws, so no box opens, but a none top still holds its space.
+                y += (float) properties.BorderTopSpacePoints;
             }
 
             // A member that continues an open box under a w:between rule: the rule and its space on
@@ -3184,6 +3195,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             else
             {
                 FlushBorderRun();
+                if (properties.Borders is {HasAnyBorder: false, Bottom.HoldsSpace: true})
+                {
+                    y += (float) properties.BorderBottomSpacePoints;
+                }
             }
 
             // An empty paragraph is a full-height spacer line AND carries its after-spacing into the
