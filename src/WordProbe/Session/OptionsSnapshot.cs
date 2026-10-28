@@ -154,10 +154,11 @@ static class ProbeOptions
 
     /// <summary>Every member the snapshot reads, as "Owner.Name".</summary>
     public static IReadOnlyList<string> Known { get; } =
-        optionsMembers.Select(_ => $"Options.{_}")
-            .Concat(autoCorrectMembers.Select(_ => $"AutoCorrect.{_}"))
-            .Concat(ApplicationMembers.Select(_ => $"Application.{_}"))
-            .ToList();
+    [
+        .. optionsMembers.Select(_ => $"Options.{_}"),
+        .. autoCorrectMembers.Select(_ => $"AutoCorrect.{_}"),
+        .. ApplicationMembers.Select(_ => $"Application.{_}")
+    ];
 
     static readonly Dictionary<string, object> baseline = new(StringComparer.Ordinal)
     {

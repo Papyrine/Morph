@@ -5,7 +5,7 @@ public static class PowerPointDocumentPdfExtensions
 {
     /// <summary>Renders the deck to a PDF byte array, one page per slide.</summary>
     public static byte[] ExportToPdf(this PowerPointDocument document, PdfExportOptions? options = null) =>
-        document.ExportToPdf(options, default);
+        document.ExportToPdf(options, Cancel.None);
 
     /// <summary>Renders the deck to a PDF byte array, one page per slide, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ExportToPdf(this PowerPointDocument document, PdfExportOptions? options, Cancel cancel) =>

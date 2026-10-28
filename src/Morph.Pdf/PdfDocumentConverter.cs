@@ -8,7 +8,7 @@ public sealed class PdfDocumentConverter
 {
     /// <summary>Converts a DOCX file to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(string docxPath, PdfExportOptions? options = null) =>
-        ConvertToPdf(docxPath, options, default);
+        ConvertToPdf(docxPath, options, Cancel.None);
 
     /// <summary>Converts a DOCX file to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ConvertToPdf(string docxPath, PdfExportOptions? options, Cancel cancel)
@@ -19,7 +19,7 @@ public sealed class PdfDocumentConverter
 
     /// <summary>Converts a DOCX stream to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(Stream docxStream, PdfExportOptions? options = null) =>
-        ConvertToPdf(docxStream, options, default);
+        ConvertToPdf(docxStream, options, Cancel.None);
 
     /// <summary>Converts a DOCX stream to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ConvertToPdf(Stream docxStream, PdfExportOptions? options, Cancel cancel)

@@ -8,7 +8,7 @@ public sealed class PdfExcelConverter
 {
     /// <summary>Converts an XLSX file to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(string xlsxPath, PdfExportOptions? options = null) =>
-        ConvertToPdf(xlsxPath, options, default);
+        ConvertToPdf(xlsxPath, options, Cancel.None);
 
     /// <summary>Converts an XLSX file to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ConvertToPdf(string xlsxPath, PdfExportOptions? options, Cancel cancel)
@@ -19,7 +19,7 @@ public sealed class PdfExcelConverter
 
     /// <summary>Converts an XLSX stream to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(Stream xlsxStream, PdfExportOptions? options = null) =>
-        ConvertToPdf(xlsxStream, options, default);
+        ConvertToPdf(xlsxStream, options, Cancel.None);
 
     /// <summary>Converts an XLSX stream to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ConvertToPdf(Stream xlsxStream, PdfExportOptions? options, Cancel cancel)

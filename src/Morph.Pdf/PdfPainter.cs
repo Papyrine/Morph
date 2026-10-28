@@ -36,12 +36,16 @@ static class PdfPainter
         CompatibilitySettings? compatibility,
         double fontWidthScale,
         Func<string, string?>? fontFallback,
-        string? fontDirectory) =>
-        new(document.Pages.Count > 0 ? document.Pages[0].Settings : new(),
+        string? fontDirectory)
+    {
+        var pages = document.Pages;
+
+        return new(pages.Count > 0 ? pages[0].Settings : new(),
             compatibility,
             fontWidthScale,
             fontFallback,
             fontDirectory);
+    }
 
     /// <summary>
     /// Draws the tree onto <paramref name="context"/>'s document. The caller owns the context so it can
@@ -69,15 +73,16 @@ static class PdfPainter
             cancel.ThrowIfCancellationRequested();
 
             var laidOutPage = document.Pages[index];
-            var width = laidOutPage.Settings.WidthPoints;
-            var height = laidOutPage.Settings.HeightPoints;
+            var settings = laidOutPage.Settings;
+            var width = settings.WidthPoints;
+            var height = settings.HeightPoints;
             using var page = context.Document.StartPage((float) width, (float) height);
             var surface = page.Surface;
             context.Surface = surface;
 
             // Page background fill (w:background) behind everything — without it a dark-themed page's
             // white text lands invisibly on white.
-            var background = laidOutPage.Settings.BackgroundColorHex;
+            var background = settings.BackgroundColorHex;
             if (!string.IsNullOrEmpty(background))
             {
                 PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(background), 0, 0, width, height);
@@ -90,9 +95,9 @@ static class PdfPainter
 
             // Decorative page borders (w:pgBorders) frame every page, over the content (Word's
             // default zOrder is front). Geometry is shared via PageBorders.EdgeRect.
-            if (laidOutPage.Settings.PageBorders is { HasAnyBorder: true } pageBorders)
+            if (settings.PageBorders is { HasAnyBorder: true } pageBorders)
             {
-                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(laidOutPage.Settings);
+                var (borderX, borderY, borderWidth, borderHeight) = pageBorders.EdgeRect(settings);
                 PaintBorder(context, surface, new((float) borderX, (float) borderY, (float) borderWidth, (float) borderHeight, pageBorders.Edges), BorderStroke.Scope.Page);
             }
 
@@ -207,8 +212,10 @@ static class PdfPainter
         }
         catch (Exception exception)
         {
-            onWarning?.Invoke(new(WarningKind.UnsupportedElement,
-                $"WordArt could not be rasterized for the PDF and was dropped: {exception.Message}"));
+            onWarning?.Invoke(
+                new(
+                    WarningKind.UnsupportedElement,
+                    $"WordArt could not be rasterized for the PDF and was dropped: {exception.Message}"));
             return;
         }
 
@@ -537,7 +544,8 @@ static class PdfPainter
             flipped?.Dispose();
             rotated?.Dispose();
         }
-        else if (image.ClipToEllipse || image.ClipSubpaths != null)
+        else if (image.ClipToEllipse ||
+                 image.ClipSubpaths != null)
         {
             using (var builder = new PathBuilder())
             {

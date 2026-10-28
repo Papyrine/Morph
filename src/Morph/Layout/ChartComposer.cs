@@ -725,10 +725,10 @@ sealed partial class ChartComposer(
         var (yMinimum, yMaximum, yUnit) = Scale(Math.Min(0, present.Min(_ => _.Y)), yHigh, yAxis);
         var xStyle = xAxis?.Text ?? chart.Text;
         var yStyle = yAxis?.Text ?? chart.Text;
-        List<double> xTicks = [];
-        List<double> yTicks = [];
-        List<string> xLabels = [];
-        List<string> yLabels = [];
+        List<double> xTicks;
+        List<double> yTicks;
+        List<string> xLabels;
+        List<string> yLabels;
 
         void MarkTicks()
         {

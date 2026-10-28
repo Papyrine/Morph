@@ -77,14 +77,19 @@ public class EditorCommandTests
     public Task WhenEachCommandIsOn()
     {
         var builder = new StringBuilder();
-        foreach (var command in MorphEditor.Commands.All.OrderBy(_ => _.Name, StringComparer.Ordinal))
+        foreach (var command in MorphEditor
+                     .Commands
+                     .All
+                     .OrderBy(_ => _.Name, StringComparer.Ordinal))
         {
             if (toggles.All(_ => command.Checked(_.State) is null))
             {
                 continue;
             }
 
-            var on = toggles.Where(_ => command.Checked(_.State) == true).Select(_ => _.Name);
+            var on = toggles
+                .Where(_ => command.Checked(_.State) == true)
+                .Select(_ => _.Name);
             builder.AppendLine($"{command.Name}: {string.Join(", ", on)}");
         }
 
@@ -124,7 +129,10 @@ public class EditorCommandTests
     {
         var lines = new List<string>();
         var groups = MorphEditor.Commands.All
-            .Select(_ => (Allowed: states.Where(state => rule(_)(state.State)).Select(state => state.Name).ToList(), _.Name))
+            .Select(_ => (
+                Allowed: states.Where(state => rule(_)(state.State))
+                    .Select(_ => _.Name).ToList(),
+                _.Name))
             .GroupBy(_ => string.Join(", ", _.Allowed))
             .Where(_ => everywhere || _.First().Allowed.Count < states.Length)
             .OrderBy(_ => _.Key, StringComparer.Ordinal);

@@ -323,7 +323,7 @@ static class NativeMethods
         {
             SendMessageTimeoutW(window, WindowMessageGetText, capacity, buffer, SendMessageAbortIfHung, 300, out var length);
             var count = (int) length;
-            return count <= 0 ? "" : Marshal.PtrToStringUni(buffer, count) ?? "";
+            return count <= 0 ? "" : Marshal.PtrToStringUni(buffer, count);
         }
         finally
         {

@@ -181,8 +181,8 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
             PointsOnTicks = kind is ChartKind.Line or ChartKind.Area or ChartKind.Stock &&
                             Attribute(Child(valueAxisElement, "crossBetween"), "val") == "midCat",
             RadarFilled = Attribute(Child(plot, "radarStyle"), "val") == "filled",
-            CategoryAxis = categoryAxisElement is { } categoryAxis ? Axis(categoryAxis, labelText) : null,
-            ValueAxis = valueAxisElement is { } valueAxis ? Axis(valueAxis, labelText) : null,
+            CategoryAxis = categoryAxisElement != null ? Axis(categoryAxisElement, labelText) : null,
+            ValueAxis = valueAxisElement != null ? Axis(valueAxisElement, labelText) : null,
             SeriesAxis = is3D && axes.FirstOrDefault(_ => _.LocalName == "serAx") is { } seriesAxis ? Axis(seriesAxis, labelText) : null,
             View3D = is3D ? View3D(chart, plot, kind, grouping) : null,
             Wireframe = On(Child(plot, "wireframe")),

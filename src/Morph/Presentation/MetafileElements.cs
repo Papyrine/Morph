@@ -40,7 +40,19 @@ static class MetafileElements
         var figures = path.Figures
             .Select(figure => figure.Select(page).ToList())
             .Where(_ => _.Count >= 2)
-            .Select(figure => path.Closed && path.FillHex == null ? [.. figure, figure[0]] : figure)
+            .Select(figure =>
+            {
+                if (path is
+                    {
+                        Closed: true,
+                        FillHex: null
+                    })
+                {
+                    return [.. figure, figure[0]];
+                }
+
+                return figure;
+            })
             .ToList();
         if (figures.Count == 0)
         {

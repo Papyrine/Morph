@@ -277,7 +277,7 @@ sealed class StepExecutor
                 step.Accept)
             {
                 Log.Detail($"dialog: {dialog.ClassName} \"{dialog.Title}\" (accepted)");
-                session.Keyboard.Press(KeyChord.Parse("Enter"), 1);
+                session.Keyboard.Press(KeyChord.Parse("Enter"));
                 Thread.Sleep(500);
                 if (session.Watchdog.Snapshot() != null)
                 {
