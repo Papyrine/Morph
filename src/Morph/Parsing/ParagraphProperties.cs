@@ -80,6 +80,12 @@ sealed record ParagraphProperties
     public bool SuppressAutoHyphens { get; init; }
 
     /// <summary>
+    /// The document's automatic hyphenation rule when it reaches this paragraph (<c>w:autoHyphenation</c>
+    /// on and no <c>w:suppressAutoHyphens</c>); null when the paragraph is not hyphenated.
+    /// </summary>
+    internal HyphenationSettings? AutoHyphenation { get; init; }
+
+    /// <summary>
     /// Numbering/bullet information for this paragraph. Null if not a list item.
     /// </summary>
     public NumberingInfo? Numbering { get; init; }

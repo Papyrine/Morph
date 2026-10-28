@@ -2025,7 +2025,7 @@ its header, footer and `docProps/custom.xml` was replaced with the same equal-le
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0304 · SSIM: 0.9417** | **Page 1. ErrorMetric: 0.0303 · SSIM: 0.9424** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0303 · SSIM: 0.9424** | **Page 1. ErrorMetric: 0.0302 · SSIM: 0.9430** |
 | <img src="hyphenation_auto/expected_0001.png" width="500"> | <img src="hyphenation_auto/skia_result%23page_0001.verified.png" width="500"> | <img src="hyphenation_auto/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## hyphenation_nonbreaking
@@ -2046,7 +2046,7 @@ its header, footer and `docProps/custom.xml` was replaced with the same equal-le
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0268 · SSIM: 0.9497** | **Page 1. ErrorMetric: 0.0266 · SSIM: 0.9487** |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0263 · SSIM: 0.9519** | **Page 1. ErrorMetric: 0.0262 · SSIM: 0.9503** |
 | <img src="hyphenation_suppressed/expected_0001.png" width="500"> | <img src="hyphenation_suppressed/skia_result%23page_0001.verified.png" width="500"> | <img src="hyphenation_suppressed/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## icons_multiple

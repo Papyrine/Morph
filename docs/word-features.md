@@ -3097,10 +3097,11 @@ Default paragraph and run properties applied when no style or direct formatting 
 Automatically breaks long words at syllable boundaries using hyphenation dictionaries.
 
 - **OOXML**: `w:autoHyphenation` in document settings
-- **Model**: `HyphenationSettings.AutoHyphenation`
-- **Test**: `hyphenation_auto/`
+- **Model**: `HyphenationSettings.AutoHyphenation`, carried onto each paragraph that does not suppress it as `ParagraphProperties.AutoHyphenation`
+- **Render**: `CanonicalParagraphMeasurer.Wrap` breaks a word that does not fit at the latest of its hyphenation points (`Hyphenator`: Liang's algorithm over TeX's American English patterns, bundled in `src/Morph/Hyphenation/` with their notice, at least two letters before a break and three after) whose head and hyphen still fit — only where wrapping it whole would leave more than the hyphenation zone empty, within the consecutive-hyphen limit, and never in a word of capitals under `w:doNotHyphenateCaps`. The head's text carries the hyphen, so every painter draws it. Since 2026-10-28; until then the settings were read and nothing hyphenated.
+- **Test**: `hyphenation_auto/`, `hyphenation_suppressed/`, spec tests `HyphenatorTests`
 
-> **Contributors**: Hyphenation settings include zone width, consecutive limit, and caps exclusion. Per-paragraph suppression via `SuppressAutoHyphens`.
+> **Contributors**: Word's current references break "hy-/phens", "an-/other" and "Telecommunica-/tions", and the render breaks every line of both fixtures where Word does (XPS, 2026-10-28). Only a word within one run is hyphenated, and only English patterns are bundled, whatever the run's language.
 
 
 #### Soft Hyphens `DONE`
