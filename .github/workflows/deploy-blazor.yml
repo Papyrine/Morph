@@ -63,7 +63,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/dotnet
-          key: dotnet-wasm-tools-${{ runner.os }}-${{ hashFiles('global.json') }}
+          key: dotnet-wasm-tools-net10-${{ runner.os }}-${{ hashFiles('global.json') }}
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v6
@@ -71,6 +71,9 @@ jobs:
           DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
           global-json-file: global.json
+          # The WOPI sample targets net10.0 and runs on this directory's dotnet, which otherwise holds
+          # only global.json's SDK and its runtimes.
+          dotnet-version: 10.0.x
 
       - name: Cache NuGet packages
         uses: actions/cache@v6
@@ -182,7 +185,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/dotnet
-          key: dotnet-wasm-tools-${{ runner.os }}-${{ hashFiles('global.json') }}
+          key: dotnet-wasm-tools-net10-${{ runner.os }}-${{ hashFiles('global.json') }}
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v6
@@ -190,6 +193,9 @@ jobs:
           DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
         with:
           global-json-file: global.json
+          # The WOPI sample targets net10.0 and runs on this directory's dotnet, which otherwise holds
+          # only global.json's SDK and its runtimes.
+          dotnet-version: 10.0.x
 
       - name: Cache NuGet packages
         uses: actions/cache@v6
