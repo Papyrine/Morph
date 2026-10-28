@@ -1,7 +1,4 @@
-﻿using System.Globalization;
-using System.Net;
-
-/// <summary>
+﻿/// <summary>
 /// A Windows metafile picture (EMF or WMF) as an SVG document a browser can draw. No browser draws a
 /// metafile, so an exported <c>&lt;img&gt;</c> of one showed only its alt text: letters/10's signature,
 /// an EMF of a single run of script text, read "Image of signature". The drawing is

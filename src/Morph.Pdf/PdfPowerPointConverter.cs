@@ -9,7 +9,7 @@ public sealed class PdfPowerPointConverter
 {
     /// <summary>Converts a PPTX file to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(string pptxPath, PdfExportOptions? options = null) =>
-        ConvertToPdf(pptxPath, options, default);
+        ConvertToPdf(pptxPath, options, Cancel.None);
 
     /// <summary>Converts a PPTX file to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ConvertToPdf(string pptxPath, PdfExportOptions? options, Cancel cancel)
@@ -20,7 +20,7 @@ public sealed class PdfPowerPointConverter
 
     /// <summary>Converts a PPTX stream to a PDF byte array.</summary>
     public static byte[] ConvertToPdf(Stream pptxStream, PdfExportOptions? options = null) =>
-        ConvertToPdf(pptxStream, options, default);
+        ConvertToPdf(pptxStream, options, Cancel.None);
 
     /// <summary>Converts a PPTX stream to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ConvertToPdf(Stream pptxStream, PdfExportOptions? options, Cancel cancel)

@@ -1,5 +1,3 @@
-using System.IO.Compression;
-
 /// <summary>
 /// What <see cref="MetafileReader"/> plays out of a metafile: the EMF preview a legacy MS Graph chart
 /// leaves in a deck (ole-chart-preview), and a WMF built record by record here, since the corpus holds
@@ -66,17 +64,21 @@ public class MetafileReaderTests
         };
 
         var body = records.SelectMany(_ => _).ToArray();
-        var placeable = new List<byte>();
-        placeable.AddRange(BitConverter.GetBytes(0x9AC6CDD7u));
-        placeable.AddRange(Words(0, 0, 0, 1000, 500, 1440));
-        placeable.AddRange(BitConverter.GetBytes(0u));
-        placeable.AddRange(Words(0));
-        var header = new List<byte>();
-        header.AddRange(Words(1, 9, 0x0300));
-        header.AddRange(BitConverter.GetBytes((uint) (9 + body.Length / 2)));
-        header.AddRange(Words(2));
-        header.AddRange(BitConverter.GetBytes(0u));
-        header.AddRange(Words(0));
+        List<byte> placeable =
+        [
+            .. BitConverter.GetBytes(0x9AC6CDD7u),
+            .. Words(0, 0, 0, 1000, 500, 1440),
+            .. BitConverter.GetBytes(0u),
+            .. Words(0)
+        ];
+        List<byte> header =
+        [
+            .. Words(1, 9, 0x0300),
+            .. BitConverter.GetBytes((uint) (9 + body.Length / 2)),
+            .. Words(2),
+            .. BitConverter.GetBytes(0u),
+            .. Words(0)
+        ];
         return [.. placeable, .. header, .. body];
 
         static byte[] Words(params int[] values) =>

@@ -254,7 +254,6 @@ static class Observer
     {
         var range = table.Range;
         var cells = new List<CellState>();
-        var rowEnds = new Dictionary<int, int>();
         foreach (Word.Cell cell in range.Cells)
         {
             if (cell.NestingLevel != table.NestingLevel)
@@ -331,7 +330,7 @@ static class Observer
             var result = Com.Try(() => field.Result);
             var begin = code.Start - 1;
             var separator = code.End;
-            var end = result != null ? result.End : code.End;
+            var end = result?.End ?? code.End;
             fields.Add(new((int) field.Type, field.Type.ToString().Replace("wdField", ""), begin, separator, end, (code.Text ?? "").Trim()));
         }
 

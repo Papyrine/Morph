@@ -5,7 +5,7 @@ public static class ExcelDocumentPdfExtensions
 {
     /// <summary>Renders the workbook to a PDF byte array.</summary>
     public static byte[] ExportToPdf(this ExcelDocument document, PdfExportOptions? options = null) =>
-        document.ExportToPdf(options, default);
+        document.ExportToPdf(options, Cancel.None);
 
     /// <summary>Renders the workbook to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ExportToPdf(this ExcelDocument document, PdfExportOptions? options, Cancel cancel) =>

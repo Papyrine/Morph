@@ -68,7 +68,7 @@ static class Hyphenator
         var longest = 0;
         foreach (var line in Lines("hyph-en-us.pat.txt"))
         {
-            var letters = new System.Text.StringBuilder();
+            var letters = new StringBuilder();
             var weights = new List<byte> {0};
             foreach (var character in line)
             {

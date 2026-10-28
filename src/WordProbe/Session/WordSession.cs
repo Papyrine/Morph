@@ -55,7 +55,10 @@ sealed class WordSession : IDisposable
             return;
         }
 
-        const string client = @"""C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe""";
+        const string client =
+            """
+            "C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeC2RClient.exe"
+            """;
         throw new InvalidOperationException(
             $"""
              WordProbe records against Word {ExpectedBuild}, but {(installed == null ? "no Click-to-Run Office was found" : $"{installed} is installed")}.

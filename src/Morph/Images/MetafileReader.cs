@@ -230,7 +230,7 @@ static class MetafileReader
 
             // A zero-width pen is a cosmetic one, a single device pixel wide.
             var width = state.Pen.Width > 0 ? DeviceLength(state.Pen.Width) : 1;
-            items.Add(new MetafilePath([.. figures.Where(_ => _.Count >= 2).Select(_ => (IReadOnlyList<(double X, double Y)>) _)], closed, fillHex, lineHex, width));
+            items.Add(new MetafilePath([.. figures.Where(_ => _.Count >= 2).Select(IReadOnlyList<(double X, double Y)> (_) => _)], closed, fillHex, lineHex, width));
         }
 
         void Text(double x, double y, string text)
@@ -371,7 +371,7 @@ static class MetafileReader
             var frame = (L: BitConverter.ToInt32(data, 24), T: BitConverter.ToInt32(data, 28), R: BitConverter.ToInt32(data, 32), B: BitConverter.ToInt32(data, 36));
             var devicePixels = (X: BitConverter.ToInt32(data, 72), Y: BitConverter.ToInt32(data, 76));
             var deviceMillimetres = (X: BitConverter.ToInt32(data, 80), Y: BitConverter.ToInt32(data, 84));
-            if (deviceMillimetres.X > 0 && deviceMillimetres.Y > 0)
+            if (deviceMillimetres is {X: > 0, Y: > 0})
             {
                 pixelsPerMillimetreX = (double) devicePixels.X / deviceMillimetres.X;
                 pixelsPerMillimetreY = (double) devicePixels.Y / deviceMillimetres.Y;
@@ -419,7 +419,7 @@ static class MetafileReader
 
             // Points from offset on: count of them, 32-bit or 16-bit pairs.
             List<(double X, double Y)> Points(int offset, int count, bool small) =>
-                [.. Enumerable.Range(0, count).Select(_ => small ? ((double) I16(offset + _ * 4), (double) I16(offset + _ * 4 + 2)) : ((double) I32(offset + _ * 8), (double) I32(offset + _ * 8 + 4)))];
+                [.. Enumerable.Range(0, count).Select(_ => small ? (I16(offset + _ * 4), I16(offset + _ * 4 + 2)) : ((double) I32(offset + _ * 8), (double) I32(offset + _ * 8 + 4)))];
 
             switch (type)
             {

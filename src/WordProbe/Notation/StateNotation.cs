@@ -200,8 +200,7 @@ static class StateNotation
         boundaries.RemoveWhere(_ => _ < start || _ >= end);
         var runOpen = false;
         var selectionOpen = false;
-        if (selection != null &&
-            !selection.IsCollapsed &&
+        if (selection is {IsCollapsed: false} &&
             selection.Start < start &&
             selection.End > start)
         {
@@ -228,7 +227,7 @@ static class StateNotation
                 builder.Append(RevisionOpen(revision.Type));
             }
 
-            foreach (var comment in comments.Where(_ => _.ScopeStart == p && _.ScopeEnd > p))
+            foreach (var unused in comments.Where(_ => _.ScopeStart == p && _.ScopeEnd > p))
             {
                 builder.Append('⟪');
             }
@@ -309,12 +308,11 @@ static class StateNotation
             }
             else
             {
-                builder.Append(Render(character, p, paragraph, observation, selection, isMark));
+                builder.Append(Render(character, p, observation, selection, isMark));
             }
 
             // Closers.
-            if (selection != null &&
-                !selection.IsCollapsed &&
+            if (selection is {IsCollapsed: false} &&
                 selection.End == p + 1 &&
                 selectionOpen)
             {
@@ -344,8 +342,7 @@ static class StateNotation
             }
         }
 
-        if (selection != null &&
-            !selection.IsCollapsed &&
+        if (selection is {IsCollapsed: false} &&
             selectionOpen &&
             selection.End >= end)
         {
@@ -363,8 +360,7 @@ static class StateNotation
             builder.Append(']');
         }
 
-        if (selection != null &&
-            selection.IsCollapsed &&
+        if (selection is {IsCollapsed: true} &&
             selection.Start == end &&
             !isCellContent &&
             paragraph.Index == observation.Paragraphs.Count &&
@@ -384,7 +380,7 @@ static class StateNotation
         return line;
     }
 
-    static string Render(char character, int position, ParagraphState paragraph, Observation observation, SelectionState? selection, bool isMark)
+    static string Render(char character, int position, Observation observation, SelectionState? selection, bool isMark)
     {
         if (observation.InlinePictures.Contains(position))
         {
@@ -403,7 +399,14 @@ static class StateNotation
             case '\r':
                 if (isMark)
                 {
-                    return selection != null && !selection.IsCollapsed && selection.Start <= position && selection.End > position ? "¶" : "";
+                    if (selection is {IsCollapsed: false} &&
+                        selection.Start <= position &&
+                        selection.End > position)
+                    {
+                        return "¶";
+                    }
+
+                    return "";
                 }
 
                 return "\\r";
@@ -522,7 +525,11 @@ static class StateNotation
         // comparing with what Normal gives (0 before, 8 after in this template).
         // A table cell's paragraphs take their spacing from the table style (0 after), so the suffix would
         // mark every cell; the spacing is shown for body paragraphs only.
-        var body = paragraph.Style == "Normal" && paragraph.Table == 0;
+        var body = paragraph is
+        {
+            Style: "Normal",
+            Table: 0
+        };
         if (Math.Abs(paragraph.SpaceBefore) > 0.05f && body)
         {
             builder.Append(" ↑").Append(Math.Round(paragraph.SpaceBefore, 1).ToString(CultureInfo.InvariantCulture));
@@ -538,7 +545,11 @@ static class StateNotation
             builder.Append(" ▭");
         }
 
-        if (paragraph.KeepWithNext && paragraph.Style == "Normal")
+        if (paragraph is
+            {
+                KeepWithNext: true,
+                Style: "Normal"
+            })
         {
             builder.Append(" ⇊");
         }

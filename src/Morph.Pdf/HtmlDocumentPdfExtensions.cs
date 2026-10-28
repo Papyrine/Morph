@@ -5,7 +5,7 @@ public static class HtmlDocumentPdfExtensions
 {
     /// <summary>Renders the document to a PDF byte array.</summary>
     public static byte[] ExportToPdf(this HtmlDocument document, PdfExportOptions? options = null) =>
-        document.ExportToPdf(options, default);
+        document.ExportToPdf(options, Cancel.None);
 
     /// <summary>Renders the document to a PDF byte array, stopping when <paramref name="cancel"/> is cancelled.</summary>
     public static byte[] ExportToPdf(this HtmlDocument document, PdfExportOptions? options, Cancel cancel) =>

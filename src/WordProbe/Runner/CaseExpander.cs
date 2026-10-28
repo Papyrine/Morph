@@ -68,8 +68,7 @@ static class CaseExpander
     static void Walk(Branch branch, string parentPath, List<string> parentSteps, List<KeyValuePair<string, string>> axisValues, List<(string?, List<string>)> paths)
     {
         var path = $"{parentPath}/{branch.Id}";
-        var steps = new List<string>(parentSteps);
-        steps.AddRange(branch.Steps.Select(_ => Substitute(_, axisValues)));
+        List<string> steps = [.. parentSteps, .. branch.Steps.Select(_ => Substitute(_, axisValues))];
         paths.Add((path, steps));
         foreach (var child in branch.Children)
         {

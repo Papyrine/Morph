@@ -509,7 +509,6 @@ static class MarkdownRenderer
             foreach (var probeCase in group)
             {
                 var depth = probeCase.BranchPath?.Count(_ => _ == '/') ?? 1;
-                var branchSteps = probeCase.StepTexts.Skip(scenario.Steps.Count + (scenario.StartAt == null ? 0 : 0)).ToList();
                 // The branch's own steps are the last ones after its parent's; show the last step of this node.
                 var ownStep = LastBranchStep(scenario, probeCase);
                 builder.Append(' ', (depth - 1) * 2).Append("- `").Append(ownStep).Append("` → ");

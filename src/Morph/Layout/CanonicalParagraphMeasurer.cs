@@ -1189,16 +1189,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         (Piece Head, Piece Tail)? Hyphenate(List<Piece> word, double usedPixels)
         {
-            if (hyphenation is not { } rule ||
+            if (hyphenation is not { } ||
                 word is not [{IsSpace: false, IsInset: false, IsTab: false, Image: null} piece] ||
-                (rule.ConsecutiveHyphenLimit > 0 && hyphenatedLines >= rule.ConsecutiveHyphenLimit) ||
-                (rule.DoNotHyphenateCaps && piece.Text.Any(char.IsLetter) && piece.Text.All(_ => !char.IsLower(_))))
+                (hyphenation.ConsecutiveHyphenLimit > 0 && hyphenatedLines >= hyphenation.ConsecutiveHyphenLimit) ||
+                (hyphenation.DoNotHyphenateCaps && piece.Text.Any(char.IsLetter) && piece.Text.All(_ => !char.IsLower(_))))
             {
                 return null;
             }
 
             var room = LineWrapWidth() - LinearPoints(usedPixels);
-            if (room < rule.HyphenationZonePoints)
+            if (room < hyphenation.HyphenationZonePoints)
             {
                 return null;
             }
