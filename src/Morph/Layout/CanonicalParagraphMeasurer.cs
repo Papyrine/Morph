@@ -643,6 +643,25 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // resolved by the parser, including the built-in-Normal default for a document with no
     // docDefaults - see DocumentParser (_probe_kern_* and _probe_kerncascade fixtures). The painters
     // ask the same question to kern what they draw (CanonicalTextMeasurer.KernShiftsPoints).
+    // A piece of text measured as Flatten measures a token of its run: the run's face at its render
+    // size, width scale, kerning and tracking. What a hyphenated word's head and tail measure.
+    double TextPixels(RunProperties properties, string text)
+    {
+        var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
+        if (metrics is not {AdvanceWidths.Count: > 0})
+        {
+            return 0;
+        }
+
+        var pixels = CanonicalTextMeasurer.LinearPixels(metrics, text, VerticalRunPosition.RenderSizePoints(properties), WidthScale(properties), KerningEnabled(properties));
+        if (properties.CharacterSpacingPoints != 0)
+        {
+            pixels += CanonicalTextMeasurer.PixelsFromPoints((float) (properties.CharacterSpacingPoints * text.Length));
+        }
+
+        return pixels;
+    }
+
     internal static bool KerningEnabled(RunProperties properties) =>
         properties.KerningMinFontSizePoints > 0 &&
         properties.FontSizePoints >= properties.KerningMinFontSizePoints;
@@ -1159,6 +1178,65 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             lines.Add(new(width, linearWidth, linePitch, segments, images, footnoteIds, endnoteIds));
         }
 
+        // Automatic hyphenation (w:autoHyphenation, ParagraphProperties.AutoHyphenation): a word that
+        // does not fit is broken at the latest of its hyphenation points (Hyphenator) whose head, with
+        // its hyphen, still fits — but only where wrapping it whole would leave more than the
+        // hyphenation zone empty at the line's end, only while fewer than the consecutive-hyphen limit
+        // of lines above it already end in one, and never in a word of capitals when the document says
+        // not to. One run's word only: a word whose letters straddle runs is left whole.
+        var hyphenation = paragraph.Properties.AutoHyphenation;
+        var hyphenatedLines = 0;
+
+        (Piece Head, Piece Tail)? Hyphenate(List<Piece> word, double usedPixels)
+        {
+            if (hyphenation is not { } rule ||
+                word is not [{IsSpace: false, IsInset: false, IsTab: false, Image: null} piece] ||
+                (rule.ConsecutiveHyphenLimit > 0 && hyphenatedLines >= rule.ConsecutiveHyphenLimit) ||
+                (rule.DoNotHyphenateCaps && piece.Text.Any(char.IsLetter) && piece.Text.All(_ => !char.IsLower(_))))
+            {
+                return null;
+            }
+
+            var room = LineWrapWidth() - LinearPoints(usedPixels);
+            if (room < rule.HyphenationZonePoints)
+            {
+                return null;
+            }
+
+            // Trailing punctuation stays with the word's tail and takes no part in finding its points.
+            var letters = piece.Text.TrimEnd('.', ',', ';', ':', '!', '?', ')', '"', '\'', '”', '’');
+            var points = Hyphenator.Points(letters);
+            for (var index = points.Count - 1; index >= 0; index--)
+            {
+                var headText = piece.Text[..points[index]] + "-";
+                var headPixels = TextPixels(piece.Properties, headText);
+                if (LinearPoints(usedPixels + headPixels) > LineWrapWidth() + fitTolerancePoints)
+                {
+                    continue;
+                }
+
+                var tailText = piece.Text[points[index]..];
+                return (
+                    piece with
+                    {
+                        Text = headText,
+                        Pixels = headPixels,
+                        FitPixels = 0,
+                        EndnoteReferenceId = null
+                    },
+                    piece with
+                    {
+                        Text = tailText,
+                        Pixels = TextPixels(piece.Properties, tailText),
+                        FitPixels = 0,
+                        BreaksBefore = true,
+                        FootnoteReferenceId = null
+                    });
+            }
+
+            return null;
+        }
+
         var index = 0;
         while (index < pieces.Count)
         {
@@ -1296,8 +1374,21 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     lineHasTab |= HasTab(wordPieces);
                     lineSqueezed |= squeezed;
                 }
+                else if (Hyphenate(wordPieces, linePixels + lineFit + gapPixels + gapFit) is var (head, tail))
+                {
+                    // The word breaks at a hyphen: its head ends this line and its tail starts the
+                    // next. Put the two back in the word's place and take them from there, the gap
+                    // before the word still waiting.
+                    var start = index - 1;
+                    pieces[start] = head;
+                    pieces.Insert(start + 1, tail);
+                    index = start;
+                    hyphenatedLines++;
+                    continue;
+                }
                 else
                 {
+                    hyphenatedLines = 0;
                     CommitLine(justify: true);
                     OpenLine(wordPixels, wordFit, wordPitch, wordPieces, wrapped: true);
                 }

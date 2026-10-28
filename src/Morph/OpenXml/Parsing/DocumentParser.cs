@@ -311,6 +311,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // ResolveDocDefaultKerningMinPoints). Runs without an inline w:kern inherit this.
     double effectiveDefaultKerningMinPoints;
 
+    // The document's automatic hyphenation, read before the body (ParagraphProperties.AutoHyphenation).
+    HyphenationSettings documentHyphenation = new();
+
     public ParsedDocument Parse(string filePath)
     {
         using var stream = File.OpenRead(filePath);
@@ -397,6 +400,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont ?? builtInDefaultFontFamily;
         effectiveDefaultFontSizePoints = ResolveDocDefaultFontSizePoints(mainPart) ?? builtInDefaultFontSizePoints;
         effectiveDefaultKerningMinPoints = ResolveDocDefaultKerningMinPoints(mainPart);
+
+        // Before any paragraph is read: each one carries the rule unless it suppresses it.
+        documentHyphenation = ExtractHyphenationSettings(mainPart);
 
         // Extract document-level background color (w:background element)
         documentBackgroundColor = ExtractDocumentBackgroundColor(mainPart.Document);
@@ -3863,6 +3869,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         return result.ToString();
+    }
+
+    HyphenationSettings? AutoHyphenationFor(bool suppressed)
+    {
+        if (suppressed ||
+            !documentHyphenation.AutoHyphenation)
+        {
+            return null;
+        }
+
+        return documentHyphenation;
     }
 
     static HyphenationSettings ExtractHyphenationSettings(MainDocumentPart mainPart)
@@ -12305,6 +12322,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ContextualSpacing = contextualSpacing,
                 SuppressLineNumbers = suppressLineNumbers,
                 SuppressAutoHyphens = suppressAutoHyphens,
+                AutoHyphenation = AutoHyphenationFor(suppressAutoHyphens),
                 KeepLines = keepLines,
                 KeepNext = keepNext,
                 WidowControl = widowControl,
@@ -12693,6 +12711,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             HangingIndentPoints = hangingIndent,
             SuppressLineNumbers = suppressLineNumbers,
             SuppressAutoHyphens = suppressAutoHyphens,
+            AutoHyphenation = AutoHyphenationFor(suppressAutoHyphens),
             ContextualSpacing = contextualSpacing,
             KeepLines = keepLines,
             KeepNext = keepNext,
