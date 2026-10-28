@@ -3090,10 +3090,15 @@ public class CanonicalFragmenterTests
             Properties = new()
         };
 
-        var image = fragmenter.Layout([paragraph], Page(200)).Pages[0].Items.OfType<PlacedLine>().SelectMany(_ => _.Images).Single();
+        var items = fragmenter.Layout([paragraph], Page(200)).Pages[0].Items;
+        var clip = items.OfType<PlacedClipGroup>().Single();
+        var image = clip.Items.OfType<PlacedImage>().Single();
 
-        // An inline image's transform reaches the painter the same way a floating one's does.
+        // An inline image's transform reaches the painter the same way a floating one's does, inside
+        // the clip to its paragraph's band (Fragmenter.ClipRotatedPictures).
         await Assert.That(image.RotationDegrees).IsEqualTo(45d).Within(0.01);
+        await Assert.That(items.OfType<PlacedLine>().Single().Images).IsEmpty();
+        await Assert.That(clip.Y).IsLessThanOrEqualTo(image.Y);
     }
 
     [Test]

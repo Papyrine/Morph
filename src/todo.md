@@ -6,7 +6,7 @@ Each finding: `severity | backends | pages | description`. `all` = skia+imagesha
 
 **This file lists only what is still wrong.** A finding is deleted the moment it lands, and its durable knowledge moves to `docs/word-features.md` (feature behaviour and the evidence behind it), `docs/floating-art-pipeline.md` (anchored/floating art), `docs/html-import.md` (HTML and AltChunk input), `src/page_counts.md` (page-count experiment ledger) or `docs/fidelity-audit.md` (comparison method). Nothing that has shipped is described here — for how a fix was reached, read those docs and the git history. This is a temporary working document; it is expected to shrink to nothing.
 
-**Open: 3 major, 22 medium, 49 minor = 74 findings across 55 scenarios.** The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted (hand-adjusted, it drifted twice). Not every finding has been re-read against the current baselines: every MAJOR was re-judged against Word's page on 2026-10-01; the findings on the 105 fixtures whose Word references were regenerated in Calibri on 2026-10-02 were measured against the Aptos references they replaced and have not been re-read since; and a finding that names a specific block N px off is usually still live where one describing whole-page drift is usually stale (aligning each page's ink profile against Word's gives a median page offset of 2px, but a median worst local displacement of 11px). How a landing moved the corpus is in its commit message and in `src/page_counts.md`, not here.
+**Open: 0 major, 16 medium, 49 minor = 65 findings across 48 scenarios.** The tally is recounted from the `severity | backends | pages` lines below rather than hand-adjusted (hand-adjusted, it drifted twice). Not every finding has been re-read against the current baselines: every MAJOR was re-judged against Word's page on 2026-10-01; the findings on the 105 fixtures whose Word references were regenerated in Calibri on 2026-10-02 were measured against the Aptos references they replaced and have not been re-read since; and a finding that names a specific block N px off is usually still live where one describing whole-page drift is usually stale (aligning each page's ink profile against Word's gives a median page offset of 2px, but a median worst local displacement of 11px). How a landing moved the corpus is in its commit message and in `src/page_counts.md`, not here.
 
 ## Systemic issues (cross-scenario root causes)
 
@@ -85,11 +85,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### html_complex
 
-- MEDIUM | all | p1,p2 | the "3. Lists" heading opens 20pt closer to the data table than Word's, whose headings keep their space above after a table, so everything under it sits high. The table's rows are Word's since 2026-10-21 (35.20pt against 35.28, `docs/html-import.md`, Cell paragraph spacing); the intro wraps as Word's since 2026-10-11
-
-### html_css_alignment
-
-- MEDIUM | all | p1 | Table height:100px ignored (row 33px tall vs Word's 61px; interior borders land with the 2026-08-20 model)
+- MINOR | all | p1 | each heading-to-paragraph gap is 1.2 to 2.4pt short of Word's XPS, so the page drifts to 11pt high by its foot (the 14pt step after the data table is Word's since 2026-10-28)
 
 ### html_images
 
@@ -131,10 +127,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | all | p1 | the star is drawn 4-5% larger than Word's (39.4 x 37.0pt against 37.4 x 35.5), about its centre: every backend draws the SVG since 2026-10-12, in the frame the drawing declares, and Word's star stands a point inside that frame on each side
 - CLEAN: html
 
-### image_rotation/01
-
-- MEDIUM | all | p1 | rotated inline image not clipped: all three backends draw the full 386px diamond where Word clips to a 255px band with a flat top edge at the frame top (Skia drew rotated inline images UPRIGHT until 2026-08-19 — the engine painter never had the transform; it now rotates like the others). The clip law is unprobed — the fixture's wp:effectExtent is all-zero yet Word still lets the sides and bottom overflow while clipping the top
-
 ### image_wrap_square
 
 - MINOR | all | p1 | cumulative vertical drift of blocks (~10-20px up, pie chart slightly offset) with structure intact (p2 measured within 2px on 2026-08-20 — trimmed to p1)
@@ -173,10 +165,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MEDIUM | all | p1 | large signature "Joseph Price" rendered in bold/heavy weight instead of Word's light strokes
 - MINOR | html | - | signature "Joseph Price" bold vs Word's light weight
 
-### letters/10
-
-- MAJOR | html | - | signature image broken — placeholder "Image of signature" shown instead of the script signature
-
 ### letters/11
 
 - MINOR | all | p1 | body lines break at slightly different words (para 1 breaks after "Importers" vs "Importers to"), same line counts
@@ -184,7 +172,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### letters/13
 
-- MAJOR | html | - | the three letter copies get inconsistent body-column widths (~586px, ~471px, ~622px)
 - MINOR | html | - | page-3 left-edge banner rendered as an inline horizontal strip (side placement/rotation lost)
 
 ### menus/03
@@ -208,10 +195,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | all | p1 | food photos shifted right ~15-25px
 - MINOR | all | p1 | the mint wave rules sit ~8pt above Word's: each is an inline filled custGeom rotated -4.55° whose wp:effectExtent (t=3pt, b=3.2pt) is the rotation's spill, on a 16pt text-dominated line; Morph draws the shape unrotated and raises it by the bottom edge as for a picture, which Word does not — probe a rotated inline shape before modelling it (inline_group_crop, inline_group_rotation and menus/09 share the wave)
 
-### menus/08
-
-- MEDIUM | all | p1 | right instruction block wraps at a different word than Word ("...select the whole / cell.)" vs Word's "...select the / whole cell.)")
-
 ### newsletters/01
 
 - MINOR | all | p1,p2,p4 | Body paragraphs re-wrap at different words than Word (line counts mostly unchanged)
@@ -234,9 +217,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 - MINOR | all | p1,p4 | dotted-ornament window around "SYCAMORE NOTES" title is taller than Word's (dot rows beside the title partially dropped); small "SYCAMORE NOTES" strip logo on p2/p5 wraps to two lines
 - MINOR | html | - | big title renders as "SYCAMORENOTES" — the word space collapses to the same width as the letter-spacing gaps
 
-### newsletters/07
-
-- MEDIUM | all | p1,p2 | body text sets visibly larger than Word so paragraphs wrap to extra lines (lead paragraph 6 lines vs Word's 5)
 
 ### newsletters/09
 
@@ -250,9 +230,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - MINOR | all | p2 | the left column's text box is 8-24px narrower than Word's (XPS: text from 63.05pt to 255.25pt, 320px at 120 dpi); no line breaks differently for it while the face measures on linear advances
 
-### newsletters/12
-
-- MAJOR | html | - | Absolutely-positioned blocks collide: right-column text renders across the purple dash column, and body text under the photo-grid blocks
 
 ### office_math
 
@@ -275,11 +252,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### resumes/19
 
 - MINOR | all | p1,p2,p3 | the left column sits 4-5px high of Word's from the first Experience entry down, on each of the three copies (it sat 11-13px low until the entry icons' lines took their own run's font, 2026-10-12)
-
-### wedding/01
-
-- MEDIUM | all | p1 | invitation cards start ~0.26" higher than Word (intro-paragraph spacing compressed) and the text inside the cards drifts further up (~0.4" by the SATURDAY/RECEPTION lines) from tighter line spacing
-- MINOR | all | p1 | intro paragraph rewraps: "Create New Theme Colors" kept on line 2 so line 3 starts with an orphaned period (". Select your own colors...")
 
 ### wedding/02
 
@@ -321,4 +293,4 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ## Clean scenarios (faithful on skia, imagesharp, pdf and html)
 
-`agendas-minutes/03`, `agendas-minutes/04`, `agendas-minutes/05`, `agendas-minutes/07`, `agendas-minutes/09`, `agendas-minutes/11`, `agendas-minutes/13`, `agendas-minutes/15`, `agendas-minutes/18`, `agendas-minutes/19`, `business/04`, `cards/03`, `cards/04`, `cards/16`, `cards/19`, `complex_tables`, `cover-letters/06`, `cover-letters/08`, `cover-letters/09`, `cover-letters/11`, `labels/02`, `resumes/04`, `html_nested_lists`, `icon_with_text`, `table_autofit_no_widths`, `table_cell_spacing/01`, `table_diagonal_borders/01`, `table_grid_styling_padding`, `wedding/10`, `font_sizes`, `labels/05`, `labels/08`, `labels/16`, `letters/04`, `table_default_style_inside_h`, `align_mixed`, `all_caps`, `block_quote`, `bold_text`, `bullet_list`, `colored_text`, `column_breaks`, `complex_document`, `content_control_inline`, `compatibility_mode_14`, `cover-letters/02`, `custom_margins`, `decimal_tabs/01`, `cards/10`, `deep_nested_list`, `dot_points`, `embedded_font`, `labels/14`, `resumes/18`, `table_borders`, `even_odd_headers/01`, `even_odd_headers/02`, `explicit_break_blank_page`, `first_line_indent`, `font_families`, `field_codes_simple/01`, `footer`, `form_checkboxes`, `form_dropdowns`, `form_text_fields`, `gutter_margins/01`, `hanging_indent`, `header`, `header_banner_table`, `header_footer`, `headings`, `html_basic_formatting`, `html_css_colors`, `html_font_tag`, `html_inline_styles`, `html_links`, `html_paragraphs`, `hyperlinks`, `hyphenation_nonbreaking`, `hyphenation_soft`, `image_cropping/01`, `inline_group_crop`, `inline_image`, `italic_text`, `labels/01`, `labels/07`, `labels/12`, `labels/13`, `left_indent`, `letters/06`, `line_breaks`, `line_numbers_continuous`, `line_numbers_count_by_5`, `line_numbers_custom_distance`, `line_numbers_restart_page`, `line_numbers_restart_section`, `line_numbers_suppressed`, `line_spacing`, `line_spacing_at_least`, `line_spacing_exactly`, `long_paragraph`, `nonstandard_main_part_name`, `numbered_list_tracking`, `page_letter`, `cover-letters/16`, `resumes/15`, `menus/02`, `mixed_breaks`, `mixed_formatting`, `multiple_images`, `multiple_pages`, `multiple_paragraphs`, `nested_list`, `numbered_list`, `numbered_list_restart`, `page_a4`, `page_borders/01`, `page_breaks`, `page_landscape`, `page_legal`, `page_numbers`, `pct_pos_offset`, `postcards/02`, `resumes/13`, `rtl_paragraph`, `section_break_continuous`, `section_break_even_page`, `section_break_next_page`, `section_break_odd_page`, `simple_paragraph`, `simple_table`, `small_caps`, `strikethrough_text`, `subscript_superscript`, `tab_stops`, `table_alignment/01`, `table_cell_margin_per_cell`, `table_cell_padding`, `table_cell_padding_varied`, `table_colors`, `table_default_cell_margin`, `table_default_cell_margin_start_end`, `table_default_style`, `table_default_style_first_row_run_color`, `table_default_style_first_row_shading`, `table_explicit_heights`, `table_indent`, `table_text_direction`, `table_of_contents/01`, `table_of_contents/02`, `table_page_break`, `table_two_column_layout`, `table_vmerge_basic`, `table_vmerge_explicit_heights`, `text_wrapping_break`, `wide_table`, `three_columns`, `tracked_changes/01`, `two_columns`, `underline_text`, `wedding/07`, `agendas-minutes/06`, `brochures/04`, `business-plans/04`, `business-plans/06`, `html_table_cellpadding`, `letters/09`, `menus/09`, `resumes/11`, `cards/05`, `agendas-minutes/12`, `bar_tabs`, `business-plans/05`, `business/01`, `cover-letters/10`, `cover-letters/15`, `postcards/04`, `resumes/02`, `resumes/03`, `resumes/08`, `resumes/12`, `resumes/16`, `resumes/17`, `letters/01`, `brochures/08`, `cards/01`, `wedding/03`, `cards/07`, `resumes/07`, `agendas-minutes/01`, `agendas-minutes/08`, `agendas-minutes/17`, `brochures/05`, `business-plans/10`, `cards/02`, `cards/06`, `cards/08`, `cards/12`, `cards/13`, `cards/18`, `cover-letters/05`, `inline_shape_arrows`, `labels/03`, `labels/06`, `labels/11`, `letters/02`, `newsletters/08`, `newsletters/13`, `resumes/10`, `table_of_contents/03`, `agendas-minutes/16`, `business-plans/08`, `icons_multiple`, `letters/05`, `newsletters/14`, `resumes/14`, `agendas-minutes/02`, `agendas-minutes/14`, `brochures/01`, `brochures/02`, `brochures/03`, `business-plans/07`, `business/03`, `business/05`, `business/06`, `business-plans/12`, `business-plans/15`, `brochures/06`
+`agendas-minutes/03`, `agendas-minutes/04`, `agendas-minutes/05`, `agendas-minutes/07`, `agendas-minutes/09`, `agendas-minutes/11`, `agendas-minutes/13`, `agendas-minutes/15`, `agendas-minutes/18`, `agendas-minutes/19`, `business/04`, `cards/03`, `cards/04`, `cards/16`, `cards/19`, `complex_tables`, `cover-letters/06`, `cover-letters/08`, `cover-letters/09`, `cover-letters/11`, `labels/02`, `resumes/04`, `html_nested_lists`, `icon_with_text`, `table_autofit_no_widths`, `table_cell_spacing/01`, `table_diagonal_borders/01`, `table_grid_styling_padding`, `wedding/10`, `font_sizes`, `labels/05`, `labels/08`, `labels/16`, `letters/04`, `table_default_style_inside_h`, `align_mixed`, `all_caps`, `block_quote`, `bold_text`, `bullet_list`, `colored_text`, `column_breaks`, `complex_document`, `content_control_inline`, `compatibility_mode_14`, `cover-letters/02`, `custom_margins`, `decimal_tabs/01`, `cards/10`, `deep_nested_list`, `dot_points`, `embedded_font`, `labels/14`, `resumes/18`, `table_borders`, `even_odd_headers/01`, `even_odd_headers/02`, `explicit_break_blank_page`, `first_line_indent`, `font_families`, `field_codes_simple/01`, `footer`, `form_checkboxes`, `form_dropdowns`, `form_text_fields`, `gutter_margins/01`, `hanging_indent`, `header`, `header_banner_table`, `header_footer`, `headings`, `html_basic_formatting`, `html_css_colors`, `html_font_tag`, `html_inline_styles`, `html_links`, `html_paragraphs`, `hyperlinks`, `hyphenation_nonbreaking`, `hyphenation_soft`, `image_cropping/01`, `inline_group_crop`, `inline_image`, `italic_text`, `labels/01`, `labels/07`, `labels/12`, `labels/13`, `left_indent`, `letters/06`, `line_breaks`, `line_numbers_continuous`, `line_numbers_count_by_5`, `line_numbers_custom_distance`, `line_numbers_restart_page`, `line_numbers_restart_section`, `line_numbers_suppressed`, `line_spacing`, `line_spacing_at_least`, `line_spacing_exactly`, `long_paragraph`, `nonstandard_main_part_name`, `numbered_list_tracking`, `page_letter`, `cover-letters/16`, `resumes/15`, `menus/02`, `mixed_breaks`, `mixed_formatting`, `multiple_images`, `multiple_pages`, `multiple_paragraphs`, `nested_list`, `numbered_list`, `numbered_list_restart`, `page_a4`, `page_borders/01`, `page_breaks`, `page_landscape`, `page_legal`, `page_numbers`, `pct_pos_offset`, `postcards/02`, `resumes/13`, `rtl_paragraph`, `section_break_continuous`, `section_break_even_page`, `section_break_next_page`, `section_break_odd_page`, `simple_paragraph`, `simple_table`, `small_caps`, `strikethrough_text`, `subscript_superscript`, `tab_stops`, `table_alignment/01`, `table_cell_margin_per_cell`, `table_cell_padding`, `table_cell_padding_varied`, `table_colors`, `table_default_cell_margin`, `table_default_cell_margin_start_end`, `table_default_style`, `table_default_style_first_row_run_color`, `table_default_style_first_row_shading`, `table_explicit_heights`, `table_indent`, `table_text_direction`, `table_of_contents/01`, `table_of_contents/02`, `table_page_break`, `table_two_column_layout`, `table_vmerge_basic`, `table_vmerge_explicit_heights`, `text_wrapping_break`, `wide_table`, `three_columns`, `tracked_changes/01`, `two_columns`, `underline_text`, `wedding/07`, `agendas-minutes/06`, `brochures/04`, `business-plans/04`, `business-plans/06`, `html_table_cellpadding`, `letters/09`, `menus/09`, `resumes/11`, `cards/05`, `agendas-minutes/12`, `bar_tabs`, `business-plans/05`, `business/01`, `cover-letters/10`, `cover-letters/15`, `postcards/04`, `resumes/02`, `resumes/03`, `resumes/08`, `resumes/12`, `resumes/16`, `resumes/17`, `letters/01`, `brochures/08`, `cards/01`, `wedding/03`, `cards/07`, `resumes/07`, `agendas-minutes/01`, `agendas-minutes/08`, `agendas-minutes/17`, `brochures/05`, `business-plans/10`, `cards/02`, `cards/06`, `cards/08`, `cards/12`, `cards/13`, `cards/18`, `cover-letters/05`, `inline_shape_arrows`, `labels/03`, `labels/06`, `labels/11`, `letters/02`, `newsletters/08`, `newsletters/13`, `resumes/10`, `table_of_contents/03`, `agendas-minutes/16`, `business-plans/08`, `icons_multiple`, `letters/05`, `newsletters/14`, `resumes/14`, `agendas-minutes/02`, `agendas-minutes/14`, `brochures/01`, `brochures/02`, `brochures/03`, `business-plans/07`, `business/03`, `business/05`, `business/06`, `business-plans/12`, `business-plans/15`, `brochures/06`, `letters/10`, `html_css_alignment`, `image_rotation/01`, `wedding/01`, `menus/08`, `newsletters/07`, `newsletters/12`

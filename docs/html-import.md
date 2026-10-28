@@ -1,4 +1,4 @@
-# HTML input
+﻿# HTML input
 
 How HTML becomes a `ParsedDocument`, and the rules that were established by measuring Word rather than by reading a spec.
 
@@ -128,6 +128,10 @@ style token; both probe packages re-rendered through RenderHelper for the drawn 
   `max(spacing-after, next spacing-before)` reproduces every case except a declared bottom
   smaller than an undeclared neighbour's auto — `HtmlParser.CollapseDeclaredMargins` lifts
   exactly those.
+- **A block under a table takes the auto gap as its own Before.** A table leaves no spacing-after
+  for the auto to collapse into, so `CollapseDeclaredMargins` gives an undeclared top 14pt there:
+  html_complex's "3. Lists" heading had opened flush against the data table above it, where Word's
+  XPS sets its line 14.0pt below (2026-10-28).
 - **A bordered `<div>` renders identically to a bordered `<p>`** — Word stores it as `w:divBdr`
   in `webSettings.xml` (same units) and draws one contiguous box around all the div's paragraphs.
   `ParseContainer` pushes the box onto each child paragraph; identical border records then group
