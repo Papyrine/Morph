@@ -348,7 +348,11 @@ public partial class SnapshotTests
 
         await PinFooterAsync(page);
 
-        await Verify(page);
+        // Every caller runs SettleAsync first, so skip the NetworkIdle wait Verify.Playwright makes by default:
+        // after a reload it intermittently never fired on a settled page, and the capture timed out at 30s
+        // (runs 391 and 400).
+        await Verify(page)
+            .PageLoadState(null);
     }
 
     // The footer carries three figures that vary from one capture to the next: the version comes from
