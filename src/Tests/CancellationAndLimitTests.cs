@@ -21,7 +21,7 @@ public class CancellationAndLimitTests
     [Arguments(1)]
     [Arguments(4)]
     public async Task A_cancelled_word_conversion_stops(int parallelism) =>
-        await Assert.That(() => new SkiaDocumentConverter().ConvertToImageData(Input("word", "business-plans/13"), new() { FontDirectory = fonts, MaxDegreeOfParallelism = parallelism }, Cancelled()))
+        await Assert.That(() => new SkiaDocumentConverter().ConvertToImageData(Input("word", "business-plans/12"), new() { FontDirectory = fonts, MaxDegreeOfParallelism = parallelism }, Cancelled()))
             .Throws<OperationCanceledException>();
 
     [Test]
@@ -45,7 +45,7 @@ public class CancellationAndLimitTests
 
     [Test]
     public async Task A_cancelled_word_pdf_conversion_stops() =>
-        await Assert.That(() => PdfDocumentConverter.ConvertToPdf(Input("word", "business-plans/13"), new() { FontDirectory = fonts }, Cancelled()))
+        await Assert.That(() => PdfDocumentConverter.ConvertToPdf(Input("word", "business-plans/12"), new() { FontDirectory = fonts }, Cancelled()))
             .Throws<OperationCanceledException>();
 
     [Test]
