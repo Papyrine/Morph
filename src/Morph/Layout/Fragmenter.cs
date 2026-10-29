@@ -2449,10 +2449,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         // Unwarped WordArt is Word's inline text box: a single line of the WordArt text, shrunk to fit and
-        // centred in its box (reusing the cell-content layout with a centred synthetic paragraph). Warp
-        // presets (arch/wave/envelope/…) are a later slice; the corpus templates are all unwarped.
-        IReadOnlyList<PlacedItem> LayoutWordArtText(string text, string fontFamily, double fontSizePoints, bool bold, bool italic, string? fillColorHex, float boxX, float boxY, float boxWidth, float boxHeight)
+        // set in its box by its first paragraph's w:jc (reusing the cell-content layout with a synthetic
+        // paragraph), between its left and right insets. Word-probed (_probe_wordart_jc: a 400pt box at
+        // 0 and 36pt insets): unset and left start at the inset, center centres, right ends at the inset.
+        // Centring it whatever the jc said moved a left-aligned header label ~8pt in. Warp presets
+        // (arch/wave/envelope/…) are a later slice; the corpus templates are all unwarped.
+        IReadOnlyList<PlacedItem> LayoutWordArtText(string text, string fontFamily, double fontSizePoints, bool bold, bool italic, string? fillColorHex, TextAlignment alignment, WordArtInsets insets, float boxX, float boxY, float boxWidth, float boxHeight)
         {
+            boxX += (float) insets.Left;
+            boxWidth = Math.Max(0, boxWidth - (float) (insets.Left + insets.Right));
             var properties = new RunProperties {FontFamily = fontFamily, FontSizePoints = fontSizePoints, Bold = bold, Italic = italic, ColorHex = fillColorHex};
             var textWidth = measurer.MeasureRunWidth(text, properties);
             var widthScale = textWidth > 0 ? boxWidth / textWidth : 1f;
@@ -2473,7 +2478,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 ],
                 Properties = new()
                 {
-                    Alignment = TextAlignment.Center
+                    Alignment = alignment
                 }
             };
             return LayoutCellContent(new() {Content = [paragraph]}, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
@@ -2551,7 +2556,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     items.Add(boxItem);
                 }
 
-                items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, y + boxTop, boxWidth, height));
+                items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, y + boxTop, boxWidth, height));
             }
 
             y += lineHeight;
@@ -2571,7 +2576,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return;
             }
 
-            foreach (var item in LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints))
+            foreach (var item in LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints))
             {
                 AddBodyFloat(item, wordArt.BehindText, absoluteY);
             }
@@ -4465,7 +4470,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             lines.Add(boxItem);
                         }
 
-                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, wordArtLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
+                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, cellWordArt.TextAlignment, cellWordArt.Insets, wordArtLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
                     }
 
                     cellY += (float) cellWordArt.HeightPoints;
@@ -5189,7 +5194,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                     else
                     {
-                        items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints));
+                        items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints));
                     }
                 }
                 // A band text box places its chrome and content as PlaceTextBox does a body one.

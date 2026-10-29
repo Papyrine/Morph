@@ -76,7 +76,8 @@ public class BandTextBoxLayoutTests
             .SingleOrDefault(_ => _.Paragraph.Runs.Any(run => run.Text.Contains("BAND TEXT BOX")));
         await Assert.That(line).IsNotNull();
         // Page-anchored box: 523.1pt across, 18.4pt down, 80.3pt x 13pt.
-        await Assert.That(line!.X).IsBetween(523f, 603.5f);
+        // No w:jc, so the text starts at the box's left edge rather than centred in it.
+        await Assert.That(line!.X).IsEqualTo(523.1f).Within(0.5f);
         await Assert.That(line.Y).IsBetween(18f, 31.5f);
     }
 }
