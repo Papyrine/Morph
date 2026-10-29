@@ -310,12 +310,15 @@ static class FontMetricsReader
             var subtableOffset = BinaryPrimitives.ReadUInt32BigEndian(bytes.AsSpan(recordPos + 4, 4));
 
             // Score Unicode subtables; higher is better. Windows UCS-4 outranks Windows BMP, which
-            // outranks the Unicode platform, matching what SkiaSharp / SixLabors pick.
+            // outranks the Unicode platform, matching what SkiaSharp / SixLabors pick. A symbol font
+            // (Wingdings, Symbol) has only a Windows Symbol subtable, keyed in the F000–F0FF block,
+            // which is how a w:sym names its glyphs; a font with a Unicode subtable never reads it.
             var score = (platform, encoding) switch
             {
                 (3, 10) => 4,
                 (3, 1) => 3,
                 (0, _) => 2,
+                (3, 0) => 1,
                 _ => -1
             };
             if (score > bestScore &&

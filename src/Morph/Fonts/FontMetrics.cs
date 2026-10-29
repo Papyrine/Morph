@@ -194,7 +194,8 @@ sealed record FontMetrics
     public IReadOnlyList<ushort> AdvanceWidths { get; init; } = [];
 
     /// <summary>
-    /// Codepoint → glyph id, parsed from a Unicode <c>cmap</c> subtable (format 4 or 12). Unmapped
+    /// Codepoint → glyph id, parsed from a Unicode <c>cmap</c> subtable (format 4 or 12), or from a
+    /// symbol font's Windows Symbol subtable, whose codes sit in the F000–F0FF block. Unmapped
     /// codepoints resolve to glyph 0 (<c>.notdef</c>) via <see cref="AdvanceUnits"/>. Empty when the
     /// font declares no supported <c>cmap</c>.
     /// </summary>

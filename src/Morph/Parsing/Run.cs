@@ -77,6 +77,11 @@ sealed class Run
     /// paragraph's <c>w:tabs</c>. <see cref="IsTab"/> is true alongside it.</summary>
     public PositionalTab? PositionalTab { get; init; }
 
+    /// <summary>When set, this run is a <c>w:sym</c>: one character of a symbol font, which layout draws
+    /// from the font when it is available and from a face that has <see cref="Text"/> (its Unicode
+    /// equivalent) when it is not.</summary>
+    public RunSymbol? Symbol { get; init; }
+
     /// <summary>When set, this run is a footnote-reference marker (empty <see cref="Text"/>); the
     /// id keys into <see cref="ParsedDocument.Footnotes"/>. The raster renderers ignore it; the
     /// text exporters emit an inline marker and collect the note into a trailing notes section.</summary>
@@ -174,6 +179,7 @@ sealed class Run
             InlineImageClipSubpaths = InlineImageClipSubpaths,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
+            Symbol = Symbol,
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,
@@ -212,6 +218,7 @@ sealed class Run
             InlineImageClipSubpaths = InlineImageClipSubpaths,
             IsTab = IsTab,
             PositionalTab = PositionalTab,
+            Symbol = Symbol,
             FootnoteReferenceId = FootnoteReferenceId,
             EndnoteReferenceId = EndnoteReferenceId,
             HyperlinkUrl = HyperlinkUrl,

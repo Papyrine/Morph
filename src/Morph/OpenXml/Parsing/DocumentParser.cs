@@ -3597,8 +3597,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // checkbox. U+2610 rather than U+25A2 white square: Bullets.ttf carries the
                 // ballot box and not the square, so the closer codepoint rendered as nothing.
                 '' => "☐",
-                // Wingdings 0xFE - ballot box with X, the checked half of that pair
-                '' => "☒",
+                // Wingdings 0xFE - ballot box with check, the checked half of that pair (the font
+                // draws a tick in the box, not a cross: that is 0xFD, and 0x78)
+                '' => "☑",
                 // Wingdings 0xFC - check mark
                 '' => "✓",
                 // Wingdings 0xFB - ballot X
@@ -13201,6 +13202,23 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 case NoBreakHyphen:
                     GatherText(nonBreakingHyphen);
                     break;
+                // A w:sym — Word's Insert Symbol, and how a generated checkbox is often written
+                // (Wingdings F0FE ☑, F06F ☐). A run of its own in the named font, which layout draws
+                // from that font or, where it is missing, from the character's Unicode equivalent.
+                case SymbolChar symbolChar when ParseSymbol(symbolChar, GetProperties().FontFamily) is { } symbol:
+                    FlushText();
+                    result.Add(
+                        new()
+                        {
+                            Text = SymbolFonts.Text(symbol.Font, symbol.Code),
+                            Properties = GetProperties() with
+                            {
+                                FontFamily = symbol.Font
+                            },
+                            Symbol = symbol,
+                            HyperlinkUrl = hyperlinkUrl
+                        });
+                    break;
                 case TabChar:
                     FlushText();
                     result.Add(
@@ -13324,6 +13342,25 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         FlushText();
         return result;
+    }
+
+    // w:char is a hex code (F0FE, or its low byte FE); w:font falls back to the run's own face. A code
+    // that is not hex, or is no single UTF-16 character, names nothing a run can carry and is left out.
+    static RunSymbol? ParseSymbol(SymbolChar symbolChar, string runFont)
+    {
+        if (!int.TryParse(symbolChar.Char?.Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var code) ||
+            code is <= 0 or > 0xFFFF or (>= 0xD800 and <= 0xDFFF))
+        {
+            return null;
+        }
+
+        var font = symbolChar.Font?.Value;
+        if (string.IsNullOrWhiteSpace(font))
+        {
+            font = runFont;
+        }
+
+        return new(font, (char) code);
     }
 
     // props is any rPr-shaped element: a run's w:rPr (OoxmlRunProperties) or a paragraph

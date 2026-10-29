@@ -153,6 +153,20 @@ Text size in half-points (OOXML) converted to points for rendering.
 > **Consumers**: Word's built-in default for a document with no docDefaults is Calibri 12pt (Word-probed; see `DocumentParser.builtInDefaultFontFamily`); a document that declares docDefaults but omits `w:sz` gets the spec default 10pt. Half-point values from OOXML are automatically converted. Word lays text out on the font's plain linear advances at the size as authored — line breaks and autofit columns alike, Word-probed 2026-10-02 (`docs/layout-engine.md`, "The crux"; Table Auto-fit below) — and `CanonicalTextMeasurer.LinearPixels` measures that for every face. What Word DRAWS is a different thing and is not modelled: whole-pixel glyph advances at the em rounded onto its 120-dpi grid (8pt Calibri is drawn at 7.8pt), which is what its XPS output records and what the per-glyph `.wordadvances` sidecars memoized between 2026-08-30 and 2026-10-02. The drawing differs by compatibility mode — mode 14 and older takes GDI-compatible widths and mode 15 DirectWrite's (Segoe UI 12pt 's' is a constant 9px in mode 12 and 8/8/8/9 in mode 15, `_probe_seg_m15`) — and the breaking does not, except that mode 15 squeezes justified lines (Kerning, below). 162 of the 334 corpus packages are mode 14 or older, every settings-less one among them; the settings part has to be found through its relationship, since resumes/16 keeps its mode 15 declaration in `settings2.xml`.
 
 
+#### Symbol Characters `DONE`
+
+A character inserted from a symbol font (Insert > Symbol), and how generated documents often write checkboxes: Wingdings `F0FE` ☑ and `F06F` ☐.
+
+- **OOXML**: `w:sym` — `w:font`, `w:char` (hex; a symbol font's glyphs sit at `F020`–`F0FF`, and a bare low byte names the same glyph)
+- **Spec**: ECMA-376 Part 1, `sym` (Symbol Character)
+- **Model**: a `Run` of its own with `Run.Symbol` (`RunSymbol`: font and code), `Properties.FontFamily` the symbol font, and `Text` the character's Unicode equivalent where `SymbolFonts.ToUnicode` knows one (Wingdings' checkboxes, checks, bullets and arrows; Symbol's Greek and mathematical characters), else the code itself
+- **Parse**: `DocumentParser.ParseRun` / `ParseSymbol`; `w:font` is matched to a face case-insensitively ("WingDings" is Wingdings), and a `w:sym` without one takes the run's font
+- **Render**: `CanonicalParagraphMeasurer.SymbolRun`, in `Flatten`, decides what each lays out as and the painters draw that, so it is measured and wrapped like text in every backend: the symbol font when the face it resolves to has the code under its symbol `cmap` (`FontMetricsReader` reads the Windows Symbol (3,0) subtable a font with no Unicode one carries); for a symbol font without it, the Unicode equivalent in the embedded Morph Bullets face (☐ ☑ ☒ ✓ and the list bullets), else in the default font — drawn as that face's missing-glyph box rather than dropped when it lacks it too. Neither names the missing symbol font, which the raster painters would throw for under a `FontDirectory`. A `w:sym` in a text font (Arial `F041`) is the character its low byte names, in that font. The HTML and Markdown exports write the Unicode equivalent.
+- **Test**: `SymbolCharTests` (the checkboxes beside text with Wingdings available and with a font directory that lacks it, through Skia, ImageSharp and PDF)
+
+> **Consumers**: until 2026-10-29 a `w:sym` was read past and drew nothing, so a document's ticked and unticked boxes vanished. Wingdings and Symbol are not bundled with Morph: with `FontDirectory` set, put `wingding.ttf` in it for Word's own glyphs, or rely on the fallback. Only Wingdings and Symbol are mapped to Unicode; a missing Wingdings 2, Wingdings 3 or Webdings character draws as the missing-glyph box.
+
+
 ### 1.2 Character Formatting
 
 
@@ -3644,7 +3658,7 @@ Read-only mode, form protection, and editing restrictions.
 
 | Category | Done | Partial | Todo | Wontfix | Total |
 |----------|------|---------|------|---------|-------|
-| 1. Text Formatting | 27 | 0 | 3 | 0 | 30 |
+| 1. Text Formatting | 28 | 0 | 3 | 0 | 31 |
 | 2. Paragraph Formatting | 25 | 1 | 0 | 0 | 26 |
 | 3. Lists & Numbering | 7 | 0 | 0 | 0 | 7 |
 | 4. Tables | 28 | 1 | 0 | 0 | 29 |
@@ -3656,14 +3670,14 @@ Read-only mode, form protection, and editing restrictions.
 | 10. Document Infrastructure | 6 | 0 | 0 | 0 | 6 |
 | 11. Annotations & References | 8 | 0 | 0 | 0 | 8 |
 | 12. Advanced Content | 2 | 0 | 0 | 0 | 2 |
-| **Total** | **167** | **5** | **5** | **1** | **178** |
+| **Total** | **168** | **5** | **5** | **1** | **179** |
 
 
 ### Coverage
 
 ```mermaid
 pie title Feature Implementation Status
-    "Done" : 167
+    "Done" : 168
     "Partial" : 5
     "Todo" : 5
     "Wontfix" : 1
