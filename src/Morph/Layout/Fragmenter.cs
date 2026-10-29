@@ -5176,6 +5176,59 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         items.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
                     }
                 }
+                // A band's anchored wps text box — a running-header title, a footer label — reaches here as
+                // floating WordArt (ParseWordArt claims every wps:txbx before ParseTextBox sees it) and is
+                // placed as PlaceFloatingWordArt places a body one, from the band's anchors. Without this
+                // branch it was dropped silently (issue #194).
+                else if (element is FloatingWordArtElement wordArt)
+                {
+                    var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints);
+                    if (wordArt.Transform != WordArtTransform.None)
+                    {
+                        items.Add(new PlacedWordArt(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, wordArt));
+                    }
+                    else
+                    {
+                        items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints));
+                    }
+                }
+                // A band text box places its chrome and content as PlaceTextBox does a body one.
+                else if (element is FloatingTextBoxElement textBox)
+                {
+                    var (boxX, boxY) = Position(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.VerticalAnchor, textBox.VerticalPositionPoints);
+                    var boxWidth = (float) textBox.WidthPoints;
+                    var boxHeight = (float) textBox.HeightPoints;
+                    if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)
+                    {
+                        var boxShape = new FloatingShapeElement
+                        {
+                            WidthPoints = textBox.WidthPoints,
+                            HeightPoints = textBox.HeightPoints,
+                            FillColorHex = textBox.BackgroundColorHex,
+                            LineColorHex = textBox.LineColorHex,
+                            LineWidthPoints = textBox.LineWidthPoints > 0 ? textBox.LineWidthPoints : null,
+                            LineAlpha = textBox.LineAlpha,
+                            Subpaths = textBox.Subpaths,
+                            RotationDegrees = textBox.RotationDegrees
+                        };
+                        items.Add(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape));
+                    }
+
+                    var content = LayoutCellContent(new() {Content = textBox.Content}, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top);
+                    if (textBox.HidesOverflow)
+                    {
+                        content = [.. content.Where(_ => _.Y < boxY + boxHeight)];
+                    }
+
+                    if (textBox.RotationDegrees != 0)
+                    {
+                        items.Add(new PlacedRotatedGroup(boxX, boxY, boxWidth, boxHeight, content, textBox.RotationDegrees));
+                    }
+                    else
+                    {
+                        items.AddRange(content);
+                    }
+                }
             }
 
             return items;
