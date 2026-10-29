@@ -107,6 +107,12 @@ flowchart TD
 
 The first fallback name that resolves settles it, so an alias that loads keeps `FontFallback` out of it, but an alias whose family is absent moves on to `FontFallback` rather than leaving the request unresolved — `Avenir Next LT Pro` maps to `Century Gothic`, which a directory of only the Aptos faces does not hold, and until 2026-10 that threw, so `business-plans/13` could not be drawn in the Blazor app at all (`FontFallbackOrderTests`). So `FontFallback = _ => "Aptos"` never throws: the last place a fallback name is looked for is the Aptos faces embedded in `Morph.dll`, which every host has.
 
+## Symbol fonts
+
+Wingdings, Symbol and their kind key their glyphs by a single byte, through a Windows Symbol (3,0) `cmap` that places them at `F020`–`F0FF`; they have no Unicode `cmap`. `FontMetricsReader` reads that subtable when a font has no Unicode one, so a `w:sym` (`<w:sym w:font="Wingdings" w:char="F0FE"/>`) is measured and drawn from the font like any other character.
+
+Neither font ships with Linux or macOS, nor with Morph. Where the symbol font does not resolve — or resolves to a stand-in without the glyph — a `w:sym` is drawn as its Unicode equivalent (`SymbolFonts`: Wingdings' checkboxes, checks, bullets and arrows; Symbol's Greek and mathematical characters), from the embedded `Morph Bullets` face, which carries ☐ ☑ ☒ ✓, else from the default font. The run is never left naming the missing font, which the raster painters would throw for under a `FontDirectory`. So a document's checkboxes survive a `FontDirectory` without Wingdings; put `wingding.ttf` in the directory to draw Word's own glyphs. See *Symbol Characters* in [word-features.md](word-features.md).
+
 ## Configuration
 
 Font configuration is split between the shared [`ExportOptions`](../src/Morph/Export/ExportOptions.cs) base record and the per-format records that derive from it — the layout-affecting knobs only exist where they can take effect, so **which options are available depends on the output format**:

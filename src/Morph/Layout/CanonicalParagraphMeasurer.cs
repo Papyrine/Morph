@@ -1641,8 +1641,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     List<Piece> Flatten(ParagraphElement paragraph)
     {
         var pieces = new List<Piece>();
-        foreach (var run in paragraph.Runs)
+        foreach (var paragraphRun in paragraph.Runs)
         {
+            var run = paragraphRun.Symbol is { } symbol ? SymbolRun(paragraphRun, symbol) : paragraphRun;
+
             // An inline image is an unbreakable box: it counts its display width toward the line width
             // (no text pitch — its height grows the line separately) and carries the drawable bytes.
             if (run.InlineImageData is { Length: > 0 } || run.InlineImageRasterFallbackData is { Length: > 0 })
@@ -1833,6 +1835,73 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         }
 
         return pieces;
+    }
+
+    /// <summary>
+    /// What a <c>w:sym</c> run lays out as — the text and face the painters then draw, so every backend
+    /// draws what was measured. In order:
+    /// <list type="number">
+    /// <item>The symbol font, when the face it resolves to has the character: under its (3,0) <c>cmap</c>
+    /// code (F0FE for Wingdings' ☑, a lone byte shifted into the F000 block), or as itself when that is
+    /// not a byte.</item>
+    /// <item>For a text font (a <c>w:sym</c> in Arial), the run as parsed: its text is the character the
+    /// code names, in a face the document's other runs are set in.</item>
+    /// <item>The run's text — the character's Unicode equivalent — in the embedded
+    /// <see cref="SymbolFonts.Fallback"/> face, which carries the checkboxes and bullets a document draws
+    /// with Wingdings and Symbol.</item>
+    /// <item>Otherwise the text in the default font, so a character the fallback lacks (Symbol's Greek) is
+    /// still drawn where that face has it, and shows as its missing-glyph box rather than vanishing where
+    /// it does not.</item>
+    /// </list>
+    /// The last two never name the missing symbol font: the raster painters throw for a family a
+    /// <c>FontDirectory</c> does not hold, where the measurer here falls back to the default font
+    /// (<see cref="LayoutFonts.ToDelegate"/>). Both faces are embedded in Morph.dll, so every painter
+    /// resolves them. <c>SourceIndex.Cursor</c> mirrors this by matching a symbol run's character to
+    /// whatever was placed for it.
+    /// </summary>
+    Run SymbolRun(Run run, RunSymbol symbol)
+    {
+        var properties = run.Properties;
+        var face = resolveFont(symbol.Font, properties.Bold, properties.Italic);
+        var code = SymbolFonts.FontCode(symbol.Code);
+        if (face != null &&
+            face.GlyphId(code) != 0)
+        {
+            return Laid(code.ToString(), symbol.Font);
+        }
+
+        var text = run.Text;
+        if (text.Length == 0 ||
+            !SymbolFonts.IsSymbolFont(symbol.Font))
+        {
+            return run;
+        }
+
+        var fallback = resolveFont(SymbolFonts.Fallback, properties.Bold, properties.Italic);
+        if (fallback != null &&
+            fallback.GlyphId(text[0]) != 0)
+        {
+            return Laid(text, SymbolFonts.Fallback);
+        }
+
+        return Laid(text, DefaultFontSettings.DefaultFont);
+
+        Run Laid(string laidText, string family)
+        {
+            if (laidText == run.Text &&
+                family == properties.FontFamily)
+            {
+                return run;
+            }
+
+            return run
+                .WithText(laidText)
+                .WithProperties(
+                    properties with
+                    {
+                        FontFamily = family
+                    });
+        }
     }
 
     /// <summary>

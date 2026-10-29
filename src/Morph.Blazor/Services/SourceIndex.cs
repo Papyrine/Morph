@@ -281,8 +281,12 @@ sealed class SourceIndex
                     continue;
                 }
 
+                // A w:sym's one character is laid out as its symbol font's code or as its Unicode
+                // equivalent, whichever a face can draw (CanonicalParagraphMeasurer.SymbolRun), so
+                // whatever was placed for it is it.
                 var candidate = text[character];
-                if (candidate == placed)
+                if (candidate == placed ||
+                    runs[run].Symbol != null)
                 {
                     character++;
                     return true;

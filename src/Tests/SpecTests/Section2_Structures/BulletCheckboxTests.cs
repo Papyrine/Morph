@@ -16,7 +16,7 @@ public class BulletCheckboxTests
         var markers = Markers(("Wingdings", emptyBox), ("Wingdings", checkedBox));
 
         await Assert.That(markers[0]).IsEqualTo("☐");
-        await Assert.That(markers[1]).IsEqualTo("☒");
+        await Assert.That(markers[1]).IsEqualTo("☑");
     }
 
     // The same codepoint means something else in Symbol, which is why the lookup branches on the

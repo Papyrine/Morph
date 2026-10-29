@@ -37,7 +37,11 @@ looks up `U+2022` etc. and gets a glyph whose visual weight matches Word.
 | U+25B8 | `▸` | Small right triangle (drawn) | synthesized | — |
 | U+25BA | `►` | Right pointer (drawn) | synthesized | — |
 | U+2610 | `☐` | Legacy FORMCHECKBOX unchecked, and the Wingdings 0xA8 bullet a questionnaire template draws an empty checkbox with (drawn; box ≈1.15em dipping below baseline, matching Word's field rendering) | synthesized | — |
-| U+2612 | `☒` | Legacy FORMCHECKBOX checked, and the Wingdings 0xFE bullet that pairs with it (drawn) | synthesized | — |
+| U+2611 | `☑` | The Wingdings 0xFE bullet, and a `w:sym` checkbox (Wingdings F0FE) drawn where Wingdings is missing (drawn: the U+2610 box with a check stroked at the weight of U+2612's cross; appended last, so no earlier glyph id moved) | synthesized | — |
+| U+2612 | `☒` | Legacy FORMCHECKBOX checked, and a `w:sym` Wingdings F078 / F0FD drawn where Wingdings is missing (drawn) | synthesized | — |
+
+A `w:sym` (`SymbolFonts`) falls back to this face for any character it maps to one of the codepoints
+above, when the symbol font itself is not available — U+2610 is also Wingdings F06F and F0A8.
 
 ## Licensing
 
