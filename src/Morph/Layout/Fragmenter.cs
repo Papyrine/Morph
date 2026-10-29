@@ -54,6 +54,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
     // the column.
     const float separatorWidthPoints = 144f;
 
+    // The least a split row's fragment takes at the foot of a region: one generous line.
+    const float minFragmentHeight = 24f;
+
     // A picture-filled shape paints as the picture cut to the shape: the part of it the fill shows
     // (a:srcRect and a:stretch/a:fillRect, folded by the parser) stretched over the box, and the
     // shape's own outline - its contours, or its ellipse - as the clip. brochures/04's brick wall is
@@ -3370,7 +3373,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // Keep with next on rows (see KeepAfter): a table that fits where it stands still breaks when a
             // kept run of its rows — the last one taking what follows the table with it — does not, so it
             // is placed row by row, where each run is settled at the break Word walks back to.
-            if (!KeptRowsFit(table, rowHeights, keepAfter))
+            if (!KeptRowsFit(table, colWidths, rowHeights, keepAfter))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -3481,7 +3484,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (!atRegionTop &&
                     RowKeeps(row) &&
                     (rowIndex == 0 ? !keptBefore : !RowKeeps(table.Rows[rowIndex - 1])) &&
-                    y + KeptRun(table, rowHeights, rowIndex, keepAfter) > contentBottom)
+                    y + KeptRun(table, colWidths, rowHeights, rowIndex, keepAfter) > contentBottom)
                 {
                     AdvanceColumnOrPage();
                     broke = true;
@@ -3653,7 +3656,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 // A sliver at the bottom of a page holds nothing useful, so start the fragment on the next
                 // region rather than emitting a stub. minFragmentHeight is one generous line.
-                const float minFragmentHeight = 24f;
                 var advanced = false;
                 if (!atRegionTop &&
                     contentBottom - y < minFragmentHeight)
@@ -5406,23 +5408,26 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                     // A table has no spacing-before: the previous paragraph's after is the gap. Rows count
                     // whole — a row is placed against the hard bottom.
-                    var (_, rowHeights) = TableGeometry(table, colCount, columnWidth);
+                    var (colWidths, rowHeights) = TableGeometry(table, colCount, columnWidth);
                     bottom += previousAfter;
                     overhang = 0;
                     var bound = true;
                     for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
                     {
-                        bottom += rowHeights[rowIndex];
-                        if (rowIndex + 1 < table.Rows.Count &&
-                            !RowKeeps(table.Rows[rowIndex]) &&
-                            !IsMergeContinuation(table.Rows[rowIndex + 1]))
+                        var row = table.Rows[rowIndex];
+                        if (!RowKeeps(row) &&
+                            (rowIndex + 1 == table.Rows.Count ||
+                             !IsMergeContinuation(table.Rows[rowIndex + 1])))
                         {
+                            bottom += HeldOfRow(table, rowIndex, colWidths, rowHeights[rowIndex]);
                             bound = false;
                             break;
                         }
+
+                        bottom += rowHeights[rowIndex];
                     }
 
-                    if (!bound || !RowKeeps(table.Rows[^1]))
+                    if (!bound)
                     {
                         break;
                     }
@@ -5516,31 +5521,106 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // The height of the kept run of rows starting at `start`: the row, and each row below it for as
         // long as the row above keeps with it (a merge continuation always does), then — when the run
         // reaches the last row and that row keeps — whatever the table keeps with.
-        static float KeptRun(TableElement table, float[] rowHeights, int start, float keepAfter)
+        float KeptRun(TableElement table, float[] colWidths, float[] rowHeights, int start, float keepAfter)
         {
             var run = 0f;
             for (var rowIndex = start; rowIndex < table.Rows.Count; rowIndex++)
             {
-                run += rowHeights[rowIndex];
+                var row = table.Rows[rowIndex];
                 if (rowIndex + 1 == table.Rows.Count)
                 {
-                    return RowKeeps(table.Rows[rowIndex]) ? run + keepAfter : run;
+                    return RowKeeps(row)
+                        ? run + rowHeights[rowIndex] + keepAfter
+                        : run + HeldOfRow(table, rowIndex, colWidths, rowHeights[rowIndex]);
                 }
 
-                if (!RowKeeps(table.Rows[rowIndex]) &&
+                if (!RowKeeps(row) &&
                     !IsMergeContinuation(table.Rows[rowIndex + 1]))
                 {
-                    return run;
+                    return run + HeldOfRow(table, rowIndex, colWidths, rowHeights[rowIndex]);
                 }
+
+                run += rowHeights[rowIndex];
             }
 
             return run;
         }
 
+        // How much of the row that ends a kept chain has to land with it: the whole row when it cannot
+        // split, otherwise only an opening fragment — the chain then ends at the row's first line break,
+        // not its bottom. Word splits a long unkept row under a kept heading and header row at the foot of
+        // the page rather than moving the three over together (Papyrine/Morph#195).
+        //
+        // The opening is what PlaceSplitRow would accept as a first fragment: each cell's padding and the
+        // row's edges around its first paragraph's opening lines — the two the orphan rule holds together,
+        // or the whole paragraph when it cannot split — and never less than a declared floor, which a
+        // split owes its first piece, nor than the sliver a fragment needs to start at all.
+        float HeldOfRow(TableElement table, int rowIndex, float[] colWidths, float rowHeight)
+        {
+            var row = table.Rows[rowIndex];
+            if (!CanSplitRow(row) ||
+                TableHeightCalculator.IsPinnedExact(row))
+            {
+                return rowHeight;
+            }
+
+            var colCount = colWidths.Length;
+            var opening = 0f;
+            var gridColIndex = row.GridBefore;
+            foreach (var cell in row.Cells)
+            {
+                if (gridColIndex >= colCount)
+                {
+                    break;
+                }
+
+                var cellWidth = 0f;
+                for (var offset = 0;
+                     offset < cell.Properties.GridSpan &&
+                     gridColIndex + offset < colCount;
+                     offset++)
+                {
+                    cellWidth += colWidths[gridColIndex + offset];
+                }
+
+                gridColIndex += cell.Properties.GridSpan;
+                var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
+                if (cell.Content is not [ParagraphElement paragraph, ..])
+                {
+                    // A cell opening on anything but a paragraph is not measured line by line here.
+                    return rowHeight;
+                }
+
+                var properties = paragraph.Properties;
+                var lines = measurer.LayoutLineContents(paragraph, cellWidth - (float) (padding.Left + padding.Right));
+                var together = properties.WidowControl ? 2 : 1;
+                var held = !properties.KeepLines &&
+                           lines.Count >= together * 2
+                    ? together
+                    : lines.Count;
+                var cellOpening = (float) (padding.Top + padding.Bottom + properties.SpacingBeforePoints);
+                for (var line = 0; line < held; line++)
+                {
+                    cellOpening += lines[line].Height;
+                }
+
+                opening = Math.Max(opening, cellOpening);
+            }
+
+            opening += TableHeightCalculator.TopEdgeReserve(table, colCount, rowIndex) +
+                       TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: false);
+            if (TableLayout.DeclaredRowHeight(row, table.Properties) is { } declared)
+            {
+                opening = Math.Max(opening, declared);
+            }
+
+            return Math.Min(rowHeight, Math.Max(opening, minFragmentHeight));
+        }
+
         // Whether every kept run of a table placed whole from here fits where it would land. The run the
         // table opens with is exempt where the table cannot move: at a region top, or kept to what
         // precedes it.
-        bool KeptRowsFit(TableElement table, float[] rowHeights, float keepAfter)
+        bool KeptRowsFit(TableElement table, float[] colWidths, float[] rowHeights, float keepAfter)
         {
             var top = y;
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
@@ -5553,7 +5633,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                       !IsMergeContinuation(row);
                 if (startsRun &&
                     RowKeeps(row) &&
-                    top + KeptRun(table, rowHeights, rowIndex, keepAfter) > contentBottom)
+                    top + KeptRun(table, colWidths, rowHeights, rowIndex, keepAfter) > contentBottom)
                 {
                     return false;
                 }
