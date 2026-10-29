@@ -728,6 +728,42 @@ public class CanonicalFragmenterTests
         await Assert.That(LinePages(document, chain[0])).IsEqualTo(firstPage.ToString(CultureInfo.InvariantCulture));
     }
 
+    /// <summary>
+    /// A chain into a table ends at the first unkept row's first line break when that row can split, not
+    /// at its bottom: a kept heading and kept header row stay above a long row, which splits at the foot
+    /// of the page. Word and DocIO both put the heading and the row's first seventeen lines on page 1
+    /// (Papyrine/Morph#195).
+    /// </summary>
+    [Test]
+    public async Task A_chain_into_a_splittable_row_holds_only_its_opening()
+    {
+        var heading = Lines("H", 1, new()
+        {
+            KeepNext = true,
+            KeepLines = true
+        });
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows =
+            [
+                new()
+                {
+                    Cells = [new() {Content = [P("Header", Kept)], Properties = new()}]
+                },
+                new()
+                {
+                    Cells = [new() {Content = [.. Enumerable.Range(0, 10).Select(index => P($"Row line {index}"))], Properties = new()}]
+                }
+            ]
+        };
+
+        var document = fragmenter.Layout([.. Fillers(4), heading, table, P("After")], Page(200));
+
+        await Assert.That(LinePages(document, heading)).IsEqualTo("1");
+        await Assert.That(RowPages(document, table)).IsEqualTo("112");
+    }
+
     /// <summary>Keep does not reach across a page break. Probed: two kept lines stayed above one.</summary>
     [Test]
     public async Task Keep_does_not_reach_across_a_page_break()
