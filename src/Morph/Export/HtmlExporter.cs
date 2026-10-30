@@ -492,6 +492,12 @@ static class HtmlExporter
         // set while the footer is written (see WriteFooter).
         double? flowPageTop;
 
+        // The page-relative pictures and shapes placed against the block of the page being written
+        // rather than at their own place in the flow (see WriteBody), and how far above the page's
+        // content that block's padding starts.
+        readonly HashSet<DocumentElement> pagePlaced = [];
+        double pagePadding;
+
         public override string ToString() => builder.ToString();
 
         /// <summary>Appends already-escaped markup (the header/footer wrapper elements).</summary>
@@ -558,6 +564,43 @@ static class HtmlExporter
                     styles.Add($"min-height: {Length(below)}");
                 }
 
+                // A page-relative picture or shape the page does not open with — hung off a paragraph
+                // further down — is placed against the page's own block, so it stands where it does
+                // on its page whatever text comes before its anchor. At its anchor it was placed as
+                // far below its page's start as the anchor is: business/02's beige panel, hung off
+                // the paragraph under the MEMO title, started under the COMPANY NAME heading it
+                // backs. Only while what comes before it is paragraphs that still fit one page: the
+                // export does not paginate, and past a table, or a page of text, the anchor may be on
+                // Word's NEXT page — brochures/01's and newsletters/12's second-page art, placed
+                // against the block, piled onto the first page.
+                pagePlaced.Clear();
+                pagePadding = above;
+                var opening = true;
+                var flowHeight = 0.0;
+                for (var index = start; index < end; index++)
+                {
+                    var element = elements[index];
+                    if (AbsoluteExtent(element) == null)
+                    {
+                        opening = false;
+                        flowHeight += element is ParagraphElement paragraph
+                            ? RoughHeight(paragraph)
+                            : double.PositiveInfinity;
+                    }
+                    else if (!opening &&
+                             flowHeight < pageSettings.HeightPoints - pageSettings.MarginTop - pageSettings.MarginBottom &&
+                             element is FloatingShapeElement {VerticalAnchor: VerticalAnchor.Page or VerticalAnchor.Margin} or
+                                 FloatingImageElement {VerticalAnchor: VerticalAnchor.Page or VerticalAnchor.Margin})
+                    {
+                        pagePlaced.Add(element);
+                    }
+                }
+
+                if (pagePlaced.Count > 0)
+                {
+                    styles.Add("position: relative");
+                }
+
                 if (styles.Count == 0)
                 {
                     WriteElements(elements, 0, start, end);
@@ -581,6 +624,19 @@ static class HtmlExporter
 
                 start = end;
             }
+
+            pagePlaced.Clear();
+        }
+
+        // An overestimate of how tall a paragraph sets, to tell whether the text before a float
+        // still fits on one page: its spacing, and a line of 1.2 ems for every half-em of
+        // characters across the measure.
+        double RoughHeight(ParagraphElement paragraph)
+        {
+            var size = paragraph.Runs.Count > 0 ? paragraph.Runs.Max(_ => _.Properties.FontSizePoints) : 11;
+            var characters = paragraph.Runs.Sum(_ => _.Text.Length);
+            var lines = Math.Max(1, Math.Ceiling(characters * size / 2 / Math.Max(1, pageSettings.ContentWidth)));
+            return paragraph.Properties.SpacingBeforePoints + paragraph.Properties.SpacingAfterPoints + lines * size * 1.2;
         }
 
         // The index one past the page that starts at `start`: just after the break that ends it,
@@ -1605,9 +1661,10 @@ static class HtmlExporter
                 PageLeft(image.HorizontalAnchor, image.HorizontalPositionPoints),
                 PageTop(image.VerticalAnchor, image.VerticalPositionPoints),
                 image.VerticalAnchor);
+            var wrapper = FloatWrapper(image, ref top);
             var style = $"position: absolute; left: {Length(left)}; top: {Length(top)}; z-index: {(image.BehindText ? "-1" : "1")}{PictureClip(image.ClipToEllipse, image.ClipSubpaths)}";
 
-            Indent(depth).Append("""<div style="position: relative">""");
+            Indent(depth).Append(wrapper);
             AppendImageTag(
                 source, image.WidthPoints, image.HeightPoints, image.Description, style,
                 image.Crop, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical,
@@ -1732,6 +1789,20 @@ static class HtmlExporter
         (double Left, double Top) FloatOrigin(double pageLeft, double pageTop, VerticalAnchor anchor) =>
             (pageLeft - pageSettings.MarginLeft,
                 pageTop - (anchor is VerticalAnchor.Page or VerticalAnchor.Margin ? flowPageTop ?? pageSettings.MarginTop : pageSettings.MarginTop));
+
+        // The wrapper a wrap-NONE float is written in: positioned, so the float is placed from its
+        // own place in the flow, or bare for one placed against its page's block (pagePlaced), whose
+        // top then counts from that block's padding edge.
+        string FloatWrapper(DocumentElement element, ref double top)
+        {
+            if (!pagePlaced.Contains(element))
+            {
+                return """<div style="position: relative">""";
+            }
+
+            top += pagePadding;
+            return "<div>";
+        }
 
         // A float's offset from the page's top-left corner: a page-relative anchor measures from
         // the paper edge, anything else from the margin.
@@ -2131,6 +2202,15 @@ static class HtmlExporter
                 var fraction = tableProperties.PreferredWidthFraction ?? 1.0;
                 tableStyles.Add($"width: {Number(fraction * 100)}%");
             }
+            else if (tableProperties.PreferredWidthPoints is > 0 and var preferredWidth &&
+                     table.Rows.Any(_ => _.Cells.Any(cell => cell.Properties is {WidthPoints: not > 0, WidthFraction: > 0})))
+            {
+                // A dxa table whose cells are percentages: they are percentages of the table, so the
+                // table needs its width or the browser shrinks it round its content. wedding/05's
+                // second sheet of cards came out a third of the page wide, its washes standing
+                // beside the cards rather than behind them.
+                tableStyles.Add($"width: {Length(preferredWidth)}");
+            }
 
             // w:tblCellSpacing switches Word to the detached-border model: an outer frame around
             // the table plus a box per cell, separated by twice the declared spacing. That is
@@ -2295,7 +2375,7 @@ static class HtmlExporter
 
                 builder.Append('>');
                 AppendCellFloats(cell);
-                AppendCellContent(cell.Content, depth + 1, CellMeasure(properties, table.Properties));
+                AppendCellContent(cell.Content, depth + 1, CellMeasure(properties, table.Properties), table.Properties.IsSheetGrid || rows[rowIndex].IsExactHeight);
                 builder.Append($"</{tag}>\n");
                 gridColumn += span;
             }
@@ -2581,7 +2661,7 @@ static class HtmlExporter
             return Math.Max(0, properties.WidthPoints.Value - padding.Left - padding.Right);
         }
 
-        void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth, double measure)
+        void AppendCellContent(IReadOnlyList<DocumentElement> content, int depth, double measure, bool heightIsRows = false)
         {
             // Cell paragraphs render inline (separated by <br />) except heading-styled ones, which
             // emit as real <hN> blocks — a heading inside a table cell stays a heading
@@ -2751,6 +2831,39 @@ static class HtmlExporter
                         separatorPending = false;
                         break;
                 }
+            }
+
+            // The <br /> an empty paragraph leaves is only a line once something follows it, so a
+            // cell that ENDS on an empty paragraph — or holds nothing else — lost that line, where
+            // Word gives it one. wedding/02's cards are rows of empty cells under 70.9pt top
+            // margins, and each card came out 35pt short, its florals spilling past the frame. Not
+            // where the row decides the height: a row of exact height, whose empty line Word clips
+            // to it (labels/09's tickets grew past their art), or a sheet's grid, whose empty cells
+            // are the parser's rather than paragraphs of the book's.
+            if (!heightIsRows &&
+                content.Count > 0 &&
+                content[^1] is ParagraphElement {Properties.Numbering: null, IsCollapsedCellMark: false} last &&
+                IsBlankForHtml(last))
+            {
+                // A block of its own, at the paragraph mark's size and the paragraph's line spacing
+                // (wedding/02's Normal sets 1.5), so a small mark sets a small line: inline, the
+                // cell's own 11pt line held header_full_bleed_banner's 4pt banner rows open.
+                List<string> parts = [];
+                if ((last.Properties.ParagraphMarkFontSizePoints ?? (last.Runs.Count > 0 ? last.Runs[0].Properties.FontSizePoints : null)) is { } markSize)
+                {
+                    parts.Add($"font-size: {Length(markSize)}");
+                }
+
+                if (last.Properties.LineSpacingRule == LineSpacingRule.Auto)
+                {
+                    parts.Add($"line-height: {Number(last.Properties.LineSpacingMultiplier)}");
+                }
+                else if (last.Properties.LineSpacingPoints > 0.01)
+                {
+                    parts.Add($"line-height: {Length(last.Properties.LineSpacingPoints)}");
+                }
+
+                builder.Append(parts.Count == 0 ? "<div>&nbsp;</div>" : $"<div style=\"{string.Join("; ", parts)}\">&nbsp;</div>");
             }
         }
 
@@ -3616,9 +3729,10 @@ static class HtmlExporter
 
             var (pageLeft, pageTop, width, height) = ShapeBox(shape, pageSettings);
             var (left, top) = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor);
+            var wrapper = FloatWrapper(shape, ref top);
             if (width <= 0.01 || height <= 0.01)
             {
-                WriteLineShape(shape, depth, left, top, width, height);
+                WriteLineShape(shape, depth, wrapper, left, top, width, height);
                 return;
             }
 
@@ -3629,7 +3743,7 @@ static class HtmlExporter
             // square, and business-plans/08's accent rule (a 374pt bar turned a quarter) kept only
             // the 2pt of it that crossed its unrotated box.
             var shapeId = shapeIndex++;
-            Indent(depth).Append("""<div style="position: relative">""");
+            Indent(depth).Append(wrapper);
             builder.Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: {(shape.BehindText ? "-1" : "1")}; overflow: visible" viewBox="0 0 {Number(width)} {Number(height)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
 
             if (shape.ImageData is {Length: > 0} imageData)
@@ -3677,7 +3791,7 @@ static class HtmlExporter
         // were dropped whole, which is every fold, cut and tear guide of the card and label
         // sheets (cards/01, cards/12, cards/18, labels/03), cards/06's divider between the two
         // halves of an invitation and agendas-minutes/14's 10pt stripes.
-        void WriteLineShape(FloatingShapeElement shape, int depth, double left, double top, double width, double height)
+        void WriteLineShape(FloatingShapeElement shape, int depth, string wrapper, double left, double top, double width, double height)
         {
             var horizontal = width > 0.01;
             if (horizontal == height > 0.01 ||
@@ -3695,7 +3809,7 @@ static class HtmlExporter
                 ? (0.0, thickness / 2, length, thickness / 2)
                 : (thickness / 2, 0.0, thickness / 2, length);
 
-            Indent(depth).Append("""<div style="position: relative">""");
+            Indent(depth).Append(wrapper);
             builder.Append($"""<svg style="position: absolute; left: {Length(boxLeft)}; top: {Length(boxTop)}; width: {Length(boxWidth)}; height: {Length(boxHeight)}; z-index: {(shape.BehindText ? "-1" : "1")}; overflow: visible" viewBox="0 0 {Number(boxWidth)} {Number(boxHeight)}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">""");
             builder.Append("<line x1=\"").Append(Number(startX)).Append("\" y1=\"").Append(Number(startY))
                 .Append("\" x2=\"").Append(Number(endX)).Append("\" y2=\"").Append(Number(endY)).Append('"')

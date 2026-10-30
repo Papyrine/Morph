@@ -889,8 +889,7 @@ sealed class HtmlParser
                 var (imgData, imgContentType) = ParseDataUri(element.GetAttribute("src") ?? "");
                 if (imgData != null)
                 {
-                    var imgWidth = ParseDimensionAttribute(element, "width") ?? 100;
-                    var imgHeight = ParseDimensionAttribute(element, "height") ?? 100;
+                    var (imgWidth, imgHeight) = ImageSize(element, imgData);
                     runs.Add(
                         new()
                         {
@@ -2270,8 +2269,7 @@ sealed class HtmlParser
             return null;
         }
 
-        var width = ParseDimensionAttribute(element, "width") ?? 100;
-        var height = ParseDimensionAttribute(element, "height") ?? 100;
+        var (width, height) = ImageSize(element, data);
 
         return new()
         {
@@ -2317,6 +2315,41 @@ sealed class HtmlParser
         {
             return (null, null);
         }
+    }
+
+    // An <img>'s size in points: its width and height attributes, and where it declares one of
+    // them the other follows the picture's own proportions, as in a browser and in Word; where it
+    // declares neither, the picture's own pixels. The missing side stood at 100px, which drew
+    // html_images' width="150" picture of a 100x75 image 150x100 rather than 150x112.5, its
+    // block 14pt taller than Word's.
+    static (double Width, double Height) ImageSize(IElement element, byte[] data)
+    {
+        var width = ParseDimensionAttribute(element, "width");
+        var height = ParseDimensionAttribute(element, "height");
+        if (width is { } declaredWidth &&
+            height is { } declaredHeight)
+        {
+            return (declaredWidth, declaredHeight);
+        }
+
+        if (!ImageHeader.TryRead(data, out var pixelWidth, out var pixelHeight, out _, out _) ||
+            pixelWidth <= 0 ||
+            pixelHeight <= 0)
+        {
+            return (width ?? 100, height ?? 100);
+        }
+
+        if (width is { } onlyWidth)
+        {
+            return (onlyWidth, onlyWidth * pixelHeight / pixelWidth);
+        }
+
+        if (height is { } onlyHeight)
+        {
+            return (onlyHeight * pixelWidth / pixelHeight, onlyHeight);
+        }
+
+        return (pixelWidth * 0.75, pixelHeight * 0.75);
     }
 
     static double? ParseDimensionAttribute(IElement element, string attribute)
