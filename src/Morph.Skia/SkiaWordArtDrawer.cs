@@ -256,8 +256,15 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
             Edging = SKFontEdging.Antialias
         };
         var glyphs = WordArtArch.Glyphs(wordArt.Text);
-        var advances = glyphs.Select(_ => font.MeasureText(_)).ToList();
-        var baselineDepth = WordArtArch.BaselineDepthEm(context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic)) * font.Size;
+        var metrics = context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic);
+
+        // Bold in a face with none of its own (Impact) is Word's simulation, as in a line of text:
+        // each glyph a pixel of its layout grid wider and its strokes thickened. Undrawn, "Arc Text
+        // Up" ran 289px where Word's runs 302.
+        var emboldened = metrics == null ? SyntheticBold.None : BoldSimulation.For(wordArt.Bold, metrics);
+        var widening = emboldened == SyntheticBold.None ? 0 : context.PointsToPixels((float) BoldSimulation.AdvancePoints);
+        var advances = glyphs.Select(_ => font.MeasureText(_) + widening).ToList();
+        var baselineDepth = WordArtArch.BaselineDepthEm(metrics) * font.Size;
         var placements = WordArtArch.Place(
             advances, textLeft, textTop, textWidth, textHeight, scale, baselineDepth,
             wordArt.TextAlignment, wordArt.Transform);
@@ -267,6 +274,12 @@ sealed class SkiaWordArtDrawer(SkiaRenderContext context, SKCanvas canvas)
             IsAntialias = true,
             Color = wordArt.FillColorHex != null ? SkiaRenderContext.ParseColor(wordArt.FillColorHex) : SKColors.Black
         };
+        if (emboldened != SyntheticBold.None)
+        {
+            fillPaint.Style = SKPaintStyle.StrokeAndFill;
+            fillPaint.StrokeWidth = context.PointsToPixels((float) BoldSimulation.StrokeWidthPoints(emboldened, font.Size * 72.0 / context.Dpi, 72.0 / context.Dpi));
+        }
+
         using var outlinePaint = wordArt is {OutlineColorHex: { } outlineColor, OutlineWidthPoints: > 0}
             ? new SKPaint
             {

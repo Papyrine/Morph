@@ -20,7 +20,7 @@
 /// wrap: in mode 15 Word narrows the spaces of a justified line to take a word that does not quite fit
 /// (<see cref="CompatibilitySettings.SqueezesJustifiedLines"/>).</para>
 /// </summary>
-sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0, bool squeezeJustifiedLines = false) : IParagraphMeasurer
+sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0, bool squeezeJustifiedLines = false, Func<string, bool>? ownsFace = null) : IParagraphMeasurer
 {
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
@@ -1224,7 +1224,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 images.Count == 0 &&
                 !HasTab(linePieces))
             {
-                width += WidenEmboldened(segments, CanonicalTextMeasurer.PixelsToPoints(measurePixels - endPixels - lineFit));
+                width += DrawAtWordPixels(segments, CanonicalTextMeasurer.PixelsToPoints(measurePixels - endPixels - lineFit));
             }
 
             lines.Add(new(width, linearWidth, linePitch, segments, images, footnoteIds, endnoteIds));
@@ -1939,68 +1939,120 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         };
     }
 
-    // Draws a line's emboldened runs as wide as Word draws them: each glyph BoldSimulation.AdvancePoints
-    // wider, with everything after it on the line moved along. Only where the line has the room, and
-    // then by no more than the room: Word breaks the line on the regular advances and narrows the spaces
-    // of one that would overrun, so a line that already fills its measure is left as it was laid out.
-    // A justified or squeezed line has had its room given to its spaces, and a line with a tab or an
-    // inline picture places things at positions this would have to move with it; those stay as they are.
-    // A variable font's bold is not the simulation and keeps the regular advances. Returns the points
-    // the line grew by.
-    static float WidenEmboldened(List<WrapSegment> segments, double roomPoints)
+    // Draws a line's runs as wide as Word draws them (todo #43). Word breaks a line on the font's linear
+    // advances but DRAWS each glyph a whole pixel of its 120-dpi grid wide, at the em rounded to a whole
+    // pixel: the 26.6 scaled advance round(units x ppem x 64 / upm), rounded up from 30/64px in
+    // compatibility modes 12 and 14 and to the nearest pixel in mode 15, a glyph of the bold simulation a
+    // pixel more (BoldSimulation.AdvancePoints). Its pen falls behind the linear position inside a word,
+    // is brought up to it at a space, and is never pulled back, so where the whole pixels run wide (12pt
+    // Calibri draws 3.6% wider) a line ends right of where it was laid out: multiple_pages' full lines
+    // end at x=1124 in Word and stopped at 1095. Each run is drawn as wide as the pen takes it, its glyphs
+    // spread evenly across that width (CharacterSpacingPoints, which only the painters read), and
+    // everything after it on the line moved along. Only where the line has the room, and then by no more
+    // than the room: Word narrows the spaces of a line that would overrun its measure. A justified or
+    // squeezed line has had its room given to its spaces, and a line with a tab, a leader or an inline
+    // picture places things at positions this would have to move with it; those stay as they are.
+    // Returns the points the line grew by.
+    float DrawAtWordPixels(List<WrapSegment> segments, double roomPoints)
     {
-        var glyphs = 0;
-        foreach (var segment in segments)
-        {
-            if (segment.Leader != TabLeader.None)
-            {
-                return 0;
-            }
-
-            if (segment.Properties.SyntheticBold == SyntheticBold.Simulated)
-            {
-                glyphs += new StringInfo(segment.Text).LengthInTextElements;
-            }
-        }
-
-        if (glyphs == 0 || roomPoints <= 0)
+        if (segments.Count == 0 ||
+            segments.Any(_ => _.Leader != TabLeader.None))
         {
             return 0;
         }
 
-        var perGlyph = Math.Min(BoldSimulation.AdvancePoints, roomPoints / glyphs);
-        if (perGlyph < 0.05)
-        {
-            return 0;
-        }
-
-        var shift = 0f;
+        var deltas = new double[segments.Count];
+        var glyphCounts = new int[segments.Count];
+        var growth = 0.0;
         for (var index = 0; index < segments.Count; index++)
         {
             var segment = segments[index];
-            if (segment.Properties.SyntheticBold != SyntheticBold.Simulated)
+            var properties = segment.Properties;
+            var elements = StringInfo.GetTextElementEnumerator(segment.Text);
+            // A face that stands in for one not here (business-plans/15's Univers, measured on Tahoma)
+            // has its own pixels, not the missing face's, and spread its letters apart: it is drawn as
+            // laid out.
+            var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
+            if (metrics == null ||
+                metrics.UnitsPerEm <= 0 ||
+                ownsFace?.Invoke(properties.FontFamily) == false)
             {
-                segments[index] = segment with
-                {
-                    X = segment.X + shift
-                };
                 continue;
             }
 
-            var grown = (float) (perGlyph * new StringInfo(segment.Text).LengthInTextElements);
-            segments[index] = segment with
+            var sizePoints = VerticalRunPosition.RenderSizePoints(properties);
+            var ppem = Math.Round(sizePoints * CanonicalTextMeasurer.ReferenceDpi / 72, MidpointRounding.AwayFromZero);
+            var scale = properties.CharacterScalePercent / 100.0;
+            var extra = properties.CharacterSpacingPoints +
+                        (properties.SyntheticBold == SyntheticBold.Simulated ? BoldSimulation.AdvancePoints : 0);
+            var pen = 0.0;
+            var consumed = 0;
+            var glyphs = 0;
+            while (elements.MoveNext())
             {
-                X = segment.X + shift,
-                Width = segment.Width + grown,
-                Properties = segment.Properties with
+                var element = (string) elements.Current;
+                consumed += element.Length;
+                glyphs++;
+                var pixels = 0L;
+                foreach (var rune in element.EnumerateRunes())
                 {
-                    CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + perGlyph
+                    var scaled = (long) Math.Round(metrics.AdvanceUnits(rune.Value) * ppem * 64 / metrics.UnitsPerEm, MidpointRounding.AwayFromZero);
+                    pixels += (scaled + (squeezeJustifiedLines ? 32 : 34)) / 64;
                 }
-            };
-            shift += grown;
+
+                pen += CanonicalTextMeasurer.PixelsToPoints(pixels) * scale + extra;
+                if (element == " ")
+                {
+                    pen = Math.Max(pen, TextWidthPoints(properties, segment.Text[..consumed]));
+                }
+            }
+
+            glyphCounts[index] = glyphs;
+            deltas[index] = pen - segment.Width;
+            growth += deltas[index];
         }
 
-        return shift;
+        if (Math.Abs(growth) < 0.05)
+        {
+            return 0;
+        }
+
+        // A line that would overrun its measure gives back the excess, as Word narrows its spaces.
+        if (growth > roomPoints)
+        {
+            var excess = growth - Math.Max(0, roomPoints);
+            var positive = deltas.Where(_ => _ > 0).Sum();
+            for (var index = 0; index < deltas.Length; index++)
+            {
+                if (deltas[index] > 0)
+                {
+                    deltas[index] -= excess * deltas[index] / positive;
+                }
+            }
+
+            growth = deltas.Sum();
+        }
+
+        var shift = 0.0;
+        for (var index = 0; index < segments.Count; index++)
+        {
+            var segment = segments[index];
+            var delta = glyphCounts[index] > 0 ? deltas[index] : 0;
+            segments[index] = segment with
+            {
+                X = (float) (segment.X + shift),
+                Width = (float) (segment.Width + delta),
+                Properties = glyphCounts[index] > 0 && Math.Abs(delta) > 0.001
+                    ? segment.Properties with
+                    {
+                        CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + delta / glyphCounts[index]
+                    }
+                    : segment.Properties
+            };
+            shift += delta;
+        }
+
+        return (float) shift;
     }
 
     // A runless paragraph that exists only to carry a section break's sectPr contributes its spacing but

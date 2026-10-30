@@ -255,9 +255,13 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         var font = context.GetFontForFamily(wordArt.FontFamily, drawnSizePoints, wordArt.Bold, wordArt.Italic);
         var measureOptions = new RichTextOptions(font) {Dpi = context.Dpi};
         var glyphs = WordArtArch.Glyphs(wordArt.Text);
-        var advances = glyphs.Select(_ => TextMeasurer.MeasureAdvance(_, measureOptions).Width).ToList();
-        var baselineDepth = context.PointsToPixels(
-            WordArtArch.BaselineDepthEm(context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic)) * drawnSizePoints);
+        var metrics = context.LayoutMetrics(wordArt.FontFamily, wordArt.Bold, wordArt.Italic);
+
+        // Word's bold simulation for a face with no bold of its own, as SkiaWordArtDrawer draws it.
+        var emboldened = metrics == null ? SyntheticBold.None : BoldSimulation.For(wordArt.Bold, metrics);
+        var widening = emboldened == SyntheticBold.None ? 0 : context.PointsToPixels((float) BoldSimulation.AdvancePoints);
+        var advances = glyphs.Select(_ => TextMeasurer.MeasureAdvance(_, measureOptions).Width + widening).ToList();
+        var baselineDepth = context.PointsToPixels(WordArtArch.BaselineDepthEm(metrics) * drawnSizePoints);
         var placements = WordArtArch.Place(
             advances, textLeft, textTop, textWidth, textHeight, scale, baselineDepth,
             wordArt.TextAlignment, wordArt.Transform);
@@ -266,6 +270,11 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
         var outlinePen = wordArt is {OutlineColorHex: { } outlineColor, OutlineWidthPoints: > 0}
             ? context.GetPen(ImageSharpRenderContext.ParseColor(outlineColor), context.PointsToPixels((float) wordArt.OutlineWidthPoints))
             : null;
+        var boldPen = emboldened == SyntheticBold.None
+            ? null
+            : context.GetPen(
+                wordArt.FillColorHex == null ? Color.Black : ImageSharpRenderContext.ParseColor(wordArt.FillColorHex),
+                context.PointsToPixels((float) BoldSimulation.StrokeWidthPoints(emboldened, drawnSizePoints, 72.0 / context.Dpi)));
 
         for (var i = 0; i < glyphs.Count; i++)
         {
@@ -288,7 +297,7 @@ sealed class ImageSharpWordArtDrawer(ImageSharpRenderContext context, DrawingCan
                 canvas.DrawText(glyphOptions, glyphs[i].AsSpan(), null, outlinePen);
             }
 
-            canvas.DrawText(glyphOptions, glyphs[i].AsSpan(), brush, null);
+            canvas.DrawText(glyphOptions, glyphs[i].AsSpan(), brush, boldPen);
             canvas.Restore();
         }
 
