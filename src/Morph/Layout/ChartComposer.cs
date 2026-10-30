@@ -1802,6 +1802,7 @@ sealed partial class ChartComposer(
                 LineColorHex = stroke.ColorHex,
                 LineWidthPoints = stroke.WidthPoints,
                 LineAlpha = stroke.Alpha,
+                RoundCap = stroke.RoundCap,
                 Subpaths = [[((x0 - left) / width, (y0 - top) / height), ((x1 - left) / width, (y1 - top) / height)]]
             });
     }

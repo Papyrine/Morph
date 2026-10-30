@@ -2,8 +2,9 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
 /// Covers <c>DocumentParser.ResolveStyleConditionals</c> — a table style's <c>w:tblStylePr</c> regions
-/// resolved through the <c>w:basedOn</c> chain, per property. A derived style that restates only one
-/// property of a region keeps the rest of the base's block for that region.
+/// resolved through the <c>w:basedOn</c> chain, a region's <c>w:tcPr</c> and <c>w:rPr</c> each taken whole
+/// from the nearest style that declares it (Word-probed, <c>_probe_tblinherit</c>). A derived style that
+/// restates only a region's run properties keeps the base's cell properties for it, and vice versa.
 /// </summary>
 public class TableStyleConditionalInheritanceTests
 {
@@ -18,7 +19,7 @@ public class TableStyleConditionalInheritanceTests
     static DocumentParser Parser() => new("Arial");
 
     [Test]
-    public async Task DerivedRegionMergesWithBaseRegionPerProperty()
+    public async Task DerivedRegionReplacesEachBlockItDeclares()
     {
         var basedOn = TableStyle("Base", null,
             """
@@ -53,14 +54,35 @@ public class TableStyleConditionalInheritanceTests
         var firstRow = conditionals[TableStyleOverrideValues.FirstRow];
         await Assert.That(firstRow.BackgroundColorHex).IsEqualTo("112233");
         await Assert.That(firstRow.RunColorHex).IsEqualTo("0000FF");
-        await Assert.That(firstRow.RunProperties!.Bold).IsTrue();
-        await Assert.That(firstRow.RunProperties.FontSizePoints).IsEqualTo(14);
-        await Assert.That(firstRow.Borders!.Top.IsVisible).IsTrue();
-        await Assert.That(firstRow.Borders.Top.WidthPoints).IsEqualTo(3);
-        // The derived nil is a declaration and stops the walk for that side.
+        // The derived rPr replaces the base's: its bold and size go.
+        await Assert.That(firstRow.RunProperties!.Bold).IsNotEqualTo(true);
+        await Assert.That(firstRow.RunProperties.FontSizePoints).IsNull();
+        // So does its tcPr: the base's top rule goes with it.
+        await Assert.That(firstRow.Borders!.Top.IsVisible).IsFalse();
         await Assert.That(firstRow.Borders.Bottom.IsVisible).IsFalse();
 
         // A region only the base declares is inherited whole.
         await Assert.That(conditionals[TableStyleOverrideValues.LastRow].BackgroundColorHex).IsEqualTo("EEEEEE");
+    }
+
+    [Test]
+    public async Task BlockTheDerivedRegionLeavesOutIsInherited()
+    {
+        var basedOn = TableStyle("Base", null,
+            """
+            <w:tblStylePr w:type="firstRow">
+              <w:rPr><w:sz w:val="40"/></w:rPr>
+              <w:tcPr><w:shd w:val="clear" w:color="auto" w:fill="FF0000"/></w:tcPr>
+            </w:tblStylePr>
+            """);
+        var derived = TableStyle("Derived", "Base",
+            """<w:tblStylePr w:type="firstRow"><w:rPr><w:b/></w:rPr></w:tblStylePr>""");
+
+        var firstRow = Parser().ResolveStyleConditionals(derived,
+            new() {["Base"] = basedOn, ["Derived"] = derived})![TableStyleOverrideValues.FirstRow];
+
+        await Assert.That(firstRow.BackgroundColorHex).IsEqualTo("FF0000");
+        await Assert.That(firstRow.RunProperties!.Bold).IsTrue();
+        await Assert.That(firstRow.RunProperties.FontSizePoints).IsNull();
     }
 }

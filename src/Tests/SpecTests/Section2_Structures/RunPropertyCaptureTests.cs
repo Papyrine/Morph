@@ -11,7 +11,7 @@ public class RunPropertyCaptureTests
 
         await Assert.That(props.SmallCaps).IsFalse();
         await Assert.That(props.KerningMinFontSizePoints).IsEqualTo(0);
-        await Assert.That(props.Ligatures).IsEqualTo(LigatureMode.Standard);
+        await Assert.That(props.Ligatures).IsEqualTo(LigatureMode.None);
         await Assert.That(props.Effects).IsEqualTo(TextEffects.None);
         await Assert.That(props.IsRightToLeft).IsFalse();
     }

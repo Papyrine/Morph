@@ -28,6 +28,7 @@ static class FontMetricsReader
     const uint os2Tag = 0x4F532F32;
     // 'GPOS'
     const uint gposTag = 0x47504F53;
+    const uint gsubTag = 0x47535542;
     // 'fvar'
     const uint fvarTag = 0x66766172;
 
@@ -164,7 +165,8 @@ static class FontMetricsReader
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
             GlyphForCodepoint = ReadCmap(stream, tables),
-            KernPairs = ReadKernPairs(stream, tables)
+            KernPairs = ReadKernPairs(stream, tables),
+            Ligatures = ReadLigatures(stream, tables)
         };
     }
 
@@ -193,6 +195,38 @@ static class FontMetricsReader
         catch (ArgumentOutOfRangeException)
         {
             // a malformed GPOS loses kerning, not the font
+            return null;
+        }
+        catch (IndexOutOfRangeException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Reads the GSUB <c>liga</c>-feature ligatures (<see cref="GsubLigatureTable"/>). Null when the
+    /// font has none, or its GSUB cannot be read.
+    /// </summary>
+    static GsubLigatureTable? ReadLigatures(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    {
+        if (!tables.TryGetValue(gsubTag, out var gsub) || gsub.Length < 10)
+        {
+            return null;
+        }
+
+        var bytes = new byte[gsub.Length];
+        if (!TryReadExactAt(stream, gsub.Offset, bytes))
+        {
+            return null;
+        }
+
+        try
+        {
+            return GsubLigatureTable.Read(bytes);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // a malformed GSUB loses ligatures, not the font
             return null;
         }
         catch (IndexOutOfRangeException)

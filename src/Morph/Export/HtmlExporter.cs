@@ -69,8 +69,9 @@ static class HtmlExporter
         // tagging every run with the same family.
         var bodyFont = DominantFont(document.Elements);
 
-        var headerContent = PickHeaderFooter(document.Header, document.FirstPageHeader);
-        var footerContent = PickHeaderFooter(document.Footer, document.FirstPageFooter);
+        var firstPageOnly = document.PageSettings.DifferentFirstPage;
+        var headerContent = PickHeaderFooter(document.Header, document.FirstPageHeader, firstPageOnly);
+        var footerContent = PickHeaderFooter(document.Footer, document.FirstPageFooter, firstPageOnly);
 
         if (!options.EmitDocument)
         {
@@ -104,6 +105,10 @@ static class HtmlExporter
         if (bodyFont != null)
         {
             bodyStyle.Add($"font-family: {CssFontFamily(bodyFont)}, sans-serif");
+            if (FontHelpers.InferWeightFromName(bodyFont) is { } bodyWeight and not 400)
+            {
+                bodyStyle.Add($"font-weight: {CssWeight(bodyWeight)}");
+            }
         }
 
         // The page geometry travels onto the body: the content width becomes a max-width so text
@@ -128,6 +133,13 @@ static class HtmlExporter
         // A document-level page background (w:background) becomes the body background so the page
         // colour survives — many template documents (resumes, brochures) rely on it.
         var pageBackground = DocumentExportHelpers.NormalizeColor(document.PageSettings.BackgroundColorHex);
+
+        // A solid rectangle behind the text that covers the whole page is the page's colour too,
+        // and as a shape it covers one page's height of a flow that runs longer: labels/15's cream
+        // backdrop stopped two-thirds down the export. It goes on the body instead, and the writer
+        // leaves it out.
+        var backdrop = pageBackground == null ? PageBackdrop(document.Elements, document.PageSettings) : null;
+        pageBackground ??= backdrop;
         if (pageBackground != null)
         {
             bodyStyle.Add($"background-color: {pageBackground}");
@@ -150,7 +162,10 @@ static class HtmlExporter
         }
 
         doc.Append(">\n");
-        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated, document.Comments);
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated, document.Comments)
+        {
+            BackdropOnBody = backdrop != null
+        };
         WriteHeaderFooter(writer, headerContent, "header", "doc-header");
         writer.WriteBody(document.Elements);
         writer.WriteNoteDefinitions();
@@ -194,8 +209,29 @@ static class HtmlExporter
     /// way of suppressing the header on page 1), so an empty one must not mask the default —
     /// hence the content test rather than a plain null check.
     /// </summary>
-    static HeaderFooterContent? PickHeaderFooter(HeaderFooterContent? standard, HeaderFooterContent? firstPage)
+    // The colour of the page-covering backdrop rectangles among the body's elements
+    // (HtmlWriter.IsPageBackdrop), when there are any and they all share one.
+    static string? PageBackdrop(IReadOnlyList<DocumentElement> elements, PageSettings page)
     {
+        var colors = elements
+            .OfType<FloatingShapeElement>()
+            .Where(_ => HtmlWriter.IsPageBackdrop(_, page))
+            .Select(_ => DocumentExportHelpers.NormalizeColor(_.FillColorHex))
+            .Distinct()
+            .ToList();
+        return colors.Count == 1 ? colors[0] : null;
+    }
+
+    // The export is one page, and under w:titlePg its one page is a first page: it shows the
+    // first-page header or footer, or none. letters/11 drew its default header's 7.5pt navy rule
+    // at the head of the export, a rule Word never reaches on that one-page letter.
+    static HeaderFooterContent? PickHeaderFooter(HeaderFooterContent? standard, HeaderFooterContent? firstPage, bool firstPageOnly)
+    {
+        if (firstPageOnly)
+        {
+            return HasContent(firstPage) ? firstPage : null;
+        }
+
         if (HasContent(standard))
         {
             return standard;
@@ -322,6 +358,22 @@ static class HtmlExporter
     // identifiers (Calibri) are left bare. Family names never contain quotes in practice.
     static string CssFontFamily(string font)
     {
+        var family = CssFamilyName(font);
+
+        // A family that names its weight ("Calibri Light") falls back to the family it is a
+        // weight of, which the weight (CssWeight) then picks the nearest face of — the reader
+        // with Avenir Next LT Pro but not its Light face gets Avenir rather than the generic.
+        var weightWord = FontHelpers.InferWeightFromName(font) == null ? -1 : font.LastIndexOf(' ');
+        if (weightWord > 0)
+        {
+            family += $", {CssFamilyName(font[..weightWord])}";
+        }
+
+        return family;
+    }
+
+    static string CssFamilyName(string font)
+    {
         if (font.Contains(' '))
         {
             return $"'{font}'";
@@ -329,6 +381,14 @@ static class HtmlExporter
 
         return font;
     }
+
+    static string CssWeight(int weight) =>
+        weight switch
+        {
+            400 => "normal",
+            FontHelpers.BoldWeight => "bold",
+            _ => weight.ToString(CultureInfo.InvariantCulture)
+        };
 
     static string Number(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 
@@ -1828,8 +1888,8 @@ static class HtmlExporter
         // sharing the same w:pBdr (SharesBorderGroupWith), so where the neighbours are known
         // (borderGroupPrevious/Next) the group law applies per member: the top edge belongs to the
         // group's first member (a later member shows the w:between rule there, or nothing) and the
-        // bottom edge to its last. Members still render as separate CSS boxes, so a full four-sided
-        // group keeps small side gaps at member boundaries — the reflowable residue.
+        // bottom edge to its last. Members still render as separate CSS boxes, which meet because
+        // a member that continues the group carries its after-spacing as padding.
         void AppendParagraphBorderStyle(List<string> parts, ParagraphProperties properties)
         {
             if (properties.Borders is not {HasAnyBorder: true} borders)
@@ -1859,7 +1919,11 @@ static class HtmlExporter
                 {
                     Bottom = BorderEdge.None
                 };
-                bottom = 0;
+
+                // Word draws the member's after-spacing inside the box, above the w:between rule,
+                // where a CSS margin would part the members' side rules (paragraph_borders).
+                bottom = properties.SpacingAfterPoints;
+                parts.Add("margin-bottom: 0");
             }
 
             if (effective.HasAnyBorder)
@@ -1946,9 +2010,10 @@ static class HtmlExporter
         {
             var item = MarkerContext(node.Paragraph, context);
             var parts = new List<string>();
-            if (item.Bold != context.Bold)
+            var itemWeight = ElementWeight(item, bodyFont);
+            if (itemWeight != ElementWeight(context, bodyFont))
             {
-                parts.Add(item.Bold ? "font-weight: bold" : "font-weight: normal");
+                parts.Add($"font-weight: {CssWeight(itemWeight)}");
             }
 
             if (item.FontFamily != context.FontFamily)
@@ -2206,7 +2271,7 @@ static class HtmlExporter
                 var borders = TableLayout.ResolveCellBorders(
                     properties, table.Properties, rowIndex, gridColumn, rows.Count, totalColumns, rows[rowIndex], rows);
 
-                var cellStyle = CellStyle(properties, borders, table.Properties);
+                var cellStyle = CellStyle(properties, borders, table.Properties, rows[rowIndex]);
 
                 // A cell holding anchored art becomes the positioning context for it (below).
                 if (cell.Floats.Count > 0)
@@ -2242,7 +2307,7 @@ static class HtmlExporter
         // a non-default vertical alignment, declared cell margins, text direction, diagonals, and
         // resolved borders. Top alignment is the td/th stylesheet default, so only middle/bottom
         // are emitted.
-        static string? CellStyle(TableCellProperties properties, CellBorders? borders, TableProperties tableProperties)
+        static string? CellStyle(TableCellProperties properties, CellBorders? borders, TableProperties tableProperties, TableRow row)
         {
             var parts = new List<string>();
 
@@ -2277,10 +2342,24 @@ static class HtmlExporter
 
             // Declared cell margins (w:tcMar / w:tblCellMar) become padding. A per-cell override is
             // always the author's explicit ask; the table-wide default is emitted only when it
-            // exceeds the stylesheet's generic 4pt/7pt look — an ordinary Word default (0 vertical,
-            // 5.4pt horizontal) keeps the shared rule.
-            var padding = properties.Padding ??
-                (ExceedsStylesheetPadding(tableProperties.DefaultCellPadding) ? tableProperties.DefaultCellPadding : null);
+            // exceeds the stylesheet's generic 4pt/7pt look, or is declared narrowing the sides below
+            // Word's own 5.4pt — an ordinary Word default (0 vertical, 5.4pt horizontal) keeps the shared rule.
+            // labels/09's ticket stubs zero the sides to fit a 26.25pt table in a 27pt cell, and
+            // the stylesheet's 7pt either side clipped the ticket numbers.
+            //
+            // A row's top and bottom margins are shared: every cell takes the largest each side
+            // declares across it, as the engine sets them (TableLayout.GetEffectivePadding). labels/10's
+            // first column declares a 0 top where its neighbours declare 14.4pt, and Word sets all three
+            // on one line; read per cell, the first column's text stood a margin high.
+            var tablePadding = tableProperties.DefaultCellPadding;
+            var (rowTop, rowBottom) = TableLayout.RowVerticalPadding(row, tableProperties);
+            var padding = properties.Padding != null ||
+                          ExceedsStylesheetPadding(tablePadding) ||
+                          tableProperties.DefaultCellPaddingDeclared && NarrowsWordSides(tablePadding) ||
+                          rowTop > tablePadding.Top + 0.01 ||
+                          rowBottom > tablePadding.Bottom + 0.01
+                ? TableLayout.GetEffectivePadding(properties, tableProperties, row)
+                : null;
             if (padding != null)
             {
                 parts.Add($"padding: {BoxShorthand(padding.Top, padding.Right, padding.Bottom, padding.Left)}");
@@ -2343,6 +2422,10 @@ static class HtmlExporter
         // td/th padding (4pt vertical, 7pt horizontal).
         static bool ExceedsStylesheetPadding(CellSpacing padding) =>
             padding.Top > 4.05 || padding.Bottom > 4.05 || padding.Left > 7.05 || padding.Right > 7.05;
+
+        // True when the table-wide cell margin sets either side visibly under Word's default 5.4pt.
+        static bool NarrowsWordSides(CellSpacing padding) =>
+            padding.Left < 5.35 || padding.Right < 5.35;
 
         // Emits the minimal CSS border declarations for a four-edge border set: a single shorthand
         // when all four edges are present and identical, otherwise one declaration per visible edge.
@@ -2907,9 +2990,33 @@ static class HtmlExporter
 
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
             // InlineStyle — so the source text stays intact rather than being eagerly uppercased.
-            AppendEncodedWithBreaks(SoftenNoBreakSpaces(text));
+            AppendEncodedWithBreaks(KeepSpaceRuns(SoftenNoBreakSpaces(text)));
 
             AppendCloseTags(tags);
+        }
+
+        // Word draws every space of a run of them, where HTML collapses the run to one:
+        // newsletters/06's letter-spaced masthead "S Y C A M O R E  N O T E S" parts its words with
+        // two spaces and exported as "SYCAMORENOTES". Each space followed by another is written
+        // no-break, so the run keeps its width and only its last space can wrap.
+        static string KeepSpaceRuns(string text)
+        {
+            if (!text.Contains("  "))
+            {
+                return text;
+            }
+
+            var chars = text.ToCharArray();
+            for (var i = 0; i < chars.Length - 1; i++)
+            {
+                if (chars[i] == ' ' &&
+                    chars[i + 1] == ' ')
+                {
+                    chars[i] = ' ';
+                }
+            }
+
+            return new(chars);
         }
 
         // A single no-break space BETWEEN words renders as an ordinary space — that is exactly what
@@ -2981,7 +3088,8 @@ static class HtmlExporter
             // Markdown exporter's heading bold suppression. A run that is explicitly non-bold in a
             // heading is still honoured: InlineStyle emits font-weight: normal for it.
             var strong = properties.Bold &&
-                         !context.Bold;
+                         !context.Bold &&
+                         NamedWeight(properties, context, bodyFont) == null;
             if (strong)
             {
                 builder.Append("<strong>");
@@ -3073,6 +3181,28 @@ static class HtmlExporter
             }
         }
 
+        /// <summary>The weight a family names for itself ("… Light" is 300), or null.</summary>
+        static int? NamedWeight(RunProperties properties, TextContext context, string? bodyFontFamily)
+        {
+            var family = string.IsNullOrEmpty(properties.FontFamily) ? context.FontFamily ?? bodyFontFamily : properties.FontFamily;
+            return family == null ? null : FontHelpers.InferWeightFromName(family);
+        }
+
+        /// <summary>
+        /// The weight a run inherits from its element: a heading's bold, else the weight the
+        /// element's family names (the &lt;body&gt; carries its own, see Export), else normal.
+        /// </summary>
+        static int ElementWeight(TextContext context, string? bodyFontFamily)
+        {
+            if (context.Bold)
+            {
+                return FontHelpers.BoldWeight;
+            }
+
+            var family = context.FontFamily ?? bodyFontFamily;
+            return (family == null ? null : FontHelpers.InferWeightFromName(family)) ?? 400;
+        }
+
         static string? InlineStyle(RunProperties properties, TextContext context, string? bodyFontFamily)
         {
             // The element's own colour is what a run inherits — black unless a list item took its
@@ -3094,8 +3224,21 @@ static class HtmlExporter
 
             // Headings are bold by default in the stylesheet; a non-bold run inside one (a "Prepared
             // for:" label styled Heading 2, say) must override back to normal weight to match Word.
-            var overrideWeight = context.Bold &&
-                                 !properties.Bold;
+            // A family that names its weight ("Avenir Next LT Pro Light") is drawn in that face
+            // whether the run is bold or not, as the resolver picks it (FontHelpers.ResolveTargetWeight),
+            // and bold only thickens that face's strokes. CSS bold would take the family's real Bold
+            // instead — newsletters/10's bold Heading 3 in the theme's Light face drew heavy bold in
+            // the export — so a bold run is written one weight step up: the face nearest a Light
+            // face thickened is the Regular.
+            var namedWeight = NamedWeight(properties, context, bodyFontFamily);
+            var weight = namedWeight is { } named
+                ? properties.Bold ? Math.Min(named + 100, 1000) : named
+                : properties.Bold ? FontHelpers.BoldWeight : 400;
+            var strong = properties.Bold &&
+                         !context.Bold &&
+                         namedWeight == null;
+            var overrideWeight = !strong &&
+                                 weight != ElementWeight(context, bodyFontFamily);
 
             // Only a run whose font differs from the one its element sets — the document's <body>
             // font, or a list item's marker face — needs an inline family; the common case (run
@@ -3114,7 +3257,8 @@ static class HtmlExporter
                 !hasFontSize &&
                 !overrideWeight &&
                 !hasFont &&
-                !hasLetterSpacing)
+                !hasLetterSpacing &&
+                !TextRelief.Applies(properties))
             {
                 return null;
             }
@@ -3122,7 +3266,7 @@ static class HtmlExporter
             var style = new StringBuilder();
             if (overrideWeight)
             {
-                style.Append("font-weight: normal; ");
+                style.Append($"font-weight: {CssWeight(weight)}; ");
             }
 
             if (hasFont)
@@ -3150,6 +3294,15 @@ static class HtmlExporter
             if (hasLetterSpacing)
             {
                 style.Append($"letter-spacing: {Length(properties.CharacterSpacingPoints)}; ");
+            }
+
+            // Emboss and imprint as TextRelief draws them, seen from the text: a black copy one
+            // 1.2pt step up and left of it (emboss) or down and right (imprint), and a grey copy one
+            // step the other way. The first shadow is drawn on top, as the black copy is.
+            if (TextRelief.Applies(properties))
+            {
+                var step = properties.Emboss ? -1.2 : 1.2;
+                style.Append($"text-shadow: {Length(step)} {Length(step)} 0 #000000, {Length(-step)} {Length(-step)} 0 #999999; ");
             }
 
             if (properties.SmallCaps)
@@ -3431,8 +3584,36 @@ static class HtmlExporter
         // <svg> in the body's content-area coordinate space, drawn behind text via a negative
         // z-index. The vector data — solid/gradient/image fill, stroke, preset rect/ellipse or a
         // flattened custom polygon, plus rotation/flip — all map straight onto SVG primitives.
+        /// <summary>Whether the body carries the page backdrop's colour (see Export), so the rectangles are left out.</summary>
+        public bool BackdropOnBody { get; init; }
+
+        /// <summary>
+        /// A solid rectangle, unrotated and behind the text, that covers the whole page: what a
+        /// template draws for a page colour without w:background.
+        /// </summary>
+        internal static bool IsPageBackdrop(FloatingShapeElement shape, PageSettings page)
+        {
+            if (shape is not {BehindText: true, Preset: PresetShape.Rect, Subpaths: null, Gradient: null, ImageData: null, RotationDegrees: 0, FillAlpha: 1} ||
+                DocumentExportHelpers.NormalizeColor(shape.FillColorHex) == null)
+            {
+                return false;
+            }
+
+            var (left, top, width, height) = ShapeBox(shape, page);
+            return left <= 0.5 &&
+                   top <= 0.5 &&
+                   left + width >= page.WidthPoints - 0.5 &&
+                   top + height >= page.HeightPoints - 0.5;
+        }
+
         void WriteShape(FloatingShapeElement shape, int depth)
         {
+            if (BackdropOnBody &&
+                IsPageBackdrop(shape, pageSettings))
+            {
+                return;
+            }
+
             var (pageLeft, pageTop, width, height) = ShapeBox(shape, pageSettings);
             var (left, top) = FloatOrigin(pageLeft, pageTop, shape.VerticalAnchor);
             if (width <= 0.01 || height <= 0.01)

@@ -2717,10 +2717,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     /// <summary>
     /// Resolves a table style's <c>w:tblStylePr</c> conditional regions through the <c>w:basedOn</c>
-    /// chain, merging each region PER PROPERTY like <see cref="ResolveStyleBorders"/> and
-    /// <see cref="ResolveStyleRunProperties"/>: every border side, the cell shading and each run property
-    /// comes from the nearest style whose block for that region declares it. Taking the leaf's block
-    /// whole let a derived style that only recoloured its header row drop the base's header rules and bold.
+    /// chain, a region's <c>w:tcPr</c> and <c>w:rPr</c> each taken WHOLE from the nearest style whose
+    /// block for that region declares it. Word-probed 2026-10-30 (<c>_probe_tblinherit</c>: a base
+    /// first row of 20pt text on a red fill over a 6pt blue rule): a derived first row declaring only
+    /// bold keeps the base's fill and rule but sets its bold at the default size, and one declaring only
+    /// a green fill keeps the 20pt text but loses the blue rule. Neither the region taken whole (which
+    /// let a derived style that only recoloured its header row drop the base's bold) nor each property
+    /// merged on its own (which kept the base's size and rule) is what Word does.
     /// </summary>
     internal Dictionary<TableStyleOverrideValues, ConditionalFormat>? ResolveStyleConditionals(Style style, Dictionary<string, Style> tableStylesById)
     {
@@ -2765,30 +2768,26 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         foreach (var (type, chain) in blocks)
         {
             BorderType? top = null, right = null, bottom = null, left = null;
-            string? shading = null;
-            var runs = new List<DeclaredRunProperties>();
-            foreach (var tblStylePr in chain)
+            var tcPr = chain
+                .Select(_ => _.TableStyleConditionalFormattingTableCellProperties)
+                .FirstOrDefault(_ => _ != null);
+            if (tcPr?.GetFirstChild<TableCellBorders>() is { } tcBorders)
             {
-                var tcPr = tblStylePr.TableStyleConditionalFormattingTableCellProperties;
-                if (tcPr?.GetFirstChild<TableCellBorders>() is { } tcBorders)
-                {
-                    top ??= tcBorders.GetFirstChild<TopBorder>();
-                    right ??= tcBorders.GetFirstChild<RightBorder>();
-                    bottom ??= tcBorders.GetFirstChild<BottomBorder>();
-                    left ??= tcBorders.GetFirstChild<LeftBorder>();
-                }
-
-                shading ??= ReadShadingFill(tcPr?.GetFirstChild<Shading>());
-
-                // Run-level rPr inside the tblStylePr: font, size, colour and the toggles. Captured as
-                // DECLARED values rather than resolved ones, because this rung sits above the document
-                // defaults but below any paragraph style (ECMA-376 §17.7.2) and only what it actually
-                // says may be layered in.
-                if (ReadDeclaredRunProperties(tblStylePr.GetFirstChild<RunPropertiesBaseStyle>()) is { } declared)
-                {
-                    runs.Add(declared);
-                }
+                top = tcBorders.GetFirstChild<TopBorder>();
+                right = tcBorders.GetFirstChild<RightBorder>();
+                bottom = tcBorders.GetFirstChild<BottomBorder>();
+                left = tcBorders.GetFirstChild<LeftBorder>();
             }
+
+            var shading = ReadShadingFill(tcPr?.GetFirstChild<Shading>());
+
+            // Run-level rPr inside the tblStylePr: font, size, colour and the toggles. Captured as
+            // DECLARED values rather than resolved ones, because this rung sits above the document
+            // defaults but below any paragraph style (ECMA-376 §17.7.2) and only what it actually
+            // says may be layered in.
+            var run = ReadDeclaredRunProperties(chain
+                .Select(_ => _.GetFirstChild<RunPropertiesBaseStyle>())
+                .FirstOrDefault(_ => _ != null));
 
             var declaredSides = (top != null ? BorderSides.Top : BorderSides.None)
                                 | (right != null ? BorderSides.Right : BorderSides.None)
@@ -2804,16 +2803,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     Left = ParseBorderEdge(left),
                     Declared = declaredSides
                 };
-
-            DeclaredRunProperties? run = null;
-            if (runs.Count > 0)
-            {
-                run = runs[^1];
-                for (var i = runs.Count - 2; i >= 0; i--)
-                {
-                    run = run.Layer(runs[i]);
-                }
-            }
 
             if (borders == null &&
                 shading == null &&
@@ -5862,6 +5851,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // built-in Normal line height being too small (11pt x 1.08 instead of Word's
                 // 12pt x 278/240); with that fixed, the fudge overshot every unstyled row.
                 DefaultCellPadding = effectiveCellPadding ?? new CellSpacing(0),
+                DefaultCellPaddingDeclared = effectiveCellPadding != null,
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
                 IndentPoints = indentPoints,
                 WidthOverhangPoints = widthOverhang,
@@ -13688,8 +13678,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             kerningMinFontSize = kernElement.Val.Value.HalfPointsToPoints();
         }
 
-        // Ligature mode (w14:ligatures in rPr — Word 2010+ extension)
-        var ligatures = ParseLigatureMode(ligaturesElement);
+        // Ligature mode (w14:ligatures in rPr — Word 2010+ extension). Word sets standard ligatures
+        // only in compatibility mode 15, where a run that says nothing has them, and none at all in
+        // modes 14 and older whatever the run asks: _probe_liga (twenty 24pt Calibri f's and " xx",
+        // the measure stepped 1pt at a time) wraps " xx" below 165pt with standard or no
+        // w14:ligatures in mode 15, below 169pt with none or contextual-only, and below 169pt for
+        // every value in modes 12 and 14 (2026-10-30).
+        var ligatures = compatibilityMode >= 15 ? ParseLigatureMode(ligaturesElement) : LigatureMode.None;
 
         // RTL run (w:rtl)
         var runRtl = false;

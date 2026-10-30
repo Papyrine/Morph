@@ -61,9 +61,10 @@ public class KerningModeResolutionTests
     }
 
     [Test]
-    public async Task DisablesKerningWhenLigaturesNone()
+    public async Task KeepsKerningWhenLigaturesNone()
     {
-        // w14:ligatures="none" disables both ligatures and kerning under SixLabors' shaper.
+        // Ligatures are off below compatibility mode 15, but a kerned run still has to kern as it
+        // was measured; SixLabors cannot keep one without the other, so kerning decides.
         var props = new RunProperties
         {
             FontSizePoints = 24,
@@ -73,7 +74,7 @@ public class KerningModeResolutionTests
 
         var mode = ImageSharp::TextShaping.ResolveKerningMode(props);
 
-        await Assert.That(mode).IsEqualTo(KerningMode.None);
+        await Assert.That(mode).IsEqualTo(KerningMode.Standard);
     }
 
     [Test]

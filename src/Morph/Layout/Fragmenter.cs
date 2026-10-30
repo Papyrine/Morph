@@ -1758,10 +1758,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return pages;
         }
 
-        // Each flow paragraph's PRE-SPACING top — where the cursor sat before its space-before was
-        // applied, which is Word's paragraph-anchor reference (probed: an offset-0 anchored shape on a
-        // 60pt-before paragraph sits at the previous paragraph's bottom edge). A float whose anchor
-        // paragraph laid out before the float resolves from here.
+        // Each flow paragraph's PRE-SPACING top — the previous paragraph's bottom with the space-after it
+        // kept, before this paragraph's own space-before — which is Word's paragraph-anchor reference.
+        // Probed both ways: an offset-0 anchored shape on a 60pt-before paragraph sits at the previous
+        // paragraph's bottom edge (_probe_anchor_ref), and one under a paragraph with 48pt after sits
+        // 48pt below that edge, at its own line's top, in DrawingML and VML alike, and stays there when
+        // the anchor paragraph asks 24pt before as well (_probe_anchorafter, 2026-10-30). A float whose
+        // anchor paragraph laid out before the float resolves from here.
         readonly Dictionary<ParagraphElement, float> paragraphPreSpacingTops = [];
 
         // Non-wrapping floats waiting for their anchor paragraph's first line to place. Emitting at the
@@ -1888,6 +1891,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 deferred.Add(element);
+                return;
+            }
+
+            // The wrapping float of a paragraph still ahead resolves from where that paragraph's
+            // reference will be: below the space-after the previous paragraph keeps against it
+            // (paragraphPreSpacingTops). Resolving from the bare cursor ran ole_chart_preview's chart
+            // a bullet's 11.25pt after-spacing high of Word's.
+            if (anchor != null &&
+                !IsAbsoluteY(verticalAnchor) &&
+                !atRegionTop)
+            {
+                EmitBodyFloatAt(element, y + ParagraphGap.Between(lastAfter, lastContextual, lastStyleId, lastIsParagraph, anchor.Properties).After);
                 return;
             }
 
@@ -2828,7 +2843,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // the document start as a region top lost it — wordart-envelope's title sat 20pt (its w:before)
             // high. The deleted production render drew the same distinction through its
             // `pagesStarted <= 1` guard.
-            // Word's paragraph-anchor reference is this pre-spacing position (see paragraphPreSpacingTops).
+            // Word's paragraph-anchor reference is this pre-spacing position, moved below the previous
+            // paragraph's kept space-after once the gap is known (see paragraphPreSpacingTops).
             paragraphPreSpacingTops[paragraph] = y;
             paragraphOpen = true;
 
@@ -2845,6 +2861,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             if (!atRegionTop || atDocumentStart)
             {
                 var (keptAfter, keptBefore) = ParagraphGap.Between(lastAfter, lastContextual, lastStyleId, lastIsParagraph, properties);
+                paragraphPreSpacingTops[paragraph] = y + keptAfter;
                 y += keptAfter + keptBefore;
             }
             else if (atSectionStart || atOwnPageBreak)

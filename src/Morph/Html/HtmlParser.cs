@@ -1845,6 +1845,16 @@ sealed class HtmlParser
         // the table's top, and the second column moves 12pt per 10px. A full-width table takes the
         // rate vertically too — its rows are what html_complex's 35pt pitch is made of — and keeps
         // its old horizontal footing for the column distribution described above.
+        // A table that sets no padding, by attribute or CSS, takes HTML's default of 1px. Read off
+        // Word's XPS (_probe_htmltabledefaults, 2026-10-30): borderless rows of 12pt text stand 26.42pt
+        // apart at cellspacing=0 and 25.02pt with cellpadding=0 as well, and 28.02 / 26.62 with the
+        // default spacing; html_table's rows stood 1.7pt short of Word's with none.
+        if (cellPaddingPixels == null &&
+            defaultCellPadding == null)
+        {
+            cellPaddingPixels = 1;
+        }
+
         if (cellPaddingPixels is { } pixels)
         {
             var points = pixels * cellPaddingPixelsToPoints;

@@ -852,7 +852,11 @@ static class SkiaPainter
 
                 if (line != null)
                 {
+                    // The shared rule paint is butt-capped; a round-capped outline takes it round
+                    // for this path only.
+                    line.StrokeCap = shape.RoundCap ? SKStrokeCap.Round : SKStrokeCap.Butt;
                     canvas.DrawPath(path, line);
+                    line.StrokeCap = SKStrokeCap.Butt;
                 }
             }
             else

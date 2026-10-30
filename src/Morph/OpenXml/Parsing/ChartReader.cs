@@ -512,7 +512,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
 
         var width = Attribute(line, "w") is { } emus &&
                     long.TryParse(emus, out var parsed) ? parsed / OoxmlUnits.EmusPerPoint : 0.75;
-        return new(color, width, ShapeParser.ExtractSolidFillAlpha(solid));
+        return new(color, width, ShapeParser.ExtractSolidFillAlpha(solid), Attribute(line, "cap") == "rnd");
     }
 
     string? SolidColor(OpenXmlElement? properties) =>

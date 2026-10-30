@@ -184,16 +184,67 @@ sealed class CanonicalTextMeasurer
     /// is how Word DRAWS a kerned pair (it was read off XPS glyph positions: 24pt <c>Ta</c> draws T at
     /// 17.000px from an unkerned 20.042). As a layout width it gave 185.5, 166.7 and 157.9 for those
     /// columns and put an Aptos line of 22 kerned pairs 4.3px narrow.</para>
+    ///
+    /// <para>With <paramref name="ligatures"/> the font's standard ligatures are substituted first and
+    /// each is measured by its own advance, as Word's layout measures them in compatibility mode 15:
+    /// twenty 24pt Calibri <c>f</c>s set as ten <c>ff</c> ligatures move the measure at which a
+    /// following word fits from 169pt to 165pt (<c>_probe_liga</c>, 2026-10-30).</para>
     /// </summary>
-    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false)
+    public static double LinearPixels(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false, bool ligatures = false)
     {
-        var units = AdvanceUnits(metrics, text);
-        if (kerning)
+        long units;
+        if (ligatures &&
+            metrics.Ligatures is { } table)
         {
-            units += KernUnits(metrics, text);
+            var glyphs = table.Substitute(Glyphs(metrics, text));
+            units = 0;
+            foreach (var glyph in glyphs)
+            {
+                units += metrics.GlyphAdvanceUnits(glyph);
+            }
+
+            if (kerning)
+            {
+                units += KernUnits(metrics, glyphs);
+            }
+        }
+        else
+        {
+            units = AdvanceUnits(metrics, text);
+            if (kerning)
+            {
+                units += KernUnits(metrics, text);
+            }
         }
 
         return (double) units / metrics.UnitsPerEm * EmPixels(sizePoints) * fontWidthScale;
+    }
+
+    static List<ushort> Glyphs(FontMetrics metrics, string text)
+    {
+        var glyphs = new List<ushort>(text.Length);
+        foreach (var rune in text.EnumerateRunes())
+        {
+            glyphs.Add(metrics.GlyphId(rune.Value));
+        }
+
+        return glyphs;
+    }
+
+    static long KernUnits(FontMetrics metrics, IReadOnlyList<ushort> glyphs)
+    {
+        if (metrics.KernPairs is not { } kernTable)
+        {
+            return 0;
+        }
+
+        long units = 0;
+        for (var index = 1; index < glyphs.Count; index++)
+        {
+            units += kernTable.KernUnits(glyphs[index - 1], glyphs[index]);
+        }
+
+        return units;
     }
 
     // The pair adjustments between each glyph of the text and the next, in design units.
@@ -355,8 +406,8 @@ sealed class CanonicalTextMeasurer
     /// spaces only, a regression applied whole-advance (<c>src/page_counts.md</c>) — so it stays
     /// unmodelled by choice.
     /// </summary>
-    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false) =>
-        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning));
+    public static double MeasureWidthPoints(FontMetrics metrics, string text, double sizePoints, double fontWidthScale = 1.0, bool kerning = false, bool ligatures = false) =>
+        PixelsToPoints(LinearPixels(metrics, text, sizePoints, fontWidthScale, kerning, ligatures));
 
     /// <summary>
     /// Greedy word wrap: breaks <paramref name="text"/> into lines that each fit within
