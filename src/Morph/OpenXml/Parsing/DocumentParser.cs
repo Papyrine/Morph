@@ -173,6 +173,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Style numbering: styleId -> (numId, ilvl) for styles that define numbering
     Dictionary<string, (int numId, int ilvl)>? styleNumbering;
 
+    // The styles that put a paragraph in a list themselves (their own numPr, or a level's pStyle naming
+    // them) rather than through w:basedOn, and each paragraph style's own w:ind and base: what decides
+    // whose indent a style-numbered paragraph takes (StyleIndentBeforeList).
+    HashSet<string>? styleNumberingOwners;
+    Dictionary<string, (bool Left, bool Hanging, string? BasedOn)>? styleOwnIndents;
+
     // Numbering counters keyed by (abstractNumId, ilvl): OOXML's counter belongs to the
     // ABSTRACT definition, shared by every numId that references it — that's how a template's
     // per-table restart works (each table's first row carries its own numId + startOverride,
@@ -476,7 +482,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         numberingDefinitions = ExtractNumberingDefinitions(mainPart, numberingAbstractIds, numberingStartOverrides);
 
         // Extract style numbering (styles that have numPr)
-        styleNumbering = ExtractStyleNumbering(mainPart);
+        (styleNumbering, styleNumberingOwners) = ExtractStyleNumbering(mainPart);
+        styleOwnIndents = ExtractStyleOwnIndents(mainPart);
 
         // Extract table style borders
         tableStyleBorders = ExtractTableStyleBorders(mainPart);
@@ -1531,6 +1538,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // document default said — most body text, since such a run carries no w:rPr.
                 var kerningMinFontSize = baseProps?.KerningMinFontSizePoints ?? effectiveDefaultKerningMinPoints;
 
+                // The w14 text effects come down the chain too: menus/07's Title declares its outline
+                // and shadow on the style, and its title run carries no rPr of its own.
+                var outline = baseProps?.Outline;
+                var shadow = baseProps?.Shadow;
+                var glow = baseProps?.Glow;
+
                 RecordDeclared(styleId, basedOnId, runProps);
 
                 // If no run properties, still save inherited properties
@@ -1552,7 +1565,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         BackgroundColorHex = backgroundColor,
                         CharacterSpacingPoints = characterSpacing,
                         CharacterScalePercent = characterScale,
-                        KerningMinFontSizePoints = kerningMinFontSize
+                        KerningMinFontSizePoints = kerningMinFontSize,
+                        Outline = outline,
+                        Shadow = shadow,
+                        Glow = glow
                     };
                     processed.Add(styleId);
                     continue;
@@ -1685,6 +1701,22 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
+                // A style's own effect replaces the inherited one, an inert one (w14:noFill) included.
+                if (W14Effect(runProps, "textOutline", _ => new DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect(_)) is { } outlineElement)
+                {
+                    outline = ParseTextOutline(outlineElement, color);
+                }
+
+                if (W14Effect(runProps, "shadow", _ => new DocumentFormat.OpenXml.Office2010.Word.Shadow(_)) is { } shadowElement)
+                {
+                    shadow = ParseTextShadow(shadowElement);
+                }
+
+                if (W14Effect(runProps, "glow", _ => new DocumentFormat.OpenXml.Office2010.Word.Glow(_)) is { } glowElement)
+                {
+                    glow = ParseTextGlow(glowElement);
+                }
+
                 styleProps[styleId] = new()
                 {
                     FontFamily = fontFamily,
@@ -1701,7 +1733,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     BackgroundColorHex = backgroundColor,
                     CharacterSpacingPoints = characterSpacing,
                     CharacterScalePercent = characterScale,
-                    KerningMinFontSizePoints = kerningMinFontSize
+                    KerningMinFontSizePoints = kerningMinFontSize,
+                    Outline = outline,
+                    Shadow = shadow,
+                    Glow = glow
                 };
                 processed.Add(styleId);
             }
@@ -2419,7 +2454,65 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return result;
     }
 
-    static Dictionary<string, (int numId, int ilvl)> ExtractStyleNumbering(MainDocumentPart mainPart)
+    static Dictionary<string, (bool Left, bool Hanging, string? BasedOn)> ExtractStyleOwnIndents(MainDocumentPart mainPart)
+    {
+        var result = new Dictionary<string, (bool Left, bool Hanging, string? BasedOn)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var style in mainPart.StyleDefinitionsPart?.Styles?.Elements<Style>() ?? [])
+        {
+            if (style.StyleId?.Value is not { } id ||
+                style.Type?.Value != StyleValues.Paragraph)
+            {
+                continue;
+            }
+
+            var indentation = style.StyleParagraphProperties?.GetFirstChild<Indentation>();
+            result.TryAdd(
+                id,
+                (indentation?.Left?.HasValue == true || indentation?.Start?.HasValue == true,
+                    indentation?.Hanging?.HasValue == true,
+                    style.BasedOn?.Val?.Value));
+        }
+
+        return result;
+    }
+
+    // Whether a style-numbered paragraph's style indent comes from a style at or above the one that puts
+    // it in the list, which then outranks the list level's own (agendas-minutes/17's Bullets tightens its
+    // level's 1800 to 360). An indent from a base BELOW that style is outranked by the level, as the
+    // level stands between the two: resumes/19's Skills Bullets is based on Bullets Skills, which names
+    // the list (level 288 left, 288 hanging), based on Body Contact Info, which indents 14 twips; Word
+    // sets the items at the level's 288, with their bullets, where taking the 14 hung the bullets off
+    // the cell.
+    (bool Left, bool Hanging) StyleIndentBeforeList(string styleId)
+    {
+        if (styleOwnIndents == null ||
+            styleNumberingOwners == null)
+        {
+            return (true, true);
+        }
+
+        var left = false;
+        var hanging = false;
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var current = (string?) styleId;
+        while (current != null &&
+               visited.Add(current) &&
+               styleOwnIndents.TryGetValue(current, out var own))
+        {
+            left |= own.Left;
+            hanging |= own.Hanging;
+            if (styleNumberingOwners.Contains(current))
+            {
+                return (left, hanging);
+            }
+
+            current = own.BasedOn;
+        }
+
+        return (true, true);
+    }
+
+    static (Dictionary<string, (int numId, int ilvl)> Numbering, HashSet<string> Owners) ExtractStyleNumbering(MainDocumentPart mainPart)
     {
         var result = new Dictionary<string, (int numId, int ilvl)>(StringComparer.OrdinalIgnoreCase);
 
@@ -2468,10 +2561,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // Method 2: Extract from styles that have numPr directly
+        var declaredNone = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var stylesPart = mainPart.StyleDefinitionsPart;
         if (stylesPart?.Styles == null)
         {
-            return result;
+            return (result, new(result.Keys, StringComparer.OrdinalIgnoreCase));
         }
 
         foreach (var style in stylesPart.Styles.Elements<Style>())
@@ -2502,9 +2596,46 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 result[styleId] = (numId, ilvl);
             }
+            else if (numPr.NumberingId != null)
+            {
+                declaredNone.Add(styleId);
+            }
         }
 
-        return result;
+        var owners = new HashSet<string>(result.Keys, StringComparer.OrdinalIgnoreCase);
+
+        // A style that declares no list takes its base style's, down the w:basedOn chain; one that
+        // declares numId 0 stops it. resumes/19's Skills Bullets is based on Bullets Skills, whose
+        // numPr is the list, and its items were drawn without bullets.
+        var paragraphStyles = stylesPart.Styles.Elements<Style>()
+            .Where(_ => _.StyleId?.Value != null)
+            .GroupBy(_ => _.StyleId!.Value!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(_ => _.Key, _ => _.First(), StringComparer.OrdinalIgnoreCase);
+        foreach (var styleId in paragraphStyles.Keys)
+        {
+            if (result.ContainsKey(styleId) ||
+                declaredNone.Contains(styleId))
+            {
+                continue;
+            }
+
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {styleId};
+            var baseId = paragraphStyles[styleId].BasedOn?.Val?.Value;
+            while (baseId != null &&
+                   visited.Add(baseId) &&
+                   !declaredNone.Contains(baseId))
+            {
+                if (result.TryGetValue(baseId, out var inherited))
+                {
+                    result[styleId] = inherited;
+                    break;
+                }
+
+                baseId = paragraphStyles.TryGetValue(baseId, out var baseStyle) ? baseStyle.BasedOn?.Val?.Value : null;
+            }
+        }
+
+        return (result, owners);
     }
 
     Dictionary<string, TableStyleBorderInfo> ExtractTableStyleBorders(MainDocumentPart mainPart)
@@ -6494,8 +6625,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // A layer "has" the value when it's non-zero - we can't distinguish "explicitly 0"
             // from "default 0" without re-parsing, but in practice any zero indent means the
             // layer didn't set one and the next should fill in.
-            var styleHasLeft = (styleDefaults?.LeftIndentPoints ?? 0) > 0;
-            var styleHasHanging = (styleDefaults?.HangingIndentPoints ?? 0) > 0;
+            var (styleIndentsLeft, styleIndentsHanging) = paragraphStyleId == null ? (true, true) : StyleIndentBeforeList(paragraphStyleId);
+            var styleHasLeft = styleIndentsLeft && (styleDefaults?.LeftIndentPoints ?? 0) > 0;
+            var styleHasHanging = styleIndentsHanging && (styleDefaults?.HangingIndentPoints ?? 0) > 0;
             var numberingHasLeft = numberingInfo.IndentPoints > 0;
             var numberingHasHanging = numberingInfo.HangingIndentPoints > 0;
 
@@ -9624,25 +9756,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// wrapTopAndBottom), its side preference (@wrapText) and clearance distances. Distances
     /// are EMU in OOXML; absent attributes mean zero clearance / both sides.
     /// </summary>
+    // How the text goes round an anchored drawing, and how far it keeps off it. A distance the wrap
+    // element leaves unsaid is the anchor's (wp:anchor@distL and the rest), which is where Word writes
+    // them: image_wrap_square's picture declares its 9pt sides on the anchor alone, and its paragraph
+    // ran up against the picture's edge where Word's stands 9pt clear.
     static (WrapType Type, WrapTextSide Side, double DistLeft, double DistTop, double DistRight, double DistBottom) ParseWrap(DW.Anchor anchor)
     {
+        double Points(UInt32Value? own, UInt32Value? anchorDistance) =>
+            (own?.Value ?? anchorDistance?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
+
         if (anchor.GetFirstChild<DW.WrapSquare>() is { } square)
         {
             return (WrapType.Square,
                 ParseWrapTextSide(square.WrapText),
-                (square.DistanceFromLeft?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
-                (square.DistanceFromTop?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
-                (square.DistanceFromRight?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
-                (square.DistanceFromBottom?.Value ?? 0) / OoxmlUnits.EmusPerPoint);
+                Points(square.DistanceFromLeft, anchor.DistanceFromLeft),
+                Points(square.DistanceFromTop, anchor.DistanceFromTop),
+                Points(square.DistanceFromRight, anchor.DistanceFromRight),
+                Points(square.DistanceFromBottom, anchor.DistanceFromBottom));
         }
 
         if (anchor.GetFirstChild<DW.WrapTight>() is { } tight)
         {
             return (WrapType.Tight,
                 ParseWrapTextSide(tight.WrapText),
-                (tight.DistanceFromLeft?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                Points(tight.DistanceFromLeft, anchor.DistanceFromLeft),
                 0,
-                (tight.DistanceFromRight?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                Points(tight.DistanceFromRight, anchor.DistanceFromRight),
                 0);
         }
 
@@ -9650,9 +9789,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             return (WrapType.Through,
                 ParseWrapTextSide(through.WrapText),
-                (through.DistanceFromLeft?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                Points(through.DistanceFromLeft, anchor.DistanceFromLeft),
                 0,
-                (through.DistanceFromRight?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                Points(through.DistanceFromRight, anchor.DistanceFromRight),
                 0);
         }
 
@@ -9661,9 +9800,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return (WrapType.TopAndBottom,
                 WrapTextSide.BothSides,
                 0,
-                (topBottom.DistanceFromTop?.Value ?? 0) / OoxmlUnits.EmusPerPoint,
+                Points(topBottom.DistanceFromTop, anchor.DistanceFromTop),
                 0,
-                (topBottom.DistanceFromBottom?.Value ?? 0) / OoxmlUnits.EmusPerPoint);
+                Points(topBottom.DistanceFromBottom, anchor.DistanceFromBottom));
         }
 
         return (WrapType.None, WrapTextSide.BothSides, 0, 0, 0, 0);
@@ -13694,9 +13833,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // w14 text effects (parameters captured for outline/shadow/glow; reflection is presence-only)
-        var outline = ParseTextOutline(outlineEffectElement, color);
-        var shadow = ParseTextShadow(shadowElement);
-        var glow = ParseTextGlow(glowElement);
+        // A run's own effect replaces its style's, an inert one included; one it does not declare
+        // is its style's.
+        var outline = outlineEffectElement != null ? ParseTextOutline(outlineEffectElement, color) : styleDefaults?.Outline;
+        var shadow = shadowElement != null ? ParseTextShadow(shadowElement) : styleDefaults?.Shadow;
+        var glow = glowElement != null ? ParseTextGlow(glowElement) : styleDefaults?.Glow;
         var hasReflection = !IsInertEffect(reflectionElement);
 
         // Vertical alignment (subscript/superscript)
@@ -14189,11 +14330,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         (!element.HasAttributes &&
          !element.HasChildren);
 
-    static TextOutline? ParseTextOutline(
+    TextOutline? ParseTextOutline(
         DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? element,
         string? fillColor)
     {
-        if (IsInertEffect(element))
+        // An outline strokes only with a fill: w14:noFill, or no fill at all, draws nothing.
+        // agendas-minutes/08's Title declares a noFill outline, which drew in the text's own colour.
+        if (IsInertEffect(element) ||
+            !element.ChildElements.Any(_ => _.LocalName is "solidFill" or "gradFill"))
         {
             return null;
         }
@@ -14210,14 +14354,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    static TextShadow? ParseTextShadow(DocumentFormat.OpenXml.Office2010.Word.Shadow? element)
+    TextShadow? ParseTextShadow(DocumentFormat.OpenXml.Office2010.Word.Shadow? element)
     {
         if (IsInertEffect(element))
         {
             return null;
         }
 
-        // Word's defaults when attributes absent: 4pt distance, 45deg, 4pt blur, semi-transparent black.
+        // Word's defaults when attributes absent: 4pt distance, 45deg, 4pt blur, and with no colour a
+        // half-transparent black. A colour declared without w14:alpha is opaque, as any OOXML colour is:
+        // menus/07's Title shadow draws solid mint in Word.
         var blurPoints = (element.BlurRadius?.Value ?? (long) (4 * OoxmlUnits.EmusPerPoint)) / OoxmlUnits.EmusPerPoint;
         var distancePoints = (element.DistanceFromText?.Value ?? (long) (4 * OoxmlUnits.EmusPerPoint)) / OoxmlUnits.EmusPerPoint;
         // DirectionAngle is in 60000ths of a degree; OOXML 0deg = right, 90deg = down.
@@ -14230,11 +14376,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             BlurPoints = blurPoints,
             DistancePoints = distancePoints,
             DirectionDegrees = directionDegrees,
-            AlphaPercent = alpha ?? 50
+            AlphaPercent = alpha ?? (color == null ? 50 : 100)
         };
     }
 
-    static TextGlow? ParseTextGlow(DocumentFormat.OpenXml.Office2010.Word.Glow? element)
+    TextGlow? ParseTextGlow(DocumentFormat.OpenXml.Office2010.Word.Glow? element)
     {
         if (IsInertEffect(element))
         {
@@ -14251,8 +14397,31 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    // Walks a w14 effect element looking for solidFill > srgbClr; returns null if not found.
-    static string? ReadW14SolidFillColor(OpenXmlElement element)
+    // A w14 effect a style's rPr declares. The SDK types them in a run's rPr but leaves them unknown
+    // elements under a style's, so the typed element is built again from the markup.
+    static T? W14Effect<T>(OpenXmlElement runProperties, string localName, Func<string, T> fromXml)
+        where T : OpenXmlElement
+    {
+        foreach (var child in runProperties.ChildElements)
+        {
+            if (child is T typed)
+            {
+                return typed;
+            }
+
+            if (child.LocalName == localName &&
+                child.NamespaceUri == "http://schemas.microsoft.com/office/word/2010/wordml")
+            {
+                return fromXml(child.OuterXml);
+            }
+        }
+
+        return null;
+    }
+
+    // The colour of a w14 effect's solidFill: its srgbClr, or its schemeClr resolved against the theme.
+    // Null when it has neither.
+    string? ReadW14SolidFillColor(OpenXmlElement element)
     {
         foreach (var child in element.Descendants())
         {
@@ -14260,12 +14429,57 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 return rgb.Val.Value;
             }
+
+            if (child is DocumentFormat.OpenXml.Office2010.Word.SchemeColor scheme &&
+                ResolveW14Scheme(scheme) is { } resolved)
+            {
+                return resolved;
+            }
         }
 
         return null;
     }
 
-    static (string? Color, int? AlphaPercent) ReadW14ColorWithAlpha(
+    // A w14:schemeClr against the document theme, with its luminance and saturation transforms, which
+    // are DrawingML's under the w14 namespace. menus/07's Title outline is accent4 at lumMod 25% and its
+    // shadow accent4 at lumMod 90%: unresolved, the outline took the text's own white and the shadow
+    // black.
+    string? ResolveW14Scheme(DocumentFormat.OpenXml.Office2010.Word.SchemeColor scheme)
+    {
+        if (currentThemeColors == null ||
+            scheme.GetAttributes().AttributeValue("val") is not { } name)
+        {
+            return null;
+        }
+
+        List<ColorTransform>? operations = null;
+        foreach (var child in scheme.ChildElements)
+        {
+            ColorTransformKind? kind = child.LocalName switch
+            {
+                "shade" => ColorTransformKind.Shade,
+                "tint" => ColorTransformKind.Tint,
+                "lumMod" => ColorTransformKind.LumMod,
+                "lumOff" => ColorTransformKind.LumOff,
+                "satMod" => ColorTransformKind.SatMod,
+                "satOff" => ColorTransformKind.SatOff,
+                _ => null
+            };
+            if (kind is not { } known ||
+                child.GetAttributes().AttributeValue("val") is not { } raw ||
+                !int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+            {
+                continue;
+            }
+
+            operations ??= [];
+            operations.Add(ColorTransform.FromOoxml(known, value));
+        }
+
+        return currentThemeColors.ResolveColor(name, new ColorTransforms {Operations = operations ?? []});
+    }
+
+    (string? Color, int? AlphaPercent) ReadW14ColorWithAlpha(
         DocumentFormat.OpenXml.Office2010.Word.RgbColorModelHex? rgb,
         DocumentFormat.OpenXml.Office2010.Word.SchemeColor? scheme)
     {
@@ -14276,8 +14490,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (scheme != null)
         {
-            // Scheme-colour resolution against the document theme is not yet modelled here.
-            return (null, ReadW14Alpha(scheme));
+            return (ResolveW14Scheme(scheme), ReadW14Alpha(scheme));
         }
 
         return (null, null);

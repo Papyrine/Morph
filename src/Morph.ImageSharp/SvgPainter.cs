@@ -253,6 +253,23 @@ static class SvgPainter
                 return;
             }
 
+            // w14:shadow under the glyphs and w14:textOutline over them, as ImageSharpPainter draws them.
+            if (properties.Shadow is { } shadow)
+            {
+                var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
+                var shadowColor = ImageSharpRenderContext.ParseColor(shadow.ColorHex).WithAlpha(TextEffectGeometry.ShadowAlpha(shadow) / 255f);
+                TextElement(text, properties, penX + offsetX, baseline + offsetY, shadowColor, null);
+            }
+
+            TextElement(text, properties, penX, baseline, null, null);
+            if (properties.Outline is { } outline)
+            {
+                TextElement(text, properties, penX, baseline, null, outline);
+            }
+        }
+
+        void TextElement(string text, RunProperties properties, double penX, double baseline, Color? fillOverride, TextOutline? outlineOnly)
+        {
             var font = context.GetFont(properties);
             var positions = properties.CharacterSpacingPoints == 0 || text.Length <= 1
                 ? GlyphPositions.Of(font, TextShaping.ResolveKerningMode(properties), text)
@@ -294,11 +311,23 @@ static class SvgPainter
                 svg.Append(" font-style=\"italic\"");
             }
 
-            var color = ImageSharpRenderContext.ParseColor(properties.ColorHex);
-            Paint("fill", color);
+            var color = fillOverride ?? ImageSharpRenderContext.ParseColor(properties.ColorHex);
+            if (outlineOnly != null)
+            {
+                svg.Append(" fill=\"none\"");
+                Paint("stroke", ImageSharpRenderContext.ParseColor(outlineOnly.ColorHex));
+                svg.Append(" stroke-linejoin=\"round\" stroke-width=\"");
+                Number(outlineOnly.WidthPoints);
+                svg.Append('"');
+            }
+            else
+            {
+                Paint("fill", color);
+            }
 
             // A bold run in a face that is not bold: the outline is stroked as well (BoldSimulation).
-            if (properties.SyntheticBold != SyntheticBold.None)
+            if (outlineOnly == null &&
+                properties.SyntheticBold != SyntheticBold.None)
             {
                 Paint("stroke", color);
                 svg.Append(" stroke-width=\"");

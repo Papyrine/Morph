@@ -29,6 +29,10 @@ static class LayoutFonts
     /// table 16pt high. The measurer reads a null metric as an unresolved font (zero width), so only the
     /// terminal case — even DefaultFont fails — is translated into null.
     /// </summary>
+    /// <summary>The measurer's question of whether a family has a face of its own (<see cref="FontResolver{TFont}.Covers"/>).</summary>
+    public static Func<string, bool> Covers(FontResolver<FontMetrics> resolver) =>
+        resolver.Covers;
+
     public static Func<string, bool, bool, FontMetrics?> ToDelegate(FontResolver<FontMetrics> resolver) =>
         (family, bold, italic) =>
         {

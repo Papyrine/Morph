@@ -161,6 +161,22 @@ sealed class FontResolver<TFont> : IDisposable where TFont : class
         return font;
     }
 
+    /// <summary>
+    /// Whether <paramref name="fontFamily"/> is served by a face of its own rather than a fallback: a
+    /// family Word cannot select, or one with no face where this resolver looks, is not.
+    /// </summary>
+    public bool Covers(string fontFamily)
+    {
+        var candidates = FontHelpers.GetCandidateNames(fontFamily);
+        if (FontHelpers.WordCannotSelect(candidates.Original))
+        {
+            return false;
+        }
+
+        var fileCache = fontDirectory == null ? allFontsCache : GetDirectoryCache(fontDirectory);
+        return fileCache.TryGet(candidates, out _);
+    }
+
     TFont? TryResolveDefaultMode(FontNameCandidates candidates, string fontFamily, bool bold, int targetWeight, bool targetItalic)
     {
         // A name Word cannot select goes straight to its substitute, as Word's does.

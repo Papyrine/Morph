@@ -302,6 +302,20 @@ static class SkiaPainter
         var y = P(context, baseline);
         var kernShifts = KernShifts(context, text, properties);
 
+        // w14:shadow: a copy of the run in the shadow's colour, offset along its direction and
+        // softened by its blur, under the glyphs (TextEffectGeometry).
+        if (properties.Shadow is { } shadow)
+        {
+            var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
+            using var shadowPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = SkiaRenderContext.ParseColor(shadow.ColorHex).WithAlpha(TextEffectGeometry.ShadowAlpha(shadow)),
+                MaskFilter = shadow.BlurPoints > 0 ? SKMaskFilter.CreateBlur(SKBlurStyle.Normal, P(context, shadow.BlurPoints) / 2) : null
+            };
+            DrawSpaced(context, canvas, text, properties, penX + offsetX, y + P(context, offsetY), font, shadowPaint, kernShifts);
+        }
+
         // A bold run in a face that is not bold: the glyphs are filled and stroked, which thickens every
         // stem by the stroke's width (BoldSimulation). The paint is shared, so it is put back after.
         if (properties.SyntheticBold != SyntheticBold.None)
@@ -312,10 +326,25 @@ static class SkiaPainter
             DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
             paint.Style = SKPaintStyle.Fill;
             paint.StrokeWidth = 0;
-            return;
+        }
+        else
+        {
+            DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
         }
 
-        DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
+        // w14:textOutline: a stroke centred on the glyph outlines, over the fill.
+        if (properties.Outline is { } outline)
+        {
+            using var outlinePaint = new SKPaint
+            {
+                IsAntialias = true,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = P(context, outline.WidthPoints),
+                StrokeJoin = SKStrokeJoin.Round,
+                Color = SkiaRenderContext.ParseColor(outline.ColorHex)
+            };
+            DrawSpaced(context, canvas, text, properties, penX, y, font, outlinePaint, kernShifts);
+        }
     }
 
     static void DrawSpaced(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, float y, SKFont font, SKPaint paint, double[]? kernShifts)

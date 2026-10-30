@@ -376,6 +376,15 @@ static class PdfPainter
             return;
         }
 
+        // w14:shadow under the glyphs, offset along its direction (TextEffectGeometry), drawn crisp.
+        if (properties.Shadow is { } shadow)
+        {
+            var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
+            surface.SetFill(context.GetFill(PdfRenderContext.ParseColor(shadow.ColorHex)));
+            surface.SetStroke(null);
+            surface.DrawGlyphs(new((float) (penX + offsetX), (float) (baseline + offsetY)), face.Font, (float) sizePoints, text, glyphs);
+        }
+
         surface.SetFill(context.GetFill(color));
 
         // A bold run in a face that is not bold: the glyphs are filled and stroked, which thickens every
@@ -403,6 +412,18 @@ static class PdfPainter
         }
 
         surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);
+
+        // w14:textOutline: a stroke centred on the glyph outlines, over the fill.
+        if (properties.Outline is { } outline)
+        {
+            surface.SetFill(null);
+            surface.SetStroke(context.GetStroke(PdfRenderContext.ParseColor(outline.ColorHex), outline.WidthPoints) with
+            {
+                LineJoin = LineJoin.Round
+            });
+            surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);
+        }
+
         sheared?.Dispose();
         surface.SetStroke(null);
     }

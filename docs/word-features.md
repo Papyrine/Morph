@@ -423,6 +423,8 @@ pagination match Word's kerned text.
 - **Test**: `KerningCascadeTests` (the probe's three packages, case for case), `CanonicalMetricsTests.Kerning_adds_the_pair_adjustments_linearly`, `CanonicalParagraphMeasurerTests.Kerning_reaches_across_a_space`
 
 > **AI**: The kern lookup is glyph-pair based and deliberately shaping-free — no contextual lookups. `KerningEnabled` in `CanonicalParagraphMeasurer` is the per-run gate.
+
+> **Contributors — a line is DRAWN at Word's whole pixels (2026-10-31, todo #43).** Word breaks a line on the linear advances above, but draws each glyph a whole pixel of its 120-dpi grid wide, at the em rounded to a whole pixel: `round(units x ppem x 64 / upm)` in 26.6, rounded up from 30/64px in compatibility modes 12 and 14 and to the nearest pixel in mode 15, a glyph of the bold simulation a pixel more. Its pen falls behind the linear position inside a word, is brought up at a space, and is never pulled back, and a line that would overrun its measure has its spaces narrowed. `CanonicalParagraphMeasurer.DrawAtWordPixels` runs that pen over each laid-out line and draws every run as wide as it takes, its glyphs spread evenly across that width (`CharacterSpacingPoints`, which only the painters read), never past the room the line has left; line breaks are untouched. Justified and squeezed lines, and lines with a tab, a leader or an inline picture, are drawn as laid out, as is a run whose face stands in for one that is not here (`FontResolver.Covers`), since the stand-in's pixels are not the missing face's. multiple_pages' full lines end at x=1123 where Word's end at 1124 (1092 before), paragraph_spacing's within 2px; across the corpus 758 scenario/backend pairs moved toward Word and 215 away, SSIM up 10.19 in sum, with no page count changed. The bold simulation's own widening (`WidenEmboldened`) folded into it. Still not modelled: glyphs are spread evenly across a run rather than each placed on its pixel, the glyph RENDER size is not em-rounded, and Word's 1/16px snapping of a kern.
 >
 > **Ligatures are measured too (2026-10-30).** Word's layout takes a standard ligature's own advance, and only in compatibility mode 15, where a run with no `w14:ligatures` has them. `_probe_liga` stepped a measure 1pt at a time under twenty 24pt Calibri `f`s and " xx": in mode 15 the " xx" first fits at 165pt with `standard` or with nothing declared and at 169pt with `none` or `contextual` alone, ten `ff` ligatures (1195 units against two 625-unit `f`s) making the difference; in modes 12 and 14 every value fits at 169pt and draws the letters. The parser resolves this into `RunProperties.Ligatures` (None below mode 15, and for every non-Word input), `FontMetrics.Ligatures` reads the GSUB `liga` lookups (`GsubLigatureTable`, ligature substitution with extension lookups, longest match first), and `CanonicalTextMeasurer.LinearPixels` substitutes before it adds advances and kerns, gated by `CanonicalParagraphMeasurer.LigaturesEnabled`. Morph's wraps match Word's in all eight blocks of the probe. Skia and PDF still draw the separate letters, a fraction of a point wider than the ligature measured; ImageSharp draws ligatures with kerning, since SixLabors.Fonts takes both through one switch (`TextShaping`).
 
@@ -551,8 +553,8 @@ Shadow effect behind text (not to be confused with WordArt shadow).
 
 - **OOXML**: `w14:shadow` with color, blur radius, distance, angle
 - **Model**: `RunProperties.Shadow` (`TextShadow` record with colour, blur, distance, direction, alpha). The legacy `Effects` flag is now derived from this field.
-- **Parse**: `DocumentParser.ParseTextShadow` extracts `w14:blurRad` / `w14:dist` / `w14:dir` (EMU/60000ths-degree) and the child `srgbClr` + `alpha`. Once the element declares anything at all, the omitted parts default to 4pt distance, 4pt blur, 45°, 50% black.
-- **Render**: Skia draws the glyph at the offset position with `SKImageFilter.CreateBlur` before the main fill. ImageSharp draws an offset duplicate without blur (no per-draw blur in its drawing pipeline).
+- **Parse**: `DocumentParser.ParseTextShadow` extracts `w14:blurRad` / `w14:dist` / `w14:dir` (EMU/60000ths-degree) and the child `srgbClr` or `schemeClr` (resolved against the theme with its `lumMod`/`lumOff`/`satMod`/`satOff`, `ResolveW14Scheme`) + `alpha`. Once the element declares anything at all, the omitted parts default to 4pt distance, 4pt blur, 45°, and with no colour 50% black; a colour declared without `w14:alpha` is opaque, as any OOXML colour is (menus/07's Title shadow is solid mint). The effect comes down the style chain like any run property (`ExtractStyleRunProperties`), a run's own declaration replacing its style's: the SDK leaves `w14` effects under a STYLE's `rPr` as unknown elements, so `W14Effect` builds the typed element again from the markup. Until 2026-10-31 a style's effect never reached a run, and the scheme colour resolved to nothing.
+- **Render**: an offset copy of the run's glyphs in the shadow's colour, under the fill (`TextEffectGeometry.ShadowOffset`), in every painter: Skia blurs it by half its radius (`SKMaskFilter`); ImageSharp, the SVG painter and PDF draw it crisp; the HTML export writes a `text-shadow`. The painters did not draw it at all between the engine flip and 2026-10-31 (an engine-flip orphan): menus/07, menus/09, inline_group_crop and inline_group_rotation drew their "Menu" titles plain white where Word draws a mint shadow and a dark outline, and gained 0.006 SSIM each when it landed.
 
 > **Contributors — a BARE w14 effect is inert.** `<w14:shadow/>`, `<w14:textOutline/>`, `<w14:glow/>` and `<w14:reflection/>` declared with no attributes and no children carry no effect, and Word renders the run plain — `feature_capture/01` declares all four that way and Word's reference draws "All features" as unadorned small caps. Treating presence alone as "on" made each parser invent Word's UI defaults, which drew an offset shadow copy of the heading in ImageSharp and a glow in Skia. `DocumentParser.IsInertEffect` gates all four, and the defaults above apply only past that gate. The boundary is pinned from both sides: `RunPropertyCaptureTests.DocumentParser_BareW14TextEffects_AreInert` and `RunEffectsTests.W14Shadow_WithAnyProperty_KeepsDefaultsForTheRest`.
 
@@ -565,8 +567,8 @@ Outline/stroke around text characters.
 
 - **OOXML**: `w14:textOutline` with color, width, line style
 - **Model**: `RunProperties.Outline` (`TextOutline` record with colour and width).
-- **Parse**: `DocumentParser.ParseTextOutline` reads `w14:w` (EMU → points) and walks for the descendant `srgbClr`. Falls back to the run's fill colour and a 0.75pt default width when attributes are absent.
-- **Render**: after the fill draw, both backends re-draw the glyph with a stroke paint/pen using the outline colour and width.
+- **Parse**: `DocumentParser.ParseTextOutline` reads `w14:w` (EMU → points) and the colour of its `w14:solidFill` (`srgbClr`, or a `schemeClr` resolved against the theme), falling back to the run's fill colour, with a 0.75pt default width. An outline strokes only with a fill: `w14:noFill`, or no fill at all, is no outline (agendas-minutes/08's Title and agendas-minutes/16's runs declare `noFill` outlines). It comes down the style chain as the shadow does.
+- **Render**: after the fill, every painter strokes the glyph outlines with the outline's colour and width, centred on them (round joins); the HTML export writes `-webkit-text-stroke` with `paint-order: stroke fill`. Not drawn between the engine flip and 2026-10-31 (see Text Shadow).
 
 > **AI**: `cap`/`cmpd`/`algn`/`prstDash` line-style attributes are deliberately not modelled — Word almost always uses the round-cap solid-stroke default.
 
@@ -580,7 +582,7 @@ Soft glow effect around text.
 - **Parse**: `DocumentParser.ParseTextGlow` reads `w14:rad` and the child `srgbClr` + `alpha`. Bare element defaults to 4pt yellow at 60% alpha.
 - **Render**: Skia draws the glyph twice with `SKImageFilter.CreateBlur` before the main fill (two passes deepen the halo). ImageSharp approximates by stroking the glyph at increasing radii with low alpha — softer but visually similar.
 
-> **AI**: Scheme-colour resolution (`schemeClr` with `lumMod`/`lumOff` transforms) isn't wired through; only direct `srgbClr` values are honoured.
+> **AI**: Parsed (scheme colours included, since 2026-10-31) and carried down the style chain, but no painter draws a glow: like the shadow and outline before 2026-10-31, it is an engine-flip orphan.
 
 
 #### Text Reflection `DONE`
@@ -1209,6 +1211,8 @@ Unordered lists with bullet characters. Supports Symbol and Wingdings font mappi
 - **Model**: `ParagraphProperties.Numbering` → `NumberingInfo` with `.Text` (bullet char)
 - **Render**: `TextRenderer.RenderBullet()`
 - **Test**: `bullet_list/`
+
+> **Contributors — a list comes down `w:basedOn`, and a base's indent does not outrank it (2026-10-31).** A paragraph style that declares no `w:numPr` takes its base style's list (`ExtractStyleNumbering`); a `w:numId w:val="0"` stops the chain. The style's own `w:ind` outranks the list level's only when it is declared at or above the style that names the list (`StyleIndentBeforeList`), as agendas-minutes/17's Bullets tightens its level's 1800 to 360; an indent from a base below that style is outranked by the level, which stands between the two. resumes/19's Skills Bullets is based on Bullets Skills, which names the list (level 288 left, 288 hanging), based on Body Contact Info (14 twips left): its items drew without bullets, and once they had them, the base's 14 hung the bullets off the cell. Word sets them at the level's 288.
 
 > **Contributors**: Unicode mapping for Symbol/Wingdings bullet characters handled during parsing (`MapBulletPuaToUnicode`). Marker font selection is the shared `FontHelpers.UseBulletFont`, identical across the three render backends: Symbol/Wingdings-declared bullets AND the geometric glyphs the bundled text faces lack (■ U+25A0, ◆ U+25C6, ▸ U+25B8, ► U+25BA) render in the embedded `Bullets.ttf` subset (the two triangles were drawn into it; Word glyph-falls-back to Segoe UI Symbol for these), while every other marker keeps the paragraph font — Word's own behaviour when the glyph exists there. The PDF backend registers the embedded subset in `PdfFontResolver` under the reserved `::MorphBullets` face key, since it ships as an assembly resource rather than a `FontDirectory` file. Marker COLOUR: the numbering level's own `w:lvl/w:rPr/w:color` wins over the paragraph's first-run colour at every marker-draw site in all three backends (business-plans/12's SWOT bullets declare lavender/red/grey at the level; "auto" falls back to the run colour).
 
@@ -2405,7 +2409,7 @@ How text flows around floating images and shapes.
 
 - **OOXML**: `wp:wrapNone`, `wp:wrapSquare`, `wp:wrapTight`, `wp:wrapThrough`, `wp:wrapTopAndBottom` (+ `@wrapText` side, `@distL/T/R/B` clearances)
 - **Model**: `FloatingImageElement.WrapType` enum (None, Square, Tight, Through, TopAndBottom) plus `WrapTextSide` and `WrapDistance*Points` clearances
-- **Parse**: `DocumentParser.ParseWrap` reads the anchor's wrap element, its `@wrapText` side preference and EMU clearance distances
+- **Parse**: `DocumentParser.ParseWrap` reads the anchor's wrap element, its `@wrapText` side preference and EMU clearance distances. A distance the wrap element leaves unsaid is the anchor's own `wp:anchor@distL/T/R/B`, which is where Word writes them (2026-10-31): read from the wrap element alone, image_wrap_square's 9pt sides came out 0 and its paragraph ran against the picture's edge.
 - **Render**: a wrap-enabled floating image registers its footprint (plus clearances) as a float exclusion on the render context (`RegisterFloatExclusion`, page-scoped). Flow paragraphs resolve the widest free horizontal band beside the active floats (`ResolveFlowBand`) and measure/render inside it via the content-container override; `wrapTopAndBottom` advances the cursor below the float instead. All three backends share the mechanism.
 - **Test**: `image_wrap_square/` (issue #145 sample: left-anchored wrapSquare images with text flowing beside them)
 
@@ -2811,9 +2815,9 @@ A preset with no entry (the rings, the button, the multi-line deflate-inflates) 
 >
 > **HTML export of a warped WordArt (2026-10-28, `HtmlWriter.AppendWordArtSvg`).** An SVG the size of its box: an arch or a circle places each glyph by `WordArtArch.Place`, its advances read off the face, as the painters do; an envelope warp bends glyph outlines, which only the raster backends have, so its text is set straight across the text rect (`textLength`), sized so the face's whole height fills it. Until then every warp exported as a flat line of text at its nominal size.
 
+> **Contributors — an arch draws the bold simulation (2026-10-31).** Bold in a face with no bold of its own (Impact) is Word's simulation in WordArt too: each glyph placed along the arch a pixel of the layout grid wider (`BoldSimulation.AdvancePoints`) and, in the raster drawers, its strokes thickened. "Arc Text Up" runs 302px as Word's does (288 without); "Arc Text Down" and the circle now run about 10px over Word's (they ran 6 and 4px short), which is unexplained.
 
 ### 6.4 Ink / Handwriting
-
 
 #### Ink Strokes `DONE`
 

@@ -319,28 +319,47 @@ static class ImageSharpPainter
             ? null
             : Pens.Solid(ImageSharpRenderContext.ParseColor(properties.ColorHex), P(context, BoldSimulation.StrokeWidthPoints(properties.SyntheticBold, VerticalRunPosition.RenderSizePoints(properties), 72.0 / context.Dpi)));
 
-        if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
+        // w14:shadow under the glyphs, offset along its direction (TextEffectGeometry). Drawn crisp: a
+        // blurred shadow is drawn unblurred here, where SkiaPainter softens it.
+        if (properties.Shadow is { } shadow)
         {
-            canvas.DrawText(Options(context, font, P(context, penX), baselineY, properties), text.AsSpan(), brush, pen);
+            var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
+            var shadowColor = ImageSharpRenderContext.ParseColor(shadow.ColorHex).WithAlpha(TextEffectGeometry.ShadowAlpha(shadow) / 255f);
+            Draw(context.GetBrush(shadowColor), null, P(context, penX + offsetX), baselineY + P(context, offsetY));
         }
-        else
+
+        Draw(brush, pen, P(context, penX), baselineY);
+
+        // w14:textOutline: a stroke centred on the glyph outlines, over the fill.
+        if (properties.Outline is { } outline)
         {
-            var trackingPixels = P(context, properties.CharacterSpacingPoints);
-            var x = P(context, penX);
-            for (var i = 0; i < text.Length; i++)
-            {
-                var length = char.IsHighSurrogate(text[i]) &&
-                             i + 1 < text.Length ? 2 : 1;
-                var piece = text.Substring(i, length);
-                canvas.DrawText(Options(context, font, x, baselineY, properties), piece.AsSpan(), brush, pen);
-                x += P(context, context.MeasureText(font, piece)) + trackingPixels;
-                i += length - 1;
-            }
+            Draw(null, Pens.Solid(ImageSharpRenderContext.ParseColor(outline.ColorHex), P(context, outline.WidthPoints)), P(context, penX), baselineY);
         }
 
         if (transformed)
         {
             canvas.Restore();
+        }
+
+        void Draw(Brush? fill, Pen? stroke, float startX, float y)
+        {
+            if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
+            {
+                canvas.DrawText(Options(context, font, startX, y, properties), text.AsSpan(), fill, stroke);
+                return;
+            }
+
+            var trackingPixels = P(context, properties.CharacterSpacingPoints);
+            var x = startX;
+            for (var i = 0; i < text.Length; i++)
+            {
+                var length = char.IsHighSurrogate(text[i]) &&
+                             i + 1 < text.Length ? 2 : 1;
+                var piece = text.Substring(i, length);
+                canvas.DrawText(Options(context, font, x, y, properties), piece.AsSpan(), fill, stroke);
+                x += P(context, context.MeasureText(font, piece)) + trackingPixels;
+                i += length - 1;
+            }
         }
     }
 

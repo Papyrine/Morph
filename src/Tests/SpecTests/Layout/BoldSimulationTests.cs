@@ -62,7 +62,9 @@ public class BoldSimulationTests
 
         await Assert.That(bold.Width - regular.Width).IsEqualTo(17 * 0.6f).Within(0.01f);
         await Assert.That(bold.Runs[0].Width - regular.Runs[0].Width).IsEqualTo(17 * 0.6f).Within(0.01f);
-        await Assert.That(bold.Runs[0].Properties.CharacterSpacingPoints).IsEqualTo(0.6).Within(0.0001);
+        // Both lines also draw at Word's whole pixels (CanonicalParagraphMeasurer.DrawAtWordPixels), so the
+        // simulation is what the bold run's spacing carries beyond the regular one's.
+        await Assert.That(bold.Runs[0].Properties.CharacterSpacingPoints - regular.Runs[0].Properties.CharacterSpacingPoints).IsEqualTo(0.6).Within(0.0001);
     }
 
     // _probe_synwrap: a bold sentence wraps at the very measure the regular one does.

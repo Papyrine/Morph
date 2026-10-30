@@ -3417,6 +3417,22 @@ static class HtmlExporter
                 var step = properties.Emboss ? -1.2 : 1.2;
                 style.Append($"text-shadow: {Length(step)} {Length(step)} 0 #000000, {Length(-step)} {Length(-step)} 0 #999999; ");
             }
+            else if (properties.Shadow is { } shadow &&
+                     DocumentExportHelpers.NormalizeColor(shadow.ColorHex) is { } shadowColor)
+            {
+                // w14:shadow as the painters draw it (TextEffectGeometry): offset along its direction,
+                // blurred by its radius.
+                var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
+                var shadowPaint = shadow.AlphaPercent >= 100 ? shadowColor : $"color-mix(in srgb, {shadowColor} {Number(shadow.AlphaPercent)}%, transparent)";
+                style.Append($"text-shadow: {Length(offsetX)} {Length(offsetY)} {Length(shadow.BlurPoints)} {shadowPaint}; ");
+            }
+
+            // w14:textOutline: a stroke centred on the glyph outlines.
+            if (properties.Outline is { } textOutline &&
+                DocumentExportHelpers.NormalizeColor(textOutline.ColorHex) is { } outlineColor)
+            {
+                style.Append($"-webkit-text-stroke: {Length(textOutline.WidthPoints)} {outlineColor}; paint-order: stroke fill; ");
+            }
 
             if (properties.SmallCaps)
             {
@@ -3600,7 +3616,10 @@ static class HtmlExporter
                 var scale = WordArtArch.Scale(WordArtArch.ScaleSide(wordArt.Transform, textWidth, textHeight), inkHeight);
                 var size = (float) wordArt.FontSizePoints * scale;
                 var glyphs = WordArtArch.Glyphs(wordArt.Text);
-                var advances = glyphs.Select(_ => (float) _.EnumerateRunes().Sum(rune => metrics.AdvanceUnits(rune.Value)) / metrics.UnitsPerEm * size).ToList();
+                // A face with no bold of its own is emboldened a pixel of Word's grid wider a glyph,
+                // as the painters' arches are; the browser thickens the strokes itself.
+                var widening = BoldSimulation.For(wordArt.Bold, metrics) == SyntheticBold.None ? 0 : (float) BoldSimulation.AdvancePoints;
+                var advances = glyphs.Select(_ => (float) _.EnumerateRunes().Sum(rune => metrics.AdvanceUnits(rune.Value)) / metrics.UnitsPerEm * size + widening).ToList();
                 var placements = WordArtArch.Place(
                     advances, textLeft, textTop, textWidth, textHeight, scale, WordArtArch.BaselineDepthEm(metrics) * size,
                     wordArt.TextAlignment, wordArt.Transform);

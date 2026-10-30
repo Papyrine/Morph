@@ -16,7 +16,7 @@ public sealed class SkiaDocumentConverter : DocumentConverter
     internal static int RenderPagesCounted(ParsedDocument document, ImageExportOptions options, Action<Action<Stream>> pageCallback)
     {
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
-        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.SqueezesJustifiedLines);
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.SqueezesJustifiedLines, LayoutFonts.Covers(fontResolver));
         var laidOut = new Fragmenter(measurer, document.Compatibility).Layout(
             document.Elements,
             document.PageSettings,

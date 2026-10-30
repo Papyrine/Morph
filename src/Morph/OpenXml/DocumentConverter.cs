@@ -244,7 +244,7 @@ public abstract class DocumentConverter
 
     static LaidOutDocument Layout(ParsedDocument document, ImageExportOptions options, FontResolver<FontMetrics> fontResolver)
     {
-        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.SqueezesJustifiedLines);
+        var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility.SqueezesJustifiedLines, LayoutFonts.Covers(fontResolver));
         return new Fragmenter(measurer, document.Compatibility).Layout(
             document.Elements,
             document.PageSettings,

@@ -1681,6 +1681,19 @@ sealed class HtmlParser
                     }
                 }
 
+                // A cell's CSS width is its content box, as in a browser: Word adds the cell's side
+                // padding to it. html_table_styled's 100px and 200px columns of a 400px table stand
+                // 161px and 315px at 150 dpi in Word against 156 and 312 declared, and the flexible
+                // third column 146px; taken as the whole cell it ran 156px.
+                if (cellWidthPoints is { } contentWidth)
+                {
+                    cellWidthPoints = contentWidth + (cellPadding is { } own
+                        ? own.Left + own.Right
+                        : defaultCellPadding is { } tableDefault && cellPaddingPixels == null
+                            ? tableDefault.Left + tableDefault.Right
+                            : 2 * (cellPaddingPixels ?? 1) * (fillContainer ? 1 : cellPaddingPixelsToPoints));
+                }
+
                 // Handle colspan
                 var gridSpan = 1;
                 var colspanAttribute = cell.GetAttribute("colspan");
