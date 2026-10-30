@@ -31,7 +31,7 @@
       }
     ],
     "Properties": {
-      "SpacingAfterPoints": 12.0,
+      "SpacingAfterPoints": 14.0,
       "LineSpacingMultiplier": 1.0,
       "SnapToGrid": true,
       "ContextualSpacing": false,

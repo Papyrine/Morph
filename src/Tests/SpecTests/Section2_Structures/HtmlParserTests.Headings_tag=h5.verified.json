@@ -5,7 +5,7 @@
         "Text": "Title",
         "Properties": {
           "FontFamily": "Times New Roman",
-          "FontSizePoints": 11.0,
+          "FontSizePoints": 10.0,
           "Bold": true,
           "Italic": false,
           "Underline": false,

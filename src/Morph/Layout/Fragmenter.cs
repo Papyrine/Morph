@@ -5150,16 +5150,26 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // A band's behind-text floating art is anchored like a body float but from the band origin —
             // the page edge, the top margin, or the band itself. Both band images and band shapes (e.g.
             // cover-letters/10's charcoal banner and its 10%-alpha accent tint) paint behind the band text
-            // and the body.
-            (float X, float Y) Position(HorizontalAnchor horizontalAnchor, double horizontalOffset, VerticalAnchor verticalAnchor, double verticalOffset) =>
-            (
-                horizontalAnchor == HorizontalAnchor.Page ? (float) horizontalOffset : marginLeft + (float) horizontalOffset,
-                verticalAnchor switch
+            // and the body. A percentage offset (wp14:pctPosHOffset / pctPosVOffset) is that fraction of the
+            // page for a page anchor and of the margins' box otherwise, as a body float's is: the fold
+            // guides of cards/01, cards/07 and wedding/03 stand at half the page each way.
+            (float X, float Y) Position(HorizontalAnchor horizontalAnchor, double horizontalOffset, double? horizontalPercent, VerticalAnchor verticalAnchor, double verticalOffset, double? verticalPercent)
+            {
+                var x = horizontalAnchor == HorizontalAnchor.Page ? 0f : marginLeft;
+                x += horizontalPercent is { } across
+                    ? (float) (across * (horizontalAnchor == HorizontalAnchor.Page ? settings.WidthPoints : settings.WidthPoints - settings.MarginLeft - settings.MarginRight))
+                    : (float) horizontalOffset;
+                var y = verticalAnchor switch
                 {
-                    VerticalAnchor.Page => (float) verticalOffset,
-                    VerticalAnchor.Margin => (float) settings.MarginTop + (float) verticalOffset,
-                    _ => bandTop + (float) verticalOffset
-                });
+                    VerticalAnchor.Page => 0f,
+                    VerticalAnchor.Margin => (float) settings.MarginTop,
+                    _ => bandTop
+                };
+                y += verticalPercent is { } down
+                    ? (float) (down * (verticalAnchor == VerticalAnchor.Page ? settings.HeightPoints : settings.HeightPoints - settings.MarginTop - settings.MarginBottom))
+                    : (float) verticalOffset;
+                return (x, y);
+            }
 
             foreach (var element in band.Elements)
             {
@@ -5173,12 +5183,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (element is FloatingImageElement image &&
                     IsDrawable(image))
                 {
-                    var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.VerticalAnchor, image.VerticalPositionPoints);
+                    var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent, image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
                     items.AddRange(PlaceImageItems(image, imageX, imageY));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
-                    var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.VerticalAnchor, shape.VerticalPositionPoints);
+                    var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent, shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent);
                     // An image-fill shape paints as a plain image (PaintShape skips image fills); a solid,
                     // gradient or outlined shape paints as a PlacedShape — mirroring the body-float shape cases.
                     // Front-of-text band shapes are admitted too: production painted the whole header before
@@ -5204,7 +5214,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // branch it was dropped silently (issue #194).
                 else if (element is FloatingWordArtElement wordArt)
                 {
-                    var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints);
+                    var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.HorizontalPositionPercent, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints, wordArt.VerticalPositionPercent);
                     if (wordArt.Transform != WordArtTransform.None)
                     {
                         items.Add(new PlacedWordArt(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, wordArt));
@@ -5217,7 +5227,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // A band text box places its chrome and content as PlaceTextBox does a body one.
                 else if (element is FloatingTextBoxElement textBox)
                 {
-                    var (boxX, boxY) = Position(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.VerticalAnchor, textBox.VerticalPositionPoints);
+                    var (boxX, boxY) = Position(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent, textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent);
                     var boxWidth = (float) textBox.WidthPoints;
                     var boxHeight = (float) textBox.HeightPoints;
                     if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)

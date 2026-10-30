@@ -138,8 +138,7 @@ sealed class HtmlParser
                 continue;
             }
 
-            var auto = next.Runs.Count > 0 &&
-                       next.Runs[0].Properties.FontSizePoints > 14 ? 12d : 14d;
+            const double auto = 14;
             if (auto <= bottom)
             {
                 continue;
@@ -602,11 +601,14 @@ sealed class HtmlParser
                 Alignment = style?.Alignment ?? TextAlignment.Left,
                 // Word's AltChunk HTML import spaces block paragraphs ~14pt apart (measured
                 // <p> pitch ≈ 57px at 150 DPI vs a ~29px line box); 8pt packed them ~6pt too
-                // tight, so every band/line drifted up the page. Headings keep their own value.
-                // A declared vertical margin replaces the default outright (`margin: 0` packs
+                // tight, so every band/line drifted up the page. Headings take the same 14pt: a
+                // probe of every heading level against paragraphs and against each other set every
+                // gap 14pt (±1pt of whole-pixel line metrics) below the line before; the 12pt
+                // headings had here left each heading's successor ~1.8pt high
+                // (_probe_htmlheadings, 2026-10-30). A declared vertical margin replaces the default outright (`margin: 0` packs
                 // paragraphs tight, exactly as Word's import zeroes their w:spacing).
                 SpacingBeforePoints = style?.MarginTopPoints ?? 0,
-                SpacingAfterPoints = style?.MarginBottomPoints ?? (baseProps.FontSizePoints > 14 ? 12 : 14),
+                SpacingAfterPoints = style?.MarginBottomPoints ?? 14,
                 FirstLineIndentPoints = style?.TextIndent ?? 0,
                 LeftIndentPoints = style?.MarginLeftPoints ?? 0,
                 RightIndentPoints = style?.MarginRightPoints ?? 0,
@@ -2013,15 +2015,18 @@ sealed class HtmlParser
         return null;
     }
 
+    // Word's own heading sizes for HTML, not a browser's em multiples: an h3 that fits the measure
+    // at 13.5pt but would wrap at 14 stays on one line, and h5 and h6 are drawn on 10pt's and 7.5pt's
+    // ems (_probe_htmlheadings2, 2026-10-30).
     static double GetHeadingFontSize(int level) => level switch
     {
         1 => 24,
         2 => 18,
-        3 => 14,
+        3 => 13.5,
         4 => 12,
-        5 => 11,
-        6 => 10,
-        _ => 11
+        5 => 10,
+        6 => 7.5,
+        _ => 12
     };
 
     // The full CSS named-colour set (CSS Color Level 4). Only ten were present before, so any
