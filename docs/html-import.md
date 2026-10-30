@@ -189,8 +189,25 @@ Tracked as issue **#31** in `src/todo.md`, listed here because they shape what t
 - **Block children of a cell flatten.** A `<p>` or `<div>` inside a `<td>` joins one paragraph; inline formatting (`<b>`, `<span style>`, images) keeps its runs.
 - **`vertical-align` on cells is unmodelled**, which is what `html_css_alignment` actually means to demonstrate.
 - Per-cell CSS margins render as a uniform grid where Word offsets each cell's box by its own margin.
-- A table with no `cellpadding` attribute (`html_table`) still stands 1.7pt a row short of Word's (26.35 against 28.08pt). HTML's own default padding is the likeliest cause; it is unprobed.
 - Two `<p>`s in one cell are set by Word with single lines, about 13pt between them and nothing after the last (`_probe_cellsize`); Morph joins them into one paragraph (the first bullet).
+
+### Default padding (2026-10-30)
+
+A table that sets no padding, by attribute or CSS, takes HTML's default of **1px**, at the same 0.6pt a
+side. `_probe_htmltabledefaults`, borderless two-column tables of 12pt text, row pitch off Word's XPS:
+
+| attributes | row pitch |
+|---|---|
+| none | 28.02pt |
+| `cellpadding="0"` | 26.62pt |
+| `cellspacing="0"` | 26.42pt |
+| both 0 | 25.02pt |
+| `cellspacing="10"` | 32.62pt |
+| `cellspacing="20"` | 38.63pt |
+
+The default padding is the 1.4pt between the first and third rows; without it `html_table`'s rows stood
+1.7pt short. Spacing adds 0.6pt of pitch a pixel where Morph's detached spacing takes 0.75pt; the default
+2px lands within 0.2pt of Word, so the wider rate is left until a fixture needs it.
 
 ### Cell paragraph spacing (2026-10-21)
 

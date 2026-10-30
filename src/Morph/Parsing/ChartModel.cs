@@ -288,7 +288,11 @@ sealed record ChartText(string Text, ChartTextStyle Style, ChartRect? Layout = n
 
 sealed record ChartTextStyle(string FontFamily, double SizePoints, string ColorHex, bool Bold, bool Italic);
 
-sealed record ChartStroke(string ColorHex, double WidthPoints, double Alpha);
+/// <summary>
+/// A chart line's colour, width and opacity; <c>RoundCap</c> when its ends are round (<c>a:ln cap="rnd"</c>,
+/// which Office's chart styles write for a line series) rather than cut square.
+/// </summary>
+sealed record ChartStroke(string ColorHex, double WidthPoints, double Alpha, bool RoundCap = false);
 
 sealed record ChartFill(string? FillHex, ChartStroke? Line);
 

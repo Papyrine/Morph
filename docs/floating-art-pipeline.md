@@ -191,6 +191,27 @@ the page the next section's table opens. Preset rect/ellipse fills and strokes r
 their box centre like any other xfrm (resumes/06's corner strips are 90°-rotated rects;
 business-plans/08's accent rule).
 
+### The paragraph-anchor reference (2026-10-30)
+
+In the engine a paragraph-relative float resolves from `Fragmenter.paragraphPreSpacingTops`: the
+previous paragraph's bottom WITH the space-after it kept, before the anchor paragraph's own
+space-before. Two probes settle both halves. `_probe_anchor_ref`: an offset-0 shape on a paragraph
+with 60pt before sits at the previous paragraph's bottom edge. `_probe_anchorafter`: under a
+paragraph with 48pt after, an offset-0 shape sits 48pt below that edge, at the anchor line's top, in
+DrawingML and VML alike, and stays there when the anchor paragraph asks 24pt before as well (the gap
+being their max). A wrapping float whose anchor is still ahead resolves the same way, from the cursor
+plus the after-spacing `ParagraphGap.Between` will keep: ole_chart_preview's square-wrapped chart
+moved 11.25pt down, its bullet's after-spacing. A bare VML shape (`v:rect` and the like, outside an
+`mc:AlternateContent` and not an OLE preview) is still not drawn; three corpus documents carry them,
+all near-invisible fold guides.
+
+### Rotation keeps the declared footprint
+
+Word wraps text around a rotated picture's UNROTATED box (`_probe_rotwrap`, 2026-10-30): a 200×40pt
+picture turned 90° and wrapped square keeps four 10pt lines beside a 200pt-wide footprint while the
+rotated bar runs down through the text below, and wrapped top-and-bottom it reserves 40pt, not 200.
+The engine reserves the same box, so the rotated art overlapping text is Word's own rendering.
+
 ## Z-order and paint order
 
 - Text on both sides of a floating drawing's anchor is ONE paragraph. The drawing is lifted out of

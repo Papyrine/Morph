@@ -22,7 +22,6 @@
                       "AllCaps": false,
                       "SmallCaps": false,
                       "CharacterScalePercent": 100.0,
-                      "Ligatures": "Standard",
                       "IsRightToLeft": false,
                       "HasReflection": false,
                       "Hidden": false,
@@ -116,7 +115,15 @@
         "Declared": "All",
         "HasAnyBorder": false
       },
-      "DefaultCellPadding": {},
+      "DefaultCellPadding": {
+        "Top": 0.6,
+        "Right": 0.6,
+        "Bottom": 0.6,
+        "Left": 0.6,
+        "Horizontal": 1.2,
+        "Vertical": 1.2
+      },
+      "DefaultCellPaddingDeclared": false,
       "DefaultCellMargin": {},
       "IndentPoints": -7.5,
       "FillContainer": false,

@@ -74,6 +74,12 @@ sealed record TableProperties
     /// <summary>Default cell padding (used when cell doesn't specify its own).</summary>
     public CellSpacing DefaultCellPadding { get; init; } = new();
 
+    /// <summary>
+    /// Whether <see cref="DefaultCellPadding"/> was declared (the table's <c>w:tblCellMar</c> or its
+    /// style's) rather than defaulted, so a zero in it is the author's.
+    /// </summary>
+    public bool DefaultCellPaddingDeclared { get; init; }
+
     /// <summary>Default cell margins (used when cell doesn't specify its own).</summary>
     public CellSpacing DefaultCellMargin { get; init; } = new();
 

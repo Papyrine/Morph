@@ -799,7 +799,7 @@ static class PdfPainter
         if (shape.LineColorHex is { } lineHex)
         {
             var color = PdfRenderContext.ParseColor(lineHex).WithAlpha(shape.LineAlpha);
-            stroke = PdfShapeDrawing.Dashed(context.GetStroke(color, ShapeStroke.WidthPoints(shape.LineWidthPoints)), shape.LineDashPattern);
+            stroke = PdfShapeDrawing.Dashed(context.GetStroke(color, ShapeStroke.WidthPoints(shape.LineWidthPoints), shape.RoundCap ? LineCap.Round : LineCap.Butt), shape.LineDashPattern);
         }
 
         if (fill == null &&

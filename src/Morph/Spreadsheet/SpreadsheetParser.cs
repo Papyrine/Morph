@@ -109,6 +109,12 @@ sealed class SpreadsheetParser(
 
         var elements = new List<DocumentElement>();
         PageSettings? first = null;
+        var headerFont = new RunProperties
+        {
+            FontFamily = bodyFamily,
+            FontSizePoints = bodySize,
+            ColorHex = styles.Resolve(0).ColorHex ?? "000000"
+        };
 
         foreach (var sheet in VisibleSheets(workbookPart))
         {
@@ -163,6 +169,7 @@ sealed class SpreadsheetParser(
 
                 bounds = printed;
                 scale = ResolveScale(builder, worksheet, bounds, settings);
+                settings = SheetHeaderFooter.Apply(settings, worksheet, name, headerFont, scale);
                 var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
                 table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, centered);
                 if (table == null)

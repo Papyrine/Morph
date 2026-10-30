@@ -943,6 +943,10 @@ static class SvgPainter
                 Paint("stroke", ImageSharpShapeDrawing.ParseColor(lineHex, shape.LineAlpha));
                 Attribute("stroke-width", lineWidth);
                 Dash(shape.LineDashPattern, lineWidth);
+                if (shape.RoundCap)
+                {
+                    svg.Append(" stroke-linecap=\"round\" stroke-linejoin=\"round\"");
+                }
             }
 
             svg.Append("/>");

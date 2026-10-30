@@ -154,6 +154,12 @@ sealed class FloatingShapeElement : DocumentElement
     /// </summary>
     public IReadOnlyList<double>? LineDashPattern { get; init; }
 
+    /// <summary>
+    /// The outline's open ends are round rather than cut square (a chart's line series, drawn a
+    /// segment at a time, so the round ends also fill the joins between segments).
+    /// </summary>
+    public bool RoundCap { get; init; }
+
     public FloatingShapeElement WithAbsolutePosition(double x, double y) =>
         new()
         {
@@ -179,6 +185,7 @@ sealed class FloatingShapeElement : DocumentElement
             LineWidthPoints = LineWidthPoints,
             LineAlpha = LineAlpha,
             LineDashPattern = LineDashPattern,
+            RoundCap = RoundCap,
             Preset = Preset,
             Subpaths = Subpaths,
             RotationDegrees = RotationDegrees,

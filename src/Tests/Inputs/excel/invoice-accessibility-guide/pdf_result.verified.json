@@ -19,7 +19,7 @@
           "Width": 841.8900146484375,
           "Height": 595.280029296875
         },
-        "Text": "E\nxc\nel\nlogo\nin\nce\nllB1\n2, A\ncc\nes\nsi\nbl e\nIn\nvo\nice\nimageandN\nav\nig\nati onb\nut\nton\nto\nIn\nvo\nicew\nor\nkshe\net\ninC1\n2."
+        "Text": "Page 2 of 10\nE\nxc\nel\nlogo\nin\nce\nllB1\n2, A\ncc\nes\nsi\nbl e\nIn\nvo\nice\nimageandN\nav\nig\nati onb\nut\nton\nto\nIn\nvo\nicew\nor\nkshe\net\ninC1\n2."
       }
     ]
   },
@@ -34,8 +34,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0125,
-      "Ssim": 0.9842,
+      "ErrorMetric": 0.0128,
+      "Ssim": 0.9838,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

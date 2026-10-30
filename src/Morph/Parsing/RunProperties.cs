@@ -98,10 +98,12 @@ sealed record RunProperties
     public double KerningMinFontSizePoints { get; init; }
 
     /// <summary>
-    /// OpenType ligature mode (w14:ligatures). Word 2010+ extension. Renderer relies on the
-    /// platform shaper for actual ligature substitution; this field is captured for inspection.
+    /// OpenType ligature mode (w14:ligatures), as Word applies it: the DOCX parser resolves it to
+    /// <see cref="LigatureMode.None"/> below compatibility mode 15, and to Standard in mode 15 where the
+    /// run says nothing. With <see cref="LigatureMode.Standard"/> the layout measures the font's
+    /// <c>liga</c> substitutions (<see cref="CanonicalTextMeasurer"/>). None for every other input.
     /// </summary>
-    public LigatureMode Ligatures { get; init; } = LigatureMode.Standard;
+    public LigatureMode Ligatures { get; init; } = LigatureMode.None;
 
     /// <summary>
     /// Whether this run reads right-to-left (w:rtl). Renderer does not yet reverse text order.

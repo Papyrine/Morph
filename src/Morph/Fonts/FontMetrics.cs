@@ -209,6 +209,12 @@ sealed record FontMetrics
     /// </summary>
     public GposKernTable? KernPairs { get; init; }
 
+    /// <summary>
+    /// GSUB <c>liga</c>-feature ligatures, or null for a font without any. Word's layout measures a
+    /// ligature by its own advance where a run has standard ligatures (<see cref="RunProperties.Ligatures"/>).
+    /// </summary>
+    public GsubLigatureTable? Ligatures { get; init; }
+
     /// <summary>The glyph id <paramref name="codepoint"/> maps to — glyph 0 (<c>.notdef</c>) when unmapped.</summary>
     public ushort GlyphId(int codepoint) => GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0);
 
@@ -217,14 +223,20 @@ sealed record FontMetrics
     /// <c>hmtx</c> entry for glyphs past the metric count, and to glyph 0 for unmapped codepoints.
     /// Returns 0 when the font carries no advance data.
     /// </summary>
-    public int AdvanceUnits(int codepoint)
+    public int AdvanceUnits(int codepoint) =>
+        GlyphAdvanceUnits(GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0));
+
+    /// <summary>
+    /// The horizontal advance of glyph <paramref name="glyph"/> in design units, falling back to the
+    /// last <c>hmtx</c> entry past the metric count; 0 when the font carries no advance data.
+    /// </summary>
+    public int GlyphAdvanceUnits(ushort glyph)
     {
         if (AdvanceWidths.Count == 0)
         {
             return 0;
         }
 
-        var glyph = GlyphForCodepoint.GetValueOrDefault(codepoint, (ushort) 0);
         if (glyph < AdvanceWidths.Count)
         {
             return AdvanceWidths[glyph];

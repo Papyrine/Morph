@@ -19,7 +19,7 @@
           "Width": 841.8900146484375,
           "Height": 595.280029296875
         },
-        "Text": "WEDDING DATE\nWedding invitation tracker\n9/23/23\nINVITEE NAME SENT? RSVP # IN PARTY RELATION GUEST NAME ADDRESS CITY STATE ZIP PHONE INVITEE EMAIL"
+        "Text": "Page 2 of 157\nWEDDING DATE\nWedding invitation tracker\n9/23/23\nINVITEE NAME SENT? RSVP # IN PARTY RELATION GUEST NAME ADDRESS CITY STATE ZIP PHONE INVITEE EMAIL"
       }
     ]
   },
@@ -34,8 +34,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.142,
-      "Ssim": 0.9501,
+      "ErrorMetric": 0.1422,
+      "Ssim": 0.9499,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

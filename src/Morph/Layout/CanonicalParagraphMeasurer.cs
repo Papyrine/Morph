@@ -520,7 +520,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, WidthScale(properties), KerningEnabled(properties));
+        return (float) CanonicalTextMeasurer.MeasureWidthPoints(metrics, text, properties.FontSizePoints, WidthScale(properties), KerningEnabled(properties), LigaturesEnabled(properties));
     }
 
     /// <summary>
@@ -700,7 +700,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        var pixels = CanonicalTextMeasurer.LinearPixels(metrics, text, VerticalRunPosition.RenderSizePoints(properties), WidthScale(properties), KerningEnabled(properties));
+        var pixels = CanonicalTextMeasurer.LinearPixels(metrics, text, VerticalRunPosition.RenderSizePoints(properties), WidthScale(properties), KerningEnabled(properties), LigaturesEnabled(properties));
         if (properties.CharacterSpacingPoints != 0)
         {
             pixels += CanonicalTextMeasurer.PixelsFromPoints((float) (properties.CharacterSpacingPoints * text.Length));
@@ -712,6 +712,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     internal static bool KerningEnabled(RunProperties properties) =>
         properties.KerningMinFontSizePoints > 0 &&
         properties.FontSizePoints >= properties.KerningMinFontSizePoints;
+
+    // Standard ligatures, which the DOCX parser leaves on only in compatibility mode 15
+    // (RunProperties.Ligatures).
+    internal static bool LigaturesEnabled(RunProperties properties) =>
+        properties.Ligatures.HasFlag(LigatureMode.Standard);
 
     public float MeasureParagraphHeightWithWidth(ParagraphElement paragraph, float maxWidth)
     {
@@ -1796,7 +1801,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // resolved it to .notdef's wide advance, so "to improve" drew with a
                     // double-width gap where Word shows a single space (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
-                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, WidthScale(run.Properties), kerning);
+                    var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, WidthScale(run.Properties), kerning, LigaturesEnabled(run.Properties));
                     if (trackingPerChar != 0)
                     {
                         advance += CanonicalTextMeasurer.PixelsFromPoints((float) (trackingPerChar * text.Length));
