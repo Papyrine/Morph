@@ -2081,12 +2081,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // no line box — see ParagraphElement.IsSectionBreakMark for the Word probe. A paragraph with runs
     // keeps its line whatever the flag says, so this can never swallow visible text.
     //
-    // Deliberately NOT keyed on IsAnchorOnlyMark, the neighbouring "mark without a line box" flag the
-    // parser sets for a paragraph whose only content was behind-text decorative art. That flag is
-    // currently inert — the deleted production renderers consumed it and the engine never did — and
-    // honouring it here as well regressed 104 of 108 changed pages (aggregate mean |Word−render| 8.4 →
-    // 56.8, menus/08 and brochures/01 to ~190 grey levels), because those paragraphs anchor art whose
-    // placement depends on the line. Reviving it is its own investigation, not a side effect of this one.
+    // Deliberately NOT keyed on IsAnchorOnlyMark, the flag the parser sets for a paragraph whose only
+    // content was behind-text decorative art: Word gives that mark its line. Honouring the flag here
+    // regressed 104 of 108 changed pages (aggregate mean |Word−render| 8.4 → 56.8, menus/08 and
+    // brochures/01 to ~190 grey levels), because those paragraphs anchor art whose placement depends on
+    // the line, and agendas-minutes/11, the case it was written for, matches Word with the line kept.
     static bool TakesNoLine(ParagraphElement paragraph) =>
         paragraph is {IsSectionBreakMark: true, Runs.Count: 0};
 

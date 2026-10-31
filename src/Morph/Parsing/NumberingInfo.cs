@@ -9,6 +9,13 @@ sealed record NumberingInfo
     public required string Text { get; init; }
 
     /// <summary>
+    /// The paragraph's own counter in its level's <c>w:numFmt</c>, without the level text round it
+    /// ("3" where <see cref="Text"/> is "3."). It is what a page number carries as its chapter
+    /// (<see cref="PageSettings.ChapterStyle"/>). Null for a bullet.
+    /// </summary>
+    public string? LevelNumber { get; init; }
+
+    /// <summary>
     /// Zero-based multilevel-list level (<c>w:ilvl</c>). Null when the source carries no level
     /// concept (e.g. a synthetic document). The exporters use this to reconstruct list nesting;
     /// visual indentation is resolved separately into <see cref="ParagraphProperties.LeftIndentPoints"/>.

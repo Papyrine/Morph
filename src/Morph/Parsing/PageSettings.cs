@@ -116,6 +116,20 @@ sealed record PageSettings
     public string? PageNumberFormat { get; init; }
 
     /// <summary>
+    /// The heading level (1-9) whose number leads this section's page numbers
+    /// (<c>w:pgNumType/@w:chapStyle</c>), as "2-5" for page 5 of chapter 2. Null = page numbers alone.
+    /// Word-probed (<c>_probe_chapter</c>, 2026-11-01): the chapter is the heading's own counter in
+    /// its level's format ("2", not its "2." level text), whatever the page number's format ("7-VIII").
+    /// A field in the body takes the last such heading before it, so two on one page can differ; one
+    /// in a header or footer takes the last on or before the end of its page; and before any, both
+    /// take the first heading's.
+    /// </summary>
+    public int? ChapterStyle { get; init; }
+
+    /// <summary>What stands between the chapter and the page number (<c>w:chapSep</c>): "-", ".", ":", an em dash or an en dash.</summary>
+    public string ChapterSeparator { get; init; } = "-";
+
+    /// <summary>
     /// Whether the gutter is added to the top margin instead of the left margin
     /// (w:settings/w:gutterAtTop).
     /// </summary>
