@@ -208,8 +208,32 @@ side. `_probe_htmltabledefaults`, borderless two-column tables of 12pt text, row
 | `cellspacing="20"` | 38.63pt |
 
 The default padding is the 1.4pt between the first and third rows; without it `html_table`'s rows stood
-1.7pt short. Spacing adds 0.6pt of pitch a pixel where Morph's detached spacing takes 0.75pt; the default
-2px lands within 0.2pt of Word, so the wider rate is left until a fixture needs it.
+1.7pt short.
+
+**The defaults convert at 0.75pt a pixel, the attributes at 0.6** (2026-10-31, `_probe_htmlrows`: twenty-row
+borderless tables, so the pitch reads to a few hundredths off the XPS):
+
+| attributes | row pitch | added |
+|---|---|---|
+| `cellpadding="0" cellspacing="0"` | 24.99pt | — |
+| `cellpadding` 1 / 2 / 4 | 26.20 / 27.40 / 29.79pt | 1.21 / 2.41 / 4.80 |
+| `cellspacing` 1 / 4 / 10 | 25.60 / 27.39 / 30.98pt | 0.61 / 2.40 / 6.00 |
+| default padding | 26.49pt | 1.50 |
+| default spacing | 26.50pt | 1.51 |
+| both defaults | 27.97pt | 2.99 |
+
+So `ParseTable` takes HTML's 1px padding and 2px spacing at 0.75 and an attribute's pixels at 0.6. At 0.6
+throughout, `html_table`'s rows stood 0.5pt short. Every row of the probe now stands 0.14pt short of
+Word's, the same on every variant: a residue of the cell's own line, unmodelled.
+
+**A bordered table's cells are spaced by their own rules, not the frame** (`_probe_htmlrows2`: `border`
+8 and 1 at cellspacing 4 and 12). The rows stand the two 1 CSS px cell rules and the spacing apart
+whatever the frame's width (27.99pt at `border=8` with the default spacing, 33.69 at cellspacing 12,
+33.68 at `border=1`), and the first row's text drops below the table's top by the frame's width once
+and twice the spacing. The detached model had taken the frame's width for every cell's inset, as a DOCX
+table's cells carry the frame's edges, and stood each row of a `border=8` table 11pt taller than
+Word's. `TableProperties.DetachedCellRule` carries the cell's rule (`TableLayout.CellInset`), and the
+cell's own rule is not charged again above its content.
 
 ### Cell paragraph spacing (2026-10-21)
 

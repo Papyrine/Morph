@@ -64,12 +64,12 @@
             ],
             "Properties": {
               "Padding": {
-                "Top": 2.85,
-                "Right": 0.6,
-                "Bottom": 0.6,
-                "Left": 4.35,
-                "Horizontal": 4.949999999999999,
-                "Vertical": 3.45
+                "Top": 3.0,
+                "Right": 0.75,
+                "Bottom": 0.75,
+                "Left": 4.5,
+                "Horizontal": 5.25,
+                "Vertical": 3.75
               },
               "GridSpan": 1,
               "HideMark": false,
@@ -116,19 +116,25 @@
         "HasAnyBorder": false
       },
       "DefaultCellPadding": {
-        "Top": 0.6,
-        "Right": 0.6,
-        "Bottom": 0.6,
-        "Left": 0.6,
-        "Horizontal": 1.2,
-        "Vertical": 1.2
+        "Top": 0.75,
+        "Right": 0.75,
+        "Bottom": 0.75,
+        "Left": 0.75,
+        "Horizontal": 1.5,
+        "Vertical": 1.5
       },
       "DefaultCellPaddingDeclared": false,
       "DefaultCellMargin": {},
-      "IndentPoints": -2.1,
+      "IndentPoints": -2.25,
       "FillContainer": false,
       "IsAutoFit": true,
-      "CellSpacingPoints": 0.75
+      "CellSpacingPoints": 0.75,
+      "DetachedCellRule": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000",
+        "HoldsSpace": false
+      }
     }
   }
 ]

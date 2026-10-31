@@ -120,7 +120,13 @@
       "IndentPoints": -4.5,
       "FillContainer": false,
       "IsAutoFit": true,
-      "CellSpacingPoints": 0.75
+      "CellSpacingPoints": 0.75,
+      "DetachedCellRule": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000",
+        "HoldsSpace": false
+      }
     }
   }
 ]

@@ -60,13 +60,28 @@ public class HtmlTableCellExportTests
         await Assert.That(html).Contains("<span style=\"display: inline-flex; justify-content: space-between; min-width: 150pt\"><span>Introduction</span><span>1</span></span>");
     }
 
-    /// <summary>A cell paragraph with no declared stops stays inline with the rest of the cell.</summary>
+    /// <summary>
+    /// A cell paragraph with no declared stops is its text, with no flex boxes; of one face and
+    /// size, it is set on that face's line (1.08 of Calibri's 1.2207 em).
+    /// </summary>
     [Test]
     public async Task CellParagraph_WithoutStops_StaysInline()
     {
         var html = ExportCell(160, new ParagraphElement {Runs = [TextRun("a"), new() {IsTab = true, Text = "\t"}, TextRun("b")]});
 
-        await Assert.That(html).Contains("<td style=\"width: 160pt\">a b</td>");
+        await Assert.That(html).Contains("<td style=\"width: 160pt\"><div style=\"font-size: 11pt; line-height: 1.32\">a b</div></td>");
+    }
+
+    /// <summary>
+    /// Runs of different sizes have no one line to be set on, so the paragraph joins the cell bare,
+    /// on the cell's own line.
+    /// </summary>
+    [Test]
+    public async Task CellParagraph_OfMixedSizes_JoinsTheCellBare()
+    {
+        var html = ExportCell(160, new ParagraphElement {Runs = [TextRun("a"), TextRun("b", fontSize: 20)]});
+
+        await Assert.That(html).Contains("<td style=\"width: 160pt\">a<span style=\"font-size: 20pt;\">b</span></td>");
     }
 
     /// <summary>

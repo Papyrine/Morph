@@ -144,4 +144,13 @@ sealed record TableProperties
     /// between two cells is twice this value.
     /// </summary>
     public double CellSpacingPoints { get; init; }
+
+    /// <summary>
+    /// The rule each cell's own box draws under the detached model, where it is not the table's
+    /// frame: an HTML <c>border</c> table frames itself at the attribute's width and rules every
+    /// cell 1 CSS px. Null means the cells carry the frame's edges, as a DOCX table's do. The gap
+    /// between two cells is set by this rule, the gap at the table's edge by the frame
+    /// (<c>TableLayout.CellSpacingInsets</c>).
+    /// </summary>
+    public BorderEdge? DetachedCellRule { get; init; }
 }

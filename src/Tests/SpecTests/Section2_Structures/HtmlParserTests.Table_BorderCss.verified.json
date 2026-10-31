@@ -63,6 +63,34 @@
               }
             ],
             "Properties": {
+              "Borders": {
+                "Top": {
+                  "IsVisible": false,
+                  "WidthPoints": 0.5,
+                  "ColorHex": "000000",
+                  "HoldsSpace": false
+                },
+                "Right": {
+                  "IsVisible": false,
+                  "WidthPoints": 0.5,
+                  "ColorHex": "000000",
+                  "HoldsSpace": false
+                },
+                "Bottom": {
+                  "IsVisible": false,
+                  "WidthPoints": 0.5,
+                  "ColorHex": "000000",
+                  "HoldsSpace": false
+                },
+                "Left": {
+                  "IsVisible": false,
+                  "WidthPoints": 0.5,
+                  "ColorHex": "000000",
+                  "HoldsSpace": false
+                },
+                "Declared": "All",
+                "HasAnyBorder": false
+              },
               "GridSpan": 1,
               "HideMark": false,
               "NoWrap": false,
@@ -108,19 +136,25 @@
         "HasAnyBorder": true
       },
       "DefaultCellPadding": {
-        "Top": 0.6,
-        "Right": 0.6,
-        "Bottom": 0.6,
-        "Left": 0.6,
-        "Horizontal": 1.2,
-        "Vertical": 1.2
+        "Top": 0.75,
+        "Right": 0.75,
+        "Bottom": 0.75,
+        "Left": 0.75,
+        "Horizontal": 1.5,
+        "Vertical": 1.5
       },
       "DefaultCellPaddingDeclared": false,
       "DefaultCellMargin": {},
-      "IndentPoints": -3.6,
+      "IndentPoints": -3.75,
       "FillContainer": false,
       "IsAutoFit": true,
-      "CellSpacingPoints": 0.75
+      "CellSpacingPoints": 0.75,
+      "DetachedCellRule": {
+        "IsVisible": true,
+        "WidthPoints": 0.75,
+        "ColorHex": "B2B2B2",
+        "HoldsSpace": false
+      }
     }
   }
 ]

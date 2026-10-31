@@ -20,6 +20,20 @@ static class LayoutFonts
             seed: FontResolver<FontMetrics>.BuildBundledSeed(bytes => FontMetricsReader.Read(new MemoryStream(bytes))!));
 
     /// <summary>
+    /// The faces' glyph outlines, resolved as <see cref="CreateResolver"/> resolves their metrics, for
+    /// an export that draws text as shapes. A face with no TrueType outlines does not load.
+    /// </summary>
+    public static FontResolver<GlyphOutlines> CreateOutlineResolver(string? fontDirectory, Func<string, string?>? fontFallback) =>
+        new(
+            loadFace: (face, _) => GlyphOutlines.Read(face.Path, face.Index),
+            systemFallback: null,
+            releaseFont: null,
+            fontDirectory: fontDirectory,
+            fontFallback: fontFallback,
+            seed: FontResolver<GlyphOutlines>.BuildBundledSeed(bytes => GlyphOutlines.Read(new MemoryStream(bytes))!)
+                .Where(_ => _.Font != null));
+
+    /// <summary>
     /// Adapts <see cref="FontResolver{TFont}.Resolve"/> to the measurer's contract. A family the resolver
     /// cannot serve (no bundled face, no FontFallbacks alias) retries as
     /// <see cref="DefaultFontSettings.DefaultFont"/> — the same last resort

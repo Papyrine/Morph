@@ -76,17 +76,15 @@ static class TableHeightCalculator
             if (table.Properties.CellSpacingPoints > 0)
             {
                 var frame = table.Properties.DefaultBorders;
-                var topInset = (float) TableLayout.SpacingInset(table.Properties, frame?.Top);
-                var bottomInset = (float) TableLayout.SpacingInset(table.Properties, frame?.Bottom);
-                heights[rowIndex] = maxHeight + topInset + bottomInset;
+                heights[rowIndex] = maxHeight + (float) (TableLayout.CellInset(table.Properties, frame?.Top) + TableLayout.CellInset(table.Properties, frame?.Bottom));
                 if (rowIndex == 0)
                 {
-                    heights[rowIndex] += topInset;
+                    heights[rowIndex] += (float) TableLayout.SpacingInset(table.Properties, frame?.Top);
                 }
 
                 if (rowIndex == table.Rows.Count - 1)
                 {
-                    heights[rowIndex] += bottomInset;
+                    heights[rowIndex] += (float) TableLayout.SpacingInset(table.Properties, frame?.Bottom);
                 }
             }
             else
@@ -267,6 +265,14 @@ static class TableHeightCalculator
     /// </summary>
     internal static float HorizontalBorderWidth(TableElement table, int colCount, int rowIndex, bool top)
     {
+        // A detached cell drawing a rule of its own has it in its insets (TableLayout.CellInset):
+        // _probe_htmlrows2's 1 CSS px rules stand rows the two rules apart, and charging the rule
+        // here as well stood every row 0.6pt taller than Word's.
+        if (table.Properties is {CellSpacingPoints: > 0, DetachedCellRule: not null})
+        {
+            return 0;
+        }
+
         var width = RowEdgeWidth(table, colCount, rowIndex, top);
         if (top && rowIndex > 0)
         {
