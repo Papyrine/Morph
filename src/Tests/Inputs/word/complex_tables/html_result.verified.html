@@ -1,0 +1,209 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 451.3pt; padding: 72pt">
+<h1 id="complex-table-examples" style="font-size: 18pt; margin-top: 24pt; margin-bottom: 12pt; line-height: 1.15">Complex Table Examples</h1>
+<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">This document demonstrates various complex table features in Word documents.</span></p>
+<p style="font-size: 12pt; margin-bottom: 0pt; line-height: 1.15">&nbsp;</p>
+<h2 id="1-horizontally-merged-cells" style="font-size: 14pt; margin-top: 18pt; margin-bottom: 9pt; line-height: 1.15">1. Horizontally Merged Cells</h2>
+<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">Tables can have cells that span multiple columns using columnSpan.</span></p>
+<table>
+  <colgroup><col style="width: 156pt"><col style="width: 156pt"><col style="width: 156pt"></colgroup>
+  <tbody>
+    <tr>
+      <td colspan="3" style="width: 468pt;background-color: #ffc000;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 14pt; line-height: 1.15"><span style="font-size: 14pt;"><strong>MERGED HEADER - SPANS 3 COLUMNS</strong></span></div></td>
+    </tr>
+    <tr>
+      <td style="width: 156pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Column 1</strong></span></div></td>
+      <td style="width: 156pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Column 2</strong></span></div></td>
+      <td style="width: 156pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Column 3</strong></span></div></td>
+    </tr>
+    <tr>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Data A1</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Data B1</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Data C1</div></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="width: 312pt;background-color: #e7e6e6;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15"><strong>Merged: Columns 1 &amp; 2</strong></div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Data C2</div></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size: 12pt; margin-bottom: 0pt; line-height: 1.15">&nbsp;</p>
+<h2 id="2-vertically-merged-cells" style="font-size: 14pt; margin-top: 18pt; margin-bottom: 9pt; line-height: 1.15">2. Vertically Merged Cells</h2>
+<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">Tables can have cells that span multiple rows using rowSpan.</span></p>
+<table>
+  <tbody>
+    <tr>
+      <td style="width: 156pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Section</strong></span></div></td>
+      <td style="width: 156pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Item</strong></span></div></td>
+      <td style="width: 156pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Value</strong></span></div></td>
+    </tr>
+    <tr>
+      <td rowspan="3" style="width: 156pt;background-color: #70ad47;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #ffffff;"><strong>Section A (Merged 3 rows)</strong></span></div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Item 1</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: right"><div style="font-size: 11pt; line-height: 1.15">$100</div></td>
+    </tr>
+    <tr>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Item 2</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: right"><div style="font-size: 11pt; line-height: 1.15">$200</div></td>
+    </tr>
+    <tr>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Item 3</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: right"><div style="font-size: 11pt; line-height: 1.15">$300</div></td>
+    </tr>
+    <tr>
+      <td rowspan="2" style="width: 156pt;background-color: #5b9bd5;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #ffffff;"><strong>Section B (Merged 2 rows)</strong></span></div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Item 4</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: right"><div style="font-size: 11pt; line-height: 1.15">$400</div></td>
+    </tr>
+    <tr>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Item 5</div></td>
+      <td style="width: 156pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: right"><div style="font-size: 11pt; line-height: 1.15">$500</div></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size: 12pt; margin-bottom: 0pt; line-height: 1.15">&nbsp;</p>
+<h2 id="3-nested-tables" style="font-size: 14pt; margin-top: 18pt; margin-bottom: 9pt; line-height: 1.15">3. Nested Tables</h2>
+<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">Tables can contain other tables within their cells for complex layouts.</span></p>
+<table>
+  <colgroup><col style="width: 117pt"><col style="width: 117pt"><col style="width: 117pt"><col style="width: 117pt"></colgroup>
+  <tbody>
+    <tr>
+      <td colspan="4" style="width: 468pt;background-color: #44546a;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 13pt; line-height: 1.15"><span style="color: #ffffff; font-size: 13pt;"><strong>NESTED TABLE EXAMPLE</strong></span></div></td>
+    </tr>
+    <tr>
+      <td style="width: 117pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Q1</strong></span></div></td>
+      <td style="width: 117pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Q2</strong></span></div></td>
+      <td style="width: 117pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Q3</strong></span></div></td>
+      <td style="width: 117pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Q4</strong></span></div></td>
+    </tr>
+    <tr>
+      <td style="width: 117pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">$25K</div></td>
+      <td style="width: 117pt;padding: 5pt 9pt;border: 0.75pt solid #000000">
+        <table>
+          <tbody>
+            <tr>
+              <td style="width: 58.5pt;background-color: #ffd966;padding: 2.5pt 4.5pt;border: 0.38pt solid #666666; text-align: center"><div style="font-size: 9pt; line-height: 1.15"><span style="font-size: 9pt;"><strong>Apr</strong></span></div></td>
+              <td style="width: 58.5pt;background-color: #ffd966;padding: 2.5pt 4.5pt;border: 0.38pt solid #666666; text-align: center"><div style="font-size: 9pt; line-height: 1.15"><span style="font-size: 9pt;"><strong>May</strong></span></div></td>
+            </tr>
+            <tr>
+              <td style="width: 58.5pt;padding: 2.5pt 4.5pt;border: 0.38pt solid #666666; text-align: center"><div style="font-size: 9pt; line-height: 1.15"><span style="font-size: 9pt;">$12K</span></div></td>
+              <td style="width: 58.5pt;padding: 2.5pt 4.5pt;border: 0.38pt solid #666666; text-align: center"><div style="font-size: 9pt; line-height: 1.15"><span style="font-size: 9pt;">$18K</span></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+      <td style="width: 117pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">$35K</div></td>
+      <td style="width: 117pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">$40K</div></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size: 12pt; margin-bottom: 0pt; line-height: 1.15">&nbsp;</p>
+<h2 id="4-complex-mixed-merging" style="font-size: 14pt; margin-top: 18pt; margin-bottom: 9pt; line-height: 1.15">4. Complex Mixed Merging</h2>
+<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">Combining both horizontal and vertical merges in the same table.</span></p>
+<table>
+  <colgroup><col style="width: 93.6pt"><col style="width: 93.6pt"><col style="width: 93.6pt"><col style="width: 93.6pt"><col style="width: 93.6pt"></colgroup>
+  <tbody>
+    <tr>
+      <td colspan="2" rowspan="2" style="width: 187.2pt;background-color: #c65911;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 14pt; line-height: 1.15"><span style="color: #ffffff; font-size: 14pt;"><strong>COMPLEX MERGE</strong></span></div></td>
+      <td style="width: 93.6pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Col 3</strong></span></div></td>
+      <td style="width: 93.6pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Col 4</strong></span></div></td>
+      <td style="width: 93.6pt;background-color: #4472c4;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Col 5</strong></span></div></td>
+    </tr>
+    <tr>
+      <td style="width: 93.6pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000"><div style="font-size: 11pt; line-height: 1.15">Data 3-1</div></td>
+      <td colspan="2" style="width: 187.2pt;background-color: #f4b084;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15"><strong>Merged: Cols 4 &amp; 5</strong></div></td>
+    </tr>
+    <tr>
+      <td style="width: 93.6pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">A</div></td>
+      <td style="width: 93.6pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">B</div></td>
+      <td style="width: 93.6pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">C</div></td>
+      <td rowspan="2" style="width: 93.6pt;background-color: #a9d08e;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15"><strong>Vertical Merge</strong></div></td>
+      <td style="width: 93.6pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">E</div></td>
+    </tr>
+    <tr>
+      <td colspan="3" style="width: 280.8pt;background-color: #d9e1f2;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15"><strong>Wide merge across 3 columns</strong></div></td>
+      <td style="width: 93.6pt;vertical-align: middle;padding: 5pt 9pt;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">F</div></td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size: 12pt; margin-bottom: 0pt; line-height: 1.15">&nbsp;</p>
+<h2 id="5-calendar-style-layout" style="font-size: 14pt; margin-top: 18pt; margin-bottom: 9pt; line-height: 1.15">5. Calendar-Style Layout</h2>
+<p style="margin-bottom: 0pt; line-height: 1"><span style="font-size: 12pt;">A practical example showing how merging can create calendar-like structures.</span></p>
+<table>
+  <colgroup><col style="width: 66.85pt"><col style="width: 66.85pt"><col style="width: 66.85pt"><col style="width: 66.85pt"><col style="width: 66.85pt"><col style="width: 66.85pt"><col style="width: 66.85pt"></colgroup>
+  <tbody>
+    <tr>
+      <td colspan="7" style="width: 467.95pt;background-color: #8faadc;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 14pt; line-height: 1.15"><span style="color: #ffffff; font-size: 14pt;"><strong>January 2025</strong></span></div></td>
+    </tr>
+    <tr>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Sun</strong></span></div></td>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Mon</strong></span></div></td>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Tue</strong></span></div></td>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Wed</strong></span></div></td>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Thu</strong></span></div></td>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Fri</strong></span></div></td>
+      <td style="width: 66.85pt;background-color: #4472c4;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #ffffff; font-size: 12pt;"><strong>Sat</strong></span></div></td>
+    </tr>
+    <tr>
+      <td colspan="3" style="width: 200.55pt;background-color: #f2f2f2;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 10pt; line-height: 1.15"><span style="color: #999999; font-size: 10pt;"><em>Previous Month</em></span></div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">1</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">2</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">3</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">4</div></td>
+    </tr>
+    <tr>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">5</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">6</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">7</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">8</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">9</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">10</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">11</div></td>
+    </tr>
+    <tr>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">12</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">13</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">14</div></td>
+      <td colspan="2" style="width: 133.7pt;background-color: #fff2cc;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 10pt; line-height: 1.15"><span style="font-size: 10pt;"><strong>15-16 Event</strong></span></div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">17</div></td>
+      <td style="width: 66.85pt;vertical-align: middle;border: 0.75pt solid #000000; text-align: center"><div style="font-size: 11pt; line-height: 1.15">18</div></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

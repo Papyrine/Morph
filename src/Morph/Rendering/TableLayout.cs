@@ -147,15 +147,11 @@ static class TableLayout
         }
 
         var frame = tableProps.DefaultBorders;
-        var leftInset = SpacingInset(tableProps, frame?.Left);
-        var rightInset = SpacingInset(tableProps, frame?.Right);
-        var topInset = SpacingInset(tableProps, frame?.Top);
-        var bottomInset = SpacingInset(tableProps, frame?.Bottom);
-        var left = leftInset + (gridCol == 0 ? leftInset : 0);
-        var right = rightInset + (gridCol + span >= totalCols ? rightInset : 0);
-        var top = topInset + (rowIndex == 0 ? topInset : 0);
-        var bottom = bottomInset + (rowIndex >= 0 &&
-                                    rowIndex == totalRows - 1 ? bottomInset : 0);
+        var left = CellInset(tableProps, frame?.Left) + (gridCol == 0 ? SpacingInset(tableProps, frame?.Left) : 0);
+        var right = CellInset(tableProps, frame?.Right) + (gridCol + span >= totalCols ? SpacingInset(tableProps, frame?.Right) : 0);
+        var top = CellInset(tableProps, frame?.Top) + (rowIndex == 0 ? SpacingInset(tableProps, frame?.Top) : 0);
+        var bottom = CellInset(tableProps, frame?.Bottom) + (rowIndex >= 0 &&
+                                                            rowIndex == totalRows - 1 ? SpacingInset(tableProps, frame?.Bottom) : 0);
         return new(top, right, bottom, left);
     }
 
@@ -167,6 +163,17 @@ static class TableLayout
     internal static double SpacingInset(TableProperties tableProps, BorderEdge? edge) =>
         tableProps.CellSpacingPoints + (edge != null &&
                                         BorderStroke.Draws(edge) ? edge.WidthPoints : 0);
+
+    /// <summary>
+    /// The inset every cell takes on an edge, where it meets its neighbour: <see cref="SpacingInset"/>
+    /// with the cell's own rule (<see cref="TableProperties.DetachedCellRule"/>) in place of the
+    /// frame's. The extra inset an outer cell takes on the table's edge keeps the frame's width.
+    /// XPS-read on <c>_probe_htmlrows2</c> (HTML tables at `border` 8 and 1, 2026-10-31): the rows
+    /// stand the 1 CSS px cell rules apart whatever the frame, and the first row's text drops by
+    /// the frame's width once below the table's top.
+    /// </summary>
+    internal static double CellInset(TableProperties tableProps, BorderEdge? frameEdge) =>
+        SpacingInset(tableProps, tableProps.DetachedCellRule ?? frameEdge);
 
     /// <summary>
     /// Half a cell edge's declared stack, which is how far it reaches into the cell — a vertical cell

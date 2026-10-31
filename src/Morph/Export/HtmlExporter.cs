@@ -75,7 +75,7 @@ static class HtmlExporter
 
         if (!options.EmitDocument)
         {
-            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, pageFieldsPreEvaluated: document.PageFieldsPreEvaluated, comments: document.Comments);
+            var fragmentWriter = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, pageFieldsPreEvaluated: document.PageFieldsPreEvaluated, comments: document.Comments, source: document);
             WriteHeaderFooter(fragmentWriter, headerContent, "header", "doc-header");
             fragmentWriter.WriteBody(document.Elements);
             fragmentWriter.WriteNoteDefinitions();
@@ -162,7 +162,7 @@ static class HtmlExporter
         }
 
         doc.Append(">\n");
-        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated, document.Comments)
+        var writer = new HtmlWriter(options, bodyFont, document.PageSettings, document.Footnotes, document.Endnotes, doc, document.PageFieldsPreEvaluated, document.Comments, document)
         {
             BackdropOnBody = backdrop != null
         };
@@ -419,7 +419,7 @@ static class HtmlExporter
         return Length(top);
     }
 
-    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null, bool pageFieldsPreEvaluated = false, IReadOnlyList<Comment>? comments = null)
+    sealed class HtmlWriter(HtmlExportOptions options, string? bodyFont, PageSettings pageSettings, IReadOnlyList<Footnote> footnotes, IReadOnlyList<Endnote> endnotes, StringBuilder? output = null, bool pageFieldsPreEvaluated = false, IReadOnlyList<Comment>? comments = null, ParsedDocument? source = null)
     {
         // Mirrors the body font-size in DefaultStylesheet — runs at this size inherit it and need no
         // inline override.
@@ -670,7 +670,76 @@ static class HtmlExporter
             if (floor <= room)
             {
                 offPaper.UnionWith(below);
+                return;
             }
+
+            // Past a page of content the floor cannot say which page the anchor is on, so the
+            // layout is asked where each drawing that could fall off the paper stands: wedding/02's
+            // rule hangs off the paragraph after two pages of cards with no break between them.
+            // Only a drawing hung further below its paragraph than the bottom margin can fall off
+            // from any place on its page, so most documents never lay out.
+            foreach (var element in below)
+            {
+                if (AbsoluteExtent(element) is { } extent &&
+                    extent.Top >= pageSettings.MarginBottom &&
+                    LaidOutTop(element) is { } top &&
+                    top >= pageSettings.HeightPoints)
+                {
+                    offPaper.Add(element);
+                }
+            }
+        }
+
+        // Where the layout placed each floating shape and picture, from its page's top, by the
+        // element itself (a picture by its image's bytes, as PagedDocument.Pictures finds one).
+        // Laid out on first use, once per export.
+        Dictionary<object, float>? laidOutTops;
+
+        float? LaidOutTop(DocumentElement element)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            if (laidOutTops == null)
+            {
+                laidOutTops = new(ReferenceEqualityComparer.Instance);
+                using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
+                var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), DefaultFontSettings.FontWidthScale, source.Compatibility.SqueezesJustifiedLines, LayoutFonts.Covers(fontResolver));
+                var laidOut = new Fragmenter(measurer, source.Compatibility).Layout(
+                    source.Elements,
+                    source.PageSettings,
+                    source.Header,
+                    source.Footer,
+                    source.FirstPageHeader,
+                    source.FirstPageFooter,
+                    source.EvenPageHeader,
+                    source.EvenPageFooter);
+                foreach (var page in laidOut.Pages)
+                {
+                    foreach (var item in page.Items)
+                    {
+                        object? key = item switch
+                        {
+                            PlacedShape shape => shape.Shape,
+                            PlacedImage {Data: { } data} => data,
+                            _ => null
+                        };
+                        if (key != null)
+                        {
+                            laidOutTops.TryAdd(key, item.Y);
+                        }
+                    }
+                }
+            }
+
+            object lookup = element switch
+            {
+                FloatingImageElement image => image.ImageData,
+                _ => element
+            };
+            return laidOutTops.TryGetValue(lookup, out var top) ? top : null;
         }
 
         // The least a paragraph or table can stand. A paragraph is its spacing and a line of its
@@ -1485,6 +1554,22 @@ static class HtmlExporter
             }
 
             return FaceLineEms(UniformRunFontFamily(paragraph.Runs), paragraph.Runs.Count > 0 && paragraph.Runs[0].Properties.Bold);
+        }
+
+        // The block style that sets a cell paragraph on its face's own line: its one size lifted
+        // off the runs, so the line's strut is its text (as AppendHeading lifts a heading's), and
+        // its Auto multiple of that face's line. Null when the runs disagree on a face or a size,
+        // or the spacing is not Auto, and the paragraph is joined into the cell as before.
+        string? CellLineStyle(ParagraphElement paragraph)
+        {
+            if (paragraph.Properties.LineSpacingRule != LineSpacingRule.Auto ||
+                UniformRunFontSize(paragraph.Runs) is not { } size ||
+                HeadingLineEms(paragraph) is not { } ems)
+            {
+                return null;
+            }
+
+            return $"font-size: {Length(size)}; line-height: {Number(paragraph.Properties.LineSpacingMultiplier * ems)}";
         }
 
         double? FaceLineEms(string? family, bool bold)
@@ -2875,6 +2960,20 @@ static class HtmlExporter
                             builder.Append("</p>");
                             separatorPending = false;
                         }
+                        else if (CellLineStyle(paragraph) is { } lineStyle)
+                        {
+                            // A line of one face and size is set on that face's own line, as Word
+                            // sets it: joined inline it took the cell's line on the em, and
+                            // wedding/02's "For their Bridal Shower!", 1.5 lines of Avenir Next, stood
+                            // 11.9pt where Word's is 20, each card 8pt short.
+                            builder
+                                .Append("<div style=\"")
+                                .Append(lineStyle)
+                                .Append("\">");
+                            AppendInline(paragraph.Runs);
+                            builder.Append("</div>");
+                            separatorPending = false;
+                        }
                         else
                         {
                             if (separatorPending)
@@ -3672,8 +3771,9 @@ static class HtmlExporter
 
         // A warped WordArt as an SVG the size of its box. An arch or a circle places each glyph on its
         // ellipse as the painters do (WordArtArch.Place, the glyph advances read off the face); an
-        // envelope warp bends glyph outlines, which only the raster backends can, so its text is set
-        // straight across the box's text rect, stretched to the rect's width and sized to its height.
+        // envelope warp bends the line's outline onto its envelope as the painters do (EnvelopePath),
+        // and a face with no TrueType outlines has its text set straight across the box's text rect,
+        // stretched to the rect's width and sized to its height.
         // The ink height the arch's scale is taken from is a capital's, 0.72 of the em, where the
         // painters measure the text's own ink. False when the face cannot be found or the box is
         // empty, and the text is then written flat as before.
@@ -3744,6 +3844,11 @@ static class HtmlExporter
                     builder.Append($"<text x=\"{Number(x)}\" y=\"{Number(y)}\" font-size=\"{Number(size)}\" {font} transform=\"rotate({Number(angle)} {Number(x)} {Number(y)})\">{EncodeText(glyphs[index])}</text>");
                 }
             }
+            else if (WordArtEnvelope.Covers(wordArt.Transform) &&
+                     EnvelopePath(wordArt, textLeft, textTop, textWidth, textHeight) is { } path)
+            {
+                builder.Append($"<path d=\"{path}\" {font} />");
+            }
             else
             {
                 // The face's whole height fits the rect, ascenders and descenders both: sized on a
@@ -3756,6 +3861,54 @@ static class HtmlExporter
 
             builder.Append("</svg>\n");
             return true;
+        }
+
+        // The faces' glyph outlines, for the envelope warps. Built on first use.
+        FontResolver<GlyphOutlines>? outlineFonts;
+
+        // An envelope WordArt's text bent as the painters bend it: the line's outline, read off the
+        // face, mapped onto the envelope in the text rect (WordArtEnvelope.Warp), as one path. Null
+        // when the face has no TrueType outlines or the text no ink, and the text is then stretched
+        // across the rect unbent.
+        string? EnvelopePath(IWordArtVisual wordArt, float left, float top, float width, float height)
+        {
+            outlineFonts ??= LayoutFonts.CreateOutlineResolver(options.FontDirectory, options.FontFallback);
+            GlyphOutlines outlines;
+            try
+            {
+                outlines = outlineFonts.Resolve(wordArt.FontFamily, wordArt.Bold, wordArt.Italic);
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
+            // The size only sets how finely the curves are cut against the box: the warp maps the
+            // ink, whatever its size, onto the rect.
+            var warped = WordArtEnvelope.Warp(outlines.TextContours(wordArt.Text, (float) wordArt.FontSizePoints), wordArt.Transform, wordArt.WarpAdjust, left, top, width, height);
+            if (warped.Count == 0)
+            {
+                return null;
+            }
+
+            var path = new StringBuilder();
+            foreach (var contour in warped)
+            {
+                path.Append('M');
+                for (var index = 0; index < contour.Count; index++)
+                {
+                    if (index > 0)
+                    {
+                        path.Append('L');
+                    }
+
+                    path.Append(Number(contour[index].X)).Append(' ').Append(Number(contour[index].Y));
+                }
+
+                path.Append('Z');
+            }
+
+            return path.ToString();
         }
 
         void WriteInlineWordArt(WordArtElement wordArt, int depth)

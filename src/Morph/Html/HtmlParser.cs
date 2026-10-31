@@ -61,8 +61,9 @@ sealed class HtmlParser
     // cellpadding, border).
     const double pixelsToPoints = 0.75;
 
-    // A table's cellpadding attribute is the one pixel Word does not take at 0.75pt (ParseTable).
-    const double cellPaddingPixelsToPoints = 0.6;
+    // A table's cellpadding and cellspacing attributes are the pixels Word does not take at 0.75pt;
+    // HTML's defaults for them, 1px and 2px, it does (ParseTable).
+    const double tableAttributePixelsToPoints = 0.6;
 
     // The space under a cell's own paragraph (see ParseTable).
     const double cellParagraphAfter = 8;
@@ -1457,11 +1458,13 @@ sealed class HtmlParser
         // `border-collapse: collapse` (or cellspacing=0) collapses the boxes: the fills abut
         // and the rules become shared inside edges.
         var cellSpacingPixels = 2.0;
+        var cellSpacingDeclared = false;
         var cellspacingAttribute = tableElement.GetAttribute("cellspacing");
         if (!string.IsNullOrEmpty(cellspacingAttribute) &&
             double.TryParse(cellspacingAttribute, out var spacingPx))
         {
             cellSpacingPixels = Math.Max(0, spacingPx);
+            cellSpacingDeclared = true;
         }
 
         // Parse table-level style for padding, border and width CSS
@@ -1537,12 +1540,27 @@ sealed class HtmlParser
         var insideRule = hasBorderAttribute &&
                          cellSpacingPixels <= 0 ? cellRule : null;
 
+        // A table framed by CSS keeps the room of that rule round each detached cell
+        // (DetachedCellRule) but draws none: html_css_margin_padding's `border: 1px solid` table
+        // stands 127px at 150 dpi in Word, its cell's padding, spacing and a 1 CSS px rule each
+        // side, with no box round the cell. Left to the detached cascade the cells drew the frame.
+        var frameOnlyCellBorders = !hasBorderAttribute &&
+                                   cellSpacingPixels > 0 &&
+                                   defaultBorders.HasAnyBorder
+            ? new CellBorders()
+            : null;
+
         // Track active rowspans: column index -> remaining rows
         var activeRowspans = new Dictionary<int, int>();
 
         // The first row's first cell's own left padding, which the table hangs into the margin by.
         double? firstCellPaddingLeft = null;
         var firstRow = true;
+
+        // A side of the table's padding before its CSS is known: the attribute's pixels, or HTML's
+        // default of 1px, which converts at its own rate (see the default below the rows).
+        double PaddingPoints() =>
+            cellPaddingPixels is { } declaredPixels ? declaredPixels * tableAttributePixelsToPoints : pixelsToPoints;
 
         foreach (var tr in DirectRows(tableElement))
         {
@@ -1627,7 +1645,7 @@ sealed class HtmlParser
                     // pixels as points, the boxes stood apart and the text 1px in.
                     if (ParseCssSpacingPoints(cellStyles, "margin") is { } margin)
                     {
-                        var below = cellPadding ?? defaultCellPadding ?? new CellSpacing((cellPaddingPixels ?? 1) * cellPaddingPixelsToPoints);
+                        var below = cellPadding ?? defaultCellPadding ?? new CellSpacing(PaddingPoints());
                         cellPadding = below with
                         {
                             Top = below.Top + margin.Top,
@@ -1716,7 +1734,7 @@ sealed class HtmlParser
                         ? own.Left + own.Right
                         : defaultCellPadding is { } tableDefault && cellPaddingPixels == null
                             ? tableDefault.Left + tableDefault.Right
-                            : 2 * (cellPaddingPixels ?? 1) * (fillContainer ? 1 : cellPaddingPixelsToPoints));
+                            : 2 * (fillContainer ? cellPaddingPixels ?? 1 : PaddingPoints()));
                 }
 
                 // Handle colspan
@@ -1808,7 +1826,7 @@ sealed class HtmlParser
                             VerticalMerge = verticalMerge,
                             WidthPoints = cellWidthPoints,
                             WidthFraction = cellWidthFraction,
-                            Borders = cellCssBorders ?? cellBoxBorders
+                            Borders = cellCssBorders ?? cellBoxBorders ?? frameOnlyCellBorders
                         }
                     });
 
@@ -1853,7 +1871,7 @@ sealed class HtmlParser
             // stand 42.7 and 43.7pt in Word, their text and margins with nothing more; kept, the rows
             // stood 8pt taller.
             // Only a margin's depth is known to: a padding's is unprobed.
-            var plainBottom = defaultCellPadding?.Bottom ?? (cellPaddingPixels ?? 1) * cellPaddingPixelsToPoints;
+            var plainBottom = defaultCellPadding?.Bottom ?? PaddingPoints();
             if (rowMarginBottom > plainBottom)
             {
                 var after = Math.Max(0, cellParagraphAfter - (rowMarginBottom - plainBottom));
@@ -1917,15 +1935,23 @@ sealed class HtmlParser
         // Word's XPS (_probe_htmltabledefaults, 2026-10-30): borderless rows of 12pt text stand 26.42pt
         // apart at cellspacing=0 and 25.02pt with cellpadding=0 as well, and 28.02 / 26.62 with the
         // default spacing; html_table's rows stood 1.7pt short of Word's with none.
+        //
+        // The defaults convert at 0.75pt a pixel where the attributes take 0.6. Read off Word's XPS
+        // over 20-row tables (_probe_htmlrows, 2026-10-31), the borderless rows stand 24.99pt apart
+        // with both at 0; cellpadding 1 / 2 / 4 adds 1.21 / 2.41 / 4.80 and cellspacing 1 / 4 / 10
+        // adds 0.61 / 2.40 / 6.00, but the default padding adds 1.50 and the default spacing 1.51.
+        // At 0.6 throughout html_table's rows stood 0.5pt short.
         if (cellPaddingPixels == null &&
             defaultCellPadding == null)
         {
-            cellPaddingPixels = 1;
+            defaultCellPadding = fillContainer
+                ? new(pixelsToPoints, 1)
+                : new(pixelsToPoints);
         }
 
         if (cellPaddingPixels is { } pixels)
         {
-            var points = pixels * cellPaddingPixelsToPoints;
+            var points = pixels * tableAttributePixelsToPoints;
             defaultCellPadding = fillContainer
                 ? new(points, pixels)
                 : new(points);
@@ -1934,7 +1960,7 @@ sealed class HtmlParser
         // Detached spacing insets the outer cell's box by 2 × spacing from the frame, and the
         // text-at-the-margin rule above covers everything left of the cell text — so the
         // spacing inset joins the outdent.
-        var cellSpacingPoints = cellSpacingPixels * pixelsToPoints / 2;
+        var cellSpacingPoints = cellSpacingPixels * (cellSpacingDeclared ? tableAttributePixelsToPoints : pixelsToPoints) / 2;
         // A first cell with its own left padding hangs the table by that instead: _probe_pad's 40px
         // left padding put the table's edge 33pt left of the margin and its text on the margin.
         var leftInset = fillContainer
@@ -1952,6 +1978,7 @@ sealed class HtmlParser
                 PreferredWidthPoints = preferredWidthPoints,
                 FillContainer = fillContainer,
                 CellSpacingPoints = cellSpacingPoints,
+                DetachedCellRule = defaultBorders.HasAnyBorder ? cellRule : BorderEdge.None,
                 InsideHorizontalBorder = insideRule,
                 InsideVerticalBorder = insideRule
             }

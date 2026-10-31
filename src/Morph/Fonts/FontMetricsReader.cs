@@ -53,6 +53,71 @@ static class FontMetricsReader
     /// </summary>
     public static FontMetrics? Read(Stream stream, int faceIndex = 0)
     {
+        if (ReadDirectory(stream, faceIndex) is not { } tables)
+        {
+            return null;
+        }
+
+        if (!tables.TryGetValue(headTag, out var head) ||
+            !tables.TryGetValue(hheaTag, out var hhea))
+        {
+            return null;
+        }
+
+        // head: unitsPerEm is a uint16 at offset 18.
+        var headBytes = new byte[20];
+        if (!TryReadExactAt(stream, head.Offset, headBytes))
+        {
+            return null;
+        }
+
+        var unitsPerEm = BinaryPrimitives.ReadUInt16BigEndian(headBytes.AsSpan(18, 2));
+        if (unitsPerEm == 0)
+        {
+            return null;
+        }
+
+        // hhea: ascender (int16 @4), descender (int16 @6), lineGap (int16 @8), numberOfHMetrics (uint16 @34).
+        var hheaBytes = new byte[36];
+        if (!TryReadExactAt(stream, hhea.Offset, hheaBytes))
+        {
+            return null;
+        }
+
+        var numberOfHMetrics = BinaryPrimitives.ReadUInt16BigEndian(hheaBytes.AsSpan(34, 2));
+        var os2 = ReadOs2(stream, tables);
+
+        return new()
+        {
+            UnitsPerEm = unitsPerEm,
+            Ascender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(4, 2)),
+            Descender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(6, 2)),
+            LineGap = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(8, 2)),
+            WinAscent = os2.WinAscent,
+            WinDescent = os2.WinDescent,
+            TypoAscender = os2.TypoAscender,
+            TypoDescender = os2.TypoDescender,
+            TypoLineGap = os2.TypoLineGap,
+            UseTypoMetrics = os2.UseTypoMetrics,
+            Weight = os2.Weight,
+            IsVariable = tables.ContainsKey(fvarTag),
+            StrikeoutPosition = os2.StrikeoutPosition,
+            StrikeoutSize = os2.StrikeoutSize,
+            EastAsian = os2.EastAsian,
+
+            AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
+            GlyphForCodepoint = ReadCmap(stream, tables),
+            KernPairs = ReadKernPairs(stream, tables),
+            Ligatures = ReadLigatures(stream, tables)
+        };
+    }
+
+    /// <summary>
+    /// The table directory of face <paramref name="faceIndex"/>: each table's offset and length by
+    /// tag. Null when the stream is not sfnt or the face index is out of range.
+    /// </summary>
+    internal static Dictionary<uint, (long Offset, int Length)>? ReadDirectory(Stream stream, int faceIndex)
+    {
         var header = new byte[12];
         if (!TryReadExactAt(stream, 0, header))
         {
@@ -116,58 +181,7 @@ static class FontMetricsReader
             tables[tag] = (off, (int) len);
         }
 
-        if (!tables.TryGetValue(headTag, out var head) ||
-            !tables.TryGetValue(hheaTag, out var hhea))
-        {
-            return null;
-        }
-
-        // head: unitsPerEm is a uint16 at offset 18.
-        var headBytes = new byte[20];
-        if (!TryReadExactAt(stream, head.Offset, headBytes))
-        {
-            return null;
-        }
-
-        var unitsPerEm = BinaryPrimitives.ReadUInt16BigEndian(headBytes.AsSpan(18, 2));
-        if (unitsPerEm == 0)
-        {
-            return null;
-        }
-
-        // hhea: ascender (int16 @4), descender (int16 @6), lineGap (int16 @8), numberOfHMetrics (uint16 @34).
-        var hheaBytes = new byte[36];
-        if (!TryReadExactAt(stream, hhea.Offset, hheaBytes))
-        {
-            return null;
-        }
-
-        var numberOfHMetrics = BinaryPrimitives.ReadUInt16BigEndian(hheaBytes.AsSpan(34, 2));
-        var os2 = ReadOs2(stream, tables);
-
-        return new()
-        {
-            UnitsPerEm = unitsPerEm,
-            Ascender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(4, 2)),
-            Descender = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(6, 2)),
-            LineGap = BinaryPrimitives.ReadInt16BigEndian(hheaBytes.AsSpan(8, 2)),
-            WinAscent = os2.WinAscent,
-            WinDescent = os2.WinDescent,
-            TypoAscender = os2.TypoAscender,
-            TypoDescender = os2.TypoDescender,
-            TypoLineGap = os2.TypoLineGap,
-            UseTypoMetrics = os2.UseTypoMetrics,
-            Weight = os2.Weight,
-            IsVariable = tables.ContainsKey(fvarTag),
-            StrikeoutPosition = os2.StrikeoutPosition,
-            StrikeoutSize = os2.StrikeoutSize,
-            EastAsian = os2.EastAsian,
-
-            AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
-            GlyphForCodepoint = ReadCmap(stream, tables),
-            KernPairs = ReadKernPairs(stream, tables),
-            Ligatures = ReadLigatures(stream, tables)
-        };
+        return tables;
     }
 
     /// <summary>
@@ -490,7 +504,7 @@ static class FontMetricsReader
         }
     }
 
-    static bool TryReadExactAt(Stream stream, long position, byte[] buffer)
+    internal static bool TryReadExactAt(Stream stream, long position, byte[] buffer)
     {
         if (position < 0 || position + buffer.Length > stream.Length)
         {
