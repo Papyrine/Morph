@@ -72,7 +72,7 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 ### wordart
 
-- MINOR | all | p2 | "Arc Text Down" runs ~10px wider than Word's and the circle ~10px taller. Word spaces an arch's glyphs about 2.3% tighter inside certain windows of size, and the scenario's box falls in one: outside them Morph's spacing matches Word's within 0.3% at every scale probed (`_probe_archscale`, 2026-10-31; `docs/word-features.md`, WordArt arches). The windows fall at different sizes for different texts and are not monotonic in size; what sets them is unknown
+- MINOR | all | p2 | [known] "Arc Text Down" runs ~10px wider than Word's and the circle ~10px taller: Word spaces an arch either as modelled or 1.0217 times tighter, flipping between the two with changes of a few thousandths of a point in size and no order to it, and this box gets the tight one (`_probe_archfine`, 2026-10-31; `docs/word-features.md`, WordArt arches). Not modelled: only Word's own fit arithmetic decides it
 
 ---
 
