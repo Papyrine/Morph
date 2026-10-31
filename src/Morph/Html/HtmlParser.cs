@@ -64,6 +64,9 @@ sealed class HtmlParser
     // A table's cellpadding attribute is the one pixel Word does not take at 0.75pt (ParseTable).
     const double cellPaddingPixelsToPoints = 0.6;
 
+    // The space under a cell's own paragraph (see ParseTable).
+    const double cellParagraphAfter = 8;
+
     // The grey Word rules a legacy border="n" table with. Measured off a Word probe at 150 DPI:
     // each rule lays 120 units of ink over two anti-aliased pixel rows, which at 0.75pt is a solid
     // value of ~B2. Not black — that is a browser's rendering of the attribute, not Word's.
@@ -1544,6 +1547,8 @@ sealed class HtmlParser
         foreach (var tr in DirectRows(tableElement))
         {
             var cells = new List<TableCell>();
+            List<List<DocumentElement>> rowContents = [];
+            var rowMarginBottom = 0.0;
             var newRowspans = new Dictionary<int, int>();
             var colIndex = 0;
 
@@ -1592,7 +1597,6 @@ sealed class HtmlParser
                 var isHeader = cell.TagName.Equals("th", StringComparison.OrdinalIgnoreCase);
 
                 CellSpacing? cellPadding = null;
-                CellSpacing? cellMargin = null;
                 CellBorders? cellCssBorders = null;
                 var cellBgColor = rowBackgroundColor;
                 var cellTextColor = rowTextColor;
@@ -1606,11 +1610,32 @@ sealed class HtmlParser
                     // CSS cell padding becomes the cell's margins at 0.75pt a pixel (_probe_pad: 40px of
                     // top padding dropped the text 30pt, 80px 60pt), unlike the table's cellpadding.
                     cellPadding = ParseCssSpacingPoints(cellStyles, "padding");
-                    cellMargin = ParseCssSpacing(cellStyles, "margin");
+
                     if (firstRow &&
                         cells.Count == 0)
                     {
                         firstCellPaddingLeft = cellPadding?.Left;
+                    }
+
+                    // A cell's CSS margin is more of its margins, at 0.75pt a pixel: Word sets the
+                    // text in by the margin and the padding together and leaves the cell's box where
+                    // its neighbours' are, and a row's cells share the top and bottom as they share
+                    // any cell margin (TableLayout.GetEffectivePadding). html_table_cell_margin_css's
+                    // `margin: 10px; padding: 5px` cell has its text 25px in from its border at 150
+                    // dpi, its `margin-left: 20px` cell 35px, and both cells of its `margin-top: 15px`
+                    // row their text 40px under the row's top. Read as a gap outside the border, in
+                    // pixels as points, the boxes stood apart and the text 1px in.
+                    if (ParseCssSpacingPoints(cellStyles, "margin") is { } margin)
+                    {
+                        var below = cellPadding ?? defaultCellPadding ?? new CellSpacing((cellPaddingPixels ?? 1) * cellPaddingPixelsToPoints);
+                        cellPadding = below with
+                        {
+                            Top = below.Top + margin.Top,
+                            Right = below.Right + margin.Right,
+                            Bottom = below.Bottom + margin.Bottom,
+                            Left = below.Left + margin.Left
+                        };
+                        rowMarginBottom = Math.Max(rowMarginBottom, cellPadding.Bottom);
                     }
 
                     // A cell's own CSS border becomes its w:tcBorders, overriding the table
@@ -1719,6 +1744,7 @@ sealed class HtmlParser
                 }
 
                 var cellElements = new List<DocumentElement>();
+                rowContents.Add(cellElements);
                 var cellRunProperties = ContainerRunProps() with
                 {
                     Bold = isHeader
@@ -1758,12 +1784,13 @@ sealed class HtmlParser
                             // Word's XPS (_probe_cellsize, cellpadding 0): two lines broken by <br> stand
                             // 16.92pt apart, 1.15 of Calibri's 14.65pt line, and every cell holds 8.0 to
                             // 8.3pt more than its lines at 12, 24 and 36pt text and at two lines alike
-                            // — space after the paragraph, not a taller line.
+                            // — space after the paragraph, not a taller line. (A row whose bottom margin
+                            // a cell's CSS margin deepens takes it out of that, below.)
                             Properties = new()
                             {
                                 Alignment = cellAlignment ?? TextAlignment.Left,
                                 LineSpacingMultiplier = 1.15,
-                                SpacingAfterPoints = 8
+                                SpacingAfterPoints = cellParagraphAfter
                             },
                             Runs = cellRuns
                         });
@@ -1776,7 +1803,6 @@ sealed class HtmlParser
                         Properties = new()
                         {
                             Padding = cellPadding,
-                            Margin = cellMargin,
                             BackgroundColorHex = cellBgColor,
                             GridSpan = gridSpan,
                             VerticalMerge = verticalMerge,
@@ -1821,6 +1847,34 @@ sealed class HtmlParser
             }
 
             activeRowspans = nextRowspans;
+
+            // The 8pt under a cell's text is the room a deeper bottom margin takes first: both rows of
+            // html_table_cell_margin_css, whose bottom margins a CSS margin deepens by 7.5 and 11.25pt,
+            // stand 42.7 and 43.7pt in Word, their text and margins with nothing more; kept, the rows
+            // stood 8pt taller.
+            // Only a margin's depth is known to: a padding's is unprobed.
+            var plainBottom = defaultCellPadding?.Bottom ?? (cellPaddingPixels ?? 1) * cellPaddingPixelsToPoints;
+            if (rowMarginBottom > plainBottom)
+            {
+                var after = Math.Max(0, cellParagraphAfter - (rowMarginBottom - plainBottom));
+                foreach (var content in rowContents)
+                {
+                    for (var index = 0; index < content.Count; index++)
+                    {
+                        if (content[index] is ParagraphElement { Properties.SpacingAfterPoints: cellParagraphAfter } paragraph)
+                        {
+                            content[index] = new ParagraphElement
+                            {
+                                Properties = paragraph.Properties with
+                                {
+                                    SpacingAfterPoints = after
+                                },
+                                Runs = paragraph.Runs
+                            };
+                        }
+                    }
+                }
+            }
 
             if (cells.Count > 0)
             {

@@ -126,12 +126,14 @@ public class SvgPictureRenderTests
     [Arguments("pdf")]
     public async Task A_picture_is_drawn_from_its_SVG_not_from_the_raster_beside_it(string backend)
     {
-        // icons_multiple in small: the fallback is blue, the SVG is not.
+        // icons_multiple in small: the fallback is blue, the SVG is not. The drawing stands half a
+        // pixel of its own in from each edge of the box (SvgReaderTests), 1.9pt here, so the corners
+        // are read 4pt in.
         using var page = Render(backend, Picture(Svg(red), blueFallback));
 
         await Assert.That(IsRed(At(page, 120, 170))).IsTrue();
-        await Assert.That(IsRed(At(page, 62, 152))).IsTrue();
-        await Assert.That(IsRed(At(page, 178, 188))).IsTrue();
+        await Assert.That(IsRed(At(page, 64, 154))).IsTrue();
+        await Assert.That(IsRed(At(page, 176, 186))).IsTrue();
         await Assert.That(IsWhite(At(page, 56, 170))).IsTrue();
         await Assert.That(IsWhite(At(page, 120, 194))).IsTrue();
     }

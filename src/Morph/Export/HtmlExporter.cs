@@ -498,6 +498,10 @@ static class HtmlExporter
         readonly HashSet<DocumentElement> pagePlaced = [];
         double pagePadding;
 
+        // The paragraph-anchored art of the page being written that Word's page leaves off the
+        // paper (see MarkOffPaper): neither written nor reserved room for.
+        readonly HashSet<DocumentElement> offPaper = [];
+
         public override string ToString() => builder.ToString();
 
         /// <summary>Appends already-escaped markup (the header/footer wrapper elements).</summary>
@@ -547,6 +551,7 @@ static class HtmlExporter
             while (start < elements.Count)
             {
                 var end = PageEnd(elements, start);
+                MarkOffPaper(elements, start, end);
                 var (above, below) = PageReserve(elements, start, end, first: start == 0, last: end == elements.Count);
                 var styles = new List<string>();
                 if (wrapOpen)
@@ -626,6 +631,80 @@ static class HtmlExporter
             }
 
             pagePlaced.Clear();
+            offPaper.Clear();
+        }
+
+        // A drawing hung off a paragraph so far below it that it starts past the foot of the
+        // anchor's page is not on the paper: Word's page leaves it off, where the export, which
+        // places it from its anchor's place in the flow, drew it and held the page open to it.
+        // wedding/02's and wedding/08's near-white fold rules hang 700pt and 341pt under their
+        // last paragraphs, and each export ran a third longer than its text. Judged on a FLOOR of
+        // the flow — a line a paragraph, a table row's margins and declared height — and only on
+        // a page whose floor fits one page of the document, so the anchor is known to be on it.
+        void MarkOffPaper(IReadOnlyList<DocumentElement> elements, int start, int end)
+        {
+            offPaper.Clear();
+            var room = pageSettings.HeightPoints - pageSettings.MarginTop - pageSettings.MarginBottom;
+            var floor = 0.0;
+            List<DocumentElement> below = [];
+            for (var index = start; index < end; index++)
+            {
+                var element = elements[index];
+                switch (element)
+                {
+                    case ParagraphElement or TableElement:
+                        floor += FlowFloor(element);
+                        break;
+                    case FloatingShapeElement {VerticalAnchor: VerticalAnchor.Paragraph or VerticalAnchor.Line} or
+                        FloatingImageElement {VerticalAnchor: VerticalAnchor.Paragraph or VerticalAnchor.Line}:
+                        if (AbsoluteExtent(element) is { } extent &&
+                            pageSettings.MarginTop + floor + extent.Top >= pageSettings.HeightPoints)
+                        {
+                            below.Add(element);
+                        }
+
+                        break;
+                }
+            }
+
+            if (floor <= room)
+            {
+                offPaper.UnionWith(below);
+            }
+        }
+
+        // The least a paragraph or table can stand. A paragraph is its spacing and a line of its
+        // mark's size, which any line of text is at least; a table row is its declared height, or
+        // its cells' margins round the tallest cell's floor, whichever is more.
+        static double FlowFloor(DocumentElement element)
+        {
+            switch (element)
+            {
+                case ParagraphElement paragraph:
+                    return paragraph.Properties.SpacingBeforePoints + paragraph.Properties.SpacingAfterPoints +
+                           (paragraph.Properties.ParagraphMarkFontSizePoints ?? defaultBodyFontSizePoints);
+                case TableElement table:
+                    var height = 0.0;
+                    foreach (var row in table.Rows)
+                    {
+                        var (rowTop, rowBottom) = TableLayout.RowVerticalPadding(row, table.Properties);
+                        var declared = row.HeightPoints is { } declaredHeight and > 0
+                            ? declaredHeight + (row.IsExactHeight ? rowBottom : rowTop + rowBottom)
+                            : 0;
+                        var content = row.IsExactHeight
+                            ? 0
+                            : row.Cells
+                                .Where(_ => _.Properties.VerticalMerge == VerticalMergeType.None)
+                                .Select(_ => _.Content.Sum(FlowFloor))
+                                .DefaultIfEmpty(0)
+                                .Max();
+                        height += Math.Max(declared, rowTop + content + rowBottom);
+                    }
+
+                    return height;
+                default:
+                    return 0;
+            }
         }
 
         // An overestimate of how tall a paragraph sets, to tell whether the text before a float
@@ -698,6 +777,11 @@ static class HtmlExporter
             var opening = true;
             for (var index = start; index < end; index++)
             {
+                if (offPaper.Contains(elements[index]))
+                {
+                    continue;
+                }
+
                 if (AbsoluteExtent(elements[index]) is not { } extent)
                 {
                     opening = false;
@@ -759,6 +843,10 @@ static class HtmlExporter
             for (var index = start; index < end; index++)
             {
                 var element = elements[index];
+                if (offPaper.Contains(element))
+                {
+                    continue;
+                }
 
                 if (element is ParagraphElement
                     {
@@ -956,9 +1044,17 @@ static class HtmlExporter
                 // collapses those gaps (cover-letters run together). Emit a one-line spacer instead,
                 // carrying the paragraph's own before/after spacing; the &nbsp; forces the line box a
                 // bare <p> would collapse. Matches the raster/PDF backends, which lay the empty line
-                // out at its font height.
+                // out at its font height, which is the paragraph MARK's, and in its face's own line
+                // as a heading's is (HeadingLineEms): the line holds nothing but its strut, so the
+                // em it scales is the mark's. labels/04's three spacers under a 9pt Century Gothic
+                // docDefaults stood at the stylesheet's 11pt em and set its labels 6pt low; at the
+                // mark's em alone they set them 8pt high.
                 Indent(depth).Append("<p");
-                AppendParagraphStyle(paragraph.Properties);
+                var markSize = paragraph.Properties.ParagraphMarkFontSizePoints;
+                AppendParagraphStyle(
+                    paragraph.Properties,
+                    fontSizePoints: markSize is { } size && Math.Abs(size - defaultBodyFontSizePoints) > 0.01 ? size : null,
+                    lineEms: markSize == null ? null : FaceLineEms(paragraph.Properties.ParagraphMarkFontFamily, paragraph.Properties.ParagraphMarkRunProperties?.Bold ?? false));
                 builder.Append(">&nbsp;</p>\n");
                 return;
             }
@@ -1383,8 +1479,17 @@ static class HtmlExporter
         // the face cannot be found, and the multiple is then written as it was.
         double? HeadingLineEms(ParagraphElement paragraph)
         {
-            if (paragraph.Properties.LineSpacingRule != LineSpacingRule.Auto ||
-                UniformRunFontFamily(paragraph.Runs) is not { } family)
+            if (paragraph.Properties.LineSpacingRule != LineSpacingRule.Auto)
+            {
+                return null;
+            }
+
+            return FaceLineEms(UniformRunFontFamily(paragraph.Runs), paragraph.Runs.Count > 0 && paragraph.Runs[0].Properties.Bold);
+        }
+
+        double? FaceLineEms(string? family, bool bold)
+        {
+            if (string.IsNullOrEmpty(family))
             {
                 return null;
             }
@@ -1392,7 +1497,7 @@ static class HtmlExporter
             lineFonts ??= LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
             try
             {
-                var metrics = lineFonts.Resolve(family, paragraph.Runs[0].Properties.Bold, false);
+                var metrics = lineFonts.Resolve(family, bold, false);
                 return (double) metrics.LineBoxUnits / metrics.UnitsPerEm;
             }
             catch (InvalidOperationException)
@@ -2299,9 +2404,17 @@ static class HtmlExporter
             // minimum (the row still grows with its content), which matches Word's default
             // "atLeast" rule; "exact" rows get the same treatment — close enough, since clipping
             // overflow is not representable on a <tr>.
+            //
+            // Word's height is not the row's whole height, where a <tr>'s is: an "atLeast" height
+            // floors the cells' CONTENT box, their top and bottom margins outside it, and an exact
+            // one is the declared height and the bottom margin (TableLayout.DeclaredRowHeight).
+            // wedding/06's last card row declares 64.8pt under margins of 2.85 and 76.55 and stands
+            // 146.8pt in Word; read as the whole row it stood 92pt, and the card 54pt short.
             if (rows[rowIndex].HeightPoints is {} heightPoints and > 0)
             {
-                builder.Append(" style=\"height: ").Append(Length(heightPoints)).Append('"');
+                var (rowTop, rowBottom) = TableLayout.RowVerticalPadding(rows[rowIndex], table.Properties);
+                var margins = rows[rowIndex].IsExactHeight ? rowBottom : rowTop + rowBottom;
+                builder.Append(" style=\"height: ").Append(Length(heightPoints + margins)).Append('"');
             }
 
             builder.Append(">\n");
@@ -2856,7 +2969,9 @@ static class HtmlExporter
 
                 if (last.Properties.LineSpacingRule == LineSpacingRule.Auto)
                 {
-                    parts.Add($"line-height: {Number(last.Properties.LineSpacingMultiplier)}");
+                    // In the mark face's own line, as a body spacer is (WriteParagraph).
+                    var ems = FaceLineEms(last.Properties.ParagraphMarkFontFamily, last.Properties.ParagraphMarkRunProperties?.Bold ?? false) ?? 1;
+                    parts.Add($"line-height: {Number(last.Properties.LineSpacingMultiplier * ems)}");
                 }
                 else if (last.Properties.LineSpacingPoints > 0.01)
                 {

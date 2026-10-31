@@ -43,6 +43,7 @@ These are Word-derived numbers. They are not defaults anyone would guess, and ch
 | `<img>` dimensions | CSS px **× 0.75** → points; a missing side follows the picture's proportions | `width`/`height` attributes are CSS pixels. Treated as points they render ~33% oversized — a 312×234 image where Word draws 234×175 — and each caption pushes further down the page (`ParseDimensionAttribute`). Where only one is declared the other is taken from the picture's own pixels, and where neither is, the picture's pixels at 0.75pt (`HtmlParser.ImageSize`): the missing side stood at 100px until 2026-10-30, so `html_images`' `width="150"` picture of a 100×75 image drew 150×100 where Word draws 150×112.5, its block 14pt taller. |
 | `margin-left` indent | CSS px **× 0.75** → `LeftIndentPoints` | Word's staircase for `html_css_margin_padding` measures 78px and 156px at 150 DPI for `margin-left: 50px`/`100px` — exactly 37.5pt/75pt. The `margin` shorthand's left component carries the same meaning (a `margin: 20px` paragraph starts 31px ≈ 15pt in). |
 | A cell's CSS `width` | its **content box**: the cell's side padding is added | `html_table_styled`'s 100px and 200px columns of a 400px table stand 161px and 315px at 150 dpi in Word (156 and 312 declared), its flexible third 146px; read as the whole cell the flexible column ran 156px, and with the padding added it runs 150 (2026-10-31, `HtmlParser.ParseTable`). |
+| A cell's CSS `margin` | **more cell margin**, at 0.75pt a pixel, on top of its padding: the row shares its top and bottom as it shares any cell margin, and a bottom deeper than the plain one is taken out of the 8pt under the cell's text first | `html_table_cell_margin_css` (2026-10-31): the `margin: 10px; padding: 5px` cell's text stands 25px in from its border at 150 dpi, the `margin-left: 20px` cell's 35px, both cells of the `margin-top: 15px` row set their text 40px under the row's top, and the rows stand 42.7 and 43.7pt (44.6 and 46.6 since). Read as a gap outside each border, in pixels as points, the boxes stood apart and the text 1px in; read as padding with the 8pt kept, the rows stood 52pt. |
 | Empty `<p>` | dropped | Word renders a normal single paragraph gap between the neighbours of `<p></p>`, not a blank line (`html_paragraphs` bands match Word only with the element gone). Whitespace-only counts as empty; `&nbsp;`, images and `<br>` are content (`HtmlParser.IsEmptyParagraph`). |
 
 ## Tables
@@ -190,7 +191,6 @@ Tracked as issue **#31** in `src/todo.md`, listed here because they shape what t
 
 - **Block children of a cell flatten.** A `<p>` or `<div>` inside a `<td>` joins one paragraph; inline formatting (`<b>`, `<span style>`, images) keeps its runs.
 - **`vertical-align` on cells is unmodelled**, which is what `html_css_alignment` actually means to demonstrate.
-- Per-cell CSS margins render as a uniform grid where Word offsets each cell's box by its own margin.
 - Two `<p>`s in one cell are set by Word with single lines, about 13pt between them and nothing after the last (`_probe_cellsize`); Morph joins them into one paragraph (the first bullet).
 
 ### Default padding (2026-10-30)

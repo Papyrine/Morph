@@ -171,7 +171,7 @@ sealed class SvgReader
 
     SvgDrawing ReadDocument(XElement root)
     {
-        var (x, y, width, height) = ReadFrame(root);
+        var (x, y, width, height, padX, padY) = ReadFrame(root);
         if (root.Attribute("transform") != null)
         {
             throw new UnsupportedException("a transform on the root element");
@@ -179,7 +179,7 @@ sealed class SvgReader
 
         var paths = new List<SvgPath>();
         Render(root, SvgMatrix.Identity, new(), null, 0, paths, isRoot: true);
-        return new(x, y, width, height, paths);
+        return new(x, y, width, height, paths, padX, padY);
     }
 
     // The rectangle of the document that is stretched over the picture — which is not simply the
@@ -197,7 +197,23 @@ sealed class SvgReader
     // have one, the mean difference from it per channel (of 255) is 0.31 fitted and centred, 0.73
     // with the viewBox stretched over the image, and 1.43 with the drawing unscaled from the top
     // left. Fitted is the closest for 34 of them and within 0.02 of the closest for the other seven.
-    static (double X, double Y, double Width, double Height) ReadFrame(XElement root)
+    //
+    // And the image is a pixel bigger each way than that, the drawing half a pixel in from each edge
+    // (`_probe_svgsize`, 2026-10-31): Word's XPS draws a 24-unit document's full-size square from
+    // 0.31 to 14.71 of a 15.0 canvas, at 48pt, 100pt and 200pt alike, and a 240-unit one's from 0.31
+    // to 144.31 of 144.59. So icon_svg's star stands at 24/25 of its frame, a point in from each side.
+    // PowerPoint does not: every deck of the corpus with an SVG drew further from its reference with
+    // the half pixel and none nearer (offset's slide 1 SSIM 0.888 to 0.875), so the drawing keeps
+    // the pad apart for a slide's picture to take off (SvgDrawing.Unpadded).
+    static (double X, double Y, double Width, double Height, double PadX, double PadY) ReadFrame(XElement root)
+    {
+        var (x, y, width, height, pixelsWide, pixelsHigh) = ReadImage(root);
+        var padX = width / pixelsWide / 2;
+        var padY = height / pixelsHigh / 2;
+        return (x - padX, y - padY, width + padX * 2, height + padY * 2, padX, padY);
+    }
+
+    static (double X, double Y, double Width, double Height, double PixelsWide, double PixelsHigh) ReadImage(XElement root)
     {
         var width = ReadSize(root, "width");
         var height = ReadSize(root, "height");
@@ -234,7 +250,7 @@ sealed class SvgReader
         if (alignX is not { } offsetX || alignY is not { } offsetY)
         {
             // preserveAspectRatio="none": the viewBox itself is stretched over the image.
-            return (x, y, boxWidth, boxHeight);
+            return (x, y, boxWidth, boxHeight, Pixels(width.Value), Pixels(height.Value));
         }
 
         var scaleX = Pixels(width.Value) / boxWidth;
@@ -242,7 +258,7 @@ sealed class SvgReader
         var scale = slice ? Math.Max(scaleX, scaleY) : Math.Min(scaleX, scaleY);
         var frameWidth = Pixels(width.Value) / scale;
         var frameHeight = Pixels(height.Value) / scale;
-        return (x - (frameWidth - boxWidth) * offsetX, y - (frameHeight - boxHeight) * offsetY, frameWidth, frameHeight);
+        return (x - (frameWidth - boxWidth) * offsetX, y - (frameHeight - boxHeight) * offsetY, frameWidth, frameHeight, Pixels(width.Value), Pixels(height.Value));
     }
 
     // A length in whole pixels as Office rounds it: 38.5 is 39, where Math.Round's default would

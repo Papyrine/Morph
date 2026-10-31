@@ -166,6 +166,11 @@ sealed class PresentationParser(string defaultFont, CultureInfo? culture = null)
         stream.CopyTo(buffer);
         var bytes = buffer.ToArray();
         partBytes[part] = bytes;
+        if (part.ContentType == SvgDrawing.ContentType)
+        {
+            SvgDrawing.ReadAsSlidePicture(bytes);
+        }
+
         return bytes;
     }
 }

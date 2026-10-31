@@ -12,18 +12,40 @@ public class SvgReaderTests
     static (double X, double Y, double Width, double Height) Frame(string attributes)
     {
         var drawing = Draw($"<svg {Namespace} {attributes}><path {square}/></svg>");
-        return (drawing.X, drawing.Y, drawing.Width, drawing.Height);
+        return (Round(drawing.X), Round(drawing.Y), Round(drawing.Width), Round(drawing.Height));
     }
+
+    // The frame of a document fitted into an image so many pixels each way, with the half pixel
+    // Office leaves round the drawing on every side.
+    static (double X, double Y, double Width, double Height) Padded(double x, double y, double width, double height, double pixelsWide, double pixelsHigh)
+    {
+        var padX = width / pixelsWide / 2;
+        var padY = height / pixelsHigh / 2;
+        return (Round(x - padX), Round(y - padY), Round(width + padX * 2), Round(height + padY * 2));
+    }
+
+    static double Round(double value) =>
+        Math.Round(value, 9);
 
     [Test]
     public async Task A_whole_number_viewBox_is_the_frame()
     {
-        await Assert.That(Frame("viewBox=\"0 0 96 96\"")).IsEqualTo((0d, 0d, 96d, 96d));
-        await Assert.That(Frame("viewBox=\"10 20 24 48\" width=\"24\" height=\"48\"")).IsEqualTo((10d, 20d, 24d, 48d));
+        await Assert.That(Frame("viewBox=\"0 0 96 96\"")).IsEqualTo(Padded(0, 0, 96, 96, 96, 96));
+        await Assert.That(Frame("viewBox=\"10 20 24 48\" width=\"24\" height=\"48\"")).IsEqualTo(Padded(10, 20, 24, 48, 24, 48));
 
         // A size alone is a frame from the origin; a percentage says nothing and reads as absent.
-        await Assert.That(Frame("width=\"164\" height=\"131\"")).IsEqualTo((0d, 0d, 164d, 131d));
-        await Assert.That(Frame("viewBox=\"0 0 24 24\" width=\"100%\" height=\"100%\"")).IsEqualTo((0d, 0d, 24d, 24d));
+        await Assert.That(Frame("width=\"164\" height=\"131\"")).IsEqualTo(Padded(0, 0, 164, 131, 164, 131));
+        await Assert.That(Frame("viewBox=\"0 0 24 24\" width=\"100%\" height=\"100%\"")).IsEqualTo(Padded(0, 0, 24, 24, 24, 24));
+    }
+
+    [Test]
+    public async Task The_drawing_stands_half_a_pixel_in_from_each_edge()
+    {
+        // _probe_svgsize: Word draws a 24-unit document's full-size square from 0.31 to 14.71 of a
+        // 15.0 canvas, and a 240-unit one's from 0.31 to 144.31 of 144.59 — the image a pixel larger
+        // each way than the document, the drawing centred in it.
+        await Assert.That(Frame("viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"")).IsEqualTo((-0.5d, -0.5d, 25d, 25d));
+        await Assert.That(Frame("viewBox=\"0 0 240 240\"")).IsEqualTo((-0.5d, -0.5d, 241d, 241d));
     }
 
     [Test]
@@ -34,10 +56,8 @@ public class SvgReaderTests
         // viewBox widened to 44 at that scale, the spare split left and right.
         var (x, y, width, height) = Frame("width=\"44.02\" height=\"25.36\" viewBox=\"0 0 44.02 25.36\"");
 
-        await Assert.That(height).IsEqualTo(25.36).Within(1e-9);
-        await Assert.That(width).IsEqualTo(44 * 25.36 / 25).Within(1e-9);
-        await Assert.That(x).IsEqualTo(-(44 * 25.36 / 25 - 44.02) / 2).Within(1e-9);
-        await Assert.That(y).IsEqualTo(0d).Within(1e-9);
+        var fitted = 44 * 25.36 / 25;
+        await Assert.That((x, y, width, height)).IsEqualTo(Padded(-(fitted - 44.02) / 2, 0, fitted, 25.36, 44, 25));
     }
 
     [Test]
@@ -47,22 +67,22 @@ public class SvgReaderTests
         // to even would make it.
         var (_, _, width, height) = Frame("viewBox=\"0 0 38.5 22.16\"");
 
-        await Assert.That(width / height).IsEqualTo(39d / 22).Within(1e-9);
+        await Assert.That(width / height).IsEqualTo(40d / 23).Within(1e-9);
     }
 
     [Test]
     public async Task PreserveAspectRatio_places_the_viewBox_in_the_image()
     {
         // A 10 by 10 viewBox in an image 20 by 10 fits at scale 1, leaving 10 spare across.
-        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\"")).IsEqualTo((-5d, 0d, 20d, 10d));
-        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"xMinYMid\"")).IsEqualTo((0d, 0d, 20d, 10d));
-        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"xMaxYMax meet\"")).IsEqualTo((-10d, 0d, 20d, 10d));
+        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\"")).IsEqualTo(Padded(-5, 0, 20, 10, 20, 10));
+        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"xMinYMid\"")).IsEqualTo(Padded(0, 0, 20, 10, 20, 10));
+        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"xMaxYMax meet\"")).IsEqualTo(Padded(-10, 0, 20, 10, 20, 10));
 
         // Sliced, it covers the image at scale 2 and the frame is the middle half of its height.
-        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"xMidYMid slice\"")).IsEqualTo((0d, 2.5, 10d, 5d));
+        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"xMidYMid slice\"")).IsEqualTo(Padded(0, 2.5, 10, 5, 20, 10));
 
         // And with none the viewBox itself is stretched.
-        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"none\"")).IsEqualTo((0d, 0d, 10d, 10d));
+        await Assert.That(Frame("viewBox=\"0 0 10 10\" width=\"20\" height=\"10\" preserveAspectRatio=\"none\"")).IsEqualTo(Padded(0, 0, 10, 10, 20, 10));
     }
 
     [Test]
@@ -72,9 +92,9 @@ public class SvgReaderTests
         // exactly; were the points read as pixels the image would be 96 by 36 and the frame taller.
         var (_, y, width, height) = Frame("viewBox=\"0 0 200 100\" width=\"1in\" height=\"36pt\"");
 
-        await Assert.That(width).IsEqualTo(200d).Within(1e-9);
-        await Assert.That(height).IsEqualTo(100d).Within(1e-9);
-        await Assert.That(y).IsEqualTo(0d).Within(1e-9);
+        await Assert.That(width).IsEqualTo(200 + 200d / 96).Within(1e-9);
+        await Assert.That(height).IsEqualTo(100 + 100d / 48).Within(1e-9);
+        await Assert.That(y).IsEqualTo(-100d / 48 / 2).Within(1e-9);
     }
 
     [Test]

@@ -7922,11 +7922,23 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        var widthPoints = picWidth / OoxmlUnits.EmusPerPoint;
-        var heightPoints = picHeight / OoxmlUnits.EmusPerPoint;
-
         // Rotation (a:xfrm/@rot, in 60,000ths of a degree, clockwise)
         var rotationDegrees = ReadRotationDegrees(xfrm);
+
+        // But where the drawing's own wp:extent disagrees with the picture's a:ext, Word draws and
+        // lays the picture out at the drawing's: newsletters/02's photo declares 320.65 x 186.94pt
+        // there and 324.5 x 189.2 in its a:ext, and Word's XPS draws it 320.58 x 186.9 (2026-10-31).
+        // At the a:ext its line stood 2.3pt taller and the article under it sat 4px low. Eight
+        // corpus pictures disagree, every one by 0.3-1.3%, the drawing's the smaller.
+        if (rotationDegrees == 0 &&
+            drawing.Descendants<DW.Extent>().FirstOrDefault() is {Cx.Value: > 0, Cy.Value: > 0} drawingExtent)
+        {
+            picWidth = drawingExtent.Cx.Value;
+            picHeight = drawingExtent.Cy.Value;
+        }
+
+        var widthPoints = picWidth / OoxmlUnits.EmusPerPoint;
+        var heightPoints = picHeight / OoxmlUnits.EmusPerPoint;
         var (flipHorizontal, flipVertical) = ReadFlips(xfrm);
 
         // Find the blip (image reference)
@@ -9037,6 +9049,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 ChildExtentX = childExtentX,
                 ChildExtentY = childExtentY,
+                // Turned about the centre of its extent, as a group is: menus/07's mint waves are
+                // custGeom rules at rot -4.55°, whose spill is the effectExtent the line reserves,
+                // and were drawn level until 2026-10-31.
+                RotationDegrees = ReadRotationDegrees(shapeXfrm),
                 Shapes = shapes
             }
         };

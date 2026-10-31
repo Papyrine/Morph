@@ -11,7 +11,7 @@
 /// reference is left to resolve. The frame is stretched over the picture's box, as the PNG would
 /// be, and nothing outside it is drawn.
 /// </summary>
-sealed class SvgDrawing(double x, double y, double width, double height, IReadOnlyList<SvgPath> paths)
+sealed class SvgDrawing(double x, double y, double width, double height, IReadOnlyList<SvgPath> paths, double padX = 0, double padY = 0)
 {
     /// <summary>The media type a picture part carries when it is one of these.</summary>
     public const string ContentType = "image/svg+xml";
@@ -20,6 +20,9 @@ sealed class SvgDrawing(double x, double y, double width, double height, IReadOn
     // pictures point at it and however many pages draw them. Weakly keyed, so the reading goes
     // when the parsed document does, and a document read concurrently shares it.
     static readonly ConditionalWeakTable<byte[], SvgReadResult> readings = [];
+
+    // The picture parts a slide drew, which PowerPoint frames without Word's half-pixel border.
+    static readonly ConditionalWeakTable<byte[], object> slidePictures = [];
 
     public double X { get; } = x;
 
@@ -30,6 +33,17 @@ sealed class SvgDrawing(double x, double y, double width, double height, IReadOn
     public double Height { get; } = height;
 
     public IReadOnlyList<SvgPath> Paths { get; } = paths;
+
+    /// <summary>
+    /// The half image pixel Word leaves round the drawing on each side, already within the frame
+    /// (<see cref="SvgReader"/>'s ReadFrame).
+    /// </summary>
+    public double PadX { get; } = padX;
+
+    public double PadY { get; } = padY;
+
+    /// <summary>Marks a picture part's bytes as a slide's, read without Word's half-pixel border.</summary>
+    public static void ReadAsSlidePicture(byte[] data) => slidePictures.AddOrUpdate(data, data);
 
     /// <summary>
     /// The drawing for a picture's bytes, or null when they are not SVG, or are an SVG that uses
@@ -43,8 +57,15 @@ sealed class SvgDrawing(double x, double y, double width, double height, IReadOn
             return null;
         }
 
-        return readings.GetValue(data, SvgReader.Read).Drawing;
+        var drawing = readings.GetValue(data, SvgReader.Read).Drawing;
+        return drawing != null && slidePictures.TryGetValue(data, out _) ? drawing.Unpadded() : drawing;
     }
+
+    SvgDrawing? unpadded;
+
+    /// <summary>The drawing framed by its image alone, without the half-pixel border.</summary>
+    public SvgDrawing Unpadded() =>
+        unpadded ??= PadX == 0 && PadY == 0 ? this : new(X + PadX, Y + PadY, Width - PadX * 2, Height - PadY * 2, Paths);
 
     /// <summary>
     /// Where the drawing lands in a picture's box: its frame stretched over the box, or — through an
@@ -92,7 +113,7 @@ sealed class SvgDrawing(double x, double y, double width, double height, IReadOn
             };
         }
 
-        return new(X, Y, Width, Height, recolored);
+        return new(X, Y, Width, Height, recolored, PadX, PadY);
 
         string Map(string hex)
         {
