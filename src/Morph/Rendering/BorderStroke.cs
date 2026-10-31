@@ -528,6 +528,7 @@ static class BorderStroke
     /// with 1pt space grows the line pitch from 14.65 to 18.3 (2 × 1.75), 3pt / 4pt to 28.5
     /// (2 × 7), 6pt / 0 to 26.7 (2 × 6), and a 1.5pt `double` with 2pt space to 27.6
     /// (2 × (4.5 + 2)). The line box itself — the vertical rules' extent — stays the font box.
+    /// That is the reserve ABOVE the line; below it Word keeps <see cref="RunBorderBelowScale"/> of it.
     /// </summary>
     internal static double RunBorderReserve(BorderEdge edge)
     {
@@ -538,6 +539,19 @@ static class BorderStroke
 
         return 0;
     }
+
+    /// <summary>
+    /// What a run-bordered line keeps under its font box, as a share of <see cref="RunBorderReserve"/>
+    /// — the share above being one. XPS-read on <c>_probe_bdrlaw</c>, <c>_probe_bdrmix</c> and
+    /// <c>_probe_bdrrun</c> (2026-10-31, Calibri 10 and 24): a plain line steps onto a bordered one by
+    /// the reserve, but off it by 0.3 × (width + space) more than the reserve, over a `single` at
+    /// 1, 3, 6 and 12pt with 0, 4 and 10pt space (rms 0.19pt, the grid's noise; width and space weigh
+    /// alike), for the 3-D and inset/outset styles too, and between two bordered lines of a paragraph
+    /// or of two paragraphs (+2.2 at a 7pt reserve, +6.9 at 22pt). The box stays on the font box, so
+    /// the extra is blank under it. Read as a symmetric reserve, it had set each line after a
+    /// bordered one high: border_style_variants' section 2 by 3.4pt.
+    /// </summary>
+    internal const double RunBorderBelowScale = 1.3;
 
     /// <summary>
     /// How far outside the font's line box a run border's INNER face sits: <c>w:space</c> floored to
@@ -589,7 +603,10 @@ static class BorderStroke
     internal static bool RunBorderReserves(string text) =>
         text.Length == 0 || text[0] != ' ';
 
-    /// <summary>The tallest <see cref="RunBorderReserve"/> among a line's reserving runs — what the measurer grew the line by on each side.</summary>
+    /// <summary>How much a line grows for a run-border reserve: the reserve above it and <see cref="RunBorderBelowScale"/> of it below.</summary>
+    internal static double LineGrowth(double pad) => pad * (1 + RunBorderBelowScale);
+
+    /// <summary>The tallest <see cref="RunBorderReserve"/> among a line's reserving runs — what the measurer grew the line by above it (<see cref="LineGrowth"/>).</summary>
     internal static double LinePad(IReadOnlyList<PlacedRun> runs)
     {
         var pad = 0d;
@@ -608,8 +625,8 @@ static class BorderStroke
     /// <summary>
     /// The rectangle a painter strokes a run border from (inner faces), so that with the outward
     /// stroke the rules' OUTER faces land the drawn stack plus the floored space outside the font's
-    /// line box — the line box being the placed line shrunk by <paramref name="linePad"/> on each
-    /// side. Horizontally the box grows outward from the glyph run by the same inset, into the
+    /// line box — the line box being the placed line shrunk by <paramref name="linePad"/> above and by
+    /// <see cref="RunBorderBelowScale"/> of it below. Horizontally the box grows outward from the glyph run by the same inset, into the
     /// reserve the measurer holds open on each side of a bordered run
     /// (<see cref="RunBorderGlyphInset"/>) — Word pushes the glyphs right by it, and so does the
     /// engine since 2026-09-05.
@@ -623,10 +640,10 @@ static class BorderStroke
             // line box, so the inner rect the painter strokes outward from is the box shrunk by the
             // drawn stack.
             var drawn = DrawnStack(edge);
-            return (runX - inset, lineY + linePad + drawn, runWidth + 2 * inset, lineHeight - 2 * linePad - 2 * drawn);
+            return (runX - inset, lineY + linePad + drawn, runWidth + 2 * inset, lineHeight - LineGrowth(linePad) - 2 * drawn);
         }
 
-        return (runX - inset, lineY + linePad - inset, runWidth + 2 * inset, lineHeight - 2 * linePad + 2 * inset);
+        return (runX - inset, lineY + linePad - inset, runWidth + 2 * inset, lineHeight - LineGrowth(linePad) + 2 * inset);
     }
 
     /// <summary>Whether this edge draws anything at all.</summary>

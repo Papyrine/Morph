@@ -11,5 +11,11 @@
 /// <see cref="Overhang"/> is how much of the box's bottom may hang past the bottom margin when the line
 /// is the last in its region: the leading a <c>lineRule="auto"</c> multiple above 1 adds under the
 /// baseline. Zero for every other line.
+/// <see cref="DrawPad"/> is the run-border reserve of a line that STARTS inside a bordered run whose
+/// text begins with a space — the space hung at the end of the line above. Word lays such a line out
+/// reserving nothing, as the run's first character says (<c>BorderStroke.RunBorderReserves</c>), but
+/// draws it as a line that reserves: its baseline the reserve lower, and the paragraph's later lines
+/// lower by the whole growth, while what follows the paragraph stays where the plain height puts it
+/// (the fragmenter's <c>DrawnLine</c>). Zero for every other line.
 /// </summary>
-readonly record struct LaidOutLine(float Width, float Height, float Ascent, IReadOnlyList<LaidOutRun> Runs, IReadOnlyList<LaidOutImage> Images, IReadOnlyList<string>? FootnoteReferenceIds = null, IReadOnlyList<string>? EndnoteReferenceIds = null, float Overhang = 0);
+readonly record struct LaidOutLine(float Width, float Height, float Ascent, IReadOnlyList<LaidOutRun> Runs, IReadOnlyList<LaidOutImage> Images, IReadOnlyList<string>? FootnoteReferenceIds = null, IReadOnlyList<string>? EndnoteReferenceIds = null, float Overhang = 0, float DrawPad = 0);
