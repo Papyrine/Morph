@@ -298,6 +298,18 @@ sealed class SpreadsheetParser(
                 };
             }
 
+            if (!openRows &&
+                !openColumns)
+            {
+                // An area naming cells prints them, blank columns and rows included: the pink-blue
+                // timesheet's $A$1:$F$51 keeps column A, which holds no cell at all, only a column
+                // style; Excel's fitted grid starts there (70.5px at 96 dpi with gridlines printed,
+                // _probe_fit_page, 2026-11-01), and clipped to the cells it started at column B,
+                // every fill a spacer column left of where Excel's stand. Nothing but the name bounds
+                // it, so it is capped.
+                return Bounded(area);
+            }
+
             var clipped = area.Intersect(bounds);
             if (clipped.IsEmpty)
             {

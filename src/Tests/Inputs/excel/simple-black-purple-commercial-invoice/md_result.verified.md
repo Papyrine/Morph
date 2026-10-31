@@ -39,3 +39,4 @@
 |  | **SHIPPER** |  | **DATE** |  |  |
 |  |  |  |  |  |  |
 |  | **Thank you for your business!** |  |  |  |  |
+|  |  |  |  |  |  |

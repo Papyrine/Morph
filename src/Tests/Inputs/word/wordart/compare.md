@@ -15,6 +15,11 @@ The glyph tops on the arch up therefore stand about 7.5pt above the box, close u
 Word. The chord-sagitta circle this page used before (bbox width as chord, height as sagitta, path sized to
 the text) drew the text at full size on a far tighter curve, over the subtitle.
 
+[known] "Arc Text Down" runs about 10px wider than Word's. Word spaces an arch's glyphs either as modelled
+or 1.0217 times tighter, and which one a box gets flips with changes of a few thousandths of a point in
+size, with no order to it (`docs/word-features.md`, WordArt arches). This box gets the tight one; Morph
+keeps the modelled spacing, which is Word's at the sizes either side of it.
+
 ### Circle
 
 `textCircle` is the arch construction on the whole ellipse (`WordArtArch.Place`), run clockwise from its
