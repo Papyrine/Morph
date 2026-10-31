@@ -63,11 +63,13 @@
               }
             ],
             "Properties": {
-              "Margin": {
-                "Top": 3.0,
-                "Left": 5.0,
-                "Horizontal": 5.0,
-                "Vertical": 3.0
+              "Padding": {
+                "Top": 2.85,
+                "Right": 0.6,
+                "Bottom": 0.6,
+                "Left": 4.35,
+                "Horizontal": 4.949999999999999,
+                "Vertical": 3.45
               },
               "GridSpan": 1,
               "HideMark": false,

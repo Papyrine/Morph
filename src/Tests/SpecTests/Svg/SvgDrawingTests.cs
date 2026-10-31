@@ -7,7 +7,9 @@ public class SvgDrawingTests
 {
     const string markup = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"10 20 100 50\"><rect x=\"10\" y=\"20\" width=\"100\" height=\"50\" fill=\"#808080\" fill-opacity=\"0.5\" stroke=\"#FF0000\"/></svg>";
 
-    static readonly SvgDrawing drawing = SvgTestSupport.Draw(markup);
+    // On the viewBox itself rather than the frame the reader gives it (half a pixel larger each way,
+    // SvgReaderTests), so the numbers below are the placement's alone.
+    static readonly SvgDrawing drawing = new(10, 20, 100, 50, SvgTestSupport.Draw(markup).Paths);
 
     [Test]
     public async Task The_frame_is_stretched_over_the_box()
