@@ -54,7 +54,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var grid = OnGrid(props, wrapped[i].Pitch);
             var height = (grid?.Height ?? (float) CanonicalTextMeasurer.LineHeightPoints(
                              wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints))
-                         + 2 * RunBorderPad(wrapped[i]);
+                         + RunBorderGrowth(wrapped[i]);
 
             // An inline image grows the line exactly as LayoutLineContents places it — measure and
             // placement must agree or a cell's row height omits its image: newsletters/05's school
@@ -83,7 +83,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     var markPitch = MarkPitch(paragraph);
                     var markLine = OnGrid(props, markPitch)?.Height ?? (float) CanonicalTextMeasurer.LineHeightPoints(
                         markPitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints);
-                    height = ImageLineHeight(markLine + 2 * RunBorderPad(wrapped[i]), ascent, tallestImage, props.LineSpacingRule, false, markPitch);
+                    height = ImageLineHeight(markLine + RunBorderGrowth(wrapped[i]), ascent, tallestImage, props.LineSpacingRule, false, markPitch);
                 }
                 else
                 {
@@ -168,11 +168,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 textAscent += grid.AscentShift;
             }
 
-            // A run border (w:bdr) reserves its stack plus w:space above and below the font's line box —
-            // the line grows by twice the tallest such reserve and the baseline drops by it, exactly as
-            // LayoutLines charged. See BorderStroke.RunBorderReserve for the Word measurements.
+            // A run border (w:bdr) reserves its stack plus w:space above the font's line box and 1.3 times
+            // that below it — the baseline drops by the reserve and the line grows by both, exactly as
+            // LayoutLines charged. See BorderStroke.RunBorderReserve and RunBorderBelowScale for Word's.
             var runBorderPad = RunBorderPad(wrapped[i]);
-            textHeight += 2 * runBorderPad;
+            var runBorderGrowth = (float) BorderStroke.LineGrowth(runBorderPad);
+            textHeight += runBorderGrowth;
             textAscent += runBorderPad;
 
             // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
@@ -204,12 +205,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var overhang = 0f;
             if (props.LineSpacingRule == LineSpacingRule.Auto)
             {
-                var leading = textHeight - 2 * runBorderPad - naturalPitch;
+                var leading = textHeight - runBorderGrowth - naturalPitch;
                 overhang = Math.Clamp(leading, 0f, Math.Max(0f, lineHeight - ascent));
             }
 
             lineHeight = Math.Max(lineHeight, ascent + FractionBelow(images));
-            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images, wrapped[i].FootnoteReferenceIds, wrapped[i].EndnoteReferenceIds, overhang);
+            result[i] = new(wrapped[i].Width, lineHeight, ascent, runs, images, wrapped[i].FootnoteReferenceIds, wrapped[i].EndnoteReferenceIds, overhang, WrappedInsidePad(wrapped[i]));
         }
 
         return result;
@@ -356,6 +357,27 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         return AscentPoints(MarkProperties(paragraph));
     }
+
+    // The reserve of a line that starts with the letters of a bordered run whose leading space hung on
+    // the line above (LaidOutLine.DrawPad) — zero for every other line. XPS-read on _probe_bdrwrap
+    // (2026-10-31, a 7.5pt single with 10pt space, its run wrapped onto a line of its own): Word drew
+    // that line's baseline 22.2pt under a plain line's (the 22pt reserve) and the paragraph's next line
+    // 51pt under (2.3 times it), yet the paragraph after sat where plain lines put it, over the box.
+    static float WrappedInsidePad(WrapLine line)
+    {
+        if (line.Segments.Count == 0 ||
+            line.Segments[0] is not {BorderInside: true, Properties.Border: { } border} first ||
+            first.Text.StartsWith(' '))
+        {
+            return 0;
+        }
+
+        return (float) BorderStroke.RunBorderReserve(border);
+    }
+
+    // How much a line's run borders grow it (BorderStroke.LineGrowth).
+    static float RunBorderGrowth(WrapLine line) =>
+        (float) BorderStroke.LineGrowth(RunBorderPad(line));
 
     // The tallest run-border reserve on a line, in points — zero when no run on it carries a w:bdr.
     static float RunBorderPad(WrapLine line)

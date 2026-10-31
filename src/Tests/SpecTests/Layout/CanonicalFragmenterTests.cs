@@ -1258,12 +1258,11 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
-    public async Task A_run_border_reserves_its_stack_and_space_on_both_sides_of_the_line()
+    public async Task A_run_border_reserves_its_stack_and_space_above_the_line_and_more_below()
     {
-        // _probe_runbdr (XPS baselines, Calibri 12 single-spaced): a w:bdr grows the line pitch by
-        // twice (declared stack + w:space) — 3pt / 4pt took 14.65 to 28.5, 6pt / 0 to 26.7 — and the
-        // glyphs sit that reserve below the grown line's top. Measured against a plain twin so the
-        // font's own box cancels.
+        // _probe_runbdr and _probe_bdrlaw (XPS baselines): a w:bdr drops the glyphs by the declared
+        // stack + w:space and keeps 1.3 times that under the line (BorderStroke.RunBorderBelowScale).
+        // Measured against a plain twin so the font's own box cancels.
         static ParagraphElement Paragraph(BorderEdge? border) => new()
         {
             Runs =
@@ -1296,7 +1295,7 @@ public class CanonicalFragmenterTests
             ],
             Page(400)).Pages[0].Items.OfType<PlacedLine>().Single();
 
-        await Assert.That(boxed.Height - plain.Height).IsEqualTo(14f).Within(0.01f);
+        await Assert.That(boxed.Height - plain.Height).IsEqualTo(7f + 9.1f).Within(0.01f);
         await Assert.That(boxed.Baseline - boxed.Y - (plain.Baseline - plain.Y)).IsEqualTo(7f).Within(0.01f);
         // The box the painters stroke: inner faces the floored space (4pt is six grid pixels, 3.6pt)
         // outside the font's line box, which sits the full 7pt reserve inside the placed line.
@@ -1305,6 +1304,71 @@ public class CanonicalFragmenterTests
         await Assert.That(boxHeight).IsEqualTo(plain.Height + 2 * 3.6).Within(0.01);
         await Assert.That(boxed.Runs[0].X - boxX).IsEqualTo(3.6).Within(0.01);
         await Assert.That(boxWidth - boxed.Runs[0].Width).IsEqualTo(7.2).Within(0.01);
+    }
+
+    [Test]
+    public async Task A_space_led_box_that_wraps_is_drawn_as_reserving_but_moves_no_flow()
+    {
+        // _probe_bdrwrap: a bordered run whose text begins with a space, wrapped so a line starts
+        // with its letters, is laid out reserving nothing but drawn a reserve lower — and the line
+        // after it in the paragraph the whole growth lower — while the next paragraph stays put.
+        static ParagraphElement Text(string text, BorderEdge? border = null) => new()
+        {
+            Runs =
+            [
+                new()
+                {
+                    Text = text,
+                    Properties = new()
+                    {
+                        FontFamily = "Aptos",
+                        FontSizePoints = 11,
+                        Border = border
+                    }
+                }
+            ],
+            Properties = new()
+        };
+
+        var border = new BorderEdge
+        {
+            IsVisible = true,
+            WidthPoints = 3,
+            SpacePoints = 4,
+            ColorHex = "000000"
+        };
+        var wrapped = new ParagraphElement
+        {
+            Runs =
+            [
+                .. Text("Plain words fill the line ahead of the box").Runs,
+                .. Text(" BorderedBorderedBordered ", border).Runs,
+                .. Text("and plain words follow it onto one more line of plain text after it").Runs
+            ],
+            Properties = new()
+        };
+
+        var lines = fragmenter.Layout([wrapped, Text("After")], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        var boxLine = lines.Single(_ => _.Runs.Any(run => run.Text.StartsWith("Bordered")));
+        var index = lines.IndexOf(boxLine);
+        var plainPitch = lines[1].Y - lines[0].Y;
+        var growth = (float) BorderStroke.LineGrowth(7);
+
+        await Assert.That(index).IsGreaterThan(0);
+        await Assert.That(boxLine.Y - lines[index - 1].Y).IsEqualTo(plainPitch).Within(0.01f);
+        await Assert.That(boxLine.Height - lines[index - 1].Height).IsEqualTo(growth).Within(0.01f);
+        await Assert.That(boxLine.Baseline - boxLine.Y - (lines[index - 1].Baseline - lines[index - 1].Y)).IsEqualTo(7f).Within(0.01f);
+        await Assert.That(boxLine.Runs.First(_ => _.Properties.Border != null).BorderInside).IsFalse();
+        // The next line of the paragraph is drawn the whole growth lower; the next paragraph is not.
+        await Assert.That(lines[index + 1].Y - boxLine.Y).IsEqualTo(lines[index - 1].Height + growth).Within(0.01f);
+        var unbordered = new ParagraphElement
+        {
+            Runs = [wrapped.Runs[0], Text(" BorderedBorderedBordered ").Runs[0], wrapped.Runs[2]],
+            Properties = new()
+        };
+        var plainLines = fragmenter.Layout([unbordered, Text("After")], Page(400)).Pages[0].Items.OfType<PlacedLine>().ToList();
+        await Assert.That(plainLines.Count).IsEqualTo(lines.Count);
+        await Assert.That(lines[^1].Y).IsEqualTo(plainLines[^1].Y).Within(0.01f);
     }
 
     [Test]

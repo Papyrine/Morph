@@ -3102,6 +3102,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
+                var drawShift = 0f;
                 for (var offset = 0; offset < fit; offset++)
                 {
                     var placedIndex = lineIndex + offset;
@@ -3156,7 +3157,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         }
                     }
 
-                    var placedLine = new PlacedLine(lineLeft, y, line.Width, line.Height, baseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, baseline));
+                    var (drawnY, drawnHeight, drawnBaseline) = DrawnLine(line, y, baseline, ref drawShift);
+                    var placedLine = new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, drawnBaseline));
                     items.Add(placedLine);
 
                     // The line is down: its footnotes open the column's area under it, its endnotes
@@ -4672,6 +4674,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 var memberTop = cellY;
                 var memberItemsStart = lines.Count;
+                var drawShift = 0f;
                 for (var lineIndex = resumeLine; lineIndex < resumeLine + take; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
@@ -4685,7 +4688,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         lines.Add(new PlacedShading(textLeft, cellY, availableWidth, line.Height, properties.BackgroundColorHex));
                     }
 
-                    lines.Add(new PlacedLine(lineLeft, cellY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
+                    var (drawnY, drawnHeight, drawnBaseline) = DrawnLine(line, cellY, baseline, ref drawShift);
+                    lines.Add(new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, drawnBaseline)));
                     cellY += line.Height;
                 }
 
@@ -4882,6 +4886,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 bandY += (float) properties.SpacingBeforePoints;
                 var paragraphLines = measurer.LayoutLineContents(paragraph, width);
                 var availableWidth = width - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+                var drawShift = 0f;
                 for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
@@ -4894,7 +4899,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         result.Add(new PlacedShading(indentLeft, bandY, availableWidth, line.Height, properties.BackgroundColorHex));
                     }
 
-                    result.Add(new PlacedLine(lineLeft, bandY, line.Width, line.Height, baseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, baseline)));
+                    var (drawnY, drawnHeight, drawnBaseline) = DrawnLine(line, bandY, baseline, ref drawShift);
+                    result.Add(new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, drawnBaseline)));
                     bandY += line.Height;
                 }
 
@@ -5758,14 +5764,33 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return new(markerX, markerWidth, numbering.Text, markerProperties);
         }
 
+        // Where a line is drawn, against where the flow lays it (y and baseline): a line Word lays out
+        // reserving nothing but draws as reserving (LaidOutLine.DrawPad) is drawn as tall as a reserving
+        // line, its baseline the reserve lower, and every later line of its paragraph lower by the whole
+        // growth — drawShift carries that down the paragraph. The flow itself never moves.
+        static (float Y, float Height, float Baseline) DrawnLine(LaidOutLine line, float y, float baseline, ref float drawShift)
+        {
+            var top = y + drawShift;
+            if (line.DrawPad <= 0)
+            {
+                return (top, line.Height, baseline + drawShift);
+            }
+
+            var growth = (float) BorderStroke.LineGrowth(line.DrawPad);
+            var drawn = (top, line.Height + growth, baseline + drawShift + line.DrawPad);
+            drawShift += growth;
+            return drawn;
+        }
+
         // Projects a laid-out line's run segments to placed runs at absolute X (the line's left edge plus
-        // each segment's canonical offset). Shared by page-flow and cell-flow line placement.
+        // each segment's canonical offset). Shared by page-flow and cell-flow line placement. A line drawn
+        // as reserving (LaidOutLine.DrawPad) draws its boxes as reserving runs do, round the font box.
         static PlacedRun[] MapRuns(LaidOutLine line, float lineLeft)
         {
             var runs = new List<PlacedRun>(line.Runs.Count);
             foreach (var run in line.Runs)
             {
-                var placed = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside);
+                var placed = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside && line.DrawPad <= 0);
 
                 // An embossed or imprinted run is drawn as three copies of itself (TextRelief).
                 if (TextRelief.Applies(run.Properties))
