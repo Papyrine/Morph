@@ -3526,6 +3526,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // Generate the bullet/number text
         string text;
+        string? levelNumber = null;
         if (levelDef.IsBullet)
         {
             // For bullets, the level text IS the bullet character. Word stores it in
@@ -3562,6 +3563,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             numberingCounters[counterKey] = counter;
+            levelNumber = FormatNumber(counter, levelDef.NumberFormat);
 
             // OOXML default: incrementing level N restarts every deeper level of the
             // same numId, so e.g. a fresh "II." re-starts its child a/b counter.
@@ -3607,6 +3609,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return new()
         {
             Text = text,
+            LevelNumber = levelNumber,
             Level = ilvl,
             FontFamily = levelDef.FontFamily,
             FontSizePoints = levelDef.FontSizePoints,
@@ -4126,6 +4129,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // w:pgNumType - the section's page-number restart and display format.
         int? pageNumberStart = null;
         string? pageNumberFormat = null;
+        int? chapterLevel = null;
+        var chapterSeparator = "-";
         var pageNumberType = sectionProps.GetFirstChild<PageNumberType>();
         if (pageNumberType != null)
         {
@@ -4152,6 +4157,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     pageNumberFormat = "Alphabetic";
                 }
+            }
+
+            // w:chapStyle names the heading level whose number leads each page number, and
+            // w:chapSep what stands between them (a hyphen when absent).
+            if (pageNumberType.ChapterStyle?.Value is { } chapterStyle and >= 1 and <= 9)
+            {
+                chapterLevel = chapterStyle;
+                chapterSeparator = pageNumberType.ChapterSeparator?.Value switch
+                {
+                    { } separator when separator == ChapterSeparatorValues.Period => ".",
+                    { } separator when separator == ChapterSeparatorValues.Colon => ":",
+                    { } separator when separator == ChapterSeparatorValues.EmDash => "—",
+                    { } separator when separator == ChapterSeparatorValues.EnDash => "–",
+                    _ => "-"
+                };
             }
         }
 
@@ -4281,6 +4301,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             GutterPoints = gutterPoints,
             PageNumberStart = pageNumberStart,
             PageNumberFormat = pageNumberFormat,
+            ChapterStyle = chapterLevel,
+            ChapterSeparator = chapterSeparator,
             GutterAtTop = gutterAtTop,
             VerticalAlignment = verticalAlignment
         };
@@ -7527,7 +7549,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // Paragraph contained only behind-text decorative shapes (a "background
             // placeholder" pattern) but carries explicit spacing-after — Word honours
             // that spacing so the following block sits the correct distance below.
-            // Emit a marker paragraph (IsAnchorOnlyMark, inert in the engine: todo #26)
+            // Emit a marker paragraph (IsAnchorOnlyMark), laid out with a line like any mark,
             // that keeps its spacing-before too. It was collapsed here on the theory that
             // Word allocates no line for the mark, but Word's XPS of agendas-minutes/14
             // (2026-10-27) puts the first baseline 3.25pt below the engine's, the 3pt

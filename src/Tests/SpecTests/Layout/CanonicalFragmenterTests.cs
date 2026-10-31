@@ -256,6 +256,36 @@ public class CanonicalFragmenterTests
     }
 
     /// <summary>
+    /// A row whose floor alone is taller than a page moves to a fresh page and is cut at the page's
+    /// height there, the rest of its floor dropped and the next row overleaf (<c>_probe_rowsplit</c>:
+    /// floors of 1000 and 1200pt both drew 648pt on a 648pt region).
+    /// </summary>
+    [Test]
+    public async Task A_row_floored_past_a_page_takes_a_fresh_page_whole()
+    {
+        var page = Page(200);
+        static TableRow Row(string text, double? floor) =>
+            new()
+            {
+                HeightPoints = floor,
+                Cells = [new() {Content = [P(text)], Properties = new()}]
+            };
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows = [Row("head", null), Row("tall", 500), Row("tail", null)]
+        };
+
+        var document = fragmenter.Layout([P("before"), table], page);
+
+        await Assert.That(document.Pages.Count).IsEqualTo(3);
+        var tall = document.Pages[1].Items.OfType<PlacedTableRow>().Single();
+        await Assert.That(tall.Y).IsEqualTo(20f);
+        await Assert.That(tall.Height).IsEqualTo(160f);
+        await Assert.That(document.Pages[2].Items.OfType<PlacedTableRow>().Count()).IsEqualTo(1);
+    }
+
+    /// <summary>
     /// The atLeast floor PARTICIPATES in the BREAK decision: a row whose content would fit the space
     /// left but whose floor does not moves whole to the next region, floor honoured there. Word-probed
     /// four ways (<c>_probe_floorfit_single</c>/<c>_last</c>/<c>_mid</c>/<c>_enddoc</c>, 2026-08-07):
@@ -1558,6 +1588,84 @@ public class CanonicalFragmenterTests
         var footerTexts = document.Pages[0].Items.OfType<PlacedLine>().Where(_ => _.Y > 340).SelectMany(_ => _.Runs).Select(_ => _.Text).ToList();
         await Assert.That(footerTexts.Contains("1")).IsTrue();
         await Assert.That(footerTexts.Contains("2")).IsTrue();
+    }
+
+    static Run PageField() => new()
+    {
+        Text = "9",
+        PageField = PageFieldKind.Page,
+        Properties = new()
+        {
+            FontFamily = "Aptos",
+            FontSizePoints = 11
+        }
+    };
+
+    static ParagraphElement Chapter(string number) =>
+        new()
+        {
+            Runs = [TextRun("Chapter")],
+            Properties = new()
+            {
+                ResolvedStyleId = "Heading1",
+                Numbering = new()
+                {
+                    Text = number + ".",
+                    LevelNumber = number
+                }
+            }
+        };
+
+    static IEnumerable<string> PageTexts(LaidOutPage page) =>
+        page.Items.OfType<PlacedLine>().Select(_ => string.Concat(_.Runs.Select(run => run.Text)));
+
+    [Test]
+    public async Task A_page_field_in_the_body_reads_the_page_it_lands_on()
+    {
+        var document = fragmenter.Layout([P("one"), new ParagraphElement {Runs = [TextRun("at "), PageField()]}, new PageBreakElement(), new ParagraphElement {Runs = [TextRun("at "), PageField()]}], Page(400));
+
+        await Assert.That(PageTexts(document.Pages[0])).Contains("at 1");
+        await Assert.That(PageTexts(document.Pages[1])).Contains("at 2");
+    }
+
+    /// <summary>
+    /// _probe_chapter: a body field reads the chapter of the last chapter heading before it, so two on
+    /// one page differ, and the first chapter's before any; a footer's reads the last on or before its
+    /// page's end.
+    /// </summary>
+    [Test]
+    public async Task Page_numbers_carry_their_chapter_by_the_section_separator()
+    {
+        var footer = new HeaderFooterContent
+        {
+            Elements = [new ParagraphElement {Runs = [TextRun("foot "), PageField()]}]
+        };
+        var page = Page(400) with
+        {
+            FooterDistance = 20,
+            ChapterStyle = 1,
+            ChapterSeparator = "—"
+        };
+        var document = fragmenter.Layout(
+            [
+                new ParagraphElement {Runs = [TextRun("before "), PageField()]},
+                Chapter("1"),
+                new PageBreakElement(),
+                new ParagraphElement {Runs = [TextRun("before "), PageField()]},
+                Chapter("2"),
+                new ParagraphElement {Runs = [TextRun("after "), PageField()]},
+                new PageBreakElement(),
+                P("none")
+            ],
+            page,
+            footer: footer);
+
+        await Assert.That(PageTexts(document.Pages[0])).Contains("before 1—1");
+        await Assert.That(PageTexts(document.Pages[0])).Contains("foot 1—1");
+        await Assert.That(PageTexts(document.Pages[1])).Contains("before 1—2");
+        await Assert.That(PageTexts(document.Pages[1])).Contains("after 2—2");
+        await Assert.That(PageTexts(document.Pages[1])).Contains("foot 2—2");
+        await Assert.That(PageTexts(document.Pages[2])).Contains("foot 2—3");
     }
 
     [Test]

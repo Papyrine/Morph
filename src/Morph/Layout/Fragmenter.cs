@@ -46,8 +46,51 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         HeaderFooterContent? firstPageFooter = null,
         HeaderFooterContent? evenPageHeader = null,
         HeaderFooterContent? evenPageFooter = null,
-        DocumentNotes? notes = null) =>
-        new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes).Run(elements);
+        DocumentNotes? notes = null)
+    {
+        var flow = new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes);
+        var laidOut = flow.Run(elements);
+
+        // A PAGE, NUMPAGES or SECTIONPAGES field in the body reads the page it lands on, which only the
+        // layout knows: the document is laid out once to learn it, and again with the fields read.
+        // Kept as the parser cached them, every one read the number Word last saved (_probe_chapter's
+        // eleven body fields all read "9").
+        if (!Flow.HasPageField(elements) ||
+            flow.BodyPageFieldTexts() is not {Count: > 0} texts)
+        {
+            return laidOut;
+        }
+
+        return new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes)
+            .Run(Flow.MapPageFields(elements, _ => texts.TryGetValue(_, out var value) ? _.WithText(value) : _));
+    }
+
+    // The numbered headings at `level` (paragraphs in the style "Heading N") the pages hold, in the
+    // order they stand, each with the index of its page: the chapters page numbers count by
+    // (PageSettings.ChapterStyle).
+    static List<(int Page, string? Number, ParagraphElement? Paragraph)> ChapterHeadings(IEnumerable<IReadOnlyList<PlacedItem>> pages, int level)
+    {
+        var style = $"Heading{level}";
+        var result = new List<(int Page, string? Number, ParagraphElement? Paragraph)>();
+        var seen = new HashSet<ParagraphElement>();
+        var pageIndex = 0;
+        foreach (var items in pages)
+        {
+            foreach (var line in DocumentConverter.Lines(items))
+            {
+                if (line.Paragraph is {Properties: {ResolvedStyleId: { } id, Numbering.LevelNumber: { } number}} paragraph &&
+                    id == style &&
+                    seen.Add(paragraph))
+                {
+                    result.Add((pageIndex, number, paragraph));
+                }
+            }
+
+            pageIndex++;
+        }
+
+        return result;
+    }
 
     // Word's footnote / endnote separator rule is two inches long, whatever the column (XPS-read on
     // every _probe_fn_* fixture: 72.075 → 216.2pt on a 468pt column); a continuation separator spans
@@ -3675,6 +3718,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 starts[cellIndex] = default(CellSplitPoint);
             }
 
+            // A row whose atLeast FLOOR is taller than a whole region is not split by it: Word moves it
+            // to a fresh page and cuts it there at the region's height, dropping the rest of the floor,
+            // and the next row starts overleaf. The height is the whole region's even under repeated
+            // header rows, which it then overruns the bottom margin by. XPS-read on _probe_rowsplit
+            // (2026-11-01, 6pt rules): floors of 1000 and 1200pt both draw 648.1pt rule to rule on a
+            // 648pt region, and 648.1 again under a 31pt repeated header, ending 31pt past the margin.
+            // Placed in the space left it stood at its content's height on the first page.
+            var floorOversize = !row.IsExactHeight &&
+                                TableLayout.DeclaredRowHeight(row, table.Properties) is { } rowFloor &&
+                                rowFloor > contentHeight;
+
             var isFirstFragment = true;
             while (true)
             {
@@ -3682,7 +3736,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // region rather than emitting a stub. minFragmentHeight is one generous line.
                 var advanced = false;
                 if (!atRegionTop &&
-                    contentBottom - y < minFragmentHeight)
+                    (contentBottom - y < minFragmentHeight ||
+                     isFirstFragment && floorOversize))
                 {
                     AdvanceColumnOrPage();
                     advanced = true;
@@ -3713,8 +3768,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
-                var available = Math.Max(minFragmentHeight, contentBottom - y);
-                var (fragment, continuations, height, contentHeight) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, carriedToRegionTop);
+                var available = isFirstFragment && floorOversize
+                    ? contentHeight
+                    : Math.Max(minFragmentHeight, contentBottom - y);
+                var (fragment, continuations, height, usedHeight) = BuildRowFragment(y, table, rowIndex, colWidths, colCount, tableX, tableWidth, starts, available, isFirstFragment, carriedToRegionTop);
 
                 var finished = true;
                 foreach (var continuation in continuations)
@@ -3731,7 +3788,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (allowReject &&
                     isFirstFragment &&
                     !advanced &&
-                    (finished || contentHeight > available + 0.5f))
+                    (finished || usedHeight > available + 0.5f))
                 {
                     return false;
                 }
@@ -3764,7 +3821,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // behind 3pt rules where the fragment made 31.0, and 25.8 behind 0.5pt rules against 26.0.
                 if (isFirstFragment &&
                     advanced &&
-                    finished)
+                    finished &&
+                    !floorOversize)
                 {
                     items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                     ResolvePendingFloats();
@@ -3782,6 +3840,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 if (finished)
                 {
+                    // The fragment that ends the row closed itself with its own rule, and the next row
+                    // opens on that same rule rather than drawing its own under it: _probe_rowsplit's
+                    // split row ends overleaf on ONE 6pt rule (378.05-384.05) before the next row, where
+                    // the two stacked stood the rows below 6pt low.
+                    if (rowIndex < table.Rows.Count - 1 &&
+                        !TableHeightCalculator.IsPinnedExact(row))
+                    {
+                        y -= TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: false);
+                    }
+
                     return true;
                 }
 
@@ -4914,7 +4982,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // w:pgNumType/@w:start restarts it on the section's first page, else it runs on — a filler counts
         // a number silently), the document total, and the pages of the page's section (fillers excluded).
         // _probe_sect_b: v, vi, vii | filler | 1, 2, 3 | 4, 5 with NUMPAGES 9 and SECTIONPAGES 3 / 3 / 2.
-        readonly record struct PageNumbering(int Displayed, int Total, int SectionPages);
+        public readonly record struct PageNumbering(int Displayed, int Total, int SectionPages, string? Chapter = null, string ChapterSeparator = "-")
+        {
+            // What a PAGE field reads: the displayed number in `format`, led by the chapter when the
+            // section numbers by chapter (PageSettings.ChapterStyle).
+            public string PageText(string? format) =>
+                Chapter == null
+                    ? PageNumberFormatting.Format(Displayed, format)
+                    : Chapter + ChapterSeparator + PageNumberFormatting.Format(Displayed, format);
+        }
 
         PageNumbering[] PageNumbers()
         {
@@ -4946,10 +5022,32 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var result = new PageNumbering[bodies.Count];
             for (var index = 0; index < bodies.Count; index++)
             {
-                result[index] = new(displayed[index], bodies.Count, sectionPages[sectionOf[index]]);
+                var settings = bodies[index].Settings;
+                result[index] = new(displayed[index], bodies.Count, sectionPages[sectionOf[index]], ChapterOn(index, settings.ChapterStyle), settings.ChapterSeparator);
             }
 
             return result;
+        }
+
+        // The chapter a header's or footer's PAGE field reads on a page: the number of the last
+        // chapter heading on or before the page's end, or of the first in the document while none
+        // has been reached (PageSettings.ChapterStyle). Null when the section numbers no chapters, or
+        // the document has no numbered heading at that level.
+        string? ChapterOn(int pageIndex, int? level)
+        {
+            if (level is not { } chapterLevel)
+            {
+                return null;
+            }
+
+            var headings = ChapterHeadings(bodies.Select(_ => _.Items), chapterLevel);
+            if (headings.Count == 0)
+            {
+                return null;
+            }
+
+            var last = headings.LastOrDefault(_ => _.Page <= pageIndex);
+            return last.Number ?? headings[0].Number;
         }
 
         // The header's text band for one page, at the header distance across the full content width. A
@@ -5050,7 +5148,73 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // three-cell table, and kept the field's cached "1" on every page until the cells were walked.
         // Only a table that holds a field is rebuilt, so the others keep their identity (and with it the
         // geometry cache, TableGeometry).
-        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, PageNumbering numbering, string? sectionFormat)
+        static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, PageNumbering numbering, string? sectionFormat) =>
+            MapPageFields(elements, _ => _.WithText(FieldText(_, numbering, sectionFormat)));
+
+        // What a page field reads on a page numbered `numbering`.
+        static string FieldText(Run field, PageNumbering numbering, string? sectionFormat) =>
+            field.PageField switch
+            {
+                PageFieldKind.NumberOfPages => PageNumberFormatting.Format(numbering.Total, field.PageFieldNumberFormat),
+                PageFieldKind.SectionPages => PageNumberFormatting.Format(numbering.SectionPages, field.PageFieldNumberFormat),
+                _ => numbering.PageText(field.PageFieldNumberFormat ?? sectionFormat)
+            };
+
+        // What each page field in the body reads where this layout put it: the number of the page its
+        // paragraph starts on, led by the chapter of the last chapter heading before the paragraph, or
+        // of the first in the document while none has come (PageSettings.ChapterStyle). Word-probed
+        // (_probe_chapter, 2026-11-01): a field before a page's new chapter heading reads the previous
+        // chapter and one after it the new one, on the same page.
+        public Dictionary<Run, string> BodyPageFieldTexts()
+        {
+            var numbering = PageNumbers();
+            var texts = new Dictionary<Run, string>(ReferenceEqualityComparer.Instance);
+            var reached = new Dictionary<int, string>();
+            var firsts = new Dictionary<int, string?>();
+            for (var index = 0; index < bodies.Count; index++)
+            {
+                var (items, settings, _, _) = bodies[index];
+                foreach (var line in DocumentConverter.Lines(items))
+                {
+                    var paragraph = line.Paragraph;
+                    if (paragraph is {Properties: {ResolvedStyleId: { } id, Numbering.LevelNumber: { } number}} &&
+                        id.StartsWith("Heading", StringComparison.Ordinal) &&
+                        int.TryParse(id.AsSpan("Heading".Length), out var headingLevel))
+                    {
+                        reached[headingLevel] = number;
+                    }
+
+                    foreach (var run in paragraph.Runs)
+                    {
+                        if (run.PageField == PageFieldKind.None ||
+                            texts.ContainsKey(run))
+                        {
+                            continue;
+                        }
+
+                        string? chapter = null;
+                        if (settings.ChapterStyle is { } level)
+                        {
+                            if (!firsts.TryGetValue(level, out var first))
+                            {
+                                first = ChapterHeadings(bodies.Select(_ => _.Items), level) is {Count: > 0} headings ? headings[0].Number : null;
+                                firsts[level] = first;
+                            }
+
+                            chapter = reached.GetValueOrDefault(level) ?? first;
+                        }
+
+                        texts[run] = FieldText(run, numbering[index] with {Chapter = chapter}, settings.PageNumberFormat);
+                    }
+                }
+            }
+
+            return texts;
+        }
+
+        // Rebuilds the paragraphs and tables that carry a page field, each field run through `map`;
+        // everything else keeps its identity.
+        public static IReadOnlyList<DocumentElement> MapPageFields(IReadOnlyList<DocumentElement> elements, Func<Run, Run> map)
         {
             var result = new List<DocumentElement>(elements.Count);
             foreach (var element in elements)
@@ -5072,7 +5236,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                                             .. _.Cells
                                                 .Select(cell => new TableCell
                                                 {
-                                                    Content = SubstitutePageFields(cell.Content, numbering, sectionFormat),
+                                                    Content = MapPageFields(cell.Content, map),
                                                     Floats = cell.Floats,
                                                     FloatAnchorParagraphOrdinals = cell.FloatAnchorParagraphOrdinals,
                                                     Properties = cell.Properties
@@ -5094,13 +5258,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                          paragraph.Runs.Any(_ => _.PageField != PageFieldKind.None))
                 {
                     var runs = paragraph.Runs
-                        .Select(_ => _.PageField switch
-                        {
-                            PageFieldKind.Page => _.WithText(PageNumberFormatting.Format(numbering.Displayed, _.PageFieldNumberFormat ?? sectionFormat)),
-                            PageFieldKind.NumberOfPages => _.WithText(PageNumberFormatting.Format(numbering.Total, _.PageFieldNumberFormat)),
-                            PageFieldKind.SectionPages => _.WithText(PageNumberFormatting.Format(numbering.SectionPages, _.PageFieldNumberFormat)),
-                            _ => _
-                        })
+                        .Select(_ => _.PageField == PageFieldKind.None ? _ : map(_))
                         .ToList();
                     result.Add(
                         new ParagraphElement
@@ -5124,7 +5282,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Whether any paragraph among these elements, or in any cell of a table among them, nested
         // tables included, carries a page field.
-        static bool HasPageField(IReadOnlyList<DocumentElement> elements) =>
+        public static bool HasPageField(IReadOnlyList<DocumentElement> elements) =>
             elements.Any(_ => _ switch
             {
                 ParagraphElement paragraph => paragraph.Runs.Any(run => run.PageField != PageFieldKind.None),

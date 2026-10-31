@@ -8,9 +8,12 @@ sealed class ParagraphElement : DocumentElement
 
     /// <summary>
     /// Set when this paragraph is a residual mark for one whose runs contained only
-    /// out-of-flow anchored drawings. Word does not render a line for the paragraph
-    /// mark in this case — the renderer should skip synthesizing an empty line and
-    /// only honour the paragraph's spacing-after.
+    /// out-of-flow anchored drawings. The layout gives it a line like any other mark, which is
+    /// Word's: agendas-minutes/14's XPS puts the text under one where that line and the mark's
+    /// spacing put it, and agendas-minutes/11, the case the flag was first written for, matches
+    /// Word line for line with it laid out. Dropping the line instead regressed 104 of 108 pages
+    /// (todo #26, closed 2026-11-01). The parser still reads it, to tell such a mark from the end
+    /// of a cell (DocumentParser's collapsed cell mark).
     /// </summary>
     public bool IsAnchorOnlyMark { get; init; }
 
