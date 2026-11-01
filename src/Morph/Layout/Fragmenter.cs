@@ -386,6 +386,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         void RefreshContentBottom() => contentBottom = pageContentBottom - NoteAreaHeight(currentColumn);
 
+        // Where each column's body ended on the in-progress page, for footnotes set beneath the text.
+        float[] columnBottoms = new float[Math.Max(1, page.ColumnCount)];
+
+        void RecordColumnBottom()
+        {
+            if (columnBottoms.Length < columnCount)
+            {
+                Array.Resize(ref columnBottoms, columnCount);
+            }
+
+            if (currentColumn < columnBottoms.Length)
+            {
+                columnBottoms[currentColumn] = y;
+            }
+        }
+
         // The rows a footnote's body stacks into: each paragraph's spacing-before, its lines wrapped to
         // the column, and its spacing-after (the last note's after-spacing counts too — document_capture/01's
         // note ends 8pt above the margin). A table inside a note is not laid out — rare, unprobed.
@@ -481,14 +497,32 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // still empty, then everything up to and including the first note line — Word keeps a
         // reference and its note's first line together (_probe_fn_e: line 42 stays on page 1 with the
         // separator and one line of its six-paragraph note, the other five continue on page 2).
+        // A note paragraph under widow control keeps two of its lines together there too, so the citing
+        // line needs its second line as well, when it has one (_probe_fn_widow50: room under the reference
+        // for one line of a six-line note paragraph, and Word carries the citing line to the next page).
         float NoteMinimum(List<string> ids, bool areaOpen)
         {
             var total = areaOpen ? 0 : SeparatorRow(notes!.FootnoteSeparator, false).Height;
-            foreach (var row in NoteRows(ids[0]))
+            var rows = NoteRows(ids[0]);
+            for (var index = 0; index < rows.Count; index++)
             {
+                var row = rows[index];
                 total += row.Height;
-                if (row.Kind is NoteRowKind.Line or NoteRowKind.Table)
+                if (row.Kind is NoteRowKind.Table)
                 {
+                    break;
+                }
+
+                if (row.Kind is NoteRowKind.Line)
+                {
+                    if (row.Paragraph!.Properties.WidowControl &&
+                        index + 1 < rows.Count &&
+                        rows[index + 1] is {Kind: NoteRowKind.Line} second &&
+                        ReferenceEquals(second.Paragraph, row.Paragraph))
+                    {
+                        total += second.Height;
+                    }
+
                     break;
                 }
             }
@@ -557,9 +591,71 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 placedLine |= row.Kind is NoteRowKind.Line or NoteRowKind.Table;
             }
 
+            accepted = WidowOrphanSplit(rows, accepted);
+            used = 0;
+            for (var index = 0; index < accepted; index++)
+            {
+                used += rows[index].Height;
+            }
+
             area.Rows.AddRange(rows.Take(accepted));
             area.Height += used;
             pendingNoteRows.AddRange(rows.Skip(accepted));
+        }
+
+        // Where a note split inside a paragraph under widow control has to fall instead: never one line
+        // alone overleaf (a line more is carried), never one line alone above the split (the paragraph
+        // goes whole, unless it holds the first line the reference needs). Word-probed on a six-line
+        // note paragraph of 20pt lines cited lower down a page each time (_probe_fn_widow44-50): 4 and 2
+        // where five fit, then 4/2, 3/3, 2/4, 2/4, and at one line of room the citing line moves.
+        static int WidowOrphanSplit(List<NoteRow> rows, int accepted)
+        {
+            if (accepted <= 0 ||
+                accepted >= rows.Count ||
+                rows[accepted - 1] is not {Kind: NoteRowKind.Line, Paragraph: { } paragraph} ||
+                rows[accepted] is not {Kind: NoteRowKind.Line} next ||
+                !ReferenceEquals(next.Paragraph, paragraph) ||
+                !paragraph.Properties.WidowControl)
+            {
+                return accepted;
+            }
+
+            int LinesBefore(int split)
+            {
+                var count = 0;
+                for (var index = split - 1; index >= 0 && rows[index].Kind == NoteRowKind.Line && ReferenceEquals(rows[index].Paragraph, paragraph); index--)
+                {
+                    count++;
+                }
+
+                return count;
+            }
+
+            var after = 0;
+            for (var index = accepted; index < rows.Count && rows[index].Kind == NoteRowKind.Line && ReferenceEquals(rows[index].Paragraph, paragraph); index++)
+            {
+                after++;
+            }
+
+            if (after == 1 &&
+                LinesBefore(accepted) > 1)
+            {
+                accepted--;
+            }
+
+            var before = LinesBefore(accepted);
+            if (before == 1)
+            {
+                // The paragraph goes whole when a line of an earlier note or paragraph stays behind;
+                // otherwise this is the reference's own first line, which has to stay
+                var start = accepted - 1;
+                if (rows.Take(start).Any(_ => _.Kind is NoteRowKind.Line or NoteRowKind.Table))
+                {
+                    accepted = start;
+                }
+            }
+
+            return accepted;
         }
 
         // A placed line's notes: its footnotes open the column's area (or queue behind notes already
@@ -717,6 +813,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // for a continuation.
         void EmitNoteAreas()
         {
+            RecordColumnBottom();
             for (var column = 0; column < noteAreas.Length; column++)
             {
                 if (noteAreas[column] is not {Rows.Count: > 0} area)
@@ -725,7 +822,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 var left = fullContentLeft + column * (columnWidth + columnSpacing);
-                var top = pageContentBottom - area.Height;
+                // Under w:pos="beneathText" the area opens at the body's bottom, the separator's line
+                // straight under the last line's box (_probe_fn_beneathsect / _probe_fn_beneathbig, 12pt
+                // and 48pt Aptos on 278/240 lines: the first note baseline 31.56 and 48.60pt under the
+                // last body baseline, the line's descent and the leading its auto multiple hangs under
+                // it, then a single 12pt separator line, to 0.11pt).
+                var top = current.FootnotesBeneathText &&
+                          column < columnBottoms.Length &&
+                          columnBottoms[column] is > 0 and var bodyBottom
+                    ? Math.Min(bodyBottom, pageContentBottom - area.Height)
+                    : pageContentBottom - area.Height;
                 foreach (var row in area.Rows)
                 {
                     switch (row.Kind)
@@ -1156,6 +1262,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         break;
 
                     case SectionBreakElement sectionBreak:
+                        // Under w:endnotePr/w:pos="sectEnd" the section's endnotes close it, under its last
+                        // line, before the break (_probe_en_sect: section one's two notes on its own page,
+                        // section two's one on the next, each 31.68pt under the last body baseline).
+                        if (notes is {EndnotesAtSectionEnd: true})
+                        {
+                            PlaceEndnotes();
+                            citedEndnotes.Clear();
+                        }
+
                         // A continuous break keeps the same page — switching column count starts the new
                         // columns at the break point; every other kind starts the new section on a fresh page
                         // at the new geometry, inserting an even/odd parity filler page when needed.
@@ -1163,6 +1278,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         break;
 
                     case ParagraphElement paragraph when IsNextPageSectionMark(elements, index, paragraph):
+                        // An empty mark paragraph holds only the break, and a section's endnotes stand
+                        // before it, straight under the section's text (_probe_en_sect: section one's
+                        // first note 31.68pt under its last baseline, as section two's, which has none)
+                        if (notes is {EndnotesAtSectionEnd: true})
+                        {
+                            PlaceEndnotes();
+                            citedEndnotes.Clear();
+                        }
+
                         PlaceSectionMark(paragraph, KeepAfter(elements, index), ClosingBorderReserve(elements, index));
                         break;
 
@@ -1373,6 +1497,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // Fresh footnote areas, then any note spilling from the page just finished opens the first
             // column's area before the body flows.
             noteAreas = new NoteArea?[Math.Max(columnCount, noteAreas.Length)];
+            Array.Clear(columnBottoms);
             contentBottom = pageContentBottom;
             PullPendingNotes();
         }
@@ -2839,6 +2964,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             FlushBorderRun();
             if (currentColumn < columnCount - 1)
             {
+                RecordColumnBottom();
                 currentColumn++;
                 y = columnTop;
                 atRegionTop = true;

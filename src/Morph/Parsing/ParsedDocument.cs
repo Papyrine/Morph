@@ -122,6 +122,12 @@ sealed class ParsedDocument
     public ListNumberFormat EndnoteNumberFormat { get; init; } = ListNumberFormat.LowerRoman;
 
     /// <summary>
+    /// settings.xml <c>w:endnotePr/w:pos</c> is <c>sectEnd</c>: each section's cited endnotes stand
+    /// at the end of that section, under its last line, rather than all at the document's end.
+    /// </summary>
+    public bool EndnotesAtSectionEnd { get; init; }
+
+    /// <summary>
     /// Embedded OLE objects (w:object / o:OLEObject) referenced from the document body.
     /// Renderer does not yet draw the embedded payload — these are captured for inspection only.
     /// </summary>

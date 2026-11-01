@@ -10,7 +10,8 @@ sealed record DocumentNotes(
     ParagraphElement FootnoteSeparator,
     ParagraphElement FootnoteContinuationSeparator,
     ParagraphElement EndnoteSeparator,
-    ParagraphElement EndnoteContinuationSeparator)
+    ParagraphElement EndnoteContinuationSeparator,
+    bool EndnotesAtSectionEnd = false)
 {
     /// <summary>
     /// The notes of a parsed document, or null when it carries none — the common case, which costs
@@ -42,7 +43,8 @@ sealed record DocumentNotes(
             document.FootnoteSeparator ?? DefaultSeparator(),
             document.FootnoteContinuationSeparator ?? DefaultSeparator(),
             document.EndnoteSeparator ?? DefaultSeparator(),
-            document.EndnoteContinuationSeparator ?? DefaultSeparator());
+            document.EndnoteContinuationSeparator ?? DefaultSeparator(),
+            document.EndnotesAtSectionEnd);
     }
 
     // Word's own separator paragraph: empty, single-spaced, no spacing after — the parser synthesises

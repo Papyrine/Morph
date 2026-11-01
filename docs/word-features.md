@@ -3592,7 +3592,15 @@ Numbered references with content at the bottom of the page.
   - document_capture/01 renders band-for-band Word: the endnote rule at 320px against 320, the footnote rule at 1434 against 1435, both note lines within 3px.
 - **Test**: `document_capture/01`; `FootnoteLayoutTests` pins the pinning, the strikethrough rule, the body stopping at the area, the split with the continuation rule, the citing line moving with its note's first line, repeat and cell citations, and the endnote block.
 
-> **AI**: Not modelled: `w:footnotePr/w:pos="beneathText"` (the corpus is all `pageBottom`), a table inside a note body, widow/orphan pairing inside a split note, and the ordering when a second reference lands on a page whose earlier note is already spilling (its note queues behind the spill). Footnotes in a multi-column section stack under their own column, and a spill continues in the next page's first column.
+> **Placement variants, Word-probed 2026-11-01** (`_probe_fn_*`, `_probe_en_*`, Aptos, compatibility mode 15):
+>
+> - **`w:footnotePr/w:pos="beneathText"`** sets a page's footnote area straight under its last line of text: the separator's line opens at the body's bottom, the leading a 278/240 line hangs under its baseline included (`PageSettings.FootnotesBeneathText`, `Fragmenter.EmitNoteAreas`). The first note baseline stands 31.56pt under a last 12pt body baseline and 48.60pt under a 48pt one; Morph places them at 31.62 and 48.18. Word reads the position from the section's `sectPr` alone — the same element in settings.xml moved nothing.
+> - **`w:endnotePr/w:pos="sectEnd"`** (settings.xml) closes each section with its own cited endnotes, under the section's last line and before the break (`ParsedDocument.EndnotesAtSectionEnd`). An empty paragraph holding only a next-page break is the break's mark and the notes stand before it: section one's first note 31.68pt under its last baseline, exactly as the last section's. Morph lands each within 0.4pt.
+> - **`w:numRestart w:val="eachSect"`** in a section's `w:footnotePr` / `w:endnotePr` numbers its notes from 1 again (`DocumentParser.ParseSectionBreak`): the second section's endnote reads "i" where it ran on to "iii" without. `eachPage` is not modelled.
+> - **A note paragraph keeps widow/orphan control across a split** (`Fragmenter.WidowOrphanSplit`, `NoteMinimum`). A six-line note paragraph of 20pt lines, cited lower down the page each time, left 4, 4, 4, 3, 2 and 2 lines on the page — 4 and 2 even where five fit — and with room for only one line under the reference, Word carried the citing line to the next page with the whole note.
+> - **A second reference on a page whose first note is spilling** goes to the next page itself: the 60-line note cited on line 2 fills page 1, line 3's reference opens page 2, and its note follows the first note's last ten lines there. Morph already did this, line for line.
+>
+> > **AI**: Not modelled: a table inside a note body, `eachPage` note numbering, and `w:numStart`. Footnotes in a multi-column section stack under their own column, and a spill continues in the next page's first column.
 
 
 #### Endnotes `DONE`
