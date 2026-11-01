@@ -201,16 +201,30 @@ static class TextLayerBuilder
 
     // A row's cells in order. Each cell's text ends with a tab — the last one with a line break — so a
     // copied table pastes into a spreadsheet as cells. An empty cell still contributes its tab, or every
-    // later column would shift left by one.
+    // later column would shift left by one; but the row ends at its last cell holding text, since empty
+    // cells after it have no later column to keep in place. A sheet's empty spacer column after its last
+    // value (inventory-list's, the invoice sample's, cells of their own since overflow stops at a rule
+    // or a change of fill) added a tab to every copied row.
     static void Row(PlacedTableRow row, List<Node> nodes, SourceIndex? sources)
     {
+        var lastFilled = row.Cells.Count - 1;
+        while (lastFilled > 0 &&
+               !HoldsText(row.Cells[lastFilled].Content))
+        {
+            lastFilled--;
+        }
+
         for (var index = 0; index < row.Cells.Count; index++)
         {
             var cell = row.Cells[index];
-            var end = index == row.Cells.Count - 1 ? LineEnd.Break : LineEnd.Tab;
+            var end = index == lastFilled ? LineEnd.Break : LineEnd.Tab;
 
             // A cell's floats are painted outside its clip, so they stay outside the clip frame too.
             nodes.AddRange(Container(cell.Floats, sources));
+            if (index > lastFilled)
+            {
+                continue;
+            }
 
             var content = Container(cell.Content, sources);
             if (LastEnded(content) is { } last)
@@ -292,6 +306,21 @@ static class TextLayerBuilder
         }
 
         return LineEnd.Space;
+    }
+
+    // Whether a cell's content shows any text: a line with a span that is not white space, or a box.
+    static bool HoldsText(IReadOnlyList<PlacedItem> content)
+    {
+        static bool Any(List<Node> nodes) =>
+            nodes.Any(_ => _ switch
+            {
+                LineNode line => line.Spans.Any(span => !string.IsNullOrWhiteSpace(span.Text)),
+                BoxNode => true,
+                FrameNode frame => Any(frame.Children),
+                _ => false
+            });
+
+        return Any(Container(content, null));
     }
 
     static EndedNode? LastEnded(List<Node> nodes)
