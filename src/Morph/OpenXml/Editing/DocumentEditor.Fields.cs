@@ -132,7 +132,12 @@ static partial class DocumentEditor
         public (Paragraph Paragraph, int Offset) Text(int ordinal, int offset, string text)
         {
             var paragraph = Find(ordinal);
-            Put(paragraph, offset, [new(new Text(text) {Space = SpaceProcessingModeValues.Preserve})]);
+            Put(paragraph, offset, [
+                new(new Text(text)
+                {
+                    Space = SpaceProcessingModeValues.Preserve
+                })
+            ]);
             return (paragraph, offset + text.Length);
         }
 
@@ -177,11 +182,26 @@ static partial class DocumentEditor
 
         static List<OoxmlRun> FieldRuns(string instruction, string result) =>
         [
-            new(new FieldChar {FieldCharType = FieldCharValues.Begin}),
-            new(new OoxmlFieldCode(instruction) {Space = SpaceProcessingModeValues.Preserve}),
-            new(new FieldChar {FieldCharType = FieldCharValues.Separate}),
-            new(new OoxmlRunProperties(new NoProof()), new Text(result) {Space = SpaceProcessingModeValues.Preserve}),
-            new(new FieldChar {FieldCharType = FieldCharValues.End})
+            new(new FieldChar
+            {
+                FieldCharType = FieldCharValues.Begin
+            }),
+            new(new OoxmlFieldCode(instruction)
+            {
+                Space = SpaceProcessingModeValues.Preserve
+            }),
+            new(new FieldChar
+            {
+                FieldCharType = FieldCharValues.Separate
+            }),
+            new(new OoxmlRunProperties(new NoProof()), new Text(result)
+            {
+                Space = SpaceProcessingModeValues.Preserve
+            }),
+            new(new FieldChar
+            {
+                FieldCharType = FieldCharValues.End
+            })
         ];
 
         // Tables of contents
@@ -201,13 +221,22 @@ static partial class DocumentEditor
 
             Define("TOCHeading");
             var heading = new Paragraph(
-                new OoxmlParagraphProperties(new ParagraphStyleId {Val = "TOCHeading"}),
+                new OoxmlParagraphProperties(new ParagraphStyleId
+                {
+                    Val = "TOCHeading"
+                }),
                 new OoxmlRun(new Text("Contents")));
             var ids = Stories().SelectMany(_ => _.Descendants<SdtId>()).Select(_ => _.Val?.Value ?? 0).DefaultIfEmpty(0).Max();
             var block = new SdtBlock(
                 new SdtProperties(
-                    new SdtId {Val = ids + 1},
-                    new SdtContentDocPartObject(new DocPartGallery {Val = contentsGallery}, new DocPartUnique())),
+                    new SdtId
+                    {
+                        Val = ids + 1
+                    },
+                    new SdtContentDocPartObject(new DocPartGallery
+                    {
+                        Val = contentsGallery
+                    }, new DocPartUnique())),
                 new SdtContentBlock(heading));
             paragraph.InsertBeforeSelf(block);
 
@@ -226,7 +255,7 @@ static partial class DocumentEditor
             foreach (var code in main.Document!.Body!.Descendants<OoxmlFieldCode>().Where(IsContents).ToList())
             {
                 if (code.Ancestors<Paragraph>().FirstOrDefault() is not { } first ||
-                    FieldParagraphs(code) is not { Count: > 0 } old)
+                    FieldParagraphs(code) is not {Count: > 0} old)
                 {
                     continue;
                 }
@@ -311,7 +340,7 @@ static partial class DocumentEditor
                     continue;
                 }
 
-                if (each.GetFirstChild<FieldChar>() is { FieldCharType.Value: var type })
+                if (each.GetFirstChild<FieldChar>() is {FieldCharType.Value: var type})
                 {
                     if (type == FieldCharValues.Separate)
                     {
@@ -445,7 +474,7 @@ static partial class DocumentEditor
                     OutlineLevel(paragraph) is not { } level ||
                     level + 1 < from ||
                     level + 1 > to ||
-                    HeadingText(paragraph) is not { Length: > 0 } text)
+                    HeadingText(paragraph) is not {Length: > 0} text)
                 {
                     continue;
                 }
@@ -459,7 +488,10 @@ static partial class DocumentEditor
                 var none = new Paragraph();
                 none.Append(FieldStart(instruction));
                 none.AppendChild(new OoxmlRun(new OoxmlRunProperties(new Bold(), new BoldComplexScript(), new NoProof()), new Text(noEntries)));
-                none.AppendChild(new OoxmlRun(new OoxmlRunProperties(new Bold(), new BoldComplexScript(), new NoProof()), new FieldChar {FieldCharType = FieldCharValues.End}));
+                none.AppendChild(new OoxmlRun(new OoxmlRunProperties(new Bold(), new BoldComplexScript(), new NoProof()), new FieldChar
+                {
+                    FieldCharType = FieldCharValues.End
+                }));
                 entries.Add(none);
                 return entries;
             }
@@ -475,8 +507,16 @@ static partial class DocumentEditor
                 }
 
                 var entry = new Paragraph(new OoxmlParagraphProperties(
-                    new ParagraphStyleId {Val = style},
-                    new Tabs(new OoxmlTabStop {Val = TabStopValues.Right, Leader = TabStopLeaderCharValues.Dot, Position = tab}),
+                    new ParagraphStyleId
+                    {
+                        Val = style
+                    },
+                    new Tabs(new OoxmlTabStop
+                    {
+                        Val = TabStopValues.Right,
+                        Leader = TabStopLeaderCharValues.Dot,
+                        Position = tab
+                    }),
                     new ParagraphMarkRunProperties(new NoProof())));
                 if (entries.Count == 0)
                 {
@@ -485,18 +525,42 @@ static partial class DocumentEditor
 
                 List<OpenXmlElement> runs =
                 [
-                    new OoxmlRun(linked ? new OoxmlRunProperties(new RunStyle {Val = "Hyperlink"}, new NoProof()) : new OoxmlRunProperties(new NoProof()), new Text(text) {Space = SpaceProcessingModeValues.Preserve}),
+                    new OoxmlRun(linked
+                        ? new OoxmlRunProperties(new RunStyle
+                        {
+                            Val = "Hyperlink"
+                        }, new NoProof())
+                        : new OoxmlRunProperties(new NoProof()), new Text(text)
+                    {
+                        Space = SpaceProcessingModeValues.Preserve
+                    }),
                     Hidden(new TabChar()),
-                    Hidden(new FieldChar {FieldCharType = FieldCharValues.Begin}),
-                    Hidden(new OoxmlFieldCode($" PAGEREF {name} \\h ") {Space = SpaceProcessingModeValues.Preserve}),
+                    Hidden(new FieldChar
+                    {
+                        FieldCharType = FieldCharValues.Begin
+                    }),
+                    Hidden(new OoxmlFieldCode($" PAGEREF {name} \\h ")
+                    {
+                        Space = SpaceProcessingModeValues.Preserve
+                    }),
                     Hidden(),
-                    Hidden(new FieldChar {FieldCharType = FieldCharValues.Separate}),
+                    Hidden(new FieldChar
+                    {
+                        FieldCharType = FieldCharValues.Separate
+                    }),
                     Hidden(new Text("1")),
-                    Hidden(new FieldChar {FieldCharType = FieldCharValues.End})
+                    Hidden(new FieldChar
+                    {
+                        FieldCharType = FieldCharValues.End
+                    })
                 ];
                 if (linked)
                 {
-                    entry.AppendChild(new Hyperlink(runs) {Anchor = name, History = Literal<OnOffValue>("1")});
+                    entry.AppendChild(new Hyperlink(runs)
+                    {
+                        Anchor = name,
+                        History = Literal<OnOffValue>("1")
+                    });
                 }
                 else
                 {
@@ -523,15 +587,26 @@ static partial class DocumentEditor
                 [with([new OoxmlRunProperties(new NoProof(), new WebHidden()), .. content])];
         }
 
+        // ReSharper disable UseCollectionExpression
         static IEnumerable<OoxmlRun> FieldStart(string instruction) =>
         [
-            new(new FieldChar {FieldCharType = FieldCharValues.Begin}),
-            new(new OoxmlFieldCode(instruction)
-            {
-                Space = SpaceProcessingModeValues.Preserve
-            }),
-            new(new FieldChar {FieldCharType = FieldCharValues.Separate})
+            new(
+                new FieldChar
+                {
+                    FieldCharType = FieldCharValues.Begin
+                }),
+            new(
+                new OoxmlFieldCode(instruction)
+                {
+                    Space = SpaceProcessingModeValues.Preserve
+                }),
+            new(
+                new FieldChar
+                {
+                    FieldCharType = FieldCharValues.Separate
+                })
         ];
+        // ReSharper restore UseCollectionExpression
 
         // The levels \o "1-3" names; Word's 1 to 9 without it, 1 to 3 being what Automatic Table writes.
         static (int From, int To) Levels(string instruction)
@@ -621,8 +696,15 @@ static partial class DocumentEditor
                 .Max() + 1;
             var key = id.ToString(CultureInfo.InvariantCulture);
             var content = heading.ChildElements.Where(_ => _ is not OoxmlParagraphProperties).ToList();
-            var start = new BookmarkStart {Id = key, Name = name};
-            var end = new BookmarkEnd {Id = key};
+            var start = new BookmarkStart
+            {
+                Id = key,
+                Name = name
+            };
+            var end = new BookmarkEnd
+            {
+                Id = key
+            };
             if (content.Count == 0)
             {
                 heading.Append(start, end);
