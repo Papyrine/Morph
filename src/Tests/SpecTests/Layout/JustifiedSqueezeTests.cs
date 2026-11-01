@@ -8,7 +8,7 @@
 /// </summary>
 public class JustifiedSqueezeTests
 {
-    static readonly CanonicalParagraphMeasurer squeezing = new(LayoutTestFonts.Resolve, squeezeJustifiedLines: true);
+    static readonly CanonicalParagraphMeasurer squeezing = new(LayoutTestFonts.Resolve, compatibility: new() {CompatibilityMode = 15});
     static readonly CanonicalParagraphMeasurer plain = new(LayoutTestFonts.Resolve);
 
     // A line's last word is 14 letters where the kind is "longlast", so the line one word shorter is

@@ -27,7 +27,9 @@ static class TabStopResolver
     /// cell or column content width, NOT reduced by the paragraph's right indent (Word honours
     /// explicit stops inside the indent zone). A Right/Center/Decimal stop past this edge clamps
     /// to it — Word right-aligns TOC page numbers at the cell edge when the TOC style's stop
-    /// exceeds the cell (business-plans/12/13, table_of_contents/03, verified against Word).
+    /// exceeds the cell (business-plans/12/13, table_of_contents/03, verified against Word). Only
+    /// compatibility mode 15 clamps; the measurer passes null in older modes, where Word sets the
+    /// text at the stop wherever it lies (<see cref="CompatibilitySettings.ClampsTabStops"/>).
     /// </param>
     /// <returns>
     /// <c>destinationX</c> in points, the matched <see cref="TabStop"/> (null for default-tab

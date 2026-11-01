@@ -16,12 +16,17 @@
 /// and the wrap narrows the first line by the first-line or hanging indent (lists exempt — their
 /// hanging indent is the marker gutter).</para>
 ///
-/// <para><c>squeezeJustifiedLines</c> is the one place a document's compatibility mode enters the
-/// wrap: in mode 15 Word narrows the spaces of a justified line to take a word that does not quite fit
-/// (<see cref="CompatibilitySettings.SqueezesJustifiedLines"/>).</para>
+/// <para>A document's compatibility mode enters the measure in two places: in mode 15 Word narrows the
+/// spaces of a justified line to take a word that does not quite fit
+/// (<see cref="CompatibilitySettings.SqueezesJustifiedLines"/>), and holds a right, centre or decimal
+/// stop past the measure at its edge (<see cref="CompatibilitySettings.ClampsTabStops"/>). Without
+/// settings the measure squeezes nothing and clamps its stops.</para>
 /// </summary>
-sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0, bool squeezeJustifiedLines = false, Func<string, bool>? ownsFace = null) : IParagraphMeasurer
+sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0, CompatibilitySettings? compatibility = null, Func<string, bool>? ownsFace = null) : IParagraphMeasurer
 {
+    readonly bool squeezeJustifiedLines = compatibility?.SqueezesJustifiedLines == true;
+    readonly bool clampsTabStops = compatibility?.ClampsTabStops ?? true;
+
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
         var lines = LayoutLines(paragraph, maxWidth);
@@ -1499,7 +1504,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // it, its Width the pen distance to the next boundary — the same rounding as the line width, so a
     // painter draws each font (and each image) at the right offset and strokes decorations across the
     // right span. An image breaks any running text segment.
-    static (List<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(
+    (List<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images) BuildLineItems(
         List<Piece> linePieces,
         double extraGapPixels,
         IReadOnlyList<TabStop> tabStops,
@@ -1582,7 +1587,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         tabStops,
                         defaultTabStopPoints,
                         leftIndentPoints,
-                        availableEndX: columnWidthPoints);
+                        availableEndX: clampsTabStops ? columnWidthPoints : null);
                 }
                 var advanced = CanonicalTextMeasurer.PixelsFromPoints((float) (destinationFromMargin - leftIndentPoints));
                 cursor = Math.Max(cursor, advanced);

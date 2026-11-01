@@ -32,6 +32,17 @@ sealed class CompatibilitySettings
     public bool SqueezesJustifiedLines => CompatibilityMode >= 15;
 
     /// <summary>
+    /// Whether a right, centre or decimal stop past the measure a paragraph is set in stands at the
+    /// measure's edge (Word 2013+ behavior). In mode 14 and older Word sets the text at the stop
+    /// itself, out past a cell's edge or the right margin. Probed 2026-11-01 (<c>_probe_tabspill</c>,
+    /// a right stop with 16pt text after it): in a 250pt cell with 36pt of right padding, stops at
+    /// 241, 450 and 550pt all end at the content edge, 214pt, in mode 15, and end on the stop in a
+    /// document declaring no mode; body paragraphs past the 468pt measure the same. The clamp is
+    /// <c>TabStopResolver.Resolve</c>'s.
+    /// </summary>
+    public bool ClampsTabStops => CompatibilityMode >= 15;
+
+    /// <summary>
     /// Whether a paragraph that opens its page with <c>w:pageBreakBefore</c> keeps the part of its
     /// spacing-before that exceeds the previous paragraph's spacing-after (Word 2010 and older
     /// behavior). In mode 15 it keeps none. The Word probe is on <c>Fragmenter.PlaceParagraph</c>.
