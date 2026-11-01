@@ -1867,7 +1867,10 @@ sealed class HtmlParser
                             {
                                 Alignment = blockAlignment ?? TextAlignment.Left,
                                 LineSpacingMultiplier = isBodyParagraph ? 1.0 : 1.15,
-                                SpacingAfterPoints = isBodyParagraph
+                                // A <p>'s 14pt auto spacing stands over the 8pt of loose text before
+                                // it: 47.8pt between baselines there, against 41.8 the other way round
+                                // (_probe_cellmixed at 24pt)
+                                SpacingAfterPoints = isBodyParagraph || IsBodyParagraphAt(blocks, blockIndex + 1, cell)
                                     ? blockIndex == blocks.Count - 1 ? 0 : 14
                                     : cellParagraphAfter
                             },
@@ -2542,29 +2545,56 @@ sealed class HtmlParser
     // 150 DPI. Unlike TryParseCssDimension (which reads px as pt), so use this only where the value
     // is a genuine CSS length whose px→pt scaling has been Word-confirmed.
     /// <summary>
-    /// The blocks a cell's paragraphs come from: its <c>&lt;p&gt;</c> and <c>&lt;div&gt;</c> children
-    /// when it holds nothing else but white space, otherwise the cell itself.
+    /// The blocks a cell's paragraphs come from: each <c>&lt;p&gt;</c> and <c>&lt;div&gt;</c> child,
+    /// and each run of other content between them gathered into a <c>&lt;div&gt;</c> of its own — Word
+    /// sets loose text beside a <c>&lt;p&gt;</c> as a cell paragraph in the cell's face
+    /// (_probe_cellmixed, 2026-11-01). The cell itself when it holds no block child.
     /// </summary>
     static List<IElement> CellBlocks(IElement cell)
     {
-        List<IElement> blocks = [];
-        foreach (var node in cell.ChildNodes)
+        if (!cell.Children.Any(IsCellBlock))
         {
-            if (node is IElement element &&
-                (element.TagName.Equals("p", StringComparison.OrdinalIgnoreCase) ||
-                 element.TagName.Equals("div", StringComparison.OrdinalIgnoreCase)))
-            {
-                blocks.Add(element);
-            }
-            else if (node is IElement ||
-                     !string.IsNullOrWhiteSpace(node.TextContent))
-            {
-                return [cell];
-            }
+            return [cell];
         }
 
-        return blocks.Count > 0 ? blocks : [cell];
+        List<IElement> blocks = [];
+        IElement? loose = null;
+        foreach (var node in cell.ChildNodes.ToList())
+        {
+            if (node is IElement element &&
+                IsCellBlock(element))
+            {
+                blocks.Add(element);
+                loose = null;
+                continue;
+            }
+
+            if (loose == null)
+            {
+                if (node is not IElement &&
+                    string.IsNullOrWhiteSpace(node.TextContent))
+                {
+                    continue;
+                }
+
+                loose = cell.Owner!.CreateElement("div");
+                blocks.Add(loose);
+            }
+
+            loose.AppendChild(node.Clone());
+        }
+
+        return blocks;
     }
+
+    static bool IsBodyParagraphAt(List<IElement> blocks, int index, IElement cell) =>
+        index < blocks.Count &&
+        blocks[index] != cell &&
+        blocks[index].TagName.Equals("p", StringComparison.OrdinalIgnoreCase);
+
+    static bool IsCellBlock(IElement element) =>
+        element.TagName.Equals("p", StringComparison.OrdinalIgnoreCase) ||
+        element.TagName.Equals("div", StringComparison.OrdinalIgnoreCase);
 
     static CellVerticalAlignment? VerticalAlignmentOf(string? value) =>
         value?.Trim().ToLowerInvariant() switch

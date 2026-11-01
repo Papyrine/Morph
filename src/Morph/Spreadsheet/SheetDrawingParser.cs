@@ -1,4 +1,4 @@
-using A = DocumentFormat.OpenXml.Drawing;
+﻿using A = DocumentFormat.OpenXml.Drawing;
 using XDR = DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
 /// <summary>
@@ -269,14 +269,8 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
                 LineWidthPoints = outline?.Width?.Value is { } width ? width / OoxmlUnits.EmusPerPoint : 0,
                 RelativeHeight = ordinal,
                 NotPrinted = notPrinted,
-                Subpaths = TextBoxOutline(properties, placed),
-                VerticalAlignment = body.BodyProperties?.Anchor?.Value is { } anchor
-                    ? anchor == A.TextAnchoringTypeValues.Center
-                        ? CellVerticalAlignment.Center
-                        : anchor == A.TextAnchoringTypeValues.Bottom
-                            ? CellVerticalAlignment.Bottom
-                            : CellVerticalAlignment.Top
-                    : CellVerticalAlignment.Top
+                Subpaths = ShapeParser.TextBoxOutline(properties, placed.Width, placed.Height),
+                VerticalAlignment = ShapeParser.TextAnchor(body.BodyProperties?.Anchor?.Value)
             };
         }
 
@@ -307,36 +301,6 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             RelativeHeight = ordinal,
             NotPrinted = notPrinted
         };
-    }
-
-    /// <summary>
-    /// The outline a labelled shape's fill and frame are drawn in, when it is not its box: a custom
-    /// geometry, a preset the builder knows, or an ellipse as the oval inscribed in the box, traced
-    /// finely enough to read as a curve at any size (modern-basic-black-yellow-standard's round "LOGO"
-    /// badge, which printed square). A plain shape keeps <see cref="PresetShape.Ellipse"/> instead.
-    /// </summary>
-    static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? TextBoxOutline(OpenXmlElement? properties, DrawingBox placed)
-    {
-        if (properties == null)
-        {
-            return null;
-        }
-
-        var preset = properties.GetFirstChild<A.PresetGeometry>();
-        if (preset?.Preset?.Value == A.ShapeTypeValues.Ellipse)
-        {
-            const int points = 128;
-            return
-            [
-                [
-                    .. Enumerable.Range(0, points)
-                        .Select(_ => (0.5 + 0.5 * Math.Cos(2 * Math.PI * _ / points), 0.5 + 0.5 * Math.Sin(2 * Math.PI * _ / points)))
-                ]
-            ];
-        }
-
-        return ShapeParser.ExtractSubpaths(properties) ??
-               PresetShapeGeometry.TryBuild(preset, placed.Width, placed.Height);
     }
 
     /// <summary>

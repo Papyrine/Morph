@@ -291,9 +291,10 @@ sealed class SlideShapeParser(
                 BackgroundColorHex = fill.ColorHex,
                 LineColorHex = outline.ColorHex,
                 LineWidthPoints = outline.WidthPoints ?? 0,
-                Subpaths = ResolveSubpaths(shapeProperties, box.Width, box.Height),
+                Subpaths = ShapeParser.TextBoxOutline(shapeProperties, box.Width, box.Height),
                 RotationDegrees = box.RotationDegrees,
-                RelativeHeight = ordinal
+                RelativeHeight = ordinal,
+                VerticalAlignment = ShapeParser.TextAnchor(placeholders.ResolveTextAnchor(shape))
             };
         }
 
@@ -764,9 +765,10 @@ sealed class SlideShapeParser(
                 BackgroundColorHex = fill.ColorHex,
                 LineColorHex = outline.ColorHex,
                 LineWidthPoints = outline.WidthPoints ?? 0,
-                Subpaths = ResolveSubpaths(shapeProperties, box.Width, box.Height),
+                Subpaths = ShapeParser.TextBoxOutline(shapeProperties, box.Width, box.Height),
                 RotationDegrees = box.RotationDegrees,
-                RelativeHeight = ordinal
+                RelativeHeight = ordinal,
+                VerticalAlignment = ShapeParser.TextAnchor(textBody?.GetFirstChild<A.BodyProperties>()?.Anchor?.Value)
             };
         }
 

@@ -547,6 +547,44 @@ static class ShapeParser
     }
 
     /// <summary>
+    /// The outline a text box's shape draws, in the unit square, when it is richer than its
+    /// rectangle: a custom geometry, a built preset, or an ellipse, which
+    /// <see cref="PresetShapeGeometry"/> leaves to the painters' own ellipse for plain shapes but a
+    /// text box has no such path (modern-basic-black-yellow-standard's round "LOGO").
+    /// </summary>
+    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? TextBoxOutline(OpenXmlElement? properties, double widthPoints, double heightPoints)
+    {
+        if (properties == null)
+        {
+            return null;
+        }
+
+        var preset = properties.GetFirstChild<A.PresetGeometry>();
+        if (preset?.Preset?.Value == A.ShapeTypeValues.Ellipse)
+        {
+            const int points = 128;
+            return
+            [
+                [
+                    .. Enumerable.Range(0, points)
+                        .Select(_ => (0.5 + 0.5 * Math.Cos(2 * Math.PI * _ / points), 0.5 + 0.5 * Math.Sin(2 * Math.PI * _ / points)))
+                ]
+            ];
+        }
+
+        return ExtractSubpaths(properties) ??
+               PresetShapeGeometry.TryBuild(preset, widthPoints, heightPoints);
+    }
+
+    /// <summary>Where a text body stands its text up and down its box (<c>a:bodyPr/@anchor</c>, top by default).</summary>
+    public static CellVerticalAlignment TextAnchor(A.TextAnchoringTypeValues? anchor) =>
+        anchor == A.TextAnchoringTypeValues.Center
+            ? CellVerticalAlignment.Center
+            : anchor == A.TextAnchoringTypeValues.Bottom
+                ? CellVerticalAlignment.Bottom
+                : CellVerticalAlignment.Top;
+
+    /// <summary>
     /// Extracts the closed contours of an <c>a:custGeom</c> as a list of sub-paths — each a
     /// polyline of points normalized into the unit square (0..1) of its path's declared
     /// <c>w</c>/<c>h</c>. Every <c>a:moveTo</c> begins a new contour, so disjoint pieces and

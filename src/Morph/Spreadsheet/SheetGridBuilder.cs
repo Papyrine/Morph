@@ -382,14 +382,18 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 }
             };
 
+        // Excel's default is right for numbers and left for text; an explicit alignment wins.
+        var alignment = style.HorizontalAlignment ?? DefaultAlignment(cell);
         var paragraph = new ParagraphElement
         {
             Runs = runs,
             Properties = new()
             {
-                // Excel's default is right for numbers and left for text; an explicit alignment wins.
-                Alignment = style.HorizontalAlignment ?? DefaultAlignment(cell),
-                LeftIndentPoints = style.IndentLevel * 9 * scale,
+                Alignment = alignment,
+                // Excel indents from the side the text is set against: a right-aligned cell's indent
+                // stands it in from the right (modern-basic-black-yellow-standard's prices and totals)
+                LeftIndentPoints = alignment == TextAlignment.Right ? 0 : style.IndentLevel * 9 * scale,
+                RightIndentPoints = alignment == TextAlignment.Right ? style.IndentLevel * 9 * scale : 0,
                 SpacingBeforePoints = 0,
                 SpacingAfterPoints = 0,
                 LineSpacingMultiplier = 1,

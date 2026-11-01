@@ -44,6 +44,41 @@ public class TableStyleTests
     }
 
     [Test]
+    public async Task BuiltInLight7_DrawsAccentSix()
+    {
+        // simple-yellow-standard-invoice's InvoiceDetails (C15:F24) names TableStyleLight7, which the
+        // workbook does not write out: Excel prints its header bold in accent 6 darkened 25%, ruled below
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "simple-yellow-standard-invoice", "input.xlsx");
+        using var document = SpreadsheetDocument.Open(inputFile, false);
+        var workbookPart = document.WorkbookPart!;
+        var styles = new CellStyles(workbookPart, ThemeParser.ExtractThemeColors(workbookPart.ThemePart));
+        var tables = new TableStyles(workbookPart.WorksheetParts.Single(), workbookPart.WorkbookStylesPart?.Stylesheet, styles);
+
+        var header = tables.For(15, 3);
+
+        await Assert.That(header?.Bold).IsTrue();
+        await Assert.That(header?.ColorHex).IsNotNull();
+        await Assert.That(header?.Bottom?.IsVisible).IsTrue();
+        await Assert.That(header?.Top?.IsVisible).IsTrue();
+    }
+
+    [Test]
+    public async Task TableBorder_StandsOverTheStyle()
+    {
+        // simple-blue-timesheet-invoice's InvoiceDetails (C16:G24) names TableStyleLight1, whose whole
+        // table rules its bottom thin in the text colour, and its own tableBorderDxfId a medium navy bottom
+        var inputFile = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "simple-blue-timesheet-invoice", "input.xlsx");
+        using var document = SpreadsheetDocument.Open(inputFile, false);
+        var workbookPart = document.WorkbookPart!;
+        var styles = new CellStyles(workbookPart, ThemeParser.ExtractThemeColors(workbookPart.ThemePart));
+        var tables = new TableStyles(workbookPart.WorksheetParts.Single(), workbookPart.WorkbookStylesPart?.Stylesheet, styles);
+
+        var bottom = tables.For(24, 4)?.Bottom;
+
+        await Assert.That(bottom?.WidthPoints ?? 0).IsGreaterThan(1);
+    }
+
+    [Test]
     public async Task OutsideEveryTable_IsNull()
     {
         var tables = Labor(out var document);

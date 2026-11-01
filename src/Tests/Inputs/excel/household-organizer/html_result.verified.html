@@ -1,0 +1,249 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Verdana, sans-serif; max-width: 494.48pt; padding: 54pt 50.4pt">
+<table style="margin-left: auto; margin-right: auto">
+  <colgroup><col style="width: 15.86pt"><col style="width: 118.06pt"><col style="width: 84.58pt"><col style="width: 119.23pt"><col style="width: 138.62pt"><col style="width: 15.86pt"></colgroup>
+  <tbody>
+    <tr style="height: 23.31pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: bottom;padding: 0pt 1.68pt"><div style="font-size: 12.6pt; line-height: 1.22"><span style="color: #13997c; font-size: 12.6pt;">Household</span></div></td>
+      <td style="width: 84.58pt;vertical-align: bottom;padding: 0pt 1.68pt"></td>
+      <td style="width: 119.23pt;vertical-align: bottom;padding: 0pt 1.68pt"></td>
+      <td style="width: 138.62pt;vertical-align: bottom;padding: 0pt 1.68pt"></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 31.5pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td colspan="5" style="width: 476.34pt;padding: 0pt 1.68pt"><div style="font-size: 16.8pt; line-height: 1.22"><span style="color: #082125; font-size: 16.8pt;"><strong>BUDGET</strong></span></div></td>
+    </tr>
+    <tr style="height: 18.27pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #000000"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.24pt;"><strong>EXPENSE</strong></span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #000000"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.24pt;"><strong>AMOUNT</strong></span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #000000"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.24pt;"><strong>NAME</strong></span></div></td>
+      <td colspan="2" style="width: 154.47pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #000000"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.24pt;"><strong>NOTES</strong></span></div></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Rent</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$360.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 1</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Rent</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$350.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 2</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Rent</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$200.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 3</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Rent</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$200.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 4</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Cable TV</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$25.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 1</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Cable TV</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$25.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 2</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Cable TV</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$25.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 3</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Cable TV</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$25.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 4</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt;border-bottom: 2pt solid #082125"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Groceries</span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt;border-bottom: 2pt solid #082125"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">$150.00</span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt;border-bottom: 2pt solid #082125"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Roommate 3</span></div></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt;border-bottom: 2pt solid #082125"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #082125; font-size: 9.24pt;">Notes</span></div></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+    <tr style="height: 25.2pt">
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+      <td style="width: 118.06pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #082125"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.24pt;"><strong>Total</strong></span></div></td>
+      <td style="width: 84.58pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #082125"><div style="font-size: 9.24pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.24pt;"><strong>$1,360.00</strong></span></div></td>
+      <td style="width: 119.23pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #082125"></td>
+      <td style="width: 138.62pt;vertical-align: middle;padding: 0pt 1.68pt;border-top: 2pt solid #082125"></td>
+      <td style="width: 15.86pt;vertical-align: middle;padding: 0pt 1.68pt"></td>
+    </tr>
+  </tbody>
+</table>
+<table style="margin-left: auto; margin-right: auto">
+  <colgroup><col style="width: 125.09pt"><col style="width: 91.49pt"><col style="width: 106.41pt"><col style="width: 149.37pt"><col style="width: 16.8pt"></colgroup>
+  <tbody>
+    <tr style="height: 24.7pt">
+      <td colspan="2" style="width: 216.57pt;vertical-align: bottom;padding: 0pt 1.78pt"><div style="font-size: 13.35pt; line-height: 1.22"><span style="color: #13997c; font-size: 13.35pt;">Chore</span></div></td>
+      <td style="width: 106.41pt;background-color: #edeae9;vertical-align: middle;padding: 0pt 1.78pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 8.01pt"><span style="color: #082125; font-size: 9.79pt;">Start Date:</span></p></td>
+      <td style="width: 149.37pt;background-color: #0e735d;vertical-align: middle;padding: 0pt 1.78pt"><p style="margin: 0pt 0 0pt; margin-left: 8.01pt"><span style="color: #ffffff; font-size: 9.79pt;">00000July 16, 2026</span></p></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 33.38pt">
+      <td colspan="2" style="width: 216.57pt;padding: 0pt 1.78pt"><div style="font-size: 17.8pt; line-height: 1.22"><span style="color: #082125; font-size: 17.8pt;"><strong>SCHEDULE</strong></span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 19.36pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt;border-top: 2pt solid #000000"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.79pt;"><strong>CHORE</strong></span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt;border-top: 2pt solid #000000"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.79pt;"><strong>WHEN</strong></span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt;border-top: 2pt solid #000000"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.79pt;"><strong>ASSIGNED TO</strong></span></div></td>
+      <td colspan="2" style="width: 166.17pt;vertical-align: middle;padding: 0pt 1.78pt;border-top: 2pt solid #000000"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #0e735d; font-size: 9.79pt;"><strong>NOTES</strong></span></div></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Take out the trash</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Tues and Fri</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 1</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">After 7pm</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Chore item</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Days/Times</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 2</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Notes</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Chore item</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Days/Times</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 3</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Notes</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Chore item</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Days/Times</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 4</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Notes</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Chore item</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Days/Times</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 1</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Notes</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Chore item</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Days/Times</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 2</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Notes</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+    <tr style="height: 26.7pt">
+      <td style="width: 125.09pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Chore item</span></div></td>
+      <td style="width: 91.49pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Days/Times</span></div></td>
+      <td style="width: 106.41pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Roommate 3</span></div></td>
+      <td style="width: 149.37pt;vertical-align: middle;padding: 0pt 1.78pt"><div style="font-size: 9.79pt; line-height: 1.22"><span style="color: #082125; font-size: 9.79pt;">Notes</span></div></td>
+      <td style="width: 16.8pt;vertical-align: middle;padding: 0pt 1.78pt"></td>
+    </tr>
+  </tbody>
+</table>
+<table style="margin-left: auto; margin-right: auto">
+  <colgroup><col style="width: 138.95pt"><col style="width: 117.72pt"><col style="width: 216.81pt"><col style="width: 16.71pt"></colgroup>
+  <tbody>
+    <tr style="height: 25.53pt">
+      <td style="width: 138.95pt;vertical-align: bottom;padding: 0pt 1.84pt"><div style="font-size: 13.8pt; line-height: 1.22"><span style="color: #13997c; font-size: 13.8pt;">Grocery</span></div></td>
+      <td style="width: 117.72pt;vertical-align: bottom;padding: 0pt 1.84pt"></td>
+      <td style="width: 216.81pt;vertical-align: bottom;padding: 0pt 1.84pt"></td>
+      <td style="width: 16.71pt;vertical-align: middle;padding: 0pt 1.84pt"></td>
+    </tr>
+    <tr style="height: 34.5pt">
+      <td style="width: 138.95pt;padding: 0pt 1.84pt"><div style="font-size: 18.4pt; line-height: 1.22"><span style="color: #082125; font-size: 18.4pt;"><strong>LIST</strong></span></div></td>
+      <td style="width: 117.72pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 12.88pt; line-height: 1.22"><span style="color: #13997c; font-size: 12.88pt;">Helpful Tips</span></div></td>
+      <td style="width: 216.81pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">When you use the last of an item, please add it to the list.</span></div></td>
+      <td style="width: 16.71pt;vertical-align: middle;padding: 0pt 1.84pt"></td>
+    </tr>
+    <tr style="height: 20.01pt">
+      <td style="width: 138.95pt;vertical-align: middle;padding: 0pt 1.84pt;border-top: 2pt solid #000000"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #0e735d; font-size: 10.12pt;"><strong>ITEM</strong></span></div></td>
+      <td style="width: 117.72pt;vertical-align: middle;padding: 0pt 1.84pt;border-top: 2pt solid #000000"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #0e735d; font-size: 10.12pt;"><strong>QUANTITY</strong></span></div></td>
+      <td colspan="2" style="width: 233.52pt;vertical-align: middle;padding: 0pt 1.84pt;border-top: 2pt solid #000000"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #0e735d; font-size: 10.12pt;"><strong>NOTES</strong></span></div></td>
+    </tr>
+    <tr style="height: 27.6pt">
+      <td style="width: 138.95pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">Milk</span></div></td>
+      <td style="width: 117.72pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">Half Gallon</span></div></td>
+      <td style="width: 216.81pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">2% please!</span></div></td>
+      <td style="width: 16.71pt;vertical-align: middle;padding: 0pt 1.84pt"></td>
+    </tr>
+    <tr style="height: 27.6pt">
+      <td style="width: 138.95pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">Item</span></div></td>
+      <td style="width: 117.72pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">Quantity</span></div></td>
+      <td style="width: 216.81pt;vertical-align: middle;padding: 0pt 1.84pt"><div style="font-size: 10.12pt; line-height: 1.22"><span style="color: #082125; font-size: 10.12pt;">Notes</span></div></td>
+      <td style="width: 16.71pt;vertical-align: middle;padding: 0pt 1.84pt"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

@@ -213,14 +213,28 @@ paragraph like the cell's own text: the cell's Aptos, 1.15 lines and 8pt after (
 between baselines, an 83.5pt cell). A `<p>` is a body paragraph: Times New Roman, a single line and
 the 14pt auto spacing after it, except after the last, where Word's auto spacing stops at the cell's
 edge (two `<p>`s: 41.67pt between baselines, a 69.1pt cell, against a 33.84pt pitch for two lines
-broken by `<br>`). Morph's cells measure within 1px of all five. A cell mixing blocks with loose text
-or inline elements is still one paragraph.
+broken by `<br>`). Morph's cells measure within 1px of all five.
+
+Loose text or inline elements beside those blocks are a cell paragraph of their own, as a `<div>` is,
+one for each run of them between blocks (`_probe_cellmixed`, the same 24pt cells). The loose text is set
+in the cell's Aptos and the `<p>` beside it in Times New Roman. Between baselines:
+
+| cell | Word | Morph |
+| --- | --- | --- |
+| `Xx<p>Aa</p>` | 47.76 | 47.19 |
+| `<p>Aa</p>Xx` | 41.79 | 42.10 |
+| `Xx<p>Aa</p>Yy` | 47.76, 41.78 | 47.19, 42.10 |
+| `<b>Xx</b> Zz<div>Aa</div>` | 41.88 | 41.69 |
+| `Xx<p>Aa</p><p>Bb</p>` | 47.91, 41.52 | 47.19, 41.60 |
+
+So loose text before a `<p>` stands 6pt further from it than a `<div>` would: the `<p>`'s 14pt auto
+spacing stands over the cell paragraph's 8pt after, which `HtmlParser` writes as 14pt after the loose
+text.
 
 ## Known gaps
 
 Tracked as issue **#31** in `src/todo.md`: cell padding composes slightly tighter than Word, and a
-cell paragraph's after-spacing is not flat (the `_probe_cellpad_sweep` data below). A cell mixing
-`<p>`s with loose text still flattens into one paragraph.
+cell paragraph's after-spacing is not flat (the `_probe_cellpad_sweep` data below).
 
 ### Default padding (2026-10-30)
 

@@ -1,0 +1,319 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: 'Segoe UI', sans-serif; max-width: 784.29pt; padding: 43.2pt 28.8pt 54pt">
+<table style="margin-left: auto; margin-right: auto">
+  <colgroup><col style="width: 23.96pt"><col style="width: 72.34pt"><col style="width: 72.34pt"><col style="width: 78.22pt"><col style="width: 108.06pt"><col style="width: 78.22pt"><col style="width: 72.34pt"><col style="width: 72.34pt"><col style="width: 108.51pt"><col style="width: 72.34pt"><col style="width: 23.96pt"></colgroup>
+  <tbody>
+    <tr style="height: 5.49pt">
+      <td style="width: 23.96pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 78.22pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 108.06pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 78.22pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 108.51pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 23.96pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 12.26pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 78.22pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 108.06pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 78.22pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 30.56pt">
+      <td style="width: 23.96pt;background-color: #f7f3e7;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      <td colspan="6" rowspan="2" style="width: 481.53pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt"><div style="font-size: 29.28pt; line-height: 1.23"><span style="font-family: 'Century Gothic', sans-serif; color: #5a4b1e; font-size: 29.28pt;">Address and phone List</span></div></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 23.96pt;background-color: #f7f3e7;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 30.56pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;padding: 0pt 1.22pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 5.49pt"><span style="font-size: 6.71pt;">Last updated:</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;padding: 0pt 1.22pt"><div style="font-size: 6.71pt; line-height: 1.33"><span style="font-size: 6.71pt;">16/07/2026</span></div></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e;border-left: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Last name</strong></span></p></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>First name</strong></span></p></td>
+      <td style="width: 78.22pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Family members</strong></span></p></td>
+      <td style="width: 108.06pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Address</strong></span></p></td>
+      <td style="width: 78.22pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Home number</strong></span></p></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Work number</strong></span></p></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Cell number</strong></span></p></td>
+      <td style="width: 108.51pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>E-mail </strong></span></p></td>
+      <td style="width: 72.34pt;background-color: #5a4b1e;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-right: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #5a4b1e"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Contact type</strong></span></p></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Bowman</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Ann</span></p></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Oscar Ward</span></p></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">123 Main St. </span></p></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0121</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0122</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0123</span></p></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">ann@example.com</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #5a4b1e;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Friend</span></p></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Linna</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Utu</span></p></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Meitar Rokach</span></p></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">4567 8th Ave</span></p></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0165</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0166</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0167</span></p></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">utu@example.com</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Co-worker</span></p></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Trivedi</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Sanjay</span></p></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Lata Wadekar</span></p></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">345 W. Main</span></p></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0199</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0110</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0111</span></p></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">sanjay@example.com</span></p></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Cousin</span></p></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Sakai</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Yuna</span></p></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Avri Grin</span></p></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">123 South St.</span></p></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0147</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0148</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">555-0149</span></p></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">yuna@example.com</span></p></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Co-worker</span></p></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #f7f3e7;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+    <tr style="height: 18.3pt">
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3;border-left: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.06pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 78.22pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 108.51pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 72.34pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #ebe1c3;border-right: 0.5pt solid #ebe1c3;border-bottom: 0.5pt solid #ebe1c3"></td>
+      <td style="width: 23.96pt;vertical-align: middle;padding: 0pt 1.22pt"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,167 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 494.48pt; padding: 54pt 50.4pt; position: relative">
+<div style="min-height: 106.65pt">
+  <div style="position: relative"><svg style="position: absolute; left: 30.47pt; top: 21.6pt; width: 85pt; height: 85.05pt; z-index: 1; overflow: visible" viewBox="0 0 85 85.05" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="85" height="85.05" fill="#0076b0" /></svg></div>
+  <div style="position: relative">
+    <div style="position: absolute; left: 30.47pt; top: 21.6pt; width: 85pt; min-height: 85.05pt; display: flex; flex-direction: column; justify-content: center; z-index: 1">
+      <p style="text-align: center; margin-bottom: 0pt; line-height: 1"><span style="font-size: 16pt;"><strong>LOGO GOES HERE</strong></span></p>
+    </div>
+  </div>
+  <table style="margin-left: auto; margin-right: auto">
+    <colgroup><col style="width: 308.18pt"><col style="width: 152.18pt"><col style="width: 17.59pt"></colgroup>
+    <tbody>
+      <tr style="height: 65.45pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt;border-top: 2pt solid #0077b0"><p style="margin: 0pt 0 0pt; margin-left: 135pt"><span style="color: #0077b0; font-size: 28pt;"><strong>Company Name</strong></span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 60pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f7fbfd;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 135pt"><span style="color: #0077b0;"> Address, City, ST, ZIP code<br /> Phone number | Fax Number</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 36.75pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0; font-size: 14pt;"><strong>INVOICE # 100</strong></span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 15pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0;">Date: Enter invoice date</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 60pt">
+        <td style="width: 308.18pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0; font-size: 14pt;"><strong>BILL TO</strong></span></p></td>
+        <td style="width: 152.18pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0; font-size: 14pt;"><strong>FOR</strong></span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 14.41pt">
+        <td style="width: 308.18pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0;">Name | Company</span></p></td>
+        <td style="width: 152.18pt;background-color: #f7fbfd;vertical-align: middle;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0;">Product description</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 14.41pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f7fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0;">Address, City, ST, ZIP Code</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 50.25pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f7fbfd;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0;">Phone</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #0077b0;vertical-align: middle;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #ffffff; font-size: 14pt;"><strong>ITEM DESCRIPTION</strong></span></p></td>
+        <td style="width: 152.18pt;background-color: #0077b0;vertical-align: middle;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #ffffff; font-size: 14pt;"><strong>AMOUNT</strong></span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-right: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-bottom: 0.5pt solid #daebf6;border-left: 0.5pt solid #daebf6"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-right: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6;border-left: 0.5pt solid #daebf6"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-right: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6;border-left: 0.5pt solid #daebf6"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-right: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #daebf6;border-left: 0.5pt solid #daebf6"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-right: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #0077b0"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt;border-top: 0.5pt solid #daebf6;border-bottom: 0.5pt solid #0077b0;border-left: 0.5pt solid #daebf6"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 18pt"><span style="color: #0077b0;"><strong>Subtotal</strong></span></p></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0;"><strong>$0.00</strong></span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 18pt"><span style="color: #0077b0;"><strong>Tax rate</strong></span></p></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 18pt"><span style="color: #0077b0;"><strong>Additional costs</strong></span></p></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: middle;padding: 0pt 2pt"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 28.15pt">
+        <td style="width: 308.18pt;background-color: #0077b0;vertical-align: middle;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 18pt"><span style="color: #ffffff; font-size: 14pt;"><strong>TOTAL COST</strong></span></p></td>
+        <td style="width: 152.18pt;background-color: #0077b0;vertical-align: middle;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #ffffff; font-size: 16pt;"><strong>$0.00</strong></span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 42pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0; font-size: 14pt;">Make all checks payable to Company Name</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 25.5pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt">If you have any questions concerning this invoice, use the following contact information:</p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 14.41pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt">Contact Name, Phone Number, Email</p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 14.41pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 21.4pt">
+        <td colspan="2" style="width: 460.36pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"><p style="margin: 0pt 0 0pt; margin-left: 18pt"><span style="color: #0077b0; font-size: 14pt;">THANK YOU FOR YOUR BUSINESS!</span></p></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 20.1pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+      <tr style="height: 14.45pt">
+        <td style="width: 308.18pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt;border-bottom: 2pt solid #009eea"></td>
+        <td style="width: 152.18pt;background-color: #f8fbfd;vertical-align: bottom;padding: 0pt 2pt;border-bottom: 2pt solid #009eea"></td>
+        <td style="width: 17.59pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
