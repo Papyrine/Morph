@@ -1,4 +1,4 @@
-# All Markdown export scenarios (42)
+# All Markdown export scenarios (44)
 
 The Word reference render (left) beside the Markdown exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -15,11 +15,13 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 - [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
+- [chart-bar-of-pie](#chart-bar-of-pie)
 - [chart-bubble](#chart-bubble)
 - [chart-combo](#chart-combo)
 - [chart-labels](#chart-labels)
 - [chart-labels-area-radar](#chart-labels-area-radar)
 - [chart-pie](#chart-pie)
+- [chart-pie-of-pie](#chart-pie-of-pie)
 - [chart-radar](#chart-radar)
 - [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
@@ -110,6 +112,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | --- | --- |
 | <img src="chart-bar-column/expected_0001.png" width="500"><br><img src="chart-bar-column/expected_0002.png" width="500"> | <img src="chart-bar-column/md_result.verified.png" width="500"> |
 
+## chart-bar-of-pie
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-bar-of-pie/expected_0001.png" width="500"> | <img src="chart-bar-of-pie/md_result.verified.png" width="500"> |
+
 ## chart-bubble
 
 | Expected (Word) | Morph Markdown |
@@ -139,6 +147,12 @@ The Word reference render (left) beside the Markdown exporter's output, rendered
 | Expected (Word) | Morph Markdown |
 | --- | --- |
 | <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/md_result.verified.png" width="500"> |
+
+## chart-pie-of-pie
+
+| Expected (Word) | Morph Markdown |
+| --- | --- |
+| <img src="chart-pie-of-pie/expected_0001.png" width="500"> | <img src="chart-pie-of-pie/md_result.verified.png" width="500"> |
 
 ## chart-radar
 

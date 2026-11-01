@@ -142,8 +142,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="chart-bar-of-pie/expected_0001.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0512 · SSIM: 0.9238** | **Page 1. ErrorMetric: 0.0512 · SSIM: 0.9238** |
+| <img src="chart-bar-of-pie/expected_0001.png" width="500"> | <img src="chart-bar-of-pie/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-bar-of-pie/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## chart-bubble
 
@@ -192,8 +192,8 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="chart-pie-of-pie/expected_0001.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0257 · SSIM: 0.9443** | **Page 1. ErrorMetric: 0.0257 · SSIM: 0.9444** |
+| <img src="chart-pie-of-pie/expected_0001.png" width="500"> | <img src="chart-pie-of-pie/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-pie-of-pie/imagesharp_result%23page_0001.verified.png" width="500"> |
 
 ## chart-radar
 

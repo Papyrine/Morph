@@ -1,4 +1,4 @@
-# All PDF export scenarios (42)
+# All PDF export scenarios (44)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -15,11 +15,13 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
+- [chart-bar-of-pie](#chart-bar-of-pie)
 - [chart-bubble](#chart-bubble)
 - [chart-combo](#chart-combo)
 - [chart-labels](#chart-labels)
 - [chart-labels-area-radar](#chart-labels-area-radar)
 - [chart-pie](#chart-pie)
+- [chart-pie-of-pie](#chart-pie-of-pie)
 - [chart-radar](#chart-radar)
 - [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
@@ -168,6 +170,16 @@ PDF: [Morph PDF](chart-area/pdf_result.verified.pdf)
 PDF: [Morph PDF](chart-bar-column/pdf_result.verified.pdf)
 
 
+## chart-bar-of-pie
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0517 · SSIM: 0.9241** |
+| <img src="chart-bar-of-pie/expected_0001.png" width="500"> | <img src="chart-bar-of-pie/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-bar-of-pie/pdf_result.verified.pdf)
+
+
 ## chart-bubble
 
 | Expected (Word) | Morph PDF |
@@ -224,6 +236,16 @@ PDF: [Morph PDF](chart-labels-area-radar/pdf_result.verified.pdf)
 | <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/pdf_result%23page_0001.verified.png" width="500"> |
 
 PDF: [Morph PDF](chart-pie/pdf_result.verified.pdf)
+
+
+## chart-pie-of-pie
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0262 · SSIM: 0.9447** |
+| <img src="chart-pie-of-pie/expected_0001.png" width="500"> | <img src="chart-pie-of-pie/pdf_result%23page_0001.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-pie-of-pie/pdf_result.verified.pdf)
 
 
 ## chart-radar
