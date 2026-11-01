@@ -90,10 +90,33 @@ public class EditSessionTests
 
         using var json = JsonDocument.Parse(session.Json(0, 0));
         var units = json.RootElement.GetProperty("u").EnumerateArray()
-            .Select(_ => $"{_.GetProperty("k").GetInt32()}{(_.TryGetProperty("s", out var kind) ? " " + kind.GetString() : "")}")
+            .Select(_ => $"{_.GetProperty("k").GetInt32()}{(_.TryGetProperty("s", out var kind) ? " " + kind.GetString() : "")}{(_.TryGetProperty("h", out _) ? " hidden" : "")}")
             .ToList();
 
-        await Assert.That(string.Join(" | ", units)).IsEqualTo("0 | 1 note | 1 deleted | 0 | 2");
+        // Hidden text is text still: typed over and handed back as text, so that the script and the file
+        // count the same places; it is only marked as text the page did not draw.
+        await Assert.That(string.Join(" | ", units)).IsEqualTo("0 | 1 note | 1 deleted | 0 | 0 hidden");
+    }
+
+    // Hidden text was once handed to the script as a thing that is not text, which the script handed
+    // back as one place where the file counted six, and the rewrite refused: the typing was lost.
+    [Test]
+    public async Task AParagraphWithHiddenText_IsHandedBack_AndRewritten()
+    {
+        var docx = Build(
+            P(
+                "",
+                R("See "),
+                "<w:r><w:rPr><w:vanish/></w:rPr><w:t>unseen</w:t></w:r>",
+                R(" this.")));
+        var session = Open(docx, 0);
+
+        var content = session.Read("""[{"a":null,"i":[[0,"See x",0],[1,"unseen",0],[2," this.",0]]}]""");
+        await Assert.That(content).IsNotNull();
+
+        var result = DocumentEditor.Rewrite(docx, 0, content!, new("", DateTimeOffset.MinValue, false));
+        var text = string.Concat(DocumentOutline.Read(result.Document).Paragraphs[0].Units.Select(_ => _.Text));
+        await Assert.That(text).IsEqualTo("See xunseen this.");
     }
 
     [Test]

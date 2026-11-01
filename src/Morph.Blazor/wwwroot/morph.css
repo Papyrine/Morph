@@ -885,6 +885,13 @@
     display: none;
 }
 
+/* Text the page did not draw: hidden text, shown as Word shows it with its formatting marks on. */
+.edit-undrawn {
+    text-decoration-line: underline !important;
+    text-decoration-style: dotted !important;
+    opacity: 0.6;
+}
+
 .edit-field {
     background-color: rgb(0 0 0 / 0.08);
 }

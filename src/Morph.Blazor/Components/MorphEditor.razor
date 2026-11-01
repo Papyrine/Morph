@@ -207,7 +207,7 @@
     {
         <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-link-title" @onkeydown="OnLinkKeyDownAsync">
-            <h2 id="editor-link-title" class="editor-dialog-title">@(InLink && linkTarget is not { HasSelection: true } ? "Link" : "Insert link")</h2>
+            <h2 id="editor-link-title" class="editor-dialog-title">@(LinkInLink && linkTarget is not { HasSelection: true } ? "Link" : "Insert link")</h2>
             @if (LinkAsksText)
             {
                 <label class="editor-field">
@@ -231,7 +231,7 @@
                 </label>
             }
             <div class="editor-dialog-buttons">
-                @if (InLink)
+                @if (LinkInLink)
                 {
                     <button type="button" class="editor-button" @onclick="RemoveLinkAsync">Remove link</button>
                 }

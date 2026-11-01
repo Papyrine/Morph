@@ -289,6 +289,11 @@ public partial class MorphViewer
                     // The paragraph handed in is now as many paragraphs as Enter split it into.
                     await CrossAsync(then == 3 ? ordinal : ordinal + content.Count - 1, then == 3 ? -1 : 1);
                 }
+                else if (then == 5)
+                {
+                    // Ctrl+Enter: handed in, and typing goes on where the caret was.
+                    await ResumeAsync(after.EndParagraph, after.EndOffset);
+                }
             });
 
     /// <summary>

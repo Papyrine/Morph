@@ -164,7 +164,7 @@ public partial class MorphEditor
         }
 
         lines.Add(MenuLine.Separator);
-        lines.Add(state.InLink ? MenuLine.Of(Commands.RemoveLink) : MenuLine.Of(Commands.Link, "Link…"));
+        lines.Add(state.CaretInLink ? MenuLine.Of(Commands.RemoveLink) : MenuLine.Of(Commands.Link, "Link…"));
         if (Shown(Commands.NewComment))
         {
             lines.Add(MenuLine.Of(Commands.NewComment));

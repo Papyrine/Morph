@@ -31,6 +31,7 @@ public partial class MorphEditor
             Revising = revising,
             InTable = InTable,
             InLink = InLink,
+            CaretInLink = CaretInLink,
             List = CurrentList,
             Subscript = IsSubscript,
             Superscript = IsSuperscript,

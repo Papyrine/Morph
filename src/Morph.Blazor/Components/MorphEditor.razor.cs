@@ -625,9 +625,9 @@ public partial class MorphEditor
 
     // What the link dialog asks for: an address, unless the caret is in a link with nothing selected,
     // and the text to display when nothing is selected.
-    bool LinkAsksAddress => linkTarget is {HasSelection: true} || !InLink;
+    bool LinkAsksAddress => linkTarget is {HasSelection: true} || !LinkInLink;
 
-    bool LinkAsksText => linkTarget is not {HasSelection: true} && !InLink;
+    bool LinkAsksText => linkTarget is not {HasSelection: true} && !LinkInLink;
 
     string linkText = "";
 

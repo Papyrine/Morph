@@ -27,6 +27,12 @@ sealed record EditorState
     /// <summary>The caret's paragraph has a link in it.</summary>
     public bool InLink { get; init; }
 
+    /// <summary>
+    /// The caret stands in a link, where its paragraph was opened — fresh for the right-click menu, which
+    /// opens the paragraph where the pointer is first.
+    /// </summary>
+    public bool CaretInLink { get; init; }
+
     /// <summary>The list the caret's paragraph is in, if any.</summary>
     public ListKind List { get; init; }
 

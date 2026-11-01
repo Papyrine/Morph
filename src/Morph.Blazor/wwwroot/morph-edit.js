@@ -360,7 +360,8 @@ export class ParagraphEditor {
         }
 
         const like = this.session.u[item.u];
-        span.className = 'edit-run';
+        // Text the page did not draw (hidden text) is shown as Word shows it with its marks on.
+        span.className = like?.h ? 'edit-run edit-undrawn' : 'edit-run';
         span.style.cssText = this.faceCss(item.f, like?.z ?? this.session.size, like?.c ?? this.session.color, like?.g, like?.v) +
             this.spacingCss(item, like);
         span.append(document.createTextNode(item.t));
@@ -2185,8 +2186,10 @@ export class ParagraphEditor {
 
                     return;
                 case 'enter':
+                    // Hands the paragraph in and goes on typing in it once the page is drawn again:
+                    // the caret is not lost to the hand-in.
                     event.preventDefault();
-                    this.commit(0);
+                    this.commit(5);
                     return;
                 case 'k':
                     event.preventDefault();
@@ -2554,8 +2557,9 @@ export class ParagraphEditor {
 
     /**
      * Hands the paragraph in, and says whether there was anything to hand. then is 0, or 1 or 2 to
-     * have the paragraph joined to the one before or after it. The box stays, no longer editable,
-     * until the page is drawn again.
+     * have the paragraph joined to the one before or after it, 3 or 4 to go on to the paragraph
+     * before or after it, or 5 to go on typing where the caret was. The box stays, no longer
+     * editable, until the page is drawn again.
      */
     commit(then = 0) {
         if (this.pending) {
@@ -2574,6 +2578,11 @@ export class ParagraphEditor {
 
         this.tidy();
         const payload = this.payload();
+        if (then === 5 && payload === this.original) {
+            // Nothing to hand in: typing goes on where it was.
+            return Promise.resolve(false);
+        }
+
         if (payload === this.original && (then === 0 || then >= 3)) {
             this.callbacks.cancel(this.session.id);
             this.dispose();
