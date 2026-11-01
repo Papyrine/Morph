@@ -10049,7 +10049,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             VerticalPositionPercent = positioning.VerticalPositionPercent,
             WrapType = wrapType,
             BehindText = positioning.BehindText,
-            BackgroundColorHex = bgColor
+            BackgroundColorHex = bgColor,
+            VerticalAlignment = ShapeParser.TextAnchor(bodyPr?.Anchor?.Value)
         };
     }
 
@@ -10321,8 +10322,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             : ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         var subpaths = shapeProps == null
             ? null
-            : ShapeParser.ExtractSubpaths(shapeProps)
-              ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
+            : ShapeParser.TextBoxOutline(shapeProps, widthPt, heightPt);
 
         return new()
         {
@@ -10345,7 +10345,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             LineWidthPoints = lineWidth ?? 0,
             LineAlpha = lineAlpha,
             Subpaths = subpaths,
-            RotationDegrees = rotationDegrees
+            RotationDegrees = rotationDegrees,
+            VerticalAlignment = ShapeParser.TextAnchor(bodyPr?.Anchor?.Value)
         };
     }
 
@@ -11158,8 +11159,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             : ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
         var subpaths = shapeProps == null
             ? null
-            : ShapeParser.ExtractSubpaths(shapeProps)
-              ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPt, heightPt);
+            : ShapeParser.TextBoxOutline(shapeProps, widthPt, heightPt);
 
         return new()
         {
@@ -11182,7 +11182,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             LineWidthPoints = lineWidth ?? 0,
             LineAlpha = lineAlpha,
             Subpaths = subpaths,
-            RotationDegrees = rotationDegrees
+            RotationDegrees = rotationDegrees,
+            VerticalAlignment = ShapeParser.TextAnchor(bodyPr?.Anchor?.Value)
         };
     }
 

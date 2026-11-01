@@ -161,6 +161,28 @@ sealed class SlidePlaceholders
         return null;
     }
 
+    /// <summary>
+    /// Where the shape's text stands up and down its box: its own <c>a:bodyPr/@anchor</c>, or the first
+    /// one up the placeholder chain — a title takes the bottom or centre its layout or master gives it.
+    /// </summary>
+    public A.TextAnchoringTypeValues? ResolveTextAnchor(P.Shape shape)
+    {
+        if (shape.TextBody?.BodyProperties?.Anchor?.Value is { } own)
+        {
+            return own;
+        }
+
+        foreach (var inherited in Matches(Placeholder(shape)))
+        {
+            if (inherited.TextBody?.BodyProperties?.Anchor?.Value is { } anchor)
+            {
+                return anchor;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>The placeholder declaration on a shape, or null when it is a free-standing shape.</summary>
     public static P.PlaceholderShape? Placeholder(P.Shape shape) =>
         shape.NonVisualShapeProperties?

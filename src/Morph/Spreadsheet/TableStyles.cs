@@ -1,4 +1,4 @@
-using S = DocumentFormat.OpenXml.Spreadsheet;
+﻿using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// The table styles of a sheet's tables (<c>xl/tables/table*.xml</c>, ECMA-376 §18.5): the banding,
@@ -18,9 +18,9 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// fill and a font colour win where they are the cell's own rather than the Normal style's — a
 /// workbook whose Normal style fills white (back-to-school-planner) still prints its table's stripes.
 ///
-/// Only the styles a workbook defines in its own <c>tableStyles</c> are read. Excel's built-in styles
-/// (<c>TableStyleMedium2</c> and the rest) are not in the file, so a table naming one draws plain;
-/// 78 of the 80 corpus tables name a style the workbook defines.
+/// A workbook writes out only the styles it defines in its own <c>tableStyles</c>; Excel's built-in
+/// styles are named and not written. 78 of the 80 corpus tables name a style the workbook defines and
+/// the other two Light 1 and Light 7, which <see cref="BuiltIn"/> carries.
 /// </summary>
 sealed class TableStyles
 {
@@ -39,7 +39,12 @@ sealed class TableStyles
         "firstHeaderCell",
         "lastHeaderCell",
         "firstTotalCell",
-        "lastTotalCell"
+        "lastTotalCell",
+        // The table's own borders (tableBorderDxfId and its kin), which stand over its style:
+        // simple-blue-timesheet-invoice's medium rule under its last row is its table border's
+        "tableBorder",
+        "headerRowBorder",
+        "totalsRowBorder"
     ];
 
     readonly List<Table> tables = [];
@@ -48,31 +53,34 @@ sealed class TableStyles
     public TableStyles(WorksheetPart? worksheetPart, S.Stylesheet? stylesheet, CellStyles styles)
     {
         this.styles = styles;
-        if (worksheetPart == null ||
-            stylesheet?.TableStyles is not { } defined)
+        if (worksheetPart == null)
         {
             return;
         }
 
-        var formats = stylesheet.DifferentialFormats?.Elements<S.DifferentialFormat>().ToList() ?? [];
+        var formats = stylesheet?.DifferentialFormats?.Elements<S.DifferentialFormat>().ToList() ?? [];
         foreach (var part in worksheetPart.TableDefinitionParts)
         {
             if (part.Table is not { } definition ||
                 CellReference.ParseRange(definition.Reference?.Value) is not { } range ||
                 definition.TableStyleInfo is not {Name.Value: { } name} info ||
-                defined.Elements<S.TableStyle>().FirstOrDefault(_ => _.Name?.Value == name) is not { } style)
+                (Defined(stylesheet, formats, name) ?? BuiltIn(name)) is not { } elements)
             {
                 continue;
             }
 
-            var elements = new Dictionary<string, (S.DifferentialFormat Format, int Size)>(StringComparer.Ordinal);
-            foreach (var element in style.Elements<S.TableStyleElement>())
+            foreach (var (type, id) in new[]
+                     {
+                         ("tableBorder", definition.BorderFormatId?.Value),
+                         ("headerRowBorder", definition.HeaderRowBorderFormatId?.Value),
+                         ("totalsRowBorder", definition.TotalsRowBorderFormatId?.Value)
+                     })
             {
-                if (element.Type?.Value is { } type &&
-                    element.FormatId?.Value is { } id &&
-                    id < formats.Count)
+                if (id is { } index &&
+                    index < formats.Count &&
+                    formats[(int) index].Border is { } border)
                 {
-                    elements[((IEnumValue) type).Value] = (formats[(int) id], (int) (element.Size?.Value ?? 1));
+                    elements[type] = (new() {Border = (S.Border) border.CloneNode(true)}, 1);
                 }
             }
 
@@ -86,6 +94,68 @@ sealed class TableStyles
                 info.ShowRowStripes?.Value == true,
                 info.ShowColumnStripes?.Value == true));
         }
+    }
+
+    /// <summary>The elements of a style the workbook defines in its own <c>tableStyles</c>, or null when it defines none of that name.</summary>
+    static Dictionary<string, (S.DifferentialFormat Format, int Size)>? Defined(S.Stylesheet? stylesheet, List<S.DifferentialFormat> formats, string name)
+    {
+        if (stylesheet?.TableStyles?.Elements<S.TableStyle>().FirstOrDefault(_ => _.Name?.Value == name) is not { } style)
+        {
+            return null;
+        }
+
+        var elements = new Dictionary<string, (S.DifferentialFormat Format, int Size)>(StringComparer.Ordinal);
+        foreach (var element in style.Elements<S.TableStyleElement>())
+        {
+            if (element.Type?.Value is { } type &&
+                element.FormatId?.Value is { } id &&
+                id < formats.Count)
+            {
+                elements[((IEnumValue) type).Value] = (formats[(int) id], (int) (element.Size?.Value ?? 1));
+            }
+        }
+
+        return elements;
+    }
+
+    /// <summary>
+    /// Excel's built-in Light 1 to Light 7, which a workbook names without writing out. They were read
+    /// from Excel itself (2026-11-01): <c>TableStyle.Duplicate</c> over COM writes a built-in style into
+    /// the saved workbook as a style of its own. The seven are one design in seven colours: Light 1 in
+    /// the text colour (theme 1) over the background darkened 15%, Light 2 to 7 in accents 1 to 6 with
+    /// text darkened 25% and stripes lightened 80%. Every other built-in draws plain until it is read.
+    /// </summary>
+    static Dictionary<string, (S.DifferentialFormat Format, int Size)>? BuiltIn(string name)
+    {
+        if (!name.StartsWith("TableStyleLight", StringComparison.Ordinal) ||
+            !int.TryParse(name.AsSpan("TableStyleLight".Length), out var number) ||
+            number is < 1 or > 7)
+        {
+            return null;
+        }
+
+        var (text, rule, stripe) = number == 1
+            ? ("theme=\"1\"", "theme=\"1\"", "theme=\"0\" tint=\"-0.14999847407452621\"")
+            : ($"theme=\"{number + 2}\" tint=\"-0.249977111117893\"", $"theme=\"{number + 2}\"", $"theme=\"{number + 2}\" tint=\"0.79998168889431442\"");
+
+        S.DifferentialFormat Format(string inner) =>
+            new($"<x:dxf xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">{inner}</x:dxf>");
+
+        string Border(params string[] sides) =>
+            $"<x:border>{string.Concat(sides.Select(_ => $"<x:{_} style=\"thin\"><x:color {rule}/></x:{_}>"))}</x:border>";
+
+        var bold = $"<x:font><x:b/><x:color {text}/></x:font>";
+        var fill = $"<x:fill><x:patternFill patternType=\"solid\"><x:fgColor {stripe}/><x:bgColor {stripe}/></x:patternFill></x:fill>";
+        return new(StringComparer.Ordinal)
+        {
+            ["wholeTable"] = (Format($"<x:font><x:color {text}/></x:font>{Border("top", "bottom")}"), 1),
+            ["headerRow"] = (Format(bold + Border("bottom")), 1),
+            ["totalRow"] = (Format(bold + Border("top")), 1),
+            ["firstColumn"] = (Format(bold), 1),
+            ["lastColumn"] = (Format(bold), 1),
+            ["firstRowStripe"] = (Format(fill), 1),
+            ["firstColumnStripe"] = (Format(fill), 1)
+        };
     }
 
     public bool IsEmpty => tables.Count == 0;
@@ -208,6 +278,9 @@ sealed class TableStyles
             "lastHeaderCell" when inHeader && isLast && table.LastColumn => new(range.FirstRow, column, firstData - 1, column),
             "firstTotalCell" when inTotal && isFirst && table.FirstColumn => new(lastData + 1, column, range.LastRow, column),
             "lastTotalCell" when inTotal && isLast && table.LastColumn => new(lastData + 1, column, range.LastRow, column),
+            "tableBorder" => range,
+            "headerRowBorder" when inHeader => range with {LastRow = firstData - 1},
+            "totalsRowBorder" when inTotal => range with {FirstRow = lastData + 1},
             _ => null
         };
     }
