@@ -276,16 +276,15 @@ sealed class EditSession
         var unit = Paragraph.Units[index];
         var format = Map.Format(unit.Run);
         json.WriteStartObject();
+        json.WriteNumber("k", unit.Editable ? 0 : 1);
         if (unit.Editable &&
             format == null)
         {
-            // Text the layout did not draw.
-            json.WriteNumber("k", 2);
-            json.WriteEndObject();
-            return;
+            // Text the layout did not draw — hidden text, or a run a wrap left nothing of — is text all
+            // the same: it is typed over and handed back as text, so that what the file holds and what
+            // the script holds count the same places. The box shows it as Word shows hidden text.
+            json.WriteNumber("h", 1);
         }
-
-        json.WriteNumber("k", unit.Editable ? 0 : 1);
         json.WriteString("t", Shown(unit));
         Number(json, "z", format?.FontSizePoints ?? Size());
         json.WriteString("n", format?.FontFamily ?? Font());

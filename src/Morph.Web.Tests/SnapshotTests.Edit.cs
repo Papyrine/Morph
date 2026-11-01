@@ -1041,12 +1041,13 @@ public partial class SnapshotTests
         await page.Mouse.ClickAsync((float) box[0], (float) box[1]);
     }
 
-    // Ctrl+Enter hands the paragraph in; the editor goes once the page has been drawn again.
+    // Ctrl+Enter hands the paragraph in and, once the page has been drawn again, opens it again where
+    // the caret was; Escape then leaves it, nothing typed since, so the test goes on with no paragraph open.
     static async Task HandInAsync(IPage page)
     {
         await page.Keyboard.PressAsync("Control+Enter");
         await page.WaitForSelectorAsync(
-            ".edit-box",
+            ".edit-box.edit-pending",
             new()
             {
                 State = WaitForSelectorState.Detached,
@@ -1058,6 +1059,28 @@ public partial class SnapshotTests
             {
                 Timeout = 60000
             });
+        try
+        {
+            // The paragraph opens again a moment after the page is drawn; one that was handed in
+            // unchanged was never closed.
+            await page.WaitForSelectorAsync(".edit-box", new() {Timeout = 3000});
+        }
+        catch (TimeoutException)
+        {
+            return;
+        }
+
+        if (await page.Locator(".edit-box").CountAsync() > 0)
+        {
+            await page.Keyboard.PressAsync("Escape");
+            await page.WaitForSelectorAsync(
+                ".edit-box",
+                new()
+                {
+                    State = WaitForSelectorState.Detached,
+                    Timeout = 60000
+                });
+        }
     }
 
     static Task WaitForTextAsync(IPage page, string text) =>

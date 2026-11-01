@@ -214,9 +214,19 @@ public partial class MorphViewer
             return null;
         }
 
-        var paragraphs = reviewMap.Runs(selection[0], selection[1], selection[2], selection[3])
-            .Select(_ => outline.ParagraphOf(_)?.Ordinal)
-            .OfType<int>()
+        // A stretch of the pages from one page onto the next runs through the first page's footer and
+        // the next page's header, which Word's selection never reaches: the target is the story the
+        // selection starts in, and a paragraph of another story is left out of it. Headers, footers and
+        // notes are numbered after the body, so a range to one of them would otherwise take in every
+        // body paragraph to the end of the document.
+        var reached = reviewMap.Runs(selection[0], selection[1], selection[2], selection[3])
+            .Select(_ => outline.ParagraphOf(_))
+            .OfType<EditParagraph>()
+            .ToList();
+        var story = reached.FirstOrDefault()?.Part;
+        var paragraphs = reached
+            .Where(_ => _.Part == story)
+            .Select(_ => _.Ordinal)
             .Distinct()
             .Order()
             .ToList();
@@ -490,7 +500,33 @@ public partial class MorphViewer
 
     internal ReviewPart CurrentStory => CurrentParagraph?.Part ?? ReviewPart.Body;
 
+    // The caret's paragraph holds a link somewhere: what the ribbon can know of the caret as it moves,
+    // since the script keeps the caret to itself while the reader types.
     internal bool InLink => CurrentParagraph?.Units.Any(_ => _.Linked) == true;
+
+    // The caret stands in a link, where the paragraph was opened: fresh for a menu opened by a click,
+    // which opens the paragraph there first.
+    internal bool CaretInLink => CurrentParagraph is { } paragraph && LinkedAt(paragraph, caretOffset);
+
+    // Whether the character before a place in a paragraph is a link's text — or the one after it, at
+    // the paragraph's start.
+    static bool LinkedAt(EditParagraph paragraph, int offset)
+    {
+        var at = 0;
+        foreach (var unit in paragraph.Units)
+        {
+            var span = unit.Editable ? unit.Text.Length : 1;
+            if (offset <= at + span &&
+                (offset > at || at == 0))
+            {
+                return unit.Linked;
+            }
+
+            at += span;
+        }
+
+        return false;
+    }
 
     static ListKind ListOf(ParagraphProperties? properties)
     {
@@ -1753,6 +1789,9 @@ public partial class MorphViewer
     // Links: the dialog asks for the address, so the place is taken when it opens.
     internal EditTarget? linkTarget;
 
+    /// <summary>The place the link dialog was opened at is in a link: the dialog then offers to remove it.</summary>
+    internal bool LinkInLink { get; private set; }
+
     internal async Task<bool> BeginLinkAsync()
     {
         // With nothing selected the link is put in at the caret, its text asked for with its address,
@@ -1763,7 +1802,22 @@ public partial class MorphViewer
         }
 
         linkTarget = target;
+        LinkInLink = TargetInLink(target);
         return true;
+    }
+
+    // Whether a target's caret stands in a link — the text selected, where there is some, by its start.
+    bool TargetInLink(EditTarget target)
+    {
+        var paragraph = target.HasSelection ? target.StartParagraph : target.Paragraph;
+        var offset = target.HasSelection ? target.StartOffset + 1 : target.Offset;
+        if (paragraph < 0 ||
+            paragraph >= outline.Paragraphs.Count)
+        {
+            return false;
+        }
+
+        return LinkedAt(outline.Paragraphs[paragraph], offset);
     }
 
     internal Task LinkAsync(string address)
@@ -1818,6 +1872,21 @@ public partial class MorphViewer
         linkTarget = null;
         if (target == null)
         {
+            return;
+        }
+
+        // The ribbon greys Remove link out by the paragraph, which is all it can know as the caret
+        // moves; pressed with the caret beside the link rather than in it, the paragraph stays open.
+        if (!target.HasSelection &&
+            !TargetInLink(target))
+        {
+            editNote = "Click in the link to remove it.";
+            StateHasChanged();
+            if (target.Typing)
+            {
+                await ResumeAsync(target.Paragraph, target.Offset);
+            }
+
             return;
         }
 
@@ -1950,8 +2019,10 @@ public partial class MorphViewer
         }
 
         await HandInAsync();
-        var ranges = matches.Select(RangeOf).OfType<TextRange>().ToList();
-        var skipped = matches.Count - ranges.Count;
+        // A header, a footer or a repeated table header row is drawn on every page it is on, so one
+        // match in it is found once per page: replaced once.
+        var ranges = matches.Select(RangeOf).OfType<TextRange>().Distinct().ToList();
+        var skipped = matches.Count(_ => RangeOf(_) is null);
         if (ranges.Count == 0)
         {
             replaceNote = "Every match runs from one paragraph into the next, and none was replaced.";
@@ -2015,14 +2086,42 @@ public partial class MorphViewer
     }
 
     // What is selected on the pages, counted: null when nothing is.
+    // What is selected, counted as the document is: the paragraphs' own text, in the story the
+    // selection is in. The pages' text would count a footer the stretch ran through, and more words
+    // than the document has.
     internal DocumentCount? CountSelected()
     {
-        if (selection.Length != 4)
+        if (selection.Length != 4 ||
+            FromSelection() is not {StartParagraph: >= 0} target)
         {
             return null;
         }
 
-        return DocumentCount.Of(SelectedText());
+        var text = new StringBuilder();
+        for (var ordinal = target.StartParagraph; ordinal <= target.Paragraph; ordinal++)
+        {
+            if (ordinal >= outline.Paragraphs.Count)
+            {
+                break;
+            }
+
+            var paragraph = new StringBuilder();
+            foreach (var unit in outline.Paragraphs[ordinal].Units)
+            {
+                paragraph.Append(unit.Editable ? unit.Text : " ");
+            }
+
+            var from = ordinal == target.StartParagraph ? Math.Clamp(target.StartOffset, 0, paragraph.Length) : 0;
+            var to = ordinal == target.Paragraph ? Math.Clamp(target.Offset, from, paragraph.Length) : paragraph.Length;
+            if (text.Length > 0)
+            {
+                text.Append('\n');
+            }
+
+            text.Append(paragraph, from, to - from);
+        }
+
+        return DocumentCount.Of(text.ToString());
     }
 
     // Saving and exporting
@@ -2230,11 +2329,28 @@ public partial class MorphViewer
 
     // Word's Ctrl+] and Ctrl+[: a point up or down from any size, 1 the floor (WordProbe E-87).
     internal Task NudgeSizeAsync(int points) =>
-        SetSizeAsync(Math.Min(1638, Math.Max(1, CurrentSize + points)));
+        FormatLookAsync(look => new(SizePoints: Math.Min(1638, Math.Max(1, SizeOf(look) + points))));
 
     // A look the keys turn on and off, as Word's do: on, unless the text at the caret has it already.
     internal Task ToggleLookAsync(Func<RunProperties, bool> has, Func<bool, RunFormat> format) =>
-        FormatAsync(format(!(CurrentRun is { } run && has(run))));
+        FormatLookAsync(look => format(!(look is { } run && has(run))));
+
+    static double SizeOf(RunProperties? look) =>
+        look?.FontSizePoints ?? 11;
+
+    // A format worked out from the look of the text it will change: the first character selected, or
+    // of the word the caret is in — where the caret NOW is, not where the paragraph was opened
+    // (CurrentRun knows only that).
+    async Task FormatLookAsync(Func<RunProperties?, RunFormat> format)
+    {
+        if (await TextAsync() is not { } text)
+        {
+            return;
+        }
+
+        var look = LookOf(text.Target.StartParagraph, text.From);
+        await FormatTextAsync(text, (start, end, options) => _ => DocumentEditor.Format(_, start, end, format(look), options));
+    }
 
     // Word's Ctrl+T and Ctrl+Shift+T: the left indent to the next (or previous) half-inch stop, the first
     // line left where it starts, so the hang grows or shrinks by a stop; never past the first line, and a
@@ -2437,7 +2553,7 @@ public partial class MorphViewer
         FormatAsync(new(SizePoints: size));
 
     internal Task GrowAsync(int steps) =>
-        SetSizeAsync(Step(CurrentSize, steps));
+        FormatLookAsync(look => new(SizePoints: Step(SizeOf(look), steps)));
 
     internal Task SetColorAsync(string color)
     {
@@ -2460,27 +2576,19 @@ public partial class MorphViewer
     }
 
     // As Word's buttons do: on, unless the text the caret is in is that already.
-    internal Task ToggleSuperscriptAsync()
-    {
-        var vertical = VerticalPositionValues.Superscript;
-        if (IsSuperscript)
-        {
-            vertical = VerticalPositionValues.Baseline;
-        }
+    internal Task ToggleSuperscriptAsync() =>
+        FormatLookAsync(
+            look => new(
+                Vertical: look?.VerticalAlignment == VerticalRunAlignment.Superscript
+                    ? VerticalPositionValues.Baseline
+                    : VerticalPositionValues.Superscript));
 
-        return FormatAsync(new(Vertical: vertical));
-    }
-
-    internal Task ToggleSubscriptAsync()
-    {
-        var vertical = VerticalPositionValues.Subscript;
-        if (IsSubscript)
-        {
-            vertical = VerticalPositionValues.Baseline;
-        }
-
-        return FormatAsync(new(Vertical: vertical));
-    }
+    internal Task ToggleSubscriptAsync() =>
+        FormatLookAsync(
+            look => new(
+                Vertical: look?.VerticalAlignment == VerticalRunAlignment.Subscript
+                    ? VerticalPositionValues.Baseline
+                    : VerticalPositionValues.Subscript));
 
     internal Task ClearFormattingAsync() =>
         FormatTextAsync((start, end, options) => _ => DocumentEditor.ClearFormatting(_, start, end, options));

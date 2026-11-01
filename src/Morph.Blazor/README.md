@@ -229,7 +229,7 @@ again, and the page redrawn.
 | Bold, Italic, Underline, Strikethrough (Ctrl+B / I / U) | Applies to what is selected in the open paragraph — or, with none open, to text selected across the pages. With nothing selected it applies to what is typed next. |
 | Font, size, grow and shrink, colour, highlight, superscript, subscript, clear formatting | Apply to what is selected — in the open paragraph or across the pages — or, with nothing selected, to the word the caret is in, as Word's do. The paragraph opens again with the same text selected. The font and size shown are those of the text at the caret. |
 | Align left, centre, right, justify | Aligns the open paragraph, or the paragraphs of the text selected on the pages. |
-| Delete with text selected on the pages | Deletes it, across paragraphs if need be, and joins what is left. |
+| Delete with text selected on the pages | Deletes it, across paragraphs if need be. The paragraphs at either end stay apart, each with its own formatting, as Word leaves them; only typing over the selection joins them. |
 | Undo, Redo (Ctrl+Z / Y) | Within an open paragraph, what was typed there. Otherwise the last edit made to the file, whatever made it — typing, the ribbon, the review pane. |
 | Track changes | Turns the document's own tracking on and off (the same setting Word's button changes). While it is on, what is typed, deleted, formatted or split is recorded as a tracked change under the reader's name, shows in the revision colour, and is listed in the review pane to accept or reject. |
 
