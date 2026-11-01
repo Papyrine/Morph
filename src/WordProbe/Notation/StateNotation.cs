@@ -212,7 +212,7 @@ static class StateNotation
         for (var p = start; p < end; p++)
         {
             var textIndex = p - start;
-            var character = mismatch ? (textIndex < text.Length ? text[textIndex] : '\0') : text[textIndex];
+            var character = mismatch ? textIndex < text.Length ? text[textIndex] : '\0' : text[textIndex];
             var isMark = p == end - 1 && character is '\r' or '\a';
 
             // Openers.

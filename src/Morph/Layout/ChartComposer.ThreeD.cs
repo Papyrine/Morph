@@ -453,7 +453,10 @@ sealed partial class ChartComposer
                         var piece = Clip(triangle, low, high);
                         if (piece.Count >= 3)
                         {
-                            AddShape(items, Polygon([.. piece.Select(_ => frame.At(_.Across, up(_.Value), _.Row * back))], chart.Wireframe ? null : color, new ChartStroke(color, chart.Wireframe ? 0.75 : seam, 1)));
+                            var polygon = Polygon(
+                                [.. piece.Select(_ => frame.At(_.Across, up(_.Value), _.Row * back))],
+                                chart.Wireframe ? null : color, new(color, chart.Wireframe ? 0.75 : seam, 1));
+                            AddShape(items, polygon);
                         }
                     }
                 }
@@ -507,7 +510,7 @@ sealed partial class ChartComposer
                         var piece = Clip(triangle, low, high);
                         if (piece.Count >= 3)
                         {
-                            AddShape(items, Polygon([.. piece.Select(_ => At(_.Across, _.Row))], color, new ChartStroke(color, seam, 1)));
+                            AddShape(items, Polygon([.. piece.Select(_ => At(_.Across, _.Row))], color, new(color, seam, 1)));
                         }
                     }
                 }

@@ -705,7 +705,15 @@ static class ImageSharpPainter
             var lineWidth = P(context, ShapeStroke.WidthPoints(shape.LineWidthPoints));
             line = DashedPen(lineColor, lineWidth, shape.LineDashPattern) ??
                    (shape.RoundCap
-                       ? new SolidPen(new PenOptions(lineColor, lineWidth) {StrokeOptions = new() {LineCap = LineCap.Round, LineJoin = LineJoin.Round}})
+                       ? new(
+                           new PenOptions(lineColor, lineWidth)
+                           {
+                               StrokeOptions = new()
+                               {
+                                   LineCap = LineCap.Round,
+                                   LineJoin = LineJoin.Round
+                               }
+                           })
                        : context.GetPen(lineColor, lineWidth));
         }
 

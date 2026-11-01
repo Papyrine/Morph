@@ -520,7 +520,7 @@ static partial class DocumentEditor
             return entries;
 
             static OoxmlRun Hidden(params OpenXmlElement[] content) =>
-                new([new OoxmlRunProperties(new NoProof(), new WebHidden()), .. content]);
+                [with([new OoxmlRunProperties(new NoProof(), new WebHidden()), .. content])];
         }
 
         static IEnumerable<OoxmlRun> FieldStart(string instruction) =>

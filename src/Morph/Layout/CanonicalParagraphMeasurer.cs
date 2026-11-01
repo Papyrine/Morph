@@ -2000,8 +2000,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // has its own pixels, not the missing face's, and spread its letters apart: it is drawn as
             // laid out.
             var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
-            if (metrics == null ||
-                metrics.UnitsPerEm <= 0 ||
+            if (metrics is not {UnitsPerEm: > 0} ||
                 ownsFace?.Invoke(properties.FontFamily) == false)
             {
                 continue;
