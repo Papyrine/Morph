@@ -138,8 +138,8 @@ sealed class TableStyles
             ? ("theme=\"1\"", "theme=\"1\"", "theme=\"0\" tint=\"-0.14999847407452621\"")
             : ($"theme=\"{number + 2}\" tint=\"-0.249977111117893\"", $"theme=\"{number + 2}\"", $"theme=\"{number + 2}\" tint=\"0.79998168889431442\"");
 
-        S.DifferentialFormat Format(string inner) =>
-            new($"<x:dxf xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">{inner}</x:dxf>");
+        static S.DifferentialFormat Format(string inner) =>
+            [with($"<x:dxf xmlns:x=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">{inner}</x:dxf>")];
 
         string Border(params string[] sides) =>
             $"<x:border>{string.Concat(sides.Select(_ => $"<x:{_} style=\"thin\"><x:color {rule}/></x:{_}>"))}</x:border>";

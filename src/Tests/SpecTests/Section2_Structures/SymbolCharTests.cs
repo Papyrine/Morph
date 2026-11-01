@@ -42,10 +42,10 @@ public class SymbolCharTests
         var runs = Paragraph(options).Runs;
 
         await Assert.That(runs.Count).IsEqualTo(4);
-        await Assert.That(runs[0].Symbol).IsEqualTo(new RunSymbol("WingDings", ''));
+        await Assert.That(runs[0].Symbol).IsEqualTo(new("WingDings", ''));
         await Assert.That(runs[0].Text).IsEqualTo("☑");
         await Assert.That(runs[0].Properties.FontFamily).IsEqualTo("WingDings");
-        await Assert.That(runs[2].Symbol).IsEqualTo(new RunSymbol("WingDings", ''));
+        await Assert.That(runs[2].Symbol).IsEqualTo(new("WingDings", ''));
         await Assert.That(runs[2].Text).IsEqualTo("☐");
         await Assert.That(runs[1].Text).IsEqualTo(" Yes  ");
     }

@@ -183,7 +183,7 @@ public class StoryTests
         using (var package = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(stream, true))
         {
             package.MainDocumentPart!.AddNewPart<DocumentFormat.OpenXml.Packaging.DocumentSettingsPart>().Settings =
-                new(new DocumentFormat.OpenXml.Wordprocessing.Compatibility());
+                [with(new DocumentFormat.OpenXml.Wordprocessing.Compatibility())];
         }
 
         return stream.ToArray();

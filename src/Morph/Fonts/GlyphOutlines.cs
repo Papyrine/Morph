@@ -1,5 +1,3 @@
-using System.Buffers.Binary;
-
 /// <summary>
 /// A TrueType face's glyph outlines (<c>glyf</c>/<c>loca</c>), read without a backend, for the
 /// exports that draw text as shapes: the HTML export's envelope WordArt, whose letters are bent
