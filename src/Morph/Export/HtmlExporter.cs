@@ -706,7 +706,7 @@ static class HtmlExporter
             {
                 laidOutTops = new(ReferenceEqualityComparer.Instance);
                 using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
-                var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), DefaultFontSettings.FontWidthScale, source.Compatibility.SqueezesJustifiedLines, LayoutFonts.Covers(fontResolver));
+                var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), DefaultFontSettings.FontWidthScale, source.Compatibility, LayoutFonts.Covers(fontResolver));
                 var laidOut = new Fragmenter(measurer, source.Compatibility).Layout(
                     source.Elements,
                     source.PageSettings,
