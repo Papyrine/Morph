@@ -85,6 +85,10 @@ sealed partial class ChartComposer(
             {
                 Pie3D(chart, box, items);
             }
+            else if (chart.OfPie is {SecondPlot.Count: > 0} split)
+            {
+                OfPie(chart, split, box, items);
+            }
             else
             {
                 Pie(chart, box, x, y, width, height, items);
@@ -1205,6 +1209,123 @@ sealed partial class ChartComposer(
         }
 
         items.AddRange(labels);
+    }
+
+    /// <summary>
+    /// A pie of pie or bar of pie: the first pie with the second plot's points drawn as one slice, and
+    /// beside it the second plot breaking that slice out — a smaller pie, or a stacked bar — with two
+    /// lines joining them. Measured on PowerPoint's renders of chart-pie-of-pie and chart-bar-of-pie
+    /// (2026-11-01, four points, the last two broken out, second plot 75%, gap 100):
+    /// <list type="bullet">
+    /// <item>the combined slice is centred at three o'clock, and the first pie's slices run clockwise
+    /// from its lower edge; the second pie starts its first slice at that same angle, and the bar
+    /// stacks its points from the top;</item>
+    /// <item>the second pie is <c>secondPieSize</c> of the first's diameter across; the bar is that
+    /// tall and half that wide;</item>
+    /// <item>the gap is 0.68 of the second plot's width at <c>gapWidth</c> 100 (0.51 and 0.256 of the
+    /// first pie's diameter), scaled by <c>gapWidth</c> — the scaling unprobed;</item>
+    /// <item>the two stand centred across the plot area on one horizontal centre line, the first pie
+    /// as large as both fit.</item>
+    /// </list>
+    /// The combined slice takes the colour of the point after the last. Data labels are not drawn.
+    /// </summary>
+    void OfPie(ChartModel chart, OfPieSplit split, (float X, float Y, float Width, float Height) box, List<PlacedItem> items)
+    {
+        var series = chart.Series[0];
+        var values = series.Values.Select(_ => _ is > 0 ? _.Value : 0).ToList();
+        var total = values.Sum();
+        var second = split.SecondPlot.Where(_ => _ < values.Count).ToList();
+        var otherValue = second.Sum(_ => values[_]);
+        if (total <= 0 || otherValue <= 0)
+        {
+            Pie(chart, box, box.X, box.Y, box.Width, box.Height, items);
+            return;
+        }
+
+        var size = (float) (split.SecondSizePercent / 100);
+        var secondWidth = split.Bar ? size / 2 : size;
+        var gap = (float) (0.68 * split.GapWidthPercent / 100) * secondWidth;
+        var diameter = Math.Min(box.Height, box.Width / (1 + gap + secondWidth));
+        if (diameter <= 0)
+        {
+            return;
+        }
+
+        var left = box.X + (box.Width - diameter * (1 + gap + secondWidth)) / 2;
+        var centreY = box.Y + box.Height / 2;
+        var circleY = centreY - diameter / 2;
+
+        PlacedShape Slice(float x, float y, float across, float start, float sweep, int point) =>
+            new(x, y, across, across, new()
+            {
+                WidthPoints = across,
+                HeightPoints = across,
+                FillColorHex = PointColor(chart, series, 0, point),
+                LineColorHex = (series.PointLines.GetValueOrDefault(point) ?? series.Line)?.ColorHex,
+                LineWidthPoints = (series.PointLines.GetValueOrDefault(point) ?? series.Line)?.WidthPoints,
+                Subpaths = [SliceContour(start, sweep, 0)]
+            });
+
+        var otherSweep = (float) (otherValue / total * 360);
+        var otherStart = 90 - otherSweep / 2;
+        var firstStart = 90 + otherSweep / 2;
+        items.Add(Slice(left, circleY, diameter, otherStart, otherSweep, values.Count));
+        var angle = firstStart;
+        for (var point = 0; point < values.Count; point++)
+        {
+            if (second.Contains(point) || values[point] <= 0)
+            {
+                continue;
+            }
+
+            var sweep = (float) (values[point] / total * 360);
+            items.Add(Slice(left, circleY, diameter, angle, sweep, point));
+            angle += sweep;
+        }
+
+        var secondX = left + diameter * (1 + gap);
+        var secondHeight = diameter * size;
+        var secondTop = centreY - secondHeight / 2;
+        (float X, float Y) upper;
+        (float X, float Y) lower;
+        if (split.Bar)
+        {
+            var barWidth = diameter * secondWidth;
+            var top = secondTop;
+            foreach (var point in second)
+            {
+                var height = (float) (values[point] / otherValue) * secondHeight;
+                var outline = series.PointLines.GetValueOrDefault(point) ?? series.Line;
+                items.Add(Rectangle(secondX, top, barWidth, height, PointColor(chart, series, 0, point), outline));
+                top += height;
+            }
+
+            upper = (secondX, secondTop);
+            lower = (secondX, secondTop + secondHeight);
+        }
+        else
+        {
+            angle = firstStart;
+            foreach (var point in second)
+            {
+                var sweep = (float) (values[point] / otherValue * 360);
+                items.Add(Slice(secondX, secondTop, secondHeight, angle, sweep, point));
+                angle += sweep;
+            }
+
+            upper = (secondX + secondHeight / 2, secondTop);
+            lower = (secondX + secondHeight / 2, secondTop + secondHeight);
+        }
+
+        (float X, float Y) Rim(float degrees) =>
+            (left + diameter / 2 * (1 + (float) Math.Sin(degrees * Math.PI / 180)),
+                centreY - diameter / 2 * (float) Math.Cos(degrees * Math.PI / 180));
+
+        var joining = new ChartStroke("595959", 0.75, 1);
+        var rimUpper = Rim(otherStart);
+        var rimLower = Rim(firstStart);
+        items.Add(Rule(rimUpper.X, rimUpper.Y, upper.X, upper.Y, joining));
+        items.Add(Rule(rimLower.X, rimLower.Y, lower.X, lower.Y, joining));
     }
 
     // Lays the legend out and returns what is left of the chart beside it. Bars and lines key each

@@ -1,4 +1,4 @@
-# All scenarios (42)
+# All scenarios (44)
 
 <details>
 <summary>Contents</summary>
@@ -13,11 +13,13 @@
 - [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
+- [chart-bar-of-pie](#chart-bar-of-pie)
 - [chart-bubble](#chart-bubble)
 - [chart-combo](#chart-combo)
 - [chart-labels](#chart-labels)
 - [chart-labels-area-radar](#chart-labels-area-radar)
 - [chart-pie](#chart-pie)
+- [chart-pie-of-pie](#chart-pie-of-pie)
 - [chart-radar](#chart-radar)
 - [chart-scatter](#chart-scatter)
 - [chart-stacked-line](#chart-stacked-line)
@@ -136,6 +138,13 @@
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.0637 · SSIM: 0.8666** | **Page 2. ErrorMetric: 0.0637 · SSIM: 0.8692** |
 | <img src="chart-bar-column/expected_0002.png" width="500"> | <img src="chart-bar-column/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-bar-column/imagesharp_result%23page_0002.verified.png" width="500"> |
 
+## chart-bar-of-pie
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="chart-bar-of-pie/expected_0001.png" width="500"> |  |  |
+
 ## chart-bubble
 
 | Expected (Word) | Skia | ImageSharp |
@@ -178,6 +187,13 @@
 | --- | --- | --- |
 | **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.0312 · SSIM: 0.9495** | **Page 1. ErrorMetric: 0.0311 · SSIM: 0.9494** |
 | <img src="chart-pie/expected_0001.png" width="500"> | <img src="chart-pie/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-pie/imagesharp_result%23page_0001.verified.png" width="500"> |
+
+## chart-pie-of-pie
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="chart-pie-of-pie/expected_0001.png" width="500"> |  |  |
 
 ## chart-radar
 

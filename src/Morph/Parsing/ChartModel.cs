@@ -25,6 +25,11 @@ sealed record ChartModel
     public double FirstSliceDegrees { get; init; }
 
     /// <summary>
+    /// A <c>c:ofPieChart</c>'s second plot — a pie of pie or a bar of pie — or null for any other chart.
+    /// </summary>
+    public OfPieSplit? OfPie { get; init; }
+
+    /// <summary>
     /// <c>c:crossBetween="midCat"</c> on the value axis of a line or area chart: its points sit on the
     /// category axis's ticks, the first at the plot's edge, rather than in the middle of each category.
     /// </summary>

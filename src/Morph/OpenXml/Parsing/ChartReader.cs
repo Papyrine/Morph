@@ -174,6 +174,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
             OverlapPercent = Value(Child(plot, "overlap")) ?? (grouping == ChartGrouping.Clustered ? 0 : 100),
             HolePercent = kind == ChartKind.Doughnut ? Value(Child(plot, "holeSize")) ?? 10 : 0,
             FirstSliceDegrees = Value(Child(plot, "firstSliceAng")) ?? 0,
+            OfPie = plot.LocalName == "ofPieChart" ? OfPie(plot, series) : null,
             VaryColors = On(Child(plot, "varyColors")),
             Categories = categories,
             Series = series,
@@ -621,6 +622,37 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
 
     static OpenXmlElement? Child(OpenXmlElement? parent, string localName) =>
         parent?.Elements().FirstOrDefault(_ => _.LocalName == localName);
+
+    /// <summary>
+    /// A pie of pie's or bar of pie's second plot (ECMA-376 §21.2.2.126): by position, the last
+    /// <c>splitPos</c> points; by value, those under it; by percent, those under that share of the
+    /// total; custom, the points <c>custSplit</c> names. <c>auto</c> is position, and a split by
+    /// position that names no count takes the last two, as PowerPoint's chart-pie-of-pie fixture
+    /// does. Probed against PowerPoint for position only.
+    /// </summary>
+    static OfPieSplit OfPie(OpenXmlElement plot, IReadOnlyList<ChartSeries> series)
+    {
+        var values = series.Count > 0 ? series[0].Values : [];
+        var splitType = Attribute(Child(plot, "splitType"), "val") ?? "auto";
+        var splitPosition = Value(Child(plot, "splitPos"));
+        var total = values.Sum(_ => _ is > 0 ? _.Value : 0);
+        var second = splitType switch
+        {
+            "val" => Enumerable.Range(0, values.Count).Where(_ => values[_] is { } value && value < (splitPosition ?? 0)).ToList(),
+            "percent" => Enumerable.Range(0, values.Count).Where(_ => values[_] is { } value && total > 0 && value / total * 100 < (splitPosition ?? 0)).ToList(),
+            "cust" => (Child(plot, "custSplit")?.Elements().Where(_ => _.LocalName == "secondPiePt").Select(_ => (int) (Value(_) ?? -1)) ?? [])
+                .Where(_ => _ >= 0 && _ < values.Count)
+                .Order()
+                .ToList(),
+            _ => Enumerable.Range(Math.Max(0, values.Count - (int) (splitPosition ?? 2)), Math.Min(values.Count, (int) (splitPosition ?? 2))).ToList()
+        };
+
+        return new(
+            Attribute(Child(plot, "ofPieType"), "val") == "bar",
+            second.Distinct().ToList(),
+            Value(Child(plot, "secondPieSize")) ?? 75,
+            Value(Child(plot, "gapWidth")) ?? 150);
+    }
 
     static string? Attribute(OpenXmlElement? element, string localName)
     {
