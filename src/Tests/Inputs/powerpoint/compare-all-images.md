@@ -1,4 +1,4 @@
-# All scenarios (44)
+# All scenarios (46)
 
 <details>
 <summary>Contents</summary>
@@ -10,6 +10,8 @@
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
 - [chart-3d-area](#chart-3d-area)
 - [chart-3d-column](#chart-3d-column)
+- [chart-3d-labels](#chart-3d-labels)
+- [chart-3d-labels-pie](#chart-3d-labels-pie)
 - [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
@@ -110,6 +112,24 @@
 | <img src="chart-3d-column/expected_0001.png" width="500"> | <img src="chart-3d-column/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-3d-column/imagesharp_result%23page_0001.verified.png" width="500"> |
 | **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2616 · SSIM: 0.7799** | **Page 2. ErrorMetric: 0.2630 · SSIM: 0.7841** |
 | <img src="chart-3d-column/expected_0002.png" width="500"> | <img src="chart-3d-column/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-3d-column/imagesharp_result%23page_0002.verified.png" width="500"> |
+
+## chart-3d-labels
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="chart-3d-labels/expected_0001.png" width="500"> |  |  |
+| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
+| <img src="chart-3d-labels/expected_0002.png" width="500"> |  |  |
+
+## chart-3d-labels-pie
+
+| Expected (Word) | Skia | ImageSharp |
+| --- | --- | --- |
+| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
+| <img src="chart-3d-labels-pie/expected_0001.png" width="500"> |  |  |
+| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
+| <img src="chart-3d-labels-pie/expected_0002.png" width="500"> |  |  |
 
 ## chart-3d-pie
 

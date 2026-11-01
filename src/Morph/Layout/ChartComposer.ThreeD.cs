@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// 3-D charts and surface charts. A 3-D bar, line, area or surface chart is drawn in an oblique frame:
 /// its front face is upright and undistorted, and its depth recedes up and to the right. PowerPoint's
 /// 3-D clustered column (rotX 15, rotY 20) moves its depth sin(rotY) across and sin(rotX) up for each
@@ -192,10 +192,34 @@ sealed partial class ChartComposer
             items.Add(Rule(from.X, from.Y, to.X, to.Y, categoryLine));
         }
 
+        // A point's data label, set after every shape so none is drawn over (chart-3d-labels, PowerPoint-
+        // referenced): a column's centred on its top, a bar's just past its end, a
+        // line's just right of its point on the ribbon's front edge.
+        List<PlacedItem> pointLabels = [];
+        void PointLabel(int index, int point, double value, (float X, float Y) front, (float X, float Y) back)
+        {
+            var series = chart.Series[index];
+            if (series.Labels is not { } dataLabels ||
+                dataLabels.Deleted.Contains(point))
+            {
+                return;
+            }
+
+            var text = DataLabelText(dataLabels, series.FormatCode, value, 0, chart, point);
+            var labelWidth = TextWidth(text, dataLabels.Text) + 2;
+            var labelHeight = LineHeight(text, dataLabels.Text);
+            pointLabels.AddRange(
+                chart.Kind != ChartKind.Bar
+                    ? Label(text, dataLabels.Text, front.X + labelGap, front.Y - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Left)
+                    : frame.Horizontal
+                        ? Label(text, dataLabels.Text, back.X + labelGap, front.Y - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Left)
+                        : Label(text, dataLabels.Text, front.X - labelWidth / 2, (front.Y + back.Y) / 2 - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Center));
+        }
+
         switch (chart.Kind)
         {
             case ChartKind.Bar:
-                Bars3D(chart, frame, categoryCount, rows, barWidth, rowDepth * depthScale, thickness * depthScale, gapDepth, gap, slots, overlap, stacked, percent, Up, minimum, items);
+                Bars3D(chart, frame, categoryCount, rows, barWidth, rowDepth * depthScale, thickness * depthScale, gapDepth, gap, slots, overlap, stacked, percent, Up, minimum, items, PointLabel);
                 break;
             case ChartKind.Area:
                 Areas3D(chart, frame, categoryCount, rows, rowDepth * depthScale, thickness * depthScale, stacked, percent, Across, Up, minimum, items);
@@ -204,7 +228,7 @@ sealed partial class ChartComposer
                 Surface3D(chart, frame, categoryCount, depth, Up, minimum, maximum, unit, items);
                 break;
             default:
-                Lines3D(chart, frame, categoryCount, rows, rowDepth * depthScale, thickness * depthScale, Across, Up, items);
+                Lines3D(chart, frame, categoryCount, rows, rowDepth * depthScale, thickness * depthScale, Across, Up, items, PointLabel);
                 break;
         }
 
@@ -247,6 +271,8 @@ sealed partial class ChartComposer
                 items.AddRange(Label(seriesLabels[row], seriesStyle, at.X + labelGap * 2, at.Y - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Left));
             }
         }
+
+        items.AddRange(pointLabels);
     }
 
     // A 3-D chart's bars as boxes: front, top and side, the rows from the back and the categories from the
@@ -267,7 +293,8 @@ sealed partial class ChartComposer
         bool percent,
         Func<double, double> up,
         double minimum,
-        List<PlacedItem> items)
+        List<PlacedItem> items,
+        Action<int, int, double, (float X, float Y), (float X, float Y)>? label = null)
     {
         var baseline = Math.Max(0, minimum);
         for (var row = rows - 1; row >= 0; row--)
@@ -302,6 +329,7 @@ sealed partial class ChartComposer
                     var slot = slots == 1 ? 0 : index;
                     var left = category + barWidth * gap / 2 + slot * barWidth * (1 - overlap);
                     Box(frame, left, left + barWidth, up(Math.Min(from, to)), up(Math.Max(from, to)), front, back, PointColor(chart, series, index, category), items);
+                    label?.Invoke(index, category, raw, frame.At(left + barWidth / 2, up(to), front), frame.At(left + barWidth / 2, up(to), back));
                 }
             }
         }
@@ -317,7 +345,7 @@ sealed partial class ChartComposer
 
     // A 3-D line chart's series as ribbons, each lying in its row: a rising stretch faces away from the
     // light and is shaded as a box's top, a falling one faces it and keeps the series' colour.
-    static void Lines3D(ChartModel chart, Frame frame, int categoryCount, int rows, double rowDepth, double thickness, Func<int, double> across, Func<double, double> up, List<PlacedItem> items)
+    static void Lines3D(ChartModel chart, Frame frame, int categoryCount, int rows, double rowDepth, double thickness, Func<int, double> across, Func<double, double> up, List<PlacedItem> items, Action<int, int, double, (float X, float Y), (float X, float Y)>? label = null)
     {
         for (var index = chart.Series.Count - 1; index >= 0; index--)
         {
@@ -339,6 +367,14 @@ sealed partial class ChartComposer
                 var x1 = across(category);
                 var fill = to > from ? Shade(color, topShade) : color;
                 AddShape(items, Polygon([frame.At(x0, up(from), front), frame.At(x1, up(to), front), frame.At(x1, up(to), back), frame.At(x0, up(from), back)], fill, null));
+            }
+
+            for (var category = 0; category < categoryCount && category < series.Values.Count; category++)
+            {
+                if (series.Values[category] is { } value)
+                {
+                    label?.Invoke(index, category, value, frame.At(across(category), up(value), front), frame.At(across(category), up(value), back));
+                }
             }
         }
     }
@@ -590,7 +626,7 @@ sealed partial class ChartComposer
     // 422px tall on a 900px width), standing on a rim as deep as an eighth of its width foreshortened by
     // cos rotX (100px under that pie). The rim shows only on the near half, each slice's part of it shaded
     // as a box's side.
-    static void Pie3D(ChartModel chart, (float X, float Y, float Width, float Height) box, List<PlacedItem> items)
+    void Pie3D(ChartModel chart, (float X, float Y, float Width, float Height) box, List<PlacedItem> items)
     {
         var view = chart.View3D!;
         var series = chart.Series[0];
@@ -621,6 +657,7 @@ sealed partial class ChartComposer
         var angle = chart.FirstSliceDegrees;
         var sides = new List<PlacedItem>();
         var tops = new List<PlacedItem>();
+        var labels = new List<PlacedItem>();
         for (var point = 0; point < values.Count; point++)
         {
             if (values[point] <= 0)
@@ -672,11 +709,27 @@ sealed partial class ChartComposer
                     LineWidthPoints = outlineStroke?.WidthPoints,
                     Subpaths = [SliceContour(angle, sweep, 0)]
                 }));
+
+            // A label stands mid-slice on the top, nine tenths of the way out (chart-3d-labels-pie,
+            // PowerPoint-referenced: 8.2 on the right rim, 3.2 on the left, 1.2 at the back).
+            if (series.Labels is { } dataLabels &&
+                !dataLabels.Deleted.Contains(point))
+            {
+                var text = DataLabelText(dataLabels, series.FormatCode, values[point], total, chart, point);
+                var middle = (angle + sweep / 2) * Math.PI / 180;
+                var centreX = left + width * (float) (0.5 + 0.45 * Math.Sin(middle));
+                var centreY = top + height * (float) (0.5 - 0.45 * Math.Cos(middle));
+                var labelWidth = TextWidth(text, dataLabels.Text) + 2;
+                var labelHeight = LineHeight(text, dataLabels.Text);
+                labels.AddRange(Label(text, dataLabels.Text, centreX - labelWidth / 2, centreY - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Center));
+            }
+
             angle += sweep;
         }
 
         items.AddRange(sides);
         items.AddRange(tops);
+        items.AddRange(labels);
     }
 
     // Adds a shape that may have come out empty (a polygon with no area).
