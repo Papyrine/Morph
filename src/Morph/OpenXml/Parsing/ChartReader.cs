@@ -1,4 +1,4 @@
-using A = DocumentFormat.OpenXml.Drawing;
+﻿using A = DocumentFormat.OpenXml.Drawing;
 
 /// <summary>
 /// Reads a chart part (<c>c:chartSpace</c>) into a <see cref="ChartModel"/>: the first plot of its plot
@@ -130,7 +130,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
                 categories = Categories(Child(ser, "cat"));
             }
 
-            series.Add(Series(ser, labelText, AutoMarker(kind, plot)));
+            series.Add(Series(ser, labelText, AutoMarker(kind, plot), Child(plot, "dLbls")));
         }
 
         if (series.Count == 0)
@@ -293,7 +293,9 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
             Stroke(Child(properties, "ln")));
     }
 
-    ChartSeries Series(OpenXmlElement ser, ChartTextStyle labelText, ChartMarker? automaticMarker)
+    // A series without a dLbls of its own takes the plot's (c:barChart/c:dLbls and its kin), which is
+    // where a chart's Data Labels switch writes them: chart-3d-labels' value labels are only there.
+    ChartSeries Series(OpenXmlElement ser, ChartTextStyle labelText, ChartMarker? automaticMarker, OpenXmlElement? plotLabels = null)
     {
         var properties = Child(ser, "spPr");
         var pointFills = new Dictionary<int, string>();
@@ -331,7 +333,7 @@ sealed class ChartReader(ThemeColors? themeColors, ThemeFonts? themeFonts, Cultu
             Line = Stroke(Child(properties, "ln")),
             PointFills = pointFills,
             PointLines = pointLines,
-            Labels = Child(ser, "dLbls") is { } labels ? DataLabels(labels, labelText) : null
+            Labels = (Child(ser, "dLbls") ?? plotLabels) is { } labels ? DataLabels(labels, labelText) : null
         };
     }
 
