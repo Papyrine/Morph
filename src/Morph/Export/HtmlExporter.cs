@@ -595,7 +595,8 @@ static class HtmlExporter
                     else if (!opening &&
                              flowHeight < pageSettings.HeightPoints - pageSettings.MarginTop - pageSettings.MarginBottom &&
                              element is FloatingShapeElement {VerticalAnchor: VerticalAnchor.Page or VerticalAnchor.Margin} or
-                                 FloatingImageElement {VerticalAnchor: VerticalAnchor.Page or VerticalAnchor.Margin})
+                                 FloatingImageElement {VerticalAnchor: VerticalAnchor.Page or VerticalAnchor.Margin} or
+                                 FloatingChartElement {VerticalAnchor: VerticalAnchor.Page or VerticalAnchor.Margin})
                     {
                         pagePlaced.Add(element);
                     }
@@ -1091,6 +1092,9 @@ static class HtmlExporter
                     break;
                 case FloatingShapeElement shape:
                     WriteShape(shape, depth);
+                    break;
+                case FloatingChartElement chart:
+                    WriteChart(chart, depth);
                     break;
                 case InkElement:
                     options.OnWarning?.Invoke(
@@ -4073,6 +4077,105 @@ static class HtmlExporter
                 }
 
                 AppendShapeGeometry(shape, width, height, fill);
+            }
+
+            builder.Append("</svg></div>\n");
+        }
+
+        // A chart is composed as the layout composes it (ChartComposer) — its bars, slices, rules and
+        // markers placed shapes, written as the shape writer writes a shape, each in a viewport of its
+        // own box — and its labels set as text in the boxes the composer gives them. It is placed as
+        // a floating shape is, absolutely at its anchor. Until 2026-11-01 only an inline doughnut,
+        // which Word's parser turns into a group of its slices, came through; every other chart,
+        // an Excel drawing's or a slide's, was dropped.
+        void WriteChart(FloatingChartElement chart, int depth)
+        {
+            var width = chart.WidthPoints;
+            var height = chart.HeightPoints;
+            if (width <= 0.01 || height <= 0.01)
+            {
+                return;
+            }
+
+            var pageLeft = (chart.HorizontalAnchor == HorizontalAnchor.Page ? 0 : pageSettings.MarginLeft) + chart.HorizontalPositionPoints;
+            var pageTop = (chart.VerticalAnchor == VerticalAnchor.Page ? 0 : pageSettings.MarginTop) + chart.VerticalPositionPoints;
+            var (left, top) = FloatOrigin(pageLeft, pageTop, chart.VerticalAnchor);
+            var wrapper = FloatWrapper(chart, ref top);
+
+            List<(IReadOnlyList<DocumentElement> Content, float X, float Y, float Width, float Height, CellVerticalAlignment Alignment)> labels = [];
+            List<PlacedItem> items;
+            using (var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback))
+            {
+                var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), DefaultFontSettings.FontWidthScale, null, LayoutFonts.Covers(fontResolver));
+                var composer = new ChartComposer(measurer, (content, x, y, boxWidth, boxHeight, alignment) =>
+                {
+                    labels.Add((content, x, y, boxWidth, boxHeight, alignment));
+                    return [];
+                });
+                items = composer.Compose(chart.Chart, 0, 0, (float) width, (float) height, chart.Scale);
+            }
+
+            Indent(depth).Append(wrapper);
+            builder.Append($"""<svg style="position: absolute; left: {Length(left)}; top: {Length(top)}; width: {Length(width)}; height: {Length(height)}; z-index: 1; overflow: visible" viewBox="0 0 {Number(width)} {Number(height)}" xmlns="http://www.w3.org/2000/svg">""");
+            foreach (var item in items)
+            {
+                if (item is not PlacedShape placed)
+                {
+                    continue;
+                }
+
+                var shapeWidth = Math.Max(placed.Width, 0.01);
+                var shapeHeight = Math.Max(placed.Height, 0.01);
+                builder.Append($"""<svg x="{Number(placed.X)}" y="{Number(placed.Y)}" width="{Number(shapeWidth)}" height="{Number(shapeHeight)}" viewBox="0 0 {Number(shapeWidth)} {Number(shapeHeight)}" preserveAspectRatio="none" overflow="visible">""");
+                AppendShapeGeometry(placed.Shape, shapeWidth, shapeHeight, DocumentExportHelpers.NormalizeColor(placed.Shape.FillColorHex) ?? "none");
+                builder.Append("</svg>");
+            }
+
+            foreach (var (content, x, y, boxWidth, boxHeight, alignment) in labels)
+            {
+                foreach (var paragraph in content.OfType<ParagraphElement>())
+                {
+                    var properties = paragraph.Runs.Count > 0 ? paragraph.Runs[0].Properties : null;
+                    var text = string.Concat(paragraph.Runs.Select(_ => _.Text));
+                    var justify = paragraph.Properties.Alignment switch
+                    {
+                        TextAlignment.Center => "center",
+                        TextAlignment.Right => "flex-end",
+                        _ => "flex-start"
+                    };
+                    var align = alignment switch
+                    {
+                        CellVerticalAlignment.Center => "center",
+                        CellVerticalAlignment.Bottom => "flex-end",
+                        _ => "flex-start"
+                    };
+                    builder.Append($"""<foreignObject x="{Number(x)}" y="{Number(y)}" width="{Number(boxWidth)}" height="{Number(boxHeight)}" overflow="visible"><div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; width: 100%; height: 100%; justify-content: {justify}; align-items: {align}; white-space: nowrap; line-height: 1.2""");
+                    if (properties != null)
+                    {
+                        if (properties.FontFamily is { } family)
+                        {
+                            builder.Append("; font-family: ").Append(EncodeAttribute(CssFontFamily(family)));
+                        }
+
+                        builder.Append("; font-size: ").Append(Number(properties.FontSizePoints)).Append("pt");
+                        if (DocumentExportHelpers.NormalizeColor(properties.ColorHex) is { } color)
+                        {
+                            builder.Append("; color: ").Append(color);
+                        }
+
+                        if (properties.Bold)
+                        {
+                            builder.Append("; font-weight: bold");
+                        }
+
+                        if (properties.Italic)
+                        {
+                            builder.Append("; font-style: italic");
+                        }
+                    }
+
+                    builder.Append("\">").Append(EncodeText(text)).Append("</div></foreignObject>");
+                }
             }
 
             builder.Append("</svg></div>\n");
