@@ -140,6 +140,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     readonly Dictionary<string, int> footnoteCitationNumbers = [];
     readonly Dictionary<string, int> endnoteCitationNumbers = [];
 
+    // The notes cited so far in the current numbering run: the whole document, or the section when its
+    // w:footnotePr / w:endnotePr restarts each section (ParseSectionBreak resets them).
+    int footnotesInSection;
+    int endnotesInSection;
+
     // While a note body parses: the number its w:footnoteRef / w:endnoteRef run draws (ParseNoteBody).
     string? noteReferenceText;
 
@@ -578,6 +583,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             Footnotes = footnotes,
             Endnotes = endnotes,
             EndnoteNumberFormat = MapNumberFormat(endnoteNumberFormat),
+            EndnotesAtSectionEnd = mainPart.DocumentSettingsPart?.Settings?
+                .GetFirstChild<EndnoteDocumentWideProperties>()?
+                .GetFirstChild<EndnotePosition>()?.Val?.Value == EndnotePositionValues.SectionEnd,
             EmbeddedObjects = embeddedObjects,
             Watermarks = watermarks,
             Features = features
@@ -4293,6 +4301,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ColumnCount = columnCount,
             ColumnSpacing = columnSpacing,
             LineNumbers = lineNumbers,
+            FootnotesBeneathText = sectionProps.GetFirstChild<FootnoteProperties>()?
+                .GetFirstChild<FootnotePosition>()?.Val?.Value == FootnotePositionValues.BeneathText,
             DocumentGridLinePitchPoints = documentGridLinePitchPoints,
             LastRenderedPageBreakCount = lastRenderedPageBreakCount,
             BackgroundColorHex = documentBackgroundColor,
@@ -12092,6 +12102,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             typeSource = followingProps;
         }
 
+        // A section whose w:footnotePr / w:endnotePr restarts each section numbers its notes from 1 again
+        // (_probe_en_sectrestart: section two's endnote reads "i" where it ran on to "iii" without).
+        if (typeSource.GetFirstChild<FootnoteProperties>()?.GetFirstChild<NumberingRestart>()?.Val?.Value == RestartNumberValues.EachSection)
+        {
+            footnotesInSection = 0;
+        }
+
+        if (typeSource.GetFirstChild<EndnoteProperties>()?.GetFirstChild<NumberingRestart>()?.Val?.Value == RestartNumberValues.EachSection)
+        {
+            endnotesInSection = 0;
+        }
+
         var typeElement = typeSource.GetFirstChild<SectionType>();
         // Default
         var breakType = SectionBreakType.NextPage;
@@ -13448,7 +13470,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     var footnoteKey = footnoteId.ToString();
                     if (!footnoteCitationNumbers.TryGetValue(footnoteKey, out var footnoteNumber))
                     {
-                        footnoteNumber = footnoteCitationNumbers.Count + 1;
+                        footnoteNumber = ++footnotesInSection;
                         footnoteCitationNumbers[footnoteKey] = footnoteNumber;
                     }
 
@@ -13474,7 +13496,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     var endnoteKey = endnoteId.ToString();
                     if (!endnoteCitationNumbers.TryGetValue(endnoteKey, out var endnoteNumber))
                     {
-                        endnoteNumber = endnoteCitationNumbers.Count + 1;
+                        endnoteNumber = ++endnotesInSection;
                         endnoteCitationNumbers[endnoteKey] = endnoteNumber;
                     }
 

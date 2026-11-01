@@ -50,6 +50,13 @@ sealed record PageSettings
     public LineNumberSettings? LineNumbers { get; init; }
 
     /// <summary>
+    /// The section's <c>w:footnotePr/w:pos</c> is <c>beneathText</c>: a page's footnotes stand
+    /// directly under its last line of text rather than at the foot of the page. Word reads it from
+    /// the section alone; the same element in settings.xml moves nothing (_probe_fn_beneath).
+    /// </summary>
+    public bool FootnotesBeneathText { get; init; }
+
+    /// <summary>
     /// Document grid line pitch in points (from w:docGrid/@w:linePitch).
     /// </summary>
     public double DocumentGridLinePitchPoints { get; init; }
