@@ -2055,8 +2055,6 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     deltas[index] -= excess * deltas[index] / positive;
                 }
             }
-
-            growth = deltas.Sum();
         }
 
         var shift = 0.0;
