@@ -74,11 +74,13 @@ public static class TextExtraction
                 WalkChildren(element, builder);
                 builder.Append('\n');
                 return;
-            case "p" when element.ParentElement is {LocalName: "td" or "th"} cell:
+            case "p" or "div" when element.ParentElement is {LocalName: "td" or "th"} cell:
                 // Inside a table cell a paragraph is a line of the cell, not a document block — a
                 // blank-line break here would tear the row apart, putting each tab-joined cell on
                 // its own paragraph. A cell whose only element is one paragraph reads straight
-                // through; multiple paragraphs separate with single line breaks.
+                // through; multiple paragraphs separate with single line breaks. The export writes
+                // a cell's own paragraph as a <div> where it carries the cell's text size and line
+                // (HtmlExporter, since cells became content-box widths), which reads the same way.
                 if (cell.Children.Length == 1)
                 {
                     WalkChildren(element, builder);
