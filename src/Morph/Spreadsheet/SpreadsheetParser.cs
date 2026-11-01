@@ -142,22 +142,21 @@ sealed class SpreadsheetParser(
             var tableStyles = new TableStyles(worksheetPart, workbookPart.WorkbookStylesPart?.Stylesheet, styles);
 
             PageSettings settings;
-            SheetRange bounds;
             double scale;
-            TableElement? table;
+            List<(SheetRange Art, double ArtShift, TableElement Table)> pieces = [];
             if (onePagePerSheet)
             {
                 // Drawn rather than printed: the whole of the sheet at its own size, whatever its
                 // page setup says of paper, print area, titles and scale
-                bounds = WholeSheetRange(worksheetPart, worksheet);
+                var bounds = WholeSheetRange(worksheetPart, worksheet);
                 scale = 1;
-                table = builder.Build(worksheet, bounds, scale, null, conditional, tableStyles, false);
-                if (table == null)
+                if (builder.Build(worksheet, bounds, scale, null, conditional, tableStyles, false) is not { } table)
                 {
                     continue;
                 }
 
                 settings = WholeSheetPage(table);
+                pieces.Add((bounds, 0, table));
             }
             else
             {
@@ -169,46 +168,55 @@ sealed class SpreadsheetParser(
                     continue;
                 }
 
-                bounds = printed;
-                scale = ResolveScale(builder, worksheet, bounds, settings);
+                scale = ResolveScale(builder, worksheet, printed, settings);
                 settings = SheetHeaderFooter.Apply(settings, worksheet, name, headerFont, scale, culture ?? CultureInfo.InvariantCulture, printTime ?? DateTime.Now);
                 var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
-                table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, tableStyles, centered);
-                if (table == null)
+                // A strip's drawings are placed against the whole print area and moved left by the
+                // columns before the strip, so one reaching in from an earlier strip shows its part
+                // there; the fragmenter clips each to its grid's columns
+                var printedGeometry = new SheetGeometry(worksheet, printed, scale, maxDigitWidth);
+                foreach (var strip in Strips(builder, worksheet, worksheetPart, printed, scale, settings.ContentWidth, maxDigitWidth))
                 {
-                    continue;
+                    if (builder.Build(worksheet, strip, scale, definedNames.PrintTitleRows(name), conditional, tableStyles, centered) is { } table)
+                    {
+                        pieces.Add((printed, printedGeometry.ColumnLeft(strip.FirstColumn), table));
+                    }
                 }
             }
 
-            // Drawings are emitted BEFORE the table: they anchor vertically to the flow cursor, which
-            // still sits at the content top until the table is placed. Their coordinates are relative
-            // to the grid's top-left, which is where the table begins — including the centring slack,
-            // computed the same way the table's own centre alignment computes it
-            // (Fragmenter.ComputeTableX). The fragmenter then carries them down the pages with the
-            // rows they stand over (Fragmenter.PlaceSheetUnderFloats).
-            List<DocumentElement> art = [];
-            if (worksheetPart != null)
+            foreach (var (artRange, artShift, table) in pieces)
             {
-                art = drawings.Parse(worksheetPart, new(worksheet, bounds, scale, maxDigitWidth), scale, 0, GridLeft(table, settings), printed: !onePagePerSheet);
-            }
-
-            if (first == null)
-            {
-                first = settings;
-            }
-            else
-            {
-                // Every sheet after the first starts a page and adopts its own geometry — a workbook
-                // routinely mixes portrait and landscape between sheets.
-                elements.Add(new SectionBreakElement
+                // Drawings are emitted BEFORE the table: they anchor vertically to the flow cursor, which
+                // still sits at the content top until the table is placed. Their coordinates are relative
+                // to the grid's top-left, which is where the table begins — including the centring slack,
+                // computed the same way the table's own centre alignment computes it
+                // (Fragmenter.ComputeTableX). The fragmenter then carries them down the pages with the
+                // rows they stand over (Fragmenter.PlaceSheetUnderFloats).
+                List<DocumentElement> art = [];
+                if (worksheetPart != null)
                 {
-                    BreakType = SectionBreakType.NextPage,
-                    NewSectionSettings = settings
-                });
-            }
+                    art = drawings.Parse(worksheetPart, new(worksheet, artRange, scale, maxDigitWidth), scale, 0, GridLeft(table, settings) - artShift, printed: !onePagePerSheet);
+                }
 
-            elements.AddRange(art);
-            elements.Add(table);
+                if (first == null)
+                {
+                    first = settings;
+                }
+                else
+                {
+                    // Every sheet after the first starts a page and adopts its own geometry — a workbook
+                    // routinely mixes portrait and landscape between sheets — and so does each strip of
+                    // columns after a sheet's first.
+                    elements.Add(new SectionBreakElement
+                    {
+                        BreakType = SectionBreakType.NextPage,
+                        NewSectionSettings = settings
+                    });
+                }
+
+                elements.AddRange(art);
+                elements.Add(table);
+            }
         }
 
         return new()
@@ -663,6 +671,85 @@ sealed class SpreadsheetParser(
     /// the grid is shrunk until it fits the page width. Never enlarges — Excel's fit-to-page only
     /// shrinks.
     /// </summary>
+    /// <summary>
+    /// The print area cut into strips of whole columns, each as wide as the page holds at the sheet's
+    /// scale, in Excel's default order down then over: each strip runs down its pages before the next
+    /// begins. A strip holding no value and under no drawing is not printed — Excel prints no page
+    /// for columns of nothing but fill. to-do-list's $A:$M is 831.7pt wide at 100% against 770pt
+    /// of landscape A4: Excel prints A to L down two pages and nothing of M, whose cells only carry
+    /// the sheet's green, where every column had been centred onto one page past both margins.
+    /// </summary>
+    static IEnumerable<SheetRange> Strips(SheetGridBuilder builder, S.Worksheet worksheet, WorksheetPart? worksheetPart, SheetRange range, double scale, double contentWidth, double maxDigitWidth)
+    {
+        var widths = builder.ColumnWidths(worksheet, range, scale);
+        if (widths.Sum() <= contentWidth + 0.5)
+        {
+            yield return range;
+            yield break;
+        }
+
+        var valued = ValuedColumns(builder, worksheet, range);
+        var geometry = new SheetGeometry(worksheet, range, scale, maxDigitWidth);
+        var first = 0;
+        var offset = 0d;
+        var yielded = false;
+        while (first < widths.Length)
+        {
+            var last = first;
+            var width = widths[first];
+            while (last + 1 < widths.Length &&
+                   width + widths[last + 1] <= contentWidth + 0.5)
+            {
+                last++;
+                width += widths[last];
+            }
+
+            var strip = range with
+            {
+                FirstColumn = range.FirstColumn + first,
+                LastColumn = range.FirstColumn + last
+            };
+            var holdsSomething = valued.Any(_ => _ >= strip.FirstColumn && _ <= strip.LastColumn) ||
+                                 worksheetPart != null &&
+                                 SheetDrawingParser.AnyStartsIn(worksheetPart, geometry, scale, offset, offset + width);
+            if (holdsSomething ||
+                !yielded && last + 1 >= widths.Length)
+            {
+                yielded = true;
+                yield return strip;
+            }
+
+            first = last + 1;
+            offset += width;
+        }
+    }
+
+    /// <summary>The columns of the range holding a cell that shows something (<see cref="SheetGridBuilder.ShowsValue"/>).</summary>
+    static HashSet<int> ValuedColumns(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange range)
+    {
+        HashSet<int> columns = [];
+        foreach (var row in worksheet.GetFirstChild<S.SheetData>()?.Elements<S.Row>() ?? [])
+        {
+            if (row.RowIndex?.Value is not { } rowIndex ||
+                rowIndex < range.FirstRow ||
+                rowIndex > range.LastRow)
+            {
+                continue;
+            }
+
+            foreach (var cell in row.Elements<S.Cell>())
+            {
+                if (builder.ShowsValue(cell) &&
+                    CellReference.ColumnOf(cell.CellReference?.Value ?? string.Empty) is var column and > 0)
+                {
+                    columns.Add(column);
+                }
+            }
+        }
+
+        return columns;
+    }
+
     static double ResolveScale(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange range, PageSettings settings)
     {
         var setup = worksheet.GetFirstChild<S.PageSetup>();
