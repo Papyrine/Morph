@@ -1,4 +1,4 @@
-# All HTML export scenarios (44)
+# All HTML export scenarios (46)
 
 The Word reference render (left) beside the HTML exporter's output, rendered to PNG via the headless-browser screenshot pipeline.
 
@@ -12,6 +12,8 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
 - [chart-3d-area](#chart-3d-area)
 - [chart-3d-column](#chart-3d-column)
+- [chart-3d-labels](#chart-3d-labels)
+- [chart-3d-labels-pie](#chart-3d-labels-pie)
 - [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
@@ -93,6 +95,18 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 | Expected (Word) | Morph HTML |
 | --- | --- |
 | <img src="chart-3d-column/expected_0001.png" width="500"><br><img src="chart-3d-column/expected_0002.png" width="500"> | <img src="chart-3d-column/html_result.verified.png" width="500"> |
+
+## chart-3d-labels
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-3d-labels/expected_0001.png" width="500"><br><img src="chart-3d-labels/expected_0002.png" width="500"> | <img src="chart-3d-labels/html_result.verified.png" width="500"> |
+
+## chart-3d-labels-pie
+
+| Expected (Word) | Morph HTML |
+| --- | --- |
+| <img src="chart-3d-labels-pie/expected_0001.png" width="500"><br><img src="chart-3d-labels-pie/expected_0002.png" width="500"> | <img src="chart-3d-labels-pie/html_result.verified.png" width="500"> |
 
 ## chart-3d-pie
 

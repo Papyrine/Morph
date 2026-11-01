@@ -1,4 +1,4 @@
-# All PDF export scenarios (44)
+# All PDF export scenarios (46)
 
 The Word reference render (left) beside each Morph PDF page rendered by PDFium (Verify.PDFium).
 
@@ -12,6 +12,8 @@ The Word reference render (left) beside each Morph PDF page rendered by PDFium (
 - [business-cards-horizontal-layout](#business-cards-horizontal-layout)
 - [chart-3d-area](#chart-3d-area)
 - [chart-3d-column](#chart-3d-column)
+- [chart-3d-labels](#chart-3d-labels)
+- [chart-3d-labels-pie](#chart-3d-labels-pie)
 - [chart-3d-pie](#chart-3d-pie)
 - [chart-area](#chart-area)
 - [chart-bar-column](#chart-bar-column)
@@ -132,6 +134,30 @@ PDF: [Morph PDF](chart-3d-area/pdf_result.verified.pdf)
 | <img src="chart-3d-column/expected_0002.png" width="500"> | <img src="chart-3d-column/pdf_result%23page_0002.verified.png" width="500"> |
 
 PDF: [Morph PDF](chart-3d-column/pdf_result.verified.pdf)
+
+
+## chart-3d-labels
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2659 · SSIM: 0.8031** |
+| <img src="chart-3d-labels/expected_0001.png" width="500"> | <img src="chart-3d-labels/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2624 · SSIM: 0.7785** |
+| <img src="chart-3d-labels/expected_0002.png" width="500"> | <img src="chart-3d-labels/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-3d-labels/pdf_result.verified.pdf)
+
+
+## chart-3d-labels-pie
+
+| Expected (Word) | Morph PDF |
+| --- | --- |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.4661 · SSIM: 0.8631** |
+| <img src="chart-3d-labels-pie/expected_0001.png" width="500"> | <img src="chart-3d-labels-pie/pdf_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1081 · SSIM: 0.8122** |
+| <img src="chart-3d-labels-pie/expected_0002.png" width="500"> | <img src="chart-3d-labels-pie/pdf_result%23page_0002.verified.png" width="500"> |
+
+PDF: [Morph PDF](chart-3d-labels-pie/pdf_result.verified.pdf)
 
 
 ## chart-3d-pie

@@ -117,19 +117,19 @@
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="chart-3d-labels/expected_0001.png" width="500"> |  |  |
-| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
-| <img src="chart-3d-labels/expected_0002.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.2661 · SSIM: 0.7993** | **Page 1. ErrorMetric: 0.2658 · SSIM: 0.8037** |
+| <img src="chart-3d-labels/expected_0001.png" width="500"> | <img src="chart-3d-labels/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-3d-labels/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.2626 · SSIM: 0.7779** | **Page 2. ErrorMetric: 0.2639 · SSIM: 0.7819** |
+| <img src="chart-3d-labels/expected_0002.png" width="500"> | <img src="chart-3d-labels/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-3d-labels/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## chart-3d-labels-pie
 
 | Expected (Word) | Skia | ImageSharp |
 | --- | --- | --- |
-| **Page 1** | **Page 1** _(no page)_ | **Page 1** _(no page)_ |
-| <img src="chart-3d-labels-pie/expected_0001.png" width="500"> |  |  |
-| **Page 2** | **Page 2** _(no page)_ | **Page 2** _(no page)_ |
-| <img src="chart-3d-labels-pie/expected_0002.png" width="500"> |  |  |
+| **Page 1**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 1. ErrorMetric: 0.4658 · SSIM: 0.8630** | **Page 1. ErrorMetric: 0.4660 · SSIM: 0.8628** |
+| <img src="chart-3d-labels-pie/expected_0001.png" width="500"> | <img src="chart-3d-labels-pie/skia_result%23page_0001.verified.png" width="500"> | <img src="chart-3d-labels-pie/imagesharp_result%23page_0001.verified.png" width="500"> |
+| **Page 2**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **Page 2. ErrorMetric: 0.1048 · SSIM: 0.8050** | **Page 2. ErrorMetric: 0.1065 · SSIM: 0.8138** |
+| <img src="chart-3d-labels-pie/expected_0002.png" width="500"> | <img src="chart-3d-labels-pie/skia_result%23page_0002.verified.png" width="500"> | <img src="chart-3d-labels-pie/imagesharp_result%23page_0002.verified.png" width="500"> |
 
 ## chart-3d-pie
 

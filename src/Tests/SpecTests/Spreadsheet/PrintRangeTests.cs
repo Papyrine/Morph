@@ -64,7 +64,17 @@ public class PrintRangeTests
         await Assert.That(breakdown.Rows.Count).IsGreaterThan(10);
     }
 
+    // to-do-list's $A:$M is 831.7pt wide at 100% against 770pt of landscape A4, so it prints in strips
+    // of whole columns: A to K, then L and M, which show nothing (M1 holds a space) and are not
+    // printed. N to Q carry formatting but lie outside the print area and print in no strip.
     [Test]
-    public async Task To_do_list_prints_its_print_area_of_columns_A_to_M() =>
-        await Assert.That(Grid("to-do-list").Properties.GridColumnWidths!.Count).IsEqualTo(13);
+    public async Task To_do_list_prints_columns_A_to_K_of_its_print_area_of_columns_A_to_M()
+    {
+        await using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "to-do-list", "input.xlsx"));
+        var grids = ExcelConverter.Parse(stream, null, null, useLetterPageSize: false, onePagePerSheet: false)
+            .Elements.OfType<TableElement>().ToList();
+
+        await Assert.That(grids.Count).IsEqualTo(1);
+        await Assert.That(grids[0].Properties.GridColumnWidths!.Count).IsEqualTo(11);
+    }
 }
