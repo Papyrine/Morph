@@ -209,7 +209,7 @@ half-spacings) to it, which puts all four fills on Word's to the pixel.
 
 A cell whose content is `<p>`s and `<div>`s, and nothing else but white space, is a paragraph to each
 (`_probe_cellblocks`, 24pt text, cellpadding and cellspacing 0, off the XPS). A `<div>` is a cell
-paragraph like the cell's own text: the cell's Aptos, 1.15 lines and 8pt after (two `<div>`s: 42.0pt
+paragraph like the cell's own text: the cell's Aptos, 278/240 lines and 8pt after (two `<div>`s: 42.0pt
 between baselines, an 83.5pt cell). A `<p>` is a body paragraph: Times New Roman, a single line and
 the 14pt auto spacing after it, except after the last, where Word's auto spacing stops at the cell's
 edge (two `<p>`s: 41.67pt between baselines, a 69.1pt cell, against a 33.84pt pitch for two lines
@@ -231,10 +231,7 @@ So loose text before a `<p>` stands 6pt further from it than a `<div>` would: th
 spacing stands over the cell paragraph's 8pt after, which `HtmlParser` writes as 14pt after the loose
 text.
 
-## Known gaps
-
-Tracked as issue **#31** in `src/todo.md`: cell padding composes slightly tighter than Word, and a
-cell paragraph's after-spacing is not flat (the `_probe_cellpad_sweep` data below).
+## Measurements
 
 ### Default padding (2026-10-30)
 
@@ -280,8 +277,8 @@ cell's own rule is not charged again above its content.
 
 ### Cell paragraph spacing (2026-10-21)
 
-A cell's own paragraph — the text written straight into a `<td>` — is set on a **1.15 line with 8pt
-after it**, and `cellpadding` converts at **0.6pt a pixel a side**, not the 0.75 every other pixel takes
+A cell's own paragraph — the text written straight into a `<td>` — is set as Word's own Normal, on a
+**278/240 auto line with 8pt after it** (the line read as 1.15 until 2026-11-01, below), and `cellpadding` converts at **0.6pt a pixel a side**, not the 0.75 every other pixel takes
 (`HtmlParser.ParseTable`). Both were read off Word's XPS, glyph baselines and rule paths rather than ink,
 which is what the two earlier attempts lacked: they added a flat after-spacing, and no flat value fitted
 both `html_table` and `html_complex` because the padding was converted at the wrong rate underneath it.
@@ -309,6 +306,22 @@ The two `<br>` lines stand 16.92pt apart, 1.15 of Calibri's 14.65pt line, and wh
 whatever the size and the line count: space after the paragraph, not a taller line. The probe also showed
 a `<td style="font-size:36pt">` setting its text at 36pt; the cell's own font styling had not reached its
 runs before (only `<span>`s inside it), and does now.
+
+**The line is 278/240, not 1.15** (2026-11-01, `_probe_cellpitch`: eight-row borderless tables, cellspacing
+0, of Aptos at 12, 24 and 48pt, and of 12pt at `cellpadding` 20 and 40). The rows stand 8pt plus 1.414 of
+the size apart at every size, which is Aptos's 1.2207 line at 278/240 — the line Word's own Normal
+declares, as the 20 corpus documents carrying Word's current defaults do — to 0.02pt. At 1.15 every line
+fell 0.75% short, which read as padding composing tight and an after-spacing that grew with the size
+(the `_probe_cellsize` table above, measured that way). Morph now stands every row of the probe within
+0.02pt of Word's:
+
+| table | Word | Morph |
+| --- | --- | --- |
+| 12pt | 24.96 | 24.97 |
+| 24pt | 41.96 | 41.94 |
+| 48pt | 75.89 | 75.87 |
+| 12pt, `cellpadding="20"` | 48.97 | 48.97 |
+| 12pt, `cellpadding="40"` | 72.99 | 72.97 |
 
 A full-width table takes the padding rate vertically too, and keeps its pixel-as-point horizontal padding
 for the column distribution (`ParseTable`'s comment). `html_complex` (`cellpadding=8`, `width:100%`) now
