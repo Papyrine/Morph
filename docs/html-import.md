@@ -185,13 +185,42 @@ breaks, each its own line. The collapse was first tried 2026-07-21 and reverted,
 breaks gone `html_complex`'s intro set on one line where Word sets two; the cause was the text
 size (11pt against Word's 12, Measured constants), and at 12pt the intro wraps where Word wraps it.
 
+### Cell alignment and row heights (2026-11-01)
+
+`_probe_valign` set one word per cell beside a six-line cell. Word keeps a cell's `vertical-align`
+or `valign` (top, middle, bottom; `baseline` stands at the top), else its row's (`<tr valign>` or
+`style`), else the MIDDLE — a cell that says nothing is centred, as in a browser. A table's own
+`height` is ignored (`html_css_alignment`'s 100px table is as tall as its text), but a row's is not:
+a height on a `<tr>` or a `<td>`, in `style` or as the attribute, is the row's least height.
+
+`_probe_rowheight2` read it at two heights each, through a red cell fill:
+
+| declared | 100px | 300px |
+|---|---|---|
+| `style="height"` | 76.3pt | 226.6pt |
+| `height=` | 61.4pt | 181.4pt |
+
+200px more is 150.3pt and 120pt more, so CSS converts at 0.75pt a pixel and the attribute at the
+table attributes' 0.6. The fill is the height and 1.3pt over, at the default 2px spacing; the engine
+sets a row's spacing gaps inside its height, so the parser adds two spacings' worth (four of Word's
+half-spacings) to it, which puts all four fills on Word's to the pixel.
+
+### Block children of a cell (2026-11-01)
+
+A cell whose content is `<p>`s and `<div>`s, and nothing else but white space, is a paragraph to each
+(`_probe_cellblocks`, 24pt text, cellpadding and cellspacing 0, off the XPS). A `<div>` is a cell
+paragraph like the cell's own text: the cell's Aptos, 1.15 lines and 8pt after (two `<div>`s: 42.0pt
+between baselines, an 83.5pt cell). A `<p>` is a body paragraph: Times New Roman, a single line and
+the 14pt auto spacing after it, except after the last, where Word's auto spacing stops at the cell's
+edge (two `<p>`s: 41.67pt between baselines, a 69.1pt cell, against a 33.84pt pitch for two lines
+broken by `<br>`). Morph's cells measure within 1px of all five. A cell mixing blocks with loose text
+or inline elements is still one paragraph.
+
 ## Known gaps
 
-Tracked as issue **#31** in `src/todo.md`, listed here because they shape what the parser can express:
-
-- **Block children of a cell flatten.** A `<p>` or `<div>` inside a `<td>` joins one paragraph; inline formatting (`<b>`, `<span style>`, images) keeps its runs.
-- **`vertical-align` on cells is unmodelled**, which is what `html_css_alignment` actually means to demonstrate.
-- Two `<p>`s in one cell are set by Word with single lines, about 13pt between them and nothing after the last (`_probe_cellsize`); Morph joins them into one paragraph (the first bullet).
+Tracked as issue **#31** in `src/todo.md`: cell padding composes slightly tighter than Word, and a
+cell paragraph's after-spacing is not flat (the `_probe_cellpad_sweep` data below). A cell mixing
+`<p>`s with loose text still flattens into one paragraph.
 
 ### Default padding (2026-10-30)
 

@@ -10,14 +10,16 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// simple-list's "To Do List" stands at the 60% its grid is printed at.
 /// <c>&amp;P</c> and <c>&amp;N</c> are the page number and the page count, numbered through the whole
 /// print as Excel numbers a workbook printed entire (invoice-accessibility-guide's "Page 2 of 10" on
-/// its second sheet's page); <c>&amp;A</c> is the sheet's name. Codes that set the text's look
-/// (<c>&amp;"font"</c>, a size, <c>&amp;B</c>, <c>&amp;K</c> and the rest) are read past rather than honoured,
-/// and the date, time, file and picture codes print nothing, so a render does not depend on when or
-/// where it is made.
+/// its second sheet's page); <c>&amp;A</c> is the sheet's name; <c>&amp;D</c> and <c>&amp;T</c> are the
+/// print's date and time (<see cref="ExportOptions.PrintTime"/>) in the culture's short date and time, as
+/// simple-list's footer printed "Printed on 10/08/2026" from an en-AU machine. Codes that set the text's
+/// look (<c>&amp;"font"</c>, a size, <c>&amp;B</c>, <c>&amp;K</c> and the rest) are read past rather than
+/// honoured, and the file and picture codes print nothing, so a render does not depend on where it is
+/// made.
 /// </summary>
 static class SheetHeaderFooter
 {
-    public static PageSettings Apply(PageSettings settings, S.Worksheet worksheet, string sheetName, RunProperties font, double scale)
+    public static PageSettings Apply(PageSettings settings, S.Worksheet worksheet, string sheetName, RunProperties font, double scale, CultureInfo culture, DateTime printTime)
     {
         if (worksheet.GetFirstChild<S.HeaderFooter>() is not { } headerFooter)
         {
@@ -34,7 +36,7 @@ static class SheetHeaderFooter
 
         var width = settings.WidthPoints - settings.MarginLeft - settings.MarginRight;
         HeaderFooterContent? Band(string? text) =>
-            string.IsNullOrEmpty(text) ? null : Content(text, sheetName, font, width);
+            string.IsNullOrEmpty(text) ? null : Content(text, sheetName, font, width, culture, printTime);
 
         var differentFirst = headerFooter.DifferentFirst?.Value == true;
         var differentOddEven = headerFooter.DifferentOddEven?.Value == true;
@@ -54,9 +56,9 @@ static class SheetHeaderFooter
         };
     }
 
-    static HeaderFooterContent? Content(string text, string sheetName, RunProperties properties, double width)
+    static HeaderFooterContent? Content(string text, string sheetName, RunProperties properties, double width, CultureInfo culture, DateTime printTime)
     {
-        var parts = Parts(text, sheetName);
+        var parts = Parts(text, sheetName, culture, printTime);
         if (parts.All(_ => _.Count == 0))
         {
             return null;
@@ -134,7 +136,7 @@ static class SheetHeaderFooter
     /// The left, centre and right parts, each as its text and page fields in order. Text before any
     /// section code is the centre part's, as Excel reads it.
     /// </summary>
-    internal static List<List<(string Text, PageFieldKind Field)>> Parts(string text, string sheetName)
+    internal static List<List<(string Text, PageFieldKind Field)>> Parts(string text, string sheetName, CultureInfo? culture = null, DateTime? printTime = null)
     {
         List<List<(string Text, PageFieldKind Field)>> parts = [[], [], []];
         var current = 1;
@@ -187,6 +189,12 @@ static class SheetHeaderFooter
                     break;
                 case 'A':
                     literal.Append(sheetName);
+                    break;
+                case 'D' when printTime is { } date:
+                    literal.Append(date.ToString("d", culture ?? CultureInfo.InvariantCulture));
+                    break;
+                case 'T' when printTime is { } time:
+                    literal.Append(time.ToString("t", culture ?? CultureInfo.InvariantCulture));
                     break;
                 case '"':
                     // &"font,style": the closing quote ends it.

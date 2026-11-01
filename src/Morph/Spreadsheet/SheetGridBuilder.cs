@@ -33,7 +33,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// </summary>
     const double autoRowHeightFactor = 1.31;
 
-    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional, bool horizontallyCentered)
+    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional, TableStyles tableStyles, bool horizontallyCentered)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();
         if (sheetData == null || range.IsEmpty)
@@ -56,7 +56,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             rowsByIndex.TryGetValue(rowIndex, out var row);
             var isHeader = titleRows is { } titles &&
                            rowIndex >= titles.First && rowIndex <= titles.Last;
-            rows.Add(BuildRow(row, rowIndex, range, merges, widths, defaultHeight, scale, isHeader, conditional));
+            rows.Add(BuildRow(row, rowIndex, range, merges, widths, defaultHeight, scale, isHeader, conditional, tableStyles));
         }
 
         return new()
@@ -86,7 +86,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         double defaultHeight,
         double scale,
         bool isHeader,
-        ConditionalFormats conditional)
+        ConditionalFormats conditional,
+        TableStyles tableStyles)
     {
         var cellsByColumn = row?.Elements<S.Cell>()
             .Select(cell => (Column: CellReference.ColumnOf(cell.CellReference?.Value), Cell: cell))
@@ -107,7 +108,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
 
             cellsByColumn.TryGetValue(column, out var found);
             var merge = merges.At(rowIndex, column);
-            var overflow = OverflowSpan(found, merge, cellsByColumn, merges, rowIndex, column, range);
+            var overflow = OverflowSpan(found, merge, cellsByColumn, merges, rowIndex, column, range, tableStyles);
 
             var width = 0d;
             for (var span = 0; span < Math.Max(merge.ColumnSpan, overflow); span++)
@@ -126,6 +127,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 Spill(found, merge, cellsByColumn, merges, widths, rowIndex, column, range, width),
                 scale,
                 conditional,
+                tableStyles,
                 rowIndex,
                 column));
 
@@ -186,7 +188,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         MergeMap merges,
         int rowIndex,
         int column,
-        SheetRange range)
+        SheetRange range,
+        TableStyles tableStyles)
     {
         if (cell == null || merge.ColumnSpan > 1)
         {
@@ -214,6 +217,15 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
 
             if (cellsByColumn.TryGetValue(next, out var neighbour) &&
                 Value(neighbour, styles.Resolve(neighbour.StyleIndex?.Value ?? 0)).Text.Length > 0)
+            {
+                break;
+            }
+
+            // Text running over a ruled line or into another fill does not take either away:
+            // simple-list's "Item 1" runs into empty cells whose table draws a rule between each,
+            // and its "Column 5" header out of the table, whose fill stops at the table's edge in
+            // Excel's print. The clip still spills past the box, so the text draws on as before.
+            if (RuleBetween(cellsByColumn, tableStyles, rowIndex, next - 1, next))
             {
                 break;
             }
@@ -329,11 +341,20 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         (double Left, double Right) spill,
         double scale,
         ConditionalFormats conditional,
+        TableStyles tableStyles,
         int rowIndex,
         int column)
     {
         var style = styles.Resolve(cell?.StyleIndex?.Value ?? 0);
         var (text, colorOverride) = Value(cell, style);
+
+        // A table's style lies under the cell's own formatting, where what the cell has is its own
+        // rather than the Normal style's: its colour shows on a cell whose font keeps the body
+        // colour, its fill where the cell's is Normal's (back-to-school-planner's Normal fills white,
+        // and Excel prints the table's grey stripes over it), its edges where the cell draws none.
+        var table = tableStyles.IsEmpty ? null : tableStyles.For(rowIndex, column);
+        var normal = styles.Resolve(0);
+        var tableColor = table?.ColorHex is { } stated && style.ColorHex == normal.ColorHex ? stated : null;
 
         // A conditional rule overlays the cell's own style rather than replacing it, so each member
         // falls back to what the style already resolved.
@@ -352,11 +373,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                     {
                         FontFamily = style.FontFamily ?? styles.DefaultFont.Family ?? defaultFont,
                         FontSizePoints = (style.FontSizePoints ?? styles.DefaultFont.SizePoints) * scale,
-                        Bold = style.Bold || overlay?.Bold == true,
-                        Italic = style.Italic || overlay?.Italic == true,
+                        Bold = style.Bold || overlay?.Bold == true || table?.Bold == true,
+                        Italic = style.Italic || overlay?.Italic == true || table?.Italic == true,
                         Underline = style.Underline,
                         Strikethrough = style.Strikethrough,
-                        ColorHex = overlay?.ColorHex ?? colorOverride ?? style.ColorHex
+                        ColorHex = overlay?.ColorHex ?? colorOverride ?? tableColor ?? style.ColorHex
                     }
                 }
             };
@@ -382,8 +403,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             Properties = new()
             {
                 WidthPoints = widthPoints,
-                BackgroundColorHex = overlay?.BackgroundColorHex ?? style.BackgroundColorHex,
-                Borders = style.Borders,
+                BackgroundColorHex = overlay?.BackgroundColorHex ?? OwnFill(style, table),
+                Borders = table is { } drawn ? Under(style.Borders, drawn) : style.Borders,
                 GridSpan = merge.ColumnSpan,
                 VerticalMerge = merge.VerticalMerge,
                 VerticalAlignment = style.VerticalAlignment,
@@ -405,6 +426,40 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             }
         };
     }
+
+    /// <summary>Whether the cells either side of a column boundary draw a line along it or differ in fill.</summary>
+    bool RuleBetween(Dictionary<int, S.Cell> cellsByColumn, TableStyles tableStyles, int rowIndex, int left, int right)
+    {
+        (CellBorders Borders, string? Fill) Look(int column)
+        {
+            var own = styles.Resolve(cellsByColumn.TryGetValue(column, out var cell) ? cell.StyleIndex?.Value ?? 0 : 0);
+            return tableStyles.IsEmpty || tableStyles.For(rowIndex, column) is not { } table
+                ? (own.Borders, own.BackgroundColorHex)
+                : (Under(own.Borders, table), OwnFill(own, table));
+        }
+
+        var (leftBorders, leftFill) = Look(left);
+        var (rightBorders, rightFill) = Look(right);
+        return leftBorders.Right.IsVisible ||
+               rightBorders.Left.IsVisible ||
+               !string.Equals(leftFill, rightFill, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>The cell's fill, or its table's where the cell keeps the Normal style's.</summary>
+    string? OwnFill(CellStyle style, TableStyleOverlay? table) =>
+        table?.BackgroundColorHex is { } stated && style.BackgroundColorHex == styles.Resolve(0).BackgroundColorHex
+            ? stated
+            : style.BackgroundColorHex;
+
+    /// <summary>The cell's own edges, with the table's where the cell draws none.</summary>
+    static CellBorders Under(CellBorders own, TableStyleOverlay table) =>
+        own with
+        {
+            Left = own.Left.IsVisible ? own.Left : table.Left ?? own.Left,
+            Right = own.Right.IsVisible ? own.Right : table.Right ?? own.Right,
+            Top = own.Top.IsVisible ? own.Top : table.Top ?? own.Top,
+            Bottom = own.Bottom.IsVisible ? own.Bottom : table.Bottom ?? own.Bottom
+        };
 
     /// <summary>The cell's numeric value, for the conditional rules that compare against one.</summary>
     static double? Number(S.Cell? cell)

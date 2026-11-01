@@ -253,7 +253,8 @@ public abstract class DocumentConverter
             document.FirstPageHeader,
             document.FirstPageFooter,
             document.EvenPageHeader,
-            document.EvenPageFooter);
+            document.EvenPageFooter,
+            bookmarks: document.Bookmarks);
     }
 
     // The page each paragraph starts on, read straight off the laid-out tree: a placed line is

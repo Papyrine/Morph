@@ -715,7 +715,8 @@ static class HtmlExporter
                     source.FirstPageHeader,
                     source.FirstPageFooter,
                     source.EvenPageHeader,
-                    source.EvenPageFooter);
+                    source.EvenPageFooter,
+                    bookmarks: source.Bookmarks);
                 foreach (var page in laidOut.Pages)
                 {
                     foreach (var item in page.Items)
@@ -1898,6 +1899,11 @@ static class HtmlExporter
             style.Append(textBox.HidesOverflow
                 ? $"height: {Length(textBox.HeightPoints)}; overflow: hidden; "
                 : $"min-height: {Length(textBox.HeightPoints)}; ");
+            if (textBox.VerticalAlignment != CellVerticalAlignment.Top)
+            {
+                style.Append($"display: flex; flex-direction: column; justify-content: {(textBox.VerticalAlignment == CellVerticalAlignment.Center ? "center" : "flex-end")}; ");
+            }
+
             if (Math.Abs(textBox.RotationDegrees) > 0.01)
             {
                 style.Append($"transform: rotate({Number(textBox.RotationDegrees)}deg); ");
@@ -3312,8 +3318,9 @@ static class HtmlExporter
 
             // A page-numbering field in a pageless export evaluates as a one-page document —
             // "Page 1 of 1" — rather than shipping whatever total the source cached ("Page 1 of
-            // 3", or a header reading "Page 2 of 2"). The reflow really is one page.
-            var text = run.PageField == PageFieldKind.None || pageFieldsPreEvaluated ? run.Text : "1";
+            // 3", or a header reading "Page 2 of 2"). The reflow really is one page. A PAGEREF keeps
+            // Word's number: a contents entry reading "1" for every heading says nothing.
+            var text = run.PageField is PageFieldKind.None or PageFieldKind.PageReference || pageFieldsPreEvaluated ? run.Text : "1";
 
             // AllCaps is handled by CSS (text-transform: uppercase) on the wrapping span — see
             // InlineStyle — so the source text stays intact rather than being eagerly uppercased.

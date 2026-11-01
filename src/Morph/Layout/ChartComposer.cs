@@ -1289,8 +1289,16 @@ sealed partial class ChartComposer(
         var widths = entries.Select(_ => keyWidth + keyGap + TextWidth(_.Text, style) + 2).ToList();
         var across = legend.Position is ChartLegendPosition.Top or ChartLegendPosition.Bottom;
 
+        // A legend down the side stands its entries apart by more than a line, and the plot off it by
+        // more than the chart's padding: chart_column_line's 10pt right legend, read off Word's XPS,
+        // keys its entries 18.1pt apart (1.48 of a 12.2pt line) and stands 15.7pt right of the plot,
+        // where they stood a line apart and 5.8pt off. PowerPoint's 12pt right legends do the same
+        // (chart-bar-column: 1.47 lines apart and 21pt off, against 12).
+        var pitch = across ? lineHeight : lineHeight * 1.48f;
+        var sideGap = across ? 0f : (float) style.SizePoints;
+
         var blockWidth = across ? widths.Sum() + entryGap * (entries.Count - 1) : widths.Max();
-        var blockHeight = across ? lineHeight : lineHeight * entries.Count;
+        var blockHeight = across ? lineHeight : pitch * (entries.Count - 1) + lineHeight;
 
         (float X, float Y, float Width, float Height) area;
         var remaining = inner;
@@ -1312,11 +1320,11 @@ sealed partial class ChartComposer(
                     break;
                 case ChartLegendPosition.Left:
                     area = (inner.X, inner.Y, blockWidth, inner.Height);
-                    remaining = (inner.X + blockWidth + padding, inner.Y, inner.Width - blockWidth - padding, inner.Height);
+                    remaining = (inner.X + blockWidth + padding + sideGap, inner.Y, inner.Width - blockWidth - padding - sideGap, inner.Height);
                     break;
                 default:
                     area = (inner.X + inner.Width - blockWidth, inner.Y, blockWidth, inner.Height);
-                    remaining = (inner.X, inner.Y, inner.Width - blockWidth - padding, inner.Height);
+                    remaining = (inner.X, inner.Y, inner.Width - blockWidth - padding - sideGap, inner.Height);
                     break;
             }
         }
@@ -1362,7 +1370,7 @@ sealed partial class ChartComposer(
             }
             else
             {
-                y += lineHeight;
+                y += pitch;
             }
         }
 

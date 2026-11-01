@@ -46,7 +46,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         HeaderFooterContent? firstPageFooter = null,
         HeaderFooterContent? evenPageHeader = null,
         HeaderFooterContent? evenPageFooter = null,
-        DocumentNotes? notes = null)
+        DocumentNotes? notes = null,
+        IReadOnlyList<Bookmark>? bookmarks = null)
     {
         var flow = new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes);
         var laidOut = flow.Run(elements);
@@ -56,7 +57,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Kept as the parser cached them, every one read the number Word last saved (_probe_chapter's
         // eleven body fields all read "9").
         if (!Flow.HasPageField(elements) ||
-            flow.BodyPageFieldTexts() is not {Count: > 0} texts)
+            flow.BodyPageFieldTexts(elements, bookmarks) is not {Count: > 0} texts)
         {
             return laidOut;
         }
@@ -132,10 +133,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         Separator,
         ContinuationSeparator,
         Line,
-        Spacing
+        Spacing,
+        Table
     }
 
-    sealed record NoteRow(NoteRowKind Kind, float Height, ParagraphElement? Paragraph = null, LaidOutLine Line = default, int LineIndex = 0);
+    sealed record NoteRow(NoteRowKind Kind, float Height, ParagraphElement? Paragraph = null, LaidOutLine Line = default, int LineIndex = 0, TableElement? Table = null);
 
     // One column's footnote area on the in-progress page.
     sealed class NoteArea
@@ -400,6 +402,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 foreach (var element in elements)
                 {
+                    // A table in a note stands in the area whole, as one row: it was left out, its
+                    // cells' text missing from the page.
+                    if (element is TableElement table)
+                    {
+                        if (NestedTableHeight(table, columnWidth) is var tableHeight and > 0)
+                        {
+                            rows.Add(new(NoteRowKind.Table, tableHeight, Table: table));
+                        }
+
+                        continue;
+                    }
+
                     if (element is not ParagraphElement paragraph)
                     {
                         continue;
@@ -473,7 +487,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             foreach (var row in NoteRows(ids[0]))
             {
                 total += row.Height;
-                if (row.Kind == NoteRowKind.Line)
+                if (row.Kind is NoteRowKind.Line or NoteRowKind.Table)
                 {
                     break;
                 }
@@ -540,7 +554,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 used += row.Height;
                 accepted++;
-                placedLine |= row.Kind == NoteRowKind.Line;
+                placedLine |= row.Kind is NoteRowKind.Line or NoteRowKind.Table;
             }
 
             area.Rows.AddRange(rows.Take(accepted));
@@ -723,6 +737,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             break;
                         case NoteRowKind.Line:
                             items.Add(NoteLine(row, left, top));
+                            break;
+                        case NoteRowKind.Table:
+                            items.AddRange(LayoutNestedTable(row.Table!, left, top, columnWidth).Items);
                             break;
                     }
 
@@ -2320,7 +2337,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 boxY,
                 boxWidth,
                 boxHeight,
-                CellVerticalAlignment.Top);
+                textBox.VerticalAlignment);
 
             // A fixed-size Word text box hides what falls below it: cards/02's code box holds an empty
             // 18pt paragraph and then the code, which lands wholly under the box and Word does not show.
@@ -5151,10 +5168,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, PageNumbering numbering, string? sectionFormat) =>
             MapPageFields(elements, _ => _.WithText(FieldText(_, numbering, sectionFormat)));
 
-        // What a page field reads on a page numbered `numbering`.
+        // What a page field reads on a page numbered `numbering`. A PAGEREF reads its bookmark's page,
+        // which only the body knows (BodyPageFieldTexts); elsewhere it keeps its cached result.
         static string FieldText(Run field, PageNumbering numbering, string? sectionFormat) =>
             field.PageField switch
             {
+                PageFieldKind.PageReference => field.Text,
                 PageFieldKind.NumberOfPages => PageNumberFormatting.Format(numbering.Total, field.PageFieldNumberFormat),
                 PageFieldKind.SectionPages => PageNumberFormatting.Format(numbering.SectionPages, field.PageFieldNumberFormat),
                 _ => numbering.PageText(field.PageFieldNumberFormat ?? sectionFormat)
@@ -5165,12 +5184,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // of the first in the document while none has come (PageSettings.ChapterStyle). Word-probed
         // (_probe_chapter, 2026-11-01): a field before a page's new chapter heading reads the previous
         // chapter and one after it the new one, on the same page.
-        public Dictionary<Run, string> BodyPageFieldTexts()
+        //
+        // A PAGEREF reads the page its bookmark's paragraph starts on, with that place's chapter, as a
+        // PAGE field there would: _probe_pageref's reference to a chapter heading on page 2 printed
+        // "2-2" where Word had cached "99". A table of contents is made of them, so its numbers follow
+        // the layout. A bookmark the layout did not place leaves the field as Word cached it.
+        public Dictionary<Run, string> BodyPageFieldTexts(IReadOnlyList<DocumentElement> elements, IReadOnlyList<Bookmark>? bookmarks)
         {
             var numbering = PageNumbers();
             var texts = new Dictionary<Run, string>(ReferenceEqualityComparer.Instance);
             var reached = new Dictionary<int, string>();
             var firsts = new Dictionary<int, string?>();
+            var landed = new Dictionary<ParagraphElement, (int Page, string? Chapter)>(ReferenceEqualityComparer.Instance);
+            var references = new List<Run>();
             for (var index = 0; index < bodies.Count; index++)
             {
                 var (items, settings, _, _) = bodies[index];
@@ -5184,6 +5210,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         reached[headingLevel] = number;
                     }
 
+                    string? chapter = null;
+                    if (settings.ChapterStyle is { } level)
+                    {
+                        if (!firsts.TryGetValue(level, out var first))
+                        {
+                            first = ChapterHeadings(bodies.Select(_ => _.Items), level) is {Count: > 0} headings ? headings[0].Number : null;
+                            firsts[level] = first;
+                        }
+
+                        chapter = reached.GetValueOrDefault(level) ?? first;
+                    }
+
+                    landed.TryAdd(paragraph, (index, chapter));
                     foreach (var run in paragraph.Runs)
                     {
                         if (run.PageField == PageFieldKind.None ||
@@ -5192,19 +5231,39 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             continue;
                         }
 
-                        string? chapter = null;
-                        if (settings.ChapterStyle is { } level)
+                        if (run.PageField == PageFieldKind.PageReference)
                         {
-                            if (!firsts.TryGetValue(level, out var first))
-                            {
-                                first = ChapterHeadings(bodies.Select(_ => _.Items), level) is {Count: > 0} headings ? headings[0].Number : null;
-                                firsts[level] = first;
-                            }
-
-                            chapter = reached.GetValueOrDefault(level) ?? first;
+                            references.Add(run);
+                            continue;
                         }
 
                         texts[run] = FieldText(run, numbering[index] with {Chapter = chapter}, settings.PageNumberFormat);
+                    }
+                }
+            }
+
+            if (references.Count > 0 &&
+                bookmarks is {Count: > 0})
+            {
+                var paragraphs = DocumentConverter.Flatten(elements).ToList();
+                var marked = new Dictionary<string, ParagraphElement>(StringComparer.Ordinal);
+                foreach (var bookmark in bookmarks)
+                {
+                    if (bookmark.ParagraphIndex is { } paragraphIndex &&
+                        paragraphIndex >= 0 &&
+                        paragraphIndex < paragraphs.Count)
+                    {
+                        marked.TryAdd(bookmark.Name, paragraphs[paragraphIndex]);
+                    }
+                }
+
+                foreach (var run in references)
+                {
+                    if (run.PageFieldBookmark is { } name &&
+                        marked.TryGetValue(name, out var target) &&
+                        landed.TryGetValue(target, out var place))
+                    {
+                        texts[run] = (numbering[place.Page] with {Chapter = place.Chapter}).PageText(run.PageFieldNumberFormat ?? bodies[place.Page].Settings.PageNumberFormat);
                     }
                 }
             }
@@ -5410,7 +5469,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         items.Add(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape));
                     }
 
-                    var content = LayoutCellContent(new() {Content = textBox.Content}, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Top);
+                    var content = LayoutCellContent(new() {Content = textBox.Content}, boxX, boxY, boxWidth, boxHeight, textBox.VerticalAlignment);
                     if (textBox.HidesOverflow)
                     {
                         content = [.. content.Where(_ => _.Y < boxY + boxHeight)];

@@ -66,6 +66,16 @@ public abstract record ExportOptions
     public CultureInfo Culture { get; init; } = CultureInfo.InvariantCulture;
 
     /// <summary>
+    /// The moment a workbook is printed at: what a sheet's header and footer show for Excel's
+    /// <c>&amp;D</c> and <c>&amp;T</c> codes, in <see cref="Culture"/>'s short date and short time.
+    ///
+    /// When <c>null</c> it is the moment of the conversion, as Excel prints the moment of printing,
+    /// which makes such a header depend on when the render runs. Pin it for output that has to be
+    /// reproducible.
+    /// </summary>
+    public DateTime? PrintTime { get; init; }
+
+    /// <summary>
     /// Whether a Word document's comments are shown. Off by default, which leaves them out of every
     /// format.
     /// <para>

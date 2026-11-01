@@ -30,6 +30,12 @@ static class ScenarioInputs
     /// </summary>
     public static CultureInfo Culture { get; } = WindowsAustralian();
 
+    /// <summary>
+    /// The day the corpus's one dated sheet footer was printed in Excel: simple-list's reference reads
+    /// "Printed on 10/08/2026".
+    /// </summary>
+    public static DateTime PrintTime { get; } = new(2026, 8, 10, 9, 0, 0);
+
     static CultureInfo WindowsAustralian()
     {
         var culture = (CultureInfo) CultureInfo.GetCultureInfo("en-AU").Clone();

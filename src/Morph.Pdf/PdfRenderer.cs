@@ -27,7 +27,8 @@ static class PdfRenderer
                 document.FirstPageFooter,
                 document.EvenPageHeader,
                 document.EvenPageFooter,
-                DocumentNotes.From(document))
+                DocumentNotes.From(document),
+                document.Bookmarks)
             .WithComments(document, measurer, options.ShowComments);
         cancel.ThrowIfCancellationRequested();
 
