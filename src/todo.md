@@ -58,10 +58,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
   not be asked: reference generation needs a printer driver and this machine had none
   ("No printers are installed"). Render the fixture again before building the strip rule on it.
 
-### Word-reference (`expected_*.png`) anomalies worth re-checking rather than "fixing"
-
-- **#32** `newsletters/12` draws an olive stripe Word hides — verify against the DOCX before treating Word as wrong.
-
 ---
 
 ## Per-scenario findings
