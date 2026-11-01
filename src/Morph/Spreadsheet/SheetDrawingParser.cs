@@ -348,6 +348,33 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
     /// from one cell offset to another; a one-cell anchor pins its top-left and carries its own
     /// extent; an absolute anchor is already in EMU from the sheet origin.
     /// </summary>
+    /// <summary>
+    /// Whether a printed drawing of the sheet starts between <paramref name="fromPoints"/> and
+    /// <paramref name="toPoints"/> across the print area's grid — what keeps a page strip holding no
+    /// value from being skipped. A drawing reaching into the strip from one before does not:
+    /// to-do-list's chart runs on into column L, and Excel prints no page for L and M.
+    /// </summary>
+    public static bool AnyStartsIn(WorksheetPart worksheetPart, SheetGeometry geometry, double scale, double fromPoints, double toPoints)
+    {
+        if (worksheetPart.DrawingsPart?.WorksheetDrawing is not { } root)
+        {
+            return false;
+        }
+
+        foreach (var anchor in root.ChildElements)
+        {
+            if (anchor.GetFirstChild<XDR.ClientData>()?.PrintWithSheet?.Value != false &&
+                Rectangle(anchor, geometry, scale) is { } box &&
+                box.X >= fromPoints &&
+                box.X < toPoints)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     static DrawingBox? Rectangle(OpenXmlElement anchor, SheetGeometry geometry, double scale)
     {
         var from = anchor.GetFirstChild<XDR.FromMarker>();

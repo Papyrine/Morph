@@ -4,16 +4,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4029,
-      "Ssim": 0.6607,
+      "ErrorMetric": 0.2958,
+      "Ssim": 0.6819,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "imagesharp_result#page_0001.verified.png",
       "ReceivedFile": "imagesharp_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1586,
-      "Ssim": 0.9116,
+      "ErrorMetric": 0.1246,
+      "Ssim": 0.9187,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "imagesharp_result#page_0002.verified.png",
       "ReceivedFile": "imagesharp_result#page_0002.received.png"

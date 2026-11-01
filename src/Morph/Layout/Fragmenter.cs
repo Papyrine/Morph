@@ -2353,9 +2353,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             for (var pageIndex = firstPage; pageIndex <= bodies.Count; pageIndex++)
             {
                 var pageItems = pageIndex < bodies.Count ? bodies[pageIndex].Items : items;
-                var pageWidth = (float) (pageIndex < bodies.Count ? bodies[pageIndex].Settings : current).WidthPoints;
                 var top = float.MaxValue;
                 var bottom = float.MinValue;
+                var left = float.MaxValue;
+                var right = float.MinValue;
                 foreach (var item in pageItems)
                 {
                     if (item is PlacedTableRow {IsRepeatedHeader: false} row &&
@@ -2363,6 +2364,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         top = Math.Min(top, row.Y);
                         bottom = Math.Max(bottom, row.Y + row.Height);
+                        left = Math.Min(left, row.X);
+                        right = Math.Max(right, row.X + row.Width);
                     }
                 }
 
@@ -2383,8 +2386,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         continue;
                     }
 
+                    // Clipped to the print area's columns as well as the page's rows: to-do-list's
+                    // chart and progress bar run past column M, its last, and Excel cuts them there
+                    if (item.X + item.Width + reach < left || item.X - reach > right)
+                    {
+                        continue;
+                    }
+
                     var moved = shift == 0 ? item : ShiftItem(item, shift);
-                    bodyFloats.Add((pageIndex, new PlacedClipGroup(0, top, pageWidth, bottom - top, [moved]), behind, order));
+                    bodyFloats.Add((pageIndex, new PlacedClipGroup(left, top, right - left, bottom - top, [moved]), behind, order));
                 }
 
                 shown += bottom - top;

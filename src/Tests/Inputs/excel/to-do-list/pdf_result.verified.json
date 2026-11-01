@@ -11,7 +11,7 @@
           "Width": 841.8900146484375,
           "Height": 595.280029296875
         },
-        "Text": "TO-DO LIST\nTASK LIST TODAY'S PROGRESS\nCATEGORY DESCRIPTION DUE DATE PRIORITY STATUS 33%\nFamily Buy a gift for Mom's birthday 7/16 High Completed\nPersonal Return borrowed book 7/16 Medium Pending TASK SUMMARY\nWork Team meeting 7/16 Medium Pending\nWork Submit report 7/17 Medium Pending\nPersonal Gym session 7/17 Medium Pending\nPersonal Mom's birthday 7/23 High Pending\n0 1 2 3 4\nTomorrow\nToday\nThis Week"
+        "Text": "TO-DO LIST\nTASK LIST TODAY'S PROGRESS\nCATEGORY DESCRIPTION DUE DATE PRIORITY STATUS 33%\nFamily Buy a gift for Mom's birthday 7/16 High Completed\nPersonal Return borrowed book 7/16 Medium Pending TASK SUMMARY\nWork Team meeting 7/16 Medium Pending\nWork Submit report 7/17 Medium Pending\nPersonal Gym session 7/17 Medium Pending\nPersonal Mom's birthday 7/23 High Pending\n0 1 2\nTomorrow\nToday\nThis Week"
       },
       {
         "Number": 2,
@@ -19,23 +19,23 @@
           "Width": 841.8900146484375,
           "Height": 595.280029296875
         },
-        "Text": "0 1 2 3 4 5 6\nNext Week\nThis Week"
+        "Text": "0 1 2 3 4\nNext Week\nThis Week"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.4007,
-      "Ssim": 0.6657,
+      "ErrorMetric": 0.2906,
+      "Ssim": 0.6874,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1533,
-      "Ssim": 0.9123,
+      "ErrorMetric": 0.1177,
+      "Ssim": 0.9194,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

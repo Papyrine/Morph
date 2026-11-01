@@ -545,10 +545,36 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     }
 
     /// <summary>
+    /// Whether the cell prints something of its own: a formula, a number, or text that is not all
+    /// white space. to-do-list's M1 holds a single space, and Excel prints no page for it.
+    /// </summary>
+    public bool ShowsValue(S.Cell cell)
+    {
+        if (cell.CellFormula != null)
+        {
+            return true;
+        }
+
+        if (cell.InlineString != null)
+        {
+            return !string.IsNullOrWhiteSpace(SharedStrings.Flatten(cell.InlineString));
+        }
+
+        if (cell.CellValue?.Text is not {Length: > 0} raw)
+        {
+            return false;
+        }
+
+        return cell.DataType?.Value != S.CellValues.SharedString ||
+               !int.TryParse(raw, out var index) ||
+               !string.IsNullOrWhiteSpace(sharedStrings.Get(index));
+    }
+
+    /// <summary>
     /// Column widths in points, from the <c>cols</c> runs. Each <c>col</c> covers an inclusive
     /// <c>min..max</c> span rather than a single column, so the runs are expanded across the range.
     /// </summary>
-    double[] ColumnWidths(S.Worksheet worksheet, SheetRange range, double scale)
+    public double[] ColumnWidths(S.Worksheet worksheet, SheetRange range, double scale)
     {
         var declared = worksheet.GetFirstChild<S.Columns>()?.Elements<S.Column>().ToArray() ?? [];
         var fallback = worksheet.SheetFormatProperties?.DefaultColumnWidth?.Value ?? defaultColumnWidthChars;

@@ -37,24 +37,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 
 - **#25 (HTML) Anchored/floating objects** — the linearization closed 2026-08-07: wrap-none floats and cell-anchored art place absolutely against their anchor's place in the flow, and no export exceeds 2x Word's page height (median 0.75). Still open, and inherent rather than a placement bug: a page-RELATIVE float approximates its page top by the anchor's flow position, so a fixed-layout multi-panel document still overlaps where Word separates by page — `brochures/03` is the case, its whole design living in two anchored groups of 29 pictures positioned per page. Closing that needs the export to paginate, which it deliberately does not.
 
-### Spreadsheet input (`Inputs/excel`)
-
-- **#36 Sheet drawings follow their rows since 2026-10-11** (`Fragmenter.PlaceSheetUnderFloats`: each
-  page gets the drawings shifted to its own rows and clipped to them, and a drawing marked
-  `fPrintsWithSheet="0"` stays off the page). Still open on the same pages: a drawing is clipped to its page's rows
-  but not to its columns, which only matters once #39 lands. A sheet's `headerFooter` prints since
-  2026-10-30 (`SheetHeaderFooter`), its `&D`/`&T` as `ExportOptions.PrintTime` since 2026-11-01.
-- **#39 No horizontal pagination.** A sheet wider than the page is scaled down rather than split into
-  left/right page strips. `to-do-list` spans A:Q asking for no `fitToPage`, so Excel prints two strips
-  and the render prints the left one and breaks vertically instead — landing on the right page count
-  for the wrong reason, with a near-empty second page (allow-listed in `BaselineHealthTests`).
-  Re-read 2026-10-11 and NOT settled: the committed `expected_0002.png` shows the rows BELOW page
-  one's (the list's empty rows and the lower half of the Task Summary chart, cut at the same right
-  edge), which is a second page down the left strip rather than the right strip, and the workbook
-  declares a print area of `$A:$M`. Whether Excel prints further strips after those two pages could
-  not be asked: reference generation needs a printer driver and this machine had none
-  ("No printers are installed"). Render the fixture again before building the strip rule on it.
-
 ---
 
 ## Per-scenario findings
