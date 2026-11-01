@@ -37,7 +37,6 @@ These patterns repeat across many scenarios; fixing one clears whole families of
 ### HTML export
 
 - **#25 (HTML) Anchored/floating objects** — the linearization closed 2026-08-07: wrap-none floats and cell-anchored art place absolutely against their anchor's place in the flow, and no export exceeds 2x Word's page height (median 0.75). Still open, and inherent rather than a placement bug: a page-RELATIVE float approximates its page top by the anchor's flow position, so a fixed-layout multi-panel document still overlaps where Word separates by page — `brochures/03` is the case, its whole design living in two anchored groups of 29 pictures positioned per page. Closing that needs the export to paginate, which it deliberately does not.
-- **#31 HTML/AltChunk input gaps** — what landed, and the probes behind it, are in `docs/html-import.md` (cell alignment, row heights, a cell's block children and the loose text beside them since 2026-11-01). Still open: cell padding composes slightly tighter than Word, and a cell paragraph's after-spacing is not flat (`html_table`; the `_probe_cellpad_sweep` data is in `docs/html-import.md`, Known gaps).
 
 ### Spreadsheet input (`Inputs/excel`)
 

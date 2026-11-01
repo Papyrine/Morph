@@ -65,8 +65,10 @@ sealed class HtmlParser
     // HTML's defaults for them, 1px and 2px, it does (ParseTable).
     const double tableAttributePixelsToPoints = 0.6;
 
-    // The space under a cell's own paragraph (see ParseTable).
+    // The space under a cell's own paragraph, and its line (see ParseTable): Word's own Normal, 8pt
+    // after on a 278/240 auto line.
     const double cellParagraphAfter = 8;
+    const double cellParagraphLine = 278.0 / 240;
 
     // The grey Word rules a legacy border="n" table with. Measured off a Word probe at 150 DPI:
     // each rule lays 120 units of ink over two anti-aliased pixel rows, which at 0.75pt is a solid
@@ -1857,16 +1859,19 @@ sealed class HtmlParser
                     cellElements.Add(
                         new ParagraphElement
                         {
-                            // A cell's own paragraph is set on a 1.15 line with 8pt after it. Read off
-                            // Word's XPS (_probe_cellsize, cellpadding 0): two lines broken by <br> stand
-                            // 16.92pt apart, 1.15 of Calibri's 14.65pt line, and every cell holds 8.0 to
-                            // 8.3pt more than its lines at 12, 24 and 36pt text and at two lines alike
-                            // — space after the paragraph, not a taller line. (A row whose bottom margin
-                            // a cell's CSS margin deepens takes it out of that, below.)
+                            // A cell's own paragraph is Word's Normal: a 278/240 line with 8pt after it.
+                            // Read off Word's XPS (_probe_cellsize, cellpadding 0): every cell holds 8.0
+                            // to 8.3pt more than its lines at 12, 24 and 36pt text and at two lines alike
+                            // — space after the paragraph, not a taller line. The line was taken for 1.15
+                            // until _probe_cellpitch (2026-11-01, eight-row borderless tables of Aptos at
+                            // 12, 24 and 48pt) stood its rows 24.96, 41.96 and 75.89pt apart: 8pt and
+                            // 1.414 of the size, which is Aptos's 1.2207 line at 278/240 to 0.02pt, where
+                            // 1.15 fell 0.75% short at every size. (A row whose bottom margin a cell's
+                            // CSS margin deepens takes it out of that, below.)
                             Properties = new()
                             {
                                 Alignment = blockAlignment ?? TextAlignment.Left,
-                                LineSpacingMultiplier = isBodyParagraph ? 1.0 : 1.15,
+                                LineSpacingMultiplier = isBodyParagraph ? 1.0 : cellParagraphLine,
                                 // A <p>'s 14pt auto spacing stands over the 8pt of loose text before
                                 // it: 47.8pt between baselines there, against 41.8 the other way round
                                 // (_probe_cellmixed at 24pt)
