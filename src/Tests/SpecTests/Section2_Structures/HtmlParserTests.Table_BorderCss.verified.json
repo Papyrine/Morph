@@ -92,6 +92,7 @@
                 "HasAnyBorder": false
               },
               "GridSpan": 1,
+              "VerticalAlignment": "Center",
               "HideMark": false,
               "NoWrap": false,
               "SingleLine": false,

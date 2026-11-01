@@ -96,7 +96,7 @@ sealed class CellStyles
     /// A SpreadsheetML colour, which may be a literal ARGB, a theme index with a tint, or one of the
     /// legacy indexed palette entries.
     /// </summary>
-    string? Resolve(S.ColorType? color)
+    public string? Resolve(S.ColorType? color)
     {
         if (color == null)
         {
@@ -158,8 +158,10 @@ sealed class CellStyles
         };
 
     /// <summary>
-    /// Lightens (positive) or darkens (negative) a colour by Excel's tint rule, which works on
-    /// luminance rather than on the channels directly.
+    /// Lightens (positive) or darkens (negative) a colour by Excel's tint rule (ECMA-376 §18.8.19),
+    /// which moves the colour's HSL luminance and keeps its hue and saturation. Scaling the channels
+    /// instead greyed a pale tint as it darkened: back-to-school-planner's rules are its theme's
+    /// lt2, FCF7F3, darkened 50%, which Excel prints orange-brown and the channels made 7E7C7A.
     /// </summary>
     static string? ApplyTint(string? hex, double tint)
     {
@@ -168,21 +170,40 @@ sealed class CellStyles
             return hex;
         }
 
-        var r = Convert.ToInt32(hex[..2], 16);
-        var g = Convert.ToInt32(hex[2..4], 16);
-        var b = Convert.ToInt32(hex[4..], 16);
+        var red = Convert.ToInt32(hex[..2], 16) / 255.0;
+        var green = Convert.ToInt32(hex[2..4], 16) / 255.0;
+        var blue = Convert.ToInt32(hex[4..], 16) / 255.0;
 
-        int Apply(int channel)
+        var max = Math.Max(red, Math.Max(green, blue));
+        var min = Math.Min(red, Math.Min(green, blue));
+        var luminance = (max + min) / 2;
+        var chroma = max - min;
+        var saturation = chroma == 0 ? 0 : chroma / (1 - Math.Abs(2 * luminance - 1));
+        var hue = chroma == 0
+            ? 0
+            : max == red
+                ? (green - blue) / chroma % 6
+                : max == green
+                    ? (blue - red) / chroma + 2
+                    : (red - green) / chroma + 4;
+
+        luminance = tint < 0 ? luminance * (1 + tint) : luminance * (1 - tint) + tint;
+
+        var span = (1 - Math.Abs(2 * luminance - 1)) * saturation;
+        var second = span * (1 - Math.Abs((hue + 6) % 6 % 2 - 1));
+        var (first, middle, last) = ((hue + 6) % 6) switch
         {
-            if (tint < 0)
-            {
-                return (int) Math.Round(channel * (1 + tint));
-            }
+            < 1 => (span, second, 0.0),
+            < 2 => (second, span, 0.0),
+            < 3 => (0.0, span, second),
+            < 4 => (0.0, second, span),
+            < 5 => (second, 0.0, span),
+            _ => (span, 0.0, second)
+        };
+        var offset = luminance - span / 2;
 
-            return (int) Math.Round(channel * (1 - tint) + 255 * tint);
-        }
-
-        return $"{Apply(r):X2}{Apply(g):X2}{Apply(b):X2}";
+        static int Channel(double value) => (int) Math.Round(Math.Clamp(value, 0, 1) * 255);
+        return $"{Channel(first + offset):X2}{Channel(middle + offset):X2}{Channel(last + offset):X2}";
     }
 
     string? ResolveFill(S.Fill? fill)
@@ -213,7 +234,7 @@ sealed class CellStyles
             Bottom = Edge(border?.BottomBorder)
         };
 
-    BorderEdge Edge(S.BorderPropertiesType? edge)
+    public BorderEdge Edge(S.BorderPropertiesType? edge)
     {
         var style = edge?.Style?.Value;
         if (style == null || style == S.BorderStyleValues.None)

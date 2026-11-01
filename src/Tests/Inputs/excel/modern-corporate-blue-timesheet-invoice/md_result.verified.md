@@ -12,7 +12,7 @@
 |  | Phone |  |  | Phone |  |
 |  | Email |  |  | Email |  |
 |  |  |  |  |  |  |
-|  | DESCRIPTION | HOURS | RATE | AMOUNT |  |
+|  | **DESCRIPTION** | **HOURS** | **RATE** | **AMOUNT** |  |
 |  | Strategy Consulting | 50 | $500.00 | $25,000.00 |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |

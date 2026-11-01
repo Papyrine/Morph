@@ -17,7 +17,7 @@
 |  | Email |  |  |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | DESCRIPTION | HOURS | PRICE | AMOUNT |  |
+|  | **DESCRIPTION** | **HOURS** | **PRICE** | **AMOUNT** |  |
 |  | Consultation | 1 | $500.00 | $500.00 |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |

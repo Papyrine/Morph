@@ -7,7 +7,7 @@
 |  | TO BE COMPLETED BY |  | **Iris Lepik** |  |  |  |  |  |  |  |
 |  | DEADLINE |  | **01/31/20XX** |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
-|  | % Done | Phase | Due By | Notes |  |  |  |  |  |  |
+|  | **% Done** | **Phase** | **Due By** | **Notes** |  |  |  |  |  |  |
 |  | **100%** | Planning | 10-Dec | Research local contractors |  |  |  |  |  |  |
 |  | **100%** | Preparation | 10-Jan | Select winning bid |  |  |  |  |  |  |
 |  | **100%** | Task a | 12-Jan | Consult |  |  |  |  |  |  |
@@ -30,7 +30,7 @@
 |  | TO BE COMPLETED BY |  | **Iris Lepik** |  |  |  |
 |  | DEADLINE |  | **01/31/20XX** |  |  |  |
 |  |  |  |  |  |  |  |
-|  | % Done | Phase | Due By | Notes |  |  |
+|  | **% Done** | **Phase** | **Due By** | **Notes** |  |  |
 |  | **100%** | Planning |  |  |  |  |
 |  | **100%** | Preparation |  |  |  |  |
 |  | **75%** | Task a |  |  |  |  |
@@ -53,7 +53,7 @@
 |  | TO BE COMPLETED BY |  | **Iris Lepik** |  |  |
 |  | DEADLINE |  | **01/31/20XX** |  |  |
 |  |  |  |  |  |  |
-|  | % Done | Phase | Due By | Notes |  |
+|  | **% Done** | **Phase** | **Due By** | **Notes** |  |
 |  | **100%** | Planning |  |  |  |
 |  | **100%** | Preparation |  |  |  |
 |  | **75%** | Task a |  |  |  |

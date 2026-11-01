@@ -1574,10 +1574,27 @@ sealed class HtmlParser
             // color: ..."> is how HTML tables paint header fills and zebra striping.
             string? rowBackgroundColor = null;
             string? rowTextColor = null;
+
+            // A cell stands its text where its own vertical-align or valign says, else where its row's
+            // does, else in the middle, as a browser does: Word's import keeps all three
+            // (_probe_valign, 2026-11-01, beside a six-line cell — "baseline" stands at the top). A row
+            // is at least as tall as a height on it or on any of its cells, a CSS one at 0.75pt a
+            // pixel and the attribute at the table attributes' 0.6 (_probe_rowheight2: a cell's fill
+            // stood 76.3 and 226.6pt at 100 and 300px through `style`, 61.4 and 181.4pt through
+            // `height`). The fill is the height and 1.3pt more, where the engine sets the spacing's
+            // gaps inside a row: the row is the height and four of the half-spacings Word keeps.
+            var rowVerticalAlignment = VerticalAlignmentOf(tr.GetAttribute("valign"));
+            var rowHeight = AttributeHeight(tr);
             var rowStyleAttribute = tr.GetAttribute("style");
             if (!string.IsNullOrEmpty(rowStyleAttribute))
             {
                 var rowStyles = ParseStyleAttribute(rowStyleAttribute);
+                if (rowStyles.TryGetValue("vertical-align", out var rowAlign))
+                {
+                    rowVerticalAlignment = VerticalAlignmentOf(rowAlign) ?? rowVerticalAlignment;
+                }
+
+                rowHeight = Taller(rowHeight, CssHeight(rowStyles));
                 if (rowStyles.TryGetValue("background-color", out var rowBg))
                 {
                     rowBackgroundColor = NormalizeColor(rowBg);
@@ -1619,6 +1636,8 @@ sealed class HtmlParser
                 var cellBgColor = rowBackgroundColor;
                 var cellTextColor = rowTextColor;
                 TextAlignment? cellAlignment = null;
+                var cellVerticalAlignment = VerticalAlignmentOf(cell.GetAttribute("valign"));
+                rowHeight = Taller(rowHeight, AttributeHeight(cell));
                 double? cellWidthPoints = null;
                 double? cellWidthFraction = null;
                 var cellStyle = cell.GetAttribute("style");
@@ -1673,6 +1692,13 @@ sealed class HtmlParser
                     {
                         cellTextColor = NormalizeColor(fg);
                     }
+
+                    if (cellStyles.TryGetValue("vertical-align", out var verticalAlign))
+                    {
+                        cellVerticalAlignment = VerticalAlignmentOf(verticalAlign) ?? cellVerticalAlignment;
+                    }
+
+                    rowHeight = Taller(rowHeight, CssHeight(cellStyles));
 
                     if (cellStyles.TryGetValue("text-align", out var textAlign))
                     {
@@ -1787,14 +1813,47 @@ sealed class HtmlParser
                     cellRunProperties = ApplyStyleToRunProps(string.Join(';', runStyles), cellRunProperties);
                 }
 
-                // The cell's inline content keeps its own formatting (<b>, <i>, <span style>...)
-                // layered over the cell's run properties, rather than flattening to one run.
-                var cellRuns = ParseInlineElements(cell, cellRunProperties);
-                if (cellRuns.Any(_ =>
-                        _.InlineImageData != null ||
-                        _.InlineShapeGroup != null ||
-                        !string.IsNullOrWhiteSpace(_.Text)))
+                // A cell made of <p>s and <div>s is a paragraph to each (_probe_cellblocks, 2026-11-01, at
+                // 24pt): a <div> is a cell paragraph as the cell's own text is, and a <p> a body one, in
+                // the body's Times New Roman on a single line with its 14pt after — except the last's,
+                // as Word's auto spacing stops at the cell's edge (two <p>s: a 69.1pt cell, 41.67pt
+                // between baselines; two <div>s: 83.5pt and 42.0). Anything else in the cell is one
+                // paragraph, as before.
+                var blocks = CellBlocks(cell);
+                for (var blockIndex = 0; blockIndex < blocks.Count; blockIndex++)
                 {
+                    var block = blocks[blockIndex];
+                    var isBodyParagraph = block != cell &&
+                                          block.TagName.Equals("p", StringComparison.OrdinalIgnoreCase);
+                    var blockAlignment = cellAlignment;
+                    if (block != cell &&
+                        block.GetAttribute("style") is {Length: > 0} blockStyle &&
+                        ParseStyleAttribute(blockStyle).TryGetValue("text-align", out var blockTextAlign))
+                    {
+                        blockAlignment = blockTextAlign.ToLowerInvariant() switch
+                        {
+                            "center" => TextAlignment.Center,
+                            "right" => TextAlignment.Right,
+                            "justify" => TextAlignment.Justify,
+                            _ => TextAlignment.Left
+                        };
+                    }
+
+                    var blockRunProperties = isBodyParagraph && cellRunProperties.FontFamily == containerFontFamily
+                        ? cellRunProperties with {FontFamily = defaultFontFamily}
+                        : cellRunProperties;
+
+                    // The cell's inline content keeps its own formatting (<b>, <i>, <span style>...)
+                    // layered over the cell's run properties, rather than flattening to one run.
+                    var cellRuns = ParseInlineElements(block, blockRunProperties);
+                    if (!cellRuns.Any(_ =>
+                            _.InlineImageData != null ||
+                            _.InlineShapeGroup != null ||
+                            !string.IsNullOrWhiteSpace(_.Text)))
+                    {
+                        continue;
+                    }
+
                     cellElements.Add(
                         new ParagraphElement
                         {
@@ -1806,9 +1865,11 @@ sealed class HtmlParser
                             // a cell's CSS margin deepens takes it out of that, below.)
                             Properties = new()
                             {
-                                Alignment = cellAlignment ?? TextAlignment.Left,
-                                LineSpacingMultiplier = 1.15,
-                                SpacingAfterPoints = cellParagraphAfter
+                                Alignment = blockAlignment ?? TextAlignment.Left,
+                                LineSpacingMultiplier = isBodyParagraph ? 1.0 : 1.15,
+                                SpacingAfterPoints = isBodyParagraph
+                                    ? blockIndex == blocks.Count - 1 ? 0 : 14
+                                    : cellParagraphAfter
                             },
                             Runs = cellRuns
                         });
@@ -1826,7 +1887,8 @@ sealed class HtmlParser
                             VerticalMerge = verticalMerge,
                             WidthPoints = cellWidthPoints,
                             WidthFraction = cellWidthFraction,
-                            Borders = cellCssBorders ?? cellBoxBorders ?? frameOnlyCellBorders
+                            Borders = cellCssBorders ?? cellBoxBorders ?? frameOnlyCellBorders,
+                            VerticalAlignment = cellVerticalAlignment ?? rowVerticalAlignment ?? CellVerticalAlignment.Center
                         }
                     });
 
@@ -1899,7 +1961,8 @@ sealed class HtmlParser
                 rows.Add(
                     new()
                     {
-                        Cells = cells
+                        Cells = cells,
+                        HeightPoints = rowHeight + 2 * cellSpacingPixels * (cellSpacingDeclared ? tableAttributePixelsToPoints : pixelsToPoints)
                     });
                 firstRow = false;
             }
@@ -2478,6 +2541,57 @@ sealed class HtmlParser
     // px. Word sizes a `width: 400px` table at 300pt — measured at 623px against 625 predicted at
     // 150 DPI. Unlike TryParseCssDimension (which reads px as pt), so use this only where the value
     // is a genuine CSS length whose px→pt scaling has been Word-confirmed.
+    /// <summary>
+    /// The blocks a cell's paragraphs come from: its <c>&lt;p&gt;</c> and <c>&lt;div&gt;</c> children
+    /// when it holds nothing else but white space, otherwise the cell itself.
+    /// </summary>
+    static List<IElement> CellBlocks(IElement cell)
+    {
+        List<IElement> blocks = [];
+        foreach (var node in cell.ChildNodes)
+        {
+            if (node is IElement element &&
+                (element.TagName.Equals("p", StringComparison.OrdinalIgnoreCase) ||
+                 element.TagName.Equals("div", StringComparison.OrdinalIgnoreCase)))
+            {
+                blocks.Add(element);
+            }
+            else if (node is IElement ||
+                     !string.IsNullOrWhiteSpace(node.TextContent))
+            {
+                return [cell];
+            }
+        }
+
+        return blocks.Count > 0 ? blocks : [cell];
+    }
+
+    static CellVerticalAlignment? VerticalAlignmentOf(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            null or "" => null,
+            "middle" or "center" => CellVerticalAlignment.Center,
+            "bottom" => CellVerticalAlignment.Bottom,
+            _ => CellVerticalAlignment.Top
+        };
+
+    static double? AttributeHeight(IElement element) =>
+        element.GetAttribute("height") is { } attribute &&
+        double.TryParse(attribute.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var pixels) &&
+        pixels > 0
+            ? pixels * tableAttributePixelsToPoints
+            : null;
+
+    static double? CssHeight(Dictionary<string, string> styles) =>
+        styles.TryGetValue("height", out var height) &&
+        TryParseCssLengthToPoints(height.Trim(), out var points) &&
+        points > 0
+            ? points
+            : null;
+
+    static double? Taller(double? first, double? second) =>
+        first is { } one && second is { } two ? Math.Max(one, two) : first ?? second;
+
     static bool TryParseCssLengthToPoints(CharSpan value, out double points)
     {
         var span = value.Trim();

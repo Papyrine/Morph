@@ -583,7 +583,7 @@ static class MarkdownExporter
             // where a real newline would end the block — render it as an inline <br> (HtmlBreaks).
             // A page-numbering field evaluates as a one-page document ("Page 1 of 1") rather than
             // shipping the source's cached total — mirroring the HTML export.
-            var raw = run.PageField == PageFieldKind.None || pageFieldsPreEvaluated ? run.Text : "1";
+            var raw = run.PageField is PageFieldKind.None or PageFieldKind.PageReference || pageFieldsPreEvaluated ? run.Text : "1";
 
             var leadingLength = LeadingWhitespaceLength(raw);
             var trailingLength = TrailingWhitespaceLength(raw, leadingLength);

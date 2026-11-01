@@ -14,10 +14,10 @@
 |  | Address |  | Address |  |  |
 |  | Phone |  | Phone |  |  |
 |  |  |  |  |  |  |
-|  | SHIP DATE | SHIP VIA | TOTAL PACKAGES | TOTAL WEIGHT |  |
+|  | **SHIP DATE** | **SHIP VIA** | **TOTAL PACKAGES** | **TOTAL WEIGHT** |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | DESCRIPTION | QUANTITY | UNIT PRICE | AMOUNT |  |
+|  | **DESCRIPTION** | **QUANTITY** | **UNIT PRICE** | **AMOUNT** |  |
 |  | Item 1 description | 1 | $150.00 | $150.00 |  |
 |  | Item 2 description | 2 | $40.00 | $80.00 |  |
 |  |  |  |  |  |  |

@@ -6,7 +6,7 @@
 
 |  | √ | Check register |  |  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  | Number | Date | Description of transaction | Clear | Debit   (-) | Credit (+) | Balance |  |
+|  |  | **Number** | **Date** | **Description of transaction** | **Clear** | **Debit   (-)** | **Credit (+)** | **Balance** |  |
 |  |  |  | 16/07/2026 | Previous balance |  |  | $1,016.16 | $1,016.16 |  |
 |  |  | 1033 | 17/07/2026 | Groceries | √ | $123.78 |  | $892.38 |  |
 |  |  |  | 18/07/2026 | Deposit, sweepstakes winnings |  |  | $10,000.00 | $10,892.38 |  |

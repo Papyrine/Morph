@@ -72,6 +72,7 @@
                 "Vertical": 3.0
               },
               "GridSpan": 1,
+              "VerticalAlignment": "Center",
               "HideMark": false,
               "NoWrap": false,
               "SingleLine": false,

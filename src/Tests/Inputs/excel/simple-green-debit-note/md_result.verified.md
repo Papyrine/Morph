@@ -15,7 +15,7 @@
 |  |  | Phone |  |  |  |  |  |
 |  |  | Email |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |
-|  | # | Item name | Description | Quantity  | Price | Amount |  |
+|  | **#** | **Item name** | **Description** | **Quantity**  | **Price** | **Amount** |  |
 |  | 1 | Item A | Description 1 | 1 | 200.00 | $200.00 |  |
 |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |

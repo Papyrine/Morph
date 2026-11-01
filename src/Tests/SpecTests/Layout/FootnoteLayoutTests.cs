@@ -190,6 +190,32 @@ public class FootnoteLayoutTests
         await Assert.That(movedRule.Y).IsLessThan(20 + 15);
     }
 
+    [Test]
+    public async Task A_table_in_a_note_stands_in_the_note_area()
+    {
+        var table = new TableElement
+        {
+            Properties = new(),
+            Rows = [new() { Cells = [new() { Content = [Paragraph("in a cell")], Properties = new() }] }]
+        };
+        var notes = new DocumentNotes(
+            new Dictionary<string, IReadOnlyList<DocumentElement>> { ["1"] = [Paragraph("Note one."), table] },
+            new Dictionary<string, IReadOnlyList<DocumentElement>>(),
+            DocumentNotes.DefaultSeparator(),
+            DocumentNotes.DefaultSeparator(),
+            DocumentNotes.DefaultSeparator(),
+            DocumentNotes.DefaultSeparator());
+        var page = new PageSettings { WidthPoints = 300, HeightPoints = 300, MarginTop = 20, MarginBottom = 20, MarginLeft = 20, MarginRight = 20 };
+
+        var document = new Fragmenter(LayoutTestFonts.Measurer)
+            .Layout([Paragraph("Body", footnote: "1")], page, notes: notes);
+
+        var row = document.Pages[0].Items.OfType<PlacedTableRow>().Single();
+        var noteLine = document.Pages[0].Items.OfType<PlacedLine>().Single(_ => _.Runs.Any(run => run.Text.Contains("Note")));
+        await Assert.That(row.Y).IsGreaterThan(noteLine.Y);
+        await Assert.That(row.Y + row.Height).IsLessThanOrEqualTo(280f + 0.01f);
+    }
+
     static DocumentNotes Notes(params (string Id, string[] Lines)[] footnotes)
     {
         var bodies = new Dictionary<string, IReadOnlyList<DocumentElement>>();

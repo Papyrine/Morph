@@ -136,6 +136,9 @@ sealed class Run
     /// when present; null renders the page number as decimal.</summary>
     public string? PageFieldNumberFormat { get; init; }
 
+    /// <summary>The bookmark a <see cref="PageFieldKind.PageReference"/> field names.</summary>
+    public string? PageFieldBookmark { get; init; }
+
     /// <summary>
     /// The position in the main document part this run's text was read from, when the parser was asked
     /// to record it; null otherwise, and for a run the parser synthesised (a line break, a field result,
@@ -189,6 +192,7 @@ sealed class Run
             InlineMetafile = InlineMetafile,
             PageField = PageField,
             PageFieldNumberFormat = PageFieldNumberFormat,
+            PageFieldBookmark = PageFieldBookmark,
             Source = Source
         };
 

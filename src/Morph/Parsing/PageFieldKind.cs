@@ -17,5 +17,12 @@ enum PageFieldKind
 
     /// <summary>w:fldChar/w:fldSimple <c>SECTIONPAGES</c> — pages in the current section
     /// (approximated by the total page count until section-scoped pagination is modelled).</summary>
-    SectionPages
+    SectionPages,
+
+    /// <summary>
+    /// w:fldChar/w:fldSimple <c>PAGEREF name</c> — the number of the page the bookmark
+    /// (<see cref="Run.PageFieldBookmark"/>) stands on. Word recomputes it when it prints, chapter and
+    /// all (<c>_probe_pageref</c>: a cached "99" printed as "2-2").
+    /// </summary>
+    PageReference
 }

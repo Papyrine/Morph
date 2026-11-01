@@ -60,6 +60,12 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// </summary>
     public int CellAnchorParagraphIndex { get; init; } = -1;
 
+    /// <summary>
+    /// Where the text stands up and down the box (<c>a:bodyPr/@anchor</c>). Read for a sheet's shapes
+    /// only so far; a Word or slide text box keeps its text at the top.
+    /// </summary>
+    public CellVerticalAlignment VerticalAlignment { get; init; } = CellVerticalAlignment.Top;
+
     /// <summary>Background color (hex). Null for transparent.</summary>
     public string? BackgroundColorHex { get; init; }
 
@@ -124,6 +130,7 @@ sealed class FloatingTextBoxElement : DocumentElement
             LineAlpha = LineAlpha,
             Subpaths = Subpaths,
             RotationDegrees = RotationDegrees,
+            VerticalAlignment = VerticalAlignment,
         };
 
 }

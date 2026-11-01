@@ -60,7 +60,8 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
             document.FirstPageFooter,
             document.EvenPageHeader,
             document.EvenPageFooter,
-            DocumentNotes.From(document))
+            DocumentNotes.From(document),
+            document.Bookmarks)
             .WithComments(document, measurer, options.ShowComments)
             .FitToContent(options.Dpi)
             .Restrict(options.Pages);

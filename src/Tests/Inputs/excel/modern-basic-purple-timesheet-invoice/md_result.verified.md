@@ -17,7 +17,7 @@
 |  | Phone |  | Phone |  |  |
 |  | Email |  | Email |  |  |
 |  |  |  |  |  |  |
-|  | DESCRIPTION | HOURS | PRICE | AMOUNT |  |
+|  | **DESCRIPTION** | **HOURS** | **PRICE** | **AMOUNT** |  |
 |  | Content Plan | 1 | $500.00 | $500.00 |  |
 |  | Copy Writing | 1 | $300.00 | $300.00 |  |
 |  | Website Design | 3 | $200.00 | $600.00 |  |

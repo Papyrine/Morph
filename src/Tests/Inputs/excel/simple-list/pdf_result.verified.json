@@ -11,7 +11,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "To Do List\nPrinted on 1\nMy List\nColumn 1 Column 2 Column 3 Column 4 Column 5\nItem 1\nItem 2\nItem 3"
+        "Text": "To Do List\nPrinted on 10/08/2026 1\nMy List\nColumn 1 Column 2 Column 3 Column 4 Column 5\nItem 1\nItem 2\nItem 3"
       },
       {
         "Number": 2,
@@ -26,16 +26,16 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0412,
-      "Ssim": 0.9253,
+      "ErrorMetric": 0.06,
+      "Ssim": 0.8689,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.1177,
-      "Ssim": 0.8334,
+      "ErrorMetric": 0.2228,
+      "Ssim": 0.6883,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

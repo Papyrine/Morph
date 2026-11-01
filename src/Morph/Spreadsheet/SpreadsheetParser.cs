@@ -28,7 +28,8 @@ sealed class SpreadsheetParser(
     Func<string, string?>? fontFallback = null,
     bool? useLetterPageSize = null,
     bool onePagePerSheet = false,
-    CultureInfo? culture = null)
+    CultureInfo? culture = null,
+    DateTime? printTime = null)
 {
     const double pointsPerInch = 72.0;
 
@@ -138,6 +139,7 @@ sealed class SpreadsheetParser(
 
             var name = sheet.Name?.Value ?? string.Empty;
             var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors);
+            var tableStyles = new TableStyles(worksheetPart, workbookPart.WorkbookStylesPart?.Stylesheet, styles);
 
             PageSettings settings;
             SheetRange bounds;
@@ -149,7 +151,7 @@ sealed class SpreadsheetParser(
                 // page setup says of paper, print area, titles and scale
                 bounds = WholeSheetRange(worksheetPart, worksheet);
                 scale = 1;
-                table = builder.Build(worksheet, bounds, scale, null, conditional, false);
+                table = builder.Build(worksheet, bounds, scale, null, conditional, tableStyles, false);
                 if (table == null)
                 {
                     continue;
@@ -169,9 +171,9 @@ sealed class SpreadsheetParser(
 
                 bounds = printed;
                 scale = ResolveScale(builder, worksheet, bounds, settings);
-                settings = SheetHeaderFooter.Apply(settings, worksheet, name, headerFont, scale);
+                settings = SheetHeaderFooter.Apply(settings, worksheet, name, headerFont, scale, culture ?? CultureInfo.InvariantCulture, printTime ?? DateTime.Now);
                 var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
-                table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, centered);
+                table = builder.Build(worksheet, bounds, scale, definedNames.PrintTitleRows(name), conditional, tableStyles, centered);
                 if (table == null)
                 {
                     continue;

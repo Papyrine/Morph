@@ -6418,6 +6418,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         public bool CollectingResult;
         public PageFieldKind Kind;
         public string? NumberFormat;
+        public string? Bookmark;
         public readonly StringBuilder ResultText = new();
         public RunProperties? ResultProperties;
         public RunProperties? SeparateProperties;
@@ -6427,17 +6428,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// Classifies a field instruction as a page-numbering field and extracts its <c>\*</c> numeric
     /// format switch. Returns <see cref="PageFieldKind.None"/> for everything else.
     /// </summary>
-    static (PageFieldKind Kind, string? NumberFormat) ClassifyPageField(string? instruction)
+    static (PageFieldKind Kind, string? NumberFormat, string? Bookmark) ClassifyPageField(string? instruction)
     {
         if (instruction == null)
         {
-            return (PageFieldKind.None, null);
+            return (PageFieldKind.None, null, null);
         }
 
         var span = instruction.AsSpan().Trim();
         if (span.IsEmpty)
         {
-            return (PageFieldKind.None, null);
+            return (PageFieldKind.None, null, null);
         }
 
         var space = span.IndexOfAny(' ', '\t');
@@ -6447,12 +6448,29 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             "PAGE" => PageFieldKind.Page,
             "NUMPAGES" => PageFieldKind.NumberOfPages,
             "SECTIONPAGES" => PageFieldKind.SectionPages,
+            "PAGEREF" => PageFieldKind.PageReference,
             _ => PageFieldKind.None
         };
 
+        // A PAGEREF names its bookmark first. One that asks for "above"/"below" (\p) reads as text,
+        // which the layout does not write, so it keeps its cached result.
+        string? bookmark = null;
+        if (kind == PageFieldKind.PageReference)
+        {
+            var parts = span.ToString().Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2 ||
+                parts[1].StartsWith('\\') ||
+                parts.Contains("\\p"))
+            {
+                return (PageFieldKind.None, null, null);
+            }
+
+            bookmark = parts[1].Trim('"');
+        }
+
         if (kind == PageFieldKind.None)
         {
-            return (PageFieldKind.None, null);
+            return (PageFieldKind.None, null, null);
         }
 
         // A "\* <format>" switch overrides the default decimal rendering. MERGEFORMAT / CHARFORMAT
@@ -6472,7 +6490,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        return (kind, numberFormat);
+        return (kind, numberFormat, bookmark);
     }
 
     /// <summary>
@@ -6548,7 +6566,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                          fieldStack.Count > 0)
                 {
                     var state = fieldStack.Peek();
-                    (state.Kind, state.NumberFormat) = ClassifyPageField(state.Instruction.ToString());
+                    (state.Kind, state.NumberFormat, state.Bookmark) = ClassifyPageField(state.Instruction.ToString());
                     if (state.Kind != PageFieldKind.None)
                     {
                         state.CollectingResult = true;
@@ -6569,7 +6587,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                              ?? state.SeparateProperties
                                              ?? ParseRunProperties(null, mainPart, paragraphStyleId),
                                 PageField = state.Kind,
-                                PageFieldNumberFormat = state.NumberFormat
+                                PageFieldNumberFormat = state.NumberFormat,
+                                PageFieldBookmark = state.Bookmark
                             });
 
                         if (state.Kind is PageFieldKind.NumberOfPages or PageFieldKind.SectionPages)
@@ -6939,7 +6958,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // SECTIONPAGES field collapses to one tagged run (cached text kept for the
                     // exporters; the renderers substitute the live value); anything else renders
                     // its cached result inline. The instruction is also captured on FieldCodes.
-                    var (simpleKind, simpleFormat) = ClassifyPageField(simpleField.Instruction?.Value);
+                    var (simpleKind, simpleFormat, simpleBookmark) = ClassifyPageField(simpleField.Instruction?.Value);
                     if (simpleKind != PageFieldKind.None)
                     {
                         var firstResultRun = simpleField.Descendants<OoxmlRun>().FirstOrDefault();
@@ -6950,7 +6969,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 Text = cachedText,
                                 Properties = ParseRunProperties(firstResultRun?.RunProperties, mainPart, paragraphStyleId),
                                 PageField = simpleKind,
-                                PageFieldNumberFormat = simpleFormat
+                                PageFieldNumberFormat = simpleFormat,
+                                PageFieldBookmark = simpleBookmark
                             });
 
                         if (simpleKind is PageFieldKind.NumberOfPages or PageFieldKind.SectionPages)

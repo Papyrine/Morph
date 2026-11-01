@@ -95,7 +95,8 @@ public abstract class ExcelConverter
             // Decided at parse time, as the paper is: a sheet's page is part of the model the layout
             // is handed, not something a painter can change afterwards
             options is ImageExportOptions {SheetPagination: SheetPagination.OnePagePerSheet},
-            options?.Culture);
+            options?.Culture,
+            options?.PrintTime);
 
     internal static ParsedDocument Parse(
         Stream xlsxStream,
@@ -104,8 +105,9 @@ public abstract class ExcelConverter
         Func<string, string?>? fontFallback = null,
         bool? useLetterPageSize = null,
         bool onePagePerSheet = false,
-        CultureInfo? culture = null) =>
-        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, fontFallback, useLetterPageSize, onePagePerSheet, culture)
+        CultureInfo? culture = null,
+        DateTime? printTime = null) =>
+        new SpreadsheetParser(defaultFont ?? DefaultFontSettings.DefaultFont, fontDirectory, fontFallback, useLetterPageSize, onePagePerSheet, culture, printTime)
             .Parse(xlsxStream);
 
     /// <summary>

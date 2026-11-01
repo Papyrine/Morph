@@ -5,7 +5,7 @@
 |  | Inventory list |  |  |  |  |  |  |  |  |  |  |  |
 |  | Patheros Labs |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  | Highlight items to reorder? |  |  | Yes |  |
-|  | For reorder | Inventory ID | Name | Description | Unit price | Quantity <br>in stock | Inventory value | Reorder level | Reorder time in days | Quantity <br>in reorder | Discontinued? |  |
+|  | **For reorder** | **Inventory ID** | **Name** | **Description** | **Unit price** | **Quantity <br>in stock** | **Inventory value** | **Reorder level** | **Reorder time in days** | **Quantity <br>in reorder** | **Discontinued?** |  |
 |  | 1 | IN0001 | Item 1 | Desc 1 | $51.00 | 25 | $1,275 | 29 | 13 | 50 |  |  |
 |  | 1 | IN0002 | Item 2 | Desc 2 | $93.00 | 132 | $12,276 | 231 | 4 | 50 |  |  |
 |  | 0 | IN0003 | Item 3 | Desc 3 | $57.00 | 151 | $8,607 | 114 | 11 | 150 |  |  |

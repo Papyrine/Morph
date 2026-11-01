@@ -9,7 +9,7 @@
 | Shopping list total | $365.00  |  |  |  |  |  |  |
 | **Remaining cash** | **$1,135.00**  |  |  |  |  |  |  |
 | **Shopping list** |  |  |  |  |  |  |  |
-| Item | Category | Qty | To buy | Cost | Bought | Total cost |  |
+| **Item** | **Category** | **Qty** | **To buy** | **Cost** | **Bought** | **Total cost** |  |
 | Math | Textbooks | 1  | 1 |  $55.00  | 1 |  $55.00  |  |
 | English | Textbooks | 1  | 1 |  |  |  $-  |  |
 | Backpack | Supplies | 1  |  |  $30.00  |  |  $30.00  |  |
@@ -30,7 +30,7 @@
 | **Budget breakdown** |  |  |  |
 | --- | --- | --- | --- |
 | Add categories and budget amounts to track against in your shopping list. |  |  |  |
-| Category | Total cost |  |  |
+| **Category** | **Total cost** |  |  |
 | Clothes |  $280.00  |  |  |
 | Supplies |  $30.00  |  |  |
 | Textbooks |  $55.00  |  |  |
@@ -44,7 +44,7 @@
 | **To-do list** |  |  |
 | --- | --- | --- |
 | Track all the activities you need to get done before school starts. |  |  |
-| Done | Task |  |
+| **Done** | **Task** |  |
 | x | Complete All Registration Forms |  |
 |  | Schedule school physical and visual exam if needed |  |
 |  | Verify all required immunizations |  |
@@ -69,6 +69,6 @@
 
 | **Share list** |  |  | Share this list with others so they can contribute. Select Share in the upper right or press ALT and then press “Z” followed by “S”. Save the file to OneDrive and send the link to your friends. |  |  |
 | --- | --- | --- | --- | --- | --- |
-| Name | Email | Shared? |  |  |  |
+| **Name** | **Email** | **Shared?** |  |  |  |
 | Nikola Janu | nikola@example.com | Yes |  |  |  |
 | Robert Anic | robert@example.com | No |  |  |  |

@@ -28,6 +28,7 @@ static class ScenarioRunner
                 Pages = ScenarioInputs.Pages(format),
                 Dpi = ScenarioInputs.Dpi(format),
                 Culture = ScenarioInputs.Culture,
+                PrintTime = ScenarioInputs.PrintTime,
                 // Word prints with All Markup, so the references carry the comments
                 ShowComments = true
             });

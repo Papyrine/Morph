@@ -64,6 +64,7 @@
             ],
             "Properties": {
               "GridSpan": 1,
+              "VerticalAlignment": "Center",
               "VerticalMerge": "Restart",
               "HideMark": false,
               "NoWrap": false,
@@ -132,6 +133,7 @@
             ],
             "Properties": {
               "GridSpan": 1,
+              "VerticalAlignment": "Center",
               "HideMark": false,
               "NoWrap": false,
               "SingleLine": false,
@@ -216,6 +218,7 @@
             ],
             "Properties": {
               "GridSpan": 1,
+              "VerticalAlignment": "Center",
               "HideMark": false,
               "NoWrap": false,
               "SingleLine": false,

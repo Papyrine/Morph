@@ -17,6 +17,14 @@ public class HeaderFooterTests
     }
 
     [Test]
+    public async Task DateAndTime_AreThePrintTimeInTheCulture()
+    {
+        var parts = SheetHeaderFooter.Parts("&CPrinted on &D at &T", "Sheet1", ScenarioInputs.Culture, new(2026, 8, 10, 14, 5, 0));
+
+        await Assert.That(parts[1].Select(_ => _.Text)).IsEquivalentTo(["Printed on 10/08/2026 at " + new DateTime(2026, 8, 10, 14, 5, 0).ToString("t", ScenarioInputs.Culture)]);
+    }
+
+    [Test]
     public async Task TextBeforeAnySection_IsTheCentrePart()
     {
         var parts = SheetHeaderFooter.Parts("Page &P", "Sheet1");

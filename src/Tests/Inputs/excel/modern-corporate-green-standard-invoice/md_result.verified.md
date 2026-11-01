@@ -12,7 +12,7 @@
 |  | **Invoice Date:** | 16/07/2026 |  | Phone |  |  |
 |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |
-|  | Item Name | Description | Price | Quantity | Total |  |
+|  | **Item Name** | **Description** | **Price** | **Quantity** | **Total** |  |
 |  | Item Name 1 | Description 1 | $50.00 | 14 | $700.00 |  |
 |  | Item Name 2 | Description 2 | $56.00 | 15 | $840.00 |  |
 |  | Item Name 3 | Description 3 | $78.00 | 11 | $858.00 |  |
