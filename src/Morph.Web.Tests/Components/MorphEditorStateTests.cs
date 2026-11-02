@@ -74,8 +74,21 @@ public class MorphEditorStateTests : BunitTestContext
     public async Task AHandIn_DuringAnotherEdit_WaitsForIt()
     {
         byte[]? reported = null;
+        // The host is kept hearing of Accept all, so that edit is still under way when the paragraph is
+        // handed in, however soon the edit itself is made.
+        var heard = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var tracked = Tracked();
-        var cut = await Open(tracked, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
+        var cut = await Open(
+            tracked,
+            _ => _.Add(
+                _ => _.OnDocumentChanged,
+                async _ =>
+                {
+                    reported = _;
+                    heard.TrySetResult();
+                    await release.Task;
+                }));
         var (block, offset) = Place(tracked, 2, "Third");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
         var id = Session().GetProperty("id").GetInt32();
@@ -85,10 +98,15 @@ public class MorphEditorStateTests : BunitTestContext
         {
             resolving = cut.Instance.ResolveAllAsync(true);
         });
-        cut.WaitForState(() => cut.Instance.revising, TimeSpan.FromSeconds(30));
+        await heard.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await Assert.That(cut.Instance.revising).IsTrue();
 
-        await cut.InvokeAsync(() => cut.Instance.OnEditCommit(id, """[{"a":null,"i":[[0,"Third, typed, and last.",0]]}]""", 0));
+        var committing = cut.InvokeAsync(() => cut.Instance.OnEditCommit(id, """[{"a":null,"i":[[0,"Third, typed, and last.",0]]}]""", 0));
+        await Assert.That(committing.IsCompleted).IsFalse();
+
+        release.SetResult();
         await resolving!;
+        await committing;
 
         await Assert.That(DocumentReview.Read(reported!).Changes).IsEmpty();
         await Assert.That(Read(reported!)[2]).IsEqualTo("[Third, typed, and last.]");
