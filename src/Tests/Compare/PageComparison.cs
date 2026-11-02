@@ -8,7 +8,7 @@
 ///   normalised by the EXPECTED page's pixel count, so an orientation mismatch scores near 1
 ///   rather than silently comparing a sub-window (business-plans/15 p12/p15 are the corpus's only
 ///   such pages).
-/// * <c>Ssim</c> — the vendored Verify SSIM (8×8-window, luminance-only; 1 = identical). Null when
+/// * <c>Ssim</c> — Verify's own SSIM (`VerifyTests.Ssim`) (8×8-window, luminance-only; 1 = identical). Null when
 ///   the two images differ in size: <see cref="Ssim.Compare"/> indexes the second image with the
 ///   first image's geometry, so a sub-window score would be silently wrong rather than merely
 ///   imprecise.
