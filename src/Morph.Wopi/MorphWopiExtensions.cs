@@ -44,6 +44,7 @@ public static class MorphWopiExtensions
     /// </summary>
     public static IEndpointRouteBuilder MapMorphWopi(this IEndpointRouteBuilder endpoints)
     {
+        AddEditorAssets(endpoints.ServiceProvider);
         endpoints.MapGet("/hosting/discovery", WopiDiscoveryXml.Handle);
         foreach (var action in (string[]) ["view", "edit"])
         {
@@ -58,5 +59,23 @@ public static class MorphWopiExtensions
         endpoints.MapPost($"{ProxyPath}/{{operation}}", WopiProxy.Handle)
             .DisableAntiforgery();
         return endpoints;
+    }
+
+    /// <summary>
+    /// The editor's page is read from the web root. An application run from its build output has the files
+    /// of the projects it references, the editor's WebAssembly app among them, in the web root only in
+    /// Development, though MapStaticAssets serves them in any environment: outside it, they are added from
+    /// the same manifest. A published application has them in its wwwroot, and no manifest.
+    /// </summary>
+    static void AddEditorAssets(IServiceProvider services)
+    {
+        var environment = services.GetRequiredService<IWebHostEnvironment>();
+        var page = services.GetRequiredService<IOptions<MorphWopiOptions>>().Value.Page;
+        if (environment.WebRootFileProvider.GetFileInfo(page).Exists)
+        {
+            return;
+        }
+
+        StaticWebAssetsLoader.UseStaticWebAssets(environment, services.GetRequiredService<IConfiguration>());
     }
 }
