@@ -127,7 +127,7 @@ public class BundledBoldCoverageTests
     /// container reports 400. Same bytes, two answers, so a list pinned against one platform was
     /// guaranteed to fail on the other.
     /// </remarks>
-    static IEnumerable<(string Family, int Weight, string Scenario)> ResolveBoldFamilies()
+    static List<(string Family, int Weight, string Scenario)> ResolveBoldFamilies()
     {
         var inputs = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word");
         var fontCache = new FontFileCache(

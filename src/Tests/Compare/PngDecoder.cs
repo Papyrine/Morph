@@ -199,7 +199,7 @@ static class PngDecoder
         return new(width, height, rgba);
     }
 
-    static Stream OpenInflate(Stream zlibData)
+    static BufferedStream OpenInflate(Stream zlibData)
     {
 #if NET6_0_OR_GREATER
         var inflate = new ZLibStream(zlibData, CompressionMode.Decompress, leaveOpen: true);

@@ -701,7 +701,7 @@ public class ImageCompressorTests
             return buffer.ToArray();
         }
 
-        public IReadOnlyList<string> PartNames()
+        public List<string> PartNames()
         {
             using var package = new ZipArchive(new MemoryStream(bytes), ZipArchiveMode.Read);
             return package.Entries.Select(_ => _.FullName).ToList();

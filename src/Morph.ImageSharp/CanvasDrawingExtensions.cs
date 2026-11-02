@@ -43,6 +43,6 @@ static class CanvasDrawingExtensions
         canvas.DrawImage(image, sourceRect, destRect);
     }
 
-    static IPath ToPath(RectangleF rect) =>
-        new RectanglePolygon(rect.X, rect.Y, rect.Width, rect.Height);
+    static RectanglePolygon ToPath(RectangleF rect) =>
+        new(rect.X, rect.Y, rect.Width, rect.Height);
 }

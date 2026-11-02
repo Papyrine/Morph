@@ -227,7 +227,7 @@ public class DocumentCleanerTests
             document.Save(replacement);
         }
 
-        public IReadOnlyList<string> PartNames()
+        public List<string> PartNames()
         {
             using var package = ZipFile.OpenRead(Path);
             return package.Entries.Select(_ => _.FullName).ToList();

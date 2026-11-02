@@ -139,7 +139,7 @@ public class MorphEditorStateTests : BunitTestContext
     {
         var cut = await Open(Paragraphs);
         Caret(0, 6);
-        await cut.InvokeAsync(async () => await cut.Instance.BeginLinkAsync());
+        await cut.InvokeAsync(() => cut.Instance.BeginLinkAsync());
 
         await cut.InvokeAsync(() => cut.Instance.LinkTextAsync("site ", "example.com"));
 
