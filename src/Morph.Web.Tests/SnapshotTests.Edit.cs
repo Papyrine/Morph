@@ -853,7 +853,7 @@ public partial class SnapshotTests
 
         await LoadIntoAsync(page, Paragraphs, "edit.docx");
         await page.WaitForSelectorAsync(".viewer[data-edit=on]");
-        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await LoadedAsync(page);
 
         await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
     }
@@ -878,7 +878,7 @@ public partial class SnapshotTests
         await ChooseTabAsync(page, "Table");
         await page.ClickAsync(".editor-tool:has-text('Borders')");
         await page.WaitForSelectorAsync(".editor-menu");
-        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await LoadedAsync(page);
 
         await Verify(await page.Locator(".viewer.editor").ScreenshotAsync(), "png");
     }
@@ -896,7 +896,7 @@ public partial class SnapshotTests
         await page.GotoAsync($"http://localhost:{port}/edit");
         await LoadIntoAsync(page, Paragraphs, "edit.docx");
         await page.WaitForSelectorAsync(".viewer[data-edit=on]");
-        await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await LoadedAsync(page);
 
         switch (menu)
         {
@@ -930,6 +930,15 @@ public partial class SnapshotTests
         var page = await OpenFileAsync(docx, "edit.docx");
         await page.WaitForSelectorAsync(".viewer[data-edit=on]");
         return page;
+    }
+
+    // What is left once the page is drawn: its load event and every image decoded. NetworkIdle is not
+    // waited for, as SettleAsync does not wait for it — after the dark snapshots' reload it sometimes
+    // never fired on a settled page, and the wait timed out at 30s (runs 391, 400 and 441).
+    static async Task LoadedAsync(IPage page)
+    {
+        await page.WaitForLoadStateAsync(LoadState.Load);
+        await page.WaitForFunctionAsync("() => Array.from(document.images).every(_ => _.complete)");
     }
 
     static Task ChooseTabAsync(IPage page, string name) =>
