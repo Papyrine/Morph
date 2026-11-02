@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components.Web;
-
 // The viewer's review pane: a Word document's comments and tracked changes, listed, chosen and edited.
 // The pages and their highlights are the script's; these tests pin what .NET does — what it reads from
 // the file, what it asks the script to paint, and what each edit leaves in the document.

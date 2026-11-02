@@ -820,7 +820,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.InvokeAsync(() => cut.Instance.OnReplaceRequested());
         await cut.Find(".viewer-find-input").InputAsync(new() {Value = "e"});
-        await cut.Find(".viewer-find-input").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs {Key = "Enter"});
+        await cut.Find(".viewer-find-input").KeyDownAsync(new KeyboardEventArgs {Key = "Enter"});
         await cut.Find(".viewer-replace input").InputAsync(new() {Value = "E"});
         await cut.FindAll(".viewer-text-button").First(_ => _.TextContent.Contains("Replace all")).ClickAsync(new());
 
@@ -1768,7 +1768,7 @@ public class MorphEditorTests : BunitTestContext
         Caret(1, 0);
         await cut.Find("[aria-label='Paragraph settings']").ClickAsync(new());
         await cut.FindAll(".editor-dialog input[type=number]")[0].InputAsync(new() {Value = "2"});
-        await cut.Find(".editor-dialog").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs {Key = "Enter"});
+        await cut.Find(".editor-dialog").KeyDownAsync(new KeyboardEventArgs {Key = "Enter"});
 
         await Assert.That(cut.FindAll(".editor-dialog")).IsEmpty();
         await Assert.That(Body(reported!)).Contains("w:left=\"1134\"");
