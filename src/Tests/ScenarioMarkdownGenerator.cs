@@ -25,10 +25,10 @@ static class ScenarioMarkdownGenerator
 
         var scenarioName = GetScenarioName(directory);
 
-        var sb = new StringBuilder();
-        sb.Append($"# {scenarioName}\n\n");
-        AppendNotes(sb, directory);
-        AppendTable(sb, pages, srcPrefix: "");
+        var builder = new StringBuilder();
+        builder.Append($"# {scenarioName}\n\n");
+        AppendNotes(builder, directory);
+        AppendTable(builder, pages, srcPrefix: "");
 
         // Skia and ImageSharp scenarios for the same dir run concurrently and both regenerate
         // compare.md; on Windows a contended write can fail with "user-mapped section open" /
@@ -37,7 +37,7 @@ static class ScenarioMarkdownGenerator
         // reconciliation pass.
         try
         {
-            File.WriteAllText(Path.Combine(directory, "compare.md"), sb.ToString());
+            File.WriteAllText(Path.Combine(directory, "compare.md"), builder.ToString());
         }
         catch (IOException)
         {
@@ -66,20 +66,20 @@ static class ScenarioMarkdownGenerator
             return;
         }
 
-        var sb = new StringBuilder();
-        sb.Append($"# All scenarios ({scenarios.Length})\n\n");
+        var builder = new StringBuilder();
+        builder.Append($"# All scenarios ({scenarios.Length})\n\n");
 
-        AppendContents(sb, scenarios.Select(_ => _.Name));
+        AppendContents(builder, scenarios.Select(_ => _.Name));
 
         foreach (var (dir, name, pages) in scenarios)
         {
-            sb.Append($"## {name}\n\n");
-            AppendNotes(sb, dir);
-            AppendTable(sb, pages, srcPrefix: $"{name}/");
-            sb.Append('\n');
+            builder.Append($"## {name}\n\n");
+            AppendNotes(builder, dir);
+            AppendTable(builder, pages, srcPrefix: $"{name}/");
+            builder.Append('\n');
         }
 
-        File.WriteAllText(Path.Combine(inputsDirectory, "compare-all-images.md"), sb.ToString());
+        File.WriteAllText(Path.Combine(inputsDirectory, "compare-all-images.md"), builder.ToString());
     }
 
     /// <summary>
@@ -142,20 +142,20 @@ static class ScenarioMarkdownGenerator
             return;
         }
 
-        var sb = new StringBuilder();
-        sb.Append($"# {title} ({scenarios.Length})\n\n");
-        sb.Append(intro).Append("\n\n");
+        var builder = new StringBuilder();
+        builder.Append($"# {title} ({scenarios.Length})\n\n");
+        builder.Append(intro).Append("\n\n");
 
-        AppendContents(sb, scenarios.Select(_ => _.Name));
+        AppendContents(builder, scenarios.Select(_ => _.Name));
 
         foreach (var (dir, name) in scenarios)
         {
-            sb.Append($"## {name}\n\n");
-            appendBody(sb, dir, name);
-            sb.Append('\n');
+            builder.Append($"## {name}\n\n");
+            appendBody(builder, dir, name);
+            builder.Append('\n');
         }
 
-        File.WriteAllText(Path.Combine(inputsDirectory, fileName), sb.ToString());
+        File.WriteAllText(Path.Combine(inputsDirectory, fileName), builder.ToString());
     }
 
     // A side-by-side visual index mirroring compare-all-images.md: the Word reference pages on
@@ -163,7 +163,7 @@ static class ScenarioMarkdownGenerator
     // continuous screenshot (never paginated), so all Word pages are stacked in one left-hand cell
     // next to the one render cell — rather than the one-row-per-page layout the image/PDF
     // aggregates use, which only fits when both sides are paged.
-    static void AppendRender(StringBuilder sb, string directory, string name, string resultLabel, string resultFile)
+    static void AppendRender(StringBuilder builder, string directory, string name, string resultLabel, string resultFile)
     {
         var srcPrefix = $"{name}/";
 
@@ -171,16 +171,16 @@ static class ScenarioMarkdownGenerator
             .Order()
             .Select(_ => RenderImage(Path.GetFileName(_), srcPrefix));
 
-        sb.Append($"| Expected (Word) | {resultLabel} |\n");
-        sb.Append("| --- | --- |\n");
-        sb.Append("| ");
-        sb.Append(string.Join("<br>", expectedImages));
-        sb.Append(" | ");
-        sb.Append(RenderImage(FileNameIfExists(directory, resultFile), srcPrefix));
-        sb.Append(" |\n");
+        builder.Append($"| Expected (Word) | {resultLabel} |\n");
+        builder.Append("| --- | --- |\n");
+        builder.Append("| ");
+        builder.Append(string.Join("<br>", expectedImages));
+        builder.Append(" | ");
+        builder.Append(RenderImage(FileNameIfExists(directory, resultFile), srcPrefix));
+        builder.Append(" |\n");
     }
 
-    static void AppendPdf(StringBuilder sb, string directory, string name)
+    static void AppendPdf(StringBuilder builder, string directory, string name)
     {
         var srcPrefix = $"{name}/";
 
@@ -195,8 +195,8 @@ static class ScenarioMarkdownGenerator
         var pdfMetrics = ReadMetrics(Path.Combine(directory, "pdf_result.verified.json"));
         if (expectedPages.Length > 0 || pdfPages.Length > 0)
         {
-            sb.Append("| Expected (Word) | Morph PDF |\n");
-            sb.Append("| --- | --- |\n");
+            builder.Append("| Expected (Word) | Morph PDF |\n");
+            builder.Append("| --- | --- |\n");
             var maxPages = Math.Max(expectedPages.Length, pdfPages.Length);
             for (var i = 0; i < maxPages; i++)
             {
@@ -206,24 +206,25 @@ static class ScenarioMarkdownGenerator
                 // No PageDiffs when PDF and Word page counts differ; show the page label alone then.
                 var pdfMetric = pdfMetrics.TryGetValue(i + 1, out var metric) ? metric : (PageMetrics?) null;
 
-                sb.Append("| ");
-                sb.Append(RenderExpectedLabel(pageLabel, expectedFile, pdfMetric.HasValue));
-                sb.Append(" | ");
-                sb.Append(RenderLabel(pageLabel, pdfMetric, pdfFile));
-                sb.Append(" |\n");
+                builder.Append("| ");
+                builder.Append(RenderExpectedLabel(pageLabel, expectedFile, pdfMetric.HasValue));
+                builder.Append(" | ");
+                builder.Append(RenderLabel(pageLabel, pdfMetric, pdfFile));
+                builder.Append(" |\n");
 
-                sb.Append("| ");
-                sb.Append(RenderImage(expectedFile, srcPrefix));
-                sb.Append(" | ");
-                sb.Append(RenderImage(pdfFile, srcPrefix));
-                sb.Append(" |\n");
+                builder.Append("| ");
+                builder.Append(RenderImage(expectedFile, srcPrefix));
+                builder.Append(" | ");
+                builder.Append(RenderImage(pdfFile, srcPrefix));
+                builder.Append(" |\n");
             }
-            sb.Append('\n');
+
+            builder.Append('\n');
         }
 
         if (File.Exists(Path.Combine(directory, "pdf_result.verified.pdf")))
         {
-            sb.Append("PDF: ").Append($"[Morph PDF]({EncodeSrc(srcPrefix + "pdf_result.verified.pdf")})").Append("\n\n");
+            builder.Append("PDF: ").Append($"[Morph PDF]({EncodeSrc(srcPrefix + "pdf_result.verified.pdf")})").Append("\n\n");
         }
     }
 
@@ -237,7 +238,7 @@ static class ScenarioMarkdownGenerator
         return null;
     }
 
-    static void AppendNotes(StringBuilder sb, string directory)
+    static void AppendNotes(StringBuilder builder, string directory)
     {
         var notesPath = Path.Combine(directory, "notes.md");
         if (!File.Exists(notesPath))
@@ -251,47 +252,48 @@ static class ScenarioMarkdownGenerator
             return;
         }
 
-        sb.Append(content).Append("\n\n");
+        builder.Append(content).Append("\n\n");
     }
 
-    static void AppendTable(StringBuilder sb, List<PageRow> pages, string srcPrefix)
+    static void AppendTable(StringBuilder builder, List<PageRow> pages, string srcPrefix)
     {
-        sb.Append("| Expected (Word) | Skia | ImageSharp |\n");
-        sb.Append("| --- | --- | --- |\n");
+        builder.Append("| Expected (Word) | Skia | ImageSharp |\n");
+        builder.Append("| --- | --- | --- |\n");
         foreach (var page in pages)
         {
             var pageLabel = $"Page {page.PageNumber}";
             // One row of labels (page + ErrorMetric) and a separate row for the images
             // beneath, so each cell's text and image stack vertically inside the table.
-            sb.Append("| ");
-            sb.Append(RenderExpectedLabel(pageLabel, page.ExpectedFile, page.SkiaMetric.HasValue || page.ImageSharpMetric.HasValue));
-            sb.Append(" | ");
-            sb.Append(RenderLabel(pageLabel, page.SkiaMetric, page.SkiaFile));
-            sb.Append(" | ");
-            sb.Append(RenderLabel(pageLabel, page.ImageSharpMetric, page.ImageSharpFile));
-            sb.Append(" |\n");
+            builder.Append("| ");
+            builder.Append(RenderExpectedLabel(pageLabel, page.ExpectedFile, page.SkiaMetric.HasValue || page.ImageSharpMetric.HasValue));
+            builder.Append(" | ");
+            builder.Append(RenderLabel(pageLabel, page.SkiaMetric, page.SkiaFile));
+            builder.Append(" | ");
+            builder.Append(RenderLabel(pageLabel, page.ImageSharpMetric, page.ImageSharpFile));
+            builder.Append(" |\n");
 
-            sb.Append("| ");
-            sb.Append(RenderImage(page.ExpectedFile, srcPrefix));
-            sb.Append(" | ");
-            sb.Append(RenderImage(page.SkiaFile, srcPrefix));
-            sb.Append(" | ");
-            sb.Append(RenderImage(page.ImageSharpFile, srcPrefix));
-            sb.Append(" |\n");
+            builder.Append("| ");
+            builder.Append(RenderImage(page.ExpectedFile, srcPrefix));
+            builder.Append(" | ");
+            builder.Append(RenderImage(page.SkiaFile, srcPrefix));
+            builder.Append(" | ");
+            builder.Append(RenderImage(page.ImageSharpFile, srcPrefix));
+            builder.Append(" |\n");
         }
     }
 
     // The scenario index is long, so collapse it behind a <details> disclosure (collapsed by
     // default on GitHub). The blank lines around the list are required for GitHub to parse the
     // markdown links inside the HTML block.
-    static void AppendContents(StringBuilder sb, IEnumerable<string> names)
+    static void AppendContents(StringBuilder builder, IEnumerable<string> names)
     {
-        sb.Append("<details>\n<summary>Contents</summary>\n\n");
+        builder.Append("<details>\n<summary>Contents</summary>\n\n");
         foreach (var name in names)
         {
-            sb.Append($"- [{name}](#{GitHubAnchor(name)})\n");
+            builder.Append($"- [{name}](#{GitHubAnchor(name)})\n");
         }
-        sb.Append("\n</details>\n\n");
+
+        builder.Append("\n</details>\n\n");
     }
 
     static string RenderLabel(string pageLabel, PageMetrics? metrics, string? fileName)
@@ -374,6 +376,7 @@ static class ScenarioMarkdownGenerator
                 i < imagesharpFiles.Length ? Path.GetFileName(imagesharpFiles[i]) : null,
                 imagesharpMetrics.TryGetValue(i + 1, out var imagesharpMetric) ? imagesharpMetric : null));
         }
+
         return rows;
     }
 
@@ -426,22 +429,23 @@ static class ScenarioMarkdownGenerator
     // collapse whitespace to '-'. Underscores are kept.
     static string GitHubAnchor(string heading)
     {
-        var sb = new StringBuilder(heading.Length);
+        var builder = new StringBuilder(heading.Length);
         foreach (var ch in heading)
         {
             if (char.IsLetterOrDigit(ch))
             {
-                sb.Append(char.ToLowerInvariant(ch));
+                builder.Append(char.ToLowerInvariant(ch));
             }
             else if (ch is '-' or '_')
             {
-                sb.Append(ch);
+                builder.Append(ch);
             }
             else if (char.IsWhiteSpace(ch))
             {
-                sb.Append('-');
+                builder.Append('-');
             }
         }
-        return sb.ToString();
+
+        return builder.ToString();
     }
 }
