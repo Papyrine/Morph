@@ -90,6 +90,13 @@ sealed class FloatingTextBoxElement : DocumentElement
     public double RotationDegrees { get; init; }
 
     /// <summary>
+    /// The text rect's insets from the box (<c>wps:bodyPr</c>'s <c>lIns</c> / <c>tIns</c> / <c>rIns</c> /
+    /// <c>bIns</c>). Read only by <c>ParseTextBox</c>, the path a lone multi-paragraph Word text box takes;
+    /// every other text box still lays its content out on the box edge, so zero is the default.
+    /// </summary>
+    public WordArtInsets Insets { get; init; }
+
+    /// <summary>
     /// Horizontal position as a fraction (0..1) of the anchor reference frame, parsed from
     /// <c>wp14:pctPosHOffset</c>. When set, overrides <see cref="HorizontalPositionPoints"/>.
     /// </summary>
@@ -130,6 +137,7 @@ sealed class FloatingTextBoxElement : DocumentElement
             LineAlpha = LineAlpha,
             Subpaths = Subpaths,
             RotationDegrees = RotationDegrees,
+            Insets = Insets,
             VerticalAlignment = VerticalAlignment,
         };
 

@@ -2463,25 +2463,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 AddBodyFloat(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape), textBox.BehindText, absoluteY);
             }
 
-            var content = LayoutCellContent(
-                new()
-                {
-                    Content = textBox.Content
-                },
-                boxX,
-                boxY,
-                boxWidth,
-                boxHeight,
-                textBox.VerticalAlignment);
-
-            // A fixed-size Word text box hides what falls below it: cards/02's code box holds an empty
-            // 18pt paragraph and then the code, which lands wholly under the box and Word does not show.
-            // Only lines starting past the bottom go; one cut by the edge is kept, as a measurement a
-            // point taller than Word's must not lose a line Word draws.
-            if (textBox.HidesOverflow)
-            {
-                content = [.. content.Where(_ => _.Y < boxY + boxHeight)];
-            }
+            var content = LayoutTextBoxContent(textBox, boxX, boxY);
 
             // A rotated text box turns its content with its chrome, about the box centre — the a:xfrm
             // rotation reached only the PlacedShape before, leaving labels/06's "ADMIT ONE" stubs flat.
@@ -2495,6 +2477,34 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 AddBodyFloat(item, textBox.BehindText, absoluteY);
             }
+        }
+
+        // A text box's content, laid out in its text rect: the box less its insets.
+        IReadOnlyList<PlacedItem> LayoutTextBoxContent(FloatingTextBoxElement textBox, float boxX, float boxY)
+        {
+            var insets = textBox.Insets;
+            var boxHeight = (float) textBox.HeightPoints;
+            var content = LayoutCellContent(
+                new()
+                {
+                    Content = textBox.Content
+                },
+                boxX + (float) insets.Left,
+                boxY + (float) insets.Top,
+                Math.Max(0, (float) (textBox.WidthPoints - insets.Left - insets.Right)),
+                Math.Max(0, (float) (textBox.HeightPoints - insets.Top - insets.Bottom)),
+                textBox.VerticalAlignment);
+
+            // A fixed-size Word text box hides what falls below it: cards/02's code box holds an empty
+            // 18pt paragraph and then the code, which lands wholly under the box and Word does not show.
+            // Only lines starting past the bottom go; one cut by the edge is kept, as a measurement a
+            // point taller than Word's must not lose a line Word draws.
+            if (textBox.HidesOverflow)
+            {
+                return [.. content.Where(_ => _.Y < boxY + boxHeight)];
+            }
+
+            return content;
         }
 
         // A positioned text frame (w:framePr) — Word's legacy floating text block, which FrameGrouper lifts to
@@ -5567,8 +5577,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         items.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
                     }
                 }
-                // A band's anchored wps text box — a running-header title, a footer label — reaches here as
-                // floating WordArt (ParseWordArt claims every wps:txbx before ParseTextBox sees it) and is
+                // A band's anchored single-paragraph wps text box — a running-header title, a footer label —
+                // reaches here as floating WordArt (ParseWordArt claims it before ParseTextBox sees it) and is
                 // placed as PlaceFloatingWordArt places a body one, from the band's anchors. Without this
                 // branch it was dropped silently (issue #194).
                 else if (element is FloatingWordArtElement wordArt)
@@ -5605,12 +5615,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         items.Add(new PlacedShape(boxX, boxY, boxWidth, boxHeight, boxShape));
                     }
 
-                    var content = LayoutCellContent(new() {Content = textBox.Content}, boxX, boxY, boxWidth, boxHeight, textBox.VerticalAlignment);
-                    if (textBox.HidesOverflow)
-                    {
-                        content = [.. content.Where(_ => _.Y < boxY + boxHeight)];
-                    }
-
+                    var content = LayoutTextBoxContent(textBox, boxX, boxY);
                     if (textBox.RotationDegrees != 0)
                     {
                         items.Add(new PlacedRotatedGroup(boxX, boxY, boxWidth, boxHeight, content, textBox.RotationDegrees));
