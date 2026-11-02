@@ -214,7 +214,7 @@ sealed class SourceIndex
             return text.Replace(' ', ' ');
         }
 
-        public IReadOnlyList<RunPiece>? Follow(string placed)
+        public List<RunPiece>? Follow(string placed)
         {
             List<RunPiece>? pieces = null;
             for (var index = 0; index < placed.Length; index++)

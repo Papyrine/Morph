@@ -951,7 +951,7 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(Read(reported!)[0]).IsEqualTo("[Linked][ plain]");
     }
 
-    static readonly byte[] Grid = Build(
+    static readonly byte[] grid = Build(
         "<w:tbl><w:tblGrid><w:gridCol w:w=\"2000\"/><w:gridCol w:w=\"2000\"/></w:tblGrid>" +
         "<w:tr><w:tc><w:p><w:r><w:t>a</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>b</w:t></w:r></w:p></w:tc></w:tr>" +
         "<w:tr><w:tc><w:p><w:r><w:t>c</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>d</w:t></w:r></w:p></w:tc></w:tr>" +
@@ -965,8 +965,8 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheTableTab_DeletesWhereTheCaretIs(string command, string expected)
     {
         byte[]? reported = null;
-        var cut = await OpenEditing(Grid, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
-        var (block, offset) = Place(Grid, 0, "a");
+        var cut = await OpenEditing(grid, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
+        var (block, offset) = Place(grid, 0, "a");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
         Caret(0, 0);
         await ChooseTabAsync(cut, "Table");
@@ -979,8 +979,8 @@ public class MorphEditorTests : BunitTestContext
     // Opens the table's first cell for typing, and shows the Table tab.
     async Task<IRenderedComponent<MorphEditor>> OpenGridAsync(Action<byte[]> reported)
     {
-        var cut = await OpenEditing(Grid, _ => _.Add(_ => _.OnDocumentChanged, reported));
-        var (block, offset) = Place(Grid, 0, "a");
+        var cut = await OpenEditing(grid, _ => _.Add(_ => _.OnDocumentChanged, reported));
+        var (block, offset) = Place(grid, 0, "a");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 2, block.Top + 2, offset, offset));
         Caret(0, 0);
         await ChooseTabAsync(cut, "Table");
@@ -993,8 +993,8 @@ public class MorphEditorTests : BunitTestContext
     {
         byte[]? reported = null;
         var cut = await OpenGridAsync(_ => reported = _);
-        var (_, a) = Place(Grid, 0, "a");
-        var (_, d) = Place(Grid, 3, "d");
+        var (_, a) = Place(grid, 0, "a");
+        var (_, d) = Place(grid, 3, "d");
         controller.Setup<int[]>("editTarget").SetResult([]);
         await cut.InvokeAsync(() => cut.Instance.OnReviewSelection([0, a, 0, d + 1]));
 
@@ -1292,9 +1292,9 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     public async Task TheTableTab_GoesWhenTheCaretLeavesTheTable()
     {
-        var cut = await OpenEditing(Grid);
-        var (cell, inCell) = Place(Grid, 0, "a");
-        var (after, outside) = Place(Grid, 4, "After");
+        var cut = await OpenEditing(grid);
+        var (cell, inCell) = Place(grid, 0, "a");
+        var (after, outside) = Place(grid, 4, "After");
 
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, cell.Left + 2, cell.Top + 2, inCell, inCell));
         await ChooseTabAsync(cut, "Table");
@@ -1614,8 +1614,8 @@ public class MorphEditorTests : BunitTestContext
     [Arguments("View")]
     public async Task TheRibbon_Snapshot(string tab)
     {
-        var cut = await OpenEditing(Grid);
-        var (cell, inCell) = Place(Grid, 0, "a");
+        var cut = await OpenEditing(grid);
+        var (cell, inCell) = Place(grid, 0, "a");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, cell.Left + 2, cell.Top + 2, inCell, inCell));
         await ChooseTabAsync(cut, tab);
 
@@ -1793,7 +1793,7 @@ public class MorphEditorTests : BunitTestContext
     public async Task TheDateFormats_FollowTheCulture()
     {
         await Assert.That(MorphEditor.DateFormatsFor(CultureInfo.InvariantCulture)).IsEquivalentTo(MorphViewer.DateFormats);
-        var american = MorphEditor.DateFormatsFor(new CultureInfo("en-US"));
+        var american = MorphEditor.DateFormatsFor(new("en-US"));
         await Assert.That(american[0]).IsEqualTo("M/d/yyyy");
         await Assert.That(american).Contains("d/MM/yyyy");
 

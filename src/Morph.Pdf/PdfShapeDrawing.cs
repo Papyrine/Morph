@@ -68,10 +68,10 @@ static class PdfShapeDrawing
     }
 
     // Adds one contour; a fill closes an open figure by itself, so only a stroke cares about close.
-    static void AddContour(PathBuilder builder, IReadOnlyList<(double X, double Y)> points, bool close)
+    static void AddContour(PathBuilder builder, (double X, double Y)[] points, bool close)
     {
         builder.MoveTo((float) points[0].X, (float) points[0].Y);
-        for (var index = 1; index < points.Count; index++)
+        for (var index = 1; index < points.Length; index++)
         {
             builder.LineTo((float) points[index].X, (float) points[index].Y);
         }

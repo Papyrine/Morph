@@ -1,6 +1,4 @@
-﻿using Morph;
-
-/// <summary>
+﻿/// <summary>
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
 /// <c>SkiaPainter</c> (docs/layout-engine.md, step 6). A pure draw pass over the tree the
 /// <c>Fragmenter</c> produced. ImageSharp records draw ops onto a deferred <see cref="DrawingCanvas"/> per
@@ -474,7 +472,9 @@ static class ImageSharpPainter
     }
 
     // A pen for a stroke with a preset dash (a:prstDash), or null for a solid stroke. ImageSharp takes
-    // the pattern as the format declares it, in multiples of the stroke's width.
+    // the pattern as the format declares it, in multiples of the stroke's width. Typed as Pen because
+    // every caller falls back to a SolidPen with ??.
+    [SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance")]
     static Pen? DashedPen(Color color, float strokeWidth, IReadOnlyList<double>? pattern)
     {
         if (pattern is not {Count: >= 2} || strokeWidth <= 0)

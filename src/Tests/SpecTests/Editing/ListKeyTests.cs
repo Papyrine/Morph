@@ -112,7 +112,7 @@ public class ListKeyTests
                 .Select(level => level.PreviousParagraphProperties!.Indentation!.Left!.Value)))
             .ToList()));
 
-    static IReadOnlyList<int?> ListLevels(byte[] docx) =>
+    static List<int?> ListLevels(byte[] docx) =>
         DocumentOutline.Read(docx).Paragraphs.Select(_ => _.ListLevel).ToList();
 
     // Backspace, again and again, at the start of a bulleted paragraph under another, as Word steps

@@ -171,7 +171,7 @@ public partial class MorphEditor
     // The style gallery: the styles a document puts in it (and the caret's, wherever it is from), two
     // rows at a time. It turns to the row the caret's style is on whenever that style changes, and is
     // otherwise left where the reader paged it.
-    IReadOnlyList<StyleChoice> GalleryChoices
+    List<StyleChoice> GalleryChoices
     {
         get
         {

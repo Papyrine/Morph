@@ -110,7 +110,7 @@ public partial class MorphEditor
     // dialogs, a numbered list's numbering, a table's rows and columns, a link — and a comment. Unlike
     // the ribbon it offers only what belongs to the place, as Word's does; what belongs but cannot be
     // done is greyed out.
-    IReadOnlyList<MenuLine> ContextLines()
+    List<MenuLine> ContextLines()
     {
         List<MenuLine> lines =
         [
@@ -175,7 +175,7 @@ public partial class MorphEditor
 
     // Home
 
-    IReadOnlyList<MenuLine> SpacingLines()
+    List<MenuLine> SpacingLines()
     {
         var lines = LineSpacings
             .Select(_ => new MenuLine(_.ToString("0.0#", CultureInfo.InvariantCulture))
