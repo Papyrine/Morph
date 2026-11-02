@@ -31,7 +31,7 @@ the pair from a single decode of each image — not via ImageMagick:
   two differently-sized pages count as differing and the result is normalised by the EXPECTED
   page's pixel count, so an orientation mismatch scores near 1 instead of silently comparing a
   sub-window (business-plans/15 p12/p15 are the corpus's only such pages).
-- **SSIM** — the vendored Verify SSIM (1 = identical), null when page sizes differ.
+- **SSIM** — Verify's own SSIM (`VerifyTests.Ssim`) (1 = identical), null when page sizes differ.
 
 Both were originally Magick.NET calls. SSIM moved in-repo for speed (~30× faster). AE followed
 after **Magick.NET 14.15 changed `Compare(…, ErrorMetric.Absolute)` to return the raw unnormalised
