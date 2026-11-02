@@ -40,7 +40,9 @@ public class WopiHostTests
         }
     }
 
-    static async Task<Server> StartAsync()
+    // With pageInBuildOutput, the editor's page is not in the web root but in the static web assets of the
+    // build output, as an application run outside Development from its build has the files of its editor.
+    static async Task<Server> StartAsync(bool pageInBuildOutput = false)
     {
         var folder = Path.Combine(Path.GetTempPath(), $"morph-wopi-{Guid.NewGuid():N}");
         var files = Path.Combine(folder, "files");
@@ -49,7 +51,14 @@ public class WopiHostTests
         Directory.CreateDirectory(web);
         File.Copy("sample.docx", Path.Combine(files, "Report.docx"));
         File.Copy("sample.xlsx", Path.Combine(files, "Workbook.xlsx"));
-        await File.WriteAllTextAsync(Path.Combine(web, "index.html"), "<!doctype html><html><head><title>Editor</title></head><body><div id=\"app\"></div></body></html>");
+        var editor = web;
+        if (pageInBuildOutput)
+        {
+            editor = Path.Combine(folder, "editor");
+            Directory.CreateDirectory(editor);
+        }
+
+        await File.WriteAllTextAsync(Path.Combine(editor, "index.html"), "<!doctype html><html><head><title>Editor</title></head><body><div id=\"app\"></div></body></html>");
 
         var builder = WebApplication.CreateBuilder(
             new WebApplicationOptions
@@ -58,6 +67,34 @@ public class WopiHostTests
                 EnvironmentName = "Production"
             });
         builder.WebHost.UseTestServer();
+        if (pageInBuildOutput)
+        {
+            // the runtime manifest of the build, which maps the paths of the web root to the referenced projects
+            var manifest = Path.Combine(folder, "staticwebassets.runtime.json");
+            await File.WriteAllTextAsync(
+                manifest,
+                JsonSerializer.Serialize(
+                    new
+                    {
+                        ContentRoots = (string[]) [editor + Path.DirectorySeparatorChar],
+                        Root = new
+                        {
+                            Children = new Dictionary<string, object>
+                            {
+                                ["index.html"] = new
+                                {
+                                    Asset = new
+                                    {
+                                        ContentRootIndex = 0,
+                                        SubPath = "index.html"
+                                    }
+                                }
+                            }
+                        }
+                    }));
+            builder.WebHost.UseSetting(WebHostDefaults.StaticWebAssetsKey, manifest);
+        }
+
         builder.Logging.ClearProviders();
         TestServer? server = null;
         var services = builder.Services;
@@ -132,6 +169,19 @@ public class WopiHostTests
         await Assert.That(opened.Token).IsEqualTo(launch.AccessToken);
         await Assert.That(opened.Action).IsEqualTo("edit");
         await Assert.That(opened.Proxy).IsEqualTo("/morph/wopi/proxy");
+    }
+
+    // Outside Development, an application run from its build has the editor's page in the static web assets
+    // of its build output rather than in the web root: MapMorphWopi adds them, so the page is found.
+    [Test]
+    public async Task ThePage_FromTheBuildOutput()
+    {
+        await using var server = await StartAsync(pageInBuildOutput: true);
+
+        var (response, opened) = await PostAsync(server.Client(), await server.LaunchAsync());
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(opened).IsNotNull();
     }
 
     // Through the proxy, signed: the file's info, its content, the lock, a save over it, and the unlock.
