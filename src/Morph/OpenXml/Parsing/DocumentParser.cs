@@ -10060,6 +10060,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             WrapType = wrapType,
             BehindText = positioning.BehindText,
             BackgroundColorHex = bgColor,
+            Insets = ReadTextInsets(bodyPr),
             VerticalAlignment = ShapeParser.TextAnchor(bodyPr?.Anchor?.Value)
         };
     }
@@ -11403,27 +11404,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var hasGlow = false;
 
         var bodyPr = wsp.GetFirstChild<WPS.TextBodyProperties>();
-        var insets = WordArtInsets.Default;
-        if (bodyPr != null)
+
+        // Parse preset text warp (prstTxWarp)
+        var prstTxWarp = bodyPr?.GetFirstChild<A.PresetTextWarp>();
+        if (prstTxWarp?.Preset?.HasValue == true)
         {
-            // Parse preset text warp (prstTxWarp)
-            var prstTxWarp = bodyPr.GetFirstChild<A.PresetTextWarp>();
-            if (prstTxWarp?.Preset?.HasValue == true)
-            {
-                transform = ParseTextWarpPreset(prstTxWarp.Preset.Value);
-                warpAdjust = ParseTextWarpAdjust(prstTxWarp);
-            }
-
-            // An arched warp lays its path in the text rect, so the insets set the arch's width.
-            static double Inset(Int32Value? emu, double fallback) =>
-                emu?.HasValue == true ? emu.Value / OoxmlUnits.EmusPerPoint : fallback;
-
-            insets = new(
-                Inset(bodyPr.LeftInset, insets.Left),
-                Inset(bodyPr.TopInset, insets.Top),
-                Inset(bodyPr.RightInset, insets.Right),
-                Inset(bodyPr.BottomInset, insets.Bottom));
+            transform = ParseTextWarpPreset(prstTxWarp.Preset.Value);
+            warpAdjust = ParseTextWarpAdjust(prstTxWarp);
         }
+
+        // An unwarped floating box holding more than one paragraph, or a table, is a text box rather than
+        // a line of WordArt: the dispatch below draws one line of all its text, which ran a footer's two
+        // paragraphs together and dropped their indents (issue #199). ParseTextBox lays it out paragraph
+        // by paragraph.
+        if (isAnchored &&
+            transform == WordArtTransform.None &&
+            txbxContent.ChildElements.Count(_ => _ is Paragraph or Table) > 1)
+        {
+            return null;
+        }
+
+        // An arched warp lays its path in the text rect, so the insets set the arch's width.
+        var insets = ReadTextInsets(bodyPr);
 
         // How the text sits inside the box — its first paragraph's resolved w:jc. An arched warp lays the
         // text along its path by it.
@@ -11671,6 +11673,28 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         [A.TextShapeValues.TextCascadeUp] = WordArtTransform.CascadeUp,
         [A.TextShapeValues.TextCascadeDown] = WordArtTransform.CascadeDown
     };
+
+    /// <summary>
+    /// The text rect's insets from <c>wps:bodyPr</c>, each falling back to DrawingML's default where it is
+    /// not declared.
+    /// </summary>
+    static WordArtInsets ReadTextInsets(WPS.TextBodyProperties? bodyPr)
+    {
+        var insets = WordArtInsets.Default;
+        if (bodyPr == null)
+        {
+            return insets;
+        }
+
+        static double Inset(Int32Value? emu, double fallback) =>
+            emu?.HasValue == true ? emu.Value / OoxmlUnits.EmusPerPoint : fallback;
+
+        return new(
+            Inset(bodyPr.LeftInset, insets.Left),
+            Inset(bodyPr.TopInset, insets.Top),
+            Inset(bodyPr.RightInset, insets.Right),
+            Inset(bodyPr.BottomInset, insets.Bottom));
+    }
 
     static WordArtTransform ParseTextWarpPreset(A.TextShapeValues preset) =>
         textWarpPresets.GetValueOrDefault(preset, WordArtTransform.None);
