@@ -1096,6 +1096,8 @@
     padding: 12px;
     overflow: auto;
     overflow-anchor: none;
+    /* Two fingers zoom the pages (morph-viewer.js), not the host's page around them. */
+    touch-action: pan-x pan-y;
     scrollbar-gutter: stable;
 }
 
@@ -1809,7 +1811,8 @@
     color: var(--morph-on-band, #ffffff);
 }
 
-.editor-tabs {
+.editor-tabs,
+.editor-tablist {
     display: flex;
     flex: none;
     align-items: flex-end;
@@ -2210,11 +2213,18 @@
     cursor: default;
 }
 
-/* Cut and Copy at a caret, marked by the script (markClipboard in morph-viewer.js). */
+/* Cut and Copy at a caret, and Insert > Table with text selected, marked by the script (markClipboard in
+   morph-viewer.js). */
 .editor-tool-disabled,
 .editor-tool[data-unselected],
-.editor-menu-item[data-unselected] {
+.editor-menu-item[data-unselected],
+.editor-caret-only[data-selected] {
     pointer-events: none;
+}
+
+.editor-caret-only[data-selected] {
+    opacity: 0.4;
+    cursor: default;
 }
 
 .editor-menu-item[data-unselected] {
@@ -2265,24 +2275,47 @@
     cursor: default;
 }
 
-/* The font and the size the caret is in, kept current by the script (data-edit-show). */
-.editor-shown::before {
-    content: attr(data-value);
+/* The font and the size the caret is in, kept current by the script (data-edit-show): boxes a name or a
+   size is typed into, each joined to the arrow that opens its list. */
+.editor-combo {
+    display: inline-flex;
+    align-items: stretch;
 }
 
-.editor-shown {
-    max-width: 8rem;
-    overflow: hidden;
+.editor-combo-input {
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    background: var(--morph-background, #f8f9fa);
+    color: var(--morph-text, #333);
+    font: inherit;
+    font-size: 0.85rem;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-.editor-font-button {
-    min-width: 8.5rem;
+.editor-combo-input:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: -2px;
 }
 
-.editor-size-button {
-    min-width: 3.75rem;
+.editor-combo-input:disabled {
+    opacity: 0.45;
+}
+
+.editor-combo .editor-dropdown {
+    min-width: 0;
+    padding: 0 0.3rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.editor-font-input {
+    width: 8rem;
+}
+
+.editor-size-input {
+    width: 2.75rem;
 }
 
 .editor-fonts {
@@ -2538,8 +2571,15 @@
     cursor: pointer;
 }
 
-.editor-menu-item:hover {
+.editor-menu-item:hover,
+.editor-menu [data-menu-active] {
     background: var(--morph-background, #f8f9fa);
+}
+
+/* The line the arrow keys are on (keyboard navigation in morph-viewer.js): the focus stays where it was. */
+.editor-menu [data-menu-active] {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: -2px;
 }
 
 .editor-menu-item[aria-checked="true"],
@@ -2630,8 +2670,17 @@
     color: var(--morph-text, #333);
 }
 
+.editor-status-button[aria-pressed="true"] {
+    color: var(--morph-text, #333);
+    font-weight: 600;
+}
+
 .editor-status-tracking {
     color: var(--morph-change-accent, #d13438);
+}
+
+.editor-status-extend:not([data-value="true"]) {
+    display: none;
 }
 
 .editor-status-note {
@@ -2947,6 +2996,59 @@
 .editor-width-input {
     width: 4.5rem;
     padding: 0.25rem 0.4rem;
+}
+
+/* Layout > Paragraph: Indent and Spacing, a column each, as Word's ribbon has them. */
+.editor-paragraph-boxes {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    align-items: center;
+    gap: 0.1rem 0.6rem;
+}
+
+.editor-paragraph-boxes .editor-menu-heading {
+    padding: 0;
+}
+
+.editor-paragraph-label {
+    min-width: 2.6rem;
+    font-size: 0.8rem;
+}
+
+.editor-paragraph-input {
+    width: 4rem;
+    padding: 0.15rem 0.3rem;
+}
+
+.editor-paragraph-unit {
+    font-size: 0.75rem;
+    color: var(--morph-muted, #6c757d);
+}
+
+/* Insert > Symbol's palette. */
+.editor-symbol-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1.9rem);
+    gap: 3px;
+    padding: 0.4rem 0.6rem;
+}
+
+.editor-symbol {
+    width: 1.9rem;
+    height: 1.9rem;
+    padding: 0;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-text, #333);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.editor-symbol:hover,
+.editor-symbol:focus-visible {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: -1px;
 }
 
 .editor-dialog-buttons {

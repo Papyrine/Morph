@@ -33,12 +33,13 @@ public partial class MorphEditor
             InLink = InLink,
             CaretInLink = CaretInLink,
             List = CurrentList,
-            Subscript = IsSubscript,
-            Superscript = IsSuperscript,
             PictureSelected = PictureSelected,
             FloatingPicture = FloatingPictureSelected,
             Story = CurrentStory,
+            Selected = PagesSelected,
             SpansParagraphs = SpansParagraphs,
+            CanUndo = CanUndo,
+            CanRedo = CanRedo,
             Tracking = Tracking,
             ForcesTracking = outline.ForcesTracking,
             CanComment = CanComment,
@@ -52,7 +53,9 @@ public partial class MorphEditor
             FindShown = findOpen &&
                         !replaceOpen,
             ReplaceShown = ReplaceShown,
-            Presenting = presenting
+            Presenting = presenting,
+            Overtype = overtype,
+            Zoom = Zoom
         };
 
     // A command run from the ribbon, a menu or a key: only while it can be.
@@ -175,7 +178,9 @@ public partial class MorphEditor
                 PictureSelected: false
             };
 
-        // What only the body has: page setup and Update Table, greyed out in a header, a footer and a note (B-06).
+        // What only the body has: page setup and Update Table, greyed out in a header, a footer and a note
+        // (B-06) — and a table of contents, a footnote and an endnote, which the core puts in the body alone
+        // (DocumentEditor.Fields, DocumentEditor.Stories).
         public static bool InTheBody(EditorState state) =>
             state is
             {
@@ -192,22 +197,33 @@ public partial class MorphEditor
                 FloatingPicture: false
             };
 
-        // A footnote goes in from the body or another footnote; an endnote from the body or another endnote.
-        public static bool ForFootnote(EditorState state) =>
+        // A link is made within one paragraph (DocumentEditor.Inserts), and Word greys Link out with cells
+        // selected: not with a selection over paragraphs.
+        public static bool ForALink(EditorState state) =>
             state is
             {
                 Editable: true,
-                Story: ReviewPart.Body or ReviewPart.Footnotes
+                SpansParagraphs: false
             };
 
-        public static bool ForEndnote(EditorState state) =>
+        // Date & Time: not with a picture selected, nor, as Word greys it, with cells selected.
+        public static bool ForADate(EditorState state) =>
+            ForTextAlone(state) &&
+            state is not
+            {
+                InTable: true,
+                SpansParagraphs: true
+            };
+
+        // Accept All and Reject All: where tracked changes can be resolved.
+        public static bool Resolvable(EditorState state) =>
             state is
             {
-                Editable: true,
-                Story: ReviewPart.Body or ReviewPart.Endnotes
+                Revising: false,
+                CanResolve: true
             };
 
-        // Page Number and Table of Contents: greyed out in a note, though not in a header or footer (B-06b).
+        // Page Number: greyed out in a note, though not in a header or footer (B-06b).
         public static bool OutsideNotes(EditorState state) =>
             state is
             {
@@ -217,13 +233,19 @@ public partial class MorphEditor
 
         // Home
 
+        // Greyed out with nothing to undo or redo, as the review pane's are (EditorState.CanUndo).
         public static readonly EditorCommand Undo =
             new("undo", "Undo", _ => _.UndoAsync())
             {
                 Icon = Lucide.Undo2,
                 Key = "Ctrl+Z",
                 Place = "Home › Undo",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    CanUndo: true
+                }
             };
 
         public static readonly EditorCommand Redo =
@@ -232,7 +254,12 @@ public partial class MorphEditor
                 Icon = Lucide.Redo2,
                 Key = "Ctrl+Y",
                 Place = "Home › Undo",
-                Handler = CommandHandler.Script
+                Handler = CommandHandler.Script,
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    CanRedo: true
+                }
             };
 
         // The clipboard is the script's alone: cut on the pages reaches .NET as a delete.
@@ -354,13 +381,15 @@ public partial class MorphEditor
                 Enabled = ForText
             };
 
+        // The script's buttons as bold's are, so that which is pressed follows the caret through the open
+        // paragraph (its state names them); the press itself is .NET's, as the script hands it on.
         public static readonly EditorCommand Subscript =
             new("subscript", "Subscript", _ => _.ToggleSubscriptAsync())
             {
                 Icon = Lucide.Subscript,
                 Key = "Ctrl+=",
                 Place = "Home › Font",
-                Checked = _ => _.Subscript,
+                Handler = CommandHandler.Script,
                 Enabled = ForText
             };
 
@@ -370,7 +399,19 @@ public partial class MorphEditor
                 Icon = Lucide.Superscript,
                 Key = "Ctrl+Shift+=",
                 Place = "Home › Font",
-                Checked = _ => _.Superscript,
+                Handler = CommandHandler.Script,
+                Enabled = ForText
+            };
+
+        // Word's Change Case (Shift+F3): the open paragraph's alone, which the script cycles through
+        // lower, Title and upper case.
+        public static readonly EditorCommand ChangeCase =
+            new("change-case", "Change case", _ => _.NoteAsync("Click in a word, or select text in a paragraph, first."))
+            {
+                Icon = Lucide.CaseSensitive,
+                Key = "Shift+F3",
+                Place = "Home › Font",
+                Handler = CommandHandler.Script,
                 Enabled = ForText
             };
 
@@ -641,13 +682,30 @@ public partial class MorphEditor
                 Enabled = ForPages
             };
 
+        // Word's Blank Page: a page break either side of an empty paragraph, as one edit.
+        public static readonly EditorCommand BlankPage =
+            new("blank-page", "Blank page", _ => _.InsertBlankPageAsync())
+            {
+                Icon = Lucide.FilePlus,
+                Place = "Insert › Pages",
+                Enabled = ForPages
+            };
+
+        // Word greys Table out whenever anything is selected: a table goes in at a caret. Text selected in
+        // the open paragraph is the script's to know, which marks the button as it marks Cut and Copy
+        // (data-caret-only); text selected across the pages is the state's.
         public static readonly EditorCommand Table =
             new("table", "Table", _ => _.ToggleMenu(tableMenu))
             {
                 Icon = Lucide.Table,
                 Place = "Insert › Tables",
                 Menu = tableMenu,
-                Opens = "dialog"
+                Opens = "dialog",
+                Enabled = _ => _ is
+                {
+                    Editable: true,
+                    Selected: false
+                }
             };
 
         // The picker opens from the press itself, which a browser asks of a file input: this only takes
@@ -664,7 +722,8 @@ public partial class MorphEditor
             Icon = Lucide.Link,
             Key = "Ctrl+K",
             Place = "Insert › Links",
-            Opens = "dialog"
+            Opens = "dialog",
+            Enabled = ForALink
         };
 
         public static readonly EditorCommand RemoveLink =
@@ -716,6 +775,17 @@ public partial class MorphEditor
             {
                 Icon = Lucide.CalendarDays,
                 Place = "Insert › Text",
+                Opens = "dialog",
+                Enabled = ForADate
+            };
+
+        // Word's Symbol: a palette of the symbols most asked for, each put in at the caret as text.
+        public static readonly EditorCommand Symbol =
+            new("symbol", "Symbol", _ => _.ToggleMenu(symbolMenu))
+            {
+                Icon = Lucide.Omega,
+                Place = "Insert › Symbols",
+                Menu = symbolMenu,
                 Opens = "dialog",
                 Enabled = ForTextAlone
             };
@@ -787,6 +857,17 @@ public partial class MorphEditor
                 }
             };
 
+        // Layout › Paragraph's boxes: the caret's paragraph's indents, in centimetres, and its spacing, in
+        // points, each set as it is typed in (MorphEditor.ParagraphField). The box is the command; what it
+        // sets is in its text, so the command itself only names the box.
+        public static readonly EditorCommand LeftIndent = ParagraphBox("left-indent", "Indent left");
+
+        public static readonly EditorCommand RightIndent = ParagraphBox("right-indent", "Indent right");
+
+        public static readonly EditorCommand SpacingBefore = ParagraphBox("spacing-before", "Spacing before");
+
+        public static readonly EditorCommand SpacingAfter = ParagraphBox("spacing-after", "Spacing after");
+
         // References
 
         public static readonly EditorCommand Contents =
@@ -794,7 +875,7 @@ public partial class MorphEditor
             {
                 Icon = Lucide.TableOfContents,
                 Place = "References › Table of contents",
-                Enabled = OutsideNotes
+                Enabled = InTheBody
             };
 
         public static readonly EditorCommand UpdateContents =
@@ -811,7 +892,7 @@ public partial class MorphEditor
                 Icon = Lucide.Superscript,
                 Key = "Ctrl+Alt+F",
                 Place = "References › Footnotes",
-                Enabled = ForFootnote
+                Enabled = InTheBody
             };
 
         public static readonly EditorCommand Endnote =
@@ -820,7 +901,24 @@ public partial class MorphEditor
                 Icon = Lucide.FileDown,
                 Key = "Ctrl+Alt+D",
                 Place = "References › Footnotes",
-                Enabled = ForEndnote
+                Enabled = InTheBody
+            };
+
+        // Word's Next and Previous Footnote: the caret to the next or the last note's mark in the body.
+        public static readonly EditorCommand NextNote =
+            new("next-footnote", "Next footnote", _ => _.StepNoteAsync(true))
+            {
+                Icon = Lucide.ArrowDownToLine,
+                Place = "References › Footnotes",
+                Enabled = InTheBody
+            };
+
+        public static readonly EditorCommand PreviousNote =
+            new("previous-footnote", "Previous footnote", _ => _.StepNoteAsync(false))
+            {
+                Icon = Lucide.ArrowUpToLine,
+                Place = "References › Footnotes",
+                Enabled = InTheBody
             };
 
         // Table, the contextual tab
@@ -967,18 +1065,15 @@ public partial class MorphEditor
                 Checked = _ => _.Tracking
             };
 
+        // Word leaves them enabled with no revisions in the document (WordProbe B-01); where changes cannot
+        // be resolved — a read-only document — they are greyed out, not taken away.
         public static readonly EditorCommand AcceptAll =
             new("accept-all", "Accept all", _ => _.ResolveAllAsync(true))
             {
                 Icon = Lucide.CheckCheck,
                 Place = "Review › Changes",
-                // Word leaves it enabled with no revisions in the document (WordProbe B-01).
-                Enabled = _ => !_.Revising,
-                Visible = _ => _ is
-                {
-                    OffersReview: true,
-                    CanResolve: true
-                }
+                Enabled = Resolvable,
+                Visible = _ => _.OffersReview
             };
 
         public static readonly EditorCommand RejectAll =
@@ -986,13 +1081,28 @@ public partial class MorphEditor
             {
                 Icon = Lucide.X,
                 Place = "Review › Changes",
-                // Word leaves it enabled with no revisions in the document (WordProbe B-01).
+                Enabled = Resolvable,
+                Visible = _ => _.OffersReview
+            };
+
+        // The review pane's change before or after the one it has active, the pane opened to it. Only
+        // moves, so a read-only document's changes are stepped through too.
+        public static readonly EditorCommand PreviousChange =
+            new("previous-change", "Previous change", _ => _.StepChangeAsync(-1))
+            {
+                Icon = Lucide.ChevronLeft,
+                Place = "Review › Changes",
                 Enabled = _ => !_.Revising,
-                Visible = _ => _ is
-                {
-                    OffersReview: true,
-                    CanResolve: true
-                }
+                Visible = _ => _.OffersReview
+            };
+
+        public static readonly EditorCommand NextChange =
+            new("next-change", "Next change", _ => _.StepChangeAsync(1))
+            {
+                Icon = Lucide.ChevronRight,
+                Place = "Review › Changes",
+                Enabled = _ => !_.Revising,
+                Visible = _ => _.OffersReview
             };
 
         // View: these only show, so they are there for any document.
@@ -1017,6 +1127,25 @@ public partial class MorphEditor
                 Checked = _ => _.RulerShown
             };
 
+        // Word's One Page and Page Width: the viewer's own fit zooms.
+        public static readonly EditorCommand OnePage =
+            new("one-page", "One page", _ => _.ZoomToAsync(ViewerZoom.PageFit))
+            {
+                Icon = Lucide.Maximize,
+                Place = "View › Zoom",
+                Enabled = _ => true,
+                Checked = _ => _.Zoom == ViewerZoom.PageFit
+            };
+
+        public static readonly EditorCommand PageWidth =
+            new("page-width", "Page width", _ => _.ZoomToAsync(ViewerZoom.PageWidth))
+            {
+                Icon = Lucide.MoveHorizontal,
+                Place = "View › Zoom",
+                Enabled = _ => true,
+                Checked = _ => _.Zoom == ViewerZoom.PageWidth
+            };
+
         public static readonly EditorCommand Present =
             new("presentation", "Present", nothing)
             {
@@ -1025,6 +1154,16 @@ public partial class MorphEditor
                 Handler = CommandHandler.Viewer,
                 Enabled = _ => true,
                 Checked = _ => _.Presenting
+            };
+
+        // The status bar's Overtype, which Insert turns on and off: the script keeps it, so a press on the
+        // status item is the script's, as the key is.
+        public static readonly EditorCommand Overtype =
+            new("overtype", "Overtype", nothing)
+            {
+                Key = "Insert",
+                Handler = CommandHandler.Viewer,
+                Checked = _ => _.Overtype
             };
 
         // Keys alone: Word's for a list's paragraph and a heading (onParagraphKey in morph-edit.js), its
@@ -1308,6 +1447,7 @@ public partial class MorphEditor
                 Strike,
                 Subscript,
                 Superscript,
+                ChangeCase,
                 Highlight,
                 Highlights,
                 FontColour,
@@ -1336,6 +1476,7 @@ public partial class MorphEditor
                 Find,
                 Replace,
                 PageBreak,
+                BlankPage,
                 Table,
                 Picture,
                 Link,
@@ -1345,16 +1486,23 @@ public partial class MorphEditor
                 Footer,
                 PageNumber,
                 Date,
+                Symbol,
                 Margins,
                 Orientation,
                 PaperSize,
                 Columns,
                 Breaks,
                 Wrap,
+                LeftIndent,
+                RightIndent,
+                SpacingBefore,
+                SpacingAfter,
                 Contents,
                 UpdateContents,
                 Footnote,
                 Endnote,
+                NextNote,
+                PreviousNote,
                 InsertRowAbove,
                 InsertRowBelow,
                 InsertColumnLeft,
@@ -1375,9 +1523,14 @@ public partial class MorphEditor
                 Track,
                 AcceptAll,
                 RejectAll,
+                PreviousChange,
+                NextChange,
                 Pages,
                 Ruler,
+                OnePage,
+                PageWidth,
                 Present,
+                Overtype,
                 ListLevelIn,
                 ListLevelOut,
                 EndList,
@@ -1434,6 +1587,14 @@ public partial class MorphEditor
                 Icon = icon,
                 Place = $"Table › {group}",
                 Enabled = InATable
+            };
+
+        // A box of Layout › Paragraph: for the text of a paragraph, as the Paragraph dialog is.
+        static EditorCommand ParagraphBox(string name, string label) =>
+            new(name, label, nothing)
+            {
+                Place = "Layout › Paragraph",
+                Enabled = ForText
             };
 
         // Word's Ctrl+Alt+1 to 3.

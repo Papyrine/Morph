@@ -42,6 +42,23 @@ public class PagedDocumentTests
         var picture = pictures[0];
         await Assert.That((picture.Paragraph, picture.Offset)).IsEqualTo((0, 6));
         await Assert.That((picture.Width, picture.Height)).IsEqualTo((100f, 50f));
+        await Assert.That(picture.Behind).IsFalse();
+    }
+
+    // A picture behind the text says so, so that a click on the text over it opens the text.
+    [Test]
+    public async Task Pictures_SayWhichAreBehindTheText()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pixel = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+        var pictured = DocumentEditor.InsertPicture(EditFixtures.Paragraphs, 0, 6, new(pixel, "image/png", 100, 50), options).Document;
+        var behind = DocumentEditor.SetPictureWrap(pictured, 0, 6, PictureWrap.BehindText, options);
+
+        using var document = PagedDocument.Open(behind, InputFormat.Docx, Sample.FontDirectory, traceSources: true);
+        var pictures = document.Pictures(0, DocumentOutline.Read(behind));
+
+        await Assert.That(pictures).Count().IsEqualTo(1);
+        await Assert.That(pictures[0].Behind).IsTrue();
     }
 
     // The painter truncates the page's pixel size, as every Morph raster does.

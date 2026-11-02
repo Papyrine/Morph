@@ -64,8 +64,10 @@ public class MorphEditorTests : BunitTestContext
 
         await Assert.That((bool) controller.Invocations["setEditMode"][^1].Arguments[0]!).IsTrue();
         await Assert.That(string.Join(' ', cut.FindAll(".editor-tools [data-edit-command]").Select(_ => _.GetAttribute("data-edit-command"))))
-            .IsEqualTo("undo redo paste cut copy bold italic underline strike align-left align-center align-right align-justify");
-        await Assert.That(cut.FindAll(".editor-tools [data-edit-command][disabled]")).IsEmpty();
+            .IsEqualTo("undo redo paste cut copy bold italic underline strike subscript superscript change-case align-left align-center align-right align-justify");
+        // Nothing has been edited, and no paragraph is open: there is nothing to undo or redo.
+        await Assert.That(string.Join(' ', cut.FindAll(".editor-tools [data-edit-command][disabled]").Select(_ => _.GetAttribute("data-edit-command"))))
+            .IsEqualTo("undo redo");
         await Assert.That(string.Join(' ', cut.FindAll(".editor-tab").Select(_ => _.TextContent.Trim()))).IsEqualTo("Home Insert Layout References Review View");
     }
 
@@ -574,14 +576,16 @@ public class MorphEditorTests : BunitTestContext
         await cut.Find("[aria-label='Grow font']").ClickAsync(new());
         await Assert.That(Body(reported!)).Contains("<w:sz w:val=\"40\" />");
 
+        // Superscript's button is the script's, as Bold's is (its pressed state follows the caret there),
+        // and the script hands its press on to .NET.
         Caret(2, 2);
-        await cut.Find("[aria-label='Superscript']").ClickAsync(new());
+        await Assert.That(cut.Find("[aria-label='Superscript']").GetAttribute("data-edit-command")).IsEqualTo("superscript");
+        await cut.InvokeAsync(() => cut.Instance.OnEditCommand("superscript"));
         await Assert.That(Body(reported!)).Contains("<w:vertAlign w:val=\"superscript\" />");
-        await Assert.That(cut.Find("[aria-label='Superscript']").GetAttribute("aria-pressed")).IsEqualTo("true");
 
         // Pressed again, it comes off.
         Caret(2, 2);
-        await cut.Find("[aria-label='Superscript']").ClickAsync(new());
+        await cut.InvokeAsync(() => cut.Instance.OnEditCommand("superscript"));
         await Assert.That(Body(reported!)).DoesNotContain("vertAlign");
 
         Caret(2, 2);
@@ -1710,6 +1714,105 @@ public class MorphEditorTests : BunitTestContext
         }
 
         await Verify(cut.Find(".editor-menu").Pretty(), "html");
+    }
+
+    // The Width box shows the caret's cell's width, keeps what was typed only for that cell, says so when
+    // what was typed is not a width, and holds a width to Word's range whatever was typed.
+    [Test]
+    public async Task TheColumnWidthBox_FollowsTheCaretAndClamps()
+    {
+        byte[]? reported = null;
+        var cut = await OpenGridAsync(_ => reported = _);
+        await Assert.That(cut.Find(".editor-width-input").GetAttribute("value")).IsNotEmpty();
+
+        await cut.Find(".editor-width-input").ChangeAsync(new() {Value = "wide"});
+        await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("as a number");
+        await Assert.That(cut.Find(".editor-width-input").GetAttribute("value")).IsEqualTo("wide");
+
+        Caret(0, 0);
+        await cut.Find(".editor-width-input").ChangeAsync(new() {Value = "1000"});
+        await Assert.That(Body(reported!)).Contains("<w:gridCol w:w=\"31674\" />");
+        await Assert.That(cut.Find(".editor-status-note").TextContent).Contains("0.1 to 55.87 cm");
+    }
+
+    // Custom margins: a side left as the dialog showed it keeps its twips, though its centimetres do not
+    // come back to them — so a preset stays the preset.
+    [Test]
+    public async Task TheMarginsDialog_KeepsTheSidesLeftAsTheyWere()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
+        Caret(0, 0);
+        await ChooseTabAsync(cut, "Layout");
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Margins").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Moderate")).ClickAsync(new());
+        await Assert.That(Body(reported!)).Contains("w:left=\"1080\"");
+
+        Caret(0, 0);
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Trim() == "Margins").ClickAsync(new());
+        await cut.FindAll(".editor-menu-item").First(_ => _.TextContent.Contains("Custom")).ClickAsync(new());
+        await cut.FindAll(".editor-margin-fields input")[0].InputAsync(new() {Value = "3"});
+        await cut.FindAll(".editor-dialog-buttons .editor-button").First(_ => _.TextContent == "Apply").ClickAsync(new());
+
+        await Assert.That(Body(reported!)).Contains("w:top=\"1701\"");
+        await Assert.That(Body(reported!)).Contains("w:left=\"1080\"");
+        await Assert.That(Body(reported!)).Contains("w:right=\"1080\"");
+    }
+
+    // Enter in the Paragraph dialog presses OK, as in Word's.
+    [Test]
+    public async Task EnterInTheParagraphDialog_PressesOk()
+    {
+        byte[]? reported = null;
+        var cut = await OpenEditing(Paragraphs, _ => _.Add(_ => _.OnDocumentChanged, _ => reported = _));
+        Caret(1, 0);
+        await cut.Find("[aria-label='Paragraph settings']").ClickAsync(new());
+        await cut.FindAll(".editor-dialog input[type=number]")[0].InputAsync(new() {Value = "2"});
+        await cut.Find(".editor-dialog").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs {Key = "Enter"});
+
+        await Assert.That(cut.FindAll(".editor-dialog")).IsEmpty();
+        await Assert.That(Body(reported!)).Contains("w:left=\"1134\"");
+    }
+
+    // New comment at a caret comments the word the caret is in, as Word's does.
+    [Test]
+    public async Task AComment_AtACaret_IsOnTheWord()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        Caret(2, 2);
+        await ChooseTabAsync(cut, "Review");
+
+        await cut.FindAll(".editor-tool").First(_ => _.TextContent.Contains("New comment")).ClickAsync(new());
+
+        await Assert.That(cut.Find(".review-new .review-quote").TextContent).IsEqualTo("Third");
+    }
+
+    // The Date and Time dialog's formats are the reader's culture's first, and a / or : is written as
+    // itself whatever the culture's separators, as Word's \@ switch writes it.
+    [Test]
+    public async Task TheDateFormats_FollowTheCulture()
+    {
+        await Assert.That(MorphEditor.DateFormatsFor(CultureInfo.InvariantCulture)).IsEquivalentTo(MorphViewer.DateFormats);
+        var american = MorphEditor.DateFormatsFor(new CultureInfo("en-US"));
+        await Assert.That(american[0]).IsEqualTo("M/d/yyyy");
+        await Assert.That(american).Contains("d/MM/yyyy");
+
+        var date = new DateTime(2026, 11, 2, 9, 5, 0);
+        await Assert.That(date.ToString(DocumentEditor.Literal("d/MM/yyyy HH:mm"), new CultureInfo("de-DE"))).IsEqualTo("2/11/2026 09:05");
+        await Assert.That(date.ToString(DocumentEditor.Literal("d MMMM yyyy"), new CultureInfo("de-DE"))).IsEqualTo("2 November 2026");
+    }
+
+    // Undo and Redo are greyed out with nothing to undo or redo, and Undo comes on with an edit made.
+    [Test]
+    public async Task UndoAndRedo_GreyOutWithNothingToStep()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsTrue();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsTrue();
+
+        Caret(1, 0);
+        await cut.Find("[aria-label=Numbering]").ClickAsync(new());
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsFalse();
     }
 
     [Test]

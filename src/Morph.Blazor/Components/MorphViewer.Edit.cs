@@ -22,9 +22,24 @@ public partial class MorphViewer
     internal DocumentOutline outline = DocumentOutline.Empty;
     EditMap editMap = EditMap.Empty;
     EditSession? session;
+
+    // The session open when an edit's pages replaced its own: still to be handed in, perhaps.
+    EditSession? superseded;
     int sessions;
     bool editOpen;
     internal string? editNote;
+
+    // The page (0-based) the reader was last at in the document: where the paragraph last opened was,
+    // or where the text last selected on the pages ends. What a header's paragraph is opened again on.
+    int readerPage = -1;
+
+    // The document (documentId) the script's place for a ribbon command is in the ordinals of: the one the
+    // paragraph last open was opened in, or handed in to; -1 before one has been.
+    int targetDocument = -1;
+
+    // The paragraph last handed in, as what its typing took in and left (CaretPlace.Typing) and how many
+    // paragraphs Enter added to it: what a place read off the file before it is moved by (Moved).
+    (CaretPlace Before, CaretPlace After, int Added)? handedIn;
 
     internal bool CanWrite => !ReadOnly &&
                               IsWord &&
@@ -59,6 +74,10 @@ public partial class MorphViewer
         editNote = null;
         floatingPicture = null;
         inlinePicture = false;
+        readerPage = -1;
+        targetDocument = -1;
+        handedIn = null;
+        superseded = null;
     }
 
     /// <summary>
@@ -73,9 +92,16 @@ public partial class MorphViewer
             {
                 if (!editOpen ||
                     !CanWrite ||
-                    revising ||
                     handle is not { } viewer)
                 {
+                    return;
+                }
+
+                // A click on pages about to be replaced is on text that may be about to move: said, not
+                // guessed at.
+                if (revising)
+                {
+                    Busy();
                     return;
                 }
 
@@ -198,8 +224,31 @@ public partial class MorphViewer
         return null;
     }
 
+    // Where a paragraph is opened again, or selected again: a header's or a footer's on the page the
+    // reader was on — it is drawn on every page that shows it, and its first is seldom the reader's —
+    // or the nearest that shows it; anything else where it starts, as a caret there reaches its lines.
+    EditBlock? Reopened(int paragraph, int page)
+    {
+        if (!Repeated(paragraph) ||
+            page < 0)
+        {
+            return Block(paragraph, -1);
+        }
+
+        return editMap.Blocks(paragraph)
+            .OrderBy(_ => Math.Abs(_.Page - page))
+            .FirstOrDefault();
+    }
+
+    bool Repeated(int paragraph) =>
+        paragraph >= 0 &&
+        paragraph < outline.Paragraphs.Count &&
+        outline.Paragraphs[paragraph].Part is ReviewPart.Header or ReviewPart.Footer;
+
     async Task BeginAsync(ViewerHandle viewer, EditParagraph paragraph, EditBlock block, int from, int to)
     {
+        readerPage = block.Page;
+        targetDocument = documentId;
         session = new(++sessions, paragraph, block, editMap);
         caretParagraph = paragraph.Ordinal;
         // The look shown is that of the character before a caret, or of the first one selected.
@@ -230,7 +279,12 @@ public partial class MorphViewer
         InvokeAsync(
             async () =>
             {
-                if (session is not { } open ||
+                // The session may have been overtaken by another edit's pages, which came while its box
+                // was still on its way in: it is handed in all the same, if its paragraph is still there.
+                var overtaken = session?.Id != id &&
+                                superseded?.Id == id;
+                var open = overtaken ? superseded : session;
+                if (open == null ||
                     open.Id != id ||
                     !CanWrite)
                 {
@@ -238,6 +292,7 @@ public partial class MorphViewer
                 }
 
                 session = null;
+                superseded = null;
                 if (open.Read(payload) is not { } content)
                 {
                     editNote = "That edit could not be read, and was not made.";
@@ -252,6 +307,23 @@ public partial class MorphViewer
                     _ => JoinDirection.None
                 };
                 var options = await EditOptionsAsync();
+
+                // Handed in while another edit is under way — the box lost the focus to a button that
+                // made one: it waits for that edit rather than being refused, and is made if the file
+                // that edit left still has the paragraph where it was, as it was opened.
+                if (revising ||
+                    overtaken)
+                {
+                    await SettledAsync();
+                    if (open.Paragraph.Ordinal >= outline.Paragraphs.Count ||
+                        !Same(outline.Paragraphs[open.Paragraph.Ordinal], open.Paragraph))
+                    {
+                        editNote = "The document changed while that paragraph was being handed in, so what was typed in it was not kept: type it again.";
+                        StateHasChanged();
+                        return;
+                    }
+                }
+
                 // Undone, a join leaves the caret where the key was pressed: the joined paragraph's start for
                 // Backspace, its end for Delete (WordProbe R-U-2, U-04).
                 var (before, after) = CaretPlace.Typing(open.Paragraph, content);
@@ -263,6 +335,7 @@ public partial class MorphViewer
                     _ => before
                 };
                 EditResult? result = null;
+                handedIn = null;
                 var edited = await ReviseAsync(
                     _ =>
                     {
@@ -274,6 +347,13 @@ public partial class MorphViewer
                 if (!edited)
                 {
                     return;
+                }
+
+                // The ordinals of the file the script names its place in, for a command that asks.
+                targetDocument = documentId;
+                if (join == JoinDirection.None)
+                {
+                    handedIn = (before, after, content.Count - 1);
                 }
 
                 if (join != JoinDirection.None &&
@@ -296,6 +376,46 @@ public partial class MorphViewer
                 }
             });
 
+    // Whether a paragraph of the file now is the one opened for typing: the same things in the same
+    // order, which is all a hand-in's items name (NewItem.Unit).
+    static bool Same(EditParagraph now, EditParagraph opened) =>
+        now.Units.Count == opened.Units.Count &&
+        now.Units.Zip(opened.Units).All(_ => _.First.Kind == _.Second.Kind &&
+                                              _.First.Text == _.Second.Text);
+
+    // Where a place in the file as it was before the last hand-in is in the file that hand-in made: a
+    // paragraph after it moved on by the paragraphs Enter made, and a place in it after what was typed
+    // moved on by what was typed. Null when the last edit was not a hand-in that says.
+    internal (int Paragraph, int Offset)? Moved(int paragraph, int offset)
+    {
+        if (handedIn is not var (before, after, added))
+        {
+            return null;
+        }
+
+        if (paragraph < before.StartParagraph)
+        {
+            return (paragraph, offset);
+        }
+
+        if (paragraph > before.StartParagraph)
+        {
+            return (paragraph + added, offset);
+        }
+
+        if (offset < before.StartOffset)
+        {
+            return (paragraph, offset);
+        }
+
+        if (offset >= before.EndOffset)
+        {
+            return (after.EndParagraph, after.EndOffset + offset - before.EndOffset);
+        }
+
+        return (after.EndParagraph, after.EndOffset);
+    }
+
     /// <summary>
     /// Called from JavaScript for a key whose command is carried out here, where the reader is, by the
     /// command's name: Tab and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty
@@ -316,6 +436,9 @@ public partial class MorphViewer
                     return;
                 }
 
+                // A key pressed while the pages are laid out again waits for them, then acts where the
+                // reader is in them.
+                await SettledAsync();
                 editNote = null;
                 await CommandAsync(name);
                 StateHasChanged();
@@ -331,12 +454,13 @@ public partial class MorphViewer
             async () =>
             {
                 if (!editOpen ||
-                    !CanWrite ||
-                    revising)
+                    !CanWrite)
                 {
                     return;
                 }
 
+                // Waits for an edit under way: where it goes is asked of the script afterwards.
+                await SettledAsync();
                 editNote = null;
                 await PasteAsync(html, text);
                 StateHasChanged();
@@ -352,12 +476,13 @@ public partial class MorphViewer
             async () =>
             {
                 if (!editOpen ||
-                    !CanWrite ||
-                    revising)
+                    !CanWrite)
                 {
                     return;
                 }
 
+                // Waits for an edit under way: where it goes is asked of the script afterwards.
+                await SettledAsync();
                 editNote = null;
                 await ResizePictureAsync(width, height);
                 StateHasChanged();
@@ -373,9 +498,15 @@ public partial class MorphViewer
             async () =>
             {
                 if (!editOpen ||
-                    !CanWrite ||
-                    revising)
+                    !CanWrite)
                 {
+                    return;
+                }
+
+                // The paragraph named is one of the file being replaced.
+                if (revising)
+                {
+                    Busy();
                     return;
                 }
 
@@ -408,17 +539,23 @@ public partial class MorphViewer
                 {
                     session = null;
                 }
+
+                if (superseded?.Id == id)
+                {
+                    superseded = null;
+                }
             });
 
-    // Goes on editing where an edit left off: the caret at offset, or the text up to `to` selected.
-    internal Task ResumeAsync(int paragraph, int offset, int? to = null)
+    // Goes on editing where an edit left off: the caret at offset, or the text up to `to` selected — a
+    // header's or a footer's on the page given, or else the page the reader was last at.
+    internal Task ResumeAsync(int paragraph, int offset, int? to = null, int? page = null)
     {
         var end = Math.Max(offset, to ?? offset);
         PlacedAfter(CaretPlace.Between(paragraph, offset, end));
         if (!editOpen ||
             handle is not { } viewer ||
             paragraph >= outline.Paragraphs.Count ||
-            Block(paragraph, -1) is not { } block)
+            Reopened(paragraph, page ?? readerPage) is not { } block)
         {
             return Task.CompletedTask;
         }
@@ -497,6 +634,7 @@ public partial class MorphViewer
                     return;
                 }
 
+                await SettledAsync();
                 editNote = null;
                 await CommandAsync(command);
                 StateHasChanged();
@@ -548,6 +686,8 @@ public partial class MorphViewer
     {
     }
 
+    // The pages are not laid out again, so the paragraph being typed stays open: a hand-in racing this
+    // waits for it (OnEditCommit), and finds its paragraph where it was.
     internal Task SetTrackingAsync(bool on)
     {
         if (outline.ForcesTracking)
@@ -555,6 +695,7 @@ public partial class MorphViewer
             return Task.CompletedTask;
         }
 
+        beforeEdit = null;
         return ReviseAsync(_ => DocumentEditor.SetTracking(_, on), relayout: false, () => activeKey);
     }
 
@@ -652,19 +793,21 @@ public partial class MorphViewer
             return Task.CompletedTask;
         }
 
-        return SelectAsync(new(target.StartParagraph, target.StartOffset, target.Paragraph, target.Offset));
+        return SelectAsync(new(target.StartParagraph, target.StartOffset, target.Paragraph, target.Offset), target.Page);
     }
 
-    // Selects text on the pages, between two places in the paragraphs.
-    async Task SelectAsync(CaretPlace place)
+    // Selects text on the pages, between two places in the paragraphs: a header's or a footer's on the
+    // page given, or else the page the reader was last at.
+    async Task SelectAsync(CaretPlace place, int? page = null)
     {
         PlacedAfter(place);
+        var near = page ?? readerPage;
         if (place.EndParagraph >= outline.Paragraphs.Count ||
             place.StartParagraph >= outline.Paragraphs.Count ||
             outline.Paragraphs[place.StartParagraph].PositionAt(place.StartOffset, ending: false) is not { } start ||
             outline.Paragraphs[place.EndParagraph].PositionAt(place.EndOffset, ending: true) is not { } end ||
-            reviewMap.Locate(start, after: false) is not var (firstPage, from) ||
-            reviewMap.Locate(end, after: true) is not var (lastPage, to) ||
+            reviewMap.Locate(start, after: false, Repeated(place.StartParagraph) ? near : -1) is not var (firstPage, from) ||
+            reviewMap.Locate(end, after: true, Repeated(place.EndParagraph) ? near : -1) is not var (lastPage, to) ||
             handle is not { } viewer)
         {
             return;
@@ -686,9 +829,15 @@ public partial class MorphViewer
         InvokeAsync(
             async () =>
             {
+                // Typed over text on pages being replaced: said, since the text may be about to move.
+                if (revising)
+                {
+                    Busy();
+                    return;
+                }
+
                 if (!editOpen ||
                     !CanWrite ||
-                    revising ||
                     Selected() is not var (start, end))
                 {
                     StateHasChanged();

@@ -757,13 +757,29 @@ public partial class MorphEditor
             _ => DocumentEditor.Format(_, start, end, format, options));
     }
 
+    // Enter presses OK, as in Word's dialogs, and Escape is Cancel. OK with something typed that is not
+    // a number does nothing, as its greyed-out button does.
     Task OnFormDialogKeyDownAsync(KeyboardEventArgs args)
     {
         if (args.Key == "Escape")
         {
             CloseDialog();
+            return Task.CompletedTask;
         }
 
-        return Task.CompletedTask;
+        if (args.Key != "Enter" ||
+            args.ShiftKey ||
+            args.AltKey ||
+            args.CtrlKey)
+        {
+            return Task.CompletedTask;
+        }
+
+        return dialog switch
+        {
+            paragraphDialog => ParagraphFromDialogAsync(),
+            fontDialog => FontFromDialogAsync(),
+            _ => Task.CompletedTask
+        };
     }
 }

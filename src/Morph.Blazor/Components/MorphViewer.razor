@@ -115,6 +115,10 @@
             </button>
         </text>;
 
+    // While editing, Ctrl+= and Ctrl+Shift+= are Word's subscript and superscript, so zooming in by key
+    // is the numpad's +.
+    string ZoomInKey => Editing ? "Ctrl+Numpad +" : "Ctrl++";
+
     internal RenderFragment ZoomControls =>
         @<text>
             <button type="button" class="viewer-button" title="Zoom out (Ctrl+-)" aria-label="Zoom out" aria-keyshortcuts="Control+-"
@@ -135,7 +139,7 @@
                     <option value="@preset.ToString(CultureInfo.InvariantCulture)">@($"{preset * 100}%")</option>
                 }
             </select>
-            <button type="button" class="viewer-button" title="Zoom in (Ctrl++)" aria-label="Zoom in" aria-keyshortcuts="Control++"
+            <button type="button" class="viewer-button" title="@($"Zoom in ({ZoomInKey})")" aria-label="Zoom in" aria-keyshortcuts="@(Editing ? "Control+Add" : "Control++")"
                     disabled="@(!HasDocument)" @onclick="() => ZoomByAsync(1)">
                 <Iconify Value="Lucide.Plus" aria-hidden="true" focusable="false" />
             </button>

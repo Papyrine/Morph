@@ -24,6 +24,7 @@ sealed class EditMap
     Dictionary<int, List<EditBlock>> byParagraph = [];
     Dictionary<int, RunProperties> formats = [];
     Dictionary<(int Run, int Start), Run> pictures = [];
+    Dictionary<int, string> links = [];
 
     // How much room each run's text took where it was drawn, and how many characters of it.
     Dictionary<int, (float Width, int Characters)> drawn = [];
@@ -67,6 +68,10 @@ sealed class EditMap
     /// <summary>How a run of the main part is formatted, as it was drawn; null for one that was not.</summary>
     public RunProperties? Format(int run) =>
         formats.GetValueOrDefault(run);
+
+    /// <summary>The address of the link a run of the main part is the text of, as it was drawn; null for none.</summary>
+    public string? Link(int run) =>
+        links.GetValueOrDefault(run);
 
     /// <summary>The picture drawn in the line at a place of a run, as the layout drew it; null for none.</summary>
     public Run? Picture(int run, int start) =>
@@ -188,6 +193,11 @@ sealed class EditMap
                 if (!source.Atomic)
                 {
                     map.formats.TryAdd(source.Run, run.Properties);
+                }
+
+                if (run.HyperlinkUrl is { } address)
+                {
+                    map.links.TryAdd(source.Run, address);
                 }
             }
 
@@ -330,6 +340,7 @@ sealed class EditMap
                 Bottom = lines[^1].Y + lines[^1].Height,
                 Indent = indent,
                 InCell = container != null,
+                CellWidth = container?.Width,
                 Fill = properties.BackgroundColorHex ?? container?.BackgroundColorHex ?? settings.BackgroundColorHex
             };
 

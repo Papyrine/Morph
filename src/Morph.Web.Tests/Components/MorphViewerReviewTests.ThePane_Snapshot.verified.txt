@@ -1,0 +1,20 @@
+﻿{
+  Instance: {
+    KeepDrafts: true,
+    ShowOpenFile: true,
+    ShowSamples: false,
+    ShowDownload: true,
+    ShowPrint: true,
+    InitialPage: 1,
+    PrintDpi: 150,
+    MaxRenderDpi: 288,
+    MaxFileSize: 26214400,
+    ShowIssueLink: true,
+    VectorPages: true,
+    MeasurePaint: false,
+    ShowReview: true,
+    OpenReview: true,
+    ReadOnly: false
+  },
+  NodeCount: 255
+}

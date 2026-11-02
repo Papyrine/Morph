@@ -301,6 +301,11 @@ public partial class MorphViewer
         {
             var had = selection.Length == 4;
             selection = range.Length == 4 ? range : [];
+            if (selection.Length == 4)
+            {
+                readerPage = selection[2];
+            }
+
             if (selection.Length == 4 &&
                 Place(reviewMap.Before(selection[0], selection[1])) is var (first, _))
             {
@@ -467,6 +472,17 @@ public partial class MorphViewer
             return;
         }
 
+        // A new comment is on places in the file as it was when its text was selected, which a hand-in
+        // of the paragraph being typed renumbers: it is asked for again rather than put on other text.
+        if (await HandInFirstAsync() &&
+            posting.Kind == ReviewDraftKind.Comment)
+        {
+            reviewNote = "The document changed as the paragraph being typed was handed in: select the text to comment on again.";
+            draft = null;
+            await PushReviewAsync(false);
+            return;
+        }
+
         var author = Signature;
         var known = review.Comments
             .SelectMany(_ => _.Replies.Prepend(_))
@@ -517,47 +533,129 @@ public partial class MorphViewer
         return activeKey;
     }
 
-    Task SetResolvedAsync(ReviewComment thread, bool resolved) =>
-        ReviseAsync(_ => ReviewEditor.SetResolved(_, thread.Id, resolved), relayout: false, () => ReviewEntry.KeyOf(thread));
+    // A comment's id is the file's own, which handing in the paragraph being typed leaves as it is.
+    async Task SetResolvedAsync(ReviewComment thread, bool resolved)
+    {
+        await HandInFirstAsync();
+        await ReviseAsync(_ => ReviewEditor.SetResolved(_, thread.Id, resolved), relayout: false, () => ReviewEntry.KeyOf(thread));
+    }
 
-    Task DeleteCommentAsync(ReviewComment comment) =>
-        ReviseAsync(_ => ReviewEditor.DeleteComment(_, comment.Id), relayout: true, () => activeKey);
+    async Task DeleteCommentAsync(ReviewComment comment)
+    {
+        await HandInFirstAsync();
+        await ReviseAsync(_ => ReviewEditor.DeleteComment(_, comment.Id), relayout: true, () => activeKey);
+    }
 
     // Tracked changes
 
     // Settles a change and moves to the one after it, as Word's Accept and Reject do.
-    Task ResolveAsync(ReviewEntry entry, bool accept)
+    async Task ResolveAsync(ReviewEntry entry, bool accept)
     {
+        var read = review.Changes;
+        var change = entry.Change!;
         var index = entries.ToList().IndexOf(entry);
-        var key = entry.Change!.Key;
-        return ReviseAsync(
+        if (await HandInFirstAsync())
+        {
+            // A change's key names elements of the file it was read from, which the hand-in renumbered:
+            // the change is found again as the same one of its kind, by the same author, on the same text.
+            if (Refound(read, change) is not { } now)
+            {
+                reviewNote = "The document changed as the paragraph being typed was handed in, and that change is no longer there.";
+                return;
+            }
+
+            change = now;
+            index = entries.ToList().FindIndex(_ => _.Change == now);
+        }
+
+        var key = change.Key;
+        await ReviseAsync(
             _ => ReviewEditor.Resolve(_, [key], accept),
             relayout: true,
             () =>
             {
-                var changes = entries.Where(_ => _.Change != null).ToList();
-                if (changes.Count == 0)
+                var remaining = entries.Where(_ => _.Change != null).ToList();
+                if (remaining.Count == 0)
                 {
                     return null;
                 }
 
                 // Its place in the list is where the change after it now stands.
-                var after = entries.Skip(index).FirstOrDefault(_ => _.Change != null) ?? changes[0];
+                var after = entries.Skip(Math.Max(index, 0)).FirstOrDefault(_ => _.Change != null) ?? remaining[0];
                 return after.Key;
             },
             scroll: true);
     }
 
-    // Enabled with nothing to resolve, as Word's is, and then does nothing.
-    internal Task ResolveAllAsync(bool accept)
+    // The change of a review read before an edit, in the review read after it: the one at the same place
+    // among those alike in kind, author, date, part and text.
+    ReviewChange? Refound(IReadOnlyList<ReviewChange> before, ReviewChange change)
     {
-        if (review.Changes.Count == 0)
+        var place = before.Where(_ => Alike(_, change)).ToList().IndexOf(change);
+        var alike = review.Changes.Where(_ => Alike(_, change)).ToList();
+        if (place < 0 ||
+            place >= alike.Count)
         {
-            return Task.CompletedTask;
+            return null;
         }
 
-        return ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
+        return alike[place];
+
+        static bool Alike(ReviewChange first, ReviewChange second) =>
+            first.Kind == second.Kind &&
+            first.Author == second.Author &&
+            first.Date == second.Date &&
+            first.Part == second.Part &&
+            first.Text == second.Text;
     }
+
+    // Enabled with nothing to resolve, as Word's is, and then does nothing.
+    internal async Task ResolveAllAsync(bool accept)
+    {
+        // What is being typed is handed in first, and then resolved with the rest.
+        await HandInFirstAsync();
+        if (review.Changes.Count == 0)
+        {
+            return;
+        }
+
+        await ReviseAsync(_ => ReviewEditor.ResolveAll(_, accept), relayout: true, () => null);
+    }
+
+    // Review > Previous and Next: the change before or after the one the pane has active, in the
+    // document's order and round from the end to the start, the pane opened to it.
+    internal async Task StepChangeAsync(int direction)
+    {
+        var changes = entries.Where(_ => _.Change != null).ToList();
+        if (changes.Count == 0)
+        {
+            editNote = "The document has no tracked changes.";
+            return;
+        }
+
+        var index = changes.FindIndex(_ => _.Key == activeKey);
+        if (index < 0)
+        {
+            index = direction > 0 ? 0 : changes.Count - 1;
+        }
+        else
+        {
+            index = (index + direction + changes.Count) % changes.Count;
+        }
+
+        await OpenReviewAsync();
+        revealKey = changes[index].Key;
+        await SelectEntryAsync(changes[index]);
+    }
+
+    // What the editor's Undo and Redo are greyed out by (EditorState.CanUndo): the file's history, or a
+    // paragraph open for typing, whose own history is the script's.
+    internal bool CanUndo => undo.Count > 0 || session != null;
+
+    internal bool CanRedo => redo.Count > 0 || session != null;
+
+    // Text is selected across the pages.
+    internal bool PagesSelected => selection.Length == 4;
 
     internal Task UndoAsync() =>
         StepAsync(undo, redo, undoing: true);
@@ -569,22 +667,43 @@ public partial class MorphViewer
     // (WordProbe R-U-2): the file a step restores is the one its places were taken in.
     async Task StepAsync(List<HistoryStep> from, List<HistoryStep> to, bool undoing)
     {
+        // What is being typed is a step of its own, which undo then takes back first.
+        await HandInFirstAsync();
         if (from.Count == 0 ||
-            sourceBytes is not { } bytes ||
-            revising)
+            sourceBytes is not { } bytes)
         {
             return;
         }
 
-        var step = from[^1];
-        from.RemoveAt(from.Count - 1);
-        Keep(to, step with
+        if (revising)
         {
-            Bytes = bytes
-        });
+            Busy();
+            return;
+        }
+
+        var step = from[^1];
         beforeEdit = null;
         placingAfter = false;
-        if (await ShowAsync(() => step.Bytes, relayout: true, () => activeKey, scroll: false) &&
+
+        // The step moves from one list to the other only once the file it restores is the one shown.
+        if (await ShowAsync(
+                () => step.Bytes,
+                relayout: true,
+                () => activeKey,
+                scroll: false,
+                () =>
+                {
+                    var index = from.LastIndexOf(step);
+                    if (index >= 0)
+                    {
+                        from.RemoveAt(index);
+                    }
+
+                    Keep(to, step with
+                    {
+                        Bytes = bytes
+                    });
+                }) &&
             (undoing ? step.Before : step.After) is { } place)
         {
             await PlaceAsync(place);
@@ -622,27 +741,83 @@ public partial class MorphViewer
     // been read, since an edit renumbers what it did not touch.
     async Task<bool> ReviseAsync(Func<byte[], byte[]> edit, bool relayout, Func<string?> select, bool scroll = false)
     {
-        if (sourceBytes is not { } bytes ||
-            revising)
+        if (sourceBytes is not { } bytes)
         {
+            return false;
+        }
+
+        if (revising)
+        {
+            Busy();
             return false;
         }
 
         var before = beforeEdit;
         beforeEdit = null;
         placingAfter = false;
-        var edited = await ShowAsync(() => edit(bytes), relayout, select, scroll);
+        var edited = await ShowAsync(
+            () => edit(bytes),
+            relayout,
+            select,
+            scroll,
+            () =>
+            {
+                Keep(undo, new(bytes, before, null));
+                redo.Clear();
+            });
         if (edited)
         {
-            Keep(undo, new(bytes, before, null));
-            redo.Clear();
             placingAfter = true;
         }
 
         return edited;
     }
 
-    async Task<bool> ShowAsync(Func<byte[]> produce, bool relayout, Func<string?> select, bool scroll)
+    // Shown for a command that arrives while the pages are being laid out again after an edit: what it
+    // would act on is about to move, so it is not guessed at.
+    internal const string busyNote = "The pages are being laid out again after the last edit: try that again in a moment.";
+
+    void Busy()
+    {
+        editNote = busyNote;
+        reviewNote = busyNote;
+        StateHasChanged();
+    }
+
+    // Resolved as the edit under way has been shown, for what waits on it.
+    TaskCompletionSource? settling;
+
+    // Waits out the edit under way, if there is one, and any that another waiter then began.
+    async Task SettledAsync()
+    {
+        while (revising &&
+               settling is { } pending)
+        {
+            await pending.Task;
+        }
+    }
+
+    // What is being typed is handed in before an edit that does not itself ask the script where the
+    // reader is — a card of the review pane, Accept all — since the pages laid out again would drop it,
+    // and its own hand-in, racing this edit as the box loses the focus, would be refused. Says whether
+    // that changed the file, which renumbers what was read off it before.
+    async Task<bool> HandInFirstAsync()
+    {
+        var before = sourceBytes;
+        await HandInAsync();
+
+        // An edit made from here starts at no caret of its own: a place a command took earlier and did
+        // not edit at is not where its undo goes back to.
+        beforeEdit = null;
+        return !ReferenceEquals(before, sourceBytes);
+    }
+
+    // An edit is taken whole or not at all. The file, the pages .NET holds and the review and outline read
+    // off it move together, with nothing awaited between them, and `made` — the edit's undo step — goes
+    // with them; only then is the draft kept, the script handed the new pages and the host told, and a
+    // failure among those leaves an edit that was made, with its undo step, rather than pages over a file
+    // they were not laid out from.
+    async Task<bool> ShowAsync(Func<byte[]> produce, bool relayout, Func<string?> select, bool scroll, Action? made = null)
     {
         if (handle is not { } viewer ||
             fontDirectory is not { } fonts)
@@ -650,12 +825,14 @@ public partial class MorphViewer
             return false;
         }
 
+        var settled = settling = new(TaskCreationOptions.RunContinuationsAsynchronously);
         revising = true;
         reviewNote = null;
         editNote = null;
         errorMessage = null;
         issueUrl = null;
         StateHasChanged();
+        var shown = false;
         try
         {
             // The edit reads the review and the outline off its own package as it saves, which the
@@ -667,10 +844,12 @@ public partial class MorphViewer
                     return produce();
                 },
                 lifetime.Token);
+            OpenedDocument? opened = null;
+            var opening = generation;
             if (relayout)
             {
-                var opening = ++generation;
-                var opened = await Task.Run(() => Open(bytes, InputFormat.Docx, fonts, true), lifetime.Token);
+                opening = ++generation;
+                opened = await Task.Run(() => Open(bytes, InputFormat.Docx, fonts, true), lifetime.Token);
                 if (opening != generation || disposed)
                 {
                     opened.Document.Dispose();
@@ -678,23 +857,18 @@ public partial class MorphViewer
                 }
 
                 var previous = document;
+                superseded = session ?? superseded;
                 Adopt(opened);
                 documentId = opening;
+                sourceBytes = bytes;
                 renderQueue = [];
                 previous?.Dispose();
                 currentPage = Math.Clamp(currentPage, 1, Math.Max(1, pageCount));
                 pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
-                await viewer.ReloadAsync(opening, pageSizes, opened.Json);
-                await viewer.SetPicturesAsync(opening, opened.Pictures);
-                if (findOpen &&
-                    findQuery.Trim().Length > 0)
-                {
-                    await RunSearchAsync();
-                }
             }
             else
             {
-                (review, outline) = await Task.Run(
+                var (read, readOutline) = await Task.Run(
                     () =>
                     {
                         try
@@ -708,33 +882,65 @@ public partial class MorphViewer
                         }
                     },
                     lifetime.Token);
+
+                // A file opened meanwhile is the document now, and this edit was to the one before it.
+                if (opening != generation || disposed)
+                {
+                    return false;
+                }
+
+                review = read;
+                outline = readOutline;
+                sourceBytes = bytes;
             }
 
-            sourceBytes = bytes;
+            made?.Invoke();
+            shown = true;
+            emitted = bytes;
             draft = null;
             selection = [];
             BuildEntries();
             activeKey = select();
             BuildEntries();
             revealKey = activeKey;
-            await PushReviewAsync(scroll &&
-                                  activeKey != null);
-            emitted = bytes;
+
+            try
+            {
+                if (opened != null)
+                {
+                    await viewer.ReloadAsync(opening, pageSizes, opened.Json);
+                    await viewer.SetPicturesAsync(opening, opened.Pictures);
+                    if (findOpen &&
+                        findQuery.Trim().Length > 0)
+                    {
+                        await RunSearchAsync();
+                    }
+                }
+
+                await PushReviewAsync(scroll &&
+                                      activeKey != null);
+            }
+            finally
+            {
+                // Kept whatever the script made of the pages, and before the host hears of the edit, so
+                // neither can cost the draft.
+                await DocumentRevisedAsync();
+            }
+
             await OnDocumentChanged.InvokeAsync(bytes);
-            await DocumentRevisedAsync();
             return true;
         }
         catch (OperationCanceledException)
         {
             // Disposed.
-            return false;
+            return shown;
         }
         catch (JSDisconnectedException)
         {
             // The page is gone.
-            return false;
+            return shown;
         }
-        catch (InvalidOperationException exception)
+        catch (InvalidOperationException exception) when (!shown)
         {
             // An edit the document does not allow, which is for the reader to know and not a fault
             // to report.
@@ -745,11 +951,17 @@ public partial class MorphViewer
         catch (Exception exception)
         {
             ReportError("Could not update the document", exception);
-            return false;
+            return shown;
         }
         finally
         {
             revising = false;
+            settled.TrySetResult();
+            if (ReferenceEquals(settling, settled))
+            {
+                settling = null;
+            }
+
             if (!disposed)
             {
                 StateHasChanged();

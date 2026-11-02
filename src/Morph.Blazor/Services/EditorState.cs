@@ -36,10 +36,6 @@ sealed record EditorState
     /// <summary>The list the caret's paragraph is in, if any.</summary>
     public ListKind List { get; init; }
 
-    public bool Subscript { get; init; }
-
-    public bool Superscript { get; init; }
-
     /// <summary>
     /// A picture is selected: a floating one framed on its page, or an inline one selected alone in the
     /// paragraph being typed.
@@ -52,8 +48,25 @@ sealed record EditorState
     /// <summary>The part the caret's paragraph is in: the body, a header or footer, the footnotes or endnotes.</summary>
     public ReviewPart Story { get; init; }
 
+    /// <summary>
+    /// Text is selected across the pages. Text selected in the paragraph open for typing is the script's
+    /// alone to know as the caret moves, and the buttons that turn on it are marked by the script too.
+    /// </summary>
+    public bool Selected { get; init; }
+
     /// <summary>The text selected on the pages runs over more than one paragraph, as a selection of cells does.</summary>
     public bool SpansParagraphs { get; init; }
+
+    /// <summary>
+    /// There is a step to undo: an edit in the file's history, or a paragraph open for typing. What was
+    /// typed into that paragraph is the script's own history, kept as the reader types; asking after it
+    /// would cost a crossing to .NET for every key, so an open paragraph counts as having something to
+    /// undo, and an Undo with nothing typed falls through to the file's history, which may be empty.
+    /// </summary>
+    public bool CanUndo { get; init; }
+
+    /// <summary>There is a step to redo, as <see cref="CanUndo"/> counts one: an open paragraph has its own.</summary>
+    public bool CanRedo { get; init; }
 
     public bool Tracking { get; init; }
 
@@ -84,4 +97,10 @@ sealed record EditorState
     public bool ReplaceShown { get; init; }
 
     public bool Presenting { get; init; }
+
+    /// <summary>Typing replaces what is after the caret, as the Insert key toggles it.</summary>
+    public bool Overtype { get; init; }
+
+    /// <summary>The fit the pages are zoomed to; null for a zoom by percentage.</summary>
+    public ViewerZoom? Zoom { get; init; }
 }

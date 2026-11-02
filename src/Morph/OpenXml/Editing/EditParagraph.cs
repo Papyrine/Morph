@@ -22,6 +22,13 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     /// <summary>The part the paragraph is in: the body, a header or footer, the footnotes or endnotes.</summary>
     public ReviewPart Part { get; init; }
 
+    /// <summary>
+    /// Which part the paragraph is in, by the part's place among the document's (the body 0, then each
+    /// header, each footer and the notes in <see cref="SourceRuns.Stories"/>' order): two headers are one
+    /// <see cref="Part"/> but two roots. What Ctrl+Home and Ctrl+End walk to the ends of.
+    /// </summary>
+    public int Root { get; init; }
+
     /// <summary>Whether the paragraph is in a table's cell, which is what the table commands act on.</summary>
     public bool InTable { get; init; }
 

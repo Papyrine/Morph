@@ -71,6 +71,7 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setPictures: (documentId, numbers) => viewer.setPictures(documentId, numbers),
         setRuler: model => viewer.setRuler(model),
         placeMenu: () => viewer.placeMenu(),
+        setAbilities: (save, print) => viewer.setAbilities(save, print),
         selectText: (firstPage, start, lastPage, end) => viewer.selectText(firstPage, start, lastPage, end),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
@@ -258,12 +259,15 @@ class Viewer {
         this.leaving = [];
         this.selectionTimer = 0;
         this.lastSelection = '';
+        this.abilities = { save: true, print: true };
 
         this.controlDown = false;
         this.wheelSteps = 0;
         this.pinchScale = null;
         this.pinchPoint = null;
         this.pinchFrame = 0;
+        this.touches = new Map();
+        this.touchPinch = null;
         this.presentationWheel = 0;
         this.presentationWheelAt = 0;
         this.swipeStart = null;
@@ -288,6 +292,8 @@ class Viewer {
         this.scroller.addEventListener('wheel', event => this.onWheel(event), { passive: false, signal });
         this.scroller.addEventListener('pointerdown', event => this.onPointerDown(event), { signal });
         this.scroller.addEventListener('pointerup', event => this.onPointerUp(event), { signal });
+        this.scroller.addEventListener('pointermove', event => this.onPointerMove(event), { passive: true, signal });
+        this.scroller.addEventListener('pointercancel', event => this.endTouch(event), { signal });
         if ('ongesturestart' in window) {
             // Safari reports a trackpad pinch as gesture events rather than ctrl-wheel.
             this.scroller.addEventListener('gesturestart', event => {
@@ -504,9 +510,18 @@ class Viewer {
         this.clearReview();
         this.cancelText();
 
-        // A paragraph still open is no longer the paragraph it was opened on.
+        // A paragraph still open is no longer the paragraph it was opened on, and where it was is no
+        // longer where a command should act: its ordinals are the old outline's.
         if (this.editor && !this.editor.closed && !this.editor.pending) {
             this.editor.cancel();
+            this.lastTarget = null;
+            this.targetHanded = false;
+        }
+
+        // A place handed in with a paragraph or to a command is named in the file this layout is of.
+        if (this.targetHanded) {
+            this.targetHanded = false;
+            this.targetStamp = documentId;
         }
 
         this.documentId = documentId;
@@ -591,6 +606,7 @@ class Viewer {
             this.scrollToPage(this.current);
         }
 
+        this.drawRuler();
         this.markCurrent();
         this.notifyState();
         this.scheduleQueue(0);
@@ -610,6 +626,8 @@ class Viewer {
         this.dropEditors();
         this.lastSelection = '';
         this.lastTarget = null;
+        this.targetStamp = null;
+        this.targetHanded = false;
         this.visibleObserver.disconnect();
         this.nearObserver.disconnect();
         this.thumbObserver.disconnect();
@@ -1135,6 +1153,8 @@ class Viewer {
         this.applyGeometry();
         // Reading offsets in restore() forces the one layout the new scale needs.
         this.restore(saved, anchor);
+        // The ruler is measured off the page as it now stands.
+        this.drawRuler();
         this.notifyState();
         this.scheduleQueue(150);
     }
@@ -1171,6 +1191,7 @@ class Viewer {
 
         this.applyGeometry();
         this.restore(saved, anchor);
+        this.drawRuler();
         this.notifyState();
         this.scheduleQueue(150);
     }
@@ -1180,16 +1201,16 @@ class Viewer {
             return;
         }
 
-        this.drawRuler();
-
         if (this.zoomMode !== 'custom') {
             const scale = this.fitScale(this.zoomMode);
             if (Math.abs(scale - this.scale) > 0.001) {
+                // Which draws the ruler at the new scale.
                 this.applyScale(scale);
                 return;
             }
         }
 
+        this.drawRuler();
         this.scheduleQueue(150);
     }
 
@@ -1339,7 +1360,25 @@ class Viewer {
 
         this.root.dataset.currentPage = String(this.current + 1);
         if (this.sidebarOpen) {
-            this.pages[this.current]?.thumb.element.scrollIntoView({ block: 'nearest' });
+            this.revealThumb();
+        }
+    }
+
+    // Scrolls the sidebar, and nothing else, so the current page's thumbnail shows: scrollIntoView would
+    // scroll every scrolling box around it, the host's page among them, on every page change.
+    revealThumb() {
+        const thumb = this.pages[this.current]?.thumb.element;
+        const sidebar = thumb?.closest('.viewer-sidebar');
+        if (!thumb || !sidebar) {
+            return;
+        }
+
+        const box = sidebar.getBoundingClientRect();
+        const own = thumb.getBoundingClientRect();
+        if (own.top < box.top) {
+            sidebar.scrollTop -= box.top - own.top;
+        } else if (own.bottom > box.bottom) {
+            sidebar.scrollTop += Math.min(own.bottom - box.bottom, own.top - box.top);
         }
     }
 
@@ -1347,7 +1386,7 @@ class Viewer {
         this.sidebarOpen = open;
         if (open) {
             this.root.dataset.sidebar = 'open';
-            requestAnimationFrame(() => this.pages[this.current]?.thumb.element.scrollIntoView({ block: 'nearest' }));
+            requestAnimationFrame(() => this.revealThumb());
         } else {
             delete this.root.dataset.sidebar;
         }
@@ -1417,7 +1456,10 @@ class Viewer {
 
         event.preventDefault();
         const point = this.pointOf(event);
-        const pixels = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * 400 : event.deltaY;
+        // deltaY before deltaMode: Firefox reports a wheel in lines to a page that reads the mode first,
+        // and in pixels otherwise, which would put a mouse's notch below the pinch threshold.
+        const delta = event.deltaY;
+        const pixels = event.deltaMode === 1 ? delta * 16 : event.deltaMode === 2 ? delta * 400 : delta;
         if (!this.controlDown && Math.abs(pixels) < 50) {
             // A trackpad pinch (the browser sets ctrlKey without a key held): zoom continuously, once a frame.
             this.pinchScale = (this.pinchScale ?? this.scale) * Math.exp(-pixels / 100);
@@ -1444,12 +1486,76 @@ class Viewer {
     }
 
     onPointerDown(event) {
+        if (event.pointerType === 'touch') {
+            this.touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (this.touches.size === 2 && !this.presenting && this.pages.length) {
+                this.beginPinch();
+            }
+        }
+
         if (this.presenting && event.pointerType !== 'mouse') {
             this.swipeStart = { x: event.clientX, y: event.clientY };
+        }
+
+        if (this.editMode && !this.presenting && event.button === 0 && event.pointerType !== 'touch' && this.selectedPicture &&
+            event.target instanceof Element && !event.target.closest('.viewer-picture-handle, .edit-box')) {
+            const picture = this.pictureUnder(event);
+            const selected = this.selectedPicture;
+            if (picture && picture.paragraph === selected.paragraph && picture.offset === selected.offset) {
+                this.movePicture(event, selected);
+            }
+        }
+    }
+
+    // Two fingers on the pages zoom them about the point between them, as a trackpad pinch does; the
+    // browser's own pinch is kept off the pages (touch-action), which would zoom the whole host page.
+    beginPinch() {
+        const [first, second] = [...this.touches.values()];
+        this.touchPinch = {
+            distance: Math.max(1, Math.hypot(second.x - first.x, second.y - first.y)),
+            scale: this.scale
+        };
+    }
+
+    onPointerMove(event) {
+        if (event.pointerType !== 'touch' || !this.touches.has(event.pointerId)) {
+            return;
+        }
+
+        this.touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        const pinch = this.touchPinch;
+        if (!pinch || this.touches.size !== 2) {
+            return;
+        }
+
+        const [first, second] = [...this.touches.values()];
+        const distance = Math.max(1, Math.hypot(second.x - first.x, second.y - first.y));
+        const box = this.scroller.getBoundingClientRect();
+        this.pinchScale = pinch.scale * distance / pinch.distance;
+        this.pinchPoint = { x: (first.x + second.x) / 2 - box.left, y: (first.y + second.y) / 2 - box.top };
+        if (!this.pinchFrame) {
+            this.pinchFrame = requestAnimationFrame(() => {
+                this.pinchFrame = 0;
+                this.zoomMode = 'custom';
+                this.applyScale(this.pinchScale, this.pinchPoint);
+                this.pinchScale = null;
+            });
+        }
+    }
+
+    endTouch(event) {
+        if (event.pointerType !== 'touch') {
+            return;
+        }
+
+        this.touches.delete(event.pointerId);
+        if (this.touches.size < 2) {
+            this.touchPinch = null;
         }
     }
 
     onPointerUp(event) {
+        this.endTouch(event);
         if (!this.presenting || !this.swipeStart) {
             return;
         }
@@ -1484,6 +1590,15 @@ class Viewer {
             return;
         }
 
+        // The status bar's Overtype, which the Insert key turns on and off too: the script's to keep.
+        if (action === 'overtype') {
+            if (!target.closest('[data-viewer-action]').disabled) {
+                this.toggleOvertype();
+            }
+
+            return;
+        }
+
         const thumb = target.closest('.viewer-thumb');
         if (thumb && this.thumbList.contains(thumb)) {
             this.goToPage(Number(thumb.dataset.pageIndex));
@@ -1497,6 +1612,11 @@ class Viewer {
         }
 
         if (this.editMode && !this.presenting && this.scroller.contains(target)) {
+            if (this.dragged) {
+                this.dragged = false;
+                return;
+            }
+
             // With Format Painter on, the text selected is painted, as Word paints it when the
             // mouse is let go — rather than opening the paragraph it was selected in.
             if (this.painting && target.closest('.viewer-page')) {
@@ -1551,7 +1671,12 @@ class Viewer {
         }
 
         if (event.key === 'Control' || event.key === 'Meta') {
-            this.controlDown = true;
+            return;
+        }
+
+        // A dialog open over the pages is modal: what is pressed outside its fields does nothing to the
+        // document behind it, and its own fields keep the browser's keys.
+        if (this.dialogOpen()) {
             return;
         }
 
@@ -1563,18 +1688,27 @@ class Viewer {
             return;
         }
 
-        if (this.editMode && !typing && !this.presenting && this.onEditKey(event)) {
-            return;
+        if (this.editMode && !typing && !this.presenting) {
+            // A key pressed straight after a double click or a drag acts on what that selected, which
+            // .NET is told first rather than after the selection settles.
+            this.flushSelection();
+            if (this.onEditKey(event)) {
+                return;
+            }
         }
 
         if ((event.ctrlKey || event.metaKey) && !event.altKey) {
+            // Each is the viewer's only where it can do something; otherwise the browser keeps the key.
             switch (event.key.toLowerCase()) {
                 case 'f':
-                    event.preventDefault();
-                    this.call('OnFindRequested');
+                    if (this.pages.length) {
+                        event.preventDefault();
+                        this.call('OnFindRequested');
+                    }
+
                     return;
                 case 'h':
-                    if (this.editMode) {
+                    if (this.editMode && this.pages.length) {
                         event.preventDefault();
                         this.call('OnReplaceRequested');
                         return;
@@ -1582,13 +1716,19 @@ class Viewer {
 
                     break;
                 case 's':
-                    event.preventDefault();
-                    // What is being typed is part of what is saved.
-                    this.closeEditor().then(() => this.call('OnSaveRequested'));
+                    if (this.pages.length && this.abilities.save) {
+                        event.preventDefault();
+                        // What is being typed is part of what is saved.
+                        this.closeEditor().then(() => this.call('OnSaveRequested'));
+                    }
+
                     return;
                 case 'o':
-                    event.preventDefault();
-                    this.fileInput()?.click();
+                    if (this.fileInput()) {
+                        event.preventDefault();
+                        this.fileInput().click();
+                    }
+
                     return;
                 case 'a':
                     if (!typing && this.pages.length) {
@@ -1597,19 +1737,30 @@ class Viewer {
                     }
 
                     return;
+                // Ctrl+= and Ctrl+Shift+= are subscript and superscript while editing (wordKey, or the
+                // open paragraph's own keys, take them first); the numpad's + and - zoom everywhere.
                 case '+':
                 case '=':
-                    event.preventDefault();
-                    this.zoomBy(1);
+                    if (this.pages.length) {
+                        event.preventDefault();
+                        this.zoomBy(1);
+                    }
+
                     return;
                 case '-':
                 case '_':
-                    event.preventDefault();
-                    this.zoomBy(-1);
+                    if (this.pages.length) {
+                        event.preventDefault();
+                        this.zoomBy(-1);
+                    }
+
                     return;
                 case '0':
-                    event.preventDefault();
-                    this.setZoom('auto');
+                    if (this.pages.length) {
+                        event.preventDefault();
+                        this.setZoom('auto');
+                    }
+
                     return;
             }
 
@@ -1669,6 +1820,11 @@ class Viewer {
 
     // Ctrl+P while focus is in the viewer prints the document rather than the host page around it.
     onDocumentKeyDown(event) {
+        // Held is told apart from a trackpad pinch (onWheel) wherever the focus is, as it is let go.
+        if (event.key === 'Control' || event.key === 'Meta') {
+            this.controlDown = true;
+        }
+
         // Escape closes the editor's menu or dialog that is open, and goes no further: the paragraph
         // being typed in keeps what was typed, as Word's does. Neither has the focus — the ribbon does
         // not take it — so the key is caught here, before the paragraph's own Escape.
@@ -1686,12 +1842,129 @@ class Viewer {
             return;
         }
 
-        if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'p' &&
-            this.pages.length && (this.presenting || this.root.contains(document.activeElement))) {
+        // A menu open takes the arrows, Home, End and Enter, before the paragraph being typed does.
+        if (this.onMenuKey(event)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
+        const command = (event.ctrlKey || event.metaKey) && !event.altKey;
+        const key = event.key.toLowerCase();
+        if (command && key === 'p' && this.pages.length && this.abilities.print && !this.dialogOpen() &&
+            (this.presenting || this.root.contains(document.activeElement))) {
             event.preventDefault();
             event.stopPropagation();
             this.call('OnPrintRequested');
+            return;
         }
+
+        // Ctrl+F, and Ctrl+H while editing, with the focus nowhere — the page just opened, or a press on
+        // something that does not take it let it go — are the viewer's as they are once the pages have
+        // the focus: the root's own listener never hears a key the body takes.
+        if (command && !event.shiftKey && (key === 'f' || (key === 'h' && this.editMode)) && this.pages.length &&
+            !this.dialogOpen() && this.unfocused()) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.call(key === 'f' ? 'OnFindRequested' : 'OnReplaceRequested');
+        }
+    }
+
+    // Keyboard navigation in the editor's menus, a list's (role=menu): Down and Up step through the lines
+    // that can be chosen, wrapping round, Home and End go to the first and last, Right opens a submenu,
+    // and Enter or Space chooses the line stepped to. The line is marked (data-menu-active) rather than
+    // focused, so the paragraph being typed keeps the focus, and what was typed, as a press on the menu
+    // keeps them. Says whether the key was the menu's.
+    onMenuKey(event) {
+        if (event.ctrlKey || event.metaKey || event.altKey || this.dialogOpen()) {
+            return false;
+        }
+
+        const menus = [...this.root.querySelectorAll('[role=menu]')].filter(_ => _.getClientRects().length > 0);
+        const menu = menus.pop();
+        if (!menu) {
+            return false;
+        }
+
+        const items = [...menu.querySelectorAll('[role=menuitem], [role=menuitemradio], [role=menuitemcheckbox]')]
+            .filter(_ => _.closest('[role=menu]') === menu && !_.disabled && !_.hasAttribute('data-unselected') && _.getClientRects().length > 0);
+        if (!items.length) {
+            return false;
+        }
+
+        const active = items.findIndex(_ => _.hasAttribute('data-menu-active'));
+        let next = -1;
+        switch (event.key) {
+            case 'ArrowDown':
+                next = (active + 1) % items.length;
+                break;
+            case 'ArrowUp':
+                next = active < 0 ? items.length - 1 : (active - 1 + items.length) % items.length;
+                break;
+            case 'Home':
+                next = 0;
+                break;
+            case 'End':
+                next = items.length - 1;
+                break;
+            case 'ArrowRight':
+                if (active >= 0 && items[active].getAttribute('aria-haspopup') === 'menu') {
+                    items[active].click();
+                    return true;
+                }
+
+                return false;
+            case 'Enter':
+            case ' ':
+                if (active < 0) {
+                    return false;
+                }
+
+                items[active].click();
+                return true;
+            default:
+                return false;
+        }
+
+        for (const item of menu.querySelectorAll('[data-menu-active]')) {
+            item.removeAttribute('data-menu-active');
+        }
+
+        const item = items[next];
+        item.setAttribute('data-menu-active', '');
+        // Scrolled to within the menu alone, as a long one scrolls.
+        const box = menu.getBoundingClientRect();
+        const own = item.getBoundingClientRect();
+        if (own.top < box.top) {
+            menu.scrollTop -= box.top - own.top;
+        } else if (own.bottom > box.bottom) {
+            menu.scrollTop += own.bottom - box.bottom;
+        }
+
+        return true;
+    }
+
+    // Whether no element has the focus and the viewer is on screen, so a key the page hears is meant for it.
+    unfocused() {
+        const active = document.activeElement;
+        if (active && active !== document.body && active !== document.documentElement) {
+            return false;
+        }
+
+        const box = this.root.getBoundingClientRect();
+        return box.bottom > 0 && box.right > 0 && box.top < innerHeight && box.left < innerWidth;
+    }
+
+    // A dialog of the editor's is open over the pages (MorphEditor's Paragraph, Font, Link and the rest).
+    dialogOpen() {
+        return this.root.querySelector('.editor-dialog') !== null;
+    }
+
+    // What the host allows (MorphViewer.SyncAbilitiesAsync): Ctrl+S saves only where the viewer offers
+    // Save or Download, and Ctrl+P prints only where it offers Print — under WOPI, DisableExport and
+    // DisablePrint take those away.
+    setAbilities(save, print) {
+        this.abilities = { save, print };
     }
 
     // Presentation mode: the current page alone, fitted to the screen.
@@ -2010,7 +2283,19 @@ class Viewer {
         }
 
         clearTimeout(this.selectionTimer);
-        this.selectionTimer = setTimeout(() => this.sendSelection(), 120);
+        this.selectionTimer = setTimeout(() => {
+            this.selectionTimer = 0;
+            this.sendSelection();
+        }, 120);
+    }
+
+    // The selection still settling, sent now: a key that acts on it must not race the debounce.
+    flushSelection() {
+        if (this.selectionTimer) {
+            clearTimeout(this.selectionTimer);
+            this.selectionTimer = 0;
+            this.sendSelection();
+        }
     }
 
     sendSelection() {
@@ -2117,9 +2402,9 @@ class Viewer {
         }
 
         this.pictures = [];
-        for (let index = 0; index + 6 < numbers.length; index += 7) {
-            const [page, x, y, width, height, paragraph, offset] = numbers.slice(index, index + 7);
-            this.pictures.push({ page, x, y, width, height, paragraph, offset });
+        for (let index = 0; index + 7 < numbers.length; index += 8) {
+            const [page, x, y, width, height, paragraph, offset, behind] = numbers.slice(index, index + 8);
+            this.pictures.push({ page, x, y, width, height, paragraph, offset, behind: behind === 1 });
         }
 
         // A picture nudged is still selected where it now stands.
@@ -2127,25 +2412,113 @@ class Viewer {
         this.selectPicture(this.pictures.find(_ => kept && _.paragraph === kept.paragraph && _.offset === kept.offset) ?? null);
     }
 
-    // The floating picture under a click, selected; whether there was one. The last drawn is on top.
+    // The floating picture under a click, selected; whether there was one. The last drawn is on top. A
+    // picture behind the text is under it for the mouse too, as in Word: a click on a character over it
+    // is the text's, and only one on the picture's bare part selects it.
     pictureAt(event) {
-        if (!this.pictures?.length || this.rotation !== 0) {
-            return false;
-        }
-
-        const page = this.pageOf(event.target);
-        if (!page) {
-            return false;
-        }
-
-        const [x, y] = this.pagePoint(page, event.clientX, event.clientY);
-        const hit = this.pictures.filter(_ => _.page === page.index && x >= _.x && x <= _.x + _.width && y >= _.y && y <= _.y + _.height).pop();
+        const hit = this.pictureUnder(event);
         if (!hit) {
             return false;
         }
 
         this.selectPicture(hit);
         return true;
+    }
+
+    // The floating picture a press or a click is on, or null.
+    pictureUnder(event) {
+        if (!this.pictures?.length || this.rotation !== 0) {
+            return null;
+        }
+
+        const page = this.pageOf(event.target);
+        if (!page) {
+            return null;
+        }
+
+        const [x, y] = this.pagePoint(page, event.clientX, event.clientY);
+        const under = this.pictures.filter(_ => _.page === page.index && x >= _.x && x <= _.x + _.width && y >= _.y && y <= _.y + _.height);
+        const front = under.filter(_ => !_.behind);
+        let hit = front.pop();
+        if (!hit && under.length && !this.onText(page, event.clientX, event.clientY)) {
+            hit = under.pop();
+        }
+
+        return hit ?? null;
+    }
+
+    // A floating picture already selected, dragged by its body: the frame follows the pointer, and when
+    // it is let go the picture is moved by as much (OnPictureNudge, DocumentEditor.NudgePicture), as
+    // Word moves one dragged. A press that does not move leaves the click to select as before.
+    movePicture(event, picture) {
+        const page = this.pages[picture.page];
+        const frame = this.pictureFrame;
+        if (!page || !frame) {
+            return;
+        }
+
+        // Neither a text selection nor the focus starts under a picture being dragged.
+        event.preventDefault();
+        const scale = page.element.getBoundingClientRect().width / page.width;
+        const startX = event.clientX;
+        const startY = event.clientY;
+        const target = this.scroller;
+        let right = 0;
+        let down = 0;
+        const move = moved => {
+            right = (moved.clientX - startX) / scale;
+            down = (moved.clientY - startY) / scale;
+            // Captured only once it is a drag: a captured press's click lands on the pages' box, not
+            // on the picture, and would select nothing.
+            if (!target.hasPointerCapture(event.pointerId) && Math.hypot(right, down) * scale >= 3) {
+                target.setPointerCapture(event.pointerId);
+            }
+
+            frame.style.left = `${(picture.x + right) / page.width * 100}%`;
+            frame.style.top = `${(picture.y + down) / page.height * 100}%`;
+        };
+        const up = () => {
+            target.removeEventListener('pointermove', move);
+            target.removeEventListener('pointerup', up);
+            target.removeEventListener('pointercancel', up);
+            if (Math.hypot(right, down) * scale < 3) {
+                frame.style.left = `${picture.x / page.width * 100}%`;
+                frame.style.top = `${picture.y / page.height * 100}%`;
+                return;
+            }
+
+            // The click the release makes is the drag's, not a press on what is now under the pointer.
+            this.dragged = true;
+            setTimeout(() => this.dragged = false, 0);
+            const round = value => Math.round(value * 100) / 100;
+            this.dotNet.invokeMethodAsync('OnPictureNudge', picture.paragraph, picture.offset, round(right), round(down)).catch(() => {});
+        };
+        target.addEventListener('pointermove', move);
+        target.addEventListener('pointerup', up);
+        target.addEventListener('pointercancel', up);
+    }
+
+    // Whether a point of the window is on a character of a page's text, rather than beside it.
+    onText(page, clientX, clientY) {
+        this.ensureText(page);
+        const offset = this.caretOffset(page, clientX, clientY);
+        if (offset < 0) {
+            return false;
+        }
+
+        for (const candidate of [offset, offset - 1]) {
+            if (candidate < 0 || candidate >= textLength(page.layer)) {
+                continue;
+            }
+
+            for (const box of textRange(page.layer, candidate, 1)?.getClientRects() ?? []) {
+                if (clientX >= box.left - 1 && clientX <= box.right + 1 && clientY >= box.top - 1 && clientY <= box.bottom + 1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     // Frames a floating picture with handles at its right-hand corners, which size it in proportion
@@ -2324,17 +2697,24 @@ class Viewer {
         }
 
         getSelection()?.removeAllRanges();
-        this.editor = new ParagraphEditor(page.element.querySelector('.viewer-sheet'), page, session, {
+        // Named for its own callbacks, which may run before the constructor returns.
+        let opened = null;
+        opened = this.editor = new ParagraphEditor(page.element.querySelector('.viewer-sheet'), page, session, {
             commit: (editor, payload, then) => {
                 // A paragraph joined to its neighbour is not where it was.
                 this.lastTarget = then === 0 ? editor.target() ?? this.lastTarget : null;
+                // Named in the file the hand-in makes, which the layout after it stamps (reload).
+                this.targetHanded = true;
                 return this.handIn(editor, payload, then);
             },
             cancel: id => {
+                // Where a paragraph left as it was leaves the caret, in the file as it is now: once
+                // something else lays the document out again, its ordinals may name other paragraphs.
                 this.lastTarget = this.editor?.target() ?? this.lastTarget;
+                this.targetStamp = this.documentId;
                 this.dotNet.invokeMethodAsync('OnEditCancel', id).catch(() => {});
             },
-            state: state => this.showEditState(state),
+            state: state => this.editorState(opened, state),
             key: name => this.editKey(name),
             command: name => this.editCommand(name),
             overtype: () => this.toggleOvertype(),
@@ -2346,6 +2726,20 @@ class Viewer {
             step: (paragraph, direction) => this.dotNet.invokeMethodAsync('OnEditStep', paragraph, direction).catch(() => {})
         });
         this.editor.overtype = this.overtype === true;
+        // The ruler follows the caret to the page it is on.
+        this.drawRuler();
+    }
+
+    // The look at an editor's caret, for the ribbon. An editor that is done with — released once its
+    // page is drawn again, or handed in — says it has no caret, which is not news while another
+    // editor is open: the ribbon shows that one's.
+    editorState(editor, state) {
+        const current = this.editor;
+        if (state === null && editor && current && current !== editor && !current.closed) {
+            return;
+        }
+
+        this.showEditState(state);
     }
 
     // Where a command .NET carries out itself — a style, a list, a table — is to act: in the paragraph
@@ -2360,8 +2754,15 @@ class Viewer {
             if (target) {
                 this.lastTarget = target;
             }
+        } else if (this.targetStamp != null && this.targetStamp !== this.documentId) {
+            // The document has been laid out again since by something else — the review pane, an
+            // undo — and the place is no longer known.
+            this.lastTarget = null;
+            this.targetStamp = null;
         }
 
+        // The command it is handed to may lay the document out again, which leaves it where it was.
+        this.targetHanded = Boolean(this.lastTarget);
         return this.lastTarget ?? [];
     }
 
@@ -2423,18 +2824,18 @@ class Viewer {
                 const value = state[shown.dataset.editShow];
                 if (value !== undefined && value !== null) {
                     shown.dataset.value = typeof value === 'number' ? String(Math.round(value * 2) / 2) : value;
+                    // The ribbon's Font and Font size are boxes a name or size is typed into: not while
+                    // the reader is typing in one.
+                    if (shown instanceof HTMLInputElement && document.activeElement !== shown) {
+                        shown.value = shown.dataset.value;
+                    }
                 }
             }
         }
 
         for (const button of this.root.querySelectorAll('[data-edit-command]')) {
             const name = button.dataset.editCommand;
-            // The ribbon's Paste needs the clipboard API: without it, Ctrl+V is the way.
-            if (name === 'paste') {
-                button.hidden = !navigator.clipboard?.readText;
-            }
-
-            if (name === 'track' || name === 'undo' || name === 'redo' || clipboardCommands.includes(name)) {
+            if (name === 'track' || name === 'undo' || name === 'redo' || name === 'change-case' || clipboardCommands.includes(name)) {
                 continue;
             }
 
@@ -2451,11 +2852,22 @@ class Viewer {
     // Cut and Copy grey out at a caret, as Word's do (WordProbe B-01): with a paragraph open it says
     // whether it has a selection, otherwise the text selected on the pages decides. Only the script
     // knows either as the caret moves, so it marks the buttons and lines itself (data-unselected),
-    // leaving `disabled` to .NET's own rule.
+    // leaving `disabled` to .NET's own rule. Paste, the ribbon's and the right-click menu's, needs the
+    // clipboard API and greys out without it (an insecure page, an older browser), where Ctrl+V is the way.
     markClipboard() {
         const selected = this.editSelected ?? Boolean(this.selectedText());
         for (const button of this.root.querySelectorAll('[data-edit-command="cut"], [data-edit-command="copy"]')) {
             button.toggleAttribute('data-unselected', !selected);
+        }
+
+        const readable = Boolean(navigator.clipboard?.readText);
+        for (const button of this.root.querySelectorAll('[data-edit-command="paste"]')) {
+            button.toggleAttribute('data-unselected', !readable);
+        }
+
+        // And Insert > Table the other way about: Word greys it out whenever anything is selected.
+        for (const button of this.root.querySelectorAll('.editor-caret-only')) {
+            button.toggleAttribute('data-selected', selected);
         }
     }
 
@@ -2503,8 +2915,11 @@ class Viewer {
             return;
         }
 
+        // Over the page the caret is on, whose setup the model is — the open paragraph's, else the
+        // current page's, as .NET reads it.
         const model = this.ruler;
-        const page = this.pages[this.current]?.element;
+        const editing = this.editor && !this.editor.closed ? this.pages[this.editor.page.index] : null;
+        const page = (editing ?? this.pages[this.current])?.element;
         if (!model || !page) {
             element.replaceChildren();
             return;
@@ -2564,7 +2979,7 @@ class Viewer {
                 marker.dataset.marker = kind;
                 marker.title = title;
                 marker.style.left = `${x * scale}px`;
-                marker.addEventListener('pointerdown', event => this.onRulerDown(event, kind, model, scale, strip));
+                marker.addEventListener('pointerdown', event => this.onRulerDown(event, kind, model, strip));
                 strip.append(marker);
             }
         }
@@ -2572,13 +2987,16 @@ class Viewer {
         element.replaceChildren(strip);
     }
 
-    onRulerDown(event, kind, model, scale, strip) {
+    onRulerDown(event, kind, model, strip) {
         // The press must not take the focus from the paragraph being typed in.
         event.preventDefault();
         const marker = event.currentTarget;
         marker.setPointerCapture(event.pointerId);
         const quarter = 72 / 2.54 / 4;
-        const start = strip.getBoundingClientRect().left;
+        // The strip as it stands at the press, not as it was drawn: the zoom may have changed since.
+        const box = strip.getBoundingClientRect();
+        const start = box.left;
+        const scale = box.width / model.w;
         let moved = { l: model.l, r: model.r, f: model.f };
         const move = moveEvent => {
             let points = (moveEvent.clientX - start) / scale;
@@ -3026,34 +3444,151 @@ class Viewer {
             menu.style.left = `${Math.max(0, bounds.width - box.width - 4)}px`;
         }
 
+        // Taller than the editor — a short viewer, a phone on its side — it fits it and scrolls, rather
+        // than losing its last lines below the edge; a submenu is then clipped to it, which is the lesser loss.
+        if (box.height > bounds.height - 8) {
+            menu.style.maxHeight = `${Math.max(0, bounds.height - 8)}px`;
+            menu.style.overflowY = 'auto';
+            box = menu.getBoundingClientRect();
+        }
+
         if (box.bottom > bounds.bottom) {
             const above = box.top - bounds.top - box.height;
-            menu.style.top = `${Math.max(0, above >= 0 ? above : bounds.height - box.height)}px`;
+            menu.style.top = `${Math.max(4, above >= 0 ? above : bounds.height - box.height - 4)}px`;
         }
 
         box = menu.getBoundingClientRect();
         menu.toggleAttribute('data-flip', box.right + box.width > bounds.right);
     }
 
-    // An arrow key took the caret out of the top or the bottom of a paragraph: the paragraph that way
-    // is the first text a point moved that way, half a line at a time, comes to.
+    // An arrow key took the caret out of the top or the bottom of a paragraph: the paragraph that way is
+    // the one the nearest line of text that way is in — read off the pages' text layers, this page's and
+    // then the next ones', so the gap between two pages and the parts of them off screen do not matter —
+    // as near as can be under the caret, and in the same story: a line of the footer is passed over on
+    // the way down to the next page's body (.NET says which paragraph a point is in, OnEditProbe).
+    // Should none be found, or none open, the paragraph left is opened again where the caret was rather
+    // than the caret being lost.
     async leaveEditor(direction, clientX, clientY, line) {
+        const leaving = this.editor;
+        const from = leaving?.page ? this.pages[leaving.page.index] : null;
+        // Inside the paragraph left, half a line back from its edge.
+        const inside = clientY - direction * Math.max(2, line / 2);
+        const origin = from ? await this.probe(from, clientX, inside) : null;
         await this.closeEditor();
-        const step = Math.max(4, line / 2);
-        for (let tries = 1; tries <= 16; tries++) {
-            const y = clientY + direction * step * tries;
-            const element = document.elementFromPoint(clientX, y);
-            const page = element ? this.pageOf(element) : null;
-            if (!page || element.closest('.edit-box')) {
+        if (!from) {
+            return;
+        }
+
+        if (await this.openBeyond(from, direction, clientX, clientY, origin)) {
+            return;
+        }
+
+        // Back where it was.
+        this.ensureText(from);
+        this.reveal(from, inside);
+        const offset = this.caretOffset(from, clientX, inside);
+        await this.sendHit(from, clientX, inside, offset, offset);
+    }
+
+    // Opens the paragraph of the nearest line beyond a point that way, on its page or the pages after
+    // it; whether one opened.
+    async openBeyond(from, direction, clientX, clientY, origin) {
+        let tries = 0;
+        for (let index = from.index; index >= 0 && index < this.pages.length && Math.abs(index - from.index) <= 2; index += direction) {
+            const page = this.pages[index];
+            this.ensureText(page);
+            if (!isBuilt(page.layer)) {
                 continue;
             }
 
-            this.ensureText(page);
-            const offset = this.caretOffset(page, clientX, y);
-            if (await this.sendHit(page, clientX, y, offset, offset)) {
-                return;
+            const edge = index === from.index ? clientY : (direction > 0 ? -Infinity : Infinity);
+            for (const candidate of this.linesBeyond(page, direction, clientX, edge)) {
+                if (++tries > 12) {
+                    return false;
+                }
+
+                const [x, y] = this.pagePoint(page, candidate.x, candidate.y);
+                const found = await this.probe(page, candidate.x, candidate.y, [x, y]);
+                if (!found || (origin && found[1] !== origin[1])) {
+                    continue;
+                }
+
+                // Brought into view, so the caret can be placed under the pointer's column.
+                const moved = this.reveal(page, candidate.y);
+                const pointY = candidate.y - moved;
+                const offset = this.caretOffset(page, candidate.x, pointY);
+                const before = this.editor;
+                await this.sendHit(page, candidate.x, pointY, offset, offset);
+                if (this.editor && this.editor !== before && !this.editor.closed) {
+                    return true;
+                }
             }
         }
+
+        return false;
+    }
+
+    // The lines of a page's text beyond a point that way, nearest first and, among a row of them (a
+    // table's cells, columns), the one nearest the caret's column first; each as the point to open it
+    // at, in the window's coordinates.
+    linesBeyond(page, direction, clientX, edge) {
+        const lines = [];
+        for (const element of page.layer.querySelectorAll('.text-line')) {
+            const box = element.getBoundingClientRect();
+            if (box.height <= 0) {
+                continue;
+            }
+
+            const centre = box.top + box.height / 2;
+            const distance = direction > 0 ? centre - edge : edge - centre;
+            if (distance <= 0) {
+                continue;
+            }
+
+            const aside = clientX < box.left ? box.left - clientX : clientX > box.right ? clientX - box.right : 0;
+            lines.push({
+                distance,
+                aside,
+                x: clamp(clientX, box.left + 1, Math.max(box.left + 1, box.right - 1)),
+                y: centre
+            });
+        }
+
+        // A row is lines within a few pixels of each other's height.
+        return lines.sort((first, second) => Math.abs(first.distance - second.distance) > 3
+            ? first.distance - second.distance
+            : first.aside - second.aside);
+    }
+
+    // Which paragraph a point of a page is in, as [ordinal, story], or null where there is none.
+    async probe(page, clientX, clientY, point) {
+        const [x, y] = point ?? this.pagePoint(page, clientX, clientY);
+        try {
+            const found = await this.dotNet.invokeMethodAsync('OnEditProbe', page.index, x, y);
+            return found?.length === 2 ? found : null;
+        } catch {
+            return null;
+        }
+    }
+
+    // Scrolls the pages, and only them, so a point of the window on a page is in view; how far it moved.
+    reveal(page, clientY) {
+        const box = this.scroller.getBoundingClientRect();
+        const margin = 24;
+        let by = 0;
+        if (clientY < box.top + margin) {
+            by = clientY - box.top - margin;
+        } else if (clientY > box.bottom - margin) {
+            by = clientY - box.bottom + margin;
+        }
+
+        if (by !== 0) {
+            const before = this.scroller.scrollTop;
+            this.scroller.scrollTop = before + by;
+            return this.scroller.scrollTop - before;
+        }
+
+        return 0;
     }
 
     // Printing: .NET renders every page at the print resolution and streams them here; the pages go into

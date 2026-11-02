@@ -205,6 +205,20 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
+    // The fit the pages are zoomed to, for the editor's View › Zoom buttons; null for a percentage.
+    internal ViewerZoom? Zoom =>
+        zoomMode switch
+        {
+            "page-fit" => ViewerZoom.PageFit,
+            "page-width" => ViewerZoom.PageWidth,
+            "page-actual" => ViewerZoom.ActualSize,
+            "auto" => ViewerZoom.Auto,
+            _ => null
+        };
+
+    internal Task ZoomToAsync(ViewerZoom zoom) =>
+        Call(_ => _.SetZoomAsync(ZoomName(zoom)));
+
     string FindStatus
     {
         get
@@ -254,18 +268,36 @@ public partial class MorphViewer : IAsyncDisposable
             else if (!ReferenceEquals(bytes, openedSource))
             {
                 openedSource = bytes;
-                _ = OpenSourceAsync(bytes, FileName);
+                var name = FileName;
+                _ = OpenOrAskAsync(() => OpenSourceAsync(bytes, name));
             }
         }
         else if (Url is { } url &&
                  url != openedUrl)
         {
             openedUrl = url;
-            _ = OpenUrlAsync(url);
+            _ = OpenOrAskAsync(() => OpenUrlAsync(url));
         }
 
         return Task.CompletedTask;
     }
+
+    // Another file opened over edits not saved — chosen, dropped, or handed in as Source or Url — waits
+    // for the reader to say what becomes of them, as New does (MorphEditor asks, AskBeforeOpen); the
+    // viewer, which keeps no draft, opens it at once.
+    internal async Task OpenOrAskAsync(Func<Task> open)
+    {
+        if (AskBeforeOpen(open))
+        {
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        await open();
+    }
+
+    // Whether opening has to wait on the reader, who is then asked; open is what to do once they agree.
+    internal virtual bool AskBeforeOpen(Func<Task> open) => false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -284,6 +316,8 @@ public partial class MorphViewer : IAsyncDisposable
                 StateHasChanged();
             }
         }
+
+        await SyncAbilitiesAsync();
 
         if (focusFind)
         {
@@ -320,6 +354,33 @@ public partial class MorphViewer : IAsyncDisposable
             {
                 // The page is gone.
             }
+        }
+    }
+
+    // Whether Ctrl+S has anything to do: save where the host takes the file, else download it.
+    internal bool CanSave => SavesInPlace || ShowDownload;
+
+    (bool Save, bool Print)? abilitiesSent;
+
+    // The keys the script binds do only what the toolbar offers (MorphWopi's DisableExport and
+    // DisablePrint take Download and Print away): told to the script whenever that changes.
+    async Task SyncAbilitiesAsync()
+    {
+        var abilities = (CanSave, ShowPrint);
+        if (handle is not { } viewer ||
+            abilitiesSent == abilities)
+        {
+            return;
+        }
+
+        abilitiesSent = abilities;
+        try
+        {
+            await viewer.SetAbilitiesAsync(abilities.CanSave, abilities.ShowPrint);
+        }
+        catch (JSDisconnectedException)
+        {
+            // The page is gone.
         }
     }
 
@@ -374,19 +435,41 @@ public partial class MorphViewer : IAsyncDisposable
             return;
         }
 
+        // Read first, while the browser still holds the file, whatever the reader then says about
+        // the edits it would replace.
+        byte[] bytes;
         try
         {
             BeginBusy($"Reading {file.Name}…");
             await using var stream = file.OpenReadStream(MaxFileSize);
             using var memory = new MemoryStream();
             await stream.CopyToAsync(memory, lifetime.Token);
-            var fontDirectory = await FontStore.EnsureAsync(Http);
-            await OpenAsync(memory.ToArray(), file.Name, fontDirectory);
+            bytes = memory.ToArray();
         }
         catch (Exception exception)
         {
             EndBusy();
             ReportError($"Could not read '{file.Name}'", exception);
+            return;
+        }
+
+        EndBusy();
+        var name = file.Name;
+        await OpenOrAskAsync(() => OpenReadAsync(bytes, name));
+    }
+
+    async Task OpenReadAsync(byte[] bytes, string name)
+    {
+        try
+        {
+            var fontDirectory = await FontStore.EnsureAsync(Http);
+            await OpenAsync(bytes, name, fontDirectory);
+        }
+        catch (Exception exception)
+        {
+            EndBusy();
+            ReportError($"Could not read '{name}'", exception);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -562,7 +645,7 @@ public partial class MorphViewer : IAsyncDisposable
         {
             foreach (var picture in document.Pictures(page, outline))
             {
-                numbers.AddRange([page, picture.X, picture.Y, picture.Width, picture.Height, picture.Paragraph, picture.Offset]);
+                numbers.AddRange([page, picture.X, picture.Y, picture.Width, picture.Height, picture.Paragraph, picture.Offset, picture.Behind ? 1 : 0]);
             }
         }
 
@@ -893,6 +976,27 @@ public partial class MorphViewer : IAsyncDisposable
             StateHasChanged();
         });
 
+    /// <summary>
+    /// Called from JavaScript, as an arrow key leaves a paragraph across a page or past a header or footer
+    /// (leaveEditor in morph-viewer.js), with a point of a page in points: the paragraph it is in, as its
+    /// ordinal and its story (<see cref="ReviewPart"/>), or nothing. Opens nothing.
+    /// </summary>
+    [JSInvokable]
+    public async Task<int[]> OnEditProbe(int page, double x, double y)
+    {
+        int[] found = [];
+        await InvokeAsync(
+            () =>
+            {
+                if (editOpen &&
+                    Locate(page, x, y, -1, -1) is var (paragraph, _, _, _))
+                {
+                    found = [paragraph.Ordinal, (int) paragraph.Part];
+                }
+            });
+        return found;
+    }
+
     /// <summary>Called from JavaScript for Ctrl+F inside the viewer.</summary>
     [JSInvokable]
     public Task OnFindRequested() =>
@@ -985,12 +1089,17 @@ public partial class MorphViewer : IAsyncDisposable
 
     internal bool SavesInPlace => OnSave.HasDelegate;
 
-    // Save: to where the file came from when the host takes it (OnSave), else a download.
+    // Save: to where the file came from when the host takes it (OnSave), else a download — which, where
+    // Download is not offered (ShowDownload, a WOPI host's DisableExport), Ctrl+S does not make either.
     internal async Task SaveAsync()
     {
         if (!SavesInPlace)
         {
-            await DownloadAsync();
+            if (ShowDownload)
+            {
+                await DownloadAsync();
+            }
+
             return;
         }
 
@@ -1028,6 +1137,11 @@ public partial class MorphViewer : IAsyncDisposable
 
     internal async Task DownloadAsync()
     {
+        if (!ShowDownload)
+        {
+            return;
+        }
+
         await HandInAsync();
         if (sourceBytes is not { } bytes ||
             sourceInfo is not { } info)
@@ -1054,9 +1168,15 @@ public partial class MorphViewer : IAsyncDisposable
     }
 
     // Printing: every page rendered at the print resolution and streamed to the script, which lays them out
-    // for print CSS and opens the browser's dialog.
+    // for print CSS and opens the browser's dialog. Only where Print is offered: Ctrl+P too is refused
+    // under ShowPrint false (a WOPI host's DisablePrint).
     internal async Task PrintAsync()
     {
+        if (!ShowPrint)
+        {
+            return;
+        }
+
         await HandInAsync();
         if (document is not { } current ||
             handle is not { } viewer ||
@@ -1358,8 +1478,8 @@ public partial class MorphViewer : IAsyncDisposable
         }
     }
 
-    // Pictures: the floating pictures of every page, seven numbers each — page, x, y, width, height,
-    // paragraph and place (PagedDocument.Pictures).
+    // Pictures: the floating pictures of every page, eight numbers each — page, x, y, width, height,
+    // paragraph, place, and 1 for one behind the text (PagedDocument.Pictures).
     sealed record OpenedDocument(
         PagedDocument Document,
         double[] Sizes,

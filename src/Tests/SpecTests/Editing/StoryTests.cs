@@ -63,6 +63,39 @@ public class StoryTests
         await Assert.That(DocumentOutline.Read(second.Document).Paragraphs[second.Paragraph].Part).IsEqualTo(ReviewPart.Header);
     }
 
+    // Footer from inside a header acts on the section that header belongs to, not the last one: the
+    // first section's header asks for the first section's footer.
+    [Test]
+    public async Task AFooter_FromAHeader_IsTheHeadersSections()
+    {
+        var two = DocumentEditor.InsertSectionBreak(Document(), 0, 8, false, Plain).Document;
+        var headed = DocumentEditor.EditHeader(two, 0, false, Plain);
+
+        var footed = DocumentEditor.EditHeader(headed.Document, headed.Paragraph, true, Plain);
+
+        await Assert.That(FirstSection(footed.Document)).Contains("w:footerReference");
+        await Assert.That(LastSection(footed.Document)).DoesNotContain("w:footerReference");
+    }
+
+    // A note's paragraph is in the section its reference is in.
+    [Test]
+    public async Task AHeader_FromANote_IsTheReferencesSections()
+    {
+        var two = DocumentEditor.InsertSectionBreak(Document(), 0, 8, false, Plain).Document;
+        var noted = DocumentEditor.InsertFootnote(two, 0, 4, Plain);
+
+        var headed = DocumentEditor.EditHeader(noted.Document, noted.Paragraph, false, Plain);
+
+        await Assert.That(FirstSection(headed.Document)).Contains("w:headerReference");
+        await Assert.That(LastSection(headed.Document)).DoesNotContain("w:headerReference");
+    }
+
+    static string FirstSection(byte[] docx) =>
+        Read(docx, _ => _.MainDocumentPart!.Document!.Body!.Descendants<DocumentFormat.OpenXml.Wordprocessing.SectionProperties>().First().OuterXml);
+
+    static string LastSection(byte[] docx) =>
+        Read(docx, _ => _.MainDocumentPart!.Document!.Body!.Descendants<DocumentFormat.OpenXml.Wordprocessing.SectionProperties>().Last().OuterXml);
+
     [Test]
     public async Task AFooter_IsMadeAsAHeaderIs()
     {
