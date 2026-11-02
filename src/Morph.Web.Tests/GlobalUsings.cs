@@ -19,6 +19,7 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.JSInterop;
 global using Microsoft.Playwright;
 global using Bunit;
+global using Microsoft.AspNetCore.Components.Web;
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.PixelFormats;
 global using TUnit.Core;
