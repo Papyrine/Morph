@@ -35,6 +35,7 @@ public partial class MorphEditor
     const string wrapMenu = "wrap";
     const string bordersMenu = "borders";
     const string shadingMenu = "shading";
+    const string symbolMenu = "symbol";
 
     const string automatic = "auto";
     const string noHighlight = "none";
@@ -66,7 +67,6 @@ public partial class MorphEditor
     string linkAddress = "";
     ElementReference linkInput;
     bool focusLink;
-    (int Rows, int Columns) hover = (1, 1);
     int galleryStart;
     string? galleryStyle;
 
@@ -130,8 +130,12 @@ public partial class MorphEditor
         }
     }
 
-    string GridLabel =>
-        $"{hover.Rows} × {hover.Columns} table";
+    // Each tab names the panel it shows, and the panel the tab it is shown by, as the dialogs' titles
+    // are named, by fixed ids.
+    const string tabPanelId = "editor-tabpanel";
+
+    static string TabId(string name) =>
+        $"editor-tab-{name.ToLowerInvariant()}";
 
     // A Table tab chosen and then left behind by the caret leaving the table is Home again.
     string ShownTab
@@ -286,7 +290,6 @@ public partial class MorphEditor
     {
         menu = menu == name ? null : name;
         openSubmenu = null;
-        hover = (1, 1);
     }
 
     void CloseMenu()
@@ -331,17 +334,32 @@ public partial class MorphEditor
         return SetListStyleAsync(style);
     }
 
-    Task TableFromMenuAsync(int rows, int columns)
+    Task TableFromMenuAsync((int Rows, int Columns) size)
     {
         menu = null;
-        return InsertTableAsync(rows, columns);
+        return InsertTableAsync(size.Rows, size.Columns);
     }
+
+    // Insert > Table's grid, a component of its own (TableSizePicker), which an internal type cannot be named
+    // by a tag for: markup finds only public components.
+    RenderFragment TableGridPicker =>
+        builder =>
+        {
+            builder.OpenComponent<TableSizePicker>(0);
+            builder.AddComponentParameter(1, nameof(TableSizePicker.Rows), gridRows);
+            builder.AddComponentParameter(2, nameof(TableSizePicker.Columns), gridColumns);
+            builder.AddComponentParameter(3, nameof(TableSizePicker.OnChoose), EventCallback.Factory.Create<(int Rows, int Columns)>(this, TableFromMenuAsync));
+            builder.CloseComponent();
+        };
 
     // Layout
 
     static readonly string[] marginSides = ["Top", "Bottom", "Left", "Right"];
 
     readonly Dictionary<string, string> customMargins = new();
+
+    // The margins as the dialog opened on them: each side's twips, and the centimetres they were shown as.
+    readonly Dictionary<string, (int Twips, string Shown)> openedMargins = new();
 
     // Twips as centimetres, to a tenth.
     static string Centimetres(int twips) =>
@@ -354,23 +372,33 @@ public partial class MorphEditor
     {
         menu = null;
         var current = CurrentPage ?? new PageSetup(11906, 16838, 1440, 1440, 1440, 1440, false);
-        customMargins["Top"] = Number(current.Top);
-        customMargins["Bottom"] = Number(current.Bottom);
-        customMargins["Left"] = Number(current.Left);
-        customMargins["Right"] = Number(current.Right);
-        dialog = marginsDialog;
+        foreach (var (side, twips) in (ReadOnlySpan<(string, int)>) [("Top", current.Top), ("Bottom", current.Bottom), ("Left", current.Left), ("Right", current.Right)])
+        {
+            var shown = (twips * 2.54 / 1440).ToString("0.##", CultureInfo.InvariantCulture);
+            customMargins[side] = shown;
+            openedMargins[side] = (twips, shown);
+        }
 
-        static string Number(int twips) =>
-            (twips * 2.54 / 1440).ToString("0.##", CultureInfo.InvariantCulture);
+        dialog = marginsDialog;
     }
 
-    // The margins typed, in twips; null while one of them is not a size.
-    (int Top, int Right, int Bottom, int Left)? CustomMargins()
+    // The margins typed, in twips; null while one of them is not a size. A side left as it was shown
+    // keeps its own twips: two decimal places of a centimetre are not a twip's worth, so 1080 twips,
+    // shown as 1.9 cm, would come back 1077 and a preset would no longer be the margins it is.
+    internal (int Top, int Right, int Bottom, int Left)? CustomMargins()
     {
         var twips = new Dictionary<string, int>();
         foreach (var side in marginSides)
         {
-            if (!double.TryParse(customMargins.GetValueOrDefault(side), NumberStyles.Float, CultureInfo.InvariantCulture, out var centimetres) ||
+            var text = customMargins.GetValueOrDefault(side)?.Trim();
+            if (openedMargins.TryGetValue(side, out var opened) &&
+                text == opened.Shown)
+            {
+                twips[side] = opened.Twips;
+                continue;
+            }
+
+            if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var centimetres) ||
                 centimetres is < 0 or > 50)
             {
                 return null;
@@ -455,15 +483,53 @@ public partial class MorphEditor
         return ShadeCellsAsync(fill);
     }
 
-    Task OnColumnWidthAsync(ChangeEventArgs args)
+    // Table > Width: the caret's cell's width as the pages drew it, in centimetres, until a width is
+    // typed for that paragraph's cell — and again once the caret moves on, as Word's box follows it.
+    // What can be typed is Word's range for a column, 0.1 to 55.87 cm (22 inches).
+    const double leastColumn = 0.1;
+    const double widestColumn = 55.87;
+
+    int? columnWidthAt;
+
+    string ColumnWidthShown
     {
-        columnWidth = args.Value?.ToString() ?? "";
-        if (!double.TryParse(columnWidth, NumberStyles.Float, CultureInfo.InvariantCulture, out var centimetres))
+        get
         {
-            return Task.CompletedTask;
+            if (columnWidthAt is { } typedAt &&
+                typedAt == CurrentOrdinal)
+            {
+                return columnWidth;
+            }
+
+            if (CurrentCellWidth is not { } points)
+            {
+                return "";
+            }
+
+            return (points / pointsPerCentimetre).ToString("0.##", CultureInfo.InvariantCulture);
+        }
+    }
+
+    async Task OnColumnWidthAsync(ChangeEventArgs args)
+    {
+        columnWidth = args.Value?.ToString()?.Trim() ?? "";
+        columnWidthAt = CurrentOrdinal;
+        if (!double.TryParse(columnWidth, NumberStyles.Float, CultureInfo.InvariantCulture, out var centimetres) ||
+            !double.IsFinite(centimetres))
+        {
+            editNote = "Type the column's width in centimetres, as a number.";
+            return;
         }
 
-        return SetColumnWidthAsync(centimetres);
+        // The box shows the cell's width again once the edit has laid the pages out; a width out of
+        // range is said after the edit, which clears the note as it starts.
+        columnWidthAt = null;
+        var clamped = Math.Clamp(centimetres, leastColumn, widestColumn);
+        await SetColumnWidthAsync(clamped);
+        if (clamped != centimetres)
+        {
+            editNote = $"A column is {Number(leastColumn)} to {Number(widestColumn)} cm wide.";
+        }
     }
 
     Task OpenSplitAsync()
@@ -507,6 +573,41 @@ public partial class MorphEditor
     {
         menu = null;
         return SetFontAsync(font);
+    }
+
+    // The ribbon's Font and Font size boxes take a name or a size typed into them, as Word's do: set
+    // when Enter is pressed or the box is left, which is when a browser says the box has changed.
+    Task OnFontTypedAsync(ChangeEventArgs args)
+    {
+        var font = (args.Value as string ?? "").Trim();
+        if (font.Length == 0 ||
+            Off(Commands.Font))
+        {
+            return Task.CompletedTask;
+        }
+
+        menu = null;
+        return SetFontAsync(font);
+    }
+
+    Task OnSizeTypedAsync(ChangeEventArgs args)
+    {
+        var text = (args.Value as string ?? "").Trim();
+        if (Off(Commands.FontSize))
+        {
+            return Task.CompletedTask;
+        }
+
+        // Word's sizes are 1 to 1638 points, in halves.
+        if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var size) ||
+            size is < 1 or > 1638)
+        {
+            editNote = "A font size is a number from 1 to 1638.";
+            return Task.CompletedTask;
+        }
+
+        menu = null;
+        return SetSizeAsync(Math.Round(size * 2) / 2);
     }
 
     Task SizeFromMenuAsync(double size)
@@ -578,6 +679,7 @@ public partial class MorphEditor
     Task NewAsync()
     {
         menu = null;
+        waitingOpen = null;
         if (Dirty)
         {
             dialog = discardDialog;
@@ -585,6 +687,30 @@ public partial class MorphEditor
         }
 
         return NewDocumentAsync();
+    }
+
+    // Another file opened over edits not saved asks as New does, and opens once answered.
+    Func<Task>? waitingOpen;
+
+    internal override bool AskBeforeOpen(Func<Task> open)
+    {
+        if (!Dirty)
+        {
+            return false;
+        }
+
+        menu = null;
+        waitingOpen = open;
+        dialog = discardDialog;
+        return true;
+    }
+
+    // What the discard dialog goes on to: the file waiting to open, or a new document.
+    Task ContinueAfterDiscardAsync()
+    {
+        var open = waitingOpen;
+        waitingOpen = null;
+        return open?.Invoke() ?? NewDocumentAsync();
     }
 
     async Task SaveThenNewAsync()
@@ -596,14 +722,173 @@ public partial class MorphEditor
             return;
         }
 
-        await NewDocumentAsync();
+        await ContinueAfterDiscardAsync();
     }
 
     async Task DiscardThenNewAsync()
     {
         dialog = null;
         await DropDraftAsync();
-        await NewDocumentAsync();
+        await ContinueAfterDiscardAsync();
+    }
+
+    // A command the script carries out, pressed where it cannot: it says why.
+    Task NoteAsync(string note)
+    {
+        editNote = note;
+        return Task.CompletedTask;
+    }
+
+    // Insert > Symbol: the symbols Word's gallery opens on, and the few more a document most often wants,
+    // each put in at the caret as text in the look around it.
+    internal static readonly (string Symbol, string Name)[] Symbols =
+    [
+        ("€", "Euro sign"), ("£", "Pound sign"), ("¥", "Yen sign"), ("©", "Copyright sign"), ("®", "Registered sign"),
+        ("™", "Trade mark sign"), ("±", "Plus-minus sign"), ("≠", "Not equal to"), ("≤", "Less-than or equal to"), ("≥", "Greater-than or equal to"),
+        ("÷", "Division sign"), ("×", "Multiplication sign"), ("∞", "Infinity"), ("µ", "Micro sign"), ("α", "Greek small letter alpha"),
+        ("β", "Greek small letter beta"), ("π", "Greek small letter pi"), ("Ω", "Greek capital letter omega"), ("∑", "N-ary summation"), ("°", "Degree sign"),
+        ("§", "Section sign"), ("¶", "Pilcrow sign"), ("•", "Bullet"), ("…", "Horizontal ellipsis"), ("–", "En dash"),
+        ("—", "Em dash"), ("←", "Leftwards arrow"), ("→", "Rightwards arrow"), ("✓", "Check mark"), ("☺", "White smiling face")
+    ];
+
+    Task SymbolFromMenuAsync(string symbol)
+    {
+        menu = null;
+        return PasteAsync("", symbol);
+    }
+
+    // References > Next and Previous Footnote: the caret to the next or the last note's mark in the body,
+    // before it, as Word's moves it; from the last mark onwards Next does nothing, as Word's does.
+    async Task StepNoteAsync(bool forward)
+    {
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        var marks = outline.Paragraphs
+            .Where(_ => _.Part == ReviewPart.Body)
+            .SelectMany(Marks)
+            .ToList();
+        var caret = (target.Paragraph, target.Offset);
+        var index = forward
+            ? marks.FindIndex(_ => _.CompareTo(caret) > 0)
+            : marks.FindLastIndex(_ => _.CompareTo(caret) < 0);
+        if (index < 0)
+        {
+            if (marks.Count == 0)
+            {
+                editNote = "The document has no footnotes or endnotes.";
+            }
+
+            // The paragraph was handed in to find where the caret was: it opens again there.
+            if (target.Typing)
+            {
+                await ResumeAsync(target.Paragraph, target.Offset);
+            }
+
+            return;
+        }
+
+        await ResumeAsync(marks[index].Paragraph, marks[index].Offset);
+
+        // Where a paragraph's note marks are, in its places.
+        static IEnumerable<(int Paragraph, int Offset)> Marks(EditParagraph paragraph)
+        {
+            var at = 0;
+            foreach (var unit in paragraph.Units)
+            {
+                if (unit.Kind == EditUnitKind.Note)
+                {
+                    yield return (paragraph.Ordinal, at);
+                }
+
+                at += unit.Editable ? unit.Text.Length : 1;
+            }
+        }
+    }
+
+    // Layout > Paragraph's boxes: what the caret's paragraph has, shown as the Paragraph dialog shows it,
+    // and set as the dialog sets it when a new value is typed in.
+    string ParagraphValue(EditorCommand box)
+    {
+        if (CurrentProperties is not { } properties)
+        {
+            return "0";
+        }
+
+        if (box == Commands.LeftIndent)
+        {
+            return Number(properties.LeftIndentPoints / pointsPerCentimetre);
+        }
+
+        if (box == Commands.RightIndent)
+        {
+            return Number(properties.RightIndentPoints / pointsPerCentimetre);
+        }
+
+        if (box == Commands.SpacingBefore)
+        {
+            return Number(properties.SpacingBeforePoints);
+        }
+
+        return Number(properties.SpacingAfterPoints);
+    }
+
+    async Task OnParagraphBoxAsync(EditorCommand box, ChangeEventArgs args)
+    {
+        if (Off(box))
+        {
+            return;
+        }
+
+        var text = args.Value?.ToString() ?? "";
+        var indent = box == Commands.LeftIndent || box == Commands.RightIndent;
+        if (Parse(text) is not { } value ||
+            (!indent && value < 0))
+        {
+            editNote = indent ? "Type the indent in centimetres, as a number." : "Type the spacing in points, as a number not below 0.";
+            return;
+        }
+
+        var format = new ParagraphFormat();
+        if (box == Commands.LeftIndent)
+        {
+            format = format with
+            {
+                LeftPoints = value * pointsPerCentimetre
+            };
+        }
+        else if (box == Commands.RightIndent)
+        {
+            format = format with
+            {
+                RightPoints = value * pointsPerCentimetre
+            };
+        }
+        else if (box == Commands.SpacingBefore)
+        {
+            format = format with
+            {
+                BeforePoints = value
+            };
+        }
+        else
+        {
+            format = format with
+            {
+                AfterPoints = value
+            };
+        }
+
+        if (await RequireAsync() is not { } target)
+        {
+            return;
+        }
+
+        await EditParagraphsAsync(
+            target,
+            (_, options) => DocumentEditor.FormatParagraphs(_, target.Paragraphs, format, options));
     }
 
     // Links
@@ -615,7 +900,8 @@ public partial class MorphEditor
             return;
         }
 
-        linkAddress = "https://";
+        // Text selected in a link edits it, from the address it has.
+        linkAddress = ExistingLink ?? "https://";
         linkText = "";
         dialog = linkDialog;
         // In a link with nothing selected, the dialog only removes it; elsewhere it asks for the address,

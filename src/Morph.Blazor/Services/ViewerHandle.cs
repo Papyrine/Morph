@@ -105,16 +105,21 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask PlaceMenuAsync() =>
         controller.InvokeVoidAsync("placeMenu");
 
-    // Word's formatting marks over the pages' text, or none.
+    // What the keys may do: Ctrl+S save (or download), Ctrl+P print — as the host allows them.
+    public ValueTask SetAbilitiesAsync(bool save, bool print) =>
+        controller.InvokeVoidAsync("setAbilities", save, print);
+
     // Text selected on the pages again, from an offset into one page's text to one into another's.
     public ValueTask SelectTextAsync(int firstPage, int start, int lastPage, int end) =>
         controller.InvokeVoidAsync("selectText", firstPage, start, lastPage, end);
 
+    // Word's formatting marks over the pages' text, or none.
     public ValueTask SetMarksAsync(bool on) =>
         controller.InvokeVoidAsync("setMarks", on);
 
-    // The floating pictures of a document's pages, seven numbers each: page, x, y, width, height (in
-    // points), paragraph and place. A click on one in the editor selects it to size it.
+    // The floating pictures of a document's pages, eight numbers each: page, x, y, width, height (in
+    // points), paragraph, place, and 1 for one behind the text. A click on one in the editor selects it
+    // to size it — unless it is behind text and the click is on the text.
     public ValueTask SetPicturesAsync(int documentId, double[] pictures) =>
         controller.InvokeVoidAsync("setPictures", documentId, pictures);
 

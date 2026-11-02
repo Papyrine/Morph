@@ -16,15 +16,18 @@
 <div class="@EditorClass" @ref="root" @attributes="AdditionalAttributes" data-editor="">
     <div class="editor-ribbon" aria-busy="@(revising ? "true" : "false")">
         <div class="editor-titlebar">
-            <div class="editor-tabs" role="tablist" aria-label="Ribbon">
+            <div class="editor-tabs">
+                @* File opens a menu rather than a tab, so it stands before the tablist rather than in it. *@
                 <button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="@Expanded(fileMenu)"
                         disabled="@busy" @onmousedown:preventDefault @onclick="() => ToggleMenu(fileMenu)">File</button>
-                @foreach (var each in Tabs)
-                {
-                    var name = each;
-                    <button type="button" role="tab" class="editor-tab" aria-selected="@Pressed(ShownTab == name)"
-                            disabled="@(!HasDocument)" @onmousedown:preventDefault @onclick="() => SelectTab(name)">@name</button>
-                }
+                <div class="editor-tablist" role="tablist" aria-label="Ribbon">
+                    @foreach (var each in Tabs)
+                    {
+                        var name = each;
+                        <button type="button" role="tab" class="editor-tab" id="@TabId(name)" aria-controls="@(HasDocument ? tabPanelId : null)" aria-selected="@Pressed(ShownTab == name)"
+                                disabled="@(!HasDocument)" @onmousedown:preventDefault @onclick="() => SelectTab(name)">@name</button>
+                    }
+                </div>
             </div>
             <span class="editor-name" title="@fileName">
                 @fileName
@@ -57,7 +60,7 @@
 
         @if (HasDocument)
         {
-            <div class="editor-tools" role="tabpanel" aria-label="@ShownTab">
+            <div class="editor-tools" role="tabpanel" id="@tabPanelId" aria-labelledby="@TabId(ShownTab)">
                 @switch (ShownTab)
                 {
                     case home:
@@ -103,17 +106,27 @@
 
     @if (HasDocument)
     {
-        <div class="editor-status" role="status" aria-live="polite">
+        @* Only the note is announced as it changes: the page, the count and the zoom change as the reader
+           scrolls, types and zooms, and the controls are not news. *@
+        <div class="editor-status" role="group" aria-label="Status bar">
             <span class="editor-status-item">@($"{PageNounTitle} {currentPage} of {pageCount}")</span>
             @if (IsWord)
             {
                 <button type="button" class="editor-status-item editor-status-button" title="Word count" @onclick="() => dialog = countDialog">
                     @WordsLabel
                 </button>
-                @if (overtype)
+                @if (CanWrite)
                 {
-                    <span class="editor-status-item">Overtype</span>
+                    @* Word's Overtype status item, which turns it on and off as the Insert key does. *@
+                    <button type="button" class="editor-status-item editor-status-button" data-viewer-action="@Commands.Overtype.Name"
+                            title="@Commands.Overtype.Title" aria-keyshortcuts="@Commands.Overtype.KeyShortcuts" aria-pressed="@PressedOf(Commands.Overtype)"
+                            disabled="@Off(Commands.Overtype)" @onmousedown:preventDefault>
+                        @(overtype ? "Overtype" : "Insert")
+                    </button>
                 }
+                @* F8's extend mode, which only the open paragraph's script knows: it sets data-value
+                   (data-edit-show) and the stylesheet shows the item while it is "true". *@
+                <span class="editor-status-item editor-status-extend" data-edit-show="extend">Extend selection</span>
                 @if (Tracking)
                 {
                     <span class="editor-status-item editor-status-tracking">Track changes on</span>
@@ -123,7 +136,7 @@
                     <span class="editor-status-item">Read-only</span>
                 }
             }
-            <span class="editor-status-note">@editNote</span>
+            <span class="editor-status-note" role="status" aria-live="polite">@editNote</span>
             <span class="editor-status-zoom">
                 <button type="button" class="viewer-button" title="Zoom out" aria-label="Zoom out" @onmousedown:preventDefault @onclick="() => ZoomByAsync(-1)">
                     <Iconify Value="Lucide.ZoomOut" aria-hidden="true" focusable="false" />
@@ -429,7 +442,7 @@
             </label>
             @if (bookmarkName.Length > 0 && !taken)
             {
-                <p class="editor-dialog-note">A name starts with a letter, and holds only letters, numbers and underscores.</p>
+                <p class="editor-dialog-note">A name starts with a letter, holds only letters, numbers and underscores, and is at most 40 characters long.</p>
             }
             <div class="editor-bookmarks" role="listbox" aria-label="Bookmarks">
                 @if (Bookmarks.Count == 0)
@@ -455,13 +468,14 @@
     @if (dialog == dateDialog)
     {
         <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
-        <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-date-title" @onkeydown="OnDialogKeyDown">
+        var current = ChosenDate;
+        <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-date-title" @onkeydown="OnDateKeyDownAsync">
             <h2 id="editor-date-title" class="editor-dialog-title">Date and time</h2>
             <div class="editor-bookmarks" role="listbox" aria-label="Available formats">
-                @foreach (var format in DateFormats)
+                @foreach (var format in DateChoices)
                 {
                     var chosen = format;
-                    <button type="button" role="option" class="editor-menu-item" aria-selected="@Pressed(chosen == dateFormat)" data-format="@chosen"
+                    <button type="button" role="option" class="editor-menu-item" aria-selected="@Pressed(chosen == current)" data-format="@chosen"
                             @onclick="() => dateFormat = chosen" @ondblclick="DateFromDialogAsync">@DateLabel(chosen)</button>
                 }
             </div>
@@ -546,7 +560,7 @@
     {
         <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
         <div class="editor-dialog" role="alertdialog" aria-modal="true" aria-labelledby="editor-discard-title" @onkeydown="OnDialogKeyDown">
-            <h2 id="editor-discard-title" class="editor-dialog-title">Start a new document?</h2>
+            <h2 id="editor-discard-title" class="editor-dialog-title">@(waitingOpen is null ? "Start a new document?" : "Open another document?")</h2>
             <p class="editor-dialog-note">@fileName has edits that have not been saved. They are lost unless you save a copy first.</p>
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button" @onclick="SaveThenNewAsync">@(SavesInPlace ? "Save first" : "Save a copy first")</button>
@@ -681,12 +695,15 @@
                 <div class="editor-group-body">
                     <div class="editor-rows">
                         <div class="editor-row">
-                            @* The font and the size show what the caret is in: the script keeps data-value current
-                               as the caret moves (data-edit-show), and the stylesheet draws it. *@
-                            <span class="editor-anchor">
-                                <button type="button" class="editor-dropdown editor-font-button" title="@Commands.Font.Title" aria-label="@Commands.Font.Label" aria-haspopup="@Commands.Font.Opens"
+                            @* The font and the size are boxes, as Word's are: they show what the caret is in — the
+                               script keeps them current as the caret moves (data-edit-show) — and take a name or a
+                               size typed into them; the arrow beside each opens its list. *@
+                            <span class="editor-anchor editor-combo">
+                                <input type="text" class="editor-combo-input editor-font-input" role="combobox" aria-label="@Commands.Font.Label" title="@Commands.Font.Title"
+                                       aria-autocomplete="none" aria-expanded="@Expanded(fontMenu)" aria-haspopup="@Commands.Font.Opens" autocomplete="off" spellcheck="false"
+                                       data-edit-show="font" data-value="@CurrentFont" value="@CurrentFont" disabled="@Off(Commands.Font)" @onchange="OnFontTypedAsync" />
+                                <button type="button" class="editor-dropdown editor-font-button" title="Fonts" aria-label="Fonts" aria-haspopup="@Commands.Font.Opens"
                                         aria-expanded="@Expanded(fontMenu)" disabled="@Off(Commands.Font)" @onmousedown:preventDefault @onclick="() => RunCommandAsync(Commands.Font)">
-                                    <span class="editor-shown" data-edit-show="font" data-value="@CurrentFont"></span>
                                     <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
                                 </button>
                                 @if (menu == fontMenu)
@@ -710,10 +727,12 @@
                                     </div>
                                 }
                             </span>
-                            <span class="editor-anchor">
-                                <button type="button" class="editor-dropdown editor-size-button" title="@Commands.FontSize.Title" aria-label="@Commands.FontSize.Label" aria-haspopup="@Commands.FontSize.Opens"
+                            <span class="editor-anchor editor-combo">
+                                <input type="text" class="editor-combo-input editor-size-input" role="combobox" aria-label="@Commands.FontSize.Label" title="@Commands.FontSize.Title"
+                                       aria-autocomplete="none" aria-expanded="@Expanded(sizeMenu)" aria-haspopup="@Commands.FontSize.Opens" autocomplete="off" inputmode="decimal"
+                                       data-edit-show="size" data-value="@SizeLabel(CurrentSize)" value="@SizeLabel(CurrentSize)" disabled="@Off(Commands.FontSize)" @onchange="OnSizeTypedAsync" />
+                                <button type="button" class="editor-dropdown editor-size-button" title="Font sizes" aria-label="Font sizes" aria-haspopup="@Commands.FontSize.Opens"
                                         aria-expanded="@Expanded(sizeMenu)" disabled="@Off(Commands.FontSize)" @onmousedown:preventDefault @onclick="() => RunCommandAsync(Commands.FontSize)">
-                                    <span class="editor-shown" data-edit-show="size" data-value="@SizeLabel(CurrentSize)"></span>
                                     <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
                                 </button>
                                 @if (menu == sizeMenu)
@@ -733,14 +752,15 @@
                             @Tool(Commands.ClearFormatting, ToolLook.Icon)
                         </div>
                         <div class="editor-row">
-                            @* Bold to strikethrough are the script's while a paragraph is open, which keeps which
-                               of them are pressed as the caret moves. *@
+                            @* Bold to superscript are the script's while a paragraph is open, which keeps which
+                               of them are pressed as the caret moves; so is Change case, which only it can do. *@
                             @Tool(Commands.Bold, ToolLook.Icon)
                             @Tool(Commands.Italic, ToolLook.Icon)
                             @Tool(Commands.Underline, ToolLook.Icon)
                             @Tool(Commands.Strike, ToolLook.Icon)
                             @Tool(Commands.Subscript, ToolLook.Icon)
                             @Tool(Commands.Superscript, ToolLook.Icon)
+                            @Tool(Commands.ChangeCase, ToolLook.Icon)
                             <span class="viewer-divider" aria-hidden="true"></span>
                             <span class="editor-anchor">
                                 @Tool(Commands.Highlight, ToolLook.Icon, style: $"--swatch: #{HighlightHex(LastHighlight)}", classes: "editor-swatch-button")
@@ -926,6 +946,16 @@
             }
         </div>;
 
+    // A box of Layout › Paragraph, its command's: the caret's paragraph's value, in the unit it is typed in.
+    RenderFragment ParagraphBox(EditorCommand box, string label, string unit, Icon icon, string step, string? least) =>
+        @<label class="editor-size-field editor-paragraph-box" title="@($"{box.Label} ({unit})")">
+            <Iconify Value="icon" aria-hidden="true" focusable="false" />
+            <span class="editor-paragraph-label" aria-hidden="true">@label</span>
+            <input type="number" class="editor-input editor-paragraph-input" step="@step" min="@least" aria-label="@($"{box.Label} in {(unit == "cm" ? "centimetres" : "points")}")"
+                   value="@ParagraphValue(box)" disabled="@Off(box)" @onchange="_ => OnParagraphBoxAsync(box, _)" />
+            <span class="editor-paragraph-unit" aria-hidden="true">@unit</span>
+        </label>;
+
     // A font in the menu, drawn in itself where the browser has it.
     RenderFragment FontChoice(string font) =>
         @<button type="button" role="option" class="editor-menu-item editor-font" aria-selected="@Pressed(string.Equals(font, CurrentFont, StringComparison.OrdinalIgnoreCase))"
@@ -973,6 +1003,21 @@
                     </span>
                 </div>
             </div>
+            <div class="editor-group" role="group" aria-label="Paragraph" data-priority="45">
+                @Fold("Paragraph", Lucide.Pilcrow)
+                <div class="editor-group-body">
+                    @* Word's Indent and Spacing boxes, each showing the caret's paragraph's and set as it is
+                       typed in, as the Paragraph dialog sets it. *@
+                    <div class="editor-paragraph-boxes">
+                        <span class="editor-menu-heading">Indent</span>
+                        <span class="editor-menu-heading">Spacing</span>
+                        @ParagraphBox(Commands.LeftIndent, "Left", "cm", Lucide.IndentIncrease, "0.1", null)
+                        @ParagraphBox(Commands.SpacingBefore, "Before", "pt", Lucide.ArrowUpToLine, "6", "0")
+                        @ParagraphBox(Commands.RightIndent, "Right", "cm", Lucide.IndentDecrease, "0.1", null)
+                        @ParagraphBox(Commands.SpacingAfter, "After", "pt", Lucide.ArrowDownToLine, "6", "0")
+                    </div>
+                </div>
+            </div>
             <div class="editor-group" role="group" aria-label="Arrange" data-priority="40">
                 @Fold("Arrange", Lucide.WrapText)
                 <div class="editor-group-body">
@@ -993,30 +1038,20 @@
                 @Fold("Pages", Lucide.SeparatorHorizontal)
                 <div class="editor-group-body">
                     @Tool(Commands.PageBreak, ToolLook.Large)
+                    @Tool(Commands.BlankPage, ToolLook.Large)
                 </div>
             </div>
             <div class="editor-group" role="group" aria-label="Tables" data-priority="60">
                 @Fold("Tables", Lucide.Table)
                 <div class="editor-group-body">
                     <span class="editor-anchor">
-                        @Tool(Commands.Table, ToolLook.Large)
+                        @* Text selected in the open paragraph greys it out too, which the script marks. *@
+                        @Tool(Commands.Table, ToolLook.Large, classes: "editor-caret-only")
                         @if (menu == tableMenu)
                         {
+                            @* The grid is a component of its own, so a hover redraws it alone. *@
                             <div class="editor-menu editor-grid-picker" role="dialog" aria-label="Insert table" @onkeydown="OnMenuKeyDown">
-                                <div class="editor-menu-heading">@GridLabel</div>
-                                <div class="editor-grid" style="--columns: @gridColumns">
-                                    @for (var row = 1; row <= gridRows; row++)
-                                    {
-                                        for (var column = 1; column <= gridColumns; column++)
-                                        {
-                                            var size = (row, column);
-                                            <button type="button" class="editor-grid-cell" aria-label="@($"{size.row} by {size.column}")"
-                                                    data-lit="@(size.row <= hover.Rows && size.column <= hover.Columns ? "true" : null)"
-                                                    @onmouseover="() => hover = size" @onfocus="() => hover = size"
-                                                    @onmousedown:preventDefault @onclick="() => TableFromMenuAsync(size.row, size.column)"></button>
-                                        }
-                                    }
-                                </div>
+                                @TableGridPicker
                             </div>
                         }
                     </span>
@@ -1062,6 +1097,27 @@
                     @Tool(Commands.Date, ToolLook.Large)
                 </div>
             </div>
+            <div class="editor-group" role="group" aria-label="Symbols" data-priority="5">
+                @Fold("Symbols", Lucide.Omega)
+                <div class="editor-group-body">
+                    <span class="editor-anchor">
+                        @Tool(Commands.Symbol, ToolLook.Large)
+                        @if (menu == symbolMenu)
+                        {
+                            <div class="editor-menu editor-palette editor-symbols" role="dialog" aria-label="Symbol" @onkeydown="OnMenuKeyDown">
+                                <div class="editor-symbol-grid">
+                                    @foreach (var (symbol, name) in Symbols)
+                                    {
+                                        var chosen = symbol;
+                                        <button type="button" class="editor-symbol" title="@name" aria-label="@name"
+                                                @onmousedown:preventDefault @onclick="() => SymbolFromMenuAsync(chosen)">@chosen</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </span>
+                </div>
+            </div>
         </text>;
 
     RenderFragment ReferencesTab =>
@@ -1080,6 +1136,10 @@
                 <div class="editor-group-body">
                     @Tool(Commands.Footnote, ToolLook.Large)
                     @Tool(Commands.Endnote, ToolLook.Large)
+                    <div class="editor-stack">
+                        @Tool(Commands.NextNote, ToolLook.Small)
+                        @Tool(Commands.PreviousNote, ToolLook.Small)
+                    </div>
                 </div>
             </div>
         </text>;
@@ -1122,9 +1182,9 @@
                     <div class="editor-stack editor-stack-three">
                         <label class="editor-size-field" title="Column width, in centimetres">
                             <Iconify Value="Lucide.MoveHorizontal" aria-hidden="true" focusable="false" />
-                            <input type="number" class="editor-input editor-width-input" min="0.1" max="55" step="0.1" placeholder="cm"
+                            <input type="number" class="editor-input editor-width-input" min="@Number(leastColumn)" max="@Number(widestColumn)" step="0.1" placeholder="cm"
                                    aria-label="Column width in centimetres" disabled="@(!Commands.InATable(state))"
-                                   value="@columnWidth" @onchange="OnColumnWidthAsync" />
+                                   value="@ColumnWidthShown" @onchange="OnColumnWidthAsync" />
                         </label>
                         @Tool(Commands.DistributeColumns, ToolLook.Small)
                         <span class="editor-anchor">
@@ -1203,11 +1263,16 @@
             </div>
             @if (Shown(Commands.AcceptAll))
             {
+                @* Greyed out where changes cannot be resolved, not taken away. *@
                 <div class="editor-group" role="group" aria-label="Changes" data-priority="40">
                     @Fold("Changes", Lucide.CheckCheck)
                     <div class="editor-group-body">
                         @Tool(Commands.AcceptAll, ToolLook.Large)
                         @Tool(Commands.RejectAll, ToolLook.Large)
+                        <div class="editor-stack">
+                            @Tool(Commands.PreviousChange, ToolLook.Small, label: "Previous")
+                            @Tool(Commands.NextChange, ToolLook.Small, label: "Next")
+                        </div>
                     </div>
                 </div>
             }
@@ -1239,6 +1304,10 @@
                 <div class="editor-group-body">
                     <div class="editor-row">
                         @ZoomControls
+                    </div>
+                    <div class="editor-stack">
+                        @Tool(Commands.OnePage, ToolLook.Small)
+                        @Tool(Commands.PageWidth, ToolLook.Small)
                     </div>
                 </div>
             </div>

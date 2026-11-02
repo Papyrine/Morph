@@ -153,6 +153,7 @@ sealed class PagedDocument : IDisposable
         {
             ObjectDisposedException.ThrowIf(disposed, this);
             var sources = new Dictionary<byte[], RunSource?>(ReferenceEqualityComparer.Instance);
+            var behind = new HashSet<byte[]>(ReferenceEqualityComparer.Instance);
             Collect(document.Elements);
             var found = new List<PagePicture>();
             Walk(laidOut.Pages[pageIndex].Items);
@@ -170,6 +171,11 @@ sealed class PagedDocument : IDisposable
                             if (!sources.TryAdd(data, image.Source))
                             {
                                 sources[data] = null;
+                            }
+
+                            if (image.BehindText)
+                            {
+                                behind.Add(data);
                             }
                         }
                     }
@@ -197,7 +203,7 @@ sealed class PagedDocument : IDisposable
                             if (outline.ParagraphOf(from.Run) is { } paragraph &&
                                 paragraph.OffsetOf(new(from.Run, from.Start)) is { } offset)
                             {
-                                found.Add(new(placed.X, placed.Y, placed.Width, placed.Height, paragraph.Ordinal, offset));
+                                found.Add(new(placed.X, placed.Y, placed.Width, placed.Height, paragraph.Ordinal, offset, behind.Contains(data)));
                             }
 
                             break;

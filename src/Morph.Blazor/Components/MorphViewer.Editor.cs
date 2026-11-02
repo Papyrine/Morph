@@ -78,11 +78,16 @@ public partial class MorphViewer
         return target;
     }
 
-    // The place the script names: in paragraphs of the file as it now stands.
+    // The place the script names: in paragraphs of the file as it now stands. The script keeps the last
+    // paragraph open's place after its box is gone, in the ordinals of the file that paragraph was
+    // opened in (or handed in to): once another edit has laid the pages out again — a change accepted
+    // in the pane, an undo — those ordinals name other paragraphs, and the place is refused.
     EditTarget? FromEditor(int[] place)
     {
         var count = outline.Paragraphs.Count;
-        if (place.Length != 8 ||
+        if ((targetDocument >= 0 &&
+             targetDocument != documentId) ||
+            place.Length != 8 ||
             place.Any(_ => _ < 0) ||
             place[0] >= count ||
             place[1] >= count ||
@@ -107,7 +112,8 @@ public partial class MorphViewer
         {
             Quote = Text(place[4], place[5], place[6], place[7]),
             StartParagraph = place[4],
-            StartOffset = place[5]
+            StartOffset = place[5],
+            Page = readerPage
         };
     }
 
@@ -150,14 +156,16 @@ public partial class MorphViewer
         return builder.ToString();
     }
 
-    // A comment on what is selected: in the paragraph open for typing, or across the pages.
+    // A comment on what is selected: in the paragraph open for typing, or across the pages — or, at a
+    // caret, on the word it is in, as Word's New Comment takes it.
     internal async Task CommentAsync()
     {
-        if (!CanComment ||
-            revising)
+        if (!CanComment)
         {
             return;
         }
+
+        await SettledAsync();
 
         if (selection.Length == 4)
         {
@@ -172,9 +180,23 @@ public partial class MorphViewer
             return;
         }
 
-        if (await TargetAsync() is not {HasSelection: true, Start: { } start, End: { } end} target)
+        var target = await TargetAsync();
+        if (target is {HasSelection: false} &&
+            Word(target) is var (from, to) &&
+            outline.Paragraphs[target.Paragraph].PositionAt(from, ending: false) is { } first &&
+            outline.Paragraphs[target.Paragraph].PositionAt(to, ending: true) is { } last)
         {
-            editNote = "Select the text to comment on first.";
+            target = target with
+            {
+                Start = first,
+                End = last,
+                Quote = Text(target.Paragraph, from, target.Paragraph, to)
+            };
+        }
+
+        if (target is not {HasSelection: true, Start: { } start, End: { } end})
+        {
+            editNote = "Select the text to comment on, or click in a word, first.";
             return;
         }
 
@@ -223,9 +245,9 @@ public partial class MorphViewer
             .Select(_ => outline.ParagraphOf(_))
             .OfType<EditParagraph>()
             .ToList();
-        var story = reached.FirstOrDefault()?.Part;
+        var story = reached.FirstOrDefault()?.Root;
         var paragraphs = reached
-            .Where(_ => _.Part == story)
+            .Where(_ => _.Root == story)
             .Select(_ => _.Ordinal)
             .Distinct()
             .Order()
@@ -238,7 +260,10 @@ public partial class MorphViewer
             return null;
         }
 
-        var target = new EditTarget(paragraphs[0], paragraphs[^1], paragraph.Ordinal, offset, start, end, Typing: false);
+        var target = new EditTarget(paragraphs[0], paragraphs[^1], paragraph.Ordinal, offset, start, end, Typing: false)
+        {
+            Page = selection[2]
+        };
         if (Place(start) is var (first, from))
         {
             target = target with
@@ -255,12 +280,14 @@ public partial class MorphViewer
     internal async Task<EditTarget?> RequireAsync(string note = "Click in the document first, or select some of its text.")
     {
         if (!editOpen ||
-            !CanWrite ||
-            revising)
+            !CanWrite)
         {
             return null;
         }
 
+        // A command given while the pages are laid out again after an edit waits for them, and then asks
+        // where the reader is in the file that edit made: queued, rather than dropped without a word.
+        await SettledAsync();
         editNote = null;
         if (await TargetAsync() is { } target)
         {
@@ -313,6 +340,21 @@ public partial class MorphViewer
         }
     }
 
+    // Something put in over text selected takes the text's place, as Word's does: the text is deleted
+    // first, within the same edit and so the same step of undo, and the thing goes in where that left
+    // the caret. With nothing selected it goes in at the caret.
+    Task InsertAsync(EditTarget target, Func<byte[], int, int, EditOptions, EditResult> insert) =>
+        EditAtAsync((_, options) =>
+        {
+            if (target is {HasSelection: true, Start: { } start, End: { } end} &&
+                DocumentEditor.Delete(_, start, end, options) is {Paragraph: >= 0} cleared)
+            {
+                return insert(cleared.Document, cleared.Paragraph, cleared.Offset, options);
+            }
+
+            return insert(_, target.Paragraph, target.Offset, options);
+        });
+
     // An edit to paragraphs as they are, after which the caret goes back where it was.
     internal async Task EditParagraphsAsync(EditTarget target, Func<byte[], EditOptions, byte[]> edit)
     {
@@ -325,7 +367,7 @@ public partial class MorphViewer
 
         if (target.Typing)
         {
-            await ResumeAsync(target.Paragraph, target.Offset);
+            await ResumeAsync(target.Paragraph, target.Offset, page: target.Page);
             return;
         }
 
@@ -468,6 +510,8 @@ public partial class MorphViewer
             return Task.CompletedTask;
         }
 
+        // Going somewhere is not where the last edit left the reader, which redo puts back.
+        placingAfter = false;
         return ResumeAsync(place.Paragraph, place.Offset);
     }
 
@@ -497,6 +541,16 @@ public partial class MorphViewer
     internal bool HasSpaceAfter => CurrentProperties?.SpacingAfterPoints > 0;
 
     internal bool InTable => CurrentParagraph?.InTable == true;
+
+    // The paragraph the ribbon shows the state of, and the width the cell it stands in was laid out at,
+    // in points: what Table › Width shows, and what it shows afresh as the caret moves.
+    internal int? CurrentOrdinal => session?.Paragraph.Ordinal ?? caretParagraph;
+
+    internal float? CurrentCellWidth =>
+        CurrentOrdinal is { } paragraph &&
+        editMap.Blocks(paragraph) is [var block, ..]
+            ? block.CellWidth
+            : null;
 
     internal ReviewPart CurrentStory => CurrentParagraph?.Part ?? ReviewPart.Body;
 
@@ -868,8 +922,29 @@ public partial class MorphViewer
             return;
         }
 
+        await InsertAsync(target, DocumentEditor.InsertPageBreak);
+    }
+
+    // Word's Blank Page: two page breaks at the caret, as one step to undo, the caret between them on
+    // the page they make.
+    internal async Task InsertBlankPageAsync()
+    {
+        if (await RequireAsync("Click in the document where the page is to go.") is not { } target)
+        {
+            return;
+        }
+
         await EditAtAsync(
-            (_, options) => DocumentEditor.InsertPageBreak(_, target.Paragraph, target.Offset, options));
+            (_, options) =>
+            {
+                var first = DocumentEditor.InsertPageBreak(_, target.Paragraph, target.Offset, options);
+                var second = DocumentEditor.InsertPageBreak(first.Document, first.Paragraph, first.Offset, options);
+                return second with
+                {
+                    Paragraph = first.Paragraph,
+                    Offset = first.Offset
+                };
+            });
     }
 
     internal async Task InsertTableAsync(int rows, int columns)
@@ -908,6 +983,9 @@ public partial class MorphViewer
             return;
         }
 
+        // Going to another cell is not where the last edit left the reader, which redo puts back; a row
+        // added on the way is an edit, and where it leaves the reader is.
+        placingAfter = false;
         var landing = CellTo(target.Paragraph, here, move);
         if (landing == null &&
             move == "next")
@@ -936,18 +1014,14 @@ public partial class MorphViewer
             var last = outline.Paragraphs.Last(_ => _.Cell == cell).Ordinal;
             if (last != paragraph)
             {
-                await SelectAsync(new(paragraph, 0, last, outline.Paragraphs[last].Length));
+                await SelectAsync(new(paragraph, 0, last, outline.Paragraphs[last].Length), target.Page);
                 return;
             }
 
             length = outline.Paragraphs[paragraph].Length;
         }
 
-        if (handle is { } viewer &&
-            Block(paragraph, -1) is { } block)
-        {
-            await BeginAsync(viewer, outline.Paragraphs[paragraph], block, 0, length);
-        }
+        await ResumeAsync(paragraph, 0, length, target.Page);
     }
 
     // The first paragraph of the cell a move lands in, or null where there is none.
@@ -998,8 +1072,9 @@ public partial class MorphViewer
             return;
         }
 
-        var part = outline.Paragraphs[target.Paragraph].Part;
-        var story = outline.Paragraphs.Where(_ => _.Part == part).ToList();
+        // A story is a part's: one header's paragraphs, not every header's.
+        var root = outline.Paragraphs[target.Paragraph].Root;
+        var story = outline.Paragraphs.Where(_ => _.Root == root).ToList();
         var paragraph = story[0];
         var offset = 0;
         if (end)
@@ -1008,7 +1083,9 @@ public partial class MorphViewer
             offset = paragraph.Length;
         }
 
-        await ResumeAsync(paragraph.Ordinal, offset);
+        // Going somewhere is not where the last edit left the reader, which redo puts back.
+        placingAfter = false;
+        await ResumeAsync(paragraph.Ordinal, offset, page: target.Page);
     }
 
     // Headers, footers and footnotes. A header or footer is opened for typing, made if the section
@@ -1058,8 +1135,7 @@ public partial class MorphViewer
             return;
         }
 
-        await EditAtAsync(
-            (_, options) => DocumentEditor.InsertPageNumber(_, target.Paragraph, target.Offset, total, options));
+        await InsertAsync(target, (_, paragraph, offset, options) => DocumentEditor.InsertPageNumber(_, paragraph, offset, total, options));
     }
 
     // Dates of the kinds Word's Date and Time dialog offers (not read off the dialog itself), each
@@ -1089,9 +1165,10 @@ public partial class MorphViewer
             return;
         }
 
+        // Spelt in the reader's culture, as the dialog showed it.
         var now = await ReaderDateAsync();
-        await EditAtAsync(
-            (_, options) => DocumentEditor.InsertDate(_, target.Paragraph, target.Offset, format, now, update, options));
+        var culture = CultureInfo.CurrentCulture;
+        await InsertAsync(target, (_, paragraph, offset, options) => DocumentEditor.InsertDate(_, paragraph, offset, format, now, update, options, culture));
     }
 
     internal async Task InsertTimeAsync()
@@ -1102,8 +1179,7 @@ public partial class MorphViewer
         }
 
         var now = await ReaderDateAsync();
-        await EditAtAsync(
-            (_, options) => DocumentEditor.InsertTime(_, target.Paragraph, target.Offset, now, options));
+        await InsertAsync(target, (_, paragraph, offset, options) => DocumentEditor.InsertTime(_, paragraph, offset, now, options));
     }
 
     internal async Task InsertContentsAsync()
@@ -1126,13 +1202,13 @@ public partial class MorphViewer
     internal async Task UpdateContentsAsync()
     {
         if (!editOpen ||
-            !CanWrite ||
-            revising)
+            !CanWrite)
         {
             return;
         }
 
-        await HandInAsync();
+        await SettledAsync();
+        await HandInFirstAsync();
         if (sourceBytes is not { } bytes ||
             !DocumentEditor.HasContents(bytes))
         {
@@ -1386,15 +1462,26 @@ public partial class MorphViewer
         InvokeAsync(async () =>
         {
             if (!editOpen ||
-                !CanWrite ||
-                revising)
+                !CanWrite)
             {
                 return;
             }
 
-            floatingPicture = null;
+            // The picture named is one of the file being replaced.
+            if (revising)
+            {
+                Busy();
+                return;
+            }
+
+            // Undone, the caret goes back where it was: the picture's own place is not one it can take.
+            beforeEdit = null;
             var options = await EditOptionsAsync();
-            await ReviseAsync(_ => DocumentEditor.DeletePicture(_, paragraph, offset, options), relayout: true, () => activeKey);
+            if (await ReviseAsync(_ => DocumentEditor.DeletePicture(_, paragraph, offset, options), relayout: true, () => activeKey))
+            {
+                floatingPicture = null;
+            }
+
             StateHasChanged();
         });
 
@@ -1404,12 +1491,19 @@ public partial class MorphViewer
         InvokeAsync(async () =>
         {
             if (!editOpen ||
-                !CanWrite ||
-                revising)
+                !CanWrite)
             {
                 return;
             }
 
+            // The picture named is one of the file being replaced.
+            if (revising)
+            {
+                Busy();
+                return;
+            }
+
+            beforeEdit = null;
             var options = await EditOptionsAsync();
             await ReviseAsync(_ => DocumentEditor.NudgePicture(_, paragraph, offset, right, down, options), relayout: true, () => activeKey);
             StateHasChanged();
@@ -1421,12 +1515,19 @@ public partial class MorphViewer
         InvokeAsync(async () =>
         {
             if (!editOpen ||
-                !CanWrite ||
-                revising)
+                !CanWrite)
             {
                 return;
             }
 
+            // The picture named is one of the file being replaced.
+            if (revising)
+            {
+                Busy();
+                return;
+            }
+
+            beforeEdit = null;
             var options = await EditOptionsAsync();
             await ReviseAsync(_ => DocumentEditor.ResizePicture(_, paragraph, offset, width, height, options), relayout: true, () => activeKey);
             StateHasChanged();
@@ -1462,22 +1563,29 @@ public partial class MorphViewer
     internal async Task WrapPictureAsync(PictureWrap wrap)
     {
         if (!editOpen ||
-            !CanWrite ||
-            revising)
+            !CanWrite)
         {
             return;
         }
 
+        // Only an inline picture's target is asked of the script, and only that says where undo goes back
+        // to: a place left from an earlier command, or from a picture not found, is no undo step's.
+        await SettledAsync();
+        beforeEdit = null;
         if (await PictureTargetAsync() is not var (paragraph, offset))
         {
+            beforeEdit = null;
             editNote = "Select a picture first.";
             StateHasChanged();
             return;
         }
 
-        floatingPicture = null;
+        // The floating picture stays selected until the wrap is made: one refused is still there to try again.
         var options = await EditOptionsAsync();
-        await ReviseAsync(_ => DocumentEditor.SetPictureWrap(_, paragraph, offset, wrap, options), relayout: true, () => activeKey);
+        if (await ReviseAsync(_ => DocumentEditor.SetPictureWrap(_, paragraph, offset, wrap, options), relayout: true, () => activeKey))
+        {
+            floatingPicture = null;
+        }
     }
 
     // Home > Format Painter: pressed, it picks up the formatting where the caret is and hands in what
@@ -1515,6 +1623,9 @@ public partial class MorphViewer
         }
 
         painter = DocumentEditor.CopyFormat(bytes, target.StartParagraph >= 0 ? target.StartParagraph : target.Paragraph, at);
+
+        // Picked up, not an edit: where the caret was is no undo step's.
+        beforeEdit = null;
         editNote = "Select the text to paint.";
         if (handle != null)
         {
@@ -1529,9 +1640,15 @@ public partial class MorphViewer
         {
             if (painter is not { } copy ||
                 !editOpen ||
-                !CanWrite ||
-                revising)
+                !CanWrite)
             {
+                return;
+            }
+
+            // The text named is on the pages being replaced.
+            if (revising)
+            {
+                Busy();
                 return;
             }
 
@@ -1550,6 +1667,9 @@ public partial class MorphViewer
                             (_ != target.First || outline.Paragraphs[_].OffsetOf(start) == 0) &&
                             (_ != target.Last || outline.Paragraphs[_].OffsetOf(end) == outline.Paragraphs[_].Length))
                 .ToList();
+
+            // Undone, the text painted is selected again.
+            beforeEdit = PlaceOf(target);
             var options = await EditOptionsAsync();
             await ReviseAsync(_ => DocumentEditor.PasteFormat(_, start, end, whole, copy, options), relayout: true, () => activeKey);
             StateHasChanged();
@@ -1726,7 +1846,7 @@ public partial class MorphViewer
                 return;
             }
 
-            await EditAtAsync((_, options) => DocumentEditor.InsertPicture(_, target.Paragraph, target.Offset, picture, options));
+            await InsertAsync(target, (_, paragraph, offset, options) => DocumentEditor.InsertPicture(_, paragraph, offset, picture, options));
         }
         catch (IOException exception)
         {
@@ -1803,7 +1923,38 @@ public partial class MorphViewer
 
         linkTarget = target;
         LinkInLink = TargetInLink(target);
+        ExistingLink = LinkInLink ? LinkAt(target) : null;
         return true;
+    }
+
+    /// <summary>The address of the link the dialog was opened in, which it starts from; null outside one.</summary>
+    internal string? ExistingLink { get; private set; }
+
+    // The address of the link a target's caret stands in, as the pages drew it.
+    string? LinkAt(EditTarget target)
+    {
+        var paragraph = target.HasSelection ? target.StartParagraph : target.Paragraph;
+        var offset = target.HasSelection ? target.StartOffset + 1 : target.Offset;
+        if (paragraph < 0 ||
+            paragraph >= outline.Paragraphs.Count)
+        {
+            return null;
+        }
+
+        var at = 0;
+        foreach (var unit in outline.Paragraphs[paragraph].Units)
+        {
+            var span = unit.Editable ? unit.Text.Length : 1;
+            if (offset <= at + span &&
+                (offset > at || at == 0))
+            {
+                return editMap.Link(unit.Run);
+            }
+
+            at += span;
+        }
+
+        return null;
     }
 
     // Whether a target's caret stands in a link — the text selected, where there is some, by its start.
@@ -1847,10 +1998,18 @@ public partial class MorphViewer
         }
 
         linkTarget = null;
-        var link = LinkAddress(address);
-        return EditParagraphsAsync(
-            target,
-            (_, options) => DocumentEditor.InsertLink(_, target.Paragraph, target.Offset, text, link, options));
+        return InsertLinkAsync(target, text, LinkAddress(address));
+    }
+
+    // The caret is left after the link's text, as Word leaves it.
+    async Task InsertLinkAsync(EditTarget target, string text, string link)
+    {
+        var options = await EditOptionsAsync();
+        if (await ReviseAsync(_ => DocumentEditor.InsertLink(_, target.Paragraph, target.Offset, text, link, options), relayout: true, () => activeKey) &&
+            target.Typing)
+        {
+            await ResumeAsync(target.Paragraph, target.Offset + text.Length, page: target.Page);
+        }
     }
 
     // An address as typed, made one: a bare host is a web address, a #name a bookmark.
@@ -1958,14 +2117,52 @@ public partial class MorphViewer
     async Task ReplaceOneAsync()
     {
         if (!CanWrite ||
-            revising ||
             matches.Count == 0)
         {
             return;
         }
 
-        await HandInAsync();
+        if (revising)
+        {
+            Busy();
+            return;
+        }
+
         var current = Math.Clamp(currentMatch, 0, matches.Count - 1);
+        var chosen = matches[current];
+        var was = RangeOf(chosen);
+        handedIn = null;
+        if (await HandInFirstAsync())
+        {
+            // The hand-in laid the pages out again and found the matches afresh, from the first on the
+            // page: the match the reader had is found again where what was typed moved it — on the page
+            // it was on, for a header's, which matches on every page.
+            current = -1;
+            if (was is { } old &&
+                Moved(old.Paragraph, old.From) is var (paragraph, from))
+            {
+                var found = Enumerable.Range(0, matches.Count)
+                    .Where(_ => RangeOf(matches[_]) is { } candidate &&
+                                candidate.Paragraph == paragraph &&
+                                candidate.From == from)
+                    .ToList();
+                current = found.Where(_ => matches[_].Page == chosen.Page).DefaultIfEmpty(found.DefaultIfEmpty(-1).First()).First();
+            }
+
+            if (current < 0)
+            {
+                replaceNote = "What was typed moved the match: Replace again to replace the one now chosen.";
+                if (handle is { } shown)
+                {
+                    await PushFindAsync(shown);
+                }
+
+                return;
+            }
+
+            currentMatch = current;
+        }
+
         if (RangeOf(matches[current]) is not { } range)
         {
             replaceNote = "That match runs from one paragraph into the next, and is left as it is.";
@@ -2012,13 +2209,18 @@ public partial class MorphViewer
     async Task ReplaceAllAsync()
     {
         if (!CanWrite ||
-            revising ||
             matches.Count == 0)
         {
             return;
         }
 
-        await HandInAsync();
+        if (revising)
+        {
+            Busy();
+            return;
+        }
+
+        await HandInFirstAsync();
         // A header, a footer or a repeated table header row is drawn on every page it is on, so one
         // match in it is found once per page: replaced once.
         var ranges = matches.Select(RangeOf).OfType<TextRange>().Distinct().ToList();
@@ -2517,17 +2719,15 @@ public partial class MorphViewer
             return;
         }
 
-        // Formatting changes no text: the paragraph opens again with the same text selected.
-        if (target.StartParagraph == target.Paragraph &&
-            handle is { } viewer &&
-            target.Paragraph < outline.Paragraphs.Count &&
-            Block(target.Paragraph, -1) is { } block)
+        // Formatting changes no text: the paragraph opens again with the same text selected, which is
+        // where redo puts the reader back too.
+        if (target.StartParagraph == target.Paragraph)
         {
-            await BeginAsync(viewer, outline.Paragraphs[target.Paragraph], block, from, to);
+            await ResumeAsync(target.Paragraph, from, to, target.Page);
             return;
         }
 
-        await ResumeAsync(target.Paragraph, target.Offset);
+        await ResumeAsync(target.Paragraph, target.Offset, page: target.Page);
     }
 
     // The look of a paragraph and of a run as the pages drew them, which the Paragraph and Font

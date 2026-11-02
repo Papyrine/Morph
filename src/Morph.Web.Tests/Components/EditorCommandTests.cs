@@ -12,8 +12,11 @@ public class EditorCommandTests
         ("read-only", new() {IsWord = true}),
         ("writable", writable),
         ("revising", writable with {Revising = true}),
+        ("with history", writable with {CanUndo = true, CanRedo = true}),
+        ("text selected", writable with {Selected = true}),
         ("in a table", writable with {InTable = true}),
-        ("cells selected", writable with {InTable = true, SpansParagraphs = true}),
+        ("cells selected", writable with {InTable = true, Selected = true, SpansParagraphs = true}),
+        ("paragraphs selected", writable with {Selected = true, SpansParagraphs = true}),
         ("in a link", writable with {InLink = true}),
         ("in a numbered list", writable with {List = ListKind.Number}),
         ("an inline picture selected", writable with {PictureSelected = true}),
@@ -30,8 +33,6 @@ public class EditorCommandTests
     static readonly (string Name, EditorState State)[] toggles =
     [
         ("painting", writable with {Painting = true}),
-        ("subscript", writable with {Subscript = true}),
-        ("superscript", writable with {Superscript = true}),
         ("in a bulleted list", writable with {List = ListKind.Bullet}),
         ("in a numbered list", writable with {List = ListKind.Number}),
         ("marks shown", writable with {MarksShown = true}),
@@ -41,7 +42,10 @@ public class EditorCommandTests
         ("review shown", writable with {ReviewShown = true}),
         ("pages shown", writable with {PagesShown = true}),
         ("ruler shown", writable with {RulerShown = true}),
-        ("presenting", writable with {Presenting = true})
+        ("presenting", writable with {Presenting = true}),
+        ("overtype", writable with {Overtype = true}),
+        ("one page", writable with {Zoom = ViewerZoom.PageFit}),
+        ("page width", writable with {Zoom = ViewerZoom.PageWidth})
     ];
 
     // What the host or the document rules out.
@@ -66,10 +70,8 @@ public class EditorCommandTests
                 """
                 no review, review, review and resolving
                     ruler
-                review and resolving
-                    accept-all, reject-all
                 review, review and resolving
-                    new-comment, review-pane
+                    accept-all, new-comment, next-change, previous-change, reject-all, review-pane
                 """);
 
     // Only the commands that are on or off; the rest have no pressed state at all.

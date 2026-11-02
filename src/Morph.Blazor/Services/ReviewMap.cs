@@ -208,31 +208,50 @@ sealed class ReviewMap
     /// <summary>
     /// Where a place in the document is on the pages: the page, and the offset into its text — before
     /// the character there or, <paramref name="after"/>, after the one before it. Null when no page drew
-    /// it.
+    /// it. A header's or a footer's text is drawn on every page that shows it: the one on
+    /// <paramref name="near"/> (0-based) is preferred, and otherwise the first.
     /// </summary>
-    public (int Page, int Offset)? Locate(SourcePosition position, bool after)
+    public (int Page, int Offset)? Locate(SourcePosition position, bool after, int near = -1)
     {
         if (!drawn.TryGetValue(position.Run, out var places))
         {
             return null;
         }
 
+        (int Page, int Offset)? first = null;
         foreach (var (page, index) in places)
         {
-            var source = pages[page][index];
+            if (Found(pages[page][index]) is not { } offset)
+            {
+                continue;
+            }
+
+            if (near < 0 ||
+                page == near)
+            {
+                return (page, offset);
+            }
+
+            first ??= (page, offset);
+        }
+
+        return first;
+
+        int? Found(LayerSource source)
+        {
             if (source.Atomic)
             {
                 if (position.Offset == source.Offset)
                 {
-                    return (page, source.Start);
+                    return source.Start;
                 }
 
                 if (position.Offset == source.Offset + 1)
                 {
-                    return (page, source.End);
+                    return source.End;
                 }
 
-                continue;
+                return null;
             }
 
             var into = position.Offset - source.Offset;
@@ -240,11 +259,11 @@ sealed class ReviewMap
                 (into < source.Length ||
                  (after && into == source.Length)))
             {
-                return (page, source.Start + into);
+                return source.Start + into;
             }
-        }
 
-        return null;
+            return null;
+        }
     }
 
     static SourcePosition At(LayerSource source, int offset, bool after)

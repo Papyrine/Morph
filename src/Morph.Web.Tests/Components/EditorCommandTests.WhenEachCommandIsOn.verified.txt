@@ -3,11 +3,12 @@ find: find shown
 format-painter: painting
 marks: marks shown
 numbering: in a numbered list
+one-page: one page
+overtype: overtype
+page-width: page width
 pages: pages shown
 presentation: presenting
 replace: replace shown
 review-pane: review shown
 ruler: ruler shown
-subscript: subscript
-superscript: superscript
 track: tracking

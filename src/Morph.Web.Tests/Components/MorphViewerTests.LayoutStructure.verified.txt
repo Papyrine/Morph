@@ -1,5 +1,6 @@
 ﻿{
   Instance: {
+    KeepDrafts: true,
     ShowOpenFile: true,
     ShowSamples: false,
     ShowDownload: true,

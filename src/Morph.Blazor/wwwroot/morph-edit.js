@@ -60,11 +60,38 @@ function before(first, second) {
     return first.b < second.b || (first.b === second.b && first.o < second.o);
 }
 
+// The place a character on from o in a block's text, or back from it: a surrogate pair — an emoji, a
+// letter beyond the Basic Multilingual Plane — is one character, never split.
+function stepOn(text, o) {
+    const high = text.charCodeAt(o);
+    const low = text.charCodeAt(o + 1);
+    return o + (high >= 0xD800 && high <= 0xDBFF && low >= 0xDC00 && low <= 0xDFFF ? 2 : 1);
+}
+
+function stepBack(text, o) {
+    const low = text.charCodeAt(o - 1);
+    const high = text.charCodeAt(o - 2);
+    return o - (low >= 0xDC00 && low <= 0xDFFF && high >= 0xD800 && high <= 0xDBFF ? 2 : 1);
+}
+
+// A Mac's keys: Command holds Word's commands where Windows has Ctrl, Option steps by words, and Command
+// with an arrow goes to a line's or the story's end. Control there is the system's own — its Emacs keys,
+// Control+A, E and K among them — and is left to the browser.
+function onMac() {
+    const platform = navigator.userAgentData?.platform || navigator.platform || '';
+    return /^(mac|iphone|ipad|ipod)/i.test(platform);
+}
+
+// Whether the key Word's commands are held with is down: Command on a Mac, Ctrl elsewhere.
+function commandKey(event) {
+    return onMac() ? event.metaKey : event.ctrlKey || event.metaKey;
+}
+
 // Word's keys that type a character the keyboard has no key for (WordProbe E-98, E-99): Ctrl+Shift+Space
 // a non-breaking space, Ctrl+NumMinus an en dash, Ctrl+Alt+. an ellipsis, Ctrl+Alt+E, R and T the euro,
 // registered and trade marks. By the key's place, since Alt changes what it types. Null for any other.
 function wordCharacter(event) {
-    if (!(event.ctrlKey || event.metaKey)) {
+    if (!commandKey(event)) {
         return null;
     }
 
@@ -119,12 +146,14 @@ export function wordKey(event) {
         return null;
     }
 
-    // Ctrl+Alt+F and D a footnote and an endnote, Ctrl+Alt+M a comment (WordProbe E-103, E-104).
-    if (event.ctrlKey && event.altKey && !event.shiftKey && !event.metaKey) {
+    // Ctrl+Alt+F and D a footnote and an endnote, Ctrl+Alt+M a comment (WordProbe E-103, E-104); on a
+    // Mac, Command+Option.
+    const other = onMac() ? event.ctrlKey : event.metaKey;
+    if (commandKey(event) && event.altKey && !event.shiftKey && !other) {
         return { KeyF: { key: 'footnote' }, KeyD: { key: 'endnote' }, KeyM: { key: 'new-comment' } }[event.code] ?? null;
     }
 
-    if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+    if (!commandKey(event) || event.altKey) {
         return null;
     }
 
@@ -759,7 +788,8 @@ export class ParagraphEditor {
 
     // Word's keys the browser does differently, or not at all. Says whether the key was one of them.
     onWordKey(event) {
-        const ctrl = event.ctrlKey || event.metaKey;
+        const ctrl = commandKey(event);
+        const mac = onMac();
         const selected = this.range();
         if (!selected) {
             return false;
@@ -788,9 +818,12 @@ export class ParagraphEditor {
             }
         }
 
-        // Ctrl+Home and Ctrl+End: the story's ends (WordProbe N-11).
-        if (ctrl && !event.shiftKey && !event.altKey && (event.key === 'Home' || event.key === 'End')) {
-            this.callbacks.key(event.key === 'Home' ? 'story-start' : 'story-end');
+        // Ctrl+Home and Ctrl+End: the story's ends (WordProbe N-11); on a Mac Command+Up and Down too.
+        const ends = mac
+            ? { Home: 'story-start', End: 'story-end', ArrowUp: 'story-start', ArrowDown: 'story-end' }
+            : { Home: 'story-start', End: 'story-end' };
+        if (ctrl && !event.shiftKey && !event.altKey && ends[event.key]) {
+            this.callbacks.key(ends[event.key]);
             return true;
         }
 
@@ -807,8 +840,11 @@ export class ParagraphEditor {
         }
 
         // Ctrl+Left and Ctrl+Right step by Word's word stops, with Shift extending (WordProbe N-02, S-05);
-        // Ctrl+Shift+Up and Down select to the paragraph's start and end (S-06).
-        if (ctrl && !event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        // Ctrl+Shift+Up and Down select to the paragraph's start and end (S-06). On a Mac it is Option
+        // that steps by words, and Command+Left and Right are the browser's: the line's start and end;
+        // Command+Shift+Up and Down select to the paragraph's ends, as Word's for the Mac do.
+        const byWords = mac ? event.altKey && !event.metaKey && !event.ctrlKey : ctrl && !event.altKey;
+        if (byWords && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
             const selection = getSelection();
             const focus = this.toPlace(selection.focusNode, selection.focusOffset);
             const anchor = this.toPlace(selection.anchorNode, selection.anchorOffset);
@@ -942,7 +978,8 @@ export class ParagraphEditor {
     // selecting; each F8 after takes in more — the word with its trailing space, the sentence, the
     // paragraph, the document; in a cell or a list item the sentence is not a step. Shift+F8 steps
     // back; an arrow extends from the anchor and a typed character extends to that character's next
-    // occurrence; Esc leaves the mode with the selection kept. Says whether the key was the mode's.
+    // occurrence; Esc leaves the mode with the selection kept, and Delete, Backspace or a click leave it
+    // as they do what they do. Says whether the key was the mode's.
     onExtendKey(event) {
         const plain = !event.ctrlKey && !event.metaKey && !event.altKey;
         if (event.key === 'F8' && plain) {
@@ -952,8 +989,8 @@ export class ParagraphEditor {
             }
 
             if (!this.extend) {
-                this.extend = 1;
                 this.extendAnchor = selected.from;
+                this.setExtend(1);
                 return true;
             }
 
@@ -969,7 +1006,7 @@ export class ParagraphEditor {
 
             const step = steps[this.extend - 2];
             if (step === 'document') {
-                this.extend = 0;
+                this.setExtend(0);
                 this.callbacks.selectAll?.();
                 return true;
             }
@@ -985,8 +1022,15 @@ export class ParagraphEditor {
 
         if (event.key === 'Escape') {
             event.stopPropagation();
-            this.extend = 0;
+            this.setExtend(0);
             return true;
+        }
+
+        // What is selected is deleted as it would be without the mode, and the mode is over: the
+        // letters typed after are text again.
+        if (event.key === 'Delete' || event.key === 'Backspace') {
+            this.setExtend(0);
+            return false;
         }
 
         const moves = {
@@ -1021,6 +1065,22 @@ export class ParagraphEditor {
         const found = this.blockText(focus.b).indexOf(character, focus.o);
         if (found >= 0) {
             this.select(this.extendAnchor, { b: focus.b, o: found + 1 });
+        }
+    }
+
+    // Extend mode on (a step, 1 and up) or off (0). The status bar shows it while it is on, as Word's
+    // shows "Extend Selection": the state handed to the page says so (data-edit-show="extend").
+    setExtend(value) {
+        const was = Boolean(this.extend);
+        this.extend = value;
+        if (was === Boolean(value)) {
+            return;
+        }
+
+        if (!this.closed && this.range()) {
+            this.notify();
+        } else {
+            this.callbacks.state({ extend: Boolean(value) });
         }
     }
 
@@ -1072,24 +1132,53 @@ export class ParagraphEditor {
     // What typing replaces: in Overtype, a caret takes in a place for each character typed — a
     // character, a tab, a picture or a whole field alike — stopping at the paragraph's end (a cell's
     // too, since the box holds one paragraph). Under Track Changes Overtype overwrites nothing and the
-    // text is inserted; a selection is replaced either way (WordProbe E-11 to E-11e, E-105).
+    // text is inserted; a selection is replaced either way (WordProbe E-11 to E-11e, E-105). A character
+    // beyond the Basic Multilingual Plane is one character, typed or typed over. What takes a place but
+    // is not seen — a floating picture's anchor — is passed over rather than typed over: what is typed
+    // goes in after it, and it stops the overtyping of a longer stretch.
     overtyped(range, text) {
         if (!this.overtype || this.session.tracked || !same(range.from, range.to)) {
             return range;
         }
 
-        const length = blockLength(this.blocks[range.from.b]);
-        let to = range.from;
-        for (let index = 0; index < text.length && to.o < length; index++) {
+        const block = this.blockText(range.from.b);
+        const from = this.pastInvisible(range.from, false);
+        let to = from;
+        for (let count = [...text].length; count > 0 && to.o < block.length; count--) {
             const item = this.itemAt(to.b, to.o);
-            if (item?.atom && !this.removable(item)) {
+            if (item?.atom && (!this.removable(item) || this.invisible(item))) {
                 break;
             }
 
-            to = { b: to.b, o: to.o + 1 };
+            to = { b: to.b, o: stepOn(block, to.o) };
         }
 
-        return { from: range.from, to };
+        return { from, to };
+    }
+
+    // Whether an item takes a place in the text but is not seen in the box: a picture anchored here
+    // and drawn elsewhere, or what the page never drew (renderAtom gives both no room).
+    invisible(item) {
+        if (!item?.atom) {
+            return false;
+        }
+
+        const unit = this.session.u[item.u];
+        return unit?.k === 2 || (unit?.s === 'drawing' && !(unit.w > 0 && unit.e > 0));
+    }
+
+    // A place moved past whatever unseen items are beside it, going back or forward: what a key that
+    // acts beside the caret acts on is what the reader can see.
+    pastInvisible(place, backward) {
+        const length = blockLength(this.blocks[place.b]);
+        let o = place.o;
+        while (backward
+            ? o > 0 && this.invisible(this.itemAt(place.b, o - 1))
+            : o < length && this.invisible(this.itemAt(place.b, o))) {
+            o += backward ? -1 : 1;
+        }
+
+        return { b: place.b, o };
     }
 
     // Replaces what is selected with text; a line's end in the text ends the paragraph.
@@ -1301,9 +1390,10 @@ export class ParagraphEditor {
         if (this.lastAction && 'delete' in this.lastAction) {
             const backward = this.lastAction.delete;
             if (same(range.from, range.to)) {
-                const o = range.from.o + (backward ? -1 : 0);
-                if (o >= 0 && o < blockLength(this.blocks[range.from.b])) {
-                    this.replace({ from: { b: range.from.b, o }, to: { b: range.from.b, o: o + 1 } }, '', 'delete');
+                const text = this.blockText(range.from.b);
+                const place = this.pastInvisible(range.from, backward);
+                if (backward ? place.o > 0 : place.o < text.length) {
+                    this.deleteCharacter(place, backward);
                 }
             } else {
                 this.replace(range, '', 'delete');
@@ -1461,8 +1551,9 @@ export class ParagraphEditor {
     }
 
     // Word's Ctrl+Backspace and Ctrl+Delete (WordProbe E-70, E-71): a word with its trailing spaces is
-    // one unit, a run of punctuation with its spaces another, a hyphen one of its own, and what is not
-    // text one. Null at the paragraph's edge, where the keys join paragraphs as Backspace and Delete do.
+    // one unit, a run of punctuation with its spaces another, a hyphen one of its own, a line break one
+    // of its own, and what is not text one. Null at the paragraph's edge, where the keys join paragraphs
+    // as Backspace and Delete do.
     wordRange(place, backward) {
         const text = this.blockText(place.b);
         const kind = character => {
@@ -1470,7 +1561,7 @@ export class ParagraphEditor {
                 return 'space';
             }
 
-            if (character === '\uFFFC' || character === '-') {
+            if (character === '\uFFFC' || character === '-' || character === '\n') {
                 return character;
             }
 
@@ -1656,14 +1747,19 @@ export class ParagraphEditor {
         box.addEventListener('compositionstart', () => {
             this.record('compose');
             this.composing = true;
+            this.composedFrom = this.range()?.from ?? null;
+            this.composedFace = this.pendingFace;
         }, { signal });
-        box.addEventListener('compositionend', () => {
-            this.composing = false;
-            this.adopt();
-        }, { signal });
+        box.addEventListener('compositionend', () => this.onComposed(), { signal });
         box.addEventListener('keydown', event => this.onKeyDown(event), { signal });
+        box.addEventListener('copy', event => this.onCopy(event, false), { signal });
+        box.addEventListener('cut', event => this.onCopy(event, true), { signal });
+        box.addEventListener('dragstart', event => this.onDragStart(event), { signal });
+        box.addEventListener('dragend', event => this.onDragEnd(event), { signal });
         box.addEventListener('mousedown', event => this.onPictureDown(event), { signal });
         box.addEventListener('mousedown', event => {
+            // A click ends extend mode, as Esc does.
+            this.setExtend(0);
             this.lastKind = '';
             this.pendingFace = null;
             this.wordDrag = null;
@@ -1710,7 +1806,7 @@ export class ParagraphEditor {
             unit = 'word';
         } else if (event.detail === 3) {
             unit = 'paragraph';
-        } else if (event.detail === 1 && (event.ctrlKey || event.metaKey) && same(caret.from, caret.to)) {
+        } else if (event.detail === 1 && commandKey(event) && same(caret.from, caret.to)) {
             unit = 'sentence';
         }
 
@@ -1718,7 +1814,9 @@ export class ParagraphEditor {
             return;
         }
 
-        const at = event.detail === 2 ? caret.from : caret.to;
+        // The paragraph of a triple-click is the one under the pointer: the browser's own selection by
+        // then may run on to the start of the next block Enter made.
+        const at = event.detail === 3 ? this.characterAt(event.clientX, event.clientY) ?? caret.from : caret.from;
         const [from, to] = this.unitAround(at, unit);
         this.select(from, to);
     }
@@ -1918,6 +2016,212 @@ export class ParagraphEditor {
         handle.addEventListener('pointercancel', up);
     }
 
+    // The clipboard and dragging
+
+    // What is between two places, as blocks of items — the model left as it is.
+    contentBetween(from, to) {
+        const blocks = [];
+        for (let b = from.b; b <= to.b; b++) {
+            const start = b === from.b ? from.o : 0;
+            const end = b === to.b ? to.o : Infinity;
+            const items = [];
+            let at = 0;
+            for (const item of this.blocks[b].items) {
+                const length = lengthOf(item);
+                const first = Math.max(start, at);
+                const last = Math.min(end, at + length);
+                if (last > first) {
+                    items.push(item.atom ? { ...item } : { ...item, t: item.t.slice(first - at, last - at) });
+                }
+
+                at += length;
+            }
+
+            blocks.push({ align: this.blocks[b].align, items });
+        }
+
+        return blocks;
+    }
+
+    // What an item that is not text reads as, copied: a field its result, a note's reference its mark,
+    // a page break the end of a line. A picture, and text a tracked change deleted, read as nothing.
+    atomText(item) {
+        const unit = this.session.u[item.u];
+        switch (unit?.s) {
+            case 'field':
+            case 'note':
+                return unit.t ?? '';
+            case 'break':
+                return '\n';
+            default:
+                return '';
+        }
+    }
+
+    plainText(blocks) {
+        return blocks.map(block => block.items.map(item => item.atom ? this.atomText(item) : item.t).join('')).join('\n');
+    }
+
+    // The same as HTML, as Merge Formatting reads it back (PastedHtml): paragraphs when it holds more
+    // than one, their alignment, and the emphasis — none of the box's own styling, which is set to the
+    // page on screen rather than to the text.
+    htmlText(blocks) {
+        const escape = text => text.replace(/[&<>"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[character]);
+        const runs = block => block.items.map(item => {
+            const unit = this.session.u[item.u];
+            let html = escape(item.atom ? this.atomText(item) : item.t).replace(/\n/g, '<br>');
+            const face = item.atom ? unit?.f ?? 0 : item.f;
+            for (const [bit, tag] of [[bold, 'b'], [italic, 'i'], [underline, 'u'], [strike, 's']]) {
+                if (face & bit) {
+                    html = `<${tag}>${html}</${tag}>`;
+                }
+            }
+
+            if (unit?.v) {
+                const tag = unit.v === 1 ? 'sup' : 'sub';
+                html = `<${tag}>${html}</${tag}>`;
+            }
+
+            return html;
+        }).join('');
+        if (blocks.length === 1) {
+            return runs(blocks[0]);
+        }
+
+        return blocks.map(block => {
+            const align = alignments[block.align ?? this.session.align] ?? 'left';
+            return align === 'left' ? `<p>${runs(block)}</p>` : `<p style="text-align:${align}">${runs(block)}</p>`;
+        }).join('');
+    }
+
+    // Copy and Cut write the clipboard from the model, as the paragraph reads rather than as the box
+    // draws it: a field as its result, a page break as a line's end, never the box's own words for
+    // what is not text. Cut then deletes what was copied.
+    onCopy(event, cut) {
+        const range = this.range();
+        if (!range || same(range.from, range.to) || !event.clipboardData) {
+            return;
+        }
+
+        event.preventDefault();
+        const content = this.contentBetween(range.from, range.to);
+        event.clipboardData.setData('text/plain', this.plainText(content));
+        event.clipboardData.setData('text/html', this.htmlText(content));
+        if (cut && !this.pending && !this.closed) {
+            this.setExtend(0);
+            this.replace(range, '', 'delete');
+        }
+    }
+
+    // Text dragged from the box carries the model's text, and the drag remembers where it came from:
+    // dropped back in the box it is moved there, by the model (moveDragged), not by what the browser
+    // would make of its HTML.
+    onDragStart(event) {
+        const range = this.range();
+        if (!range || same(range.from, range.to) || this.pending) {
+            this.dragged = null;
+            return;
+        }
+
+        this.dragged = { from: range.from, to: range.to, moving: false };
+        const content = this.contentBetween(range.from, range.to);
+        event.dataTransfer?.setData('text/plain', this.plainText(content));
+        event.dataTransfer?.setData('text/html', this.htmlText(content));
+    }
+
+    // Dropped elsewhere, in something that takes a moved text, the text has gone from here; dropped
+    // where nothing takes it, it stays.
+    onDragEnd(event) {
+        const dragged = this.dragged;
+        this.dragged = null;
+        if (dragged?.moving && event.dataTransfer?.dropEffect === 'move' && !this.pending && !this.closed) {
+            this.replace({ from: dragged.from, to: dragged.to }, '', 'delete');
+        }
+    }
+
+    // Text dragged within the box to another place in it: moved, as Word moves it, what is not text in
+    // it with it — so long as what is not text keeps its order, which is all the file can take
+    // (DocumentEditor.Rewrite). A drag with Ctrl held copies the text, without what is not text.
+    moveDragged(drop) {
+        const { from, to, moving } = this.dragged;
+        this.dragged = null;
+        if (!moving) {
+            const text = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom));
+            this.record('paste');
+            const end = this.insertContent(drop, text);
+            this.tidy();
+            this.render();
+            this.select(drop, end);
+            return;
+        }
+
+        if (!before(drop, from) && !before(to, drop)) {
+            // Dropped on itself: nothing moves.
+            this.select(from, to);
+            return;
+        }
+
+        const blocks = copy(this.blocks);
+        const order = list => list.flatMap(_ => _.items).filter(_ => _.atom).map(_ => _.u).join(',');
+        this.record('move');
+        // What is moved is what taking it out takes out: its text, and what is not text that can go.
+        const moved = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom || this.removable(_)));
+        // A mark where it goes, so that taking it out of where it was does not lose the place.
+        const mark = { u: -2, atom: true, mark: true };
+        this.blocks[drop.b].items.splice(this.divide(drop), 0, mark);
+        const shifted = place => place.b === drop.b && !before(place, drop) ? { b: place.b, o: place.o + 1 } : place;
+        this.remove(shifted(from), shifted(to));
+        let place = null;
+        this.blocks.forEach((block, b) => {
+            const index = block.items.indexOf(mark);
+            if (index >= 0) {
+                let o = 0;
+                for (let earlier = 0; earlier < index; earlier++) {
+                    o += lengthOf(block.items[earlier]);
+                }
+
+                block.items.splice(index, 1);
+                place = { b, o };
+            }
+        });
+
+        const end = this.insertContent(place, moved);
+        if (order(this.blocks) !== order(blocks)) {
+            this.blocks = blocks;
+            this.undoStack.pop();
+            this.render();
+            this.select(from, to);
+            this.callbacks.note?.('A picture, a field or a note can be moved past text, but not past another.');
+            return;
+        }
+
+        this.tidy();
+        this.render();
+        this.select(place, end);
+    }
+
+    // Puts blocks of items in at a place, the first joining the block there and each after it a
+    // block of its own, and says the place after them.
+    insertContent(place, blocks) {
+        let at = place;
+        blocks.forEach((items, index) => {
+            if (index > 0) {
+                at = this.split(at);
+            }
+
+            const position = this.divide(at);
+            this.blocks[at.b].items.splice(position, 0, ...items.map(_ => ({ ..._ })));
+            let length = 0;
+            for (const item of items) {
+                length += lengthOf(item);
+            }
+
+            at = { b: at.b, o: at.o + length };
+        });
+
+        return at;
+    }
+
     targetRange(event) {
         const target = event.getTargetRanges?.()[0];
         if (target) {
@@ -1945,9 +2249,22 @@ export class ParagraphEditor {
             return;
         }
 
+        if (!event.cancelable) {
+            // A change the browser will make whatever is done here: it is read back (onInput).
+            this.handled = false;
+            return;
+        }
+
         event.preventDefault();
         this.handled = true;
-        let range = this.targetRange(event);
+        if (type === 'deleteByDrag' && this.dragged) {
+            // Text dragged out of the box is taken out when it is dropped, here (moveDragged) or
+            // elsewhere (onDragEnd), so that the drop's place is still where it was.
+            this.dragged.moving = true;
+            return;
+        }
+
+        const range = this.targetRange(event);
         if (!range) {
             return;
         }
@@ -1966,29 +2283,32 @@ export class ParagraphEditor {
                 }
 
                 break;
-            case 'insertFromPaste':
-            case 'insertFromPasteAsQuotation':
             case 'insertFromDrop':
+                if (this.dragged) {
+                    this.moveDragged(range.from);
+                    break;
+                }
+
                 if (!this.pasteHtml(range, event.dataTransfer)) {
                     this.replace(range, this.spaced(range, event.dataTransfer?.getData('text/plain') ?? event.data ?? ''), 'paste');
                 }
 
                 break;
-            case 'insertParagraph':
-                // Enter finishes the word before it, as a space does (WordProbe A-01, A-19).
-                if (same(range.from, range.to)) {
-                    const rest = completion(this.blockText(range.from.b), range.from.o);
-                    if (rest) {
-                        this.replace(range, rest, 'autocorrect');
-                        break;
-                    }
-
-                    this.autoCorrect(range.from, '\n');
-                    range = this.range() ?? range;
+            case 'insertFromPaste':
+            case 'insertFromPasteAsQuotation':
+                if (!this.pasteHtml(range, event.dataTransfer)) {
+                    this.replace(range, this.spaced(range, event.dataTransfer?.getData('text/plain') ?? event.data ?? ''), 'paste');
                 }
 
-                this.paragraphBreak(range);
                 break;
+            case 'insertParagraph': {
+                const rest = this.finishWord(range);
+                if (rest) {
+                    this.paragraphBreak(rest);
+                }
+
+                break;
+            }
             case 'insertLineBreak':
                 this.lineBreak(range);
                 break;
@@ -2015,9 +2335,11 @@ export class ParagraphEditor {
                 const backward = type.endsWith('Backward');
                 const caret = this.range();
                 if (caret && same(caret.from, caret.to)) {
-                    let word = this.wordRange(caret.from, backward) ?? caret;
-                    const text = this.blockText(caret.from.b);
-                    if (backward && word.from.o > 0 && text[word.from.o - 1] === ' ' && /[,.;:!?]/.test(text[caret.from.o] ?? '')) {
+                    // From beyond an anchor beside the caret, which the reader cannot see to delete.
+                    const at = this.pastInvisible(caret.from, backward);
+                    let word = this.wordRange(at, backward) ?? { from: at, to: at };
+                    const text = this.blockText(at.b);
+                    if (backward && word.from.o > 0 && text[word.from.o - 1] === ' ' && /[,.;:!?]/.test(text[at.o] ?? '')) {
                         word = { from: { b: word.from.b, o: word.from.o - 1 }, to: word.to };
                     }
 
@@ -2030,12 +2352,75 @@ export class ParagraphEditor {
                 break;
             }
             default:
-                if (type.startsWith('delete') && !this.selectAtom(type.endsWith('Backward'))) {
-                    this.onDelete(range, type.endsWith('Backward'));
+                if (type.startsWith('delete')) {
+                    const backward = type.endsWith('Backward');
+                    if (!this.overInvisible(backward) && !this.selectAtom(backward)) {
+                        this.onDelete(range, backward);
+                    }
                 }
 
                 break;
         }
+    }
+
+    // Enter finishes the word before it, as a space does (WordProbe A-01, A-19): an AutoComplete
+    // suggestion is taken instead of a break, or else the word is corrected. Says what the break then
+    // takes the place of, or null when the suggestion took the key.
+    finishWord(range) {
+        if (!same(range.from, range.to)) {
+            return range;
+        }
+
+        const rest = completion(this.blockText(range.from.b), range.from.o);
+        if (rest) {
+            this.replace(range, rest, 'autocorrect');
+            return null;
+        }
+
+        this.autoCorrect(range.from, '\n');
+        return this.range() ?? range;
+    }
+
+    // Backspace or Delete beside what takes a place but is not seen — a floating picture's anchor —
+    // passes over it to what is beyond, which is what the reader sees beside the caret: the anchor is
+    // neither selected nor deleted, and stays where it is. Says whether there was one.
+    overInvisible(backward) {
+        const caret = this.range();
+        if (!caret || !same(caret.from, caret.to)) {
+            return false;
+        }
+
+        const place = this.pastInvisible(caret.from, backward);
+        if (same(place, caret.from)) {
+            return false;
+        }
+
+        this.select(place);
+        if (this.selectAtom(backward)) {
+            return true;
+        }
+
+        const length = blockLength(this.blocks[place.b]);
+        if (backward ? place.o > 0 : place.o < length) {
+            this.deleteCharacter(place, backward);
+        } else if (backward && place.b > 0) {
+            this.replace({ from: { b: place.b - 1, o: blockLength(this.blocks[place.b - 1]) }, to: place }, '', 'delete');
+        } else if (!backward && place.b < this.blocks.length - 1) {
+            this.replace({ from: place, to: { b: place.b + 1, o: 0 } }, '', 'delete');
+        } else {
+            this.onDelete({ from: place, to: place }, backward);
+        }
+
+        return true;
+    }
+
+    // Deletes the character beside a place in its block, a surrogate pair whole, or what is not text
+    // there.
+    deleteCharacter(place, backward) {
+        const text = this.blockText(place.b);
+        const other = backward ? stepBack(text, place.o) : stepOn(text, place.o);
+        const [from, to] = backward ? [other, place.o] : [place.o, other];
+        this.replace({ from: { b: place.b, o: from }, to: { b: place.b, o: to } }, '', 'delete');
     }
 
     // Word selects a field, a picture or a note's reference beside the caret before it deletes it: the
@@ -2049,7 +2434,8 @@ export class ParagraphEditor {
 
         const beside = backward ? caret.from.o - 1 : caret.from.o;
         const item = beside >= 0 ? this.itemAt(caret.from.b, beside) : null;
-        if (!item || !this.removable(item) || !['field', 'note', 'drawing'].includes(this.session.u[item.u]?.s)) {
+        if (!item || !this.removable(item) || this.invisible(item) ||
+            !['field', 'note', 'drawing'].includes(this.session.u[item.u]?.s)) {
             return false;
         }
 
@@ -2069,7 +2455,7 @@ export class ParagraphEditor {
         // caret is the one to go.
         const beside = backward ? range.from.o - 1 : range.from.o;
         const item = beside >= 0 ? this.itemAt(range.from.b, beside) : null;
-        if (item && this.removable(item)) {
+        if (item && this.removable(item) && !this.invisible(item)) {
             this.replace({ from: { b: range.from.b, o: beside }, to: { b: range.from.b, o: beside + 1 } }, '', 'delete');
             return;
         }
@@ -2103,8 +2489,49 @@ export class ParagraphEditor {
             return;
         }
 
-        // The browser made a change the editor was not asked about.
+        // The browser made a change the editor was not asked about — a spelling correction, a drop it
+        // would not let be taken from it. The model is still the paragraph as it was before, and that
+        // is what Undo goes back to.
+        const was = {
+            blocks: copy(this.blocks),
+            selection: this.lastRange ? { anchor: this.lastRange.from, focus: this.lastRange.to } : null
+        };
+        const payload = this.payload();
         this.adopt();
+        if (this.payload() !== payload) {
+            this.lastKind = '';
+            this.typed = null;
+            this.undoStack.push(was);
+            if (this.undoStack.length > historyLimit) {
+                this.undoStack.shift();
+            }
+
+            this.redoStack = [];
+        }
+    }
+
+    // An input method's composition ended: the model is read back out of the DOM, and a look waiting
+    // for what is typed next (Ctrl+B between spaces) is what was composed takes.
+    onComposed() {
+        this.composing = false;
+        const from = this.composedFrom;
+        const face = this.composedFace;
+        this.composedFrom = null;
+        this.composedFace = null;
+        this.adopt();
+        const caret = this.range();
+        if (face !== null && face !== undefined && from && caret && same(caret.from, caret.to) &&
+            caret.from.b === from.b && caret.from.o > from.o) {
+            for (const item of this.textBetween(from, caret.from)) {
+                item.f = face;
+            }
+
+            this.tidy();
+            this.render();
+            this.select(caret.from);
+        }
+
+        this.pendingFace = null;
     }
 
     onKeyDown(event) {
@@ -2124,7 +2551,7 @@ export class ParagraphEditor {
 
         // Word's Ctrl+Alt+1, 2 and 3: Heading 1, 2 and 3. By the key's place, since Alt changes what
         // it types.
-        if ((event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
+        if (commandKey(event) && event.altKey && !event.shiftKey && /^Digit[1-3]$/.test(event.code)) {
             event.preventDefault();
             this.callbacks.key(`heading${event.code.slice(-1)}`);
             return;
@@ -2159,7 +2586,7 @@ export class ParagraphEditor {
             return;
         }
 
-        const command = (event.ctrlKey || event.metaKey) && !event.altKey;
+        const command = commandKey(event) && !event.altKey;
         const key = event.key.toLowerCase();
         if (command) {
             switch (key) {
@@ -2200,7 +2627,7 @@ export class ParagraphEditor {
                 case 'a':
                     if (!event.shiftKey) {
                         event.preventDefault();
-                        this.extend = 0;
+                        this.setExtend(0);
                         if (this.session.story) {
                             const last = this.blocks.length - 1;
                             this.select({ b: 0, o: 0 }, { b: last, o: blockLength(this.blocks[last]) });
@@ -2316,8 +2743,16 @@ export class ParagraphEditor {
                     selected.from.b === this.blocks.length - 1 &&
                     selected.from.o === blockLength(this.blocks[selected.from.b]) &&
                     selected.from.o > 0) {
-                    // The break is typed here, and the paragraph after it opened once the file has it.
-                    this.paragraphBreak(selected);
+                    // The word before it is finished first, as any Enter finishes it, and a suggestion
+                    // taken up is all the key does. Then the break is typed here, and the paragraph after
+                    // it opened once the file has it.
+                    const rest = this.finishWord(selected);
+                    if (!rest) {
+                        event.preventDefault();
+                        return true;
+                    }
+
+                    this.paragraphBreak(rest);
                     name = 'follow-on';
                 }
 
@@ -2449,6 +2884,9 @@ export class ParagraphEditor {
             }
         } else if (name === 'paste') {
             this.pasteFromClipboard();
+        } else if (name === 'change-case') {
+            // The ribbon's Change case is Shift+F3's.
+            this.changeCase();
         } else {
             return false;
         }
@@ -2513,11 +2951,16 @@ export class ParagraphEditor {
             italic: (face & italic) !== 0,
             underline: (face & underline) !== 0,
             strike: (face & strike) !== 0,
+            // A unit's v is its vertical alignment, 1 raised and 2 lowered (EditSession).
+            superscript: unit?.v === 1,
+            subscript: unit?.v === 2,
             align: this.blocks[selected.from.b].align ?? this.session.align,
             // Something is selected rather than a caret: Cut and Copy have nothing to act on otherwise.
             selected: !same(selected.from, selected.to),
             // A picture selected alone, framed: what Layout > Wrap Text acts on.
-            picture: Boolean(this.frame)
+            picture: Boolean(this.frame),
+            // F8's extend mode on, which the status bar shows.
+            extend: Boolean(this.extend)
         });
     }
 
@@ -2572,10 +3015,10 @@ export class ParagraphEditor {
         }
 
         if (this.composing) {
-            this.composing = false;
-            this.adopt();
+            this.onComposed();
         }
 
+        this.setExtend(0);
         this.tidy();
         const payload = this.payload();
         if (then === 5 && payload === this.original) {
@@ -2617,6 +3060,7 @@ export class ParagraphEditor {
             return;
         }
 
+        this.setExtend(0);
         this.closed = true;
         this.abort.abort();
         this.callbacks.state(null);

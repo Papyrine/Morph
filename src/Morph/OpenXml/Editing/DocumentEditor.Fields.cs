@@ -44,17 +44,43 @@ static partial class DocumentEditor
     /// <summary>
     /// Puts a date at a place, written in a format of Word's Date and Time dialog (<c>d MMMM yyyy</c>):
     /// as a DATE field when it is to <paramref name="update"/>, otherwise as text. The place returned
-    /// is after it.
+    /// is after it. The names of days and months are <paramref name="culture"/>'s, the invariant
+    /// culture's by default; a <c>/</c> or <c>:</c> in the format is written as itself, as Word's
+    /// <c>\@</c> switch writes it, whatever the culture's separators.
     /// </summary>
-    public static EditResult InsertDate(byte[] docx, int paragraph, int offset, string format, DateTime date, bool update, EditOptions options)
+    public static EditResult InsertDate(byte[] docx, int paragraph, int offset, string format, DateTime date, bool update, EditOptions options, CultureInfo? culture = null)
     {
-        var text = date.ToString(format, CultureInfo.InvariantCulture);
+        var text = date.ToString(Literal(format), culture ?? CultureInfo.InvariantCulture);
         if (update)
         {
             return Edit(docx, options, edit => edit.Field(paragraph, offset, $" DATE \\@ \"{format}\" ", text));
         }
 
         return Edit(docx, options, edit => edit.Text(paragraph, offset, text));
+    }
+
+    // A format of Word's as .NET's custom format spells it: the separators .NET takes from the culture
+    // escaped, outside the quoted text where they are already themselves.
+    internal static string Literal(string format)
+    {
+        var builder = new StringBuilder(format.Length);
+        var quoted = false;
+        foreach (var character in format)
+        {
+            if (character == '\'')
+            {
+                quoted = !quoted;
+            }
+            else if (!quoted &&
+                     character is '/' or ':')
+            {
+                builder.Append('\\');
+            }
+
+            builder.Append(character);
+        }
+
+        return builder.ToString();
     }
 
     /// <summary>

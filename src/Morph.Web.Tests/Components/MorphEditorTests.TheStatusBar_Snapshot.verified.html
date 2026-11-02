@@ -1,11 +1,13 @@
 ﻿
-<div class="editor-status" role="status" aria-live="polite">
+<div class="editor-status" role="group" aria-label="Status bar">
 	<span class="editor-status-item">Page 1 of 1</span>
-	<button type="button" class="editor-status-item editor-status-button" title="Word count" blazor:onclick="24">9 words</button>
+	<button type="button" class="editor-status-item editor-status-button" title="Word count" blazor:onclick="61">9 words</button>
+	<button type="button" class="editor-status-item editor-status-button" data-viewer-action="overtype" title="Overtype (Insert)" aria-keyshortcuts="Insert" aria-pressed="false" blazor:onmousedown:preventdefault="">Insert</button>
+	<span class="editor-status-item editor-status-extend" data-edit-show="extend">Extend selection</span>
 	<span class="editor-status-item editor-status-tracking">Track changes on</span>
-	<span class="editor-status-note"></span>
+	<span class="editor-status-note" role="status" aria-live="polite"></span>
 	<span class="editor-status-zoom">
-		<button type="button" class="viewer-button" title="Zoom out" aria-label="Zoom out" blazor:onmousedown:preventdefault="" blazor:onclick="25">
+		<button type="button" class="viewer-button" title="Zoom out" aria-label="Zoom out" blazor:onmousedown:preventdefault="" blazor:onclick="62">
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 				<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 					<circle cx="11" cy="11" r="8"></circle>
@@ -14,7 +16,7 @@
 			</svg>
 		</button>
 		<span class="editor-zoom-value">100%</span>
-		<button type="button" class="viewer-button" title="Zoom in" aria-label="Zoom in" blazor:onmousedown:preventdefault="" blazor:onclick="26">
+		<button type="button" class="viewer-button" title="Zoom in" aria-label="Zoom in" blazor:onmousedown:preventdefault="" blazor:onclick="63">
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 				<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 					<circle cx="11" cy="11" r="8"></circle>

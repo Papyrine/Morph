@@ -22,7 +22,8 @@ public partial class SnapshotTests
         await page.ClickAsync(".editor-tool:has-text('Date & time')");
         await page.WaitForSelectorAsync("#editor-date-title");
         await page.ClickAsync(".editor-dialog [data-format='yyyy-MM-dd']");
-        await page.ClickAsync(".editor-dialog .editor-check input");
+        // Update automatically starts off, as Word's does: the date goes in as text.
+        await Assert.That(await page.IsCheckedAsync(".editor-dialog .editor-check input")).IsFalse();
         await page.ClickAsync(".editor-dialog .editor-button-primary");
         var today = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         await WaitForBodyAsync(page, _ => _.Contains(today) &&

@@ -223,12 +223,21 @@ static partial class DocumentEditor
     {
         // The section a paragraph is in: the first w:sectPr at or after it, among the paragraphs of the
         // body, or the body's own.
-        public SectionProperties SectionOf(int ordinal)
+        public SectionProperties SectionOf(int ordinal) =>
+            SectionOf(Find(ordinal));
+
+        SectionProperties SectionOf(Paragraph paragraph)
         {
-            var paragraph = Find(ordinal);
             var body = main.Document!.Body!;
 
-            // A paragraph beside the body — a header's, a note's — is taken as in the last section.
+            // A paragraph beside the body is in the section that shows it: a header's or a footer's in
+            // the first section naming its part, a note's in the section its reference is in.
+            if (SectionShowing(paragraph) is { } beside)
+            {
+                return beside;
+            }
+
+            // What none of them claims — a part no section names any more — is taken as in the last section.
             var block = paragraph.Ancestors().LastOrDefault(_ => ReferenceEquals(_.Parent, body));
             if (block == null &&
                 !ReferenceEquals(paragraph.Parent, body))
@@ -267,6 +276,35 @@ static partial class DocumentEditor
                 });
             body.AppendChild(section);
             return section;
+        }
+
+        // The section of a header's, a footer's or a note's paragraph, or null for the body's or one no
+        // section shows.
+        SectionProperties? SectionShowing(Paragraph paragraph)
+        {
+            var body = main.Document!.Body!;
+            var part = PartOf(paragraph);
+            if (part is HeaderPart or FooterPart)
+            {
+                var id = main.GetIdOfPart(part);
+                return body.Descendants<SectionProperties>()
+                    .FirstOrDefault(_ => _.Elements<HeaderFooterReferenceType>().Any(reference => reference.Id?.Value == id));
+            }
+
+            if (paragraph.Ancestors<FootnoteEndnoteType>().FirstOrDefault() is not {Id.Value: var note} owner)
+            {
+                return null;
+            }
+
+            IEnumerable<FootnoteEndnoteReferenceType> references = owner is DocumentFormat.OpenXml.Wordprocessing.Endnote
+                ? body.Descendants<EndnoteReference>()
+                : body.Descendants<FootnoteReference>();
+            if (references.FirstOrDefault(_ => _.Id?.Value == note)?.Ancestors<Paragraph>().FirstOrDefault() is not { } referring)
+            {
+                return null;
+            }
+
+            return SectionOf(referring);
         }
 
         public (Paragraph Paragraph, int Offset) SectionBreak(int ordinal, int offset, bool continuous)

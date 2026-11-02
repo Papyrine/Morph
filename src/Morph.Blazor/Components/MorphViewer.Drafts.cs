@@ -7,6 +7,15 @@ namespace Morph;
 // document edited and not saved.
 public partial class MorphViewer
 {
+    /// <summary>
+    /// Whether the editor keeps a draft of a document with edits not saved in the browser's storage, for
+    /// its start page to offer back after a reload, a crash or a closed tab. Default true. Off, the page
+    /// still asks before it is left with edits not saved; <see cref="MorphWopi"/> turns it off, since the
+    /// file is the host's to keep and there is no start page to offer it on.
+    /// </summary>
+    [Parameter]
+    public bool KeepDrafts { get; set; } = true;
+
     // Whether the draft in storage is this document's, which saving it then takes away. A draft left
     // by an earlier visit, or by a document opened since, is left for the start page to offer.
     bool draftOwned;
@@ -19,6 +28,7 @@ public partial class MorphViewer
     internal async Task FindDraftAsync()
     {
         if (!Editing ||
+            !KeepDrafts ||
             handle is not { } viewer)
         {
             return;
@@ -71,8 +81,12 @@ public partial class MorphViewer
         if (Dirty &&
             sourceBytes is { } bytes)
         {
-            await viewer.KeepDraftAsync(fileName ?? "Document.docx", bytes);
-            draftOwned = true;
+            if (KeepDrafts)
+            {
+                await viewer.KeepDraftAsync(fileName ?? "Document.docx", bytes);
+                draftOwned = true;
+            }
+
             await viewer.SetUnsavedAsync(true);
             return;
         }

@@ -1,6 +1,7 @@
 ﻿{
   Instance: {
     ShowNew: true,
+    KeepDrafts: true,
     ShowOpenFile: true,
     ShowSamples: true,
     ShowDownload: true,
@@ -16,5 +17,5 @@
     OpenReview: false,
     ReadOnly: false
   },
-  NodeCount: 63
+  NodeCount: 65
 }

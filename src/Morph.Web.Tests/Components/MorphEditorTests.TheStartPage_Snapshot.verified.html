@@ -1,12 +1,14 @@
 ﻿<div class="viewer editor" data-editor="" blazor:elementreference="scrubbed">
   <div class="editor-ribbon" aria-busy="false">
     <div class="editor-titlebar">
-      <div class="editor-tabs" role="tablist" aria-label="Ribbon">
+      <div class="editor-tabs">
         <button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
-        <button type="button" role="tab" class="editor-tab" aria-selected="true" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="2">Home</button>
-        <button type="button" role="tab" class="editor-tab" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="3">Insert</button>
-        <button type="button" role="tab" class="editor-tab" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="4">Review</button>
-        <button type="button" role="tab" class="editor-tab" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="5">View</button>
+        <div class="editor-tablist" role="tablist" aria-label="Ribbon">
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-home" aria-selected="true" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="9">Home</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-insert" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="10">Insert</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-review" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="11">Review</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-view" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="12">View</button>
+        </div>
       </div>
       <span class="editor-name"></span>
       <div class="editor-quick">

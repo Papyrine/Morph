@@ -29,6 +29,9 @@ sealed record EditBlock(int Paragraph, int Page, ParagraphElement Element, IRead
     /// <summary>Whether the paragraph stands in a table's cell.</summary>
     public bool InCell { get; init; }
 
+    /// <summary>The width the cell the paragraph stands in was laid out at, in points; null outside a table.</summary>
+    public float? CellWidth { get; init; }
+
     public float Width => Right - Left;
 
     public float Height => Bottom - Top;

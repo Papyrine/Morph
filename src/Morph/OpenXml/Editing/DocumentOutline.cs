@@ -114,8 +114,8 @@ sealed class DocumentOutline
         var contents = false;
         var tables = new Dictionary<Table, int>();
         var lastInStory = new Dictionary<OpenXmlElement, int>(ReferenceEqualityComparer.Instance);
-        var read = stories.SelectMany(story => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, story.Root, _.Paragraph, _.Units)));
-        foreach (var (part, root, paragraph, units) in read)
+        var read = stories.SelectMany((story, index) => ParagraphContent.ReadAll(story.Root).Select(_ => (story.Part, story.Root, Index: index, _.Paragraph, _.Units)));
+        foreach (var (part, root, rootIndex, paragraph, units) in read)
         {
             // Only a paragraph a field is in is looked into for one.
             contents = contents ||
@@ -142,6 +142,7 @@ sealed class DocumentOutline
             var edited = new EditParagraph(ordinal, [.. units.Select(_ => Unit(_, runs))])
                 {
                     Part = part,
+                    Root = rootIndex,
                     HasNext = DocumentEditor.NextBlock(paragraph) is Paragraph,
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
                     PreviousInStory = previous,
