@@ -463,8 +463,8 @@ static class PdfPainter
         return CanonicalTextMeasurer.KernShiftsPoints(face.Metrics, text, VerticalRunPosition.RenderSizePoints(properties), fontWidthScale);
     }
 
-    // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the
-    // span.
+    // Fills a tab-leader gap: the leader glyph on Word's grid of the page (LeaderTiling), or for an
+    // underscore or heavy leader a baseline rule across the underscores Word draws there.
     static void DrawLeader(PdfRenderContext context, Surface surface, PlacedRun run, double baseline)
     {
         if (run.Width <= 0)
@@ -474,41 +474,26 @@ static class PdfPainter
 
         var color = PdfRenderContext.ParseColor(run.Properties.ColorHex);
         var fontSize = run.Properties.FontSizePoints;
-
-        if (run.Leader == TabLeader.Underscore)
-        {
-            var underscoreY = baseline + fontSize * 0.12;
-            PdfShapeDrawing.StrokeLine(surface, context.GetStroke(color, Math.Max(0.5, fontSize / 16)), run.X, underscoreY, run.X + run.Width, underscoreY);
-            return;
-        }
-
-        var leaderChar = run.Leader switch
-        {
-            TabLeader.Hyphen => '-',
-            TabLeader.MiddleDot => '·',
-            TabLeader.Heavy => '—',
-            _ => '.'
-        };
-
+        var leaderChar = LeaderTiling.Glyph(run.Leader);
         var face = context.GetFace(run.Properties);
         var sizePoints = VerticalRunPosition.RenderSizePoints(run.Properties);
         var glyphWidth = (double) face.Metrics.AdvanceUnits(leaderChar) / face.Metrics.UnitsPerEm * sizePoints;
-        if (glyphWidth <= 0)
+        var pitch = LeaderTiling.PitchPoints(face.Metrics, leaderChar, sizePoints, glyphWidth);
+        if (!LeaderTiling.TryGetRange(run.X, run.Width, pitch, context.PageSettings.WidthPoints, out var startX, out var count))
         {
             return;
         }
 
-        // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
-        // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
-        // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
-        // number, where the doubled stride tiled half as many dots and stopped ~14px short.
-        if (!LeaderTiling.TryGetRange(run.X, run.Width, glyphWidth, glyphWidth, context.PageSettings.WidthPoints, out var startX, out var count))
+        if (LeaderTiling.IsRule(run.Leader))
         {
+            var underscoreY = baseline + fontSize * 0.12;
+            PdfShapeDrawing.StrokeLine(surface, context.GetStroke(color, Math.Max(0.5, fontSize / 16)), startX, underscoreY, startX + count * pitch, underscoreY);
             return;
         }
 
+        // Each glyph tracked out from its own advance to the pitch.
         var text = new string(leaderChar, count);
-        var glyphs = Glyphs(face, text, 0, sizePoints, null);
+        var glyphs = Glyphs(face, text, pitch - glyphWidth, sizePoints, null);
         surface.SetStroke(null)
             .SetFill(context.GetFill(color))
             .DrawGlyphs(new((float) startX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);

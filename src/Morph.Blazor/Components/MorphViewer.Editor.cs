@@ -2535,7 +2535,7 @@ public partial class MorphViewer
 
     // A look the keys turn on and off, as Word's do: on, unless the text at the caret has it already.
     internal Task ToggleLookAsync(Func<RunProperties, bool> has, Func<bool, RunFormat> format) =>
-        FormatLookAsync(look => format(!(look is { } run && has(run))));
+        FormatLookAsync(look => format(!(look != null && has(look))));
 
     static double SizeOf(RunProperties? look) =>
         look?.FontSizePoints ?? 11;
