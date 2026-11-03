@@ -1,17 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Used by scripts/regenerate-baselines.sh inside the test container. Decodes with the same
-       vendored PngDecoder the scenario comparer uses, so "identical" means identical RGBA pixels. -->
+  <!-- Used by scripts/regenerate-baselines.sh inside the test container. Decodes with Verify's own
+       PngDecoder, the one the scenario comparer uses, so "identical" means identical RGBA pixels.
+       Keep the version in step with Verify.TUnit's in src/Directory.Packages.props. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <!-- The same exemption src/Directory.Build.props declares, which this project is outside of. -->
+    <Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>
+    <Verify_SponsorshipExemptionUntil>2027-08</Verify_SponsorshipExemptionUntil>
   </PropertyGroup>
   <ItemGroup>
-    <!-- The vendored decoder leans on the test project's global usings. -->
-    <Using Include="System.IO.Compression" />
-    <Compile Include="..\..\src\Tests\Compare\PngDecoder.cs" Link="PngDecoder.cs" />
-    <Compile Include="..\..\src\Tests\Compare\PngImage.cs" Link="PngImage.cs" />
+    <Using Include="VerifyTests" />
+    <PackageReference Include="Verify" Version="33.3.4" />
   </ItemGroup>
 </Project>
