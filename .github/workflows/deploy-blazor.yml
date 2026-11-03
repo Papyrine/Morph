@@ -91,9 +91,29 @@ jobs:
       - name: Build tests (also publishes the Blazor app for snapshot tests)
         run: dotnet build src/Morph.Web.Tests --configuration Release
 
+      # The browsers Playwright downloads belong to its package version alone, so the cache is keyed on
+      # that rather than on Directory.Packages.props as a whole, and bumping an unrelated package keeps it.
+      - name: Read Playwright version
+        id: playwright
+        shell: bash
+        run: |
+          version="$(sed -n 's/.*Microsoft\.Playwright" Version="\([^"]*\)".*/\1/p' src/Directory.Packages.props)"
+          if [[ -z "$version" ]]; then
+            echo "Could not read the Microsoft.Playwright version from src/Directory.Packages.props" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/AppData/Local/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
       # TUnit ships as an executable on Microsoft.Testing.Platform; run it directly rather than via
       # `dotnet test`, which rejects it under the VSTest path. The ModuleInitializer installs the
-      # Playwright browser (VerifyPlaywright.Initialize(installPlaywright: true)) on first run.
+      # Playwright browser (VerifyPlaywright.Initialize(installPlaywright: true)) on first run, which
+      # finds a restored cache already there and downloads nothing.
       - name: Run tests
         run: dotnet src/Morph.Web.Tests/bin/Release/net11.0/Morph.Web.Tests.dll
 
@@ -211,6 +231,24 @@ jobs:
 
       - name: Build tests, without publishing the app
         run: dotnet build src/Morph.Web.Tests --configuration Release -p:SkipBlazorPublish=true
+
+      # As the test job's.
+      - name: Read Playwright version
+        id: playwright
+        shell: bash
+        run: |
+          version="$(sed -n 's/.*Microsoft\.Playwright" Version="\([^"]*\)".*/\1/p' src/Directory.Packages.props)"
+          if [[ -z "$version" ]]; then
+            echo "Could not read the Microsoft.Playwright version from src/Directory.Packages.props" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/AppData/Local/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
 
       # An artifact is listed as soon as its upload finishes, while the run is still going. The build
       # job ending without one is a failed publish, and this job fails with it rather than waiting out
