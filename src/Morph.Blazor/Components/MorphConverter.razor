@@ -52,12 +52,13 @@
 
     @if (sourceBytes is not null)
     {
-        <div class="workspace">
+        @* Pages arrive one at a time; aria-busy holds until the last of them is in. *@
+        <div class="workspace" aria-busy="@(isRendering ? "true" : "false")">
             @if (isRendering || previewPages is { Count: > 0 })
             {
                 <DocumentPreview Pages="previewPages ?? []"
                                  TextLayers="previewLayers"
-                                 Busy="isRendering"
+                                 Busy="isRendering && previewPages is not { Count: > 0 }"
                                  Label="@progressLabel"
                                  Detail="@progressDetail" />
             }
@@ -109,16 +110,16 @@
         <ExportOptionsPanel Target="target" Image="image" />
 
         <div class="download-row">
-            <button class="convert-btn" @onclick="Download" disabled="@isBusy">
+            <button class="convert-btn" @onclick="Save" disabled="@isBusy">
                 @if (isBusy)
                 {
                     <span class="btn-spinner"></span>
                 }
-                Download @TargetInfo?.DisplayName
+                Save @TargetInfo?.DisplayName
             </button>
         </div>
 
-        @* Clicking Download runs the actual conversion; show its progress right under the button.
+        @* Clicking Save runs the actual conversion; show its progress right under the button.
            !isRendering and !isConvertingResult exclude the page preview and the result pane, which
            each show their own bar above. *@
         @if (isBusy && !isRendering && !isConvertingResult)

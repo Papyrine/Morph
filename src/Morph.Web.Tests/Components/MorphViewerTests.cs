@@ -58,7 +58,7 @@ public class MorphViewerTests : BunitTestContext
 
         await Assert.That(cut.FindAll(".viewer-open")).IsEmpty();
         await Assert.That(cut.FindAll("button[aria-label=Print]")).IsEmpty();
-        await Assert.That(cut.FindAll("button[aria-label=Download]")).IsEmpty();
+        await Assert.That(cut.FindAll("button[aria-label='Save a copy']")).IsEmpty();
         await Assert.That(cut.FindAll(".viewer-empty-open")).IsEmpty();
     }
 
@@ -292,7 +292,7 @@ public class MorphViewerTests : BunitTestContext
         morph.Mode = JSRuntimeMode.Loose;
         var cut = await OpenSample();
 
-        await cut.Find("button[aria-label=Download]").ClickAsync(new());
+        await cut.Find("button[aria-label='Save a copy']").ClickAsync(new());
 
         var download = morph.Invocations["download"].Single();
         await Assert.That(download.Arguments[0]).IsEqualTo("minutes.docx");

@@ -70,17 +70,17 @@
                 </button>
                 @if (ShowDownload)
                 {
-                    <button type="button" class="viewer-button" title="Download a copy" aria-label="Download a copy"
+                    <button type="button" class="viewer-button" title="Save a copy" aria-label="Save a copy"
                             disabled="@(!HasDocument)" @onclick="DownloadAsync">
-                        <Iconify Value="Lucide.Download" aria-hidden="true" focusable="false" />
+                        <Iconify Value="Lucide.SaveAll" aria-hidden="true" focusable="false" />
                     </button>
                 }
             }
             else if (ShowDownload)
             {
-                <button type="button" class="viewer-button" title="Download (Ctrl+S)" aria-label="Download" aria-keyshortcuts="Control+S"
+                <button type="button" class="viewer-button" title="Save a copy (Ctrl+S)" aria-label="Save a copy" aria-keyshortcuts="Control+S"
                         disabled="@(!HasDocument)" @onclick="DownloadAsync">
-                    <Iconify Value="Lucide.Download" aria-hidden="true" focusable="false" />
+                    <Iconify Value="Lucide.Save" aria-hidden="true" focusable="false" />
                 </button>
             }
         </div>

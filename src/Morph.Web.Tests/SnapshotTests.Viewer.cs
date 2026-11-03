@@ -126,7 +126,7 @@ public partial class SnapshotTests
         var page = await OpenViewerAsync(InputFormat.Docx);
 
         var download = await page.RunAndWaitForDownloadAsync(
-            () => page.ClickAsync("button[aria-label=Download]"),
+            () => page.ClickAsync("button[aria-label='Save a copy']"),
             new()
             {
                 Timeout = 30000

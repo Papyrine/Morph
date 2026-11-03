@@ -86,6 +86,23 @@ public static class ConversionService
         };
     }
 
+    // RenderPngPages a page at a time, for a caller that hands the thread back between pages: parsed as
+    // the converters parse and painted by the converters' own recipe, so the pages are the same bytes.
+    internal static ImageSharpDocumentConverter.PageRun StartPngPages(byte[] bytes, InputFormat source, ImageSettings settings, string fontDirectory)
+    {
+        using var stream = new MemoryStream(bytes);
+        var options = ImageOptions(settings.Dpi, fontDirectory, settings.Crop);
+        DefaultFontSettings.MarkRenderOccurred();
+        var document = source switch
+        {
+            InputFormat.Docx => DocumentConverter.Parse(stream, options.DefaultFont, options.UseLetterPageSize, culture: options.Culture),
+            InputFormat.Xlsx => ExcelConverter.Parse(stream, options),
+            InputFormat.Pptx => PowerPointConverter.Parse(stream, options.DefaultFont, options.Culture),
+            _ => throw UnknownSource(source),
+        };
+        return ImageSharpDocumentConverter.StartPages(document, options);
+    }
+
     /// <summary>
     /// Renders every page of the source for display: the PNG at <paramref name="dpi"/>, the page size, and
     /// the page's selectable text (<see cref="RenderedPage.TextLayer"/>). The source is parsed and laid out
@@ -239,7 +256,7 @@ public static class ConversionService
     static ArgumentOutOfRangeException UnknownSource(InputFormat source) =>
         new(nameof(source), source, "Unknown input format.");
 
-    static DownloadPayload PngDownload(IReadOnlyList<byte[]> pages)
+    internal static DownloadPayload PngDownload(IReadOnlyList<byte[]> pages)
     {
         if (pages.Count == 1)
         {

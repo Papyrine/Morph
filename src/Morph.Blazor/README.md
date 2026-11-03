@@ -117,7 +117,7 @@ converter's — `AddMorph()`, a base-addressed `HttpClient` and the stylesheet.
 | Open (Ctrl+O) | Picks a file; a file dropped anywhere on the viewer opens too. |
 | Presentation mode | Fullscreen, one page at a time, fitted to the screen. Arrow keys, Space, Page Down, a click or a swipe advance; Escape leaves. Where the browser refuses fullscreen (an iPhone, an embedded frame) a full-window overlay stands in. |
 | Print (Ctrl+P) | Renders every page at `PrintDpi` and hands them to the browser's print dialog, each on its own sheet at the page's size. |
-| Download (Ctrl+S) | Saves the file — as it was opened, or as since edited in the review pane. |
+| Save a copy (Ctrl+S) | Saves the file — as it was opened, or as since edited in the review pane. |
 | Comments and changes | Word documents only. Opens the review pane; the badge counts the tracked changes and the comment threads not yet resolved. See [Review](#review). |
 
 Keyboard, with focus in the viewer: ←/→ page when the page does not scroll sideways, Home/End go to the

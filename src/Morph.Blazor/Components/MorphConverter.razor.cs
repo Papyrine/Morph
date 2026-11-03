@@ -86,7 +86,7 @@ public partial class MorphConverter : IDisposable
     // The work done for the loaded source: cancelled when another source replaces it and when the
     // component goes, so a server-hosted converter stops rendering for a file nobody will see. (On the
     // single-threaded WebAssembly runtime a render holds the thread, so it cannot be cancelled midway;
-    // a conversion still queued behind it is.)
+    // the preview's pages still to render, and a conversion queued behind them, are.)
     CancelSource work = new();
 
     FormatInfo? TargetInfo => ConversionService.Find(target);
@@ -210,7 +210,10 @@ public partial class MorphConverter : IDisposable
         }
         finally
         {
-            isBusy = false;
+            if (!cancel.IsCancellationRequested)
+            {
+                isBusy = false;
+            }
         }
     }
 
@@ -243,13 +246,18 @@ public partial class MorphConverter : IDisposable
         }
         finally
         {
-            isBusy = false;
+            if (!cancel.IsCancellationRequested)
+            {
+                isBusy = false;
+            }
         }
     }
 
-    // Rendering to page images is CPU-bound. It runs inside Task.Run so the "Rendering preview…" state
-    // paints first; on the single-threaded runtime the page is then briefly unresponsive while the pages
-    // rasterise.
+    // Rendering to page images is CPU-bound, and on the single-threaded WebAssembly runtime it holds the
+    // thread the browser paints on. So the source is parsed and laid out once, then each page renders in
+    // its own Task.Run: awaiting it hands the thread back, so the browser paints the page just added (and
+    // answers input) before the next starts. Rendering every page in one call held the thread for the
+    // whole document — ~11s for a 13-slide deck, long enough for the browser to offer to stop the page.
     async Task RenderPreviewAsync()
     {
         if (sourceBytes is not { } bytes ||
@@ -262,40 +270,47 @@ public partial class MorphConverter : IDisposable
 
         isRendering = true;
         BeginPhase("Rendering preview…");
+        var cancel = work.Token;
         try
         {
             // Rendering needs the bundled fonts materialised into the in-memory filesystem first.
             var fontDirectory = await FontStore.EnsureAsync(Http);
             var dpi = PreviewDpi;
-            var cancel = work.Token;
-            var (pages, layers) = await Task.Run(() => RenderPreview(bytes, info.Format, dpi, fontDirectory, cancel), cancel);
+            using var document = await Task.Run(() => PagedDocument.Open(bytes, info.Format, fontDirectory), cancel);
+            cancel.ThrowIfCancellationRequested();
+            pageCount = document.PageCount;
+            var pages = new List<string>(pageCount);
+            var layers = new List<PageTextLayer>(pageCount);
             previewPages = pages;
             previewLayers = layers;
-            pageCount = pages.Count;
+            for (var index = 0; index < pageCount; index++)
+            {
+                var page = index;
+                var (url, layer) = await Task.Run(() => RenderPreviewPage(document, page, dpi), cancel);
+                // A replacing source resets this state while the page renders; it is no longer ours.
+                cancel.ThrowIfCancellationRequested();
+                pages.Add(url);
+                layers.Add(layer);
+                StateHasChanged();
+            }
+
             progressDetail = null;
         }
         finally
         {
-            isBusy = false;
-            isRendering = false;
+            // A cancelled render's state was already reset for the source that replaced it.
+            if (!cancel.IsCancellationRequested)
+            {
+                isBusy = false;
+                isRendering = false;
+            }
         }
     }
 
     // Each page comes with its selectable text, from the same single layout pass the images are painted
     // from, so the overlay sits exactly on the drawn text.
-    static (List<string> Pages, List<PageTextLayer> Layers) RenderPreview(byte[] bytes, InputFormat source, int dpi, string fontDirectory, Cancel cancel)
-    {
-        var pages = ConversionService.RenderPages(bytes, source, dpi, fontDirectory, cancel);
-        var urls = new List<string>(pages.Count);
-        var layers = new List<PageTextLayer>(pages.Count);
-        foreach (var page in pages)
-        {
-            urls.Add($"data:image/png;base64,{Convert.ToBase64String(page.Png)}");
-            layers.Add(page.TextLayer);
-        }
-
-        return (urls, layers);
-    }
+    static (string Url, PageTextLayer Layer) RenderPreviewPage(PagedDocument document, int index, int dpi) =>
+        ($"data:image/png;base64,{Convert.ToBase64String(document.RenderPage(index, dpi))}", document.TextLayer(index));
 
     Task OnTargetChanged(OutputFormat format)
     {
@@ -411,7 +426,7 @@ public partial class MorphConverter : IDisposable
         return Task.CompletedTask;
     }
 
-    async Task Download()
+    async Task Save()
     {
         if (sourceBytes is not { } bytes ||
             sourceInfo is not { } source)
@@ -441,7 +456,14 @@ public partial class MorphConverter : IDisposable
                 // in-memory filesystem here — the text ones because a workbook's column widths are a
                 // multiple of its body font's widest digit.
                 var fontDirectory = await FontStore.EnsureAsync(Http);
-                payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory, cancel), cancel);
+                if (info.Format == OutputFormat.Png)
+                {
+                    payload = await RenderPngAsync(bytes, source, fontDirectory, cancel);
+                }
+                else
+                {
+                    payload = await Task.Run(() => ConversionService.BuildDownload(bytes, source.Format, info.Format, image, fontDirectory, cancel), cancel);
+                }
             }
 
             var baseName = Path.GetFileNameWithoutExtension(sourceName) ?? "document";
@@ -458,8 +480,32 @@ public partial class MorphConverter : IDisposable
         }
         finally
         {
-            isBusy = false;
+            // A cancelled save's state was already reset for the source that replaced it.
+            if (!cancel.IsCancellationRequested)
+            {
+                isBusy = false;
+            }
         }
+    }
+
+    // The PNG save paints a page at a time for the same reason the preview does (RenderPreviewAsync):
+    // at the save's resolution a 13-slide deck held the thread for longer than the preview ever did.
+    // The count under the button moves with each page.
+    async Task<DownloadPayload> RenderPngAsync(byte[] bytes, InputFormatInfo source, string fontDirectory, Cancel cancel)
+    {
+        using var run = await Task.Run(() => ConversionService.StartPngPages(bytes, source.Format, image, fontDirectory), cancel);
+        cancel.ThrowIfCancellationRequested();
+        var pages = new List<byte[]>(run.Count);
+        for (var index = 0; index < run.Count; index++)
+        {
+            progressDetail = $"{source.PageNoun} {index + 1} of {run.Count}";
+            StateHasChanged();
+            var page = index;
+            pages.Add(await Task.Run(() => run.Paint(page), cancel));
+            cancel.ThrowIfCancellationRequested();
+        }
+
+        return ConversionService.PngDownload(pages);
     }
 
     void ReportError(string action, Exception exception)
