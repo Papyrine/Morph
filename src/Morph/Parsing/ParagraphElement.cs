@@ -34,6 +34,19 @@ sealed class ParagraphElement : DocumentElement
     public bool IsCollapsedCellMark { get; init; }
 
     /// <summary>
+    /// The parsed paragraph this one was rebuilt from when the layout read its page fields
+    /// (<c>Fragmenter.Flow.MapPageFields</c>); null for a paragraph as parsed. The second layout pass
+    /// places the rebuilt paragraph, so what reads placed lines back against the parsed document
+    /// (<c>PageTextReader</c>, <c>DocumentConverter.ParagraphPages</c>) finds them under this one.
+    /// </summary>
+    public ParagraphElement? RebuiltFrom { get; init; }
+
+    /// <summary>
+    /// The parsed paragraph this one stands for: itself, or the one it was rebuilt from.
+    /// </summary>
+    public ParagraphElement Parsed => RebuiltFrom ?? this;
+
+    /// <summary>
     /// The ordinal of the <c>w:p</c> this paragraph was read from, among the main document part's
     /// paragraphs in document order, when the parser was asked to record it (<c>captureSources</c>);
     /// null otherwise. One <c>w:p</c> split around a break is several paragraphs with one ordinal.

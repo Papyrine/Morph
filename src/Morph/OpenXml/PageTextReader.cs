@@ -20,9 +20,12 @@ static class PageTextReader
             pageCount = Math.Max(pageCount, page.Number);
             foreach (var line in DocumentConverter.Lines(page.Items))
             {
-                if (!placed.TryGetValue(line.Paragraph, out var pages))
+                // A paragraph holding a page field is placed as the copy the layout rebuilt it as,
+                // with the field's result read, and the walk below is over the parsed one
+                var paragraph = line.Paragraph.Parsed;
+                if (!placed.TryGetValue(paragraph, out var pages))
                 {
-                    placed[line.Paragraph] = pages = [];
+                    placed[paragraph] = pages = [];
                 }
 
                 if (!pages.TryGetValue(page.Number, out var lines))

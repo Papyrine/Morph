@@ -16,4 +16,12 @@ sealed record Bookmark
     /// lookups: locate the paragraph then resolve to a page in the rendered output.
     /// </summary>
     public int? ParagraphIndex { get; init; }
+
+    /// <summary>
+    /// The paragraph of the model the bookmark is in: the first one its w:p was read as. What finds
+    /// the bookmark's page, since <see cref="ParagraphIndex"/> counts w:p elements and a w:p a break
+    /// divides is several paragraphs of the model, or none. Null where
+    /// <see cref="ParagraphIndex"/> is, and for a w:p holding nothing but a break.
+    /// </summary>
+    public ParagraphElement? Paragraph { get; init; }
 }

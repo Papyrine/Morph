@@ -132,6 +132,136 @@ public class PageTextTests
         await Assert.That(pages[bookmarks["target"] - 1].Split('\n')).Contains("Paragraph 119");
     }
 
+    // A PAGEREF reads the page its bookmark lands on, so a document holding one is laid out a second
+    // time with the field's result filled in, and that pass rebuilds the paragraph holding it. The
+    // text is read off the rebuilt paragraph's lines, so a cell holding only the field reads as the
+    // renderer draws it rather than as nothing (Parchment's contents table read "Delivery\t").
+    [Test]
+    public async Task APageReferenceInACellReadsThePageItsBookmarkIsOn()
+    {
+        var target = Paragraph("Target");
+        target.PrependChild(new W.ParagraphProperties(new W.PageBreakBefore()));
+        target.Append(
+            new W.BookmarkStart
+            {
+                Id = "1",
+                Name = "target"
+            },
+            new W.BookmarkEnd
+            {
+                Id = "1"
+            });
+        var table = Table(("Target", ""));
+        table.GetFirstChild<W.TableRow>()!.Elements<W.TableCell>().Last().ReplaceChild(Field(" PAGEREF target \\h "), table.Descendants<W.Paragraph>().Last());
+        using var docx = BuildDocument(table, target);
+
+        var pages = DocumentConverter.GetPageTexts(docx, Options);
+
+        await Assert.That(pages.Count).IsEqualTo(2);
+        await Assert.That(pages[0]).IsEqualTo("Target\t2");
+        await Assert.That(pages[1]).IsEqualTo("Target");
+    }
+
+    // A w:p holding only a page break is no paragraph of the model, so a bookmark that counted w:p
+    // elements found the paragraph after its own, and past the last one none: the field kept the
+    // "9" it was saved with.
+    [Test]
+    public async Task APageReferenceAfterAPageBreakReadsThePageItsBookmarkIsOn()
+    {
+        var table = Table(("Target", ""));
+        table.GetFirstChild<W.TableRow>()!.Elements<W.TableCell>().Last().ReplaceChild(Field(" PAGEREF target \\h "), table.Descendants<W.Paragraph>().Last());
+        using var docx = BuildDocument(table, PageBreak(), Bookmarked(Paragraph("Target")));
+
+        var pages = DocumentConverter.GetPageTexts(docx, Options);
+        docx.Position = 0;
+        var bookmarks = DocumentConverter.GetBookmarkPages(docx, Options);
+
+        await Assert.That(pages.Count).IsEqualTo(2);
+        await Assert.That(pages[0]).IsEqualTo("Target\t2");
+        await Assert.That(bookmarks["target"]).IsEqualTo(2);
+    }
+
+    // The other way round: a w:p with a page break between its text is two paragraphs of the model,
+    // so counting w:p elements found the paragraph before the bookmark's own.
+    [Test]
+    public async Task ABookmarkAfterAParagraphSplitByAPageBreakIsOnItsOwnPage()
+    {
+        var split = Paragraph("Before");
+        split.Append(
+            new W.Run(
+                new W.Break
+                {
+                    Type = W.BreakValues.Page
+                }),
+            new W.Run(new W.Text("After")));
+        var target = Bookmarked(Paragraph("Target"));
+        target.PrependChild(new W.ParagraphProperties(new W.PageBreakBefore()));
+        using var docx = BuildDocument(split, target);
+
+        var pages = DocumentConverter.GetPageTexts(docx, Options);
+        docx.Position = 0;
+        var bookmarks = DocumentConverter.GetBookmarkPages(docx, Options);
+
+        await Assert.That(pages.Count).IsEqualTo(3);
+        await Assert.That(pages[2]).IsEqualTo("Target");
+        await Assert.That(bookmarks["target"]).IsEqualTo(3);
+    }
+
+    static W.Paragraph Bookmarked(W.Paragraph paragraph)
+    {
+        paragraph.Append(
+            new W.BookmarkStart
+            {
+                Id = "1",
+                Name = "target"
+            },
+            new W.BookmarkEnd
+            {
+                Id = "1"
+            });
+        return paragraph;
+    }
+
+    // The same second pass rebuilds a body paragraph holding a PAGE field.
+    [Test]
+    public async Task APageFieldInTheBodyReadsThePageItIsOn()
+    {
+        using var docx = BuildDocument(Paragraph("First"), PageBreak(), Field(" PAGE "));
+
+        var pages = DocumentConverter.GetPageTexts(docx, Options);
+
+        await Assert.That(pages.Count).IsEqualTo(2);
+        await Assert.That(pages[0]).IsEqualTo("First");
+        await Assert.That(pages[1]).IsEqualTo("2");
+    }
+
+    // A complex field whose cached result, "9", is stale, so a live result tells itself apart.
+    static W.Paragraph Field(string instruction) =>
+    [
+        with(
+            new W.Run(
+                new W.FieldChar
+                {
+                    FieldCharType = W.FieldCharValues.Begin
+                }),
+            new W.Run(
+                new W.FieldCode(instruction)
+                {
+                    Space = SpaceProcessingModeValues.Preserve
+                }),
+            new W.Run(
+                new W.FieldChar
+                {
+                    FieldCharType = W.FieldCharValues.Separate
+                }),
+            new W.Run(new W.Text("9")),
+            new W.Run(
+                new W.FieldChar
+                {
+                    FieldCharType = W.FieldCharValues.End
+                }))
+    ];
+
     static MemoryStream BuildDocument(params OpenXmlElement[] content)
     {
         var stream = new MemoryStream();
