@@ -1,0 +1,227 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 805.89pt; padding: 72pt 18pt; position: relative">
+<div style="min-height: 164.44pt">
+  <div style="position: relative"><img src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiB2aWV3Qm94PSIwIDAgOTYgOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJJY29uc19MYW1wX00iIG92ZXJmbG93PSJoaWRkZW4iPjxzdHlsZT4NCi5Nc2Z0T2ZjVGhtX0FjY2VudDNfbHVtTW9kXzUwX0ZpbGxfdjIgew0KIGZpbGw6IzQxNUI1QzsgDQp9DQo8L3N0eWxlPg0KPGcgaWQ9Ikljb25zIj48cGF0aCBkPSJNNDkgMzcgNTUgMzcgNTUgNDcgNTcgNDcgNTcgMzcgNzQgMzcgNjAgNCAzNiA0IDIyIDM3IDQ3IDM3IDQ3IDkwIDM0IDkwIDM0IDkyIDYyIDkyIDYyIDkwIDQ5IDkwWk0yNS4wMjEgMzUgMzcuMzIxIDYgNTguNjc2IDYgNzAuOTc2IDM1IDI1LjAyMSAzNVoiIGNsYXNzPSJNc2Z0T2ZjVGhtX0FjY2VudDNfbHVtTW9kXzUwX0ZpbGxfdjIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIGZpbGw9IiM2MTg5OEEiIGZpbGwtb3BhY2l0eT0iMSIvPjwvZz48L3N2Zz4=" width="90" height="88" style="position: absolute; left: 383.06pt; top: 54.2pt; z-index: 1" alt="Lamp outline" /></div>
+  <div style="position: relative"><img src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiB2aWV3Qm94PSIwIDAgOTYgOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJJY29uc19PZmZpY2VDaGFpcl9NIiBvdmVyZmxvdz0iaGlkZGVuIj48c3R5bGU+DQouTXNmdE9mY1RobV9BY2NlbnQzX2x1bU1vZF81MF9GaWxsX3YyIHsNCiBmaWxsOiM0MTVCNUM7IA0KfQ0KPC9zdHlsZT4NCjxwYXRoIGQ9Ik02NSAyMEM2NC45OTI4IDEzLjkyNzggNjAuMDcyMiA5LjAwNzE2IDU0IDlMNDIgOUMzNS45Mjc4IDkuMDA3MTYgMzEuMDA3MiAxMy45Mjc4IDMxIDIwTDMxIDQ3IDY1IDQ3Wk02MyA0NSAzMyA0NSAzMyAyMEMzMy4wMDYxIDE1LjAzMTkgMzcuMDMxOSAxMS4wMDYxIDQyIDExTDU0IDExQzU4Ljk2ODEgMTEuMDA2MSA2Mi45OTM5IDE1LjAzMTkgNjMgMjBaIiBjbGFzcz0iTXNmdE9mY1RobV9BY2NlbnQzX2x1bU1vZF81MF9GaWxsX3YyIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiBmaWxsPSIjNDE1QjVDIiBmaWxsLW9wYWNpdHk9IjEiLz48cGF0aCBkPSJNNzUgMzQuNTE4IDcwIDM0LjUxOEM2OC4zNDMxIDM0LjUxOCA2NyAzNS44NjExIDY3IDM3LjUxOEw2NyAzNy41MThDNjcgMzkuMTc0OSA2OC4zNDMxIDQwLjUxOCA3MCA0MC41MThMNzAgNTAuNTYyQzY5Ljk5NTMgNTIuMDU5OSA2OS4xNDMyIDUzLjQyNiA2Ny44IDU0LjA4OSA2Ny4yNTgzIDUyLjI1OTkgNjUuNTc5NiA1MS4wMDM3IDYzLjY3MiA1MUwzMi4zMjggNTFDMzAuNDIgNTEuMDAzNSAyOC43NDEgNTIuMjYwMyAyOC4yIDU0LjA5IDI2Ljg1NjcgNTMuNDI2NyAyNi4wMDQ1IDUyLjA2MDIgMjYgNTAuNTYyTDI2IDQwLjUxOCAyNiA0MC41MThDMjcuNjU2OSA0MC41MTggMjkgMzkuMTc0OSAyOSAzNy41MThMMjkgMzcuNTE4QzI5IDM1Ljg2MTEgMjcuNjU2OSAzNC41MTggMjYgMzQuNTE4TDIxIDM0LjUxOEMxOS4zNDMxIDM0LjUxOCAxOCAzNS44NjExIDE4IDM3LjUxOEwxOCAzNy41MThDMTggMzkuMTc0OSAxOS4zNDMxIDQwLjUxOCAyMSA0MC41MThMMjQgNDAuNTE4IDI0IDUwLjU2MkMyNC4wMDU1IDUzLjExNjIgMjUuNjM2OSA1NS4zODMzIDI4LjA1NyA1Ni4yIDI4LjMzNTUgNTguMzQ3NSAzMC4xNjI1IDU5Ljk1NTkgMzIuMzI4IDU5Ljk2TDQ3IDU5Ljk2IDQ3IDcyLjUxOSAzOC4zNjQgNzIuNTE5QzM1LjA1NjUgNzIuNTIzMyAzMi4yMDE5IDc0LjgzODYgMzEuNTE1IDc4LjA3NCAyOS4zMjc4IDc4LjQ2ODIgMjcuODc0MyA4MC41NjA4IDI4LjI2ODUgODIuNzQ3OSAyOC42NjI3IDg0LjkzNTEgMzAuNzU1MyA4Ni4zODg2IDMyLjk0MjQgODUuOTk0NCAzNS4xMjk2IDg1LjYwMDIgMzYuNTgzMSA4My41MDc2IDM2LjE4ODkgODEuMzIwNSAzNS45MzEzIDc5Ljg5MTIgMzQuOTIzNSA3OC43MTE2IDMzLjU1MiA3OC4yMzQgMzQuMTMwNyA3Ni4wNDk2IDM2LjEwNDIgNzQuNTI2IDM4LjM2NCA3NC41MTlMNDcgNzQuNTE5IDQ3IDc4LjE0MUM0NC44NjEgNzguNjkzMyA0My41NzQ3IDgwLjg3NSA0NC4xMjcgODMuMDE0IDQ0LjY3OTMgODUuMTUzIDQ2Ljg2MSA4Ni40MzkzIDQ5IDg1Ljg4NyA1MS4xMzkgODUuMzM0NyA1Mi40MjUzIDgzLjE1MyA1MS44NzMgODEuMDE0IDUxLjUwOTIgNzkuNjA1IDUwLjQwOSA3OC41MDQ4IDQ5IDc4LjE0MUw0OSA3NC41MTkgNTguMjUzIDc0LjUxOUM2MC40OTk2IDc0LjUyNzMgNjIuNDY0IDc2LjAzNSA2My4wNTMgNzguMjAzIDYwLjk2NjQgNzguODggNTkuODIzNyA4MS4xMjAzIDYwLjUwMDcgODMuMjA2OSA2MS4xNzc3IDg1LjI5MzUgNjMuNDE4IDg2LjQzNjIgNjUuNTA0NiA4NS43NTkyIDY3LjU5MTIgODUuMDgyMyA2OC43MzM5IDgyLjg0MTkgNjguMDU2OSA4MC43NTUzIDY3LjYxODggNzkuNDA1MSA2Ni40OTM1IDc4LjM5MTMgNjUuMTA1IDc4LjA5NiA2NC40MjY3IDc0Ljg1IDYxLjU2NzEgNzIuNTIzMSA1OC4yNTEgNzIuNTE5TDQ5IDcyLjUxOSA0OSA1OS45NjMgNjMuNjcyIDU5Ljk2M0M2NS44Mzc0IDU5Ljk1ODkgNjcuNjY0NSA1OC4zNTA1IDY3Ljk0MyA1Ni4yMDMgNzAuMzYzOCA1NS4zODU0IDcxLjk5NTEgNTMuMTE3MSA3MiA1MC41NjJMNzIgNDAuNTE4IDc1IDQwLjUxOEM3Ni42NTY5IDQwLjUxOCA3OCAzOS4xNzQ5IDc4IDM3LjUxOEw3OCAzNy41MThDNzggMzUuODYxMSA3Ni42NTY5IDM0LjUxOCA3NSAzNC41MThaTTIwIDM3LjUxOEMyMCAzNi45NjU3IDIwLjQ0NzcgMzYuNTE4IDIxIDM2LjUxOEwyNiAzNi41MThDMjYuNTUyMyAzNi41MTggMjcgMzYuOTY1NyAyNyAzNy41MTggMjcgMzguMDcwMyAyNi41NTIzIDM4LjUxOCAyNiAzOC41MThMMjEgMzguNTE4QzIwLjQ0NzcgMzguNTE4IDIwIDM4LjA3MDMgMjAgMzcuNTE4Wk0zNC4yNTMgODJDMzQuMjUzIDgzLjEwNDYgMzMuMzU3NiA4NCAzMi4yNTMgODQgMzEuMTQ4NCA4NCAzMC4yNTMgODMuMTA0NiAzMC4yNTMgODIgMzAuMjUzIDgwLjg5NTQgMzEuMTQ4NCA4MCAzMi4yNTMgODAgMzMuMzU3NiA4MCAzNC4yNTMgODAuODk1NCAzNC4yNTMgODJaTTUwIDgyQzUwIDgzLjEwNDYgNDkuMTA0NiA4NCA0OCA4NCA0Ni44OTU0IDg0IDQ2IDgzLjEwNDYgNDYgODIgNDYgODAuODk1NCA0Ni44OTU0IDgwIDQ4IDgwIDQ5LjEwNDYgODAgNTAgODAuODk1NCA1MCA4MlpNNjYuMjUzIDgyQzY2LjI1MyA4My4xMDQ2IDY1LjM1NzYgODQgNjQuMjUzIDg0IDYzLjE0ODQgODQgNjIuMjUzIDgzLjEwNDYgNjIuMjUzIDgyIDYyLjI1MyA4MC44OTU0IDYzLjE0ODQgODAgNjQuMjUzIDgwIDY1LjM1NzYgODAgNjYuMjUzIDgwLjg5NTQgNjYuMjUzIDgyWk02NiA1NS42MzVDNjUuOTk4OSA1Ni45MjAzIDY0Ljk1NzMgNTcuOTYxOSA2My42NzIgNTcuOTYzTDMyLjMyOCA1Ny45NjNDMzEuMDQyNyA1Ny45NjE5IDMwLjAwMTEgNTYuOTIwMyAzMCA1NS42MzVMMzAgNTUuMzI4QzMwLjAwMTcgNTQuMDQzIDMxLjA0MyA1My4wMDE3IDMyLjMyOCA1M0w2My42NzIgNTNDNjQuOTU3IDUzLjAwMTcgNjUuOTk4MyA1NC4wNDMgNjYgNTUuMzI4Wk03NSAzOC41MTggNzAgMzguNTE4QzY5LjQ0NzcgMzguNTE4IDY5IDM4LjA3MDMgNjkgMzcuNTE4IDY5IDM2Ljk2NTcgNjkuNDQ3NyAzNi41MTggNzAgMzYuNTE4TDc1IDM2LjUxOEM3NS41NTIzIDM2LjUxOCA3NiAzNi45NjU3IDc2IDM3LjUxOCA3NiAzOC4wNzAzIDc1LjU1MjMgMzguNTE4IDc1IDM4LjUxOFoiIGNsYXNzPSJNc2Z0T2ZjVGhtX0FjY2VudDNfbHVtTW9kXzUwX0ZpbGxfdjIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIGZpbGw9IiM0MTVCNUMiIGZpbGwtb3BhY2l0eT0iMSIvPjwvc3ZnPg==" width="90" height="88" style="position: absolute; left: 344.24pt; top: 98.56pt; z-index: 1" alt="Office Chair outline" /></div>
+  <div style="position: relative"><img src="data:image/svg+xml;base64,PHN2ZyBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIiB2aWV3Qm94PSIwIDAgOTYgOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJJY29uc19CbGVuZGVyX00iIG92ZXJmbG93PSJoaWRkZW4iPjxzdHlsZT4NCi5Nc2Z0T2ZjVGhtX0FjY2VudDNfbHVtTW9kXzUwX0ZpbGxfdjIgew0KIGZpbGw6IzQxNUI1QzsgDQp9DQo8L3N0eWxlPg0KPGcgaWQ9Ikljb25zIj48cGF0aCBkPSJNNjguMzU1IDIzIDY1LjIxOSAyMyA2NS45MTIgMTcuNzM2QzY3LjE3NjUgMTcuMjA3MSA2Ny45OTk3IDE1Ljk3MDYgNjggMTQuNkw2OCAxNC40QzY4IDEyLjUyMjIgNjYuNDc3OCAxMSA2NC42IDExTDU1LjYxOCAxMSA1NC40NDcgOC42NThDNTMuOTQxNyA3LjYzOTI0IDUyLjkwMTIgNi45OTYyNyA1MS43NjQgN0w0NC4yMzYgN0M0My4wOTg4IDYuOTk2MjcgNDIuMDU4MyA3LjYzOTI0IDQxLjU1MyA4LjY1OEw0MC4zODIgMTEgMzEuNCAxMUMyOS41MjIyIDExIDI4IDEyLjUyMjIgMjggMTQuNEwyOCAxNC42QzI4LjAwMDMgMTUuOTcwNiAyOC44MjM1IDE3LjIwNzEgMzAuMDg4IDE3LjczNkwzNC45IDU0LjMzQzM0LjMzODMgNTQuNjk5OSAzNC4wMDAxIDU1LjMyNzQgMzQgNTZMMzQgNTcuMDc3QzM0IDU4LjMyNzggMzMuNjA5MSA1OS41NDczIDMyLjg4MiA2MC41NjVMMjkuOTUzIDY0LjY2NUMyOS4zMjkyIDY1LjUzODMgMjguOTUxMSA2Ni41NjI5IDI4Ljg1OCA2Ny42MzJMMjcgODkgMzAgODkgMzAgOTMgNDAgOTMgNDAgODkgNTYgODkgNTYgOTMgNjYgOTMgNjYgODkgNjkgODkgNjcuMTQyIDY3LjYzM0M2Ny4wNDg5IDY2LjU2MzkgNjYuNjcwOCA2NS41MzkzIDY2LjA0NyA2NC42NjZMNjMuMTE4IDYwLjU2NkM2Mi4zOTA3IDU5LjU0OCA2MS45OTk4IDU4LjMyODEgNjIgNTcuMDc3TDYyIDU2QzYxLjk5OTkgNTUuMzI3NCA2MS42NjE3IDU0LjY5OTkgNjEuMSA1NC4zM0w2Mi40NTggNDQuMDA2IDY3LjAyMiA0My4zOTdDNjguNzg3NCA0My4xNjE2IDcwLjE4NDYgNDEuNzg3MyA3MC40NDkgNDAuMDI2TDcyLjMxNCAyNy41OTNDNzIuNjQxNSAyNS40MDgzIDcxLjEzNTkgMjMuMzcxNyA2OC45NTEyIDIzLjA0NDIgNjguNzUzOSAyMy4wMTQ2IDY4LjU1NDYgMjIuOTk5OCA2OC4zNTUgMjNaTTQzLjM0MiA5LjU1M0M0My41MTAyIDkuMjEzMjggNDMuODU2OSA4Ljk5ODc5IDQ0LjIzNiA5TDUxLjc2NCA5QzUyLjE0MzEgOC45OTg3OSA1Mi40ODk4IDkuMjEzMjggNTIuNjU4IDkuNTUzTDUzLjM4MiAxMSA0Mi42MTggMTFaTTMwIDE0LjRDMzAgMTMuNjI2OCAzMC42MjY4IDEzIDMxLjQgMTNMNjQuNiAxM0M2NS4zNzMyIDEzIDY2IDEzLjYyNjggNjYgMTQuNEw2NiAxNC42QzY2IDE1LjM3MzIgNjUuMzczMiAxNiA2NC42IDE2TDMxLjQgMTZDMzAuNjI2OCAxNiAzMCAxNS4zNzMyIDMwIDE0LjZaTTYzLjg2IDE4IDU5LjEyMyA1NCAzNi44NzcgNTQgMzIuMTQgMThaTTM4IDkxIDMyIDkxIDMyIDg5IDM4IDg5Wk02NCA5MSA1OCA5MSA1OCA4OSA2NCA4OVpNNjEuNDkgNjEuNzI3IDY0LjQxOSA2NS44MjdDNjQuODM1NCA2Ni40MDk0IDY1LjA4NzggNjcuMDkyOCA2NS4xNSA2Ny44MDZMNjYuODE5IDg3IDI5LjE4MSA4NyAzMC44NSA2Ny44MDdDMzAuOTEyNCA2Ny4wOTQgMzEuMTY0NCA2Ni40MTA3IDMxLjU4IDY1LjgyOEwzNC41MSA2MS43MjhDMzUuNDgyMSA2MC4zNzIyIDM2LjAwMzMgNTguNzQ1MiAzNiA1Ny4wNzdMMzYgNTYgNjAgNTYgNjAgNTcuMDc3QzU5Ljk5NjkgNTguNzQ0OSA2MC41MTgxIDYwLjM3MTUgNjEuNDkgNjEuNzI3Wk03MC4zMzMgMjcuMyA2OC40NjggMzkuNzI5QzY4LjMzMzIgNDAuNjA4MyA2Ny42MzYzIDQxLjI5NDIgNjYuNzU1IDQxLjQxNUw2Mi43MjUgNDEuOTUyIDY0Ljk1NiAyNSA2OC4zNTYgMjVDNjkuNDYwNiAyNC45OTk3IDcwLjM1NjMgMjUuODk0OCA3MC4zNTY2IDI2Ljk5OTQgNzAuMzU2NyAyNy4xIDcwLjM0OTEgMjcuMjAwNSA3MC4zMzQgMjcuM1oiIGNsYXNzPSJNc2Z0T2ZjVGhtX0FjY2VudDNfbHVtTW9kXzUwX0ZpbGxfdjIiIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLW1pdGVybGltaXQ9IjQiIGZpbGw9IiM0MTVCNUMiIGZpbGwtb3BhY2l0eT0iMSIvPjxwYXRoIGQ9Ik00OCA2OEM0NC42ODYzIDY4IDQyIDcwLjY4NjMgNDIgNzQgNDIgNzcuMzEzNyA0NC42ODYzIDgwIDQ4IDgwIDUxLjMxMzcgODAgNTQgNzcuMzEzNyA1NCA3NCA1My45OTY3IDcwLjY4NzcgNTEuMzEyMyA2OC4wMDMzIDQ4IDY4Wk00OCA3OEM0NS43OTA5IDc4IDQ0IDc2LjIwOTEgNDQgNzQgNDQgNzEuNzkwOSA0NS43OTA5IDcwIDQ4IDcwIDUwLjIwOTEgNzAgNTIgNzEuNzkwOSA1MiA3NCA1MiA3Ni4yMDkxIDUwLjIwOTEgNzggNDggNzhaIiBjbGFzcz0iTXNmdE9mY1RobV9BY2NlbnQzX2x1bU1vZF81MF9GaWxsX3YyIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIHN0cm9rZS1taXRlcmxpbWl0PSI0IiBmaWxsPSIjNDE1QjVDIiBmaWxsLW9wYWNpdHk9IjEiLz48L2c+PC9zdmc+" width="88" height="88" style="position: absolute; left: 331.91pt; top: 17.35pt; z-index: 1" alt="Blender outline" /></div>
+  <div style="position: relative"><svg style="position: absolute; left: 406.61pt; top: 34.16pt; width: 15.25pt; height: 15.25pt; z-index: 1; overflow: visible" viewBox="0 0 15.25 15.25" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="15.25" height="15.25" fill="none" stroke="#415b5c" stroke-width="1.5" /></svg></div>
+  <div style="position: relative"><svg style="position: absolute; left: 343.53pt; top: 91.92pt; width: 15.25pt; height: 15.25pt; z-index: 1; overflow: visible" viewBox="0 0 15.25 15.25" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="15.25" height="15.25" fill="none" stroke="#415b5c" stroke-width="1.5" /></svg></div>
+  <div style="position: relative"><svg style="position: absolute; left: 413.93pt; top: 131.76pt; width: 14.03pt; height: 14.03pt; z-index: 1; overflow: visible" viewBox="0 0 14.03 14.03" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="14.03" height="14.03" fill="none" stroke="#415b5c" stroke-width="1.5" /></svg></div>
+  <table style="margin-left: auto; margin-right: auto">
+    <colgroup><col style="width: 9.33pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 77.9pt"><col style="width: 9.33pt"></colgroup>
+    <tbody>
+      <tr style="height: 23.79pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="4" rowspan="8" style="width: 311.6pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"><div style="font-size: 36.6pt; line-height: 1.15"><span style="color: #415b5c; font-size: 36.6pt;"><strong>Home contents inventory list</strong></span></div></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Name</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Ayesha Khalique</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Address</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">4567 8th Ave, Carson City</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Phone</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">(916) 555-0123</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Insurance policy number</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">XYZ789</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Insurance agent</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Petja Hrovat</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Insurance agent phone</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">(123) 456-7890</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Insurance company</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Insurance company phone</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 14.64pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #415b5c; font-size: 6.71pt;"><strong>Total estimated value on all items</strong></span></p></td>
+        <td colspan="2" style="width: 155.8pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border-top: 0.5pt solid #61898a;border-bottom: 0.5pt solid #61898a"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">$5,355.25 </span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 24.49pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 24.49pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Room/area</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Item/description</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Make/model</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Serial number/<br />ID number</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Date purchased</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Where purchased</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Purchase price</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Estimated current value</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Notes</strong></span></p></td>
+        <td style="width: 77.9pt;background-color: #415b5c;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="color: #ffffff; font-size: 6.71pt;"><strong>Photo?</strong></span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 24.49pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Living room</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Piano</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Baby grand</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">100123</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">N/A</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">N/A</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">N/A</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">$3,000.00 </span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Family heirloom</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Yes</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 24.49pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Dining room</span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Chandelier</span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Crystal</span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">N/A</span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">11/15/19</span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Em + En Design</span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">$500.00 </span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">$585.25 </span></p></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Yes</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 24.49pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Bedroom/closet</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Engagement ring</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Princess cut</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">ABC123</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">9/14/10</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Francis Ribeiro Jewelry</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">$1,295.00 </span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">$1,770.00 </span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">In safe</span></p></td>
+        <td style="width: 77.9pt;background-color: #ffffff;vertical-align: middle;padding: 0pt 1.22pt;border: 0.5pt solid #415b5c"><p style="margin: 0pt 0 0pt; margin-left: 5.49pt"><span style="font-size: 6.71pt;">Yes</span></p></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+      <tr style="height: 24.16pt">
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 77.9pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+        <td style="width: 9.33pt;background-color: #e8efef;vertical-align: bottom;padding: 0pt 1.22pt"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

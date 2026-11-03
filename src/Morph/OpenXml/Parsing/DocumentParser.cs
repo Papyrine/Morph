@@ -8046,8 +8046,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     // pic:spPr geometry = Word's picture-style crop shape, floating or inline alike: an ellipse makes
     // the round photo (brochures/03 has one of each), a custGeom an arbitrary crop. Rect (the
-    // default) is no crop.
-    static (bool ClipToEllipse, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ClipSubpaths) ReadPictureClip(OpenXmlElement? spPr)
+    // default) is no crop. A slide picture passes its size, so a curved crop is flattened to it
+    // (ShapeParser.ExtractSubpaths).
+    internal static (bool ClipToEllipse, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ClipSubpaths) ReadPictureClip(OpenXmlElement? spPr, (double Width, double Height)? sizePoints = null)
     {
         if (spPr == null)
         {
@@ -8056,7 +8057,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         var clipToEllipse = spPr.Elements().FirstOrDefault(_ => _.LocalName == "prstGeom")
             ?.GetAttributes().AttributeValue("prst") == "ellipse";
-        return (clipToEllipse, ShapeParser.ExtractSubpaths(spPr));
+        return (clipToEllipse, ShapeParser.ExtractSubpaths(spPr, sizePoints: sizePoints));
     }
 
     // wp:effectExtent — the room Word reserves around an inline picture's extent for its outline and

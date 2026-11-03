@@ -1,0 +1,141 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.08; margin: 0; color: #000; }
+p { margin: 0 0 8pt; }
+/* Sizes only. Word's BUILT-IN Heading 4/6 are italic, but the document's own style decides:
+   an italic one reaches us as italic runs, which emit <em>. Asserting it here instead
+   forced italic onto every h4/h6 whose style is upright — of the 12 corpus scenarios using
+   Heading 4, not one declares italic. Bold is different: it IS asserted here, and the run
+   writer suppresses <strong> in a heading to match (an explicitly non-bold run still emits
+   font-weight: normal). */
+h1, h2, h3, h4, h5, h6 { margin: 12pt 0 0; font-weight: bold; clear: both; }
+h1 { font-size: 16pt; }
+h2 { font-size: 13pt; }
+h3 { font-size: 12pt; }
+h4 { font-size: 11pt; }
+h5 { font-size: 11pt; }
+h6 { font-size: 11pt; }
+ul, ol { margin: 0 0 8pt; padding-left: 24pt; }
+li { margin: 0; }
+table { border-collapse: collapse; margin: 0 0 8pt; }
+/* border-box because w:tcW is the whole cell, its side margins included. Read as the
+   content box, every column with a declared width came out wider than Word's by its
+   padding: html_table_styled's 75pt column measured 91pt. */
+td, th { padding: 4pt 7pt; vertical-align: top; box-sizing: border-box; }
+/* w:tblHeader marks a row for repetition, not styling — any real bold/centring arrives on
+   the runs and cells. Without this, the browser's th defaults bolded and centred header
+   cells Word renders regular and left-aligned. */
+th { font-weight: inherit; text-align: inherit; }
+hr { border: 0; border-top: 0.75pt solid #a0a0a0; margin: 6pt 0; }
+header.doc-header { border-bottom: 0.75pt solid #a0a0a0; margin: 0 0 12pt; padding: 0 0 6pt; }
+footer.doc-footer { border-top: 0.75pt solid #a0a0a0; margin: 12pt 0 0; padding: 6pt 0 0; }
+</style>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 537.68pt; padding: 28.8pt">
+<table style="margin-left: auto; margin-right: auto">
+  <colgroup><col style="width: 309.71pt"><col style="width: 187.35pt"><col style="width: 16.06pt"></colgroup>
+  <tbody>
+    <tr style="height: 30pt">
+      <td colspan="3" style="width: 513.12pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #615a22; font-size: 12pt;"><strong>INVOICE #100</strong></span></div></td>
+    </tr>
+    <tr style="height: 50.1pt">
+      <td colspan="3" style="width: 513.12pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 29pt; line-height: 1.14"><span style="font-family: Georgia, serif; color: #a85914; font-size: 29pt;">Create &amp; Co.</span></div></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">123 Avenue A<br />Metropolis, UA 78910</span></div></td>
+      <td style="width: 187.35pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 18pt">
+      <td colspan="3" style="width: 513.12pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">(123) 456-7890 | (123) 456-7891</span></div></td>
+    </tr>
+    <tr style="height: 24.95pt">
+      <td colspan="3" style="width: 513.12pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #615a22; font-size: 12pt;"><strong>DATE</strong></span></div></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 15pt; line-height: 1.14"><span style="font-family: Georgia, serif; color: #a85914; font-size: 15pt;">BILL TO</span></div></td>
+      <td colspan="2" style="width: 203.41pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 15pt; line-height: 1.14"><span style="font-family: Georgia, serif; color: #a85914; font-size: 15pt;">FOR</span></div></td>
+    </tr>
+    <tr style="height: 18pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">Guy Oz | Olson Harris Ltd.</span></div></td>
+      <td rowspan="2" style="width: 187.35pt;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">Consultation &amp; design services</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">78 90th NW Suite 10<br />Metropolis, UA 78911</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 18pt">
+      <td colspan="3" style="width: 513.12pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">(123) 567-8910</span></div></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt;border-bottom: 0.5pt solid #ffffff"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #615a22; font-size: 12pt;"><strong>Details</strong></span></div></td>
+      <td colspan="2" style="width: 203.41pt;vertical-align: bottom;padding: 0pt 2pt;border-bottom: 0.5pt solid #ffffff"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #615a22; font-size: 12pt;"><strong>AMOUNT</strong></span></div></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #ffffff;border-bottom: 0.5pt solid #beb752"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">Consultation (1 hour)</span></div></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #ffffff;border-bottom: 0.5pt solid #beb752"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">$350.00</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #beb752;border-bottom: 0.5pt solid #beb752"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">Design services (8 hours)</span></div></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #beb752;border-bottom: 0.5pt solid #beb752"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">$400.00</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #beb752;border-bottom: 0.5pt solid #beb752"></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #beb752;border-bottom: 0.5pt solid #beb752"></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #beb752;border-bottom: 0.5pt solid #beb752"></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt;border-top: 0.5pt solid #beb752;border-bottom: 0.5pt solid #beb752"></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 9pt"><span style="color: #615a22;">SUBTOTAL</span></p></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">$750.00</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 9pt"><span style="color: #615a22;">TAX RATE</span></p></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">8.75%</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 9pt"><span style="color: #615a22;">OTHER</span></p></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">$0.00</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt; text-align: right"><p style="margin: 0pt 0 0pt; margin-right: 9pt"><span style="color: #615a22;">TOTAL</span></p></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">$815.62</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 8.45pt">
+      <td style="width: 309.71pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 187.35pt;background-color: #fbfcfb;vertical-align: bottom;padding: 0pt 2pt"></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td colspan="2" style="width: 497.06pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">Make all checks payable to Create &amp; Co.</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td colspan="2" style="width: 497.06pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">If you have any questions concerning this invoice, use the following contact information:</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td colspan="2" style="width: 497.06pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 11pt; line-height: 1.15"><span style="color: #615a22;">Sara Steale, (123) 456-7890, create@interestingsite.com</span></div></td>
+      <td style="width: 16.06pt;vertical-align: bottom;padding: 0pt 2pt"></td>
+    </tr>
+    <tr style="height: 30pt">
+      <td colspan="3" style="width: 513.12pt;vertical-align: bottom;padding: 0pt 2pt"><div style="font-size: 12pt; line-height: 1.15"><span style="color: #615a22; font-size: 12pt;"><strong>THANK YOU FOR YOUR BUSINESS!</strong></span></div></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

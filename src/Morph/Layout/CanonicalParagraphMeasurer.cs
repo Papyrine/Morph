@@ -26,6 +26,43 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 {
     readonly bool squeezeJustifiedLines = compatibility?.SqueezesJustifiedLines == true;
     readonly bool clampsTabStops = compatibility?.ClampsTabStops ?? true;
+    readonly bool slideLinePitch = compatibility?.UsesSlideLinePitch == true;
+
+    // The single-spaced pitch a run of this face and size sets its line on: the face's own line box,
+    // or on a slide PowerPoint's 1.2 em (CompatibilitySettings.UsesSlideLinePitch).
+    float SinglePitch(FontMetrics metrics, double sizePoints)
+    {
+        if (slideLinePitch)
+        {
+            return (float) (sizePoints * slideLineEms);
+        }
+
+        return (float) metrics.LinePitchPoints(sizePoints);
+    }
+
+    const double slideLineEms = 1.2;
+
+    // Where the baseline sits in the line box (CanonicalTextMeasurer.LineAscentPoints). Word stands
+    // it at the face's own ascent and puts what an expanding multiple adds below it. PowerPoint keeps a
+    // fifth of the single 1.2 em line under the baseline whatever the face and the multiple, so all a
+    // multiple adds lies over the text and a slide's first line drops with its spacing. Measured off
+    // PowerPoint's renders (2026-11-03): Basic.pptx's bottom-anchored 36pt Arial Black title, whose
+    // own ascent is 1.1 em, stands 6pt higher than at that ascent, as a 0.96 em one puts it; and
+    // tech-brochure's 12pt body at 150% has its first line's ink at 63.0pt, 8pt under the box's top
+    // and inset, the 7.2pt its multiple adds lying over the text — and the paragraph's 12pt before
+    // not (DrawingTextParser drops it on a box's first paragraph).
+    double LineAscent(double naturalAscent, ParagraphProperties props, double naturalPitch)
+    {
+        if (slideLinePitch &&
+            props.LineSpacingRule == LineSpacingRule.Auto)
+        {
+            return naturalPitch * (props.LineSpacingMultiplier - slideDescentShare);
+        }
+
+        return CanonicalTextMeasurer.LineAscentPoints(naturalAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
+    }
+
+    const double slideDescentShare = 0.2;
 
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
@@ -74,8 +111,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
             if (tallestImage > 0)
             {
-                var ascent = (float) CanonicalTextMeasurer.LineAscentPoints(
-                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch)
+                var ascent = (float) LineAscent(
+                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props, wrapped[i].Pitch)
                              + (grid?.AscentShift ?? 0);
                 // A picture alone on its line has no pitch of its own in the wrap: its line is the
                 // mark line (MarkProperties: in a cell, the picture's own run) floored on the picture,
@@ -99,8 +136,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // A fraction's denominator hangs below the baseline, and the line keeps room for it.
             if (FractionBelow(wrapped[i].Images) is > 0 and var fractionBelow)
             {
-                var textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
-                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, wrapped[i].Pitch);
+                var textAscent = (float) LineAscent(
+                    NaturalAscent(paragraph, wrapped[i], first: i == 0), props, wrapped[i].Pitch);
                 var above = Math.Max(textAscent, tallestImage);
                 height = Math.Max(height, above + fractionBelow);
             }
@@ -163,8 +200,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // 80% of the declared height, and an at-least box that grows anchors its ink at the bottom —
             // see LineAscentPoints for the probes.
             var naturalPitch = segments.Count == 0 ? MarkPitch(paragraph) : wrapped[i].Pitch;
-            textAscent = (float) CanonicalTextMeasurer.LineAscentPoints(
-                textAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
+            textAscent = (float) LineAscent(textAscent, props, naturalPitch);
 
             // On the document grid the box is whole grid pitches and the text is centred in it.
             if (OnGrid(props, naturalPitch) is { } grid)
@@ -1740,7 +1776,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             if (run.IsTab)
             {
                 var tabFont = resolveFont(run.Properties.FontFamily, run.Properties.Bold, run.Properties.Italic);
-                var tabPitch = tabFont == null ? 0f : (float) tabFont.LinePitchPoints(run.Properties.FontSizePoints);
+                var tabPitch = tabFont == null ? 0f : SinglePitch(tabFont, run.Properties.FontSizePoints);
                 pieces.Add(new(false, 0, tabPitch, "", run.Properties, null, false, true, run.PositionalTab));
                 continue;
             }
@@ -1772,7 +1808,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // A superscript or subscript measures at its reduced size and carries its shift; the line
             // pitch stays the run's declared size, since the reduced glyphs sit inside the full box.
             var size = VerticalRunPosition.RenderSizePoints(run.Properties);
-            var pitch = (float) metrics.LinePitchPoints(run.Properties.FontSizePoints);
+            var pitch = SinglePitch(metrics, run.Properties.FontSizePoints);
             var baselineShift = VerticalRunPosition.BaselineShiftPoints(
                 run.Properties,
                 (double) metrics.DescentUnits / metrics.UnitsPerEm * run.Properties.FontSizePoints);
@@ -2100,7 +2136,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return (float) metrics.LinePitchPoints(mark.FontSizePoints);
+        return SinglePitch(metrics, mark.FontSizePoints);
     }
 
     // The font that sizes a paragraph's mark line. Word sizes a blank line by the paragraph mark's own run
