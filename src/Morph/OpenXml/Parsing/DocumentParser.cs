@@ -82,6 +82,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // ParagraphElement.Source: what lets the viewer's editor find the w:p a paragraph on a page is.
     Dictionary<Paragraph, int>? paragraphSources;
 
+    // Each w:p a bookmark starts in, and the first paragraph of the model it was read as, for
+    // Bookmark.Paragraph. Null when the body has no bookmark.
+    Dictionary<Paragraph, ParagraphElement?>? bookmarkParagraphs;
+
 
     // Theme fonts for the current document being parsed
     ThemeFonts? currentThemeFonts;
@@ -518,6 +522,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 Bands = sectionBands[0]
             };
+        }
+
+        bookmarkParagraphs = null;
+        foreach (var start in scan.BookmarkStarts)
+        {
+            if (start.Ancestors<Paragraph>().FirstOrDefault() is { } bookmarked)
+            {
+                bookmarkParagraphs ??= [];
+                bookmarkParagraphs[bookmarked] = null;
+            }
         }
 
         var elements = ParseElements(body, mainPart);
@@ -1291,7 +1305,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return ParseRunProperties(run.RunProperties, mainPart, styleId).FontFamily;
     }
 
-    static List<Bookmark> ExtractBookmarks(BodyScan scan)
+    List<Bookmark> ExtractBookmarks(BodyScan scan)
     {
         // Most documents have no bookmarks, so the paragraph-ordinal map is only built (shared with
         // comment extraction) once a bookmark is found.
@@ -1309,12 +1323,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             paragraphOrdinals ??= scan.ParagraphOrdinals();
 
             int? paragraphIndex = null;
+            ParagraphElement? paragraphElement = null;
             for (var current = start.Parent; current != null; current = current.Parent)
             {
                 if (current is Paragraph paragraph &&
                     paragraphOrdinals.TryGetValue(paragraph, out var idx))
                 {
                     paragraphIndex = idx;
+                    bookmarkParagraphs?.TryGetValue(paragraph, out paragraphElement);
                     break;
                 }
             }
@@ -1324,7 +1340,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 {
                     Id = id,
                     Name = name,
-                    ParagraphIndex = paragraphIndex
+                    ParagraphIndex = paragraphIndex,
+                    Paragraph = paragraphElement
                 });
         }
 
@@ -7672,6 +7689,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     built.Source = source;
                 }
             }
+        }
+
+        // A bookmark is on the page its w:p begins on, so it is tied to the first paragraph that w:p
+        // was read as. Counting w:p elements instead found the wrong paragraph after any w:p a break
+        // made into more paragraphs or none.
+        if (bookmarkParagraphs?.ContainsKey(para) == true)
+        {
+            bookmarkParagraphs[para] = result.OfType<ParagraphElement>().FirstOrDefault();
         }
 
         return result;
