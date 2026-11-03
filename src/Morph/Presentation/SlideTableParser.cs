@@ -16,7 +16,11 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
 
     const double defaultEndMarginEmu = 45720;
 
-    public TableElement? Parse(A.Table table, TableStylesPart? stylesPart)
+    /// <summary>
+    /// <paramref name="backdropHex"/> is the slide's background colour, the one a translucent style
+    /// fill shows through to.
+    /// </summary>
+    public TableElement? Parse(A.Table table, TableStylesPart? stylesPart, string? backdropHex = null)
     {
         var rows = table.Elements<A.TableRow>().ToArray();
         if (rows.Length == 0)
@@ -24,7 +28,7 @@ sealed class SlideTableParser(ThemeColors? themeColors, DrawingTextParser textPa
             return null;
         }
 
-        var style = TableStyleResolver.For(table, stylesPart, themeColors);
+        var style = TableStyleResolver.For(table, stylesPart, themeColors, backdropHex);
         var properties = table.TableProperties;
 
         var columnWidths = table.TableGrid?.Elements<A.GridColumn>()

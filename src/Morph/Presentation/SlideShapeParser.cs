@@ -33,6 +33,10 @@ sealed class SlideShapeParser(
     readonly SlideTableParser tableParser = new(themeColors, new(themeColors, themeFonts, defaultFont));
     readonly ChartReader chartReader = new(themeColors, themeFonts, culture);
 
+    // The slide being parsed's background colour, which a slide table's translucent style fills
+    // blend over. Set per slide by ParseSlide.
+    string? slideBackgroundHex;
+
     /// <summary>
     /// Emits the slide's shapes in <c>spTree</c> order. Paint order is document order, which is also
     /// PowerPoint's z-order, so <see cref="FloatingShapeElement.RelativeHeight"/> is the running
@@ -51,12 +55,14 @@ sealed class SlideShapeParser(
         var masterPart = layoutPart?.SlideMasterPart;
         var master = masterPart?.SlideMaster;
         var ordinal = 0u;
+        slideBackgroundHex = null;
 
         // Bottom to top: background, then the master's decoration, then the layout's, then the
         // slide's own shapes. Emission order is paint order.
         if (ResolveBackground(slidePart, layoutPart, masterPart, ordinal) is { } background)
         {
             elements.Add(background);
+            slideBackgroundHex = (background as FloatingShapeElement)?.FillColorHex;
             ordinal++;
         }
 
@@ -281,7 +287,7 @@ sealed class SlideShapeParser(
             var scale = FontScale(shape.TextBody);
             return new FloatingTextBoxElement
             {
-                Content = textParser.Parse(shape.TextBody!, chain, scale),
+                Content = textParser.Parse(shape.TextBody!, chain, scale, TitleStyle(SlidePlaceholders.Placeholder(shape))),
                 WidthPoints = box.Width,
                 HeightPoints = box.Height,
                 HorizontalPositionPoints = box.X,
@@ -326,6 +332,26 @@ sealed class SlideShapeParser(
             FlipHorizontal = box.FlipHorizontal,
             FlipVertical = box.FlipVertical,
             RelativeHeight = ordinal
+        };
+    }
+
+    /// <summary>
+    /// The paragraph style a title placeholder's text is given, so the exporters write it as the
+    /// heading it is: a title slide's centred title (<c>ctrTitle</c>) is the deck's own title, an h1,
+    /// and every other slide's title an h2 under it. Null for anything else, which stays a paragraph.
+    /// </summary>
+    static string? TitleStyle(P.PlaceholderShape? placeholder)
+    {
+        if (placeholder?.Type?.Value is not { } type)
+        {
+            return null;
+        }
+
+        return ((IEnumValue) type).Value switch
+        {
+            "ctrTitle" => "Title",
+            "title" => "Heading2",
+            _ => null
         };
     }
 
@@ -420,6 +446,10 @@ sealed class SlideShapeParser(
             return null;
         }
 
+        var blip = picture.BlipFill.Blip;
+        var (colorEffect, duotoneColorHex, duotoneLightColorHex) = DocumentParser.ReadBlipColorEffect(blip, themeColors);
+        var (clipToEllipse, clipSubpaths) = DocumentParser.ReadPictureClip(PictureGeometry(picture, placeholder, placeholders), (box.Width, box.Height));
+
         return new FloatingImageElement
         {
             ImageData = data,
@@ -437,10 +467,45 @@ sealed class SlideShapeParser(
             FlipHorizontal = box.FlipHorizontal,
             FlipVertical = box.FlipVertical,
             Crop = ReadCrop(picture.BlipFill),
+            ClipToEllipse = clipToEllipse,
+            ClipSubpaths = clipSubpaths,
+            ColorEffect = colorEffect,
+            DuotoneColorHex = duotoneColorHex,
+            DuotoneLightColorHex = duotoneLightColorHex,
+            Opacity = DocumentParser.ReadBlipOpacity(blip),
             Description = picture.NonVisualPictureProperties?
                 .NonVisualDrawingProperties?.Description?.Value,
             RelativeHeight = ordinal
         };
+    }
+
+    /// <summary>
+    /// The <c>p:spPr</c> whose geometry crops a picture: its own when it declares one, otherwise the
+    /// first up its placeholder chain that does. A picture dropped into a layout's picture slot
+    /// carries only an <c>a:xfrm</c> and takes the slot's shape — Basic.pptx's Q&amp;A layout cuts
+    /// an arc out of its photo slot for the decoration behind it, and the photo drawn as a full
+    /// rectangle hid that decoration.
+    /// </summary>
+    static OpenXmlElement? PictureGeometry(P.Picture picture, P.PlaceholderShape? placeholder, SlidePlaceholders placeholders)
+    {
+        if (HasGeometry(picture.ShapeProperties))
+        {
+            return picture.ShapeProperties;
+        }
+
+        foreach (var inherited in placeholders.Matches(placeholder))
+        {
+            if (HasGeometry(inherited.ShapeProperties))
+            {
+                return inherited.ShapeProperties;
+            }
+        }
+
+        return picture.ShapeProperties;
+
+        static bool HasGeometry(OpenXmlElement? properties) =>
+            properties?.GetFirstChild<A.PresetGeometry>() != null ||
+            properties?.GetFirstChild<A.CustomGeometry>() != null;
     }
 
     /// <summary>
@@ -690,7 +755,7 @@ sealed class SlideShapeParser(
             return null;
         }
 
-        var parsed = tableParser.Parse(table, tableStylesPart);
+        var parsed = tableParser.Parse(table, tableStylesPart, slideBackgroundHex);
         if (parsed == null)
         {
             return null;
@@ -835,15 +900,38 @@ sealed class SlideShapeParser(
 
         var (x, y, width, height) = transform.Apply(offsetX, offsetY, extentX, extentY);
 
+        // rot is 60000ths of a degree, clockwise.
+        var rotationDegrees = (long.TryParse(Attribute(attributes, "rot"), out var rotation) ? rotation : 0) / 60000.0;
+        var flipHorizontal = Attribute(attributes, "flipH") is "1" or "true";
+        var flipVertical = Attribute(attributes, "flipV") is "1" or "true";
+
+        // A mirroring group flips the shape itself on that axis, and a mirror turns a clockwise
+        // rotation anticlockwise: M·R(θ) = R(−θ)·M. Mirrored on both axes the two negations cancel.
+        if (transform.MirrorsX)
+        {
+            flipHorizontal = !flipHorizontal;
+            rotationDegrees = -rotationDegrees;
+        }
+
+        if (transform.MirrorsY)
+        {
+            flipVertical = !flipVertical;
+            rotationDegrees = -rotationDegrees;
+        }
+
+        if (rotationDegrees < 0)
+        {
+            rotationDegrees += 360;
+        }
+
         return new(
             x / OoxmlUnits.EmusPerPoint,
             y / OoxmlUnits.EmusPerPoint,
             width / OoxmlUnits.EmusPerPoint,
             height / OoxmlUnits.EmusPerPoint,
-            // rot is 60000ths of a degree, clockwise.
-            (long.TryParse(Attribute(attributes, "rot"), out var rotation) ? rotation : 0) / 60000.0,
-            Attribute(attributes, "flipH") is "1" or "true",
-            Attribute(attributes, "flipV") is "1" or "true");
+            rotationDegrees,
+            flipHorizontal,
+            flipVertical);
     }
 
     static string? Attribute(IEnumerable<OpenXmlAttribute> attributes, string name)
@@ -940,7 +1028,7 @@ sealed class SlideShapeParser(
         }
 
         // A custom geometry wins; otherwise a preset richer than rect/ellipse is built into contours.
-        return ShapeParser.ExtractSubpaths(properties) ??
+        return ShapeParser.ExtractSubpaths(properties, sizePoints: (width, height)) ??
                PresetShapeGeometry.TryBuild(properties.GetFirstChild<A.PresetGeometry>(), width, height);
     }
 

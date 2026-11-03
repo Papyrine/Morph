@@ -16,11 +16,13 @@ sealed class TableStyleResolver
 {
     readonly OpenXmlElement? style;
     readonly ThemeColors? themeColors;
+    readonly string? backdropHex;
 
-    TableStyleResolver(OpenXmlElement? style, ThemeColors? themeColors)
+    TableStyleResolver(OpenXmlElement? style, ThemeColors? themeColors, string? backdropHex)
     {
         this.style = style;
         this.themeColors = themeColors;
+        this.backdropHex = backdropHex;
     }
 
     /// <summary>
@@ -30,21 +32,24 @@ sealed class TableStyleResolver
     /// fills. The <c>def</c> attribute on <c>a:tblStyleLst</c> is the style PowerPoint gives a newly
     /// inserted table, not a fallback for tables that omit the id; treating it as one paints banding
     /// and header fills over decks that deliberately have neither.
+    ///
+    /// <paramref name="backdropHex"/> is the slide's background colour, which a translucent style fill
+    /// is blended over (see <see cref="Resolve"/>); null blends over white.
     /// </summary>
-    public static TableStyleResolver For(A.Table table, TableStylesPart? stylesPart, ThemeColors? themeColors)
+    public static TableStyleResolver For(A.Table table, TableStylesPart? stylesPart, ThemeColors? themeColors, string? backdropHex = null)
     {
         var root = stylesPart?.RootElement;
         var wanted = table.TableProperties?.GetFirstChild<A.TableStyleId>()?.Text;
         if (root == null || string.IsNullOrEmpty(wanted))
         {
-            return new(null, themeColors);
+            return new(null, themeColors, backdropHex);
         }
 
         var match = root.Elements()
             .Where(_ => _.LocalName == "tblStyle")
             .FirstOrDefault(_ => _.GetAttributes().FirstOrDefault(a => a.LocalName == "styleId").Value == wanted);
 
-        return new(match, themeColors);
+        return new(match, themeColors, backdropHex);
     }
 
     /// <summary>
@@ -137,19 +142,25 @@ sealed class TableStyleResolver
             {
                 result = result with
                 {
-                    BackgroundColorHex = background
+                    BackgroundColorHex = Composite(background, ShapeParser.ExtractSolidFillAlpha(fill))
                 };
             }
 
             var borders = cellStyle?.Elements().FirstOrDefault(_ => _.LocalName == "tcBdr");
             if (borders != null)
             {
+                // A part's left/right/top/bottom are the edges of the REGION it covers, and its
+                // insideV/insideH the rules within it: wholeTbl's top is the table's top edge only.
+                // Read as every cell's own edges, Light Style 1's top and bottom rules drew between
+                // every pair of rows, where PowerPoint draws them only around the table and under
+                // the header (Basic.pptx's metrics tables).
+                var region = Region(part.LocalName, rowIndex, rowCount, columnIndex, columnCount);
                 result = result with
                 {
-                    Left = Edge(borders, "left") ?? result.Left,
-                    Right = Edge(borders, "right") ?? result.Right,
-                    Top = Edge(borders, "top") ?? result.Top,
-                    Bottom = Edge(borders, "bottom") ?? result.Bottom
+                    Left = Edge(borders, columnIndex == region.FirstColumn ? "left" : "insideV") ?? result.Left,
+                    Right = Edge(borders, columnIndex == region.LastColumn ? "right" : "insideV") ?? result.Right,
+                    Top = Edge(borders, rowIndex == region.FirstRow ? "top" : "insideH") ?? result.Top,
+                    Bottom = Edge(borders, rowIndex == region.LastRow ? "bottom" : "insideH") ?? result.Bottom
                 };
             }
 
@@ -179,8 +190,45 @@ sealed class TableStyleResolver
         return result;
     }
 
+    /// <summary>
+    /// A style fill with an <c>a:alpha</c>, laid over what is behind the table. The Light styles band
+    /// their rows in their accent at 20% (Basic.pptx's two metrics tables), which drawn opaque turned
+    /// a pale wash into full-strength accent stripes. A cell's shading has no alpha in the model, so
+    /// the blend is made here, over the slide's background — what a slide table stands on.
+    /// </summary>
+    string Composite(string colorHex, double alpha)
+    {
+        if (alpha >= 1 ||
+            colorHex.Length != 6)
+        {
+            return colorHex;
+        }
+
+        var backdrop = backdropHex is { Length: 6 } ? backdropHex : "FFFFFF";
+
+        int Channel(int offset) =>
+            (int) Math.Round(
+                Convert.ToInt32(colorHex.Substring(offset, 2), 16) * alpha +
+                Convert.ToInt32(backdrop.Substring(offset, 2), 16) * (1 - alpha));
+
+        return $"{Channel(0):X2}{Channel(2):X2}{Channel(4):X2}";
+    }
+
     OpenXmlElement? Part(string name) =>
         style?.Elements().FirstOrDefault(_ => _.LocalName == name);
+
+    /// <summary>
+    /// The rows and columns a style part covers, for the cell at (<paramref name="rowIndex"/>,
+    /// <paramref name="columnIndex"/>): a row part (the header, the total row, a row band) spans its
+    /// one row across the table, a column part its one column down it, and wholeTbl everything.
+    /// </summary>
+    static (int FirstRow, int LastRow, int FirstColumn, int LastColumn) Region(string part, int rowIndex, int rowCount, int columnIndex, int columnCount) =>
+        part switch
+        {
+            "firstRow" or "lastRow" or "band1H" or "band2H" => (rowIndex, rowIndex, 0, columnCount - 1),
+            "firstCol" or "lastCol" or "band1V" or "band2V" => (0, rowCount - 1, columnIndex, columnIndex),
+            _ => (0, rowCount - 1, 0, columnCount - 1)
+        };
 
     BorderEdge? Edge(OpenXmlElement borders, string name)
     {

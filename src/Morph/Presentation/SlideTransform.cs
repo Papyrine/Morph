@@ -7,14 +7,43 @@ using A = DocumentFormat.OpenXml.Drawing;
 /// PARENT's space, and <c>a:chOff</c>/<c>a:chExt</c> is the coordinate space its CHILDREN are authored
 /// in. A child at <c>cx</c> therefore lands at <c>off.x + (cx − chOff.x) × ext.cx / chExt.cx</c>.
 /// Groups nest, so the transforms compose.
+///
+/// A group's <c>flipH</c>/<c>flipV</c> mirrors its children within the group's own box, which is a
+/// NEGATIVE scale on that axis: <see cref="ScaleX"/> or <see cref="ScaleY"/> below zero means
+/// everything under it is mirrored (<see cref="MirrorsX"/>, <see cref="MirrorsY"/>). Basic.pptx's
+/// agenda layout draws its upper pair of triangles as the lower pair's group with both flips set —
+/// read without them, the hourglass pointed both halves the same way.
 /// </summary>
 readonly record struct SlideTransform(double OffsetX, double OffsetY, double ScaleX, double ScaleY)
 {
     public static SlideTransform Identity => new(0, 0, 1, 1);
 
-    /// <summary>Maps a child rectangle (EMU, child space) to slide space (EMU).</summary>
-    public (double X, double Y, double Width, double Height) Apply(double x, double y, double width, double height) =>
-        (OffsetX + x * ScaleX, OffsetY + y * ScaleY, width * ScaleX, height * ScaleY);
+    /// <summary>Whether a group flip above mirrors its children left to right.</summary>
+    public bool MirrorsX => ScaleX < 0;
+
+    /// <summary>Whether a group flip above mirrors its children top to bottom.</summary>
+    public bool MirrorsY => ScaleY < 0;
+
+    /// <summary>
+    /// Maps a child rectangle (EMU, child space) to slide space (EMU). Under a mirror the child's far
+    /// edge lands first, so the rectangle is normalised back to a left/top origin and a positive size.
+    /// </summary>
+    public (double X, double Y, double Width, double Height) Apply(double x, double y, double width, double height)
+    {
+        var (left, right) = Span(OffsetX + x * ScaleX, OffsetX + (x + width) * ScaleX);
+        var (top, bottom) = Span(OffsetY + y * ScaleY, OffsetY + (y + height) * ScaleY);
+        return (left, top, right - left, bottom - top);
+    }
+
+    static (double Low, double High) Span(double from, double to)
+    {
+        if (from <= to)
+        {
+            return (from, to);
+        }
+
+        return (to, from);
+    }
 
     /// <summary>
     /// Composes this transform with a group's own, producing the transform its children use.
@@ -40,13 +69,26 @@ readonly record struct SlideTransform(double OffsetX, double OffsetY, double Sca
         var scaleX = childExtentX > 0 ? (double) extentX / childExtentX : 1;
         var scaleY = childExtentY > 0 ? (double) extentY / childExtentY : 1;
 
-        // The group's own origin maps through THIS transform first, then the child space rebases.
-        var (groupX, groupY, _, _) = Apply(offsetX, offsetY, 0, 0);
+        // In the group's PARENT space a child coordinate c lands at a + b·c: unmirrored that is
+        // off + (c − chOff)·scale, mirrored it is reflected about the group box, off + ext − (c − chOff)·scale.
+        var (originX, stepX) = Axis(offsetX, extentX, childOffsetX, scaleX, groupTransform.HorizontalFlip?.Value == true);
+        var (originY, stepY) = Axis(offsetY, extentY, childOffsetY, scaleY, groupTransform.VerticalFlip?.Value == true);
 
+        // Then THIS transform maps the parent space to the slide.
         return new(
-            groupX - childOffsetX * scaleX * ScaleX,
-            groupY - childOffsetY * scaleY * ScaleY,
-            ScaleX * scaleX,
-            ScaleY * scaleY);
+            OffsetX + ScaleX * originX,
+            OffsetY + ScaleY * originY,
+            ScaleX * stepX,
+            ScaleY * stepY);
+    }
+
+    static (double Origin, double Step) Axis(double offset, double extent, double childOffset, double scale, bool flip)
+    {
+        if (flip)
+        {
+            return (offset + extent + childOffset * scale, -scale);
+        }
+
+        return (offset - childOffset * scale, scale);
     }
 }

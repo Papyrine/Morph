@@ -89,6 +89,14 @@ sealed class ParsedDocument
     public bool PageFieldsPreEvaluated { get; init; }
 
     /// <summary>
+    /// True for a PowerPoint deck: every page is a slide of absolutely-placed text boxes, laid out by
+    /// PowerPoint's rules rather than Word's. The HTML exporter sets a slide paragraph's line on its
+    /// face's own single line, gives a slide's list items their paragraph spacing, and clips each
+    /// slide to its box.
+    /// </summary>
+    public bool IsSlideDeck { get; init; }
+
+    /// <summary>
     /// Footnotes from word/footnotes.xml. The layout engine stacks a cited note at the bottom of the
     /// page its reference lands on (<see cref="DocumentNotes"/>).
     /// </summary>

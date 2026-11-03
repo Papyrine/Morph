@@ -20,26 +20,44 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
     /// Parses every <c>a:p</c> in the body. <paramref name="fontScale"/> is the
     /// <c>a:normAutofit/@fontScale</c> shrink PowerPoint bakes in when text overflows its box,
     /// applied to every resolved size (1.0 when the body does not autofit).
+    /// <paramref name="styleId"/> names what the text is, for the exporters: a title placeholder's
+    /// paragraphs are a heading (<see cref="DocumentExportHelpers.TryGetHeadingLevel"/>). Layout
+    /// reads nothing from it.
     /// </summary>
-    public List<DocumentElement> Parse(OpenXmlElement body, TextStyleChain chain, double fontScale = 1)
+    public List<DocumentElement> Parse(OpenXmlElement body, TextStyleChain chain, double fontScale = 1, string? styleId = null)
     {
         var elements = new List<DocumentElement>();
+        var counters = new AutoNumberCounters();
         foreach (var paragraph in body.Elements<A.Paragraph>())
         {
-            elements.Add(ParseParagraph(paragraph, chain, fontScale));
+            elements.Add(ParseParagraph(paragraph, chain, fontScale, styleId, counters, first: elements.Count == 0));
         }
 
         return elements;
     }
 
-    ParagraphElement ParseParagraph(A.Paragraph paragraph, TextStyleChain chain, double fontScale)
+    ParagraphElement ParseParagraph(A.Paragraph paragraph, TextStyleChain chain, double fontScale, string? styleId, AutoNumberCounters counters, bool first)
     {
         var properties = paragraph.ParagraphProperties;
         var level = properties?.Level?.Value ?? 0;
 
         // The marker is modelled the way the DOCX path models a list marker — as numbering on the
         // paragraph — so the exporters reconstruct list nesting and the measurer hangs text off it.
-        var numbering = ResolveBullet(properties, chain, level);
+        var numbering = ResolveBullet(properties, chain, level, out var autoNumber);
+        if (autoNumber == null)
+        {
+            counters.Break(level);
+        }
+        else if (!paragraph.Descendants<A.Text>().Any(_ => _.Text.Length > 0))
+        {
+            // PowerPoint draws no marker on an empty paragraph, and the number passes it by.
+            numbering = null;
+        }
+        else
+        {
+            numbering = AutoNumber(numbering!, autoNumber, counters.Next(level, autoNumber));
+        }
+
         var runs = new List<Run>();
 
         foreach (var child in paragraph.ChildElements)
@@ -70,7 +88,7 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         return new()
         {
             Runs = runs,
-            Properties = ParseParagraphProperties(paragraph, chain, level, numbering, fontScale)
+            Properties = ParseParagraphProperties(paragraph, chain, level, numbering, fontScale, styleId, first)
         };
     }
 
@@ -168,7 +186,9 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         TextStyleChain chain,
         int level,
         NumberingInfo? numbering,
-        double fontScale)
+        double fontScale,
+        string? styleId,
+        bool first)
     {
         var properties = paragraph.ParagraphProperties;
         var alignment = properties?.Alignment?.Value
@@ -195,12 +215,17 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
             LeftIndentPoints = leftPoints,
             FirstLineIndentPoints = firstLinePoints > 0 ? firstLinePoints : 0,
             HangingIndentPoints = firstLinePoints < 0 ? -firstLinePoints : 0,
-            SpacingBeforePoints = before.Points ?? 0,
+            // PowerPoint sets a text box's first line at the top of the box, whatever space before its
+            // paragraph asks for: Basic.pptx's delivery slide, whose layout gives every paragraph 10pt
+            // before, has both body boxes start 14px (10pt at 96 dpi) higher in PowerPoint's own
+            // export than with the space laid in.
+            SpacingBeforePoints = first ? 0 : before.Points ?? 0,
             SpacingAfterPoints = after.Points ?? 0,
             LineSpacingMultiplier = lineSpacing.Percent ?? 1.0,
             LineSpacingPoints = lineSpacing.Points ?? 0,
             LineSpacingRule = lineSpacing.Points is > 0 ? LineSpacingRule.Exactly : LineSpacingRule.Auto,
             Numbering = numbering,
+            StyleId = styleId,
             // Slides never reflow, so paragraph-level pagination controls are meaningless here.
             WidowControl = false,
             ParagraphMarkFontSizePoints = ResolveMarkSize(paragraph, chain, level, fontScale)
@@ -257,8 +282,9 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
     /// chain suppresses inheritance, which is how a title placeholder stays unbulleted under a
     /// master whose body style bullets every level.
     /// </summary>
-    NumberingInfo? ResolveBullet(A.ParagraphProperties? properties, TextStyleChain chain, int level)
+    NumberingInfo? ResolveBullet(A.ParagraphProperties? properties, TextStyleChain chain, int level, out A.AutoNumberedBullet? autoNumber)
     {
+        autoNumber = null;
         var sources = new List<OpenXmlElement>();
         if (properties != null)
         {
@@ -287,10 +313,11 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
                 };
             }
 
-            if (source.GetFirstChild<A.AutoNumberedBullet>() != null)
+            if (source.GetFirstChild<A.AutoNumberedBullet>() is { } numbered)
             {
-                // Autonumbered levels need a counter the parser does not yet carry across slides;
-                // the marker renders as the level's ordinal placeholder until that lands.
+                // The marker's text is its number, which only the paragraphs before it know: the
+                // caller counts it (AutoNumber).
+                autoNumber = numbered;
                 return new()
                 {
                     Text = "1.",
@@ -301,6 +328,100 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// An autonumbered paragraph's marker: its number in the <c>a:buAutoNum/@type</c> scheme, which
+    /// names the counter (<c>arabic</c>, <c>alphaLc</c>/<c>alphaUc</c>, <c>romanLc</c>/<c>romanUc</c>)
+    /// and what surrounds it (<c>Period</c> "1.", <c>ParenR</c> "1)", <c>ParenBoth</c> "(1)",
+    /// <c>Plain</c> "1"). Every marker was "1." until the counter landed — Basic.pptx's five Q&amp;A
+    /// tips drew 1. 1. 1. 1. 1. A scheme outside those (the East Asian and circled numerals) counts
+    /// in arabic.
+    /// </summary>
+    static NumberingInfo AutoNumber(NumberingInfo numbering, A.AutoNumberedBullet autoNumber, int number)
+    {
+        var scheme = Scheme(autoNumber);
+        var (format, counter) = scheme switch
+        {
+            _ when scheme.StartsWith("alphaLc", StringComparison.Ordinal) => (ListNumberFormat.LowerLetter, PageNumberFormatting.Format(number, "alphabetic")),
+            _ when scheme.StartsWith("alphaUc", StringComparison.Ordinal) => (ListNumberFormat.UpperLetter, PageNumberFormatting.Format(number, "Alphabetic")),
+            _ when scheme.StartsWith("romanLc", StringComparison.Ordinal) => (ListNumberFormat.LowerRoman, PageNumberFormatting.Format(number, "roman")),
+            _ when scheme.StartsWith("romanUc", StringComparison.Ordinal) => (ListNumberFormat.UpperRoman, PageNumberFormatting.Format(number, "Roman")),
+            _ => (ListNumberFormat.Decimal, number.ToString(CultureInfo.InvariantCulture))
+        };
+
+        string text;
+        if (scheme.EndsWith("ParenBoth", StringComparison.Ordinal))
+        {
+            text = $"({counter})";
+        }
+        else if (scheme.EndsWith("ParenR", StringComparison.Ordinal))
+        {
+            text = $"{counter})";
+        }
+        else if (scheme.EndsWith("Plain", StringComparison.Ordinal))
+        {
+            text = counter;
+        }
+        else
+        {
+            text = $"{counter}.";
+        }
+
+        return numbering with
+        {
+            Text = text,
+            LevelNumber = counter,
+            Format = format
+        };
+    }
+
+    // The a:buAutoNum/@type token as the file spells it ("arabicPeriod"); the generated enum's
+    // ToString is the .NET member name, so the token comes through IEnumValue.
+    static string Scheme(A.AutoNumberedBullet autoNumber)
+    {
+        if (autoNumber.Type?.Value is { } type)
+        {
+            return ((IEnumValue) type).Value;
+        }
+
+        return "arabicPeriod";
+    }
+
+    /// <summary>
+    /// PowerPoint's autonumber counters through one text body, one per level. A numbered paragraph
+    /// takes the next number of its level, or the scheme's <c>startAt</c> when the level's run is new
+    /// or changed scheme; any paragraph ends the runs of the levels below it, and one that is not
+    /// numbered ends its own level's run too, so a list broken by a plain paragraph starts again.
+    /// </summary>
+    sealed class AutoNumberCounters
+    {
+        readonly Dictionary<int, (string Scheme, int Number)> levels = [];
+
+        public int Next(int level, A.AutoNumberedBullet autoNumber)
+        {
+            var scheme = Scheme(autoNumber);
+            Clear(level + 1);
+            var number = autoNumber.StartAt?.Value ?? 1;
+            if (levels.TryGetValue(level, out var running) &&
+                running.Scheme == scheme)
+            {
+                number = running.Number + 1;
+            }
+
+            levels[level] = (scheme, number);
+            return number;
+        }
+
+        public void Break(int level) => Clear(level);
+
+        void Clear(int fromLevel)
+        {
+            foreach (var key in levels.Keys.Where(_ => _ >= fromLevel).ToArray())
+            {
+                levels.Remove(key);
+            }
+        }
     }
 
     static TextAlignment MapAlignment(A.TextAlignmentTypeValues? alignment)

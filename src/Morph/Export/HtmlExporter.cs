@@ -104,7 +104,7 @@ static class HtmlExporter
         var bodyStyle = new List<string>();
         if (bodyFont != null)
         {
-            bodyStyle.Add($"font-family: {CssFontFamily(bodyFont)}, sans-serif");
+            bodyStyle.Add($"font-family: {CssFontStack(bodyFont)}");
             if (FontHelpers.InferWeightFromName(bodyFont) is { } bodyWeight and not 400)
             {
                 bodyStyle.Add($"font-weight: {CssWeight(bodyWeight)}");
@@ -372,6 +372,42 @@ static class HtmlExporter
         return family;
     }
 
+    // A face with its generic fallback, for a reader who has not got it.
+    static string CssFontStack(string font) => $"{CssFontFamily(font)}, {GenericFamily(font)}";
+
+    // The generic a missing face degrades to: sans-serif, as Office's own faces (Calibri, Aptos,
+    // Arial) and so most documents are, rather than the browser's default serif; but serif for a
+    // face that is one, which sans-serif turned into Arial — Basic.pptx's Sabon Next LT body.
+    // Known by name only: a face that names itself "Serif" (not "Sans Serif"), or one of the
+    // common serif families, matched on the start of the name so "Garamond Premier Pro" counts.
+    static string GenericFamily(string font)
+    {
+        if (font.Contains("Serif", StringComparison.OrdinalIgnoreCase) &&
+            !font.Contains("Sans", StringComparison.OrdinalIgnoreCase))
+        {
+            return "serif";
+        }
+
+        foreach (var serif in serifFamilies)
+        {
+            if (font.StartsWith(serif, StringComparison.OrdinalIgnoreCase))
+            {
+                return "serif";
+            }
+        }
+
+        return "sans-serif";
+    }
+
+    static readonly string[] serifFamilies =
+    [
+        "Baskerville", "Bell MT", "Bembo", "Bodoni", "Book Antiqua", "Bookman", "Calisto MT", "Californian FB",
+        "Cambria", "Caslon", "Centaur", "Century Schoolbook", "Charter", "Constantia", "Cormorant", "Didot",
+        "EB Garamond", "Garamond", "Georgia", "Goudy", "High Tower Text", "Libre Baskerville", "Lora",
+        "Lucida Bright", "Merriweather", "Minion", "Palatino", "Perpetua", "Playfair", "Sabon", "Sitka",
+        "Times", "Tinos"
+    ];
+
     static string CssFamilyName(string font)
     {
         if (font.Contains(' '))
@@ -452,6 +488,10 @@ static class HtmlExporter
         // into the final output instead of being materialized and copied once more at the end.
         StringBuilder builder = output ?? new();
         HashSet<string> usedHeadingIds = [];
+
+        // A PowerPoint deck (ParsedDocument.IsSlideDeck): its paragraphs take their face's own line
+        // (SlideLineEms), its list items their paragraph spacing, and each slide is clipped to its box.
+        bool slideDeck = source?.IsSlideDeck == true;
 
         // Distinct picture recolours used so far, in first-use order — the index is the filter's
         // id. CSS has no duotone, so each becomes an SVG feColorMatrix the images reference and
@@ -564,7 +604,17 @@ static class HtmlExporter
                     styles.Add($"padding-top: {Length(above)}");
                 }
 
-                if (below > 0.01)
+                if (slideDeck)
+                {
+                    // A slide is a fixed canvas: PowerPoint shows nothing past its edge. Held open to
+                    // its art instead, a shape hanging off a slide pushed the next one down — and
+                    // measured by its UNROTATED box, so Basic.pptx's turned triangle, which stays on
+                    // its slide, left a 23pt gap under it — and art reaching up off a slide drew over
+                    // the one before.
+                    styles.Add($"height: {Length(pageSettings.HeightPoints)}");
+                    styles.Add("overflow: hidden");
+                }
+                else if (below > 0.01)
                 {
                     styles.Add($"min-height: {Length(below)}");
                 }
@@ -1128,7 +1178,7 @@ static class HtmlExporter
                 AppendParagraphStyle(
                     paragraph.Properties,
                     fontSizePoints: markSize is { } size && Math.Abs(size - defaultBodyFontSizePoints) > 0.01 ? size : null,
-                    lineEms: markSize == null ? null : FaceLineEms(paragraph.Properties.ParagraphMarkFontFamily, paragraph.Properties.ParagraphMarkRunProperties?.Bold ?? false));
+                    lineEms: markSize == null ? null : SlideLineEms(paragraph) ?? FaceLineEms(paragraph.Properties.ParagraphMarkFontFamily, paragraph.Properties.ParagraphMarkRunProperties?.Bold ?? false));
                 builder.Append(">&nbsp;</p>\n");
                 return;
             }
@@ -1148,7 +1198,22 @@ static class HtmlExporter
             }
 
             Indent(depth).Append("<p");
-            AppendParagraphStyle(paragraph.Properties);
+            if (SlideLineEms(paragraph) is { } slideEms)
+            {
+                // A slide paragraph's line scales its text's em, so its one size is lifted onto the
+                // block as a heading's is (AppendHeading): left at the stylesheet's 11pt, the strut
+                // would hold a smaller text's line open.
+                var size = UniformRunFontSize(paragraph.Runs);
+                AppendParagraphStyle(
+                    paragraph.Properties,
+                    fontSizePoints: size is { } uniform && Math.Abs(uniform - defaultBodyFontSizePoints) > 0.01 ? uniform : null,
+                    lineEms: slideEms);
+            }
+            else
+            {
+                AppendParagraphStyle(paragraph.Properties);
+            }
+
             builder.Append('>');
             AppendInline(paragraph.Runs);
             builder.Append("</p>\n");
@@ -1558,6 +1623,11 @@ static class HtmlExporter
                 return null;
             }
 
+            if (SlideLineEms(paragraph) is { } slideEms)
+            {
+                return slideEms;
+            }
+
             return FaceLineEms(UniformRunFontFamily(paragraph.Runs), paragraph.Runs.Count > 0 && paragraph.Runs[0].Properties.Bold);
         }
 
@@ -1576,6 +1646,25 @@ static class HtmlExporter
 
             return $"font-size: {Length(size)}; line-height: {Number(paragraph.Properties.LineSpacingMultiplier * ems)}";
         }
+
+        // PowerPoint's line spacing is a multiple of a single line of 1.2 em, whatever the face
+        // (CompatibilitySettings.UsesSlideLinePitch), and it holds for every paragraph of a slide.
+        // Written as a multiple of the em alone, Basic.pptx's agenda at 150% was a 36pt line where
+        // PowerPoint's is 43pt, and every 100% paragraph of the deck stood a sixth too tight; as a
+        // multiple of the face's own line box, its Arial Black titles stood 1.41 em apart where
+        // PowerPoint's are 1.2. Null outside a deck.
+        double? SlideLineEms(ParagraphElement paragraph)
+        {
+            if (!slideDeck ||
+                paragraph.Properties.LineSpacingRule != LineSpacingRule.Auto)
+            {
+                return null;
+            }
+
+            return slideLineEms;
+        }
+
+        const double slideLineEms = 1.2;
 
         double? FaceLineEms(string? family, bool bold)
         {
@@ -2289,7 +2378,7 @@ static class HtmlExporter
 
             if (item.FontFamily != context.FontFamily)
             {
-                parts.Add($"font-family: {CssFontFamily(item.FontFamily ?? bodyFont ?? "sans-serif")}, sans-serif");
+                parts.Add($"font-family: {CssFontStack(item.FontFamily ?? bodyFont ?? "sans-serif")}");
             }
 
             if (item.Color != context.Color)
@@ -2300,6 +2389,28 @@ static class HtmlExporter
             if (Math.Abs(item.FontSizePoints - context.FontSizePoints) > 0.01)
             {
                 parts.Add($"font-size: {Length(item.FontSizePoints)}");
+            }
+
+            // A slide's bullets are paragraphs with PowerPoint's spacing between them: Basic.pptx's
+            // layouts put 10pt before each, and the stylesheet's bare li ran its lists together.
+            // The item's size is its text's, so the line scales the right em.
+            if (slideDeck)
+            {
+                var properties = node.Paragraph.Properties;
+                if (properties.SpacingBeforePoints > 0.01)
+                {
+                    parts.Add($"margin-top: {Length(properties.SpacingBeforePoints)}");
+                }
+
+                if (properties.SpacingAfterPoints > 0.01)
+                {
+                    parts.Add($"margin-bottom: {Length(properties.SpacingAfterPoints)}");
+                }
+
+                if (SlideLineEms(node.Paragraph) is { } ems)
+                {
+                    parts.Add($"line-height: {Number(properties.LineSpacingMultiplier * ems)}");
+                }
             }
 
             Indent(depth).Append("<li");
@@ -3610,8 +3721,9 @@ static class HtmlExporter
             if (hasFont)
             {
                 // Append a generic fallback (as the body font does) so a run whose specific font
-                // isn't installed degrades to a sans-serif rather than the browser's default serif.
-                style.Append($"font-family: {CssFontFamily(properties.FontFamily)}, sans-serif; ");
+                // isn't installed degrades to its kind of face (GenericFamily) rather than the
+                // browser's default serif.
+                style.Append($"font-family: {CssFontStack(properties.FontFamily)}; ");
             }
 
             if (color != null)
@@ -3695,6 +3807,12 @@ static class HtmlExporter
                     return $"data:image/svg+xml;base64,{Convert.ToBase64String(Encoding.UTF8.GetBytes(svg))}";
                 }
 
+                if (contentType == SvgDrawing.ContentType &&
+                    SvgStretch.Apply(data) is { } stretched)
+                {
+                    return $"data:image/svg+xml;base64,{Convert.ToBase64String(stretched)}";
+                }
+
                 var mime = string.IsNullOrEmpty(contentType) ? "image/png" : contentType;
                 return $"data:{mime};base64,{Convert.ToBase64String(data)}";
             }
@@ -3755,7 +3873,7 @@ static class HtmlExporter
             }
 
             var style = new StringBuilder();
-            style.Append($"font-family: '{wordArt.FontFamily}', sans-serif; font-size: {Number(wordArt.FontSizePoints)}pt; margin: 0; ");
+            style.Append($"font-family: '{wordArt.FontFamily}', {GenericFamily(wordArt.FontFamily)}; font-size: {Number(wordArt.FontSizePoints)}pt; margin: 0; ");
             if (wordArt.Bold)
             {
                 style.Append("font-weight: bold; ");

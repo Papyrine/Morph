@@ -56,4 +56,14 @@ sealed class CompatibilitySettings
     /// edge or inside a list. The probe is on <c>DocumentParser.ResolveAutoSpacing</c>.
     /// </summary>
     public bool UsesFixedAutoSpacing { get; init; }
+
+    /// <summary>
+    /// PowerPoint's single line: a slide's text sets its single-spaced line at 1.2 times its size,
+    /// whatever the face, where Word's is the face's own line box (ascent, descent and gap). Measured
+    /// off PowerPoint's own export of Basic.pptx (2026-11-03): 36pt Arial Black — whose box is 1.41
+    /// em — on a 1.208 em pitch, 18pt and 24pt (at 150%) Sabon Next LT on 1.208 and 1.203. The
+    /// baseline keeps the face's natural ascent; only the pitch was measured. Set by the
+    /// presentation parser; the measurer reads it (<c>CanonicalParagraphMeasurer</c>).
+    /// </summary>
+    public bool UsesSlideLinePitch { get; init; }
 }

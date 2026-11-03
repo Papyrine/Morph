@@ -596,8 +596,15 @@ static class ShapeParser
     /// <paramref name="minContourPoints"/> defaults to 3 (a fillable polygon); pass 2 to keep an
     /// open two-point line segment (<c>moveTo</c> + <c>lnTo</c>) that will be stroked rather than
     /// filled — e.g. the thin accent rules in the Agenda template.
+    /// <para>
+    /// <paramref name="sizePoints"/> is the box the contours will be drawn at, when the caller knows
+    /// it. A curve is then cut into segments no longer than <see cref="flattenStepPoints"/>, rather
+    /// than the fixed <see cref="bezierFlattenSegments"/>: twelve chords to a quarter circle are
+    /// invisible on an icon and plain facets on a slide-sized one — Basic.pptx's title arch (a 360pt
+    /// radius) and its closing circle drew as polygons. Without a size the fixed count stands.
+    /// </para>
     /// </summary>
-    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(OpenXmlElement shapeProps, int minContourPoints = 3)
+    public static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ExtractSubpaths(OpenXmlElement shapeProps, int minContourPoints = 3, (double Width, double Height)? sizePoints = null)
     {
         var custGeom = shapeProps.GetFirstChild<A.CustomGeometry>();
         var pathList = custGeom?.GetFirstChild<A.PathList>();
@@ -614,7 +621,7 @@ static class ShapeParser
         var subpaths = new List<IReadOnlyList<(double X, double Y)>>();
         foreach (var path in pathList.Elements<A.Path>())
         {
-            AppendPathContours(path, subpaths, minContourPoints);
+            AppendPathContours(path, subpaths, minContourPoints, sizePoints);
         }
 
         if (subpaths.Count > 0)
@@ -630,7 +637,7 @@ static class ShapeParser
     /// count reaches <paramref name="minContourPoints"/> as its own contour. Points are
     /// normalized into the unit square of the path's <c>w</c>/<c>h</c>.
     /// </summary>
-    static void AppendPathContours(A.Path path, List<IReadOnlyList<(double X, double Y)>> subpaths, int minContourPoints)
+    static void AppendPathContours(A.Path path, List<IReadOnlyList<(double X, double Y)>> subpaths, int minContourPoints, (double Width, double Height)? sizePoints)
     {
         var pathW = path.Width?.Value ?? 0;
         var pathH = path.Height?.Value ?? 0;
@@ -661,6 +668,27 @@ static class ShapeParser
             x = px / (double) pathW;
             y = py / (double) pathH;
             return true;
+        }
+
+        // How many chords a curve through these unit-square points is cut into: the fixed count,
+        // or with a known size enough that none is longer than flattenStepPoints. The control
+        // polygon is never shorter than the curve, so it bounds the chord length from above.
+        int Segments(params ReadOnlySpan<(double X, double Y)> points)
+        {
+            if (sizePoints is not { } size)
+            {
+                return bezierFlattenSegments;
+            }
+
+            var length = 0d;
+            for (var i = 1; i < points.Length; i++)
+            {
+                var dx = (points[i].X - points[i - 1].X) * size.Width;
+                var dy = (points[i].Y - points[i - 1].Y) * size.Height;
+                length += Math.Sqrt(dx * dx + dy * dy);
+            }
+
+            return Math.Clamp((int) Math.Ceiling(length / flattenStepPoints), bezierFlattenSegments, maxFlattenSegments);
         }
 
         // Bank the in-progress contour (if it has enough points) and reset.
@@ -705,9 +733,10 @@ static class ShapeParser
                             TryReadPoint(points[1], out var c2x, out var c2y) &&
                             TryReadPoint(points[2], out var ex, out var ey))
                         {
-                            for (var i = 1; i <= bezierFlattenSegments; i++)
+                            var segments = Segments((currentX, currentY), (c1x, c1y), (c2x, c2y), (ex, ey));
+                            for (var i = 1; i <= segments; i++)
                             {
-                                var t = i / (double) bezierFlattenSegments;
+                                var t = i / (double) segments;
                                 var omt = 1 - t;
                                 var x = omt * omt * omt * currentX +
                                         3 * omt * omt * t * c1x +
@@ -732,9 +761,10 @@ static class ShapeParser
                             TryReadPoint(points[0], out var c1x, out var c1y) &&
                             TryReadPoint(points[1], out var ex, out var ey))
                         {
-                            for (var i = 1; i <= bezierFlattenSegments; i++)
+                            var segments = Segments((currentX, currentY), (c1x, c1y), (ex, ey));
+                            for (var i = 1; i <= segments; i++)
                             {
-                                var t = i / (double) bezierFlattenSegments;
+                                var t = i / (double) segments;
                                 var omt = 1 - t;
                                 var x = omt * omt * currentX +
                                         2 * omt * t * c1x +
@@ -759,6 +789,12 @@ static class ShapeParser
     }
 
     const int bezierFlattenSegments = 12;
+
+    // With a known size: the longest chord a flattened curve keeps. On a 360pt-radius arc a 4pt chord
+    // strays 0.006pt from the curve, far under a pixel at any DPI the converters render.
+    const double flattenStepPoints = 4;
+
+    const int maxFlattenSegments = 128;
 
     /// <summary>
     /// Reads rotation (degrees clockwise) and flip flags from an <c>a:xfrm</c>. Rotation is
