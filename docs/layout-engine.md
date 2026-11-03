@@ -798,7 +798,8 @@ rasterised by PDFium renders the text correctly at the canonical positions — t
   `BuildLineItems` rather than baked into a fixed piece width.
 - **Tab leaders landed**: a leadered stop leaves a filler run (empty text, a non-`None` `Leader`) across the
   gap, and the painter fills it — a baseline rule for underscore, or the leader glyph tiled at ~2× its advance
-  for dots/hyphens (Word spaces the dots roughly a glyph apart, not a dense line). A TOC's dot leaders and a
+  for dots/hyphens (Word spaces the dots roughly a glyph apart, not a dense line; since 2026-11-03 they stand
+  on Word's own grid of the page, `LeaderTiling`, `docs/word-features.md` Tab Stops). A TOC's dot leaders and a
   `Signature` underline both render. The dots are a thin horizontal feature, so the *visible* render is the
   honest check: SSIM barely moves because a row a point off Word's leaves the dots on a different pixel row, but
   the leaders read correctly.

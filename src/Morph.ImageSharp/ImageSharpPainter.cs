@@ -391,36 +391,18 @@ static class ImageSharpPainter
 
         var color = ImageSharpRenderContext.ParseColor(run.Properties.ColorHex);
         var fontSize = run.Properties.FontSizePoints;
+        var leaderChar = LeaderTiling.Glyph(run.Leader).ToString();
+        var font = context.GetFont(run.Properties);
+        var pitch = LeaderTiling.PitchPoints(context, run, context.MeasureText(font, leaderChar));
+        if (!LeaderTiling.TryGetRange(run.X, run.Width, pitch, context.PageSettings.WidthPoints, out var startX, out var count))
+        {
+            return;
+        }
 
-        if (run.Leader == TabLeader.Underscore)
+        if (LeaderTiling.IsRule(run.Leader))
         {
             var underscoreY = P(context, baseline + fontSize * 0.12);
-            canvas.DrawLine(context.GetPen(color, P(context, Math.Max(0.5, fontSize / 16))), new PointF(P(context, run.X), underscoreY), new PointF(P(context, run.X + run.Width), underscoreY));
-            return;
-        }
-
-        var leaderChar = run.Leader switch
-        {
-            TabLeader.Hyphen => "-",
-            TabLeader.MiddleDot => "·",
-            TabLeader.Heavy => "—",
-            _ => "."
-        };
-
-        var font = context.GetFont(run.Properties);
-        var glyphWidth = P(context, context.MeasureText(font, leaderChar));
-        if (glyphWidth <= 0)
-        {
-            return;
-        }
-
-        // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
-        // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
-        // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
-        // number, where the doubled stride tiled half as many dots and stopped ~14px short.
-        var runWidth = P(context, run.Width);
-        if (!LeaderTiling.TryGetRange(P(context, run.X), runWidth, glyphWidth, glyphWidth, P(context, context.PageSettings.WidthPoints), out var startX, out var count))
-        {
+            canvas.DrawLine(context.GetPen(color, P(context, Math.Max(0.5, fontSize / 16))), new PointF(P(context, startX), underscoreY), new PointF(P(context, startX + count * pitch), underscoreY));
             return;
         }
 
@@ -428,7 +410,7 @@ static class ImageSharpPainter
         var baselineY = P(context, baseline);
         for (var index = 0; index < count; index++)
         {
-            canvas.DrawText(Options(context, font, (float) startX + index * glyphWidth, baselineY), leaderChar.AsSpan(), brush, null);
+            canvas.DrawText(Options(context, font, P(context, startX + index * pitch), baselineY), leaderChar.AsSpan(), brush, null);
         }
     }
 
