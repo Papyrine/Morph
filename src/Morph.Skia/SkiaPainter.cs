@@ -413,8 +413,9 @@ static class SkiaPainter
         return CanonicalTextMeasurer.KernShiftsPoints(metrics, text, VerticalRunPosition.RenderSizePoints(properties), context.FontWidthScale);
     }
 
-    // Fills a tab-leader gap: a baseline rule for underscore, otherwise the leader glyph tiled across the
-    // span at ~2x its advance. Mirrors PdfPainter.DrawLeader.
+    // Fills a tab-leader gap: the leader glyph on Word's grid of the page (LeaderTiling), or for an
+    // underscore or heavy leader a baseline rule across the underscores Word draws there. Mirrors
+    // PdfPainter.DrawLeader.
     static void DrawLeader(SkiaRenderContext context, SKCanvas canvas, PlacedRun run, double baseline)
     {
         if (run.Width <= 0)
@@ -424,36 +425,18 @@ static class SkiaPainter
 
         var color = SkiaRenderContext.ParseColor(run.Properties.ColorHex);
         var fontSize = run.Properties.FontSizePoints;
+        var leaderChar = LeaderTiling.Glyph(run.Leader).ToString();
+        var font = context.CreateFont(run.Properties);
+        var pitch = LeaderTiling.PitchPoints(context, run, font.MeasureText(leaderChar) / context.Scale);
+        if (!LeaderTiling.TryGetRange(run.X, run.Width, pitch, context.PageSettings.WidthPoints, out var startX, out var count))
+        {
+            return;
+        }
 
-        if (run.Leader == TabLeader.Underscore)
+        if (LeaderTiling.IsRule(run.Leader))
         {
             var underscoreY = P(context, baseline + fontSize * 0.12);
-            canvas.DrawLine(P(context, run.X), underscoreY, P(context, run.X + run.Width), underscoreY, context.GetReusableRulePaint(color, P(context, Math.Max(0.5, fontSize / 16))));
-            return;
-        }
-
-        var leaderChar = run.Leader switch
-        {
-            TabLeader.Hyphen => "-",
-            TabLeader.MiddleDot => "·",
-            TabLeader.Heavy => "—",
-            _ => "."
-        };
-
-        var font = context.CreateFont(run.Properties);
-        var glyphWidth = font.MeasureText(leaderChar);
-        if (glyphWidth <= 0)
-        {
-            return;
-        }
-
-        // Word draws a leader as the glyph repeated at its NATURAL advance — a literal run of
-        // dots — not at a doubled stride. Measured on table_of_contents/01: Word's dot pitch is
-        // ~6.3px at 150 DPI (the '.' advance) with the last dot within one advance of the page
-        // number, where the doubled stride tiled half as many dots and stopped ~14px short.
-        var runWidth = P(context, run.Width);
-        if (!LeaderTiling.TryGetRange(P(context, run.X), runWidth, glyphWidth, glyphWidth, P(context, context.PageSettings.WidthPoints), out var startX, out var count))
-        {
+            canvas.DrawLine(P(context, startX), underscoreY, P(context, startX + count * pitch), underscoreY, context.GetReusableRulePaint(color, P(context, Math.Max(0.5, fontSize / 16))));
             return;
         }
 
@@ -461,7 +444,7 @@ static class SkiaPainter
         var y = P(context, baseline);
         for (var index = 0; index < count; index++)
         {
-            canvas.DrawText(leaderChar, (float) startX + index * glyphWidth, y, font, paint);
+            canvas.DrawText(leaderChar, P(context, startX + index * pitch), y, font, paint);
         }
     }
 
