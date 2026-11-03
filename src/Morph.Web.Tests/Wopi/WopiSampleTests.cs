@@ -145,24 +145,42 @@ public class WopiSampleTests
     }
 
     // Close goes back to the host's page; when it does not, the page's log says what happened instead.
-    // Reaching it is the navigation committed, not the page's load event: the host page has been seen
-    // to arrive and then not fire load within the timeout on CI, and what follows navigates anyway.
+    // Reaching it is the top frame's navigation committing, heard from the page as it happens, with the
+    // handler in place before the click. Not WaitForURLAsync: the click already waits for the navigation it
+    // starts to commit, so the URL always matches by then, and a URL that already matches makes Playwright
+    // .NET wait for the load event whatever WaitUntil says (it maps Commit to Load there). That wait checks
+    // whether load has fired and only then subscribes to it, on another thread than the one load arrives on,
+    // and the host's page is small enough that its load lands in between: the wait then ran out with the page
+    // loaded (runs 366, 369, 388, 434, 447 and 449; 4 Closes in 40 on a desktop). Both are Playwright's:
+    // microsoft/playwright-dotnet#3365 (Commit, fixed after 1.64.1) and #3364 (the lost load, open).
     static async Task CloseAsync(IPage page, IFrame frame)
     {
-        await frame.ClickAsync(".wopi-close");
+        var host = $"{HostUrl}/";
+        var arrived = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        void Navigated(object? _, IFrame navigated)
+        {
+            if (navigated == page.MainFrame &&
+                navigated.Url == host)
+            {
+                arrived.TrySetResult();
+            }
+        }
+
+        page.FrameNavigated += Navigated;
         try
         {
-            await page.WaitForURLAsync(
-                $"{HostUrl}/",
-                new()
-                {
-                    WaitUntil = WaitUntilState.Commit
-                });
+            await frame.ClickAsync(".wopi-close");
+            await arrived.Task.WaitAsync(TimeSpan.FromSeconds(30));
         }
         catch (TimeoutException exception)
         {
             var log = logs.TryGetValue(page, out var entries) ? string.Join(Environment.NewLine, entries) : "(none)";
-            throw new TimeoutException($"Close did not reach {HostUrl}/; the page is at {page.Url}.{Environment.NewLine}{log}", exception);
+            throw new TimeoutException($"Close did not reach {host}; the page is at {page.Url}.{Environment.NewLine}{log}", exception);
+        }
+        finally
+        {
+            page.FrameNavigated -= Navigated;
         }
     }
 
