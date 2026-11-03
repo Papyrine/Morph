@@ -121,48 +121,45 @@ public class MalformedMeasureTests
     }
 
     /// <summary>
-    /// Layer 2 in isolation, as arithmetic. The clip drops WHOLE tiles, so a leader that already fits
-    /// on the page has to come back identical to the unclipped formula — that is what makes the bound
-    /// invisible to correct documents and keeps the corpus baselines unmoved.
+    /// Layer 2 in isolation, as arithmetic. The clip drops WHOLE grid places, so a leader that
+    /// already fits on the page has to come back identical to the unclipped grid — that is what makes
+    /// the bound invisible to correct documents.
     /// </summary>
     [Test]
     public async Task Clipping_leaves_an_on_page_leader_exactly_where_it_was()
     {
-        // 100pt of leader at 5pt pitch on a 595pt page: entirely on-page, nothing to clip.
-        var found = LeaderTiling.TryGetRange(x: 72, width: 100, glyphWidth: 5, spacing: 5, pageWidth: 595, out var startX, out var count);
+        // 100pt of leader at 5pt pitch on a 595pt page: entirely on-page, nothing to clip. Unclipped,
+        // its places are 75 (the first at or after 72) to 165 (the last ending by 172).
+        var found = LeaderTiling.TryGetRange(x: 72, width: 100, pitch: 5, pageWidth: 595, out var startX, out var count);
 
         await Assert.That(found).IsTrue();
-        await Assert.That(startX).IsEqualTo(72);
-        await Assert.That(count).IsEqualTo((int) Math.Floor((100 - 5) / 5.0) + 1);
+        await Assert.That(startX).IsEqualTo(75);
+        await Assert.That(count).IsEqualTo(19);
     }
 
     /// <summary>
     /// Layer 2 on the shape that caused the report: a filler starting far off the left edge. Only the
-    /// tail is on the page, and the surviving tiles stay on the grid anchored at the original X — the
-    /// leader is not re-anchored to the page edge, which would shift every dot.
+    /// tail is on the page, and it stands on the page's grid, where every leader's glyphs do.
     /// </summary>
     [Test]
-    public async Task Clipping_keeps_the_visible_tail_on_the_original_grid()
+    public async Task Clipping_keeps_the_visible_tail_on_the_page_grid()
     {
-        var found = LeaderTiling.TryGetRange(x: -570_425_300, width: 570_425_600, glyphWidth: 4, spacing: 4, pageWidth: 595, out var startX, out var count);
+        var found = LeaderTiling.TryGetRange(x: -570_425_300, width: 570_425_600, pitch: 4, pageWidth: 595, out var startX, out var count);
 
         await Assert.That(found).IsTrue();
-        // On the grid: the offset from the original X is a whole number of tiles.
-        await Assert.That((startX + 570_425_300) % 4).IsEqualTo(0);
-        // The first surviving tile is the first one at or after the left page edge.
-        await Assert.That(startX).IsGreaterThanOrEqualTo(0);
-        await Assert.That(startX).IsLessThan(4);
-        // Bounded by the page, not by the declared width.
-        await Assert.That(count).IsLessThanOrEqualTo((int) (595 / 4.0) + 1);
+        // The first surviving place is the page's left edge.
+        await Assert.That(startX).IsEqualTo(0);
+        // Bounded by the filler's end at 300, well inside the page, not by its declared width.
+        await Assert.That(count).IsEqualTo(75);
     }
 
     /// <summary>A filler wholly off the page, or carrying a non-finite measure, draws nothing.</summary>
     [Test]
     public async Task A_leader_entirely_off_the_page_draws_nothing()
     {
-        var offLeft = LeaderTiling.TryGetRange(-1000, 500, 4, 4, 595, out _, out _);
-        var offRight = LeaderTiling.TryGetRange(900, 500, 4, 4, 595, out _, out _);
-        var degenerate = LeaderTiling.TryGetRange(0, double.NaN, 4, 4, 595, out _, out _);
+        var offLeft = LeaderTiling.TryGetRange(-1000, 500, 4, 595, out _, out _);
+        var offRight = LeaderTiling.TryGetRange(900, 500, 4, 595, out _, out _);
+        var degenerate = LeaderTiling.TryGetRange(0, double.NaN, 4, 595, out _, out _);
 
         await Assert.That(offLeft).IsFalse();
         await Assert.That(offRight).IsFalse();

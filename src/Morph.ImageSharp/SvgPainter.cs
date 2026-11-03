@@ -425,31 +425,23 @@ static class SvgPainter
 
             var color = ImageSharpRenderContext.ParseColor(run.Properties.ColorHex);
             var fontSize = run.Properties.FontSizePoints;
-            if (run.Leader == TabLeader.Underscore)
+            var leaderChar = LeaderTiling.Glyph(run.Leader);
+            var font = context.GetFont(run.Properties);
+            var pitch = LeaderTiling.PitchPoints(context, run, context.MeasureText(font, leaderChar.ToString()));
+            if (!LeaderTiling.TryGetRange(run.X, run.Width, pitch, context.PageSettings.WidthPoints, out var startX, out var count))
+            {
+                return;
+            }
+
+            if (LeaderTiling.IsRule(run.Leader))
             {
                 var underscoreY = baseline + fontSize * 0.12;
-                Stroke(run.X, underscoreY, run.X + run.Width, underscoreY, color, Math.Max(0.5, fontSize / 16), null);
+                Stroke(startX, underscoreY, startX + count * pitch, underscoreY, color, Math.Max(0.5, fontSize / 16), null);
                 return;
             }
 
-            var leaderChar = run.Leader switch
-            {
-                TabLeader.Hyphen => "-",
-                TabLeader.MiddleDot => "·",
-                TabLeader.Heavy => "—",
-                _ => "."
-            };
-
-            var font = context.GetFont(run.Properties);
-            var glyphWidth = context.MeasureText(font, leaderChar);
-            if (glyphWidth <= 0 ||
-                !LeaderTiling.TryGetRange(run.X, run.Width, glyphWidth, glyphWidth, context.PageSettings.WidthPoints, out var startX, out var count))
-            {
-                return;
-            }
-
-            // The leader's dots in one element, each at its own x: the kerning-free glyph KerningMode
-            // Standard draws a lone leader glyph with.
+            // The leader's dots in one element, each at its own x on the page's grid: the kerning-free
+            // glyph KerningMode Standard draws a lone leader glyph with.
             svg.Append("<text x=\"");
             for (var index = 0; index < count; index++)
             {
@@ -458,7 +450,7 @@ static class SvgPainter
                     svg.Append(' ');
                 }
 
-                Number(startX + index * glyphWidth);
+                Number(startX + index * pitch);
             }
 
             svg.Append("\" y=\"");
@@ -478,7 +470,7 @@ static class SvgPainter
 
             Paint("fill", color);
             svg.Append('>');
-            svg.Append(leaderChar[0], count);
+            svg.Append(leaderChar, count);
             svg.Append("</text>");
         }
 
