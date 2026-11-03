@@ -184,7 +184,7 @@ public partial class SnapshotTests
     static async Task<byte[]> DownloadAsync(IPage page)
     {
         var download = await page.RunAndWaitForDownloadAsync(
-            () => page.ClickAsync("button[aria-label=Download]"),
+            () => page.ClickAsync("button[aria-label='Save a copy']"),
             new()
             {
                 Timeout = 30000

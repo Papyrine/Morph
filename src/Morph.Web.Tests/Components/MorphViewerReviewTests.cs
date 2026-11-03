@@ -292,7 +292,7 @@ public class MorphViewerReviewTests : BunitTestContext
         var cut = await OpenPane(Tracked);
 
         await cut.FindAll(".review-action").Single(_ => _.TextContent.Trim() == "Accept all").ClickAsync(new());
-        await cut.Find("button[aria-label=Download]").ClickAsync(new());
+        await cut.Find("button[aria-label='Save a copy']").ClickAsync(new());
 
         var saved = (byte[]) morph.Invocations["download"].Single().Arguments[2]!;
         await Assert.That(Text(saved)).IsEqualTo("Hello inserted world ");

@@ -19,21 +19,14 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
         var cancel = options.Cancellation;
         cancel.ThrowIfCancellationRequested();
 
-        // A page too large for the pixel budget paints at the highest resolution that fits it
-        // (ImageExportOptions.MaxPagePixels).
-        var painting = options with
-        {
-            Dpi = options.EffectiveDpi(laidOut.Pages.Select(_ => _.Settings))
-        };
-        var settings = laidOut.ContextSettings(document.PageSettings);
         var parallelism = Math.Min(options.MaxDegreeOfParallelism, laidOut.Pages.Count);
         if (parallelism > 1)
         {
-            ParallelPages.Paint(laidOut.Pages, parallelism, () => CreateContext(document, painting, settings), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback, cancel);
+            ParallelPages.Paint(laidOut.Pages, parallelism, () => PaintingContext(document, laidOut, options), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback, cancel);
             return laidOut.Pages.Count;
         }
 
-        using var context = CreateContext(document, painting, settings);
+        using var context = PaintingContext(document, laidOut, options);
         foreach (var page in laidOut.Pages)
         {
             cancel.ThrowIfCancellationRequested();
@@ -41,6 +34,39 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
         }
 
         return laidOut.Pages.Count;
+    }
+
+    /// <summary>
+    /// <see cref="RenderPagesCounted"/>, a page at a time: lays the document out now and paints each page
+    /// only when <see cref="PageRun.Paint"/> asks for it, so a caller on the browser's one thread can hand
+    /// it back between pages. The pages are the bytes <see cref="RenderPagesCounted"/> writes.
+    /// </summary>
+    internal static PageRun StartPages(ParsedDocument document, ImageExportOptions options)
+    {
+        var laidOut = Layout(document, options);
+        return new(laidOut, PaintingContext(document, laidOut, options), options.Crop);
+    }
+
+    internal sealed class PageRun(LaidOutDocument laidOut, ImageSharpRenderContext context, PageCrop crop) : IDisposable
+    {
+        public int Count => laidOut.Pages.Count;
+
+        public byte[] Paint(int index) =>
+            PageSink.ToMemory(_ => ImageSharpPainter.PaintPage(laidOut.Pages[index], context, crop, _))[0];
+
+        public void Dispose() =>
+            context.Dispose();
+    }
+
+    // A page too large for the pixel budget paints at the highest resolution that fits it
+    // (ImageExportOptions.MaxPagePixels).
+    static ImageSharpRenderContext PaintingContext(ParsedDocument document, LaidOutDocument laidOut, ImageExportOptions options)
+    {
+        var painting = options with
+        {
+            Dpi = options.EffectiveDpi(laidOut.Pages.Select(_ => _.Settings))
+        };
+        return CreateContext(document, painting, laidOut.ContextSettings(document.PageSettings));
     }
 
     // The two halves of RenderPagesCounted, split so a caller that paints pages on demand (the Blazor

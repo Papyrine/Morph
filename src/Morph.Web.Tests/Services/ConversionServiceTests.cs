@@ -88,6 +88,31 @@ public class ConversionServiceTests
         }
     }
 
+    // The converter's PNG save paints a page at a time; the pages must be the bytes the one-shot render
+    // writes, at every crop.
+    [Test]
+    [MethodDataSource(typeof(Sample), nameof(Sample.Formats))]
+    public async Task StartPngPages_MatchesRenderPngPages(InputFormat source)
+    {
+        foreach (var crop in Enum.GetValues<PageCrop>())
+        {
+            ImageSettings settings = new()
+            {
+                Dpi = 72,
+                Crop = crop
+            };
+            var expected = ConversionService.RenderPngPages(Sample.BytesFor(source), source, settings, Sample.FontDirectory);
+
+            using var run = ConversionService.StartPngPages(Sample.BytesFor(source), source, settings, Sample.FontDirectory);
+
+            await Assert.That(run.Count).IsEqualTo(expected.Count);
+            for (var index = 0; index < run.Count; index++)
+            {
+                await Assert.That(run.Paint(index).AsSpan().SequenceEqual(expected[index])).IsTrue();
+            }
+        }
+    }
+
     // The preview's render: one layout pass yields the same images as the one-shot converter, plus each
     // page's size and selectable text.
     [Test]

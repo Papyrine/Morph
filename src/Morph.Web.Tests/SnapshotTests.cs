@@ -140,7 +140,7 @@ public partial class SnapshotTests
         await page.ClickAsync(SampleButton(source));
 
         var image = await page.WaitForSelectorAsync(
-            ".preview-page",
+            renderedPreview,
             new()
             {
                 Timeout = 90000
@@ -150,7 +150,7 @@ public partial class SnapshotTests
         await Assert.That(url).StartsWith("data:image/png");
     }
 
-    // The Download button runs the actual conversion (off the UI thread) and hands the bytes to the
+    // The Save button runs the actual conversion (off the UI thread) and hands the bytes to the
     // browser. Markdown is deterministic and needs no fonts — a clean check the download path works.
     [Test]
     public async Task DownloadingMarkdownSavesFile()
@@ -400,12 +400,16 @@ public partial class SnapshotTests
                 Buffer = Sample.BytesFor(source)
             });
         await page.WaitForSelectorAsync(
-            ".preview-page",
+            renderedPreview,
             new()
             {
                 Timeout = 90000
             });
     }
+
+    // The preview's pages arrive one at a time, so the first page alone does not mean it is done: the
+    // workspace stays aria-busy until the last of them is in.
+    const string renderedPreview = ".workspace[aria-busy=false] .preview-page";
 
     // The sample buttons render in ReadableFormats order, so the format's index picks its button.
     static string SampleButton(InputFormat source) =>

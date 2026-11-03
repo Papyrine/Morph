@@ -59,10 +59,12 @@ public partial class DocumentPreview
 
     protected override void OnParametersSet()
     {
+        // Resized rather than replaced: a host adding pages as they render keeps the overlays of the
+        // pages already shown, which Blazor will not capture again, and does not rebuild their text.
         if (textLayerElements.Length != Pages.Count)
         {
-            textLayerElements = new ElementReference[Pages.Count];
-            builtLayers = new PageTextLayer?[Pages.Count];
+            Array.Resize(ref textLayerElements, Pages.Count);
+            Array.Resize(ref builtLayers, Pages.Count);
         }
 
         if (Busy)
