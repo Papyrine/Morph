@@ -83,18 +83,15 @@ public abstract class DocumentConverter
         DefaultFontSettings.MarkRenderOccurred();
         var paragraphPages = ParagraphPages(document, options);
 
-        // A bookmark knows the ordinal of the paragraph it sits in; layout knows where that
-        // paragraph landed. Joining the two is the whole trick — and the two sides have to count
-        // the same paragraphs, which means every w:p in document order rather than only the ones at
-        // body level. A table's cells hold paragraphs too, so counting only the top level shifts
-        // every bookmark below a table onto some other paragraph's page.
-        var bodyParagraphs = Flatten(document.Elements).ToList();
+        // A bookmark knows the paragraph it sits in; layout knows where that paragraph landed.
+        // Joining the two is the whole trick. It was joined by counting paragraphs, which never
+        // agreed for long: a table's cells hold paragraphs too, and a w:p a break divides is
+        // several paragraphs of the model, or none, so every bookmark after one landed on some
+        // other paragraph's page.
         foreach (var bookmark in document.Bookmarks)
         {
-            if (bookmark.ParagraphIndex is not { } index ||
-                index < 0 ||
-                index >= bodyParagraphs.Count ||
-                !paragraphPages.TryGetValue(bodyParagraphs[index], out var page))
+            if (bookmark.Paragraph is not { } paragraph ||
+                !paragraphPages.TryGetValue(paragraph, out var page))
             {
                 continue;
             }
@@ -105,9 +102,7 @@ public abstract class DocumentConverter
         return pages;
     }
 
-    // Every paragraph under these elements, depth-first, matching the document order the parser
-    // assigns bookmark ordinals in (see DocumentParser's paragraph-ordinal map, which walks
-    // body.Descendants&lt;Paragraph&gt;()).
+    // Every paragraph under these elements, depth-first, in document order.
     internal static IEnumerable<ParagraphElement> Flatten(IEnumerable<DocumentElement> elements)
     {
         foreach (var element in elements)
@@ -273,10 +268,13 @@ public abstract class DocumentConverter
         {
             foreach (var line in Lines(page.Items))
             {
-                if (!pages.TryGetValue(line.Paragraph, out var existing) ||
+                // A paragraph holding a page field is placed as the copy the layout rebuilt it as,
+                // and a bookmark knows the parsed one
+                var paragraph = line.Paragraph.Parsed;
+                if (!pages.TryGetValue(paragraph, out var existing) ||
                     page.Number < existing)
                 {
-                    pages[line.Paragraph] = page.Number;
+                    pages[paragraph] = page.Number;
                 }
             }
         }
