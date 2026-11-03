@@ -5391,15 +5391,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             if (references.Count > 0 &&
                 bookmarks is {Count: > 0})
             {
-                var paragraphs = DocumentConverter.Flatten(elements).ToList();
                 var marked = new Dictionary<string, ParagraphElement>(StringComparer.Ordinal);
                 foreach (var bookmark in bookmarks)
                 {
-                    if (bookmark.ParagraphIndex is { } paragraphIndex &&
-                        paragraphIndex >= 0 &&
-                        paragraphIndex < paragraphs.Count)
+                    if (bookmark.Paragraph is { } paragraph)
                     {
-                        marked.TryAdd(bookmark.Name, paragraphs[paragraphIndex]);
+                        marked.TryAdd(bookmark.Name, paragraph);
                     }
                 }
 
@@ -5471,6 +5468,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             Runs = runs,
                             Properties = paragraph.Properties,
                             Source = paragraph.Source,
+                            RebuiltFrom = paragraph.Parsed,
                             IsAnchorOnlyMark = paragraph.IsAnchorOnlyMark,
                             IsCollapsedCellMark = paragraph.IsCollapsedCellMark,
                             IsSectionBreakMark = paragraph.IsSectionBreakMark
