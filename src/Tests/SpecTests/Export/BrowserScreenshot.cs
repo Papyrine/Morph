@@ -69,7 +69,9 @@ static class BrowserScreenshot
         .Build();
 
     /// <summary>
-    /// Renders an HTML fragment to a full-page PNG.
+    /// Renders an HTML fragment to a PNG of what it draws. The page is laid out in a 1024 CSS pixel
+    /// window, or in one as wide as its body's max-width when that is wider, and the capture is cut
+    /// to the content (see <see cref="CaptureAsync"/>).
     ///
     /// <paramref name="deviceScale"/> is device pixels per CSS pixel. Below 1 it shrinks the capture
     /// without touching layout — the viewport stays 1024 CSS pixels wide, so nothing reflows and the
@@ -110,8 +112,8 @@ static class BrowserScreenshot
             {
                 ViewportSize = new()
                 {
-                    Width = 1024,
-                    Height = 768
+                    Width = viewportWidth,
+                    Height = viewportHeight
                 },
                 DeviceScaleFactor = (float) deviceScale
             });
@@ -129,14 +131,88 @@ static class BrowserScreenshot
         // captured mid-swap from a fallback face. EvaluateAsync takes no timeout and is not
         // bound by the default one, so this await is not a candidate for the same failure.
         await page.EvaluateAsync("async () => { await document.fonts.ready; }");
+
+        // A page wider than the window (a deck's 960pt slides are 1280px) is laid out in a window
+        // its width: in 1024px its body was squeezed to the window and every slide, which clips
+        // to its box, lost its right fifth.
+        var pageWidth = await page.EvaluateAsync<double>(pageWidthScript);
+        if (pageWidth > viewportWidth)
+        {
+            await page.SetViewportSizeAsync((int) Math.Ceiling(pageWidth), viewportHeight);
+        }
+
+        // The capture is what the page draws, not the window: a full-page capture grows the window
+        // down to the content but never trims it, so cards/13's 816px letter page came with a
+        // 208px white strip beside it and cards/04's 672x480 card sat in a 1024x768 frame.
+        var extent = await page.EvaluateAsync<double[]>(contentExtentScript);
         return await page.ScreenshotAsync(
             new()
             {
                 FullPage = true,
+                Clip = new()
+                {
+                    X = 0,
+                    Y = 0,
+                    Width = (float) Math.Max(1, Math.Ceiling(extent[0])),
+                    Height = (float) Math.Max(1, Math.Ceiling(extent[1]))
+                },
                 Type = ScreenshotType.Png,
                 Timeout = pageTimeout
             });
     }
+
+    const int viewportWidth = 1024;
+    const int viewportHeight = 768;
+
+    // The width the body asks for: its max-width plus its padding and borders (the page width the
+    // HTML export writes there), or 0 when it sets no max-width.
+    const string pageWidthScript =
+        """
+        () => {
+          const style = getComputedStyle(document.body);
+          const max = parseFloat(style.maxWidth);
+          if (!isFinite(max)) {
+            return 0;
+          }
+          return max +
+            parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) +
+            parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+        }
+        """;
+
+    // The right and bottom edges of everything the page draws, in page coordinates: every element's
+    // box, cut to the boxes of the ancestors that clip their overflow, so art a slide hides past its
+    // edge does not widen the capture.
+    const string contentExtentScript =
+        """
+        () => {
+          let right = 0;
+          let bottom = 0;
+          const visit = (element, clip) => {
+            const style = getComputedStyle(element);
+            if (style.display === 'none') {
+              return;
+            }
+            const box = element.getBoundingClientRect();
+            const shown = {
+              left: Math.max(box.left, clip.left),
+              top: Math.max(box.top, clip.top),
+              right: Math.min(box.right, clip.right),
+              bottom: Math.min(box.bottom, clip.bottom)
+            };
+            if (shown.right > shown.left && shown.bottom > shown.top) {
+              right = Math.max(right, shown.right);
+              bottom = Math.max(bottom, shown.bottom);
+            }
+            const inner = style.overflowX === 'visible' && style.overflowY === 'visible' ? clip : shown;
+            for (const child of element.children) {
+              visit(child, inner);
+            }
+          };
+          visit(document.body, {left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity});
+          return [right + window.scrollX, bottom + window.scrollY];
+        }
+        """;
 
     /// <summary>
     /// The state of the browser at a failed capture: whether it is still there, how many captures
