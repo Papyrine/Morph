@@ -1,10 +1,11 @@
 @inject HttpClient Http
 @inject MorphInterop Interop
 
-<div @ref="root" class="@RootClass" @attributes="AdditionalAttributes">
+<div class="@RootClass" @attributes="AdditionalAttributes">
     <div class="upload-panel">
         @* A file dropped anywhere on the converter lands in this box's input (acceptConverterDrops in
-           morph.js), which highlights while one is held over it. *@
+           morph.js), which highlights while one is held over it. The script finds the converter from
+           the input: a component's @ref writes nothing into the markup, where an element's would. *@
         <label class="file-drop" for="source-file">
             <span class="file-drop-icon"><Iconify Value="@(sourceInfo?.Icon ?? Lucide.FileUp)" aria-hidden="true" focusable="false" /></span>
             <span class="file-drop-text">
@@ -19,7 +20,7 @@
                     <span>@(sourceInfo?.PageLabel(pageCount))</span>
                 }
             </span>
-            <InputFile id="source-file" OnChange="OnFileSelected" class="file-input" accept="@ConversionService.ReadableAccept" />
+            <InputFile @ref="sourceInput" id="source-file" OnChange="OnFileSelected" class="file-input" accept="@ConversionService.ReadableAccept" />
         </label>
 
         @* One sample per readable format, each bundled as a static web asset of this package and fetched

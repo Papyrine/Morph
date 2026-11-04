@@ -74,9 +74,13 @@ export function acceptFileDrops(root, findInput, draggingClass, signal) {
     }, { signal });
 }
 
-// The converter's drop: anywhere on it opens the file through the upload box's own input.
-export function acceptConverterDrops(root) {
-    acceptFileDrops(root, () => root.querySelector('.file-drop input[type=file]'), 'converter-dragging');
+// The converter's drop: anywhere on it opens the file through the upload box's own input, which is
+// what .NET hands in (the converter's root carries no element reference of its own).
+export function acceptConverterDrops(input) {
+    const root = input.closest('.converter');
+    if (root) {
+        acceptFileDrops(root, () => input.isConnected ? input : null, 'converter-dragging');
+    }
 }
 
 export function userAgent() {
