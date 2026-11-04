@@ -82,6 +82,7 @@ public partial class MorphConverter : IDisposable
     ResultPreview? result;
     readonly Dictionary<OutputFormat, ResultPreview> resultCache = new();
     DotNetObjectReference<MorphConverter>? selfReference;
+    ElementReference root;
 
     // The work done for the loaded source: cancelled when another source replaces it and when the
     // component goes, so a server-hosted converter stops rendering for a file nobody will see. (On the
@@ -137,7 +138,15 @@ public partial class MorphConverter : IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || !ShowResultPane)
+        if (!firstRender)
+        {
+            return;
+        }
+
+        // A file dropped anywhere on the converter goes through the upload box's input, as if picked.
+        await Interop.AcceptConverterDropsAsync(root);
+
+        if (!ShowResultPane)
         {
             return;
         }

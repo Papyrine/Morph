@@ -37,6 +37,48 @@ export function watchWide(dotNetReference, minWidth) {
     return query.matches;
 }
 
+// Opens a file dropped anywhere on root through the file input findInput returns, as if it had been
+// picked: the component's InputFile then reads it like any other. root carries draggingClass while a
+// file is held over it. Only the first of several files is handed on, since the input takes one and
+// Blazor's InputFileChangeEventArgs.File throws on more. Returns nothing to undo: the listeners go with
+// root, or with signal when one is given.
+export function acceptFileDrops(root, findInput, draggingClass, signal) {
+    const holdsFiles = event => event.dataTransfer?.types?.includes('Files');
+    const leave = () => root.classList.remove(draggingClass);
+
+    root.addEventListener('dragover', event => {
+        if (holdsFiles(event) && findInput()) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+            root.classList.add(draggingClass);
+        }
+    }, { signal });
+    root.addEventListener('dragleave', event => {
+        if (!root.contains(event.relatedTarget)) {
+            leave();
+        }
+    }, { signal });
+    root.addEventListener('drop', event => {
+        leave();
+        const input = findInput();
+        const file = event.dataTransfer?.files?.[0];
+        if (!input || !file) {
+            return;
+        }
+
+        event.preventDefault();
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        input.files = transfer.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, { signal });
+}
+
+// The converter's drop: anywhere on it opens the file through the upload box's own input.
+export function acceptConverterDrops(root) {
+    acceptFileDrops(root, () => root.querySelector('.file-drop input[type=file]'), 'converter-dragging');
+}
+
 export function userAgent() {
     return navigator.userAgent;
 }

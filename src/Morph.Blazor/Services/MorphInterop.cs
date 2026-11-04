@@ -95,6 +95,16 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
     }
 
     /// <summary>
+    /// Makes a file dropped anywhere on the converter's <paramref name="root"/> open as if picked in its
+    /// upload box. The listeners live on the element, so they go when it does.
+    /// </summary>
+    internal async Task AcceptConverterDropsAsync(ElementReference root)
+    {
+        var module = await Module;
+        await module.InvokeVoidAsync("acceptConverterDrops", root);
+    }
+
+    /// <summary>
     /// The launch Morph.Wopi wrote into the page, as its JSON, taken out of the page; null when there is none.
     /// </summary>
     internal async Task<string?> WopiLaunchAsync()

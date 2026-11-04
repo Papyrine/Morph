@@ -48,7 +48,8 @@ Then use it:
 <MorphConverter />
 ```
 
-That is the whole widget — upload panel (or one of three bundled samples), a live page-image preview,
+That is the whole widget — upload panel (click it, or drop a file anywhere on the converter; or one of
+three bundled samples), a live page-image preview,
 an output-format picker with per-format options, and a download button. On a viewport wider than 1200px
 it also shows the selected format's real output beside the preview: Markdown and plain text inline, PDF
 and HTML in an iframe.
