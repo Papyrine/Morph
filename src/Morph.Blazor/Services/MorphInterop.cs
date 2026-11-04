@@ -95,13 +95,14 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
     }
 
     /// <summary>
-    /// Makes a file dropped anywhere on the converter's <paramref name="root"/> open as if picked in its
-    /// upload box. The listeners live on the element, so they go when it does.
+    /// Makes a file dropped anywhere on the converter that holds <paramref name="input"/>, its upload
+    /// box's file input, open as if picked there. The listeners live on the converter's element, so they
+    /// go when it does.
     /// </summary>
-    internal async Task AcceptConverterDropsAsync(ElementReference root)
+    internal async Task AcceptConverterDropsAsync(ElementReference input)
     {
         var module = await Module;
-        await module.InvokeVoidAsync("acceptConverterDrops", root);
+        await module.InvokeVoidAsync("acceptConverterDrops", input);
     }
 
     /// <summary>
