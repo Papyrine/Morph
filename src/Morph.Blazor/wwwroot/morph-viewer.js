@@ -20,6 +20,7 @@
 import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt, setMarks as showMarks } from './morph-text.js';
 import { ParagraphEditor, wordKey } from './morph-edit.js';
 import { DraftKeeper } from './morph-draft.js';
+import { acceptFileDrops } from './morph.js';
 
 // PDF.js's zoom steps.
 const zoomSteps = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
@@ -330,29 +331,7 @@ class Viewer {
         document.addEventListener('selectionchange', () => this.onSelectionChange(), { signal });
 
         // Dropping a file anywhere on the viewer opens it, through the same file input the Open button uses.
-        this.root.addEventListener('dragover', event => {
-            if (this.fileInput() && event.dataTransfer?.types?.includes('Files')) {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'copy';
-                this.root.classList.add('viewer-dragging');
-            }
-        }, { signal });
-        this.root.addEventListener('dragleave', event => {
-            if (!this.root.contains(event.relatedTarget)) {
-                this.root.classList.remove('viewer-dragging');
-            }
-        }, { signal });
-        this.root.addEventListener('drop', event => {
-            this.root.classList.remove('viewer-dragging');
-            const input = this.fileInput();
-            if (!input || !event.dataTransfer?.files?.length) {
-                return;
-            }
-
-            event.preventDefault();
-            input.files = event.dataTransfer.files;
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        }, { signal });
+        acceptFileDrops(this.root, () => this.fileInput(), 'viewer-dragging', signal);
 
         this.resizeObserver = new ResizeObserver(() => this.onResize());
         this.resizeObserver.observe(this.scroller);

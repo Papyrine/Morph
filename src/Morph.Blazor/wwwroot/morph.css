@@ -51,8 +51,13 @@
     transition: border-color 0.2s, background 0.2s;
 }
 
-.file-drop:hover {
+.file-drop:hover,
+.converter-dragging .file-drop {
     border-color: var(--morph-primary, #2b579a);
+}
+
+.converter-dragging .file-drop {
+    background: color-mix(in srgb, var(--morph-primary, #2b579a) 8%, var(--morph-surface, #ffffff));
 }
 
 .file-drop-icon {
