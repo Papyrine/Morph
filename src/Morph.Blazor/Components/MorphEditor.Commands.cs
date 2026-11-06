@@ -301,11 +301,16 @@ public partial class MorphEditor
                 Checked = _ => _.Painting
             };
 
+        // The Font and Size boxes take the focus, which hands the open paragraph in, and an input
+        // disabled while that edit is under way would drop the focus and what is typed after it. A
+        // name or size typed waits for the edit (RequireAsync), so the boxes ask only for a file that
+        // can be written.
         public static readonly EditorCommand Font = new("font", "Font", _ => _.ToggleMenu(fontMenu))
         {
             Place = "Home › Font",
             Menu = fontMenu,
-            Opens = "listbox"
+            Opens = "listbox",
+            Enabled = _ => _.CanWrite
         };
 
         public static readonly EditorCommand FontSize =
@@ -313,7 +318,8 @@ public partial class MorphEditor
             {
                 Place = "Home › Font",
                 Menu = sizeMenu,
-                Opens = "listbox"
+                Opens = "listbox",
+                Enabled = _ => _.CanWrite
             };
 
         public static readonly EditorCommand Grow =

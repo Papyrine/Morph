@@ -12,8 +12,6 @@ what those fixes stopped short of.
 - **Insert > Table's greying inside the open paragraph is CSS only** (`markClipboard` marks
   `.editor-caret-only` with `data-selected`), and a button on a freshly shown Insert tab is only marked
   at the next selection change.
-- **Escape in the ribbon's Font and Size boxes does not put the shown value back**; they apply on Enter
-  or on leaving the box.
 - **A click in F8 extend mode ends the mode.** Word may extend the selection to the click instead;
   settle it with a Word probe.
 - **A submenu opened from a menu that scrolls** (`placeMenu` caps a tall menu's height) is clipped by

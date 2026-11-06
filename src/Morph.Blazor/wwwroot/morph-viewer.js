@@ -1872,6 +1872,21 @@ class Viewer {
             this.controlDown = true;
         }
 
+        // Escape in the ribbon's Font or Size box puts back what the box showed, closes its list if
+        // that is open, and goes back to where the reader left the document, as Word's does. The box
+        // holds what it showed again before it loses the focus, so no change is handed in. Taking
+        // the focus handed the open paragraph in, so .NET opens it again, as after a command.
+        const box = event.target;
+        if (event.key === 'Escape' && box instanceof HTMLInputElement && box.matches('.editor-combo-input')) {
+            event.preventDefault();
+            event.stopPropagation();
+            box.value = box.dataset.value ?? box.defaultValue;
+            box.blur();
+            this.scroller.focus({ preventScroll: true });
+            this.handedIn().then(() => this.call('OnRibbonEscape'));
+            return;
+        }
+
         // Escape closes the editor's menu or dialog that is open, and goes no further: the paragraph
         // being typed in keeps what was typed, as Word's does. Neither has the focus — the ribbon does
         // not take it — so the key is caught here, before the paragraph's own Escape.
@@ -2817,10 +2832,15 @@ class Viewer {
     async handIn(editor, payload, then) {
         const before = this.documentId;
         this.leaving.push(editor);
-        try {
-            await this.dotNet.invokeMethodAsync('OnEditCommit', editor.session.id, payload, then);
-        } catch {
-            // The component is gone.
+        // Kept while it is under way, for what has to follow it rather than race it (handedIn).
+        const handing = this.dotNet.invokeMethodAsync('OnEditCommit', editor.session.id, payload, then)
+            .catch(() => {
+                // The component is gone.
+            });
+        this.handing = handing;
+        await handing;
+        if (this.handing === handing) {
+            this.handing = null;
         }
 
         if (this.documentId === before) {
@@ -2834,6 +2854,12 @@ class Viewer {
         if (this.pages[editor.page.index]?.dpi > 0) {
             this.release(editor);
         }
+    }
+
+    // Once the paragraph last handed in has been taken, and the pages laid out again from it: what
+    // reopens a paragraph after that would otherwise be closed by the layout it raced.
+    handedIn() {
+        return this.handing ?? Promise.resolve();
     }
 
     release(editor) {

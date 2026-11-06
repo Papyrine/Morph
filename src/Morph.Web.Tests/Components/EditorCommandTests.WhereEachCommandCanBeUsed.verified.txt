@@ -21,13 +21,13 @@ tracked changes
 with history
     redo, undo
 writable, revising, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
-    replace
+    font, font-size, replace
 writable, with history, in a table, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
     table
 writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, comments allowed
     track
 writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
-    bookmark, clear-formatting, cut, decrease-indent, delete, end-list, follow-on, font, font-colour, font-colours, font-size, footer, format-painter, header, heading1, heading2, heading3, increase-indent, indent, line-double, line-one-and-half, line-single, outdent, overtype, paste, picture, reset-picture, unindent
+    bookmark, clear-formatting, cut, decrease-indent, delete, end-list, follow-on, font-colour, font-colours, footer, format-painter, header, heading1, heading2, heading3, increase-indent, indent, line-double, line-one-and-half, line-single, outdent, overtype, paste, picture, reset-picture, unindent
 writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, tracked changes, tracking forced, comments allowed
     page-field, page-number
 writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, tracked changes, tracking forced, comments allowed

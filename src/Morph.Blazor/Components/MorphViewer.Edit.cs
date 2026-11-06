@@ -679,6 +679,48 @@ public partial class MorphViewer
                 StateHasChanged();
             });
 
+    /// <summary>
+    /// Called from JavaScript when Escape is pressed in the ribbon's Font or Size box, which has put
+    /// back what it showed: its list closes, and the reader goes back to where they were — the
+    /// paragraph open again with the caret or the text selected, or the text selected on the pages —
+    /// as a command run from the ribbon leaves them.
+    /// </summary>
+    [JSInvokable]
+    public Task OnRibbonEscape() =>
+        InvokeAsync(
+            async () =>
+            {
+                CloseMenus();
+                StateHasChanged();
+                if (!editOpen)
+                {
+                    return;
+                }
+
+                await SettledAsync();
+                if (await TargetAsync() is not { } target)
+                {
+                    return;
+                }
+
+                if (!target.Typing)
+                {
+                    await ReselectAsync(target);
+                    return;
+                }
+
+                if (target.HasSelection &&
+                    target.StartParagraph == target.Paragraph)
+                {
+                    var from = Math.Min(target.StartOffset, target.Offset);
+                    var to = Math.Max(target.StartOffset, target.Offset);
+                    await ResumeAsync(target.Paragraph, from, to, target.Page);
+                    return;
+                }
+
+                await ResumeAsync(target.Paragraph, target.Offset, page: target.Page);
+            });
+
     // MorphEditor's: the viewer has no right-click menu, and no menus of its own to close.
     internal virtual void OpenContextMenu(double x, double y)
     {

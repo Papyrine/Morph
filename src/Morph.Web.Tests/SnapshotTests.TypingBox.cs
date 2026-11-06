@@ -63,6 +63,38 @@ public partial class SnapshotTests
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two.");
     }
 
+    // Escape in the ribbon's Font or Size box puts back what the box showed and goes back to the
+    // paragraph, where the caret was left: what was typed into the box is not applied, and what was
+    // typed in the paragraph is kept.
+    [Test]
+    [Arguments(".editor-font-input", "Comic Sans MS")]
+    [Arguments(".editor-size-input", "48")]
+    public async Task EscapeInTheFontBoxes_PutsBackWhatTheyShowed(string box, string typed)
+    {
+        var page = await OpenEditAsync(Build(P("", R("One two."))));
+
+        // What is typed before is handed in as the box takes the focus, and the caret is still after it.
+        await ClickInAsync(page, "two");
+        await page.Keyboard.TypeAsync("y");
+        await page.WaitForFunctionAsync($"() => document.querySelector('{editor}')?.innerText.includes('y')");
+        var shown = await page.InputValueAsync(box);
+        await page.FocusAsync(box);
+        await page.Keyboard.PressAsync("Control+a");
+        await page.Keyboard.TypeAsync(typed);
+        // The box keeps the focus through the hand-in's layout, which once disabled it, and with it
+        // what was typed.
+        await Assert.That(await page.InputValueAsync(box)).IsEqualTo(typed);
+        await page.Keyboard.PressAsync("Escape");
+
+        await Assert.That(await page.InputValueAsync(box)).IsEqualTo(shown);
+        await page.WaitForSelectorAsync($"{editor}:focus");
+        await page.Keyboard.TypeAsync("x");
+        await Assert.That(await page.InnerTextAsync(editor)).Contains("yx");
+        var saved = DocumentBody(await SaveAsync(page));
+        await Assert.That(saved).DoesNotContain("Comic Sans");
+        await Assert.That(saved).DoesNotContain("w:sz w:val=\"96\"");
+    }
+
     // A character beyond the Basic Multilingual Plane is two UTF-16 code units and one character:
     // Overtype types over it whole, and F4 repeating a deletion deletes it whole.
     [Test]
