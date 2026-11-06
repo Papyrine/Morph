@@ -1221,9 +1221,9 @@ public partial class MorphEditor
             };
 
         // Word's keys for a field at the caret, which no button stands for: Alt+Shift+D a DATE field in
-        // d/MM/yyyy, Alt+Shift+P a PAGE field and Alt+Shift+T a TIME field (WordProbe E-100).
+        // the language's short date (d/MM/yyyy in en-AU), Alt+Shift+P a PAGE field and Alt+Shift+T a TIME field (WordProbe E-100).
         public static readonly EditorCommand DateField =
-            new("date-field", "Date field", _ => _.InsertDateAsync(DateFormats[0], true))
+            new("date-field", "Date field", _ => _.InsertShortDateAsync())
             {
                 Key = "Alt+Shift+D",
                 Enabled = ForTextAlone

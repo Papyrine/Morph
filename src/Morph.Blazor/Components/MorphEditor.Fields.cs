@@ -13,15 +13,16 @@ public partial class MorphEditor
     // The date each format is shown with: the reader's, when the dialog opened.
     DateTime dateShown;
 
-    // The formats the dialog offers, in the reader's culture: its own short and long dates first, as
-    // Word lists the language's, then the rest of Word's list. A runtime with no culture data (the
-    // invariant culture, as a WebAssembly app built with InvariantGlobalization has) offers Word's
-    // list alone.
-    internal static IReadOnlyList<string> DateChoices => DateFormatsFor(CultureInfo.CurrentCulture);
+    // The culture the dialog spells its dates in, and the formats it offers in it, from when it opened.
+    CultureInfo dateCulture = CultureInfo.InvariantCulture;
+    IReadOnlyList<string> dateChoices = DateFormats;
 
-    internal static IReadOnlyList<string> DateFormatsFor(CultureInfo culture)
+    // The formats the dialog offers in a culture: its own short and long dates first, as Word lists
+    // the language's, then the rest of Word's list. No culture (DateCultureAsync found none) offers
+    // Word's list alone.
+    internal static IReadOnlyList<string> DateFormatsFor(CultureInfo? culture)
     {
-        if (culture.Name.Length == 0)
+        if (culture == null)
         {
             return DateFormats;
         }
@@ -58,7 +59,7 @@ public partial class MorphEditor
     {
         get
         {
-            var choices = DateChoices;
+            var choices = dateChoices;
             if (dateFormat is { } chosen &&
                 choices.Contains(chosen))
             {
@@ -72,12 +73,15 @@ public partial class MorphEditor
     async Task OpenDateAsync()
     {
         dateShown = await ReaderDateAsync();
+        var culture = await DateCultureAsync();
+        dateCulture = culture ?? CultureInfo.InvariantCulture;
+        dateChoices = DateFormatsFor(culture);
         dateFormat = ChosenDate;
         dialog = dateDialog;
     }
 
     string DateLabel(string format) =>
-        dateShown.ToString(DocumentEditor.Literal(format), CultureInfo.CurrentCulture);
+        dateShown.ToString(DocumentEditor.Literal(format), dateCulture);
 
     Task DateFromDialogAsync()
     {

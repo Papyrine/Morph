@@ -410,6 +410,7 @@ Limits worth knowing:
 | `OnSave` | — | Saves the file where it came from. Given one, Save and Ctrl+S hand it the file instead of downloading it; the file counts as saved once it returns, and what it throws is shown, the file still edited. Download then saves a copy. |
 | `ShowNew` | `true` | `MorphEditor` only: offers a new blank document in the File menu. |
 | `KeepDrafts` | `true` | `MorphEditor` only: keeps a draft of a document with edits not saved in the browser's storage, for the start page to offer back. Off, the page still asks before it is left; `MorphWopi` turns it off. |
+| `Culture` | — | `MorphEditor` only: the culture dates are spelt in — the Date and Time dialog's first formats, and its month and day names. Left unset, `CultureInfo.CurrentCulture`, or the reader's browser's dates on a runtime with no culture data (`InvariantGlobalization`). `InvariantCulture` offers Word's list alone. |
 | `InitialZoom` | `ViewerZoom.Auto` | The zoom a file opens at: `Auto`, `PageFit`, `PageWidth` or `ActualSize`. |
 | `InitialPage` | `1` | The page (or slide) a file opens at. |
 | `PrintDpi` | `150` | Print resolution, lowered automatically for a very long document. |

@@ -472,7 +472,7 @@
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-date-title" @onkeydown="OnDateKeyDownAsync">
             <h2 id="editor-date-title" class="editor-dialog-title">Date and time</h2>
             <div class="editor-bookmarks" role="listbox" aria-label="Available formats">
-                @foreach (var format in DateChoices)
+                @foreach (var format in dateChoices)
                 {
                     var chosen = format;
                     <button type="button" role="option" class="editor-menu-item" aria-selected="@Pressed(chosen == current)" data-format="@chosen"

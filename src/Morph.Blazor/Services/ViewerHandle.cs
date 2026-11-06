@@ -146,6 +146,9 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask<int> ZoneOffsetAsync() =>
         controller.InvokeAsync<int>("zoneOffset");
 
+    public ValueTask<ReaderDates?> ReaderDatesAsync() =>
+        controller.InvokeAsync<ReaderDates?>("readerDates");
+
     public ValueTask BeginPrintAsync(double[] sizesPoints) =>
         controller.InvokeVoidAsync("beginPrint", sizesPoints);
 

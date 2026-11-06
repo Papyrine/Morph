@@ -83,12 +83,80 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         readDraft: () => viewer.drafts().read(),
         // Minutes east of UTC, which is the sign .NET's offsets take and the opposite of the browser's.
         zoneOffset: () => -new Date().getTimezoneOffset(),
+        readerDates: () => readerDates(),
         beginPrint: sizes => viewer.beginPrint(sizes),
         addPrintPage: (pageIndex, png) => viewer.addPrintPage(pageIndex, png),
         addPrintPageSvg: (pageIndex, markup, images, lengths) => viewer.addPrintPageSvg(pageIndex, markup, images, lengths),
         finishPrint: () => viewer.finishPrint(),
         cancelPrint: () => viewer.cancelPrint(),
         dispose: () => viewer.dispose(),
+    };
+}
+
+// How the reader's browser spells a date, for a .NET runtime with no culture data of its own: Intl's
+// short date (the browser's own toLocaleDateString), full date, year and month and short time, each
+// read back as a .NET custom format off a date whose day, month and hour show whether the style pads
+// them, and the names of the months and days. Gregorian and in Latin digits, as .NET writes them.
+function readerDates() {
+    const base = { calendar: 'gregory', numberingSystem: 'latn' };
+    const probe = new Date(2002, 4, 1, 13, 5); // Wednesday 1 May 2002, 13:05
+    const name = (date, options) => new Intl.DateTimeFormat(undefined, { ...base, ...options }).format(date);
+    const months = [], shortMonths = [], days = [], shortDays = [];
+    for (let month = 0; month < 12; month++) {
+        const date = new Date(2002, month, 15);
+        months.push(name(date, { month: 'long' }));
+        shortMonths.push(name(date, { month: 'short' }));
+    }
+    // 6 January 2002 was a Sunday, which .NET's day lists start with.
+    for (let day = 0; day < 7; day++) {
+        const date = new Date(2002, 0, 6 + day);
+        days.push(name(date, { weekday: 'long' }));
+        shortDays.push(name(date, { weekday: 'short' }));
+    }
+
+    // A literal as .NET and Word's \@ switch both take it: letters quoted, a quote dropped.
+    const literal = text => {
+        text = text.replace(/['"\\%]/g, '');
+        return /[A-Za-z]/.test(text) ? `'${text}'` : text;
+    };
+    const pattern = options => {
+        const format = new Intl.DateTimeFormat(undefined, { ...base, ...options });
+        const twelveHour = /^h1[12]$/.test(format.resolvedOptions().hourCycle ?? '');
+        let spelt = '';
+        for (const { type, value } of format.formatToParts(probe)) {
+            switch (type) {
+                case 'day': spelt += value.length > 1 ? 'dd' : 'd'; break;
+                case 'month':
+                    spelt += /^\d+$/.test(value)
+                        ? (value.length > 1 ? 'MM' : 'M')
+                        : (value === shortMonths[4] && value !== months[4] ? 'MMM' : 'MMMM');
+                    break;
+                case 'year': spelt += value.length > 2 ? 'yyyy' : 'yy'; break;
+                case 'weekday': spelt += value === days[3] ? 'dddd' : 'ddd'; break;
+                case 'hour':
+                    spelt += twelveHour
+                        ? (value.length > 1 ? 'hh' : 'h')
+                        : (value.length > 1 ? 'HH' : 'H');
+                    break;
+                case 'minute': spelt += 'mm'; break;
+                case 'dayPeriod': spelt += 'tt'; break;
+                case 'literal': spelt += literal(value); break;
+                // An era, a zone or a related year, none of which the \@ switch writes as .NET does.
+                default: spelt += 'g'; break;
+            }
+        }
+        return spelt;
+    };
+
+    return {
+        shortDate: pattern({ year: 'numeric', month: 'numeric', day: 'numeric' }),
+        longDate: pattern({ dateStyle: 'full' }),
+        yearMonth: pattern({ year: 'numeric', month: 'long' }),
+        shortTime: pattern({ timeStyle: 'short' }),
+        months,
+        shortMonths,
+        days,
+        shortDays,
     };
 }
 

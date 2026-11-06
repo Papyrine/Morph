@@ -98,6 +98,16 @@ public partial class MorphViewer : IAsyncDisposable
     [Parameter]
     public bool MeasurePaint { get; set; }
 
+    /// <summary>
+    /// The culture the editor's dates are spelt in: the formats its Date and Time dialog offers first,
+    /// and the month and day names a date is written with. When <c>null</c> (the default) it is
+    /// <see cref="CultureInfo.CurrentCulture"/> — or, where that has no culture data (a WebAssembly app
+    /// published with <c>InvariantGlobalization</c>), how the reader's browser spells a date. Pass
+    /// <see cref="CultureInfo.InvariantCulture"/> to offer Word's own list alone.
+    /// </summary>
+    [Parameter]
+    public CultureInfo? Culture { get; set; }
+
     /// <summary>Extra CSS classes for the root element, alongside the <c>viewer</c> class.</summary>
     [Parameter]
     public string? Class { get; set; }

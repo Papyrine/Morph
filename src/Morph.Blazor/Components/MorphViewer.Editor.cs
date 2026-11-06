@@ -1158,6 +1158,46 @@ public partial class MorphViewer
     internal async Task<DateTime> ReaderDateAsync() =>
         (await ReaderClockAsync()).DateTime;
 
+    // The browser's spelling of a date, asked for once: it does not change while the page is open.
+    CultureInfo? browserDates;
+    bool browserDatesRead;
+
+    // The culture dates are spelt in, or null for Word's list alone: the host's, else the runtime's,
+    // else — on a runtime with no culture data — the reader's browser's.
+    internal async Task<CultureInfo?> DateCultureAsync()
+    {
+        if (Culture is { } given)
+        {
+            return given.Name.Length == 0 ? null : given;
+        }
+
+        if (CultureInfo.CurrentCulture.Name.Length > 0)
+        {
+            return CultureInfo.CurrentCulture;
+        }
+
+        if (!browserDatesRead &&
+            handle != null)
+        {
+            browserDatesRead = true;
+            try
+            {
+                browserDates = (await handle.ReaderDatesAsync())?.ToCulture();
+            }
+            catch (JSException)
+            {
+                // A browser whose Intl cannot answer leaves Word's list.
+            }
+        }
+
+        return browserDates;
+    }
+
+    // The first of the formats a culture offers: its own short date, as Word's Alt+Shift+D writes the
+    // language's.
+    internal async Task InsertShortDateAsync() =>
+        await InsertDateAsync(MorphEditor.DateFormatsFor(await DateCultureAsync())[0], true);
+
     internal async Task InsertDateAsync(string format, bool update)
     {
         if (await RequireAsync() is not { } target)
@@ -1167,7 +1207,7 @@ public partial class MorphViewer
 
         // Spelt in the reader's culture, as the dialog showed it.
         var now = await ReaderDateAsync();
-        var culture = CultureInfo.CurrentCulture;
+        var culture = await DateCultureAsync() ?? CultureInfo.InvariantCulture;
         await InsertAsync(target, (_, paragraph, offset, options) => DocumentEditor.InsertDate(_, paragraph, offset, format, now, update, options, culture));
     }
 

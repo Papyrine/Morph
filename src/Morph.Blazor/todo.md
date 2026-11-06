@@ -20,9 +20,6 @@ what those fixes stopped short of.
   or on leaving the box.
 - **A click in F8 extend mode ends the mode.** Word may extend the selection to the click instead;
   settle it with a Word probe.
-- **Date & time formats follow `CultureInfo.CurrentCulture`**, but Morph.Web runs with
-  `InvariantGlobalization`, so the deployed app still offers Word's invariant list. The component
-  takes no `ExportOptions.Culture`.
 - **A submenu opened from a menu that scrolls** (`placeMenu` caps a tall menu's height) is clipped by
   it.
 - **A drag that would reorder a paragraph's fields, pictures or notes is undone** with a status note:

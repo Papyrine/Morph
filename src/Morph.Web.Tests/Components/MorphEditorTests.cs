@@ -1792,7 +1792,7 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     public async Task TheDateFormats_FollowTheCulture()
     {
-        await Assert.That(MorphEditor.DateFormatsFor(CultureInfo.InvariantCulture)).IsEquivalentTo(MorphViewer.DateFormats);
+        await Assert.That(MorphEditor.DateFormatsFor(null)).IsEquivalentTo(MorphViewer.DateFormats);
         var american = MorphEditor.DateFormatsFor(new("en-US"));
         await Assert.That(american[0]).IsEqualTo("M/d/yyyy");
         await Assert.That(american).Contains("d/MM/yyyy");
@@ -1800,6 +1800,33 @@ public class MorphEditorTests : BunitTestContext
         var date = new DateTime(2026, 11, 2, 9, 5, 0);
         await Assert.That(date.ToString(DocumentEditor.Literal("d/MM/yyyy HH:mm"), new CultureInfo("de-DE"))).IsEqualTo("2/11/2026 09:05");
         await Assert.That(date.ToString(DocumentEditor.Literal("d MMMM yyyy"), new CultureInfo("de-DE"))).IsEqualTo("2 November 2026");
+    }
+
+    // A runtime with no culture data spells dates as the reader's browser does: its patterns come
+    // first among the formats, and its month and day names are the ones written.
+    [Test]
+    public async Task TheBrowsersDates_StandInForMissingCultureData()
+    {
+        var french = new ReaderDates(
+            "dd/MM/yyyy",
+            "dddd d MMMM yyyy",
+            "MMMM yyyy",
+            "HH:mm",
+            ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+            ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+            ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+            ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."]).ToCulture();
+        await Assert.That(french).IsNotNull();
+
+        var formats = MorphEditor.DateFormatsFor(french);
+        await Assert.That(formats.Take(4)).IsEquivalentTo(["dd/MM/yyyy", "dddd d MMMM yyyy", "MMMM yyyy", "HH:mm"]);
+
+        var date = new DateTime(2026, 11, 2, 9, 5, 0);
+        await Assert.That(date.ToString(DocumentEditor.Literal(formats[1]), french)).IsEqualTo("lundi 2 novembre 2026");
+        await Assert.That(date.ToString(DocumentEditor.Literal("d MMM yy"), french)).IsEqualTo("2 nov. 26");
+
+        // A browser that handed back too few names leaves Word's list.
+        await Assert.That(new ReaderDates("d/M/yyyy", "", "", "", [], [], [], []).ToCulture()).IsNull();
     }
 
     // Undo and Redo are greyed out with nothing to undo or redo, and Undo comes on with an edit made.

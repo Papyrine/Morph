@@ -30,6 +30,37 @@ public partial class SnapshotTests
                                           !_.Contains(" DATE "));
     }
 
+    // Morph.Web has no culture data (InvariantGlobalization), so the Date and Time dialog offers the
+    // reader's browser's dates first, spelt in its month and day names.
+    [Test]
+    public async Task Fields_DateDialog_OffersTheBrowsersDatesFirst()
+    {
+        var page = await browser!.NewPageAsync(
+            new()
+            {
+                Locale = "fr-FR"
+            });
+        await page.GotoAsync($"http://localhost:{port}/edit");
+        await LoadIntoAsync(page, Paragraphs, "edit.docx");
+        await page.WaitForSelectorAsync(".viewer[data-edit=on]");
+
+        await ClickInAsync(page, "paragraph here");
+        await ChooseTabAsync(page, "Insert");
+        await page.ClickAsync(".editor-tool:has-text('Date & time')");
+        await page.WaitForSelectorAsync("#editor-date-title");
+
+        var formats = await page.EvalOnSelectorAllAsync<string[]>(
+            ".editor-dialog [data-format]",
+            "options => options.map(_ => _.dataset.format)");
+        await Assert.That(formats.Take(3)).IsEquivalentTo(["dd/MM/yyyy", "dddd d MMMM yyyy", "MMMM yyyy"]);
+        await Assert.That(formats).Contains("yyyy-MM-dd");
+
+        var now = DateTime.Now;
+        string[] days = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+        var label = await page.TextContentAsync(".editor-dialog [data-format='dddd d MMMM yyyy']");
+        await Assert.That(label!).StartsWith(days[(int) now.DayOfWeek]);
+    }
+
     [Test]
     public async Task Fields_TableOfContents_ListsThePagesItsHeadingsAreOn()
     {
