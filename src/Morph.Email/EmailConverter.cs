@@ -3,7 +3,7 @@ namespace Morph;
 /// <summary>
 /// Reads an email, <c>.eml</c> or Outlook <c>.msg</c>, as a document: a header block with the sender, the
 /// date, the recipients, the subject and the names of the attachments, then the body. The body is the
-/// message's HTML, its <c>cid:</c> images inlined and remote resources dropped (OfficeIMO.Email), and the
+/// message's HTML (its text when it has none), the pictures it shows by <c>cid:</c> inlined, and the
 /// document is a <c>.docx</c> (OpenXmlHtml), which Morph lays out with the inline styles and images an
 /// email body relies on. <see cref="PdfEmailConverter"/> renders it to PDF.
 /// </summary>
@@ -23,8 +23,9 @@ public static class EmailConverter
     public static string ConvertToHtml(Stream emailStream, CultureInfo? culture = null, Cancel cancel = default)
     {
         cancel.ThrowIfCancellationRequested();
-        var email = EmailDocument.Load(emailStream, null, cancel);
-        return ToHtml(email, culture ?? CultureInfo.InvariantCulture, cancel);
+        var email = EmailReader.Read(emailStream);
+        cancel.ThrowIfCancellationRequested();
+        return ToHtml(email, culture ?? CultureInfo.InvariantCulture);
     }
 
     /// <summary>The email as a Word document, written to <paramref name="output"/>.</summary>
@@ -45,25 +46,8 @@ public static class EmailConverter
         return docx;
     }
 
-    static string ToHtml(EmailDocument email, CultureInfo culture, Cancel cancel)
+    static string ToHtml(EmailMessage email, CultureInfo culture)
     {
-        // The exporter's page is the body sanitized, its cid: images as data: URIs, under a header of its
-        // own. That header is replaced by the block below, which lists the attachments too.
-        var exported = EmailHtmlExporter.ExportContent(email, cancel).Html;
-        var parser = new HtmlParser();
-        using var page = parser.ParseDocument(exported);
-        var body = page.Body!;
-        if (body.QuerySelector("header") is { } header)
-        {
-            if (header.NextElementSibling is { } rule &&
-                rule.TagName.Equals("hr", StringComparison.OrdinalIgnoreCase))
-            {
-                rule.Remove();
-            }
-
-            header.Remove();
-        }
-
         var subject = email.Subject;
         if (string.IsNullOrWhiteSpace(subject))
         {
@@ -77,16 +61,16 @@ public static class EmailConverter
         builder.Append(WebUtility.HtmlEncode(subject));
         builder.Append("</h1><p>");
         var lines = new List<string>();
-        AppendLine(lines, "From", Format(email.From ?? email.Sender));
+        AppendLine(lines, "From", email.From);
         AppendLine(lines, "Date", FormatDate(email.Date, culture));
-        AppendLine(lines, "To", Recipients(email, EmailRecipientKind.To));
-        AppendLine(lines, "Cc", Recipients(email, EmailRecipientKind.Cc));
-        AppendLine(lines, "Bcc", Recipients(email, EmailRecipientKind.Bcc));
-        AppendLine(lines, "Attachments", Attachments(email));
+        AppendLine(lines, "To", Join(email.To));
+        AppendLine(lines, "Cc", Join(email.Cc));
+        AppendLine(lines, "Bcc", Join(email.Bcc));
+        AppendLine(lines, "Attachments", Join(email.Attachments));
         builder.AppendJoin("<br>", lines);
         // No rule under the block: the .docx import writes one as a row of dashes.
         builder.Append("</p>");
-        builder.Append(body.InnerHtml);
+        builder.Append(email.Body);
         builder.Append("</body></html>");
         return builder.ToString();
     }
@@ -101,6 +85,16 @@ public static class EmailConverter
         lines.Add($"<b>{label}:</b> {WebUtility.HtmlEncode(value)}");
     }
 
+    static string? Join(List<string> values)
+    {
+        if (values.Count == 0)
+        {
+            return null;
+        }
+
+        return string.Join(", ", values);
+    }
+
     static string? FormatDate(DateTimeOffset? date, CultureInfo culture)
     {
         if (date == null)
@@ -109,65 +103,5 @@ public static class EmailConverter
         }
 
         return $"{date.Value.ToString("f", culture)} {date.Value.ToString("zzz", culture)}";
-    }
-
-    static string? Recipients(EmailDocument email, EmailRecipientKind kind)
-    {
-        var addresses = email.Recipients
-            .Where(_ => _.Kind == kind)
-            .Select(_ => Format(_.Address))
-            .Where(_ => !string.IsNullOrEmpty(_))
-            .ToList();
-        if (addresses.Count == 0)
-        {
-            return null;
-        }
-
-        return string.Join(", ", addresses);
-    }
-
-    // The files the reader would save beside the message: not the images the body shows in place.
-    static string? Attachments(EmailDocument email)
-    {
-        var names = email.Attachments
-            .Where(_ => !_.IsInline && !_.IsHidden)
-            .Select(_ => _.FileName)
-            .Where(_ => !string.IsNullOrWhiteSpace(_))
-            .ToList();
-        if (names.Count == 0)
-        {
-            return null;
-        }
-
-        return string.Join(", ", names);
-    }
-
-    static string? Format(EmailAddress? address)
-    {
-        if (address == null)
-        {
-            return null;
-        }
-
-        var name = address.DisplayName?.Trim();
-        var mailbox = address.Address?.Trim();
-        if (!string.IsNullOrEmpty(name) &&
-            !string.IsNullOrEmpty(mailbox) &&
-            !name.Equals(mailbox, StringComparison.OrdinalIgnoreCase))
-        {
-            return $"{name} <{mailbox}>";
-        }
-
-        if (!string.IsNullOrEmpty(mailbox))
-        {
-            return mailbox;
-        }
-
-        if (!string.IsNullOrEmpty(name))
-        {
-            return name;
-        }
-
-        return address.RawValue;
     }
 }

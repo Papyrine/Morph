@@ -475,7 +475,7 @@ var pdf = PdfEmailConverter.ConvertToPdf("message.msg");
 
 The date in the header is written in `PdfExportOptions.Culture`. `EmailConverter.ConvertToHtml` and `EmailConverter.ConvertToDocx` give the document itself, to show or to open in the editor.
 
-The readers are [OfficeIMO.Email](https://www.nuget.org/packages/OfficeIMO.Email/) and the HTML import is [OpenXmlHtml](https://www.nuget.org/packages/OpenXmlHtml/), which is why this is a package of its own rather than part of `Morph.Pdf`: `Morph.Blazor` ships `Morph.Pdf` to the browser, and these stay on the server.
+The reader is [MsgReader](https://www.nuget.org/packages/MsgReader/) and the HTML import is [OpenXmlHtml](https://www.nuget.org/packages/OpenXmlHtml/), which is why this is a package of its own rather than part of `Morph.Pdf`: `Morph.Blazor` ships `Morph.Pdf` to the browser, and these stay on the server.
 
 
 ### Bookmark page numbers
