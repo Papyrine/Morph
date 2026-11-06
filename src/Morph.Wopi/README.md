@@ -44,6 +44,15 @@ app.MapMorphWopi();
 Then point the host at `https://morph.example.com/hosting/discovery`. See
 [the sample](/src/Morph.Wopi.Sample/README.md) for both sides running together.
 
+The WebAssembly app is referenced by the application like any other project or package, and its files are
+served by `MapStaticAssets` (or `UseStaticFiles`) like any other static web assets. An application with pages
+of its own at the root serves the editor under a path instead: give the app's project a
+`StaticWebAssetBasePath` of `morph`, its `index.html` a `<base href="/morph/">`, and `Page` the path the
+page then has in the web root, `morph/index.html`. The app asks for Morph.Blazor's assets under its base,
+`/morph/_content/Morph.Blazor/...`, where an application serves no library's; `MapMorphWopi` serves them
+there, from the web root. An application serving such an app without `MapMorphWopi` does the same with
+`app.MapMorphAssets("/morph")`.
+
 
 ## Options
 
@@ -51,7 +60,7 @@ Then point the host at `https://morph.example.com/hosting/discovery`. See
 |---|---|---|
 | `BaseUrl` | the request's | The URL the hosts reach Morph at, which the discovery's action URLs start with. |
 | `TrustedHosts` | none | The hosts Morph opens files for, as origins: a `WOPISrc` on any other is refused, and only these may frame the editor. |
-| `Page` | `index.html` | The page of the web root that runs the editor, which the action URLs answer with. |
+| `Page` | `index.html` | The page of the web root that runs the editor, which the action URLs answer with: `morph/index.html` for an app served under `/morph`, where Morph.Blazor's assets are then served too. |
 | `ProofKey`, `OldProofKey` | a key made at startup | The RSA keys requests are signed with, published in the discovery. Set them when the application has several instances, or the hosts should not read the discovery again after a restart. |
 | `MaxFileSize` | 25 MB | The largest file a save sends to the host. |
 

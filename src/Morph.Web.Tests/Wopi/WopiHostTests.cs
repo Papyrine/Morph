@@ -42,7 +42,9 @@ public class WopiHostTests
 
     // With pageInBuildOutput, the editor's page is not in the web root but in the static web assets of the
     // build output, as an application run outside Development from its build has the files of its editor.
-    static async Task<Server> StartAsync(bool pageInBuildOutput = false)
+    // With a basePath, the editor app is served under it: its page is in that folder of the web root, and
+    // Morph.Blazor's assets are at the root, as an application serves every library's.
+    static async Task<Server> StartAsync(bool pageInBuildOutput = false, string? basePath = null)
     {
         var folder = Path.Combine(Path.GetTempPath(), $"morph-wopi-{Guid.NewGuid():N}");
         var files = Path.Combine(folder, "files");
@@ -58,7 +60,17 @@ public class WopiHostTests
             Directory.CreateDirectory(editor);
         }
 
-        await File.WriteAllTextAsync(Path.Combine(editor, "index.html"), "<!doctype html><html><head><title>Editor</title></head><body><div id=\"app\"></div></body></html>");
+        var page = "index.html";
+        if (basePath != null)
+        {
+            page = $"{basePath}/index.html";
+            Directory.CreateDirectory(Path.Combine(editor, basePath));
+        }
+
+        var assets = Path.Combine(web, "_content", "Morph.Blazor");
+        Directory.CreateDirectory(assets);
+        await File.WriteAllTextAsync(Path.Combine(assets, "morph.css"), ".morph { color: red }");
+        await File.WriteAllTextAsync(Path.Combine(editor, page), "<!doctype html><html><head><title>Editor</title></head><body><div id=\"app\"></div></body></html>");
 
         var builder = WebApplication.CreateBuilder(
             new WebApplicationOptions
@@ -113,6 +125,7 @@ public class WopiHostTests
             {
                 options.BaseUrl = "http://morph";
                 options.TrustedHosts.Add("http://host");
+                options.Page = page;
             });
         // Both sides' requests go to the test server: the host's for the discovery, Morph's to the host.
         services.AddHttpClient(OfficeHostOptions.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => server!.CreateHandler());
@@ -182,6 +195,44 @@ public class WopiHostTests
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(opened).IsNotNull();
+    }
+
+    // An editor app served under a path asks for Morph.Blazor's assets under it, where the application
+    // serves no library's: MapMorphWopi serves them there, from the root of the web root, and the page is
+    // found in the folder.
+    [Test]
+    public async Task AnAppUnderAPath_GetsTheLibraryAssetsUnderIt()
+    {
+        await using var server = await StartAsync(basePath: "morph");
+        var client = server.Client();
+
+        var css = await client.GetAsync("/morph/_content/Morph.Blazor/morph.css");
+        await Assert.That(css.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(css.Content.Headers.ContentType!.MediaType).IsEqualTo("text/css");
+        await Assert.That(await css.Content.ReadAsStringAsync()).IsEqualTo(".morph { color: red }");
+        await Assert.That(css.Headers.ETag).IsNotNull();
+
+        var unchanged = new HttpRequestMessage(HttpMethod.Get, "/morph/_content/Morph.Blazor/morph.css");
+        unchanged.Headers.IfNoneMatch.Add(css.Headers.ETag!);
+        await Assert.That((await client.SendAsync(unchanged)).StatusCode).IsEqualTo(HttpStatusCode.NotModified);
+
+        await Assert.That((await client.GetAsync("/morph/_content/Morph.Blazor/missing.css")).StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+        await Assert.That((await client.GetAsync("/morph/_content/Morph.Blazor/%2e%2e/%2e%2e/morph/index.html")).StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+
+        var (response, opened) = await PostAsync(client, await server.LaunchAsync());
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(opened).IsNotNull();
+    }
+
+    // At the root, the application serves the assets itself: MapMorphWopi adds nothing over them.
+    [Test]
+    public async Task AnAppAtTheRoot_IsLeftToTheApplication()
+    {
+        await using var server = await StartAsync();
+
+        var css = await server.Client().GetAsync("/_content/Morph.Blazor/morph.css");
+
+        await Assert.That(css.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
 
     // Through the proxy, signed: the file's info, its content, the lock, a save over it, and the unlock.

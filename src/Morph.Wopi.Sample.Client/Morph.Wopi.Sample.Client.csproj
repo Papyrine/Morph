@@ -8,6 +8,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Served under /morph (wwwroot/index.html's base href is the same), as an application that has pages of
+         its own at the root serves an editor: the server finds the page at morph/index.html (MorphWopi:Page in
+         appsettings.json), and serves Morph.Blazor's assets under /morph as the app asks for them. -->
+    <StaticWebAssetBasePath>morph</StaticWebAssetBasePath>
     <!-- As Morph.Web: trimmed, with the conversion libraries rooted by Morph.Blazor.targets, single-threaded. -->
     <PublishTrimmed>true</PublishTrimmed>
     <InvariantGlobalization>true</InvariantGlobalization>
