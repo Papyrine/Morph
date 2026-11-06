@@ -44,7 +44,16 @@ public static class MorphWopiExtensions
     /// </summary>
     public static IEndpointRouteBuilder MapMorphWopi(this IEndpointRouteBuilder endpoints)
     {
-        AddEditorAssets(endpoints.ServiceProvider);
+        var page = endpoints.ServiceProvider.GetRequiredService<IOptions<MorphWopiOptions>>().Value.Page;
+        AddWebRootAssets(endpoints.ServiceProvider, page);
+        // The page's folder is the editor app's base: an app at /morph/ has its page at morph/index.html.
+        // The app asks for Morph.Blazor's assets under its base, where the application does not serve them.
+        var folder = Path.GetDirectoryName(page)?.Replace('\\', '/').Trim('/');
+        if (!string.IsNullOrEmpty(folder))
+        {
+            endpoints.MapMorphAssets($"/{folder}");
+        }
+
         endpoints.MapGet("/hosting/discovery", WopiDiscoveryXml.Handle);
         foreach (var action in (string[]) ["view", "edit"])
         {
@@ -62,16 +71,33 @@ public static class MorphWopiExtensions
     }
 
     /// <summary>
-    /// The editor's page is read from the web root. An application run from its build output has the files
-    /// of the projects it references, the editor's WebAssembly app among them, in the web root only in
-    /// Development, though MapStaticAssets serves them in any environment: outside it, they are added from
-    /// the same manifest. A published application has them in its wwwroot, and no manifest.
+    /// Serves Morph.Blazor's static web assets under <paramref name="basePath"/>, for a WebAssembly app
+    /// served there: one whose <c>StaticWebAssetBasePath</c> and <c>&lt;base href&gt;</c> are it. An
+    /// application serves the assets of every library it references at the root,
+    /// <c>/_content/Morph.Blazor/...</c>, while the app asks for them under its base,
+    /// <c>/morph/_content/Morph.Blazor/...</c> for an app at <c>/morph/</c>: this answers there with the
+    /// same files, from the web root. <see cref="MapMorphWopi"/> does it for the folder of
+    /// <see cref="MorphWopiOptions.Page"/>, so an application that serves the editor through it needs
+    /// nothing more, and an app at the root needs nothing at all.
     /// </summary>
-    static void AddEditorAssets(IServiceProvider services)
+    public static IEndpointConventionBuilder MapMorphAssets(this IEndpointRouteBuilder endpoints, PathString basePath)
+    {
+        AddWebRootAssets(endpoints.ServiceProvider, WopiAssets.StyleSheet);
+        var prefix = basePath.Value?.TrimEnd('/');
+        return endpoints.MapGet($"{prefix}/{WopiAssets.ContentRoot}/{{**path}}", WopiAssets.Handle);
+    }
+
+    /// <summary>
+    /// The editor's page and Morph.Blazor's assets are read from the web root. An application run from its
+    /// build output has the files of the projects it references, the editor's WebAssembly app among them,
+    /// in the web root only in Development, though MapStaticAssets serves them in any environment: outside
+    /// it, they are added from the same manifest when <paramref name="file"/> is not in the web root. A
+    /// published application has them in its wwwroot, and no manifest.
+    /// </summary>
+    static void AddWebRootAssets(IServiceProvider services, string file)
     {
         var environment = services.GetRequiredService<IWebHostEnvironment>();
-        var page = services.GetRequiredService<IOptions<MorphWopiOptions>>().Value.Page;
-        if (environment.WebRootFileProvider.GetFileInfo(page).Exists)
+        if (environment.WebRootFileProvider.GetFileInfo(file).Exists)
         {
             return;
         }

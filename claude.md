@@ -220,6 +220,13 @@ embedding). The public entry-point converters live here too (DOCX→PNG and HTML
 backends; the byte-reproducibility post-processing (`MakeDeterministic` / `TrimPages` / `Normalize`) lives
 there too.
 
+**Email** (`src/Morph.Email/`): `EmailConverter` reads `.eml` / Outlook `.msg` (OfficeIMO.Email) into an
+HTML document — a header block with the sender, date, recipients, subject and attachment names, then the
+body with its `cid:` images inlined — and imports that as a `.docx` (OpenXmlHtml); `PdfEmailConverter`
+renders it through `PdfDocumentConverter`. A package of its own so the readers stay out of `Morph.Blazor`'s
+browser payload. `PdfEmailConverterTests`: the HTML snapshots and the PDF's text run on any machine, the PDF
+snapshots only in the container.
+
 **Blazor** (`src/Morph.Blazor/`): the reusable browser front end, packaged for NuGet as `Morph.Blazor`.
 `MorphConverter` is the whole widget (upload → page preview → format picker → download);
 `ConversionService` wraps Morph's converters over `byte[]` in / `byte[]` out, and `FontStore` materialises

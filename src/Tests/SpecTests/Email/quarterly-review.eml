@@ -1,0 +1,58 @@
+From: Sam Taylor <sam.taylor@example.org>
+To: Priya Nair <priya.nair@example.org>, Alex Chen <alex.chen@example.org>
+Cc: Finance <finance@example.org>
+Subject: Quarterly review on Thursday
+Date: Tue, 3 Mar 2026 09:15:00 +1100
+Message-ID: <quarterly-review-1@example.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mixed-1"
+
+--mixed-1
+Content-Type: multipart/related; boundary="related-1"; type="text/html"
+
+--related-1
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<html>
+<body>
+<p>Hello Priya,</p>
+<p>The <b>quarterly review</b> is on <i>Thursday</i>. The agenda is attached, and the chart below shows where we stand.</p>
+<p><img src="cid:chart@example.org" alt="Chart" width="160" height="60"></p>
+<ul>
+<li>Revenue is up 4%.</li>
+<li>Costs are flat.</li>
+</ul>
+<table border="1" cellpadding="4">
+<tr><th>Region</th><th>Result</th></tr>
+<tr><td>North</td><td>On plan</td></tr>
+<tr><td>South</td><td>Ahead</td></tr>
+</table>
+<p>Regards,<br>Sam</p>
+</body>
+</html>
+--related-1
+Content-Type: image/png; name="chart.png"
+Content-Transfer-Encoding: base64
+Content-ID: <chart@example.org>
+Content-Disposition: inline; filename="chart.png"
+
+iVBORw0KGgoAAAANSUhEUgAAAKAAAAA8CAYAAADha7EVAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA
+zklEQVR4nO3ZMRWEQBAFwQ3wcacI9IAA/OAIJyBigw6oyifr95NZfuv+DIgsA0ICJCVAUgIkJUBS
+AiQlQFICJCVAUgIkJUBSAiQlQFICJCVAUgIkJUBSAiQlQFICJCVAUgIkJUBS0wHe1zn4rv92TN1b
+QFICJCVAUgIkJUBSAiQlQFICJCVAUgIkJUBS0wHO/gL5NgtISoCkBEhKgKQESEqApARISoCkBEhK
+gKQESEqApARISoCkBEhKgKQESEqApARISoCkBEhKgKQESOoFOZMGv4EJOycAAAAASUVORK5CYII=
+--related-1--
+--mixed-1
+Content-Type: text/plain; name="agenda.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="agenda.txt"
+
+MS4gV2VsY29tZQ0KMi4gUXVhcnRlcmx5IGZpZ3VyZXMNCjMuIEFueSBvdGhlciBidXNpbmVzcw0K
+--mixed-1
+Content-Type: application/pdf; name="figures.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="figures.pdf"
+
+JVBERi0xLjQKJSBub3QgYSByZWFsIHBkZiwgYW4gYXR0YWNobWVudCBsaXN0ZWQgYnkgbmFtZQo=
+--mixed-1--
