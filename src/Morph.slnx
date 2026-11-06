@@ -3,6 +3,8 @@
   <Project Path="Morph.Skia/Morph.Skia.csproj" />
   <Project Path="Morph.ImageSharp/Morph.ImageSharp.csproj" />
   <Project Path="Morph.Pdf/Morph.Pdf.csproj" />
+  <!-- Email (.eml, .msg) to PDF through Morph.Pdf; a server-side package, its readers kept out of the browser. -->
+  <Project Path="Morph.Email/Morph.Email.csproj" />
   <!--
     The reusable Blazor component package. Unlike the Morph.Web app below it is a plain Razor class
     library, so it needs no wasm-tools workload and builds (and packs) everywhere, including the

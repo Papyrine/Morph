@@ -8,7 +8,10 @@ of WOPI, on two ports, so that one run starts both:
   lists them and a page that opens one in a frame;
 * the client, at http://localhost:5001: Morph's discovery, the editor's page, and the proxy the editor calls
   the host through. The editor itself is [Morph.Wopi.Sample.Client](/src/Morph.Wopi.Sample.Client), a
-  WebAssembly app whose root component is `MorphWopi`.
+  WebAssembly app whose root component is `MorphWopi`, served under `/morph` as an application with pages of
+  its own at the root would serve it: its `StaticWebAssetBasePath` and `<base href>` are `morph`, and
+  `MorphWopi:Page` is `morph/index.html`. Morph.Blazor's assets, which the app asks for under its base, are
+  served there by `MapMorphWopi`; the application rewrites nothing.
 
 Deployed, they would be two applications, usually on two sites. The host requires every request to carry a
 proof (`RequireProof`), which Morph's discovery keys validate.

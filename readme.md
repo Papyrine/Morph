@@ -35,6 +35,7 @@ Which package is needed depends on the *output* format, not the input — DOCX a
 | HTML | [`Morph`](https://nuget.org/packages/Morph/) | No rendering backend required |
 | Markdown | [`Morph`](https://nuget.org/packages/Morph/) | No rendering backend required |
 | PDF | [`Morph.Pdf`](https://nuget.org/packages/Morph.Pdf/) | Vector text via PdfSharp |
+| PDF from email | [`Morph.Email`](https://nuget.org/packages/Morph.Email/) | `.eml` and Outlook `.msg`, laid out as a Word document; see [Email to PDF](#email-to-pdf) |
 | PNG | [`Morph.Skia`](https://nuget.org/packages/Morph.Skia/) or [`Morph.ImageSharp`](https://nuget.org/packages/Morph.ImageSharp/) | Pick a [rendering backend](#rendering-backends) |
 
 `Morph.Skia`, `Morph.ImageSharp` and `Morph.Pdf` all depend on `Morph`, so any of them also brings the HTML and Markdown exporters.
@@ -462,6 +463,19 @@ document.ExportToPdf("page.pdf");
 ```
 <sup><a href='/src/Tests/ReadmeSamples.cs#L282-L293' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
+
+
+### Email to PDF
+
+[`Morph.Email`](https://nuget.org/packages/Morph.Email/) reads an email, `.eml` or Outlook `.msg`, as a document: a header block with the sender, the date, the recipients, the subject and the names of the attachments, then the body, its `cid:` images inlined and remote resources dropped. The body is laid out as a Word document, which keeps the inline styles and images an email body relies on, and `PdfEmailConverter` renders it the way `PdfDocumentConverter` renders a `.docx`:
+
+```cs
+var pdf = PdfEmailConverter.ConvertToPdf("message.msg");
+```
+
+The date in the header is written in `PdfExportOptions.Culture`. `EmailConverter.ConvertToHtml` and `EmailConverter.ConvertToDocx` give the document itself, to show or to open in the editor.
+
+The readers are [OfficeIMO.Email](https://www.nuget.org/packages/OfficeIMO.Email/) and the HTML import is [OpenXmlHtml](https://www.nuget.org/packages/OpenXmlHtml/), which is why this is a package of its own rather than part of `Morph.Pdf`: `Morph.Blazor` ships `Morph.Pdf` to the browser, and these stay on the server.
 
 
 ### Bookmark page numbers

@@ -20,7 +20,10 @@ public sealed class MorphWopiOptions
     /// <summary>
     /// The page of the web root that runs the editor: a Blazor WebAssembly app whose root component is
     /// Morph.Blazor's <c>MorphWopi</c>. The action URLs answer with it, the file to open written into it.
-    /// Default <c>index.html</c>.
+    /// Default <c>index.html</c>, an app at the root. An app served under a path (its
+    /// <c>StaticWebAssetBasePath</c>, and its <c>&lt;base href&gt;</c>) has its page there:
+    /// <c>morph/index.html</c> for an app at <c>/morph/</c>. Morph.Blazor's assets, which the app asks for
+    /// under its base, are then served there too (<see cref="MorphWopiExtensions.MapMorphAssets"/>).
     /// </summary>
     public string Page { get; set; } = "index.html";
 

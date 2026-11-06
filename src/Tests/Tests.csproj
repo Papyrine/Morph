@@ -25,6 +25,7 @@
       <Aliases>global,ImageSharp</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
+    <ProjectReference Include="..\Morph.Email\Morph.Email.csproj" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" />

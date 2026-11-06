@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Morph</RootNamespace>
+    <Description>Converts email (.eml and Outlook .msg) to PDF with Morph: the sender, recipients, subject, date and attachments as a header, the body laid out as a Word document.</Description>
+    <NoWarn>CS0618;CS1591;CS1572</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Its own package rather than part of Morph.Pdf: the email readers (OfficeIMO.Email) and the HTML
+         importer (OpenXmlHtml) are a server-side dependency, and Morph.Pdf is what the Blazor package
+         ships to the browser. -->
+    <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="OfficeIMO.Email" />
+    <PackageReference Include="OfficeIMO.Email.Html" />
+    <PackageReference Include="OpenXmlHtml" />
+    <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
+    <PackageReference Include="SponsorCheck" PrivateAssets="all" Condition="'$(MORPH_TEST_CONTAINER)' != '1'" />
+  </ItemGroup>
+
+</Project>
